@@ -40,7 +40,7 @@ export function FilesPanel({ project }: { project?: string }) {
                 {...control}
                 value={dir}
                 onChange={(event) => setDir(event.target.value)}
-                placeholder="(workspace root)"
+                placeholder={project ? '(project root)' : '(workspace root)'}
                 aria-label="Files directory path"
               />
             )}
@@ -52,12 +52,12 @@ export function FilesPanel({ project }: { project?: string }) {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="filename or line text"
-                aria-label="Search workspace files"
+                aria-label={`Search ${project ? 'project' : 'workspace'} files`}
               />
             )}
           </Field>
         </div>
-        {tree.isPending ? <LoadingState label="Listing workspace files" /> : null}
+        {tree.isPending ? <LoadingState label={`Listing ${project ? 'project' : 'workspace'} files`} /> : null}
         {tree.isError ? (
           <ErrorState title="Could not list files" error={tree.error} onRetry={() => void tree.refetch()} />
         ) : null}
