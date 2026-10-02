@@ -73,7 +73,8 @@ filled with fabricated contents.
 | Active harness / workspace root | Workshop grounds / home lot | One managed environment organizing projects | Select → Workspace inspector | known / missing harness / notice | List: workspace path + harness source | `workspace.grounds` |
 | Workspace knowledge (`knowledge/` or memory API with workspace scope) | Shared archive / library annex | Shared facts for every agent started here | Open → Workspace / memory | present / empty / unavailable | List: knowledge entry counts or "empty" | `knowledge.workspace` |
 | Project (symlink under `projects/`) | Building / cottage | A development repo you enter to work | Enter project space; open Workspace | ok / broken / empty roster | List: project name + link status | `project.building` |
-| Project knowledge / memory files scoped to a project | Project shelf / ledger | Project-local durable notes | Open memory read / Workspace | present / empty / unavailable | List: memory entries for project | `knowledge.project` |
+| Project files | Filing cabinet / project desk | Files belong to the registered repository root, which may live outside the workspace | Open Workspace Files scoped to that project | listed / empty / unavailable / unsafe link skipped | List: relative path + project name | `files.project` |
+| Project knowledge | Project study shelf | Project-scoped knowledge, only when a project knowledge API exists | Open project knowledge inspector | present / empty / unavailable | List: knowledge entry counts or unavailable | `knowledge.project` (reserved; omitted until backed by an API) |
 | Memory entry (typed memory API) | Document / ledger page | Durable knowledge file with provenance | Open memory inspector | listed / readable / archived | List: id, kind, title | `memory.entry` |
 | Memory search / hits | Card index | Retrieval without inventing results | Open search / hits | hits / no hits / unavailable | List of hits | `memory.index` |
 | Terminal / PTY session | Terminal workstation | Direct agent/shell work | Open Terminal destination / dock | idle / attached / exited | List: session ids | `tool.terminal` |
@@ -248,6 +249,7 @@ A working `/world` home that:
 | Concept | Status |
 |---|---|
 | `/world` home + project interiors | **Implemented** |
+| Project board → Workspace project context; filing cabinet → registered project files | **Implemented** (typed project-scoped file API; read-only, symlink-safe) |
 | Project houses from roster | **Implemented** (CLI-text parser transitional) |
 | Memory archive + per-entry tiles → memory-file inspector | **Implemented** |
 | Library annex → `/library` | **Implemented** |

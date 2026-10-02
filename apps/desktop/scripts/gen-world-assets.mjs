@@ -1152,6 +1152,20 @@ function deskTerminal() {
   return [{ name: 'desk-terminal', img }];
 }
 
+function deskFiles() {
+  const img = new Img(32, 32);
+  shadow(img, 3, 29, 30);
+  img.rect(4, 3, 27, 29, 'k').rect(5, 4, 26, 28, 'ol');
+  img.rect(7, 6, 24, 12, 'od').rect(8, 7, 23, 11, 'rt');
+  img.rect(7, 13, 24, 19, 'od').rect(8, 14, 23, 18, 'ol');
+  img.rect(7, 20, 24, 26, 'od').rect(8, 21, 23, 25, 'rt');
+  for (const y of [8, 15, 22]) {
+    img.rect(13, y, 18, y + 1, 'k').rect(14, y, 17, y, 'gg');
+  }
+  img.set(6, 5, 'gg').set(25, 27, 'od');
+  return [{ name: 'desk-files', img }];
+}
+
 function shelfBooks() {
   const img = new Img(32, 32);
   shadow(img, 2, 29, 30);
@@ -1207,6 +1221,25 @@ function boardMap() {
   img.set(9, 15, 'rt').set(18, 16, 're').set(14, 8, 'rs');
   img.set(23, 17, 'go');
   return [{ name: 'board-map', img }];
+}
+
+function projectOverviewBoard() {
+  const img = new Img(48, 48);
+  shadow(img, 3, 43, 44);
+  img.rect(4, 3, 43, 39, 'k').rect(5, 4, 42, 38, 'ol').rect(7, 6, 40, 36, 'od');
+  img.rect(8, 8, 39, 34, 'sa');
+  img.rect(10, 10, 28, 30, 'g').rect(11, 11, 27, 29, 'gl');
+  img.hline(13, 24, 14, 'fo').hline(13, 24, 17, 'fo').vline(18, 14, 17, 'fo');
+  img.set(14, 24, 'rt').set(15, 23, 'rt').set(16, 22, 'rt');
+  img.set(23, 13, 'w').set(24, 14, 'w').set(25, 15, 'w');
+  img.set(13, 20, 'rr').set(24, 25, 'rw').set(15, 27, 're');
+  img.rect(30, 10, 36, 30, 'iv');
+  img.hline(31, 35, 13, 'rt').hline(31, 34, 16, 'sd');
+  img.hline(31, 35, 20, 're').hline(31, 34, 23, 'sd');
+  img.hline(31, 35, 27, 'rw').hline(31, 34, 30, 'sd');
+  img.set(8, 7, 'gg').set(39, 7, 'gg').set(8, 35, 'gg').set(39, 35, 'gg');
+  img.rect(17, 40, 30, 42, 'od').rect(19, 40, 28, 41, 'ol');
+  return [{ name: 'project-board', img }];
 }
 
 function crate() {
@@ -1369,10 +1402,12 @@ function collect() {
     rug(),
     plantPot(),
     deskTerminal(),
+    deskFiles(),
     shelfBooks(),
     cabinetMemory(),
     benchTools(),
     boardMap(),
+    projectOverviewBoard(),
     crate(),
     bubbleAlert(),
     butterfly(),

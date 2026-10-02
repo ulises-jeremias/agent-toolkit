@@ -235,7 +235,7 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     concept: 'Workspace files',
     name: 'Files',
     state: 'ready',
-    themeKey: 'knowledge.workspace',
+    themeKey: 'files.workspace',
     availability: 'present',
     hrefPath: '/workspace',
     hrefExtra: { panel: 'files' },
@@ -359,6 +359,7 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
     availability: 'present',
     hrefPath: '/world',
     detail: 'Leave the project interior',
+    facade: 'door-exit',
   });
 
   if (!project) {
@@ -388,16 +389,17 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
   entities.push({
     id: `place:project:${project.name}`,
     kind: 'place',
-    concept: 'Project interior',
+    concept: 'Project overview board',
     name: project.name,
     state: projectWorldState(project, activity, liveCount, projectSessions.length),
     themeKey: 'project.building',
     availability: 'present',
-    // Room plate selects only — Workspace inspector stays on the header link.
+    hrefPath: '/workspace',
+    hrefExtra: { panel: 'projects' },
     projectId: project.name,
     detail: `${project.status} → ${project.target}${projectSessions.length ? ` · ${projectSessions.length} Person session(s)` : ''}`,
     activity,
-    facade: projectFacade(project.name),
+    facade: 'project-board',
   });
 
   if (input.memory.available) {
@@ -457,12 +459,12 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
     concept: 'Project files',
     name: 'Files',
     state: 'ready',
-    themeKey: 'knowledge.project',
+    themeKey: 'files.project',
     availability: 'present',
     hrefPath: '/workspace',
-    hrefExtra: { panel: 'files' },
+    hrefExtra: { panel: 'files', project: project.name },
     projectId: project.name,
-    detail: `Workspace files panel · project path ${project.target}`,
+    detail: `Project files · ${project.target}`,
     facade: 'landmark-files',
   });
 

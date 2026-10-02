@@ -396,13 +396,9 @@ export function paintInterior(entities: readonly LaidOutEntity[], cols: number, 
   const p = new Painter(cols, rows, entities);
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
-      if (p.isBlocked(x, y)) continue;
-      p.set(x, y, y === 0 ? 'wall' : (x + y) % 2 ? 'floor-a' : 'floor-b', true);
+      const wall = y === 0 || y === rows - 1 || x === 0 || x === cols - 1;
+      p.set(x, y, wall ? 'wall' : (x + y) % 2 ? 'floor-a' : 'floor-b', true);
     }
   }
-  const exit = entities.find((e) => e.id === 'object:exit-grounds');
-  if (exit) p.sprite('exit-door', exit.x, exit.y, 'exit', 16, 24, 8, -6, true);
-  const room = entities.find((e) => e.id.startsWith('place:project:'));
-  if (room) p.sprite('rug', room.x + 1, room.y + room.h, 'rug', 32, 16, 8, 2);
   return { cells: cellsToArray(p), decor: p.decor };
 }

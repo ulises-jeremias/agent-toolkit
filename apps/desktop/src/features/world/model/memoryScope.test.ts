@@ -172,7 +172,7 @@ describe('buildWorldModel memory + standAt', () => {
     const laid = layoutWorld(model);
     const tool = laid.entities.find((e) => e.id === 'object:tool:cursor')!;
     const body = laid.entities.find((e) => e.id === 'character:job:j1')!;
-    expect(body.x).toBe(tool.x + tool.w - 1);
+    expect(body.x).toBe(tool.x + tool.w);
     expect(body.y).toBe(tool.y + tool.h - 1);
   });
 

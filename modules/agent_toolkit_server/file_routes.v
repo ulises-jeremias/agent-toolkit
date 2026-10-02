@@ -18,6 +18,13 @@ pub fn (app &App) files_list(mut ctx Ctx) veb.Result {
 	ws := serve_memory_workspace(ctx, '') or { return respond_sub_error(mut ctx, err) }
 	rel := ctx.query['path'] or { '' }
 	depth := ctx.query['depth'] or { '0' }.int()
+	project := ctx.query['project'] or { '' }
+	if project.len > 0 {
+		got := agent_toolkit_core.list_project_files(ws, project, rel, depth) or {
+			return file_catalog_error(mut ctx, err)
+		}
+		return ctx.json(got)
+	}
 	got := agent_toolkit_core.list_workspace_files(ws, rel, depth) or {
 		return file_catalog_error(mut ctx, err)
 	}
@@ -32,6 +39,13 @@ pub fn (app &App) files_content_get(mut ctx Ctx) veb.Result {
 	}
 	ws := serve_memory_workspace(ctx, '') or { return respond_sub_error(mut ctx, err) }
 	path := ctx.query['path'] or { '' }
+	project := ctx.query['project'] or { '' }
+	if project.len > 0 {
+		got := agent_toolkit_core.read_project_file(ws, project, path) or {
+			return file_catalog_error(mut ctx, err)
+		}
+		return ctx.json(got)
+	}
 	got := agent_toolkit_core.read_workspace_file(ws, path) or {
 		return file_catalog_error(mut ctx, err)
 	}
@@ -46,6 +60,13 @@ pub fn (app &App) files_hits(mut ctx Ctx) veb.Result {
 	}
 	ws := serve_memory_workspace(ctx, '') or { return respond_sub_error(mut ctx, err) }
 	q := ctx.query['q'] or { '' }
+	project := ctx.query['project'] or { '' }
+	if project.len > 0 {
+		got := agent_toolkit_core.search_project_files(ws, project, q) or {
+			return file_catalog_error(mut ctx, err)
+		}
+		return ctx.json(got)
+	}
 	got := agent_toolkit_core.search_workspace_files(ws, q) or {
 		return file_catalog_error(mut ctx, err)
 	}

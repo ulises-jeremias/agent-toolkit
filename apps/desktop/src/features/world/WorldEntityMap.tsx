@@ -454,6 +454,7 @@ function interiorOverride(theme: WorldThemePack, key: string, src: string): stri
   const map: Record<string, string> = {
     'tool.terminal': 'desk-terminal',
     'knowledge.project': 'shelf-books',
+    'files.project': 'desk-files',
     'memory.index': 'cabinet-memory',
     'tool.coding': 'tool-rack',
   };

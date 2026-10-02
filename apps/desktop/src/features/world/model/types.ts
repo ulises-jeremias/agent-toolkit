@@ -7,6 +7,8 @@ export type SemanticKey =
   | 'workspace.grounds'
   | 'knowledge.workspace'
   | 'knowledge.project'
+  | 'files.workspace'
+  | 'files.project'
   | 'project.building'
   | 'memory.entry'
   | 'memory.index'

@@ -2743,9 +2743,43 @@
     "/api/v1/files": {
       "get": {
         "operationId": "list_files",
-        "summary": "Server-native endpoint (list_files)",
+        "summary": "List workspace files or a registered project's files",
         "x-scope": "read:*",
         "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "depth",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -2758,7 +2792,7 @@
             }
           },
           "400": {
-            "description": "invalid path",
+            "description": "invalid project",
             "content": {
               "application/json": {
                 "schema": {
@@ -2778,7 +2812,7 @@
             }
           },
           "404": {
-            "description": "workspace or path not found",
+            "description": "workspace, registered project, or path not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -2793,9 +2827,35 @@
     "/api/v1/files/hits": {
       "get": {
         "operationId": "search_files",
-        "summary": "Server-native endpoint (search_files)",
+        "summary": "Search workspace files or a registered project's files",
         "x-scope": "read:*",
         "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -2808,7 +2868,17 @@
             }
           },
           "400": {
-            "description": "query is required",
+            "description": "invalid project",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "registered project not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -2823,9 +2893,35 @@
     "/api/v1/files/content": {
       "get": {
         "operationId": "read_file",
-        "summary": "Server-native endpoint (read_file)",
+        "summary": "Read one workspace or registered project file",
         "x-scope": "read:*",
         "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -2838,7 +2934,7 @@
             }
           },
           "400": {
-            "description": "invalid path",
+            "description": "invalid project",
             "content": {
               "application/json": {
                 "schema": {
@@ -2858,7 +2954,7 @@
             }
           },
           "404": {
-            "description": "file not found",
+            "description": "registered project or file not found",
             "content": {
               "application/json": {
                 "schema": {
