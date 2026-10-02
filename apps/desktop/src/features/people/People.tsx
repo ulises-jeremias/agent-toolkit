@@ -32,6 +32,16 @@ const blank: Person = {
   archived: false,
 };
 
+const characterChoices = ['scout', 'maker', 'scholar', 'keeper'] as const;
+
+function portraitFor(person: Person): string {
+  if (characterChoices.some((choice) => choice === person.avatar?.character)) return person.avatar!.character!;
+  // An untouched Person still has a stable, distinct original portrait.
+  let hash = 2166136261;
+  for (const letter of person.id) hash = Math.imul(hash ^ letter.charCodeAt(0), 16777619);
+  return characterChoices[(hash >>> 0) % characterChoices.length]!;
+}
+
 function commaList(value: string): string[] {
   return value
     .split(',')
@@ -45,12 +55,14 @@ function optionalText(value: string): string | undefined {
 
 function PersonForm({
   initial,
+  existing,
   onSave,
   onCancel,
   busy,
   error,
 }: {
   initial: Person;
+  existing: boolean;
   onSave: (person: Person) => void;
   onCancel: () => void;
   busy: boolean;
@@ -59,7 +71,7 @@ function PersonForm({
   const [draft, setDraft] = useState<Person>(initial);
   const agents = useAgents();
   const providers = useProviders();
-  const editing = Boolean(initial.id);
+  const editing = existing;
   const update = (patch: Partial<Person>) => setDraft((current) => ({ ...current, ...patch }));
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -310,6 +322,7 @@ export default function People() {
   const workspace = context.workspace;
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<Person | null>(null);
+  const [importDraft, setImportDraft] = useState<Person | null>(null);
   const [creating, setCreating] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [importReview, setImportReview] = useState<MunderReview | null>(null);
@@ -344,6 +357,7 @@ export default function People() {
       setSelectedId(response.person.id);
       setCreating(false);
       setEditing(null);
+      setImportDraft(null);
       setImportReview(null);
     },
   });
@@ -356,7 +370,7 @@ export default function People() {
   });
   const people = list.data?.people ?? [];
   const selected = people.find((person) => person.id === selectedId) ?? people[0];
-  const formOpen = creating || editing !== null;
+  const formOpen = creating || editing !== null || importDraft !== null;
 
   return (
     <>
@@ -419,7 +433,7 @@ export default function People() {
                             style={
                               {
                                 '--person-accent': person.avatar?.accent ?? '#56a6a0',
-                                '--person-sprite': `url(/world/char-${person.avatar?.character ?? 'scout'}.png)`,
+                                '--person-sprite': `url(/world/char-${portraitFor(person)}.png)`,
                               } as React.CSSProperties
                             }
                             aria-hidden="true"
@@ -500,18 +514,21 @@ export default function People() {
         onClose={() => {
           setCreating(false);
           setEditing(null);
+          setImportDraft(null);
         }}
         title={editing ? `Edit ${editing.name}` : 'Create Person'}
         description="A Person is a saved collaborator. Saving this form does not start a process."
         size="wide"
       >
         <PersonForm
-          key={editing?.id ?? 'new'}
-          initial={editing ?? blank}
+          key={editing?.id ?? importDraft?.id ?? 'new'}
+          initial={editing ?? importDraft ?? blank}
+          existing={editing !== null}
           onSave={(person) => save.mutate(person)}
           onCancel={() => {
             setCreating(false);
             setEditing(null);
+            setImportDraft(null);
           }}
           busy={save.isPending}
           error={save.error}
@@ -567,7 +584,7 @@ export default function People() {
               <Button
                 onClick={() => {
                   setImportReview(null);
-                  setEditing(importReview.person);
+                  setImportDraft(importReview.person);
                 }}
               >
                 Edit before saving

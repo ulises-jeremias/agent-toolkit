@@ -57,7 +57,9 @@ async function startJob(page: Page, cmd: string): Promise<void> {
 async function settle(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(
-    page.getByText(/^(Loading|Checking|Listing|Counting|Discovering|Running|Reading|Comparing|Probing)/),
+    page
+      .getByRole('status')
+      .filter({ hasText: /^(Loading|Checking|Listing|Counting|Discovering|Running|Reading|Comparing|Probing)/ }),
   ).toHaveCount(0, { timeout: 30_000 });
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
 }
@@ -133,6 +135,25 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
           await importDialog.getByRole('button', { name: 'Save Person' }).click();
           await expect(importDialog).toBeHidden();
           await expect(page.getByRole('button', { name: /Maya.*architect.*Offline/ })).toBeVisible();
+          await page.locator('input[aria-label="Choose Munder hire JSON"]').setInputFiles({
+            name: 'june.json',
+            mimeType: 'application/json',
+            buffer: Buffer.from(
+              JSON.stringify({
+                spec: 'munder-difflin/hire@1',
+                id: 'june',
+                name: 'June',
+                role: 'designer',
+                goal: 'Design screens',
+              }),
+            ),
+          });
+          await importDialog.getByRole('button', { name: 'Edit before saving' }).click();
+          const importedForm = page.getByRole('dialog', { name: 'Create Person' });
+          await importedForm.getByRole('textbox', { name: 'Goal' }).fill('Design the workspace interface');
+          await importedForm.getByRole('button', { name: 'Create Person' }).click();
+          await expect(importedForm).toBeHidden();
+          await expect(page.getByRole('button', { name: /June.*designer.*Offline/ })).toBeVisible();
           createdPerson = true;
         }
         if (destination === 'Operations') {
