@@ -418,14 +418,18 @@ export default function People() {
 
   useEffect(() => {
     if (!starting) return;
-    setStartProject((current) => current || projects[0]?.name || '');
-    setStartProvider(
-      starting.preferred_provider ||
-        providers.find((provider) => provider.available && provider.id !== 'skeleton')?.id ||
-        '',
-    );
+    setStartProject('');
+    setStartProvider(starting.preferred_provider || '');
     setStartModel(starting.preferred_model || '');
     setStartError(null);
+  }, [starting]);
+
+  useEffect(() => {
+    if (!starting) return;
+    setStartProject((current) => current || projects.find((project) => project.status === 'ok')?.name || '');
+    setStartProvider(
+      (current) => current || providers.find((provider) => provider.available && provider.id !== 'skeleton')?.id || '',
+    );
   }, [starting, projects, providers]);
 
   const beginPerson = async () => {
