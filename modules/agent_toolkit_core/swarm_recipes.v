@@ -89,6 +89,103 @@ pub mut:
 	gates       []string @[json: 'gates']
 }
 
+// SwarmRecipeRoleView is the product-facing topology for the built-in recipes.
+// It deliberately exposes canonical recipe data without assigning runtime
+// sessions or durable People to ephemeral roles.
+pub struct SwarmRecipeRoleView {
+pub:
+	name          string
+	persona       string
+	policy        string
+	model_profile string
+	receive_mode  string
+	consumes      []string
+	produces      []string
+	skills        []string
+}
+
+pub struct SwarmRecipeView {
+pub:
+	name                    string
+	description             string
+	roles                   []SwarmRecipeRoleView
+	budget                  Budget
+	workspace_strategy      string
+	keep_on_failure         bool
+	max_concurrency         int
+	max_wall_seconds        int
+	require_plan_approval   bool
+	require_final_approval  bool
+	allow_direct_base_merge bool
+	allow_push              bool
+}
+
+pub struct SwarmBackendView {
+pub:
+	name      string
+	available bool
+	detail    string
+}
+
+pub struct SwarmRecipesResponse {
+pub:
+	ok       bool
+	recipes  []SwarmRecipeView
+	backends []SwarmBackendView
+}
+
+// list_swarm_recipes_typed exposes real recipe topology and adapter
+// availability for Desktop's start-review flow.
+pub fn list_swarm_recipes_typed() SwarmRecipesResponse {
+	mut recipes := []SwarmRecipeView{}
+	for name in ['pair', 'team', 'full'] {
+		recipe := resolve_swarm_config('', name, '', '', '') or { continue }
+		mut roles := []SwarmRecipeRoleView{}
+		for role_name in swarm_recipe_roles(name) {
+			role := recipe.spec.roles[role_name] or { continue }
+			roles << SwarmRecipeRoleView{
+				name: role_name
+				persona: role.persona
+				policy: role.policy
+				model_profile: role.model_profile
+				receive_mode: role.receive_mode
+				consumes: role.consumes
+				produces: role.produces
+				skills: role.skills
+			}
+		}
+		recipes << SwarmRecipeView{
+			name: name
+			description: recipe.description
+			roles: roles
+			budget: recipe.budget
+			workspace_strategy: recipe.spec.workspace.strategy
+			keep_on_failure: recipe.spec.workspace.keep_on_failure
+			max_concurrency: recipe.execution.max_concurrency
+			max_wall_seconds: recipe.budget.max_wall_seconds
+			require_plan_approval: recipe.spec.gates.require_plan_approval
+			require_final_approval: recipe.spec.gates.require_final_approval
+			allow_direct_base_merge: recipe.spec.gates.allow_direct_base_merge
+			allow_push: recipe.spec.gates.allow_push
+		}
+	}
+	mut backends := []SwarmBackendView{}
+	for name in ['auto', 'headless', 'herdr', 'tmux'] {
+		probe := doctor_backend(name)
+		detail := if probe.version.len > 0 { probe.version } else { probe.reason }
+		backends << SwarmBackendView{
+			name: name
+			available: name == 'auto' || probe.available
+			detail: detail
+		}
+	}
+	return SwarmRecipesResponse{
+		ok: true
+		recipes: recipes
+		backends: backends
+	}
+}
+
 // RolePolicy mirrors Python models.RolePolicy enum values.
 pub enum RolePolicy {
 	read_only
@@ -104,7 +201,7 @@ pub const builtin_recipes = {
 		kind: swarm_kind
 		metadata: RecipeMeta{
 			name: 'pair'
-			description: 'Two-role implementer + reviewer/integrator workflow'
+			description: 'Three-role implementer → reviewer → integrator workflow'
 		}
 		spec: SpecDetail{
 			ui: 'auto'
@@ -166,7 +263,7 @@ pub const builtin_recipes = {
 				}
 			}
 		}
-		description: 'Two-role implementer + reviewer/integrator workflow'
+		description: 'Three-role implementer → reviewer → integrator workflow'
 		execution: ExecutionSpec{
 			max_concurrency: 2
 			lazy_start: true

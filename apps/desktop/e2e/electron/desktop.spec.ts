@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
-import { openDesktop, waitForBackend, type Desktop } from './fixtures';
+import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtures';
 
 /**
  * Kill the supervised `agent-toolkit serve` child. After ADR-034 the renderer
@@ -197,6 +197,32 @@ test('Operations shows doctor, loops and swarms from live endpoints', async () =
   await expect(page.getByRole('region', { name: 'Loops' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Swarms' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Swarms' })).toContainText(/GET \/api\/v1\/swarms|No swarm runs/);
+});
+
+test('swarm start reviews canonical topology and keeps runner separate from adapter', async () => {
+  const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
+  await page.getByRole('button', { name: 'Start swarm' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Start a swarm' });
+  await expect(dialog.getByText('.ai-workspace')).toBeVisible();
+  await expect(dialog.getByLabel('Team recipe')).toContainText('pair · 3 roles');
+  await expect(dialog.getByRole('region', { name: 'pair recipe topology' })).toContainText('implementer');
+  await expect(dialog.getByRole('group', { name: 'Recipe write permissions' })).toContainText(
+    'Direct base merge: Not allowed',
+  );
+  await dialog.getByLabel('Task').fill('Inspect the existing Desktop architecture');
+  await setViewport(desktop.app, 1024, 768);
+  await page.screenshot({ path: 'test-results/review/swarms-start-compact.png', fullPage: true });
+  await dialog.getByText('Runtime options').click();
+  await expect(dialog.getByText(/Person assignment is not available/)).toBeVisible();
+  await dialog.getByLabel('Session adapter').selectOption('headless');
+  await dialog.getByLabel('Dry run').check();
+  await expect(dialog.getByText('Automatic runner · headless adapter')).toBeVisible();
+  await setViewport(desktop.app, 1600, 1000);
+  await page.screenshot({ path: 'test-results/review/swarms-start-large.png', fullPage: true });
+  await dialog.getByRole('button', { name: 'Start swarm' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole('region', { name: 'Receipts' })).toContainText(/Swarm start posted/);
 });
 
 test('a failed job can be retried as a new job', async () => {

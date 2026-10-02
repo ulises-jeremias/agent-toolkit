@@ -496,6 +496,7 @@ const registered_api_routes = [
 	'/api/v1/dc/:sub',
 	'/api/v1/build',
 	'/api/v1/swarms',
+	'/api/v1/swarms/recipes',
 	'/api/v1/swarms/runs/:id',
 	'/api/v1/swarms/runs/:id/handoffs',
 	'/api/v1/swarms/runs/:id/tasks',
@@ -964,6 +965,15 @@ pub fn (app &App) swarms_list(mut ctx Ctx) veb.Result {
 	}
 	ws := serve_memory_workspace(ctx, '') or { return respond_sub_error(mut ctx, err) }
 	return ctx.json(agent_toolkit_core.list_swarm_runs_typed(ws))
+}
+
+@['/api/v1/swarms/recipes'; get]
+pub fn (app &App) swarms_recipes(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	return ctx.json(agent_toolkit_core.list_swarm_recipes_typed())
 }
 
 const openapi_json = $embed_file('../../docs/surface/openapi.json')

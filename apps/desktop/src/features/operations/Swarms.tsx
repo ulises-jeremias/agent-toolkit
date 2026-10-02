@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useAgents, useModels, useProviders, useTools } from '../../data/catalog';
+import { useMemo, useState, type ReactNode } from 'react';
+import { useModels, useProviders } from '../../data/catalog';
 import { useLiveStatus } from '../../data/live';
-import { useSwarmCommand, useSwarmRun, useSwarmRunAction, useSwarms } from '../../data/swarms';
+import { useSwarmCommand, useSwarmRecipes, useSwarmRun, useSwarmRunAction, useSwarms } from '../../data/swarms';
 import type { CommandEnvelope, SubBody, SwarmRunInfo, SwarmRunResponse } from '../../lib/api';
 import { useSessionContext } from '../../shell/useSessionContext';
 import {
@@ -456,47 +456,60 @@ function SwarmSection({ title, empty, children }: { title: string; empty: string
 
 function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { context } = useSessionContext();
-  const agents = useAgents();
-  const tools = useTools();
   const providers = useProviders();
   const models = useModels();
+  const catalog = useSwarmRecipes();
   const mutate = useSwarmCommand();
   const receipt = useActionReceipt('Swarm start posted');
-  const [recipe, setRecipe] = useState('');
+  const [recipe, setRecipe] = useState('pair');
   const [task, setTask] = useState('');
   const [runner, setRunner] = useState('');
   const [model, setModel] = useState('');
-  const [role, setRole] = useState(context.agent);
+  const [backend, setBackend] = useState('auto');
   const [dryRun, setDryRun] = useState(false);
 
-  useEffect(() => {
-    if (!role && context.agent) setRole(context.agent);
-  }, [context.agent, role]);
+  const selectedRecipe = catalog.data?.recipes.find((item) => item.name === recipe);
+  const workspaceName =
+    context.workspace
+      .replace(/[\\/]+$/, '')
+      .split(/[\\/]/)
+      .at(-1) || context.workspace;
+  const availableProviders = providers.data?.providers.filter((provider) => provider.available) ?? [];
+  const runnerModels = (models.data?.models ?? []).filter((item) => !runner || item.runner === runner);
+  const modelProfiles = [...new Map(runnerModels.map((item) => [item.profile, item])).values()];
+  const availableBackends = catalog.data?.backends.filter((item) => item.available) ?? [];
 
   const body = useMemo(() => {
     const payload: SubBody<'swarms'> = {
       workspace: context.workspace || undefined,
-      recipe: recipe.trim() || undefined,
+      recipe,
       task: task.trim() || undefined,
       runner: runner || undefined,
-      backend: runner || undefined,
+      backend,
       model_profile: model || undefined,
-      role: role.trim() || undefined,
       dry_run: dryRun || undefined,
     };
     return compactBody(payload);
-  }, [context.workspace, dryRun, model, recipe, role, runner, task]);
+  }, [backend, context.workspace, dryRun, model, recipe, runner, task]);
 
-  const preview = `POST /api/v1/swarms/start\n${JSON.stringify(body, null, 2)}`;
-  const availableProviders = providers.data?.providers.filter((provider) => provider.available) ?? [];
+  const close = () => {
+    setRecipe('pair');
+    setTask('');
+    setRunner('');
+    setModel('');
+    setBackend('auto');
+    setDryRun(false);
+    onClose();
+  };
 
   const submit = () => {
+    if (!context.workspace || !task.trim() || !selectedRecipe || catalog.isLoading || mutate.isPending) return;
     mutate.mutate(
       { sub: 'start', body },
       {
         onSuccess: (envelope) => {
           receipt.onSuccess({ message: envelope.message || 'swarms start' });
-          onClose();
+          close();
         },
       },
     );
@@ -505,15 +518,21 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={close}
       title="Start a swarm"
-      description="POST /api/v1/swarms/start with the OpenAPI body. List, approve, reject and stop use the typed /runs routes."
+      description="Choose a canonical recipe, review its real role topology, then start the run in this workspace."
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={close}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={submit} busy={mutate.isPending} busyLabel="Starting…">
+          <Button
+            variant="primary"
+            onClick={submit}
+            disabled={!context.workspace || !task.trim() || !selectedRecipe || catalog.isLoading}
+            busy={mutate.isPending}
+            busyLabel="Starting…"
+          >
             Start swarm
           </Button>
         </>
@@ -526,69 +545,155 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
           submit();
         }}
       >
-        <Field label="Recipe">
+        <div className={styles.workspaceContext} title={context.workspace}>
+          <span className={styles.previewLabel}>Current workspace</span>
+          <strong>{workspaceName || 'No workspace selected'}</strong>
+        </div>
+        <Field label="Team recipe" hint="Roles and approval gates come from the canonical Toolkit recipe.">
           {(control) => (
-            <TextInput mono value={recipe} onChange={(event) => setRecipe(event.target.value)} {...control} />
-          )}
-        </Field>
-        <Field label="Task">
-          {(control) => <TextInput value={task} onChange={(event) => setTask(event.target.value)} {...control} />}
-        </Field>
-        <FormRow>
-          <Field
-            label="Runner"
-            hint={
-              tools.isSuccess
-                ? `${tools.data.tools.filter((tool) => tool.verified).length} verified coding tools.`
-                : 'GET /api/v1/providers. enabled=unknown is not treated as false.'
-            }
-          >
-            {(control) => (
-              <Select value={runner} onChange={(event) => setRunner(event.target.value)} {...control}>
-                <option value="">Backend default</option>
-                {(availableProviders.length > 0 ? availableProviders : (providers.data?.providers ?? [])).map(
-                  (provider) => (
-                    <option key={provider.id} value={provider.id}>
-                      {provider.id}
-                      {provider.available ? '' : ' (unavailable)'}
-                    </option>
-                  ),
-                )}
-              </Select>
-            )}
-          </Field>
-          <Field label="Model profile" hint="GET /api/v1/models">
-            {(control) => (
-              <Select value={model} onChange={(event) => setModel(event.target.value)} {...control}>
-                <option value="">Backend default</option>
-                {(models.data?.models ?? []).map((item) => (
-                  <option key={`${item.profile}-${item.runner}`} value={item.profile}>
-                    {item.profile} · {item.runner}
-                  </option>
-                ))}
-              </Select>
-            )}
-          </Field>
-        </FormRow>
-        <Field label="Role" hint="Persona id from GET /api/v1/agents">
-          {(control) => (
-            <Select value={role} onChange={(event) => setRole(event.target.value)} {...control}>
-              <option value="">None</option>
-              {(agents.data?.agents ?? []).map((agent) => (
-                <option key={agent.id} value={agent.id}>
-                  {agent.id} — {agent.name}
+            <Select value={recipe} onChange={(event) => setRecipe(event.target.value)} {...control}>
+              {(catalog.data?.recipes ?? []).map((item) => (
+                <option key={item.name} value={item.name}>
+                  {item.name} · {item.roles.length} roles
                 </option>
               ))}
             </Select>
           )}
         </Field>
-        <label className={styles.check}>
-          <input type="checkbox" checked={dryRun} onChange={(event) => setDryRun(event.target.checked)} />
-          Dry run
-        </label>
+        {selectedRecipe ? (
+          <section className={styles.recipeCard} aria-label={`${selectedRecipe.name} recipe topology`}>
+            <p className={styles.previewLabel}>{selectedRecipe.description}</p>
+            <div className={styles.recipeRoles}>
+              {selectedRecipe.roles.map((item) => (
+                <div className={styles.recipeRole} key={item.name}>
+                  <strong>{item.name}</strong>
+                  <span>{item.persona}</span>
+                  <small>
+                    {item.model_profile} · {item.policy}
+                  </small>
+                </div>
+              ))}
+            </div>
+            <div className={styles.recipeSummary}>
+              <span>
+                Workspace <strong>{selectedRecipe.workspace_strategy}</strong>
+              </span>
+              <span>
+                Concurrency <strong>{selectedRecipe.max_concurrency}</strong>
+              </span>
+              <span>
+                Token ceiling <strong>{selectedRecipe.budget.max_total_tokens.toLocaleString()}</strong>
+              </span>
+              <span>
+                Cost ceiling <strong>${selectedRecipe.budget.max_cost_usd.toFixed(2)}</strong>
+              </span>
+              <span>
+                Time ceiling <strong>{Math.round(selectedRecipe.max_wall_seconds / 60)} min</strong>
+              </span>
+              <span>
+                Plan gate <strong>{selectedRecipe.require_plan_approval ? 'Required' : 'Off'}</strong>
+              </span>
+              <span>
+                Final gate <strong>{selectedRecipe.require_final_approval ? 'Required' : 'Off'}</strong>
+              </span>
+            </div>
+            <div className={styles.recipePolicy} role="group" aria-label="Recipe write permissions">
+              <span>
+                Direct base merge: <strong>{selectedRecipe.allow_direct_base_merge ? 'Allowed' : 'Not allowed'}</strong>
+              </span>
+              <span>
+                Push: <strong>{selectedRecipe.allow_push ? 'Allowed' : 'Not allowed'}</strong>
+              </span>
+              <span>
+                Failure worktree: <strong>{selectedRecipe.keep_on_failure ? 'Kept for recovery' : 'Removed'}</strong>
+              </span>
+            </div>
+          </section>
+        ) : catalog.isError ? (
+          <ErrorState title="Recipe catalog unavailable" error={catalog.error} />
+        ) : (
+          <EmptyState title="Loading canonical swarm recipes…" />
+        )}
+        <Field label="Task" hint="Describe the outcome the team should deliver.">
+          {(control) => <TextInput value={task} onChange={(event) => setTask(event.target.value)} {...control} />}
+        </Field>
+        <details className={styles.runtimeOptions}>
+          <summary>
+            Runtime options{' '}
+            <span>
+              {runner || 'Automatic runner'} · {backend} adapter
+            </span>
+          </summary>
+          <div className={styles.runtimeFields}>
+            <FormRow>
+              <Field label="Runner" hint="Coding-agent runtime.">
+                {(control) => (
+                  <Select
+                    value={runner}
+                    onChange={(event) => {
+                      setRunner(event.target.value);
+                      setModel('');
+                    }}
+                    {...control}
+                  >
+                    <option value="">Automatic runner</option>
+                    {availableProviders.map((provider) => (
+                      <option key={provider.id} value={provider.id}>
+                        {provider.id}
+                        {provider.version ? ` · ${provider.version}` : ''}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              </Field>
+              <Field
+                label="Model profile"
+                hint={runner ? `Profiles supported by ${runner}.` : 'Use recipe defaults or choose a shared profile.'}
+              >
+                {(control) => (
+                  <Select value={model} onChange={(event) => setModel(event.target.value)} {...control}>
+                    <option value="">Recipe defaults</option>
+                    {modelProfiles.map((item) => (
+                      <option key={item.profile} value={item.profile}>
+                        {item.profile} · {item.model}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              </Field>
+            </FormRow>
+            <Field label="Session adapter" hint="Where role sessions run; this is not the LLM runner.">
+              {(control) => (
+                <Select value={backend} onChange={(event) => setBackend(event.target.value)} {...control}>
+                  {availableBackends.map((item) => (
+                    <option key={item.name} value={item.name}>
+                      {item.name}
+                      {item.detail ? ` · ${item.detail}` : ''}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </Field>
+            <p className={styles.bindingNote}>
+              Person assignment is not available because the swarm runtime has no canonical Person binding. Recipe roles
+              remain temporary responsibilities.
+            </p>
+            <label className={styles.check}>
+              <input type="checkbox" checked={dryRun} onChange={(event) => setDryRun(event.target.checked)} />
+              Dry run · validate without creating a run
+            </label>
+          </div>
+        </details>
         <div>
-          <p className={styles.previewLabel}>Will call</p>
-          <Report text={preview} label="Swarm request preview" />
+          <p className={styles.previewLabel}>Start review</p>
+          <p>
+            {recipe} swarm{task.trim() ? ` · ${task.trim()}` : ' · Add a task to continue'}
+          </p>
+          <p className={styles.previewLabel}>Runtime selection</p>
+          <p>
+            {runner || 'Automatic runner'} · {backend}
+          </p>
+          {dryRun ? <StatusBadge tone="warn" label="Dry run · no run will be created" /> : null}
         </div>
         {mutate.error ? <ErrorState title="The swarm did not start" error={mutate.error} /> : null}
         <button type="submit" hidden />

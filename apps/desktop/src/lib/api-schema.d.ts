@@ -343,6 +343,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/swarms/recipes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List canonical swarm recipes and available session adapters */
+        get: operations["list_swarm_recipes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -1269,6 +1286,46 @@ export interface components {
             tasks: components["schemas"]["SwarmTaskView"][];
             artifacts: components["schemas"]["SwarmArtifactView"][];
             trace_tail: string[];
+        };
+        SwarmRecipeRoleView: {
+            name: string;
+            persona: string;
+            policy: string;
+            model_profile: string;
+            receive_mode: string;
+            consumes: string[];
+            produces: string[];
+            skills: string[];
+        };
+        SwarmRecipeBudgetView: {
+            max_total_tokens: number;
+            max_cost_usd: number;
+            max_wall_seconds: number;
+            max_concurrency: number;
+        };
+        SwarmRecipeView: {
+            name: string;
+            description: string;
+            roles: components["schemas"]["SwarmRecipeRoleView"][];
+            budget: components["schemas"]["SwarmRecipeBudgetView"];
+            workspace_strategy: string;
+            keep_on_failure: boolean;
+            max_concurrency: number;
+            max_wall_seconds: number;
+            require_plan_approval: boolean;
+            require_final_approval: boolean;
+            allow_direct_base_merge: boolean;
+            allow_push: boolean;
+        };
+        SwarmBackendView: {
+            name: string;
+            available: boolean;
+            detail: string;
+        };
+        SwarmRecipesResponse: {
+            ok: boolean;
+            recipes: components["schemas"]["SwarmRecipeView"][];
+            backends: components["schemas"]["SwarmBackendView"][];
         };
         SwarmHandoffsResponse: {
             ok: boolean;
@@ -2292,6 +2349,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    list_swarm_recipes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwarmRecipesResponse"];
+                };
             };
         };
     };

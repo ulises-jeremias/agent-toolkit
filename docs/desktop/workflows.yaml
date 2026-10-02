@@ -139,6 +139,23 @@ journeys:
     evidence: []
     blockers:
       - resolution order (explicit Person, preferred Person, ephemeral session) is contract-only
+  - id: swarm-start-review
+    title: Review canonical recipe topology and runtime settings before starting
+    destinations: [operations]
+    status: ok
+    evidence:
+      - note: >-
+          Electron uses the typed canonical recipe catalog to show actual roles,
+          personas, policies, model profiles, budgets, approval gates, worktree
+          strategy, and push/merge permissions. Runtime options distinguish
+          the coding runner from the session adapter and default to a compact
+          progressive disclosure section. A dry-run E2E
+          verifies the review can be submitted without creating or spawning a run.
+        build: "feat/desktop-swarm-recipe-flow (Linux Electron E2E)"
+        screenshots:
+          - assets/electron/swarms/swarm-start-compact.png
+          - assets/electron/swarms/swarm-start-large.png
+    blockers: []
   - id: loops-run-report
     title: Install a loop template, run once and read its report
     destinations: [operations]
@@ -186,7 +203,7 @@ journeys:
     status: blocked
     evidence: []
     blockers:
-      - swarm run/watch journey against the current build not on file
+      - live run/watch journey against the current build is not verified from Desktop
   - id: universal-search-actions
     title: Search/Run palette reaches everything with permission preview
     destinations: [shell]

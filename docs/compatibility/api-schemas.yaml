@@ -276,6 +276,52 @@ schemas:
       - 'artifacts:#SwarmArtifactView[]'
       - trace_tail:string[]
 
+  - name: SwarmRecipeRoleView
+    fields:
+      - name:string
+      - persona:string
+      - policy:string
+      - model_profile:string
+      - receive_mode:string
+      - consumes:string[]
+      - produces:string[]
+      - skills:string[]
+
+  - name: SwarmRecipeBudgetView
+    v_struct: Budget
+    fields:
+      - max_total_tokens:integer
+      - max_cost_usd:number
+      - max_wall_seconds:integer
+      - max_concurrency:integer
+
+  - name: SwarmRecipeView
+    fields:
+      - name:string
+      - description:string
+      - 'roles:#SwarmRecipeRoleView[]'
+      - 'budget:#SwarmRecipeBudgetView'
+      - workspace_strategy:string
+      - keep_on_failure:boolean
+      - max_concurrency:integer
+      - max_wall_seconds:integer
+      - require_plan_approval:boolean
+      - require_final_approval:boolean
+      - allow_direct_base_merge:boolean
+      - allow_push:boolean
+
+  - name: SwarmBackendView
+    fields:
+      - name:string
+      - available:boolean
+      - detail:string
+
+  - name: SwarmRecipesResponse
+    fields:
+      - ok:boolean
+      - 'recipes:#SwarmRecipeView[]'
+      - 'backends:#SwarmBackendView[]'
+
   - name: SwarmHandoffsResponse
     fields:
       - ok:boolean
@@ -415,6 +461,11 @@ schemas:
 # `errors` lists `code:description` pairs answered with #ApiError.
 # `query_params` uses `name:type`; append `?` to mark an optional query value.
 native:
+  - path: /api/v1/swarms/recipes
+    method: get
+    op: list_swarm_recipes
+    summary: List canonical swarm recipes and available session adapters
+    response: '#SwarmRecipesResponse'
   - path: /api/v1/health
     method: get
     op: health

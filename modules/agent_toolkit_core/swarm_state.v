@@ -75,7 +75,7 @@ pub fn swarm_recipe_roles(recipe string) []string {
 pub fn swarm_recipe_description(recipe string) string {
 	return match recipe {
 		'pair' {
-			'Two-role implementer + reviewer/integrator workflow'
+			'Three-role implementer → reviewer → integrator workflow'
 		}
 		'team' {
 			'Four-role planner → implementer → reviewer → architect workflow'
