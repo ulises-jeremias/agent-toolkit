@@ -287,6 +287,49 @@ function bridgeAt(p: Painter, creekX: number, y: number) {
   p.sprite(`bridge:${creekX},${y}`, creekX, y - 1, 'bridge', 48, 48, 0, -8, false);
 }
 
+/** Small fenced garden beds make real project lots feel settled into the valley. */
+function projectGardens(p: Painter, projects: readonly LaidOutEntity[]) {
+  const blooms = ['flowers-daisy', 'flowers-lavender', 'flowers-gold'] as const;
+  for (const project of projects) {
+    const firstY = project.y + 1;
+    const lastY = project.y + project.h - 1;
+    const sides = [
+      { bedX: project.x + project.w + 1, fenceX: project.x + project.w + 2 },
+      { bedX: project.x - 1, fenceX: project.x - 2 },
+    ];
+    const garden = sides
+      .map((side) => ({
+        ...side,
+        room: Array.from({ length: lastY - firstY + 1 }, (_, index) => firstY + index).filter(
+          (y) =>
+            !p.isBlocked(side.bedX, y) && !p.paths.has(key(side.bedX, y)) && p.get(side.bedX, y).startsWith('grass'),
+        ).length,
+      }))
+      .sort((a, b) => b.room - a.room)[0]!;
+
+    for (let y = firstY; y <= lastY; y += 1) {
+      const fenceAt = key(garden.fenceX, y);
+      if (!p.isBlocked(garden.fenceX, y) && !p.paths.has(fenceAt) && p.get(garden.fenceX, y).startsWith('grass')) {
+        p.sprite(`project-fence:${project.id}:${y}`, garden.fenceX, y, 'fence-v', 16, 16);
+      }
+      const bedAt = key(garden.bedX, y);
+      if (!p.isBlocked(garden.bedX, y) && !p.paths.has(bedAt) && p.get(garden.bedX, y).startsWith('grass')) {
+        p.set(garden.bedX, y, blooms[h2(project.x, y, project.y) % blooms.length]!);
+      }
+    }
+
+    const shrubX = garden.bedX;
+    const shrubY = project.y + project.h;
+    if (
+      !p.isBlocked(shrubX, shrubY) &&
+      !p.paths.has(key(shrubX, shrubY)) &&
+      p.get(shrubX, shrubY).startsWith('grass')
+    ) {
+      p.sprite(`project-shrub:${project.id}`, shrubX, shrubY, 'bush', 16, 12, 0, 4);
+    }
+  }
+}
+
 /** Framing groves with natural gaps around buildings and paths. */
 function forest(p: Painter) {
   const planted = new Set<string>();
@@ -464,6 +507,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     lane(p, gutterX, roadRows.get(gutterX) ?? roadY, spurY, h2(project.x, project.y, 27));
     curvedPath(p, doorX, spurY, gutterX, spurY, h2(project.x, project.y, 29), 0.7);
   }
+  projectGardens(p, projects);
   if (projects.length === 0) {
     if (marker) {
       const doorX = marker.x + Math.floor(marker.w / 2);
