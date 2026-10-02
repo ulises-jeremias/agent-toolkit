@@ -1030,6 +1030,26 @@
         }
       }
     },
+    "/api/v1/swarms/recipes": {
+      "get": {
+        "operationId": "list_swarm_recipes",
+        "summary": "List canonical swarm recipes and available session adapters",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmRecipesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/health": {
       "get": {
         "operationId": "health",
@@ -2313,26 +2333,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SwarmListResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/swarms/recipes": {
-      "get": {
-        "operationId": "list_swarm_recipes",
-        "summary": "List canonical swarm recipes and adapter availability",
-        "x-scope": "read:*",
-        "x-confirm-required": false,
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SwarmRecipesResponse"
                 }
               }
             }
@@ -3676,56 +3676,6 @@
           "runs"
         ]
       },
-      "SwarmRecipeRoleView": {
-        "type": "object",
-        "properties": {
-          "name": { "type": "string" },
-          "persona": { "type": "string" },
-          "policy": { "type": "string" },
-          "model_profile": { "type": "string" },
-          "receive_mode": { "type": "string" },
-          "consumes": { "type": "array", "items": { "type": "string" } },
-          "produces": { "type": "array", "items": { "type": "string" } },
-          "skills": { "type": "array", "items": { "type": "string" } }
-        },
-        "required": ["name", "persona", "policy", "model_profile", "receive_mode", "consumes", "produces", "skills"]
-      },
-      "SwarmRecipeView": {
-        "type": "object",
-        "properties": {
-          "name": { "type": "string" },
-          "description": { "type": "string" },
-          "roles": { "type": "array", "items": { "$ref": "#/components/schemas/SwarmRecipeRoleView" } },
-          "budget": { "$ref": "#/components/schemas/SwarmBudgetView" },
-          "workspace_strategy": { "type": "string" },
-          "keep_on_failure": { "type": "boolean" },
-          "max_concurrency": { "type": "integer" },
-          "max_wall_seconds": { "type": "integer" },
-          "require_plan_approval": { "type": "boolean" },
-          "require_final_approval": { "type": "boolean" },
-          "allow_direct_base_merge": { "type": "boolean" },
-          "allow_push": { "type": "boolean" }
-        },
-        "required": ["name", "description", "roles", "budget", "workspace_strategy", "keep_on_failure", "max_concurrency", "max_wall_seconds", "require_plan_approval", "require_final_approval", "allow_direct_base_merge", "allow_push"]
-      },
-      "SwarmBackendView": {
-        "type": "object",
-        "properties": {
-          "name": { "type": "string" },
-          "available": { "type": "boolean" },
-          "detail": { "type": "string" }
-        },
-        "required": ["name", "available", "detail"]
-      },
-      "SwarmRecipesResponse": {
-        "type": "object",
-        "properties": {
-          "ok": { "type": "boolean" },
-          "recipes": { "type": "array", "items": { "$ref": "#/components/schemas/SwarmRecipeView" } },
-          "backends": { "type": "array", "items": { "$ref": "#/components/schemas/SwarmBackendView" } }
-        },
-        "required": ["ok", "recipes", "backends"]
-      },
       "SwarmBudgetView": {
         "type": "object",
         "properties": {
@@ -3961,6 +3911,179 @@
           "tasks",
           "artifacts",
           "trace_tail"
+        ]
+      },
+      "SwarmRecipeRoleView": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "persona": {
+            "type": "string"
+          },
+          "policy": {
+            "type": "string"
+          },
+          "model_profile": {
+            "type": "string"
+          },
+          "receive_mode": {
+            "type": "string"
+          },
+          "consumes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "produces": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "persona",
+          "policy",
+          "model_profile",
+          "receive_mode",
+          "consumes",
+          "produces",
+          "skills"
+        ]
+      },
+      "SwarmRecipeBudgetView": {
+        "type": "object",
+        "properties": {
+          "max_total_tokens": {
+            "type": "integer"
+          },
+          "max_cost_usd": {
+            "type": "number"
+          },
+          "max_wall_seconds": {
+            "type": "integer"
+          },
+          "max_concurrency": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "max_total_tokens",
+          "max_cost_usd",
+          "max_wall_seconds",
+          "max_concurrency"
+        ]
+      },
+      "SwarmRecipeView": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SwarmRecipeRoleView"
+            }
+          },
+          "budget": {
+            "$ref": "#/components/schemas/SwarmRecipeBudgetView"
+          },
+          "workspace_strategy": {
+            "type": "string"
+          },
+          "keep_on_failure": {
+            "type": "boolean"
+          },
+          "max_concurrency": {
+            "type": "integer"
+          },
+          "max_wall_seconds": {
+            "type": "integer"
+          },
+          "require_plan_approval": {
+            "type": "boolean"
+          },
+          "require_final_approval": {
+            "type": "boolean"
+          },
+          "allow_direct_base_merge": {
+            "type": "boolean"
+          },
+          "allow_push": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "roles",
+          "budget",
+          "workspace_strategy",
+          "keep_on_failure",
+          "max_concurrency",
+          "max_wall_seconds",
+          "require_plan_approval",
+          "require_final_approval",
+          "allow_direct_base_merge",
+          "allow_push"
+        ]
+      },
+      "SwarmBackendView": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "available",
+          "detail"
+        ]
+      },
+      "SwarmRecipesResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "recipes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SwarmRecipeView"
+            }
+          },
+          "backends": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SwarmBackendView"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "recipes",
+          "backends"
         ]
       },
       "SwarmHandoffsResponse": {

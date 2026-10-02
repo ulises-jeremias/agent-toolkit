@@ -496,6 +496,7 @@ const registered_api_routes = [
 	'/api/v1/dc/:sub',
 	'/api/v1/build',
 	'/api/v1/swarms',
+	'/api/v1/swarms/recipes',
 	'/api/v1/swarms/runs/:id',
 	'/api/v1/swarms/runs/:id/handoffs',
 	'/api/v1/swarms/runs/:id/tasks',
