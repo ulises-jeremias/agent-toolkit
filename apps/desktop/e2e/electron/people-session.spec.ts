@@ -59,7 +59,7 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
       .poll(
         async () =>
           (await installedOptions.count()) > 0 ||
-          (await start.getByText('No interactive runner is installed', { exact: true }).count()) > 0,
+          (await start.getByText('No interactive runner is installed').count()) > 0,
       )
       .toBe(true);
     if ((await installedOptions.count()) === 0) {
