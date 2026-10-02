@@ -72,7 +72,7 @@ filled with fabricated contents.
 |---|---|---|---|---|---|---|
 | Active harness / workspace root | Workshop grounds / home lot | One managed environment organizing projects | Select → Workspace inspector | known / missing harness / notice | List: workspace path + harness source | `workspace.grounds` |
 | Workspace knowledge (`knowledge/` or memory API with workspace scope) | Shared archive / library annex | Shared facts for every agent started here | Open → Workspace / memory | present / empty / unavailable | List: knowledge entry counts or "empty" | `knowledge.workspace` |
-| Project (symlink under `projects/`) | Building / cottage | A development repo you enter to work | Enter project space; open Workspace | ok / broken / empty roster | List: project name + link status | `project.building` |
+| Registered project | Distinct project house on the east-bank neighborhood | A development repo gets a stable place in the workspace valley | Click / Enter opens that project's interior; the overview board opens its project context | ok / broken / empty roster | World Index lists project name + link status | `project.building` |
 | Project files | Filing cabinet / project desk | Files belong to the registered repository root, which may live outside the workspace | Open Workspace Files scoped to that project | listed / empty / unavailable / unsafe link skipped | List: relative path + project name | `files.project` |
 | Project knowledge | Project study shelf | Project-scoped knowledge, only when a project knowledge API exists | Open project knowledge inspector | present / empty / unavailable | List: knowledge entry counts or unavailable | `knowledge.project` (reserved; omitted until backed by an API) |
 | Memory entry (typed memory API) | Document / ledger page | Durable knowledge file with provenance | Open memory inspector | listed / readable / archived | List: id, kind, title | `memory.entry` |
@@ -91,6 +91,27 @@ filled with fabricated contents.
 \* `agent.idle` is used only when a runtime row exists in an idle-compatible
 status, or as the theme key for a catalog nameplate that is *not* animated.
 Never spawn a walking character for an idle catalog agent alone.
+
+### Spatial navigation and direct actions
+
+The `/world` map is a primary interface. Shared workspace services face the
+commons; registered project houses occupy their own neighborhood across the
+creek, joined by the bridge and paths. The empty-project marker opens the same
+reviewed GUI project-link flow as Workspace. Clicking a landmark opens its
+canonical destination; clicking a project house enters that project's
+interior. Inside, the overview board opens project context, the filing cabinet
+opens real files scoped to the registered root, the records cabinet opens
+workspace memory, and the terminal desk opens the real PTY route. Library
+capabilities, project knowledge, workspace knowledge, memory, and files remain
+distinct concepts even where their visual materials relate.
+
+Map objects expose semantic names and descriptions through their accessible
+labels/tooltips, and the World Index provides a keyboard-friendly list fallback.
+World state remains a projection of backend data: only real jobs/runs/sessions
+can create runtime people; configured or catalog-only people stay off-map.
+Camera fitting and deterministic placement adapt to the roster size; screenshots
+for empty, one-project, and multi-project states are captured at compact and
+large viewports in the project-link Electron E2E.
 
 ### Character rule
 

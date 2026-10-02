@@ -39,6 +39,15 @@ journeys:
         screenshots:
           - assets/electron/world/project-files-room-compact.png
           - assets/electron/world/project-files-room-large.png
+      - note: World composition keeps shared landmarks on the commons bank and registered project houses across a traversable bridge; empty, one-project, and three-project layouts are captured at compact and large viewports, with semantic project link and building entry exercised through the GUI
+        build: "22835874 (Linux Electron E2E; project-link.spec.ts)"
+        screenshots:
+          - assets/electron/world/world-empty-compact.png
+          - assets/electron/world/world-empty-large.png
+          - assets/electron/world/world-one-project-compact.png
+          - assets/electron/world/world-one-project-large.png
+          - assets/electron/world/world-several-projects-compact.png
+          - assets/electron/world/world-several-projects-large.png
       - note: apps/desktop/e2e/electron/project-link.spec.ts; modules/agent_toolkit_core/file_catalog_test.v covers project symlink containment and unsafe paths
     blockers: []
   - id: capability-discovery
