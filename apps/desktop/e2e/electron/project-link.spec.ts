@@ -83,6 +83,23 @@ test('links an existing project from the GUI and places it in the world', async 
     // the actual Terminal route.
     await page.getByRole('button', { name: /garden-api · Project/ }).click();
     await expect(page.getByRole('application', { name: 'Interior of garden-api' })).toBeVisible();
+    if (process.env.ATK_CAPTURE === '1') {
+      const captureDir =
+        process.env.ATK_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/world');
+      fs.mkdirSync(captureDir, { recursive: true });
+      await page.setViewportSize({ width: 1024, height: 640 });
+      await page.screenshot({ path: path.join(captureDir, 'project-files-room-compact.png') });
+      await page.setViewportSize({ width: 1920, height: 1080 });
+      await page.screenshot({ path: path.join(captureDir, 'project-files-room-large.png') });
+    }
+    await page.getByRole('button', { name: /Files · Project files/ }).click();
+    await expect(page).toHaveURL(/workspace\?[^#]*panel=files[^#]*project=garden-api/);
+    await expect(page.getByRole('heading', { name: 'garden-api files' })).toBeVisible();
+    await page.getByRole('button', { name: /README\.md/ }).click();
+    await expect(page.getByText('# Garden API')).toBeVisible();
+    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
+    await page.getByRole('button', { name: /garden-api · Project/ }).click();
+    await expect(page.getByRole('application', { name: 'Interior of garden-api' })).toBeVisible();
     await page.getByRole('button', { name: /Terminal · Terminal \/ PTY workstation/ }).click();
     await expect(page).toHaveURL(/terminal/);
     await expect(

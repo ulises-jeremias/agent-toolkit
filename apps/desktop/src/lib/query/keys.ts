@@ -46,9 +46,9 @@ export const qk = {
   },
 
   files: {
-    list: (path = '', depth = '') => ['files', 'list', path, depth] as const,
-    hits: (q: string) => ['files', 'hits', q] as const,
-    content: (path: string) => ['files', 'content', path] as const,
+    list: (path = '', depth = '', project = '') => ['files', 'list', project, path, depth] as const,
+    hits: (q: string, project = '') => ['files', 'hits', project, q] as const,
+    content: (path: string, project = '') => ['files', 'content', project, path] as const,
   },
 
   report: (kind: ReportKind) => [kind, 'report'] as const,

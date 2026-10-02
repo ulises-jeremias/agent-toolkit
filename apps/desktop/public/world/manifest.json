@@ -283,6 +283,12 @@
       "h": 32,
       "frames": 1
     },
+    "desk-files": {
+      "file": "desk-files.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
     "shelf-books": {
       "file": "shelf-books.png",
       "w": 32,
@@ -305,6 +311,12 @@
       "file": "board-map.png",
       "w": 32,
       "h": 32,
+      "frames": 1
+    },
+    "project-board": {
+      "file": "project-board.png",
+      "w": 48,
+      "h": 48,
       "frames": 1
     },
     "crate": {

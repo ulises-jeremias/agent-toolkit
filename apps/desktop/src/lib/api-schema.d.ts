@@ -1002,7 +1002,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Server-native endpoint (list_files) */
+        /** List workspace files or a registered project's files */
         get: operations["list_files"];
         put?: never;
         post?: never;
@@ -1019,7 +1019,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Server-native endpoint (search_files) */
+        /** Search workspace files or a registered project's files */
         get: operations["search_files"];
         put?: never;
         post?: never;
@@ -1036,7 +1036,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Server-native endpoint (read_file) */
+        /** Read one workspace or registered project file */
         get: operations["read_file"];
         /** Server-native endpoint (write_file) */
         put: operations["write_file"];
@@ -3779,7 +3779,12 @@ export interface operations {
     };
     list_files: {
         parameters: {
-            query?: never;
+            query?: {
+                path?: string;
+                depth?: string;
+                workspace?: string;
+                project?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3795,7 +3800,7 @@ export interface operations {
                     "application/json": components["schemas"]["WorkspaceFileListResponse"];
                 };
             };
-            /** @description invalid path */
+            /** @description invalid project */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3813,7 +3818,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
-            /** @description workspace or path not found */
+            /** @description workspace, registered project, or path not found */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3826,7 +3831,11 @@ export interface operations {
     };
     search_files: {
         parameters: {
-            query?: never;
+            query: {
+                q: string;
+                workspace?: string;
+                project?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3842,8 +3851,17 @@ export interface operations {
                     "application/json": components["schemas"]["WorkspaceFileSearchResponse"];
                 };
             };
-            /** @description query is required */
+            /** @description invalid project */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description registered project not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3855,7 +3873,11 @@ export interface operations {
     };
     read_file: {
         parameters: {
-            query?: never;
+            query: {
+                path: string;
+                workspace?: string;
+                project?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3871,7 +3893,7 @@ export interface operations {
                     "application/json": components["schemas"]["WorkspaceFileReadResponse"];
                 };
             };
-            /** @description invalid path */
+            /** @description invalid project */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3889,7 +3911,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
-            /** @description file not found */
+            /** @description registered project or file not found */
             404: {
                 headers: {
                     [name: string]: unknown;

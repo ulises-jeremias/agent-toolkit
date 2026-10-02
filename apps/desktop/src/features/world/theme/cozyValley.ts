@@ -20,8 +20,10 @@ export const cozyValleyTheme: WorldThemePack = {
   sourceTile: 16,
   assets: {
     'workspace.grounds': sprite('landmark-workspace', 'Workspace hall'),
-    'knowledge.workspace': sprite('landmark-files', 'Workspace files'),
+    'knowledge.workspace': sprite('knowledge-shelf', 'Workspace knowledge'),
     'knowledge.project': sprite('knowledge-shelf', 'Project knowledge'),
+    'files.workspace': sprite('landmark-files', 'Workspace files'),
+    'files.project': sprite('desk-files', 'Project files'),
     'project.building': sprite('house-cottage', 'Project building'),
     'memory.entry': sprite('memory-entry', 'Memory record'),
     'memory.index': sprite('landmark-archive', 'Memory archive'),
@@ -39,6 +41,8 @@ export const cozyValleyTheme: WorldThemePack = {
     'ops.lamp': sprite('landmark-settings', 'Settings'),
   },
   facades: {
+    'project-board': sprite('project-board', 'Project overview board'),
+    'door-exit': sprite('door-exit', 'Exit door'),
     'house-cottage': sprite('house-cottage', 'Cottage'),
     'house-studio': sprite('house-studio', 'Studio'),
     'house-workshop': sprite('house-workshop', 'Workshop'),
@@ -127,6 +131,7 @@ export const cozyValleyTheme: WorldThemePack = {
     rug: sprite('rug', 'Rug'),
     plant: sprite('plant', 'Plant'),
     'desk-terminal': sprite('desk-terminal', 'Terminal desk'),
+    'desk-files': sprite('desk-files', 'Project filing cabinet'),
     'shelf-books': sprite('shelf-books', 'Bookshelf'),
     'cabinet-memory': sprite('cabinet-memory', 'Memory cabinet'),
     'bench-tools': sprite('bench-tools', 'Workbench'),

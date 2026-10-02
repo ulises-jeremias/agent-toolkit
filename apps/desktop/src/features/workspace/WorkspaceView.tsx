@@ -44,6 +44,7 @@ export default function WorkspaceView() {
   const [params] = useSearchParams();
   const focusFiles = params.get('panel') === 'files';
   const focusProjects = params.get('panel') === 'projects';
+  const filesProject = params.get('project') || undefined;
   const projectPanel = useRef<HTMLDivElement>(null);
   const context = useSubQuery('workspace', 'context');
   const projects = useSubQuery('project', 'list');
@@ -105,7 +106,7 @@ export default function WorkspaceView() {
         lede={path}
       />
       <Stack>
-        {focusFiles ? <FilesPanel /> : null}
+        {focusFiles ? <FilesPanel key={filesProject ?? 'workspace'} project={filesProject} /> : null}
         <Grid>
           <Panel title="Context budget" meta="How much this workspace adds to every agent's context">
             <QueryView query={budget} loading="Measuring context" errorTitle="Could not measure the context budget">
@@ -160,7 +161,7 @@ export default function WorkspaceView() {
             </QueryView>
           </Panel>
         </Grid>
-        {!focusFiles ? <FilesPanel /> : null}
+        {!focusFiles ? <FilesPanel key={filesProject ?? 'workspace'} project={filesProject} /> : null}
         <Panel tone="notice" title="Agent start context" meta="What an agent sees when it starts here">
           <QueryView query={context} loading="Reading start context" errorTitle="Could not read the start context">
             {(envelope) => <CommandReport envelope={envelope} label="Session context" />}

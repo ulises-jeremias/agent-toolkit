@@ -14,6 +14,8 @@ const CHAR_H = 2;
 
 /** Facade-aware footprints (tile units) — one art direction, varied lots. */
 export const FOOTPRINTS: Record<string, { w: number; h: number }> = {
+  'project-board': { w: 3, h: 3 },
+  'door-exit': { w: 1, h: 2 },
   'landmark-workspace': { w: 5, h: 4 },
   'landmark-archive': { w: 4, h: 4 },
   'landmark-library': { w: 4, h: 4 },
@@ -59,9 +61,11 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
 
   const place = (entity: SemanticEntity, x: number, y: number) => {
     const { w, h } = sizeFor(entity);
-    laid.push({ ...entity, x, y, w, h });
-    maxX = Math.max(maxX, x + w);
-    maxY = Math.max(maxY, y + h);
+    const roomX = x + 1;
+    const roomY = y + 1;
+    laid.push({ ...entity, x: roomX, y: roomY, w, h });
+    maxX = Math.max(maxX, roomX + w);
+    maxY = Math.max(maxY, roomY + h);
   };
 
   const exit = sorted.find((e) => e.id === 'object:exit-grounds');
@@ -78,21 +82,21 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   const rest = sorted.filter((e) => !used.has(e.id));
 
   // Room: exit door at the west wall; furniture along walls; floor stays open.
-  if (exit) place(exit, 0, 1);
-  if (room) place(room, 1, 0);
-  if (memory) place(memory, 8, 0);
-  if (terminal) place(terminal, 0, 6);
-  if (files) place(files, 3, 6);
+  if (exit) place(exit, 0, 2);
+  if (room) place(room, 2, 0);
+  if (memory) place(memory, 9, 0);
+  if (terminal) place(terminal, 1, 4);
+  if (files) place(files, 4, 4);
 
-  let toolX = 6;
-  const toolY = 6;
-  for (const tool of tools) {
-    place(tool, toolX, toolY);
-    toolX += OBJECT_W + 1;
+  const toolsPerRow = 4;
+  for (const [index, tool] of tools.entries()) {
+    const col = index % toolsPerRow;
+    const row = Math.floor(index / toolsPerRow);
+    place(tool, 8 + col * 3, 4 + row * 3);
   }
 
-  let entryX = 0;
-  const entryY = toolY + OBJECT_H + 1;
+  let entryX = 13;
+  const entryY = 1;
   for (const entry of memoryEntries) {
     place(entry, entryX, entryY);
     entryX += 2;
@@ -100,11 +104,11 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
 
   // Characters at named interior objects when job.cmd matches; else by the door.
   let porchX = 2;
-  const porchY = 9;
+  const porchY = Math.max(11, maxY + 1);
   for (const character of characters) {
     const anchor = character.standAtId ? laid.find((row) => row.id === character.standAtId) : undefined;
     if (anchor) {
-      place(character, anchor.x + Math.max(0, anchor.w - 1), anchor.y + Math.max(0, anchor.h - 1));
+      place(character, anchor.x + anchor.w - 1, anchor.y + Math.max(0, anchor.h - 1) - 1);
     } else {
       place(character, porchX, porchY);
       porchX += CHAR_W + 1;
@@ -116,8 +120,8 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   }
 
   return {
-    cols: Math.max(maxX, 12),
-    rows: Math.max(maxY, 10),
+    cols: Math.max(maxX + 1, 12),
+    rows: Math.max(maxY + 1, 12),
     entities: laid,
   };
 }

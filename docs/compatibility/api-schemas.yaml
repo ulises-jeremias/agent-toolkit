@@ -413,6 +413,7 @@ schemas:
 # mirrors of CLI contract commands. `response` is a field type (see grammar),
 # `text` (text/plain) or `sse` (text/event-stream of `event_schema`).
 # `errors` lists `code:description` pairs answered with #ApiError.
+# `query_params` uses `name:type`; append `?` to mark an optional query value.
 native:
   - path: /api/v1/health
     method: get
@@ -694,25 +695,45 @@ native:
   - path: /api/v1/files
     method: get
     op: list_files
+    summary: List workspace files or a registered project's files
+    query_params:
+      - 'path?:string'
+      - 'depth?:string'
+      - 'workspace?:string'
+      - 'project?:string'
     response: '#WorkspaceFileListResponse'
     errors:
       - '400:invalid path'
+      - '400:invalid project'
       - '403:path outside workspace'
-      - '404:workspace or path not found'
+      - '404:workspace, registered project, or path not found'
   - path: /api/v1/files/hits
     method: get
     op: search_files
+    summary: Search workspace files or a registered project's files
+    query_params:
+      - q:string
+      - 'workspace?:string'
+      - 'project?:string'
     response: '#WorkspaceFileSearchResponse'
     errors:
       - '400:query is required'
+      - '400:invalid project'
+      - '404:registered project not found'
   - path: /api/v1/files/content
     method: get
     op: read_file
+    summary: Read one workspace or registered project file
+    query_params:
+      - path:string
+      - 'workspace?:string'
+      - 'project?:string'
     response: '#WorkspaceFileReadResponse'
     errors:
       - '400:invalid path'
+      - '400:invalid project'
       - '403:path outside workspace'
-      - '404:file not found'
+      - '404:registered project or file not found'
   - path: /api/v1/files/content
     method: put
     op: write_file

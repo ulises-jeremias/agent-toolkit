@@ -266,30 +266,38 @@ export class ApiClient {
     return this.json('POST', '/api/v1/memory/file/archive' satisfies PathWith<'post'>, { body });
   }
 
-  listFiles(query?: { path?: string; depth?: string; workspace?: string }): Promise<WorkspaceFileListResponse> {
+  listFiles(query?: {
+    path?: string;
+    depth?: string;
+    workspace?: string;
+    project?: string;
+  }): Promise<WorkspaceFileListResponse> {
     const params: Record<string, string> = {};
     if (query?.path) params.path = query.path;
     if (query?.depth) params.depth = query.depth;
     if (query?.workspace) params.workspace = query.workspace;
+    if (query?.project) params.project = query.project;
     return this.json('GET', '/api/v1/files' satisfies PathWith<'get'>, {
       query: Object.keys(params).length ? params : undefined,
     });
   }
 
-  searchFiles(q: string, query?: { workspace?: string }): Promise<WorkspaceFileSearchResponse> {
+  searchFiles(q: string, query?: { workspace?: string; project?: string }): Promise<WorkspaceFileSearchResponse> {
     return this.json('GET', '/api/v1/files/hits' satisfies PathWith<'get'>, {
       query: {
         q,
         ...(query?.workspace ? { workspace: query.workspace } : {}),
+        ...(query?.project ? { project: query.project } : {}),
       },
     });
   }
 
-  readFile(path: string, query?: { workspace?: string }): Promise<WorkspaceFileReadResponse> {
+  readFile(path: string, query?: { workspace?: string; project?: string }): Promise<WorkspaceFileReadResponse> {
     return this.json('GET', '/api/v1/files/content' satisfies PathWith<'get'>, {
       query: {
         path,
         ...(query?.workspace ? { workspace: query.workspace } : {}),
+        ...(query?.project ? { project: query.project } : {}),
       },
     });
   }

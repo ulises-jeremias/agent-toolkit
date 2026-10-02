@@ -104,6 +104,52 @@ fn test_symlink_escape_rejected() {
 	}
 }
 
+fn test_project_file_catalog_is_scoped_to_registered_link_and_masks_secrets() {
+	workspace := setup_files_ws('project-scope')
+	project := os.join_path(os.temp_dir(), 'atk-project-files-${os.getpid()}')
+	outside := os.join_path(os.temp_dir(), 'atk-project-files-outside-${os.getpid()}')
+	os.rmdir_all(project) or {}
+	os.rmdir_all(outside) or {}
+	os.mkdir_all(os.join_path(project, 'src')) or { panic(err.msg()) }
+	os.mkdir_all(outside) or { panic(err.msg()) }
+	os.write_file(os.join_path(project, 'src', 'main.v'), 'module demo\n') or { panic(err.msg()) }
+	os.write_file(os.join_path(project, '.env'), 'SECRET=never return\n') or { panic(err.msg()) }
+	os.write_file(os.join_path(outside, 'secret.txt'), 'never return\n') or { panic(err.msg()) }
+	defer {
+		os.rmdir_all(workspace) or {}
+		os.rmdir_all(project) or {}
+		os.rmdir_all(outside) or {}
+	}
+	projects_dir := os.join_path(workspace, 'projects')
+	os.mkdir_all(projects_dir) or { panic(err.msg()) }
+	os.symlink(project, os.join_path(projects_dir, 'demo')) or { return }
+	os.symlink(outside, os.join_path(project, 'escape')) or { return }
+	listed := list_project_files(workspace, 'demo', '', 2) or { panic(err.msg()) }
+	assert listed.root == '.'
+	assert listed.nodes.any(it.path == 'src/main.v')
+	assert !listed.nodes.any(it.path.starts_with('escape'))
+	secret := read_project_file(workspace, 'demo', '.env') or { panic(err.msg()) }
+	assert secret.masked
+	assert secret.content == ''
+	read := read_project_file(workspace, 'demo', 'src/main.v') or { panic(err.msg()) }
+	assert read.content == 'module demo\n'
+	if _ := read_project_file(workspace, 'demo', 'escape/secret.txt') {
+		assert false
+	} else {
+		assert err.msg().contains('outside') || err.msg().contains('invalid')
+	}
+	if _ := list_project_files(workspace, '../outside', '', 2) {
+		assert false
+	} else {
+		assert err.msg().contains('invalid project')
+	}
+	if _ := list_project_files(workspace, 'unregistered', '', 2) {
+		assert false
+	} else {
+		assert err.msg().contains('project not found')
+	}
+}
+
 fn test_missing_workspace_is_error() {
 	if _ := list_workspace_files('/nonexistent/atk-files-ws', '', 1) {
 		assert false

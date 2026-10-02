@@ -304,6 +304,12 @@ describe('buildWorldModel', () => {
     expect(ids).toContain('object:memory:p.md');
     expect(ids).not.toContain('object:memory:other.md');
     expect(ids).toContain('object:terminal-project:alpha');
+    expect(model.entities.find((e) => e.id === 'object:files-project:alpha')).toMatchObject({
+      concept: 'Project files',
+      themeKey: 'files.project',
+      hrefPath: '/workspace',
+      hrefExtra: { panel: 'files', project: 'alpha' },
+    });
     expect(ids).toContain('object:tool:cursor');
     expect(ids).not.toContain('object:tool:ghost');
     expect(ids).not.toContain('place:project:beta');
@@ -311,7 +317,7 @@ describe('buildWorldModel', () => {
     expect(ids).not.toContain('place:memory');
     expect(ids).not.toContain('place:knowledge-workspace');
     expect(ids).toContain('character:job:j1');
-    expect(model.entities.find((e) => e.id === 'place:project:alpha')?.concept).toBe('Project interior');
+    expect(model.entities.find((e) => e.id === 'place:project:alpha')?.concept).toBe('Project overview board');
   });
 
   it('keeps interiors calm with no fake tools or characters', () => {
@@ -592,7 +598,7 @@ describe('layoutWorld', () => {
     const exit = layout.entities.find((e) => e.id === 'object:exit-grounds');
     const room = layout.entities.find((e) => e.id === 'place:project:alpha');
     expect(exit && room).toBeTruthy();
-    expect(exit!.x).toBe(0);
+    expect(exit!.x).toBe(1);
     expect(room!.x).toBeGreaterThan(exit!.x);
   });
 });

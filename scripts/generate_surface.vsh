@@ -54,6 +54,7 @@ struct NativeDef {
 	method       string
 	op           string
 	summary      string
+	query_params []string
 	response     string
 	event_schema string
 	errors       []string
@@ -417,7 +418,7 @@ fn sub_route_extras(cmd Cmd) JObj {
 	extra.put('parameters', JArr{[JVal(param)]})
 	mut props := jobj()
 	for spec in cmd.api_body {
-		name, schema := body_field_schema(spec)
+		mut name, schema := body_field_schema(spec)
 		props.put(name, schema)
 	}
 	mut schema := jobj()
@@ -601,6 +602,19 @@ fn native_op(entry NativeDef) JObj {
 			p.put('schema', type_schema('string'))
 			params << JVal(p)
 		}
+	}
+	for spec in entry.query_params {
+		mut name, schema := body_field_schema(spec)
+		required := !name.ends_with('?')
+		if !required {
+			name = name[..name.len - 1]
+		}
+		mut p := jobj()
+		p.put('name', JStr{name})
+		p.put('in', JStr{'query'})
+		p.put('required', JBool{required})
+		p.put('schema', schema)
+		params << JVal(p)
 	}
 	if params.len > 0 {
 		op.put('parameters', JArr{params})
