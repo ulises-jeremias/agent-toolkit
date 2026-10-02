@@ -5,7 +5,7 @@
 - **Supersedes (presentation only):** ADR-032 (native vlang/gui Desktop)
 - **Amends:** ADR-027 (server/core boundary), ADR-028 (server security), ADR-030 (binary-first contract)
 - **Amended by:** ADR-034 (semantic world as primary home)
-- **Rollback:** v1.35.0 (native Desktop preserved; see `docs/desktop/ELECTRON_MIGRATION.md`)
+- **Historical rollback point:** v1.35.0 preserves the native Desktop source tree in Git history; current packages are described in `docs/desktop/PACKAGING.md`.
 
 ## Context
 
@@ -60,11 +60,10 @@ From now on:
   (`docs/surface/openapi.json`, generated client via `pnpm gen:api`) is the
   V↔TypeScript contract.
 - Terminal transport is **node-pty in Electron main** (strictly a PTY adapter,
-  no domain state), chosen over the V `modules/pty` backend because the V
-  module is POSIX-only while node-pty provides ConPTY on Windows.
-- The native V GUI is retained as a functional reference until the Electron
-  product reaches verified replacement; v1.35.0 remains the rollback release
-  (tags are never moved or rewritten).
+  no domain state); Electron packages node-pty for its supported platforms.
+- The former native V GUI and its unused PTY/terminal modules have been
+  removed. v1.35.0 remains a historical rollback release; tags are never
+  moved or rewritten. The Electron package is the supported Desktop.
 
 ## Consequences
 
@@ -73,13 +72,13 @@ From now on:
   lockfile; V release automation bundles the backend binary as an app resource).
 - Backend gaps the Desktop needs (typed domain models beyond generic
   envelopes, read-classified GET subs, job cancellation) are tracked in
-  `docs/desktop/ELECTRON_MIGRATION.md` and land in V — never worked around in
+  the typed V backend/server API and land there — never worked around in
   TypeScript string parsing.
 
 ## References
 
 - Shipped: #1311 (Electron Desktop) and follow-on Desktop PRs on main at v1.36.0+
-- Rollback proof: `docs/desktop/ELECTRON_MIGRATION.md` (v1.35.0 == native rollback tree)
+- Historical rollback point: tag v1.35.0 (native GUI sources remain available in Git history)
 - Template: Create Awesome Node App `react-vite-starter`
   (`projects/cna-templates/templates/react-vite-starter`)
 - Capability reference: `docs/desktop/WORKSTATION_REFERENCE_ANALYSIS.md`

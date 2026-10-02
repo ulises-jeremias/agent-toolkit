@@ -6,9 +6,9 @@
 - **Amended by:** [ADR-035](ADR-035-cozy-pixel-world.md) (visual language:
   Cozy Pixel World replaces the Paper Co. policy referenced below; semantic
   pipeline and truth rules here remain binding)
-- **Supersedes (spatial presentation):** Office-as-default-home; historical
-  Workshop vector world in [WORLD_VIEW.md](../desktop/WORLD_VIEW.md) as
-  production authority (motion/truth contracts from that doc remain binding)
+- **Supersedes (spatial presentation):** Office-as-default-home and the
+  historical Workshop vector world. Current semantic and runtime truth rules
+  live in [SEMANTIC_WORLD.md](../desktop/SEMANTIC_WORLD.md).
 - **Companion:** [SEMANTIC_WORLD.md](../desktop/SEMANTIC_WORLD.md)
 
 ## Context

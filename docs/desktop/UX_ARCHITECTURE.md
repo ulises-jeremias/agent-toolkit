@@ -1,113 +1,25 @@
 # Desktop UX architecture
 
-Status: **CURRENT CONTRACT** — intended interaction contract. Updated 2026-09-30
-for the Electron + React shipping Desktop ([ADR-033](../adrs/ADR-033-electron-desktop.md),
-[ADR-034](../adrs/ADR-034-semantic-world.md)). Historical presentation lived in
-`cmd/agent-toolkit-desktop/main.v` (gg/sokol); that tree remains a functional
-reference only. [ADR-032](../adrs/ADR-032-desktop-gui-framework.md) records the
-vlang/gui Phase-0 decision and retirement (`modules/agent_toolkit_gui/` removed
-2026-09-13, #1206). Domain truth stays in V via `agent-toolkit serve`.
+Agent Toolkit Desktop is Electron + React over `agent-toolkit serve`. The V core owns workspace, capability, People, job, loop, swarm, memory, and installation semantics. Desktop calls typed backend operations and presents their real results. An Electron-only shell owns windows, local settings, and PTY hosting. CLI and Desktop must converge on the same domain operations.
 
-## Shell and navigation
+## Spatial home and direct navigation
 
-The active workspace and Search / Run are always discoverable. Electron Desktop
-primary destinations (see [SEMANTIC_WORLD.md](SEMANTIC_WORLD.md),
-[ADR-034](../adrs/ADR-034-semantic-world.md)):
+`/world` is the home and occupies the main canvas. A workspace is a valley; each actual project is a building. Shared capabilities are distinct landmarks: Library for reusable capabilities, Archive for memory, Operations for runtime work, Terminal for direct shells, and Workspace Hall for context. Inside a project, semantic objects open real Files, Knowledge, Memory, Tools, and Terminal resources. A building or object with no truthful click action or state relationship should not appear as a functional affordance.
 
-| Destination | User question | Contents |
-|---|---|---|
-| **World** (default home) | Where am I in this toolkit, and what is real here? | Semantic places/objects/characters from domain state; list fallback; click → inspectors |
-| Office | What needs attention now? | Failures, blocked work, self-check, backend; running work summary |
-| Library | What can I use or add? | Skills, agents, products and packs with clear distinctions |
-| Operations | How do I inspect and control this job, loop, swarm or doctor check? | Jobs, loops, swarms, doctor. The world and Office link here; this is not a second home. |
-| Workspace | Where am I working? | Workspace lifecycle, projects, context, files and relevant Git changes |
-| Insights | What happened over time? | Measured usage, cost, budgets and execution history |
-| Terminal | Where do I work with agents directly? | PTY sessions |
-| Settings | How is the product configured? | Appearance, language, scale, motion, setup and coding-tool/MCP connections |
+World click targets, navigation, contextual actions, and the command palette use the same routes and operations. No task requires walking an avatar. Inspectors open for precise control while the world retains context. Library, project knowledge, memory, and files remain separate concepts.
 
-World is the home. Other destinations are inspectors/workstations opened from
-places, the nav, or the command palette — not competing spatial homes.
+## Identity and runtime
 
-Connections initially have a clearly labeled setup home in Settings and contextual
-entry points from installation and Doctor. Promote Connections to primary navigation
-only if journey evidence shows this improves discovery. Do not add a destination
-merely to match a CLI command.
+AgentDefinition is reusable capability; Person is durable collaborator configuration; AgentSession is a live process; SwarmRole is an ephemeral responsibility. A configured Person appears in the roster even when offline. A character in the world requires actual runtime evidence and a project assignment. Runtime exit removes its presence without deleting the Person. Environmental animals and effects must never imply agent activity.
 
-Office prioritizes attention, running operations and useful next actions. An empty
-runtime says "No agents are currently running." A catalog agent is not a running
-process. Recent activity contains real events only. The world must not be required
-to find operations or sessions — palette and nav remain.
+## Interaction rules
 
-## Shared action and entity model
+Important mutations use a purpose-built configuration flow, backend validation, review of affected scope and paths, explicit apply, and a real receipt or result. Importing a Person never runs code or starts a session. Errors explain what happened, what remains safe, and how to retry or recover. Partial success is reported as such. Secrets are masked and not echoed in diagnostics.
 
-One typed registry supplies global search, command palette, contextual actions,
-entity results and recent actions from Engine/catalog/runtime state. Results retain
-entity identity and workspace context. An action has typed arguments, validation,
-availability with a reason, preview, execution result and recovery information.
-Forms support selection, scope and dry run without shell strings as authority.
-Unavailable actions explain why; no silent dispatch fallthrough.
+A palette action opens the same flow as its menu or world equivalent. Disabled actions explain why. Keyboard focus is visible, Escape closes the innermost layer, and text/terminal input takes precedence over global shortcuts. Dense operational content uses readable body and monospace text; pixel display type is reserved for small labels. Responsive compact layouts preserve primary actions and avoid clipping. Reduced motion applies to ambient effects.
 
-Installation reviews files, destinations, conflicts and reversibility before apply.
-Transactions record actual artifacts and results. Irreversible actions require
-specific confirmation; reversible operations expose real Undo and its limits.
+Terminal views connect to real PTY sessions. Switching route or collapsing the dock does not kill a session; close and process exit are explicit and observable. Reattach only to a process that exists. Swarm Operations shows topology, handoffs, approvals, budget, artifacts, and logs; the world only shows where actual work is happening.
 
-## State and geometry
+## Evidence
 
-Converge incrementally on Engine canonical state → typed ViewModel → layout →
-renderer → interaction dispatch → typed Engine operation. The CLI currently calls
-core directly and Desktop has additional domain logic; shared authority is a gap,
-not an accomplished property. Reuse working core operations through typed seams.
-
-One geometry calculation drives draw, hover, hit test, focus and tooltip anchors.
-Extract repeated components as they are used, not a speculative widget framework.
-Buttons, fields, rows, status indicators, drawers, empty/error/loading states and
-terminal chrome share semantics. Applicable states include default, hover, focus,
-pressed, selected, disabled, loading, success, warning and error. Status needs text
-or shape in addition to color. Disabled controls explain the reason.
-
-Guard every integer selection before indexing with `>= 0 && < len`, including
-desk, terminal panes, loops, jobs, skills, memory and swarms. Validate selections
-again after filtering, refresh and workspace switch. Mask secrets before values
-reach rendering, logs, previews or diagnostic exports. UI projections must not
-contain credentials merely because the underlying operation needs them.
-
-## Inspector, activity and terminal
-
-The inspector follows selection for skills, agents, coding tools, MCP, jobs, loops,
-swarms, workspaces, projects, products/packs, receipts and files. Order information
-as identity, status, key facts, recent activity, primary actions, secondary detail
-and advanced data. No selection shows useful guidance without invented activity.
-
-One always-available activity control summarizes real running work, approvals and
-failures and opens the relevant entity. Coalesce updates rather than sending
-repeated notifications.
-
-Terminal sessions support create, attach, switch, split, resize, scrollback,
-selection, copy/paste, search, exit and explicit recovery. Exited processes remain
-exited until the user requests a new process. Hide/compact/tall/max are temporary
-view states. Do not persist pane focus or MAX across launches. The current local
-`modules/ghostty` is a custom V VT parser, not upstream libghostty; upstream Ghostty
-integration and actual VT compatibility require a separate evidence-backed decision.
-
-## Focus and responsive behavior
-
-Event precedence is modal → active text field → terminal → focused widget →
-panel-local shortcuts → global shortcuts. Escape closes the innermost context and
-never unexpectedly quits. Long lists use roving focus. Help reflects actual
-bindings. Test text and terminal input collisions.
-
-Wide layouts can show navigation, content and inspector together. Medium layouts
-collapse optional detail. Compact layouts use drawers/tabs, wrapping and scrolling;
-they never shrink text to fit or clip primary actions. Validate breakpoints through
-the [resolution matrix](VISUAL_QA.md), including scaled text and long translations.
-
-Persist durable preferences only, and persist them through the Engine, never
-from views directly: appearance, language, density, reduced motion, scale,
-tool paths and setup configuration live in the Engine-owned derived
-`ui_state.env` (`modules/desktop_engine/ui_state_persistence.v`); dock
-layout lives in the Engine-owned derived `dock.json`
-(`modules/desktop_engine/dock_persistence.v`). Both are restorable derived
-state under the XDG-cache persist path, mirrored into the StateRepository.
-Session-only view state is never restored: terminal MAX restarts as compact
-(see `persisted_terminal_mode`). Setup & Onboarding can be revisited
-without resetting the environment.
+The source of executable workflow status is [`workflows.yaml`](workflows.yaml). Visual review and packaging gates are in [`VISUAL_QA.md`](VISUAL_QA.md) and [`PACKAGING.md`](PACKAGING.md). Documentation does not convert a partial or unimplemented operation into a working Desktop journey.

@@ -34,7 +34,7 @@ onto the game-menu system. Evidence: opened PNGs below.
 **Declarative workflow ledger.** `docs/desktop/workflows.yaml`
 (`spec: agent-toolkit/desktop-workflows@1`) is the Electron per-journey
 ledger, checked by `apps/desktop/src/workflowLedger.test.ts`. The native-V
-matrix in `WORKFLOW_COVERAGE.md` is marked historical; People CRUD/import/
+matrix in `workflows.yaml` tracks current evidence; People CRUD/import/
 Start/swarm-picker are explicitly `not-implemented` — schemas and file
 authoring are not the user interface.
 

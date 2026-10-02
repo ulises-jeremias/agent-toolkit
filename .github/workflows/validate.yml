@@ -132,9 +132,6 @@ jobs:
       - name: Validate agents taxonomy (holistic/specialist roster vs registry, products, AGENT_TAXONOMY.md)
         run: ./scripts/validate-agents-taxonomy.vsh --check
 
-      - name: Contrast gate (Paper/Ink theme tokens vs WCAG 2.1 4.5:1)
-        run: ./scripts/check-contrast.vsh
-
   # ── Job 3: Validate marketplace manifests and plugin.json files ────────────
   validate-manifests:
     name: Validate Marketplace Manifests
@@ -851,21 +848,6 @@ jobs:
       - name: Setup pinned V
         uses: ./.github/actions/setup-v
 
-      # The Desktop shell test suite (#1119, incl. the registry
-      # reachability gate) compiles gg/sokol, which needs X11/GL dev headers
-      # on Linux. Mirrors the Golden UI job's dependency list (headers only —
-      # no xdotool/xvfb needed: tests run headless).
-      - name: Install X11/GL dev headers (Desktop shell tests)
-        if: runner.os == 'Linux'
-        run: |
-          set -euo pipefail
-          # The runner image ships third-party apt sources (Chrome, etc.) we do
-          # not use; a stale mirror there (Hash Sum mismatch) must not block us.
-          sudo rm -f /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/microsoft-*.list
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends \
-            xorg-dev libgl1-mesa-dev libegl1-mesa-dev
-
       - name: vet and test
         env:
           VMODULES: ${{ github.workspace }}/modules
@@ -876,106 +858,6 @@ jobs:
           # See docs/HOW_TO_DEVELOP_V.md. Prefer ./make.vsh vet + test as the gate.
           ./make.vsh vet
           ./make.vsh test
-
-  # ── Job: golden-image regression for the desktop GUI (#1111) ──
-  # Compares both theme fixture sets against a fresh build. Starts as
-  # non-blocking (continue-on-error) until the promotion criteria prove
-  # stability. Promotion to blocking (remove continue-on-error) requires ALL
-  # of: (a) 20 consecutive green runs on main with no fixture churn;
-  # (b) every RMSE failure in that window triaged to a real visual change
-  # (no infra flakes: Xvfb/xdotool/compare availability proven per run);
-  # (c) paper + ink fixture sets re-captured from a release-build SHA and
-  # recorded in docs/desktop/VISUAL_QA.md; (d) mismatch artifacts
-  # (golden-mismatch upload) reviewed at least once end-to-end. Until then
-  # this job is advisory signal only, never a release-quality guarantee.
-  golden-ui:
-    name: Golden UI (paper + ink)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Install X11/GL + capture deps
-        run: |
-          set -euo pipefail
-          # same third-party-source hardening as the shell-tests job
-          sudo rm -f /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/microsoft-*.list
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends \
-            xorg-dev libgl1-mesa-dev libegl1-mesa-dev \
-            xdotool imagemagick xvfb
-
-      - name: Setup pinned V
-        uses: ./.github/actions/setup-v
-
-      - name: Build desktop binary
-        env:
-          VMODULES: ${{ github.workspace }}/modules
-        run: |
-          set -euo pipefail
-          mkdir -p build
-          # gg_text_buff_size=4096 — 4096² fontstash atlas (see release.yml)
-          "${VBIN:-v}" -d gg_text_buff_size=4096 -o build/agent-toolkit-desktop-native cmd/agent-toolkit-desktop
-
-      - name: Compare paper fixtures
-        env:
-          SMOKE_BIN: ${{ github.workspace }}/build/agent-toolkit-desktop-native
-        run: |
-          set -euo pipefail
-          ./scripts/golden.vsh compare
-
-      - name: Compare ink fixtures
-        env:
-          SMOKE_BIN: ${{ github.workspace }}/build/agent-toolkit-desktop-native
-        run: |
-          set -euo pipefail
-          ATK_GOLDEN_THEME=ink ./scripts/golden.vsh compare
-
-      - name: UI smoke (panel tour + screenshots)
-        env:
-          SMOKE_BIN: ${{ github.workspace }}/build/agent-toolkit-desktop-native
-        run: |
-          set -euo pipefail
-          ./scripts/ui-smoke.vsh
-
-      - name: Enter-key regression
-        env:
-          SMOKE_BIN: ${{ github.workspace }}/build/agent-toolkit-desktop-native
-        run: |
-          set -euo pipefail
-          ./scripts/enter-regression.vsh
-
-      - name: Browser-install acceptance (gui install path)
-        run: |
-          set -euo pipefail
-          ./scripts/browser-install.vsh
-
-      - name: Tofu detector
-        run: |
-          set -euo pipefail
-          ./scripts/check-tofu.vsh
-
-      - name: Contrast gate (Paper/Ink WCAG 4.5:1)
-        run: |
-          set -euo pipefail
-          ./scripts/check-contrast.vsh
-
-      - name: Workflow coverage report
-        run: |
-          set -euo pipefail
-          ./scripts/gui-coverage.vsh --check
-
-      - name: Upload mismatch artifacts
-        if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: golden-mismatch
-          path: |
-            tests/golden-app.log
-            tests/golden/**/*.new.png
-            tests/golden/**/*.diff.png
-          if-no-files-found: ignore
 
   swarm-e2e:
     name: Swarm e2e (skeleton, ${{ matrix.os }})

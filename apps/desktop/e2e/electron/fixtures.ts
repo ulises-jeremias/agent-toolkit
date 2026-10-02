@@ -6,6 +6,7 @@ import { _electron as electron, expect, type ElectronApplication, type Page } fr
 
 const APP_DIR = path.resolve(__dirname, '..', '..');
 const REPO_ROOT = path.resolve(APP_DIR, '..', '..');
+const packagedApp = process.env.ATK_E2E_APP_PATH;
 
 /**
  * The real V backend. CI builds it into dist/; locally any binary works via
@@ -14,6 +15,7 @@ const REPO_ROOT = path.resolve(APP_DIR, '..', '..');
 function backendBinary(): string {
   const candidates = [
     process.env.ATK_E2E_BACKEND_BIN,
+    packagedApp ? path.join(path.dirname(packagedApp), 'resources', 'bin', 'agent-toolkit') : undefined,
     path.join(REPO_ROOT, 'dist', 'agent-toolkit'),
     path.join(REPO_ROOT, 'build', 'agent-toolkit'),
   ].filter((candidate): candidate is string => Boolean(candidate));
@@ -27,6 +29,10 @@ function backendBinary(): string {
 }
 
 function assertBuilt(): void {
+  if (packagedApp) {
+    if (!fs.existsSync(packagedApp)) throw new Error(`Missing packaged Desktop: ${packagedApp}`);
+    return;
+  }
   for (const required of ['dist/index.html', 'dist-electron/main.js']) {
     if (!fs.existsSync(path.join(APP_DIR, required))) {
       throw new Error(`Missing ${required}. Run \`pnpm build:all\` before the electron project.`);
@@ -85,10 +91,10 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
     });
   }
 
-  const args = [APP_DIR, `--user-data-dir=${path.join(root, 'user-data')}`];
+  const args = [...(packagedApp ? [] : [APP_DIR]), `--user-data-dir=${path.join(root, 'user-data')}`];
   // GitHub runners have no setuid sandbox helper for Chromium.
   if (process.env.CI) args.push('--no-sandbox');
-  const app = await electron.launch({ args, cwd: initWorkspace ? workspace : home, env });
+  const app = await electron.launch({ executablePath: packagedApp, args, cwd: initWorkspace ? workspace : home, env });
   const page = await app.firstWindow();
   await page.waitForLoadState('domcontentloaded');
   if (skipOnboarding) {

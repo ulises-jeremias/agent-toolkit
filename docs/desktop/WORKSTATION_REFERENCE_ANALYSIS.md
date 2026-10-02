@@ -1,6 +1,7 @@
 # Workstation reference analysis
 
-Status: **ENGINEERING DECISION ARTIFACT** (2026-09-30).
+Status: **HISTORICAL ENGINEERING ANALYSIS** (snapshot 2026-09-30; not a
+current implementation ledger).
 Renamed from `MUNDER_GAP.md` via `git mv` (history preserved).
 
 > **Visual-authority note (2026-09-30):** the Paper Co. visual language this
@@ -8,6 +9,14 @@ Renamed from `MUNDER_GAP.md` via `git mv` (history preserved).
 > [ADR-035](../adrs/ADR-035-cozy-pixel-world.md)**. The capability matrix and
 > reference lessons below remain valid; visual claims are superseded by
 > [DESIGN.md](DESIGN.md) (Cozy Pixel World).
+
+> **Current-state notice (2026-10-02):** several implementation-status rows
+> below describe the pre-stabilization baseline and are retained only as
+> historical reasoning. For current product status, use
+> [workflows.yaml](workflows.yaml), [PACKAGING.md](PACKAGING.md),
+> [PEOPLE.md](../PEOPLE.md), and the accepted [ADR-033](../adrs/ADR-033-electron-desktop.md).
+> The Electron Desktop is canonical; the former native V GUI and its unused
+> terminal modules have been removed.
 
 This is the single in-repo comparison of Agent Toolkit Desktop against two
 external capability references. It is not a feature-parity program and not a
@@ -71,7 +80,8 @@ Implementation on `main` already advances that split (#1311 Electron app,
 **Do not treat Proposed as Accepted. Do not treat the native gg/sokol GUI as
 the current presentation plan.** ADR-032 remains the native-GUI decision;
 ADR-033 *proposes* to supersede it at the presentation layer only. v1.35.0
-is the rollback tag ([ELECTRON_MIGRATION.md](ELECTRON_MIGRATION.md)).
+is preserved as a historical release; current rollback/package guidance is in
+[PACKAGING.md](PACKAGING.md).
 
 ### Open work (do not derail)
 

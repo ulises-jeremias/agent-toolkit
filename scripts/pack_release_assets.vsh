@@ -36,8 +36,6 @@ struct Manifest {
 	assets         []AssetEntry
 }
 
-const product_desktop_name = 'agent-toolkit-desktop'
-
 fn file_name(path string) string {
 	return file_name_of(path)
 }
@@ -113,11 +111,6 @@ fn main() {
 		FloatingSpec{'agent-toolkit-macos-arm64', 'macos', 'arm64', '', 'tar'},
 		FloatingSpec{'agent-toolkit-macos-x86_64', 'macos', 'x86_64', '', 'tar'},
 		FloatingSpec{'agent-toolkit-windows-x86_64.exe', 'windows', 'x86_64', '', 'zip'},
-		FloatingSpec{'agent-toolkit-desktop-linux-x86_64', 'linux', 'x86_64', 'gnu', 'tar'},
-		FloatingSpec{'agent-toolkit-desktop-linux-arm64', 'linux', 'arm64', 'gnu', 'tar'},
-		FloatingSpec{'agent-toolkit-desktop-macos-arm64', 'macos', 'arm64', '', 'tar'},
-		FloatingSpec{'agent-toolkit-desktop-macos-x86_64', 'macos', 'x86_64', '', 'tar'},
-		FloatingSpec{'agent-toolkit-desktop-windows-x86_64.exe', 'windows', 'x86_64', '', 'zip'},
 	]
 
 	mut assets := []AssetEntry{}
@@ -146,19 +139,11 @@ fn main() {
 		}
 		packed_names << spec.floating
 
-		inner := if spec.floating.contains('desktop') {
-			if spec.os_name == 'windows' { 'agent-toolkit-desktop.exe' } else { 'agent-toolkit-desktop' }
-		} else {
-			if spec.os_name == 'windows' { 'agent-toolkit.exe' } else { 'agent-toolkit' }
-		}
+		inner := if spec.os_name == 'windows' { 'agent-toolkit.exe' } else { 'agent-toolkit' }
 		mut archive_name := ''
 		mut archive_path := ''
 		if spec.archive_kind == 'zip' {
-			archive_name = if spec.floating.contains('desktop') {
-				'agent-toolkit-desktop-${version}-windows-${spec.arch}.zip'
-			} else {
-				'agent-toolkit-${version}-windows-${spec.arch}.zip'
-			}
+			archive_name = 'agent-toolkit-${version}-windows-${spec.arch}.zip'
 			archive_path = join_path(out, archive_name)
 			// Prefer zip CLI for portability in CI.
 			rm(archive_path) or {}
@@ -206,11 +191,7 @@ fn main() {
 				exit(rc)
 			}
 		} else {
-			archive_name = if spec.floating.contains('desktop') {
-				'agent-toolkit-desktop-${version}-${spec.os_name}-${spec.arch}.tar.gz'
-			} else {
-				'agent-toolkit-${version}-${spec.os_name}-${spec.arch}.tar.gz'
-			}
+			archive_name = 'agent-toolkit-${version}-${spec.os_name}-${spec.arch}.tar.gz'
 			archive_path = join_path(out, archive_name)
 			tmpdir := join_path(temp_dir(), 'atk-pack-${spec.os_name}-${spec.arch}')
 			rmdir_all(tmpdir) or {}
@@ -222,68 +203,12 @@ fn main() {
 				eprintln('cp failed to tmpdir: ${err}')
 				exit(1)
 			}
-			// #1057/#1116/#1130: the Linux desktop archive ships the full
-			// packaging bundle — launcher entry, hicolor icons, man page,
-			// and the receipt-backed install/uninstall script — so a user
-			// can install from the artifact alone (no repo checkout).
-			if spec.floating.contains('desktop') && spec.os_name == 'linux' {
-				pkg := 'packaging/linux'
-				items := [
-					'${pkg}/agent-toolkit-desktop.desktop',
-					'${pkg}/install-desktop.sh',
-					'${pkg}/share/man/man1/agent-toolkit-desktop.1',
-				]
-				mut icon_globs := []string{}
-				for size in ['16', '24', '32', '48', '64', '128', '256', '512'] {
-					icon_globs << '${pkg}/icons/' + product_desktop_name + '-${size}.png'
-				}
-				icon_globs << '${pkg}/icons/' + product_desktop_name + '-scalable.svg'
-				for item in [...items, ...icon_globs] {
-					if !is_file(item) {
-						eprintln('desktop packaging file missing: ' + item)
-						exit(1)
-					}
-				}
-				mkdir_all('${tmpdir}/icons') or {}
-				mkdir_all('${tmpdir}/share/man/man1') or {}
-				if !is_file('VERSION') {
-					eprintln('VERSION file missing at repo root')
-					exit(1)
-				}
-				cp('VERSION', join_path(tmpdir, 'VERSION')) or {}
-				chmod(join_path(tmpdir, 'VERSION'), 0o644) or {}
-				for item in items {
-					// man page lands at its FHS-relative path; the rest at root
-					dst := if item.ends_with('.1') {
-						join_path(tmpdir, 'share', 'man', 'man1', 'agent-toolkit-desktop.1')
-					} else {
-						join_path(tmpdir, file_name(item))
-					}
-					cp(item, dst) or {
-						eprintln('cp failed for ${item}: ${err}')
-						exit(1)
-					}
-				}
-				for icon in icon_globs {
-					cp(icon, join_path(tmpdir, 'icons', file_name(icon))) or {
-						eprintln('cp failed for ${icon}: ${err}')
-						exit(1)
-					}
-				}
-				chmod(join_path(tmpdir, 'install-desktop.sh'), 0o755) or {}
-			}
 			mut tar_extra := ''
 			if sde_epoch.len > 0 {
 				tar_extra = '--sort=name --owner=0 --group=0 --mtime=@${sde_epoch} '
 			}
 			cp(license_path, join_path(tmpdir, 'LICENSE')) or {}
-			// tar the whole staged dir for desktop-linux bundles (binary +
-			// LICENSE + packaging bundle); single-name form otherwise
-			mut tar_list := '"${inner}" LICENSE'
-			if spec.floating.contains('desktop') && spec.os_name == 'linux' {
-				tar_list = '${inner} LICENSE VERSION agent-toolkit-desktop.desktop install-desktop.sh icons share'
-			}
-			mut tar_cmd := 'tar ${tar_extra}-C "${tmpdir}" -czf "${archive_path}" ${tar_list}'
+			tar_cmd := 'tar ${tar_extra}-C "${tmpdir}" -czf "${archive_path}" "${inner}" LICENSE'
 			rc := system(tar_cmd)
 			if rc != 0 {
 				eprintln('tar failed for ${archive_name}')

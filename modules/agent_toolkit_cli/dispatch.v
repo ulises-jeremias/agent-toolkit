@@ -7,105 +7,62 @@ import cli
 
 fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 	ver := agent_toolkit_core.resolve_toolkit_version()
-	headless := opts.headless
-	// --dry-run preview (idempotent, no side effects) — no repo required
-	if opts.dry_run {
-		mut lines := []string{}
-		lines << 'gui dry-run preview (no changes):'
-		if opts.install {
-			mut prefix := opts.prefix
-			if prefix == '' {
-				prefix = os.getenv('PREFIX')
-			}
-			if prefix == '' {
-				prefix = os.join_path(os.home_dir(), '.local')
-			}
-			lines << '  install: download agent-toolkit-desktop ${ver} from GitHub Release to ${prefix}/bin/agent-toolkit-desktop (force=${opts.force})'
-		}
-		if opts.run || !opts.install {
-			lines << '  run: ${if headless { 'ATK_GUI_HEADLESS=1 ' } else { '' }}${os.join_path(os.home_dir(), '.local', 'bin', 'agent-toolkit-desktop')} (or \$AGENT_TOOLKIT_DESKTOP_BIN)'
-		}
-		if headless {
-			lines << '  headless: no window, Sokol not opened (CI friendly)'
-		}
-		lines << '  binary: agent-toolkit-desktop ${ver} (separate from agent-toolkit, distributed via Release)'
-		lines << '  release: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v${ver}'
-		res := agent_toolkit_core.CommandResult{
-			command: 'gui'
-			ok: true
-			message: lines.join('\n')
-			data: {
-				'dry_run': 'true'
-				'mode':    if headless { 'headless' } else { 'window' }
-			}
-		}
-		return render(res, mode)
-	}
-	// headless smoke — no build, just intent
-	if headless && !opts.install {
-		res := agent_toolkit_core.CommandResult{
-			command: 'gui'
-			ok: true
-			message: 'gui headless: would run ATK_GUI_HEADLESS=1 agent-toolkit-desktop (no build from repo)\nDownload: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v${ver} — see docs/ARCHITECTURE.md'
-			data: {
-				'mode': 'headless'
-			}
-		}
-		return render(res, mode)
-	}
-	// install/run — distribution via GitHub Release, never repo build
-	mut msg := []string{}
+	release := 'https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v${ver}'
 	if opts.install {
-		mut prefix := opts.prefix
-		if prefix == '' {
-			prefix = os.getenv('PREFIX')
-		}
-		if prefix == '' {
-			prefix = os.join_path(os.home_dir(), '.local')
-		}
-		msg << 'gui install: download agent-toolkit-desktop ${ver} from https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v${ver} to ${prefix}/bin/agent-toolkit-desktop (use --force to overwrite)'
+		return render(agent_toolkit_core.CommandResult{
+			command: 'gui'
+			ok: false
+			message: 'Desktop installation from the CLI is unavailable. Install the Electron AppImage/deb, DMG, or Windows installer from ${release}.'
+		}, mode)
 	}
-	if opts.run || !opts.install {
-		// prefer installed binary, fallback to env var
-		mut bin := os.getenv('AGENT_TOOLKIT_DESKTOP_BIN')
-		if bin == '' {
-			bin = os.join_path(os.home_dir(), '.local', 'bin', 'agent-toolkit-desktop')
-			if os.is_file(bin + '.exe') {
-				bin = bin + '.exe'
-			}
-			// the XDG per-user install location (install-desktop.sh) — checked
-			// after the user-bin fallback, before reporting missing (#1165)
-			if !os.is_file(bin) {
-				mut xdg_data := os.getenv('XDG_DATA_HOME')
-				if xdg_data == '' {
-					xdg_data = os.join_path(os.home_dir(), '.local', 'share')
-				}
-				xdg_bin := os.join_path(xdg_data, 'agent-toolkit', 'bin', 'agent-toolkit-desktop')
-				if os.is_file(xdg_bin) {
-					bin = xdg_bin
-				}
-			}
-		}
-		exists := os.is_file(bin)
-		if exists {
-			msg << 'gui run: would exec ${bin} ${if headless { '(headless)' } else { '' }}'
-		} else {
-			msg << 'gui run: binary not found at ${bin} — run `agent-toolkit gui --install` first'
-			msg << '  download: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v${ver}'
+	if opts.headless {
+		return render(agent_toolkit_core.CommandResult{
+			command: 'gui'
+			ok: false
+			message: 'The Electron Desktop does not have a headless GUI mode. Use Desktop E2E or agent-toolkit serve for automation.'
+		}, mode)
+	}
+	mut candidates := []string{}
+	configured := os.getenv('AGENT_TOOLKIT_DESKTOP_BIN')
+	if configured.len > 0 {
+		candidates << configured
+	}
+	candidates << os.join_path(os.home_dir(), '.local', 'bin', 'agent-toolkit-desktop')
+	mut xdg_data := os.getenv('XDG_DATA_HOME')
+	if xdg_data.len == 0 {
+		xdg_data = os.join_path(os.home_dir(), '.local', 'share')
+	}
+	candidates << os.join_path(xdg_data, 'agent-toolkit-desktop', 'app', 'agent-toolkit-desktop')
+	mut bin := ''
+	for candidate in candidates {
+		if os.is_file(candidate) {
+			bin = candidate
+			break
 		}
 	}
-	if msg.len == 0 {
-		msg << 'gui: use --help for examples (agent-toolkit gui --help)'
+	if opts.dry_run {
+		return render(agent_toolkit_core.CommandResult{
+			command: 'gui'
+			ok: true
+			message: if bin.len > 0 { 'Would launch ${bin}' } else { 'No installed Desktop found. Install the Electron application from ${release}.' }
+			data: {'binary': bin}
+		}, mode)
 	}
-	res := agent_toolkit_core.CommandResult{
-		command: 'gui'
-		ok: true
-		message: msg.join('\n')
-		data: {
-			'mode': if headless { 'headless' } else { 'window' }
-		}
+	if bin.len == 0 {
+		return render(agent_toolkit_core.CommandResult{
+			command: 'gui'
+			ok: false
+			message: 'No installed Desktop found. Install the Electron application from ${release} or set AGENT_TOOLKIT_DESKTOP_BIN.'
+		}, mode)
 	}
-	return render(res, mode)
+	os.execvp(bin, [bin]) or {
+		return render(agent_toolkit_core.CommandResult{
+			command: 'gui'
+			ok: false
+			message: 'Could not launch ${bin}: ${err}'
+		}, mode)
+	}
+	return 0
 }
 
 // run is the library entry used by cmd/agent-toolkit.

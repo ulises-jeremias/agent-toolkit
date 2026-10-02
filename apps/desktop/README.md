@@ -1,8 +1,8 @@
 # Agent Toolkit Desktop
 
 Electron + React workstation over the canonical `agent-toolkit serve` backend.
-See [ADR-033](../../docs/adrs/ADR-033-electron-desktop.md) and
-[docs/desktop/ELECTRON_MIGRATION.md](../../docs/desktop/ELECTRON_MIGRATION.md).
+See [ADR-033](../../docs/adrs/ADR-033-electron-desktop.md) and the
+[Desktop UX architecture](../../docs/desktop/UX_ARCHITECTURE.md).
 
 Foundation: Create Awesome Node App `react-vite-starter` (React 19, Vite 8,
 TypeScript 6 strict, ESLint + jsx-a11y + Prettier). All package management
