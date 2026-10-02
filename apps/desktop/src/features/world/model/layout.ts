@@ -181,7 +181,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // District widths first so the core is centered on the map, not the lane.
   const districtCols = projectDistrictCols(projects.length);
   const districtW = projects.length ? districtCols * 5 - 1 : 0; // room for staggered lanes
-  const contentW = Math.max(districtW, 22); // civic square + hall + archive
+  const contentW = Math.max(districtW, 46); // broad civic valley + project lanes
   const mapW = contentW + 8; // 4-tile forest frame each side
 
   // North core: hall west, memory archive east, ledgers beside it.

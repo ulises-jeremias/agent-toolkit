@@ -109,7 +109,7 @@ function baseGround(p: Painter) {
       if (p.isBlocked(x, y)) continue;
       const bed = h2(x >> 2, y >> 2, 11) % 11;
       const roll = h2(x, y, 1) % 23;
-      if (bed === 0 && roll < 11) {
+      if (bed < 2 && roll < 14) {
         p.set(x, y, ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'][h2(x, y, 12) % 4]!);
       } else {
         p.set(x, y, `grass-${h2(x, y, 2) % 3}`);
@@ -118,9 +118,23 @@ function baseGround(p: Painter) {
   }
 }
 
-/** Main commons path. Its Y is chosen in the open lane between districts. */
-function road(p: Painter, y: number) {
-  for (let x = 4; x < p.cols - 4; x++) p.path(x, y);
+/** Main commons path follows a gentle, seeded bend and stays level at the bridge. */
+function road(p: Painter, y: number, bridgeX: number): Map<number, number> {
+  const rows = new Map<number, number>();
+  let currentY = y;
+  let previousY = y;
+  const phase = (h2(0, y, 31) % 100) / 100;
+  for (let x = 4; x <= p.cols - 4; x++) {
+    if (x % 5 === 0 && Math.abs(x - bridgeX) > 2) {
+      const targetY = y + Math.round(Math.sin((x + phase * 9) * 0.28) * 1.4);
+      currentY += Math.max(-1, Math.min(1, targetY - currentY));
+    }
+    p.path(x, currentY);
+    if (currentY !== previousY) p.path(x, previousY);
+    rows.set(x, currentY);
+    previousY = currentY;
+  }
+  return rows;
 }
 
 /** Vertical lane (village street) connecting two road rows at column x. */
@@ -163,11 +177,16 @@ function renderPaths(p: Painter) {
 
 /** Creek down a column band with shoreline edges. Returns the creek column. */
 function creek(p: Painter, preferredX: number, bridgeRows: ReadonlySet<number>) {
-  let x = Math.max(6, Math.min(p.cols - 3, preferredX));
+  const bridgeY = [...bridgeRows][0] ?? Math.floor(p.rows / 2);
+  const baseX = Math.max(6, Math.min(p.cols - 3, preferredX));
+  let x = baseX;
+  let crossingX = x;
   for (let y = 0; y < p.rows; y++) {
-    // gentle meander
-    if (y % 5 === 4 && !bridgeRows.has(y)) x += h2(y, 0, 9) % 2 ? 1 : -1;
+    // A broad, low-frequency bend reads as a creek instead of a blue canal.
+    // Anchor its channel at the bridge so the crossing remains deterministic.
+    x = baseX + Math.round(Math.sin((y - bridgeY) * 0.27) * 1.4);
     x = Math.max(5, Math.min(p.cols - 3, x));
+    if (bridgeRows.has(y)) crossingX = x;
     for (const cx of [x, x + 1]) {
       if (bridgeRows.has(y)) {
         p.set(cx, y, 'dirt', true);
@@ -181,7 +200,7 @@ function creek(p: Painter, preferredX: number, bridgeRows: ReadonlySet<number>) 
       if (east.startsWith('grass') || east.startsWith('flowers')) p.set(x + 2, y, 'water-edge-w');
     }
   }
-  return x;
+  return crossingX;
 }
 
 function creekSafe(p: Painter): number {
@@ -225,8 +244,8 @@ function forest(p: Painter, creekX: number) {
       const roll = h2(x, y, 3) % 31;
       const nearBuilding = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => p.blocked.has(key(x + dx, y + dy))));
       const nearTree = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => planted.has(key(x + dx, y + dy))));
-      const grove = h2(x >> 2, y >> 2, 23) % 6 === 0;
-      const wantTree = !nearBuilding && !nearTree && (edge ? roll < 11 : nearCreek ? roll < 5 : grove && roll < 12);
+      const grove = h2(x >> 2, y >> 2, 23) % 3 === 0;
+      const wantTree = !nearBuilding && !nearTree && (edge ? roll < 15 : nearCreek ? roll < 8 : grove && roll < 17);
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
         const tree = kind < 3 ? 'tree-pine' : kind === 3 ? 'tree-blossom' : kind === 4 ? 'tree-amber' : 'tree-round';
@@ -319,31 +338,36 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   // creek first so roads bridge it
   const creekX = creek(p, cols - 4, new Set([roadY]));
   (p as unknown as { creekX: number }).creekX = creekX;
-  road(p, roadY);
+  const roadRows = road(p, roadY, creekX);
   // A continuous north-south path links the hall, civic square and projects.
   const hallCx = hall ? hall.x + Math.floor(hall.w / 2) : 3;
-  lane(p, hallCx, roadY, hall ? hall.y + hall.h : 2);
+  lane(p, hallCx, hall ? hall.y + hall.h : 2, roadRows.get(hallCx) ?? roadY);
   // Each landmark has a short approach from its front door to the civic path.
   for (const place of commons) {
     if (place.id === 'place:memory') continue;
     const doorX = place.x + Math.floor(place.w / 2);
     const doorY = place.y + place.h;
-    const targetY = doorY <= 11 ? 10 : roadY;
+    const targetY = doorY <= 11 ? 10 : (roadRows.get(doorX) ?? roadY);
     lane(p, doorX, doorY, targetY);
     if (targetY === 10) {
       for (let x = Math.min(doorX, hallCx); x <= Math.max(doorX, hallCx); x++) p.path(x, targetY);
     }
   }
-  // street lanes between project columns
-  const colXs = [...new Set(projects.map((e) => e.x))].sort((a, b) => a - b);
-  const projectBottom = projects.length ? Math.max(...projects.map((e) => e.y + e.h)) : roadY;
-  for (let i = 0; i < colXs.length - 1; i++) {
-    const gx = colXs[i]! + 3; // gutter between 3-wide houses
-    lane(p, gx, roadY, projectBottom - 1);
+  for (const project of projects) {
+    const doorX = project.x + Math.floor(project.w / 2);
+    const doorY = project.y + project.h;
+    const rightGutter = project.x + project.w;
+    const gutterX = rightGutter < cols - 3 ? rightGutter : project.x - 1;
+    const spurY = doorY;
+    lane(p, gutterX, roadRows.get(gutterX) ?? roadY, spurY);
+    for (let x = Math.min(doorX, gutterX); x <= Math.max(doorX, gutterX); x++) p.path(x, spurY);
   }
   if (projects.length === 0) {
     const marker = entities.find((e) => e.id === 'place:projects-empty');
-    if (marker) lane(p, marker.x + Math.floor(marker.w / 2), marker.y + marker.h, roadY);
+    if (marker) {
+      const doorX = marker.x + Math.floor(marker.w / 2);
+      lane(p, doorX, marker.y + marker.h, roadRows.get(doorX) ?? roadY);
+    }
   }
   renderPaths(p);
   bridgeAt(p, creekX, roadY);

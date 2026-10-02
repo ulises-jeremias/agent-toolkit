@@ -485,6 +485,12 @@ describe('layoutWorld', () => {
     expect(first.cells).toEqual(second.cells);
     expect(first.cells.some((cell) => cell.tile.startsWith('trail'))).toBe(true);
     expect(first.decor.some((sprite) => sprite.sprite === 'bridge')).toBe(true);
+    const trails = new Set(first.cells.filter((cell) => cell.tile.startsWith('trail')).map(({ x, y }) => `${x},${y}`));
+    for (const project of layout.entities.filter((entity) => entity.id.startsWith('place:project:'))) {
+      const doorX = project.x + Math.floor(project.w / 2);
+      const doorFrontY = project.y + project.h;
+      expect(trails.has(`${doorX},${doorFrontY}`)).toBe(true);
+    }
   });
 
   it('lays out an interior without outdoor library annex', () => {

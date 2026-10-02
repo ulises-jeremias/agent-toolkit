@@ -152,7 +152,7 @@ export default function WorldView() {
     }
   }, [memoryPath, toolId, focusPlace, focusProject, layout.entities]);
 
-  const gathering = projectsQuery.isPending || jobsQuery.isPending;
+  const gathering = projectsQuery.isPending || jobsQuery.isPending || memoryQuery.isPending || toolsQuery.isPending;
 
   const openEntity = (entity: LaidOutEntity) => {
     if (!entity.hrefPath) return;
@@ -251,8 +251,8 @@ export default function WorldView() {
 
       <details className={styles.entityListWrap}>
         <summary>
-          <span className={styles.worldTitle}>Structured list</span>{' '}
-          <span className={styles.worldMeta}>— every place, object, and character as a table</span>
+          <span className={styles.worldTitle}>World index</span>{' '}
+          <span className={styles.worldMeta}>— {layout.entities.length} places, resources, and active workers</span>
         </summary>
         {layout.entities.length === 0 ? (
           <EmptyState title="Nothing to place yet.">Waiting on workspace context.</EmptyState>
