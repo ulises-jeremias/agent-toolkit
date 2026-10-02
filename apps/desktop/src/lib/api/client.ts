@@ -3,6 +3,11 @@ import type {
   Job,
   JobCreateRequest,
   JobRegistry,
+  LoopListResponse,
+  LoopStatusResponse,
+  LoopHistoryResponse,
+  LoopAuditResponse,
+  LoopCostResponse,
   MemoryListResponse,
   MemoryReadResponse,
   MemorySearchResponse,
@@ -293,6 +298,30 @@ export class ApiClient {
     return toEnvelope(
       await this.json<unknown>('GET', fillPath('/api/v1/loops/{name}/status' satisfies PathWith<'get'>, { name })),
     );
+  }
+
+  loops(): Promise<ResponseOf<OperationOf<'/api/v1/loops', 'get'>, LoopListResponse>> {
+    return this.json('GET', '/api/v1/loops' satisfies PathWith<'get'>);
+  }
+
+  loopStatusTyped(
+    name: string,
+  ): Promise<ResponseOf<OperationOf<'/api/v1/loops/{name}/status', 'get'>, LoopStatusResponse>> {
+    return this.json('GET', fillPath('/api/v1/loops/{name}/status' satisfies PathWith<'get'>, { name }));
+  }
+
+  loopHistory(
+    name: string,
+  ): Promise<ResponseOf<OperationOf<'/api/v1/loops/{name}/history', 'get'>, LoopHistoryResponse>> {
+    return this.json('GET', fillPath('/api/v1/loops/{name}/history' satisfies PathWith<'get'>, { name }));
+  }
+
+  loopAudit(name: string): Promise<ResponseOf<OperationOf<'/api/v1/loops/{name}/audit', 'get'>, LoopAuditResponse>> {
+    return this.json('GET', fillPath('/api/v1/loops/{name}/audit' satisfies PathWith<'get'>, { name }));
+  }
+
+  loopCost(name: string): Promise<ResponseOf<OperationOf<'/api/v1/loops/{name}/cost', 'get'>, LoopCostResponse>> {
+    return this.json('GET', fillPath('/api/v1/loops/{name}/cost' satisfies PathWith<'get'>, { name }));
   }
 
   runLoop(name: string): Promise<Job> {

@@ -183,6 +183,22 @@ describe('ApiClient', () => {
     ]);
   });
 
+  it('reads typed loop definitions, status, history, audit, and cost by encoded name', async () => {
+    const api = client({ ok: true, loops: [] });
+    await api.loops();
+    await api.loopStatusTyped('qa check');
+    await api.loopHistory('qa check');
+    await api.loopAudit('qa check');
+    await api.loopCost('qa check');
+    expect(calls.map((call) => `${call.init?.method} ${new URL(call.url).pathname}`)).toEqual([
+      'GET /api/v1/loops',
+      'GET /api/v1/loops/qa%20check/status',
+      'GET /api/v1/loops/qa%20check/history',
+      'GET /api/v1/loops/qa%20check/audit',
+      'GET /api/v1/loops/qa%20check/cost',
+    ]);
+  });
+
   it('reads typed catalog GETs without wrapping them as envelopes', async () => {
     const api = client({ ok: true, tools: [{ id: 'cursor', enabled: 'unknown', detected: true }] });
     const tools = await api.tools();

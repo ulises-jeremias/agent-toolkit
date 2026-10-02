@@ -15,6 +15,14 @@ export interface VersionResponse {
 
 export type SelfcheckStatus = 'ok' | 'warn' | 'err';
 
+/** Typed loop catalog and observability responses from agent-toolkit serve. */
+export type LoopInfo = components['schemas']['LoopInfo'];
+export type LoopListResponse = components['schemas']['LoopListResponse'];
+export type LoopStatusResponse = components['schemas']['LoopStatusResponse'];
+export type LoopHistoryResponse = components['schemas']['LoopHistoryResponse'];
+export type LoopAuditResponse = components['schemas']['LoopAuditResponse'];
+export type LoopCostResponse = components['schemas']['LoopCostResponse'];
+
 export interface SelfcheckCheck {
   name: string;
   status: SelfcheckStatus;
