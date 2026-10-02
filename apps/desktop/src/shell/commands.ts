@@ -1,6 +1,8 @@
 import { DESTINATIONS } from './destinations';
+import type { Person } from '../lib/api';
+import type { PtySessionInfo } from '../types/electron';
 
-export type CommandGroup = 'Go' | 'Session' | 'Appearance' | 'Help';
+export type CommandGroup = 'Go' | 'People' | 'Session' | 'Appearance' | 'Help';
 
 export interface PaletteCommand {
   id: string;
@@ -130,6 +132,46 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
   },
 ];
 
+/** Dynamic direct actions for saved People; session actions require a live PTY. */
+export function personCommands(
+  people: readonly Pick<Person, 'id' | 'name' | 'role' | 'archived'>[],
+  sessions: readonly Pick<PtySessionInfo, 'personId' | 'projectId' | 'exitCode'>[],
+): PaletteCommand[] {
+  return [...people]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .flatMap((person) => {
+      const liveSession = sessions.find((session) => session.personId === person.id && session.exitCode === null);
+      const commonKeywords = ['people', 'person', person.id, person.name, person.role];
+      const commands: PaletteCommand[] = [
+        {
+          id: `people:inspect:${person.id}`,
+          group: 'People',
+          title: `Inspect ${person.name}`,
+          hint: `${person.role}${person.archived ? ' · archived' : ''}`,
+          keywords: [...commonKeywords, 'profile', 'details', 'open'],
+        },
+      ];
+      if (liveSession) {
+        commands.push({
+          id: `people:session:${person.id}`,
+          group: 'People',
+          title: `Open ${person.name}'s terminal`,
+          hint: `${person.role} · live PTY${liveSession.projectId ? ` · ${liveSession.projectId}` : ''}`,
+          keywords: [...commonKeywords, 'terminal', 'session', 'running', liveSession.projectId ?? ''],
+        });
+      } else if (!person.archived) {
+        commands.push({
+          id: `people:start:${person.id}`,
+          group: 'People',
+          title: `Start ${person.name}`,
+          hint: `${person.role} · review project and runner`,
+          keywords: [...commonKeywords, 'start', 'run', 'collaborator'],
+        });
+      }
+      return commands;
+    });
+}
+
 export const SHORTCUTS: ReadonlyArray<{ keys: readonly string[]; action: string }> = [
   { keys: ['Ctrl', 'K'], action: 'Open the command palette' },
   { keys: ['Esc'], action: 'Close the innermost dialog' },
@@ -137,12 +179,12 @@ export const SHORTCUTS: ReadonlyArray<{ keys: readonly string[]; action: string 
 ];
 
 export function filterCommands(commands: readonly PaletteCommand[], query: string): PaletteCommand[] {
-  const needle = query.trim().toLowerCase();
-  if (!needle) return [...commands];
+  const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (terms.length === 0) return [...commands];
   return commands.filter((command) => {
     const haystack = [command.title, command.hint ?? '', command.group, ...(command.keywords ?? [])]
       .join(' ')
       .toLowerCase();
-    return haystack.includes(needle);
+    return terms.every((term) => haystack.includes(term));
   });
 }

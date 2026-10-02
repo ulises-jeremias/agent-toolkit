@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Desktop's command palette adds direct Person actions: inspect a saved profile,
+  start an offline collaborator through the normal review dialog, or open the
+  real terminal for a live Person-bound PTY.
 - Desktop People can start real local PTY sessions in healthy project folders.
   Sessions retain Person and project identity, appear in the world only while
   the process is live, remain independent of the saved Person profile, and

@@ -41,7 +41,10 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
       await setViewport(desktop.app, 1024, 640);
       await page.screenshot({ path: path.join(CAPTURE_DIR, 'people-roster-compact.png') });
     }
-    await page.getByRole('button', { name: 'Start Lina' }).click();
+    await page.keyboard.press(process.platform === 'darwin' ? 'Meta+K' : 'Control+K');
+    const palette = page.getByRole('dialog', { name: 'Commands' });
+    await palette.getByRole('textbox', { name: 'Filter commands' }).fill('Start Lina');
+    await palette.getByRole('option', { name: /Start Lina/ }).click();
 
     const start = page.getByRole('dialog', { name: 'Start Lina' });
     await expect(start.getByRole('combobox', { name: 'Project and working folder' })).toHaveValue('agent-toolkit');
@@ -51,10 +54,22 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
       await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-large.png') });
     }
     const runner = start.getByRole('combobox', { name: 'Runner' });
-    const installedOptions = runner.locator('option:not([disabled]):not([value=""])');
-    if ((await installedOptions.count()) === 0) test.skip(true, 'This host has no discovered interactive runner.');
+    const installedOptions = runner.locator('option:enabled:not([value=""])');
+    await expect
+      .poll(
+        async () =>
+          (await installedOptions.count()) > 0 ||
+          (await start.getByText('No interactive runner is installed', { exact: true }).count()) > 0,
+      )
+      .toBe(true);
+    if ((await installedOptions.count()) === 0) {
+      await expect(start.getByRole('status')).toContainText('No interactive runner is installed');
+      await start.getByRole('button', { name: 'Cancel' }).click();
+      await expect(page.getByRole('button', { name: /Lina.*reviewer.*Offline/ })).toBeVisible();
+      return;
+    }
     const runnerId = await installedOptions.first().getAttribute('value');
-    if (!runnerId) test.skip(true, 'This host has no discovered interactive runner.');
+    if (!runnerId) throw new Error('Discovered runner option is missing its id.');
     await runner.selectOption(runnerId);
     await start.getByRole('button', { name: 'Start and open terminal' }).click();
     await expect(start).toBeHidden();
@@ -79,7 +94,10 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
     }
     await personCharacter.click();
     await expect(page).toHaveURL(/#\/people\?[^#]*person=lina/);
-    await page.getByRole('button', { name: 'Open session' }).click();
+    await page.keyboard.press(process.platform === 'darwin' ? 'Meta+K' : 'Control+K');
+    const activePalette = page.getByRole('dialog', { name: 'Commands' });
+    await activePalette.getByRole('textbox', { name: 'Filter commands' }).fill("Open Lina's terminal");
+    await activePalette.getByRole('option', { name: /Open Lina's terminal/ }).click();
     await expect(page).toHaveURL(/#\/terminal\?[^#]*pty=/);
 
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'People' }).click();
