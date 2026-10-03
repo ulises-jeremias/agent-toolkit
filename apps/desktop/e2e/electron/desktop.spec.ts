@@ -166,7 +166,7 @@ test('palette actions open the same reviewed terminal, job, loop, and swarm work
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'Start a swarm' })).toBeHidden();
 
-  await openAction('Run a loop', 'Run a loop once');
+  await openAction('Run a loop as a job', 'Run a loop once');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'Run a loop once' })).toBeHidden();
 
@@ -994,10 +994,29 @@ test('an exited session keeps its output and can restart', async () => {
   await expect(page.getByRole('status').filter({ hasText: 'exit code 7' })).toBeVisible();
   await page.getByRole('button', { name: 'Restart' }).click();
   await expect(page.getByRole('tab', { name: /e2e-exit · e2e-run · \.ai-workspace · running/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Close' }).click();
+  const closeDialog = page.getByRole('dialog', { name: 'Close this session?' });
+  await expect(closeDialog).toContainText('The process is killed and its scrollback is discarded.');
+  await closeDialog.getByRole('button', { name: 'Kill and close' }).click();
+  await expect(page.getByRole('tab', { name: /e2e-exit/ })).toHaveCount(0);
 });
 
-test('a crashed backend is attention, not a quiet office', async () => {
+test('a crashed backend is attention, while its real PTY stays available for recovery', async () => {
   const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
+  await page.getByRole('main').getByRole('button', { name: 'New session' }).click();
+  const terminalDialog = page.getByRole('dialog', { name: 'New terminal session' });
+  await terminalDialog.getByRole('textbox', { name: 'Command', exact: true }).fill('/bin/sh');
+  await terminalDialog.getByRole('textbox', { name: 'Label', exact: true }).fill('backend-independent-pty');
+  await terminalDialog.getByRole('button', { name: 'Open session' }).click();
+  const terminalTab = page.getByRole('tab', { name: /backend-independent-pty.*running/ });
+  await expect(terminalTab).toBeVisible();
+  const terminal = page.getByLabel('Terminal for backend-independent-pty');
+  await terminal.click();
+  await page.keyboard.type("printf 'pty-survives-backend-crash\\n'; sleep 30");
+  await page.keyboard.press('Enter');
+  await expect(terminal.locator('.xterm-rows')).toContainText('pty-survives-backend-crash');
+
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Office' }).click();
   const binaryPath = await page.evaluate(async () => {
     const state = await window.atk?.backendStatus();
@@ -1012,4 +1031,16 @@ test('a crashed backend is attention, not a quiet office', async () => {
   await expect(needsYou).toContainText(/Backend crashed|Backend not answering|Backend failed/i);
   await expect(needsYou).not.toContainText(/Nothing needs you/);
   await expect(page.getByRole('main')).not.toContainText(/the workstation is quiet/i);
+  await expect(terminalTab).toBeVisible();
+  await expect(terminalTab).toHaveAttribute('aria-selected', 'true');
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
+  await expect(page.getByLabel('Terminal for backend-independent-pty').locator('.xterm-rows')).toContainText(
+    'pty-survives-backend-crash',
+  );
+  await page.getByRole('button', { name: 'Close' }).click();
+  await page
+    .getByRole('dialog', { name: 'Close this session?' })
+    .getByRole('button', { name: 'Kill and close' })
+    .click();
+  await expect(page.getByRole('tab', { name: /backend-independent-pty/ })).toHaveCount(0);
 });
