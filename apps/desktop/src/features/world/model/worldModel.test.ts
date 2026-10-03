@@ -846,8 +846,11 @@ describe('layoutWorld', () => {
     expect(ids).not.toContain('object:library');
     const exit = layout.entities.find((e) => e.id === 'object:exit-grounds');
     const room = layout.entities.find((e) => e.id === 'place:project:alpha');
+    const records = layout.entities.find((e) => e.id === 'place:memory-project:alpha');
     expect(exit && room).toBeTruthy();
     expect(exit!.x).toBe(1);
     expect(room!.x).toBeGreaterThan(exit!.x);
+    expect(records?.x).toBe(8);
+    expect(layout.cols).toBeLessThanOrEqual(13);
   });
 });

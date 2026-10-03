@@ -85,11 +85,11 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   // Room: exit door at the west wall; furniture along walls; floor stays open.
   if (exit) place(exit, 0, 2);
   if (room) place(room, 2, 0);
-  if (memory) place(memory, 9, 0);
+  if (memory) place(memory, 7, 0);
   if (terminal) place(terminal, 1, 4);
   if (files) place(files, 4, 4);
 
-  let entryX = 13;
+  let entryX = 10;
   const entryY = 1;
   for (const entry of memoryEntries) {
     place(entry, entryX, entryY);
