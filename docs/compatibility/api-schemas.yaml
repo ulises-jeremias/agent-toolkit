@@ -29,6 +29,14 @@ schemas:
       - ok:boolean
       - message:string
 
+  - name: InstallPreviewResponse
+    v_struct: CmdResp
+    description: Read-only preview of profile installation targets and conflicts.
+    fields:
+      - ok:boolean
+      - message:string
+      - data:map<string>
+
   - name: VersionResponse
     v_struct: VersionResp
     fields:
@@ -462,6 +470,11 @@ schemas:
 # `errors` lists `code:description` pairs answered with #ApiError.
 # `query_params` uses `name:type`; append `?` to mark an optional query value.
 native:
+  - path: /api/v1/install/preview
+    method: get
+    op: install_preview
+    summary: Preview profile installation targets and conflicts without writing files
+    response: '#InstallPreviewResponse'
   - path: /api/v1/swarms/recipes
     method: get
     op: list_swarm_recipes

@@ -62,9 +62,19 @@ journeys:
     title: Install skills/agents from the Library
     destinations: [library]
     status: blocked
-    evidence: []
+    evidence:
+      - note: >-
+          The machine profile installer now has a read-only backend preview of detected
+          targets, changed paths, preserved conflicts, and stale Toolkit-owned files.
+          It installs profiles into coding tools and does not install reusable catalog
+          capabilities, so this evidence does not complete the journey.
+        tests:
+          - apps/desktop/e2e/electron/desktop.spec.ts
+        screenshots:
+          - assets/electron/library/install-preview-compact.png
+          - assets/electron/library/install-preview-large.png
     blockers:
-      - destructive-action preview and rollback review not on file
+      - GUI install and removal of reusable skills/agent definitions from the catalog is not implemented
   - id: mcp-configure-probe
     title: Configure an MCP provider and probe it
     destinations: [settings, operations]

@@ -41,3 +41,16 @@
   font-size: var(--text-sm);
   color: var(--text-secondary);
 }
+
+.installPreview {
+  max-height: min(52vh, 34rem);
+  overflow: auto;
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3);
+  border: 2px solid var(--border-default);
+  background: var(--surface-sunken);
+  color: var(--text-primary);
+  font: var(--text-xs) / 1.55 var(--font-mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

@@ -40,6 +40,7 @@ Regenerate after changing the contract:
 - Execution APIs — thin proxies over core (`install`, `update`, `uninstall`,
   `skills/:sub`, `mcp/:sub`, `plugin/:sub`, `workspace/:sub`, `memory/:sub`,
   `project/:sub`, `loops/:sub`, `dc/:sub`, `swarms/:sub`, `build`)
+- `GET /api/v1/install/preview` — read-only profile target, conflict, and stale-owned-file preview
 - Generic subcommand routes (`<family>/:sub`) take a typed JSON body — see
   [Typed subcommand bodies](#typed-subcommand-bodies)
 - Jobs — `POST /api/v1/jobs`, `GET /api/v1/jobs`, `GET /api/v1/jobs/:id`,

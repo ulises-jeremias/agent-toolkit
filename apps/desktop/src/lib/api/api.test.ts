@@ -115,6 +115,14 @@ describe('ApiClient', () => {
     expect((first?.init?.headers as Record<string, string>)['x-atk-desktop']).toBe('1');
   });
 
+  it('uses the typed read-only installer preview endpoint', async () => {
+    const envelope = await client({ ok: true, message: 'DRY RUN', data: { dry_run: 'true' } }).installPreview();
+    expect(envelope.data).toEqual({ dry_run: 'true' });
+    expect(calls[0]?.url).toBe('http://127.0.0.1:9/api/v1/install/preview');
+    expect(calls[0]?.init?.method).toBe('GET');
+    expect(calls[0]?.init?.body).toBeUndefined();
+  });
+
   it('deletes with ?force=true only when forced', async () => {
     const api = client({ ok: true, message: 'deleted' });
     await api.deleteJob('job_x');

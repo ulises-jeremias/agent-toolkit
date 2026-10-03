@@ -343,6 +343,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/install/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview profile installation targets and conflicts without writing files */
+        get: operations["install_preview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/swarms/recipes": {
         parameters: {
             query?: never;
@@ -1077,6 +1094,14 @@ export interface components {
         MessageResponse: {
             ok: boolean;
             message: string;
+        };
+        /** @description Read-only preview of profile installation targets and conflicts. */
+        InstallPreviewResponse: {
+            ok: boolean;
+            message: string;
+            data: {
+                [key: string]: string;
+            };
         };
         VersionResponse: {
             ok: boolean;
@@ -2356,6 +2381,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    install_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstallPreviewResponse"];
+                };
             };
         };
     };
