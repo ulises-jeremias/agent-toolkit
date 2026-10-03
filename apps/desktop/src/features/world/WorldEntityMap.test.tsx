@@ -87,10 +87,9 @@ describe('world inspector targets', () => {
     expect(byId['character:job:j-run']).toMatchObject({ hrefPath: '/operations' });
   });
 
-  it('opens memory records and tools on /world query inspectors', () => {
+  it('keeps project memory inside the house and exposes shared tools in the workshop', () => {
     const interior = buildWorldModel(baseInput({ focusProjectId: 'alpha' }));
     const memory = interior.entities.find((e) => e.id === 'object:memory:knowledge/learnings/a.md');
-    const tool = interior.entities.find((e) => e.id === 'object:tool:claude');
     const terminal = interior.entities.find((e) => e.id === 'object:terminal-project:alpha');
 
     expect(memory).toMatchObject({
@@ -98,12 +97,16 @@ describe('world inspector targets', () => {
       hrefExtra: { project: 'alpha', memory: 'knowledge/learnings/a.md' },
     });
     expect(entityHasInspector(memory!)).toBe(true);
-    expect(tool).toMatchObject({
-      hrefPath: '/world',
-      hrefExtra: { project: 'alpha', tool: 'claude' },
-    });
-    expect(entityHasInspector(tool!)).toBe(true);
+    expect(interior.entities.some((e) => e.id.startsWith('object:tool:'))).toBe(false);
+    expect(interior.entities.some((e) => e.id === 'object:workshop')).toBe(false);
+    expect(entityHasInspector(memory!)).toBe(true);
     expect(terminal).toMatchObject({ hrefPath: '/terminal' });
+
+    const grounds = buildWorldModel(baseInput());
+    const workshop = grounds.entities.find((e) => e.id === 'object:workshop');
+    expect(workshop).toMatchObject({ hrefPath: '/library', facade: 'landmark-workshop' });
+    expect(workshop?.detail).toContain('1 coding-tool runtime detected');
+    expect(grounds.entities.some((e) => e.id.startsWith('object:tool:'))).toBe(false);
   });
 });
 
@@ -158,7 +161,7 @@ describe('WorldEntityMap activation', () => {
     );
 
     onActivate.mockClear();
-    const library = screen.getByRole('button', { name: /Library/i });
+    const library = screen.getByRole('button', { name: /^Library · Capability library/i });
     await user.click(library);
     expect(onActivate).toHaveBeenLastCalledWith(
       expect.objectContaining({ id: 'object:library', hrefPath: '/library' }),
@@ -204,7 +207,7 @@ describe('WorldEntityMap activation', () => {
     expect(terminalInspect?.getAttribute('href')).toContain('/terminal');
   });
 
-  it('activates memory records and tools via click and keyboard on /world', async () => {
+  it('activates project memory records via click and keyboard on /world', async () => {
     const { onActivate, user } = renderMap(baseInput({ focusProjectId: 'alpha' }));
 
     const memoryBtn = screen.getByRole('button', { name: /Alpha note · Memory entry/i });
@@ -225,34 +228,27 @@ describe('WorldEntityMap activation', () => {
       expect.objectContaining({ id: 'object:memory:knowledge/learnings/a.md', hrefPath: '/world' }),
     );
 
-    onActivate.mockClear();
-    const toolBtn = screen.getByRole('button', { name: /Claude Code · Coding tool/i });
-    expect(toolBtn.getAttribute('data-activates')).toBe('true');
-    await user.click(toolBtn);
-    expect(onActivate).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        id: 'object:tool:claude',
-        hrefPath: '/world',
-        hrefExtra: expect.objectContaining({ tool: 'claude', project: 'alpha' }),
-      }),
-    );
-
-    onActivate.mockClear();
-    toolBtn.focus();
-    await user.keyboard(' ');
-    expect(onActivate).toHaveBeenLastCalledWith(
-      expect.objectContaining({ id: 'object:tool:claude', hrefPath: '/world' }),
-    );
-
     const memoryInspect = document.querySelector('[data-entity-inspect="object:memory:knowledge/learnings/a.md"]');
     expect(memoryInspect?.getAttribute('href')).toContain('memory=');
-    const toolInspect = document.querySelector('[data-entity-inspect="object:tool:claude"]');
-    expect(toolInspect?.getAttribute('href')).toContain('tool=claude');
+  });
+
+  it('opens the shared workshop to inspect real tool inventory in Library', async () => {
+    const { layout, onActivate, user } = renderMap();
+    const workshop = screen.getByRole('button', { name: /^Workshop · Shared coding-tool workshop/i });
+    await user.click(workshop);
+    expect(onActivate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'object:workshop', hrefPath: '/library' }),
+    );
+
+    expect(layout.entities.find((entity) => entity.id === 'object:workshop')?.detail).toContain(
+      '1 coding-tool runtime detected',
+    );
+    expect(layout.entities.some((entity) => entity.id.startsWith('object:tool:'))).toBe(false);
   });
 
   it('explains a world entity on hover with its real concept, state, and action', async () => {
     const { user } = renderMap();
-    const library = screen.getByRole('button', { name: /Library/i });
+    const library = screen.getByRole('button', { name: /^Library · Capability library/i });
     await user.hover(library);
     const tooltipId = library.getAttribute('aria-describedby');
     expect(tooltipId).toContain('world-entity-tip-object%3Alibrary');

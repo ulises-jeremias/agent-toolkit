@@ -595,6 +595,30 @@ function landmarkLibrary() {
   return [{ name: 'landmark-library', img }];
 }
 
+function landmarkWorkshop() {
+  const img = new Img(80, 72);
+  shadow(img, 5, 75, 68);
+  wall(img, 10, 30, 70, 65, 'wood');
+  gableRoof(img, 40, 8, 32, 10, 36, 'rs', 'rsd', 'rsl');
+  // Long iron ridge and chimney set this apart from the civic buildings.
+  img.hline(8, 72, 29, 'inkd').hline(12, 67, 30, 'sd');
+  chimney(img, 61, 11);
+  door(img, 34, 49, 13, 16, true);
+  win(img, 17, 38, 10, 9);
+  win(img, 53, 38, 10, 9);
+  // Glazed panes, timber braces, and a visible gear sign identify a place
+  // where workspace coding tools are inspected and configured.
+  img.vline(22, 38, 46, 'o').hline(17, 26, 42, 'o');
+  img.vline(58, 38, 46, 'o').hline(53, 62, 42, 'o');
+  img.rect(29, 31, 50, 35, 'k').rect(30, 32, 49, 34, 'od');
+  img.hline(31, 48, 32, 'ol').set(32, 33, 'gg').set(35, 33, 'gg');
+  img.rect(5, 48, 15, 55, 'k').rect(6, 49, 14, 54, 'o');
+  img.hline(7, 13, 50, 'ol').vline(10, 51, 53, 'od'); // workbench vise
+  sign(img, 65, 46, 'gear');
+  img.rect(31, 64, 50, 66, 'od').hline(33, 48, 64, 'ol'); // porch step
+  return [{ name: 'landmark-workshop', img }];
+}
+
 function landmarkOperations() {
   const img = new Img(64, 64);
   shadow(img, 6, 60, 60);
@@ -1255,16 +1279,23 @@ function signPost() {
  * ------------------------------------------------------------------ */
 
 function floorPlank() {
-  const a = new Img(16, 16);
-  a.rect(0, 0, 15, 15, 'ol');
-  for (let y = 3; y < 16; y += 4) a.hline(0, 15, y, 'o');
-  a.set(4, 1, 'o').set(12, 9, 'o').set(8, 13, 'o');
-  a.hline(0, 15, 15, 'od');
-  const b = new Img(16, 16);
-  b.rect(0, 0, 15, 15, 'o');
-  for (let y = 3; y < 16; y += 4) b.hline(0, 15, y, 'od');
-  b.set(6, 5, 'ol').set(12, 1, 'ol');
-  b.hline(0, 15, 15, 'od');
+  const board = (shift) => {
+    const img = new Img(16, 16);
+    const woods = ['o', 'ol', 'o', 'hb'];
+    for (let plank = 0; plank < 4; plank++) {
+      const x = plank * 4;
+      img.rect(x, 0, x + 3, 15, woods[(plank + shift) % woods.length]);
+      img.vline(x, 0, 15, 'ol');
+      img.vline(x + 3, 0, 15, 'od');
+      const joint = ((plank + shift) % 2 ? 10 : 4) + shift;
+      img.hline(x + 1, x + 2, joint, 'od');
+      img.set(x + 1, (plank * 3 + shift + 2) % 15, 'hb');
+      img.set(x + 2, (plank * 5 + shift + 7) % 15, 'ol');
+    }
+    return img;
+  };
+  const a = board(0);
+  const b = board(1);
   return [
     { name: 'floor-wood', img: a },
     { name: 'floor-wood-b', img: b },
@@ -1543,6 +1574,7 @@ function collect() {
     landmarkWorkspace(),
     landmarkArchive(),
     landmarkLibrary(),
+    landmarkWorkshop(),
     landmarkOperations(),
     landmarkTerminal(),
     landmarkFiles(),

@@ -1,5 +1,5 @@
 import { isTerminalJobStatus } from '../../../lib/api';
-import { memoryFilePath, memoryInspectExtra, toolInspectExtra } from '../inspectors';
+import { memoryFilePath, memoryInspectExtra } from '../inspectors';
 import { projectFacade } from './facades';
 import { jobStandAtId, projectScopedMemory, workspaceLevelMemory } from './memoryScope';
 import type {
@@ -82,7 +82,7 @@ function pushPersonCharacters(
   entities: SemanticEntity[],
   sessions: NonNullable<WorldDomainInput['personSessions']>,
   projectId?: string,
-  terminalObjectId?: string,
+  standAtId?: string,
 ): void {
   for (const session of sessions) {
     entities.push({
@@ -98,7 +98,7 @@ function pushPersonCharacters(
       hrefExtra: { person: session.personId, session: session.id },
       projectId,
       detail: `${session.role} · ${session.provider ?? 'runner unknown'}${session.model ? ` · ${session.model}` : ''} · PTY ${session.id}`,
-      standAtId: terminalObjectId,
+      standAtId,
     });
   }
 }
@@ -230,6 +230,24 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     facade: 'landmark-library',
   });
 
+  const tools = input.toolsKnown ? visibleTools(input.tools) : [];
+  const toolDetail = `${tools.length} coding-tool runtime${tools.length === 1 ? '' : 's'} detected · inspect in Library`;
+  entities.push({
+    id: 'object:workshop',
+    kind: 'place',
+    concept: 'Shared coding-tool workshop',
+    name: 'Workshop',
+    state: input.toolsKnown ? (tools.length ? `${tools.length} detected` : 'empty') : 'unknown',
+    themeKey: 'tool.coding',
+    availability: input.toolsKnown ? (tools.length ? 'present' : 'empty') : 'unavailable',
+    hrefPath: '/library',
+    detail: input.toolsKnown
+      ? tools.length
+        ? toolDetail
+        : 'No coding-tool runtime detected · browse available capabilities in Library'
+      : 'Coding-tool inventory is unavailable · retry from Library',
+    facade: 'landmark-workshop',
+  });
   // Files use the typed workspace tree API — open Workspace Files panel.
   entities.push({
     id: 'object:files',
@@ -285,9 +303,8 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     facade: 'landmark-attention',
   });
 
-  const tools = input.toolsKnown ? visibleTools(input.tools) : [];
   const groundsStand = {
-    tools,
+    tools: [],
     memoryPlaceId: input.memory.available ? 'place:memory' : undefined,
     terminalObjectId: 'object:terminal',
   };
@@ -315,8 +332,9 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
       );
       const activity = activityForJobs(projectJobs);
       const liveCount = projectJobs.filter((job) => !isTerminalJobStatus(job.status)).length;
+      const projectPlaceId = `place:project:${project.name}`;
       entities.push({
-        id: `place:project:${project.name}`,
+        id: projectPlaceId,
         kind: 'place',
         concept: 'Project',
         name: project.name,
@@ -331,9 +349,15 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
         facade: projectFacade(project.name),
       });
 
-      // Characters stand at house porch unless job.cmd names a grounds object.
-      pushJobCharacters(entities, projectJobs, { projectId: project.name, ...groundsStand });
-      pushPersonCharacters(entities, projectSessions, project.name, `object:terminal-project:${project.name}`);
+      // Real project sessions belong at their project house. Coding tools are
+      // shared workspace resources and must not pull project work back to the
+      // global workshop.
+      pushJobCharacters(entities, projectJobs, {
+        projectId: project.name,
+        tools: [],
+        terminalObjectId: projectPlaceId,
+      });
+      pushPersonCharacters(entities, projectSessions, project.name, projectPlaceId);
     }
   }
 
@@ -345,7 +369,7 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
 
 /**
  * Project interior — inside one house. Not a dashboard: only places backed by
- * real capabilities for this project (memory API, terminal, detected tools, jobs).
+ * real capabilities for this project (memory API, terminal, project files, jobs).
  */
 function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[] {
   const entities: SemanticEntity[] = [];
@@ -471,49 +495,9 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
     facade: 'landmark-files',
   });
 
-  const tools = input.toolsKnown ? visibleTools(input.tools) : [];
-  if (input.toolsKnown) {
-    if (tools.length === 0) {
-      entities.push({
-        id: 'object:tools-empty',
-        kind: 'marker',
-        concept: 'Coding tools',
-        name: 'No tools detected',
-        state: 'empty',
-        themeKey: 'tool.coding',
-        availability: 'empty',
-        hrefPath: '/library',
-        projectId: project.name,
-        detail: 'GET /api/v1/tools returned no detected CLIs',
-      });
-    } else {
-      for (const tool of tools) {
-        const bits = [
-          tool.detected ? 'detected' : '',
-          tool.configured ? 'configured' : '',
-          tool.verified ? 'verified' : '',
-          tool.version || '',
-        ].filter(Boolean);
-        entities.push({
-          id: `object:tool:${tool.id}`,
-          kind: 'object',
-          concept: 'Coding tool',
-          name: tool.toolName || tool.id,
-          state: bits.join(' · ') || 'detected',
-          themeKey: 'tool.coding',
-          availability: 'present',
-          hrefPath: '/world',
-          hrefExtra: toolInspectExtra(tool.id, project.name),
-          projectId: project.name,
-          detail: tool.id,
-        });
-      }
-    }
-  }
-
   pushJobCharacters(entities, projectJobs, {
     projectId: project.name,
-    tools,
+    tools: [],
     memoryPlaceId: input.memory.available ? `place:memory-project:${project.name}` : undefined,
     terminalObjectId: `object:terminal-project:${project.name}`,
   });

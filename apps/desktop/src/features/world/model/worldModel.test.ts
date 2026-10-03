@@ -68,7 +68,7 @@ describe('jobBelongsToProject', () => {
 });
 
 describe('buildWorldModel', () => {
-  it('shows only explicitly supplied live Person sessions in their real project and near its terminal', () => {
+  it('shows only explicitly supplied live Person sessions at their real project house', () => {
     const project = { name: 'alpha', target: '/repos/alpha', status: 'ok' as const };
     const base = baseInput({
       projects: [project],
@@ -95,9 +95,15 @@ describe('buildWorldModel', () => {
       hrefPath: '/people',
       hrefExtra: { person: 'lina', session: 'pty-1' },
       projectId: 'alpha',
-      standAtId: 'object:terminal-project:alpha',
+      standAtId: 'place:project:alpha',
     });
     expect(character?.detail).toContain('reviewer · opencode · model-x');
+    const layout = layoutWorld(grounds);
+    const laidCharacter = layout.entities.find((entity) => entity.id === character?.id)!;
+    const house = layout.entities.find((entity) => entity.id === 'place:project:alpha')!;
+    expect(laidCharacter.x).toBeGreaterThanOrEqual(house.x);
+    expect(laidCharacter.x).toBeLessThan(house.x + house.w);
+    expect(laidCharacter.y).toBeGreaterThanOrEqual(house.y);
     expect(grounds.entities.find((entity) => entity.id === 'place:project:alpha')?.state).toBe('1 Person session open');
 
     const noRuntime = buildWorldModel(baseInput({ projects: [project] }));
@@ -251,7 +257,7 @@ describe('buildWorldModel', () => {
     expect(model.entities.filter((e) => e.id.startsWith('object:memory:'))).toHaveLength(3);
   });
 
-  it('opens a project interior with memory, terminal, and detected tools only', () => {
+  it('opens a project interior with its own memory, terminal, files, and live work', () => {
     const tools: ToolRecord[] = [
       {
         id: 'cursor',
@@ -310,7 +316,8 @@ describe('buildWorldModel', () => {
       hrefPath: '/workspace',
       hrefExtra: { panel: 'files', project: 'alpha' },
     });
-    expect(ids).toContain('object:tool:cursor');
+    expect(ids).not.toContain('object:workshop');
+    expect(ids).not.toContain('object:tool:cursor');
     expect(ids).not.toContain('object:tool:ghost');
     expect(ids).not.toContain('place:project:beta');
     expect(ids).not.toContain('object:library');
@@ -320,7 +327,115 @@ describe('buildWorldModel', () => {
     expect(model.entities.find((e) => e.id === 'place:project:alpha')?.concept).toBe('Project overview board');
   });
 
-  it('keeps interiors calm with no fake tools or characters', () => {
+  it('places detected coding tools in one shared workshop, outside project houses', () => {
+    const model = buildWorldModel(
+      baseInput({
+        projects: [
+          { name: 'alpha', target: '/r/alpha', status: 'ok' },
+          { name: 'beta', target: '/r/beta', status: 'ok' },
+        ],
+        toolsKnown: true,
+        tools: [
+          {
+            id: 'opencode',
+            toolName: 'OpenCode',
+            detected: true,
+            configured: false,
+            enabled: 'unknown',
+            verified: true,
+            version: '1.0',
+          },
+          {
+            id: 'claude-code',
+            toolName: 'Claude Code',
+            detected: true,
+            configured: true,
+            enabled: 'unknown',
+            verified: false,
+            version: '',
+          },
+          {
+            id: 'missing',
+            toolName: 'Missing',
+            detected: false,
+            configured: false,
+            enabled: 'unknown',
+            verified: false,
+            version: '',
+          },
+        ],
+      }),
+    );
+    const workshop = model.entities.find((entity) => entity.id === 'object:workshop');
+    expect(workshop).toMatchObject({
+      kind: 'place',
+      name: 'Workshop',
+      state: '2 detected',
+      availability: 'present',
+      hrefPath: '/library',
+      facade: 'landmark-workshop',
+    });
+    expect(workshop?.detail).toContain('2 coding-tool runtimes detected');
+    expect(model.entities.some((entity) => entity.id.startsWith('object:tool:'))).toBe(false);
+    expect(model.entities.filter((entity) => entity.id === 'object:workshop')).toHaveLength(1);
+    expect(
+      model.entities.filter((entity) => entity.id.startsWith('place:project:')).map((entity) => entity.name),
+    ).toEqual(['alpha', 'beta']);
+  });
+
+  it('shows the workshop inventory as empty or unavailable without inventing tool objects', () => {
+    const empty = buildWorldModel(baseInput({ toolsKnown: true, tools: [] }));
+    expect(empty.entities.find((entity) => entity.id === 'object:workshop')).toMatchObject({
+      state: 'empty',
+      availability: 'empty',
+    });
+    expect(empty.entities.some((entity) => entity.id.startsWith('object:tool:'))).toBe(false);
+
+    const unavailable = buildWorldModel(baseInput({ toolsKnown: false }));
+    expect(unavailable.entities.find((entity) => entity.id === 'object:workshop')).toMatchObject({
+      state: 'unknown',
+      availability: 'unavailable',
+    });
+  });
+
+  it('lays out one shared workshop before the creek and project houses', () => {
+    const layout = layoutWorld(
+      buildWorldModel(
+        baseInput({
+          toolsKnown: true,
+          tools: [
+            {
+              id: 'opencode',
+              toolName: 'OpenCode',
+              detected: true,
+              configured: false,
+              enabled: 'unknown',
+              verified: true,
+              version: '1.0',
+            },
+          ],
+          projects: [{ name: 'alpha', target: '/r/alpha', status: 'ok' }],
+        }),
+      ),
+    );
+    const workshop = layout.entities.find((entity) => entity.id === 'object:workshop')!;
+    const house = layout.entities.find((entity) => entity.id === 'place:project:alpha')!;
+    expect(workshop).toMatchObject({ w: 5, h: 4, facade: 'landmark-workshop' });
+    expect(house.x).toBeGreaterThan(workshop.x + workshop.w);
+    expect(layout.entities.filter((entity) => entity.id.startsWith('object:tool:'))).toHaveLength(0);
+    const water = new Set(
+      paintTerrain(layout.entities, layout.cols, layout.rows)
+        .cells.filter((cell) => cell.tile === 'water')
+        .map((cell) => `${cell.x},${cell.y}`),
+    );
+    for (let y = workshop.y; y < workshop.y + workshop.h; y++) {
+      for (let x = workshop.x; x < workshop.x + workshop.w; x++) {
+        expect(water.has(`${x},${y}`)).toBe(false);
+      }
+    }
+  });
+
+  it('keeps project interiors free of shared workshop fixtures and fake characters', () => {
     const model = buildWorldModel(
       baseInput({
         projects: [{ name: 'only', target: '/r', status: 'ok' }],
@@ -331,7 +446,7 @@ describe('buildWorldModel', () => {
       }),
     );
     expect(model.entities.filter((e) => e.kind === 'character')).toEqual([]);
-    expect(model.entities.find((e) => e.id === 'object:tools-empty')?.availability).toBe('empty');
+    expect(model.entities.some((e) => e.id === 'object:workshop' || e.id.startsWith('object:tool:'))).toBe(false);
     expect(model.entities.find((e) => e.id === 'place:project:only')?.activity).toBe('calm');
   });
 
@@ -642,7 +757,7 @@ describe('layoutWorld', () => {
     }
   });
 
-  it('lays out an interior without outdoor library annex', () => {
+  it('lays out a project interior without shared Library or Workshop fixtures', () => {
     const layout = layoutWorld(
       buildWorldModel(
         baseInput({
@@ -666,7 +781,8 @@ describe('layoutWorld', () => {
     );
     const ids = layout.entities.map((e) => e.id);
     expect(ids).toContain('object:exit-grounds');
-    expect(ids).toContain('object:tool:gh');
+    expect(ids).not.toContain('object:workshop');
+    expect(ids).not.toContain('object:tool:gh');
     expect(ids).not.toContain('object:library');
     const exit = layout.entities.find((e) => e.id === 'object:exit-grounds');
     const room = layout.entities.find((e) => e.id === 'place:project:alpha');

@@ -55,6 +55,12 @@
       "h": 64,
       "frames": 1
     },
+    "landmark-workshop": {
+      "file": "landmark-workshop.png",
+      "w": 80,
+      "h": 72,
+      "frames": 1
+    },
     "landmark-operations": {
       "file": "landmark-operations.png",
       "w": 64,

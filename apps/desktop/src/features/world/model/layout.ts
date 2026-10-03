@@ -19,6 +19,7 @@ export const FOOTPRINTS: Record<string, { w: number; h: number }> = {
   'landmark-workspace': { w: 5, h: 4 },
   'landmark-archive': { w: 4, h: 4 },
   'landmark-library': { w: 4, h: 4 },
+  'landmark-workshop': { w: 5, h: 4 },
   'landmark-operations': { w: 4, h: 4 },
   'landmark-terminal': { w: 4, h: 4 },
   'landmark-files': { w: 3, h: 3 },
@@ -74,11 +75,10 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   const memory = sorted.find((e) => e.id.startsWith('place:memory-project:'));
   const terminal = sorted.find((e) => e.id.startsWith('object:terminal-project:'));
   const files = sorted.find((e) => e.id.startsWith('object:files-project:'));
-  const tools = sorted.filter((e) => e.id.startsWith('object:tool:') || e.id === 'object:tools-empty');
   const memoryEntries = sorted.filter((e) => e.id.startsWith('object:memory:'));
   const characters = sorted.filter((e) => e.kind === 'character');
   const used = new Set(
-    [exit, room, memory, terminal, files, ...tools, ...memoryEntries, ...characters].filter(Boolean).map((e) => e!.id),
+    [exit, room, memory, terminal, files, ...memoryEntries, ...characters].filter(Boolean).map((e) => e!.id),
   );
   const rest = sorted.filter((e) => !used.has(e.id));
 
@@ -88,13 +88,6 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   if (memory) place(memory, 9, 0);
   if (terminal) place(terminal, 1, 4);
   if (files) place(files, 4, 4);
-
-  const toolsPerRow = 4;
-  for (const [index, tool] of tools.entries()) {
-    const col = index % toolsPerRow;
-    const row = Math.floor(index / toolsPerRow);
-    place(tool, 8 + col * 3, 4 + row * 3);
-  }
 
   let entryX = 13;
   const entryY = 1;
@@ -145,11 +138,13 @@ export function layoutWorld(model: WorldModel): WorldLayout {
 
   const grounds = entities.find((e) => e.id === 'place:workspace');
   const memoryPlace = entities.find((e) => e.id === 'place:memory');
+  const workshop = entities.find((e) => e.id === 'object:workshop');
   const memoryEntries = entities.filter((e) => e.id.startsWith('object:memory:'));
   // Civic places occupy two small streets around a shared square. Their
   // positions communicate hierarchy without turning the valley into one row.
   const landmarkOrder = [
     'object:library',
+    'object:workshop',
     'object:operations',
     'object:terminal',
     'object:attention',
@@ -165,6 +160,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     (e) =>
       e !== grounds &&
       e !== memoryPlace &&
+      e !== workshop &&
       !memoryEntries.includes(e) &&
       !sharedObjects.includes(e) &&
       e !== emptyProject &&
@@ -212,6 +208,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   const civicX = 4;
   const civicSlots: Record<string, { x: number; y: number }> = {
     'object:library': { x: civicX + 1, y: 5 },
+    'object:workshop': { x: civicX + 18, y: 5 },
     'object:operations': { x: civicX + 7, y: 5 },
     'object:terminal': { x: civicX + 13, y: 5 },
     'object:attention': { x: civicX + 2, y: 9 },

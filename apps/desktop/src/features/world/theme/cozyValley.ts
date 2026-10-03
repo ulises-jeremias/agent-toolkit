@@ -52,6 +52,7 @@ export const cozyValleyTheme: WorldThemePack = {
     'landmark-workspace': sprite('landmark-workspace', 'Workspace hall'),
     'landmark-archive': sprite('landmark-archive', 'Memory archive'),
     'landmark-library': sprite('landmark-library', 'Library'),
+    'landmark-workshop': sprite('landmark-workshop', 'Tools workshop'),
     'landmark-files': sprite('landmark-files', 'Files depot'),
     'landmark-operations': sprite('landmark-operations', 'Operations workshop'),
     'landmark-settings': sprite('landmark-settings', 'Settings pavilion'),
