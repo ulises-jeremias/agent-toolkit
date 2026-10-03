@@ -573,7 +573,7 @@ describe('layoutWorld', () => {
     }
   });
 
-  it('lays projects on a fixed-width district under the commons strip', () => {
+  it('lays projects in a fixed-width neighborhood across the creek from the commons', () => {
     const layout = layoutWorld(
       buildWorldModel(
         baseInput({
@@ -612,7 +612,7 @@ describe('layoutWorld', () => {
     const eighth = wide.entities.find((row) => row.id === 'place:project:p07')!;
     expect(eighth.y).toBeGreaterThan(first.y);
     expect(a.y).toBeGreaterThan(memory.y);
-    expect(a.y).toBeGreaterThan(library.y);
+    expect(a.x).toBeGreaterThan(library.x + library.w);
   });
 
   it('fits camera bounds to occupied project lots without moving existing houses', () => {
@@ -633,7 +633,7 @@ describe('layoutWorld', () => {
     expect(secondAlpha).toMatchObject({ x: firstAlpha.x, y: firstAlpha.y, w: firstAlpha.w, h: firstAlpha.h });
     const compactTeam = layoutFor(['alpha', 'beta', 'gamma']);
     expect(compactTeam.cols).toBeLessThanOrEqual(28);
-    expect(compactTeam.rows).toBeLessThanOrEqual(13);
+    expect(compactTeam.rows).toBeLessThanOrEqual(12);
   });
 
   it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {
