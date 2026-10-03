@@ -207,6 +207,15 @@ describe('WorldEntityMap activation', () => {
     expect(terminalInspect?.getAttribute('href')).toContain('/terminal');
   });
 
+  it('keeps semantic plaques above the depth layer and out of duplicate screen-reader content', () => {
+    renderMap();
+    const plaques = [...document.querySelectorAll<HTMLElement>('[data-label-kind]')];
+
+    expect(plaques.length).toBeGreaterThan(0);
+    expect(plaques.every((plaque) => !plaque.closest('button'))).toBe(true);
+    expect(plaques.every((plaque) => plaque.getAttribute('aria-hidden') === 'true')).toBe(true);
+  });
+
   it('activates project memory records via click and keyboard on /world', async () => {
     const { onActivate, user } = renderMap(baseInput({ focusProjectId: 'alpha' }));
 
