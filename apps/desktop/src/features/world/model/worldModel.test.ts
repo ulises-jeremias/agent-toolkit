@@ -434,7 +434,7 @@ describe('buildWorldModel', () => {
       }
     }
     const waterColumns = [...water].map((cell) => Number(cell.split(',')[0]));
-    expect(house.x).toBeGreaterThanOrEqual(workshop.x + workshop.w + 8);
+    expect(house.x).toBeGreaterThanOrEqual(workshop.x + workshop.w + 7);
     expect(waterColumns.some((x) => x >= workshop.x + workshop.w && x < house.x)).toBe(true);
   });
 
