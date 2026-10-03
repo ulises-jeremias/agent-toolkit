@@ -45,6 +45,21 @@ function h2(x: number, y: number, salt = 0): number {
   return (h ^ (h >>> 16)) >>> 0;
 }
 
+/** Smooth seeded value noise for broad terrain patches, never per-tile noise. */
+function meadowField(x: number, y: number, scale: number, salt: number): number {
+  const gx = Math.floor(x / scale);
+  const gy = Math.floor(y / scale);
+  const fx = (x - gx * scale) / scale;
+  const fy = (y - gy * scale) / scale;
+  const smooth = (value: number) => value * value * (3 - 2 * value);
+  const sx = smooth(fx);
+  const sy = smooth(fy);
+  const value = (cx: number, cy: number) => h2(cx, cy, salt) / 0xffffffff;
+  const north = value(gx, gy) * (1 - sx) + value(gx + 1, gy) * sx;
+  const south = value(gx, gy + 1) * (1 - sx) + value(gx + 1, gy + 1) * sx;
+  return north * (1 - sy) + south * sy;
+}
+
 /** Irregular grove patches seeded on a coarse lattice, not checkerboard tiles. */
 function insideGrove(x: number, y: number): boolean {
   const cellSize = 9;
@@ -125,12 +140,25 @@ function baseGround(p: Painter) {
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
       if (p.isBlocked(x, y)) continue;
-      const bed = h2(x >> 2, y >> 2, 11) % 11;
+      const moisture = meadowField(x, y, 7, 11) * 0.65 + meadowField(x, y, 15, 17) * 0.35;
+      const bloom = meadowField(x, y, 4, 19);
       const roll = h2(x, y, 1) % 23;
-      if (bed < 2 && roll < 14) {
+      if (bloom > 0.82 && roll < 14) {
         p.set(x, y, ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'][h2(x, y, 12) % 4]!);
       } else {
-        p.set(x, y, `grass-${h2(x, y, 2) % 6}`);
+        const grass =
+          moisture < 0.16
+            ? 4
+            : moisture < 0.36
+              ? 2
+              : moisture < 0.68
+                ? 0
+                : moisture < 0.84
+                  ? 1
+                  : moisture < 0.94
+                    ? 3
+                    : 5;
+        p.set(x, y, `grass-${grass}`);
       }
     }
   }
@@ -191,7 +219,7 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number): Map<nu
     const sideStart = x <= bridgeX ? 4 : bridgeX;
     const sideEnd = x <= bridgeX ? bridgeX : endX;
     const t = (x - sideStart) / Math.max(1, sideEnd - sideStart);
-    const bend = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 2 + phase) * 3.2;
+    const bend = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 2 + phase) * 1.4;
     const crossing = x >= bridgeX && x < bridgeX + 3;
     const current = { x, y: crossing ? y : y + Math.round(bend) };
     rasterLine(p, previous.x, previous.y, current.x, current.y);
@@ -499,10 +527,10 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     (e) => e.kind === 'place' && e.id !== 'place:workspace' && !e.id.startsWith('place:project:'),
   );
   const projectYs = projects.map((e) => e.y);
-  const roadY = projectYs.length ? Math.min(...projectYs) - 1 : 15;
+  const marker = entities.find((e) => e.id === 'place:projects-empty');
+  const roadY = projectYs.length ? Math.min(...projectYs) - 1 : marker ? marker.y - 1 : Math.floor(rows / 2);
 
   // creek first so roads bridge it
-  const marker = entities.find((e) => e.id === 'place:projects-empty');
   const workshop = entities.find((e) => e.id === 'object:workshop');
   const riverAnchorX = projects.length
     ? Math.min(...projects.map((project) => project.x))
