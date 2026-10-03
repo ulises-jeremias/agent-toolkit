@@ -5,6 +5,7 @@ import type {
   JobRegistry,
   InstallPreviewResponse,
   InstallReceiptsResponse,
+  CopilotProjectInstallResponse,
   LoopListResponse,
   LoopStatusResponse,
   LoopHistoryResponse,
@@ -178,6 +179,35 @@ export class ApiClient {
     return this.json<InstallPreviewResponse>('POST', '/api/v1/install/reviewed' satisfies PathWith<'post'>, {
       body: { tools },
     });
+  }
+
+  async copilotProjectInstallPreview(
+    workspace: string,
+    project: string,
+    action: 'install' | 'remove' = 'install',
+  ): Promise<CopilotProjectInstallResponse> {
+    return this.json<CopilotProjectInstallResponse>(
+      'GET',
+      '/api/v1/install/copilot-project/preview' satisfies PathWith<'get'>,
+      {
+        query: { workspace, project, action },
+      },
+    );
+  }
+
+  async copilotProjectInstallReviewed(
+    workspace: string,
+    project: string,
+    action: 'install' | 'remove',
+    reviewToken: string,
+  ): Promise<CopilotProjectInstallResponse> {
+    return this.json<CopilotProjectInstallResponse>(
+      'POST',
+      '/api/v1/install/copilot-project/reviewed' satisfies PathWith<'post'>,
+      {
+        body: { workspace, project, action, review_token: reviewToken },
+      },
+    );
   }
 
   async installReceipts(): Promise<InstallReceiptsResponse> {

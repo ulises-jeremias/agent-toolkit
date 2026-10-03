@@ -133,6 +133,30 @@ describe('ApiClient', () => {
     expect(calls[1]?.init?.body).toBe('{"tools":["cursor","opencode"]}');
   });
 
+  it('reviews and installs Copilot instructions only for a linked project', async () => {
+    const payload = {
+      ok: true,
+      message: 'reviewed',
+      project: 'demo',
+      path: '.github/copilot-instructions.md',
+      status: 'ready',
+      review_token: 'snapshot',
+      files_written: 0,
+    };
+    const api = client(payload);
+    await api.copilotProjectInstallPreview('/workspace', 'demo', 'remove');
+    expect(calls[0]?.url).toBe(
+      'http://127.0.0.1:9/api/v1/install/copilot-project/preview?workspace=%2Fworkspace&project=demo&action=remove',
+    );
+    expect(calls[0]?.init?.method).toBe('GET');
+    await api.copilotProjectInstallReviewed('/workspace', 'demo', 'remove', 'snapshot');
+    expect(calls[1]?.url).toBe('http://127.0.0.1:9/api/v1/install/copilot-project/reviewed');
+    expect(calls[1]?.init?.method).toBe('POST');
+    expect(calls[1]?.init?.body).toBe(
+      '{"workspace":"/workspace","project":"demo","action":"remove","review_token":"snapshot"}',
+    );
+  });
+
   it('reads installation evidence from the receipt endpoint', async () => {
     const response = await client({ ok: true, receipts: [] }).installReceipts();
     expect(response.receipts).toEqual([]);

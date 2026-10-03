@@ -1129,6 +1129,136 @@
         }
       }
     },
+    "/api/v1/install/copilot-project/preview": {
+      "get": {
+        "operationId": "copilot_project_install_preview",
+        "summary": "Review install or receipt-backed removal of Copilot instructions for a linked project",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "workspace",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "workspace"
+            }
+          },
+          {
+            "name": "project",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "project"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "install",
+                "remove"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotProjectInstallResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "workspace or project is missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "action is not install or remove",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/install/copilot-project/reviewed": {
+      "post": {
+        "operationId": "copilot_project_install_reviewed",
+        "summary": "Apply reviewed Copilot instruction install or receipt-backed removal for a linked project",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CopilotProjectInstallRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopilotProjectInstallResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "request body is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "required field is missing or action is unsupported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "project changed since review; no mutation is applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/install/receipts": {
       "get": {
         "operationId": "install_receipts",
@@ -3293,6 +3423,76 @@
         },
         "required": [
           "tools"
+        ]
+      },
+      "CopilotProjectInstallRequest": {
+        "type": "object",
+        "properties": {
+          "workspace": {
+            "type": "string"
+          },
+          "project": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "install",
+              "remove"
+            ]
+          },
+          "review_token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace",
+          "project",
+          "action",
+          "review_token"
+        ]
+      },
+      "CopilotProjectInstallResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "project": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "review_token": {
+            "type": "string"
+          },
+          "files_written": {
+            "type": "integer"
+          },
+          "files_removed": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ok",
+          "message",
+          "project",
+          "path",
+          "content",
+          "status",
+          "review_token",
+          "files_written",
+          "files_removed"
         ]
       },
       "InstallReceiptSummary": {

@@ -25,6 +25,7 @@ export type LoopCostResponse = components['schemas']['LoopCostResponse'];
 export type InstallPreviewResponse = components['schemas']['InstallPreviewResponse'];
 export type InstallReceiptsResponse = components['schemas']['InstallReceiptsResponse'];
 export type InstallReceiptSummary = components['schemas']['InstallReceiptSummary'];
+export type CopilotProjectInstallResponse = components['schemas']['CopilotProjectInstallResponse'];
 export type McpProvidersResponse = components['schemas']['McpProvidersResponse'];
 export type McpProviderInfo = components['schemas']['McpProviderInfo'];
 

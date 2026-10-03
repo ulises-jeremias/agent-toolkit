@@ -362,8 +362,42 @@ pub:
 	receipt_path   string
 }
 
+pub struct CopilotProjectInstallResp {
+pub:
+	ok            bool
+	message       string
+	project       string
+	path          string
+	content       string
+	status        string
+	review_token  string
+	files_written int
+	files_removed int
+}
+
 struct InstallReviewedReq {
 	tools []string
+}
+
+struct CopilotProjectInstallReq {
+	workspace    string
+	project      string
+	action       string
+	review_token string
+}
+
+fn copilot_project_install_response(report agent_toolkit_core.CopilotProjectInstallReport) CopilotProjectInstallResp {
+	return CopilotProjectInstallResp{
+		ok: report.ok
+		message: report.message
+		project: report.project
+		path: report.path
+		content: report.content
+		status: report.status
+		review_token: report.review_token
+		files_written: report.files_written
+		files_removed: report.files_removed
+	}
 }
 
 fn deny_if_remote(app &App, ctx Ctx) ?DenyErr {
@@ -500,6 +534,8 @@ const registered_api_routes = [
 	'/api/v1/install',
 	'/api/v1/install/preview',
 	'/api/v1/install/reviewed',
+	'/api/v1/install/copilot-project/preview',
+	'/api/v1/install/copilot-project/reviewed',
 	'/api/v1/install/receipts',
 	'/api/v1/update',
 	'/api/v1/uninstall',
@@ -882,6 +918,64 @@ pub fn (app &App) install_reviewed(mut ctx Ctx) veb.Result {
 			tools: req.tools
 		}))
 	}))
+}
+
+@['/api/v1/install/copilot-project/preview'; get]
+pub fn (app &App) copilot_project_install_preview(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	workspace := ctx.query['workspace'] or { '' }
+	project := ctx.query['project'] or { '' }
+	action := ctx.query['action'] or { 'install' }
+	if workspace.len == 0 || project.len == 0 {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'workspace and project are required' })
+	}
+	if action !in ['install', 'remove'] {
+		ctx.res.set_status(.unprocessable_entity)
+		return ctx.json(DenyErr{ ok: false, error: 'action must be install or remove' })
+	}
+	report := if action == 'remove' {
+		agent_toolkit_core.copilot_project_remove(workspace, project, '', false, '')
+	} else {
+		agent_toolkit_core.copilot_project_install(workspace, project, '', false, '')
+	}
+	return ctx.json(copilot_project_install_response(report))
+}
+
+@['/api/v1/install/copilot-project/reviewed'; post]
+pub fn (app &App) copilot_project_install_reviewed(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	req := json2.decode[CopilotProjectInstallReq](ctx.req.data) or {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'workspace, project and review_token are required' })
+	}
+	if req.workspace.len == 0 || req.project.len == 0 || req.action !in ['install', 'remove'] || req.review_token.len == 0 {
+		ctx.res.set_status(.unprocessable_entity)
+		return ctx.json(DenyErr{ ok: false, error: 'workspace, project, action and review_token are required' })
+	}
+	action_name := 'copilot-project-${req.action}'
+	app.emit(ApiEvent{ kind: 'install.started', subject: action_name, status: 'running' })
+	report := if req.action == 'remove' {
+		agent_toolkit_core.copilot_project_remove(req.workspace, req.project, req.review_token, true, '')
+	} else {
+		agent_toolkit_core.copilot_project_install(req.workspace, req.project, req.review_token, true, '')
+	}
+	app.emit(ApiEvent{
+		kind: 'install.finished'
+		subject: action_name
+		status: if report.ok { 'completed' } else { 'failed' }
+		message: report.message
+	})
+	if report.status == 'stale-review' {
+		ctx.res.set_status(.conflict)
+	}
+	return ctx.json(copilot_project_install_response(report))
 }
 
 @['/api/v1/install/receipts'; get]

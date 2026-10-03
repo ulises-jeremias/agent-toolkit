@@ -394,6 +394,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/install/copilot-project/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Review install or receipt-backed removal of Copilot instructions for a linked project */
+        get: operations["copilot_project_install_preview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/install/copilot-project/reviewed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apply reviewed Copilot instruction install or receipt-backed removal for a linked project */
+        post: operations["copilot_project_install_reviewed"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/install/receipts": {
         parameters: {
             query?: never;
@@ -1190,6 +1224,24 @@ export interface components {
         };
         InstallReviewedRequest: {
             tools: string[];
+        };
+        CopilotProjectInstallRequest: {
+            workspace: string;
+            project: string;
+            /** @enum {string} */
+            action: "install" | "remove";
+            review_token: string;
+        };
+        CopilotProjectInstallResponse: {
+            ok: boolean;
+            message: string;
+            project: string;
+            path: string;
+            content: string;
+            status: string;
+            review_token: string;
+            files_written: number;
+            files_removed: number;
         };
         InstallReceiptSummary: {
             product: string;
@@ -2572,6 +2624,99 @@ export interface operations {
                 };
             };
             /** @description target selection is empty or unsupported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    copilot_project_install_preview: {
+        parameters: {
+            query: {
+                workspace: Record<string, never>;
+                project: Record<string, never>;
+                action?: "install" | "remove";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotProjectInstallResponse"];
+                };
+            };
+            /** @description workspace or project is missing */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description action is not install or remove */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    copilot_project_install_reviewed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CopilotProjectInstallRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotProjectInstallResponse"];
+                };
+            };
+            /** @description request body is invalid */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description project changed since review; no mutation is applied */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description required field is missing or action is unsupported */
             422: {
                 headers: {
                     [name: string]: unknown;

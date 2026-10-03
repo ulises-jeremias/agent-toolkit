@@ -11,6 +11,7 @@ outcomes, not claims that every step is implemented.
 | Existing workspace/harness user | Classify environment → explain compatibility and proposed adapter changes → preview → explicitly use in place or copy/import → validate without overwriting user files. |
 | Capability discovery | Search by task/tool → filter actual catalog → inspect description, provenance, dependencies and verified compatibility → choose relevant action. |
 | Skill install | Select skills and coding tools → choose scope → preview conflicts/files → apply → observe real artifacts/receipt → retry partial failure or undo verified changes. |
+| Project Copilot instructions | Select one linked project → review the exact repository file and contents → preserve conflicts → explicitly install → inspect receipt → remove only the unchanged receipt-owned file. |
 | Coding-agent integration | Detect catalog-supported executable with bounded search → choose executable if missing → enable integration → preview/apply → verify → repair or rollback. |
 | MCP setup | Find provider → explain requirements → enter masked configuration → preview safe changes → apply → probe → explain failure and repair. Never show secrets in logs or previews. |
 | Target setup | Explain where skills become available → select tool and scope → show compatibility evidence → install → inspect actual receipt → rollback. Use "coding tools" before "targets". |

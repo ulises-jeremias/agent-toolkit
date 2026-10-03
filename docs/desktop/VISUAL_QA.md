@@ -191,10 +191,9 @@ the framed game-menu dialog while keeping confirmation fixed. Pre-existing user
 content and a Toolkit file edited after installation survived the real removal.
 The World tool inspector routes into this same Library review with the relevant
 destination preselected; it no longer exposes a global install action or asks users
-to run the CLI hint shown by the backend catalog.
-GitHub Copilot remains explicitly outside this user-level installer because its
-capabilities belong in a project repository; the dialog calls out that scope and
-the workflow ledger keeps this journey partial until that project-scoped flow exists.
+to run the CLI hint shown by the backend catalog. GitHub Copilot is installed via a
+separate repository-scoped review because its instructions belong inside one linked
+project rather than in user-level tool homes.
 
 Reviewing the first captures caught two product issues: the install dialog still
 said “profiles” after the operation expanded to catalog Skills, and the removal
@@ -229,3 +228,26 @@ Opened files:
   and [large](assets/electron/library/installation-receipts-large.png).
 - [Removal preview, compact](assets/electron/library/removal-preview-compact.png)
   and [large](assets/electron/library/removal-preview-large.png).
+
+## Project-scoped Copilot review — 2026-10-03
+
+Captured from the Electron app against the V backend using an isolated test
+workspace. Library selects one linked project and previews the actual packaged
+Copilot instruction file, its exact repository destination, and the single file
+to be added. The file body is available on demand so the compact review stays
+focused. Applying writes a receipt. Removal is a separate review bound to that
+receipt and current file digest; a post-install edit disables deletion and stays
+in place. The flow does not launch an agent or alter user-level tool installs.
+
+Opened both captures. At 1024×768 the dialog's project and destination remain
+readable, its action stays visible, and long path segments wrap within the panel.
+At 1440×900 the Library remains visible around the centered inspector. The
+temporary project path is explicit because it is the actual file that will be
+written; the screenshots use a disposable test workspace. The remaining scope
+gap is installation of compiled Copilot repository Skills and Agent Definitions,
+so `install-capabilities` correctly remains partial.
+
+Opened files:
+
+- [Copilot project review, compact](assets/electron/library/copilot-project-review-compact.png)
+  and [large](assets/electron/library/copilot-project-review-large.png).

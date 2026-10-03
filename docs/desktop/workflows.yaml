@@ -70,7 +70,7 @@ journeys:
   - id: install-capabilities
     title: Install skills/agents from the Library
     destinations: [library]
-    status: ok
+    status: partial
     evidence:
       - note: >-
           Library previews the actual profile, Agent Definition, and complete Skill file
@@ -80,10 +80,19 @@ journeys:
           counts, and local receipt path. Removal preview is receipt-backed; confirmation
           is bound to a backend snapshot and uses atomic quarantine before deletion.
           GitHub Copilot remains a separate repository-scoped capability and is not
-          installed by this user-level flow.
+          installed by this user-level flow. Desktop can review the actual
+          packaged Copilot instruction contents and destination for one linked
+          project before applying; it rejects unsafe
+          destination symlinks, preserves existing instructions, checks the
+          reviewed project snapshot before writing, and records a real receipt.
+          Receipt-backed removal rechecks the file digest and leaves any
+          post-install user edits intact.
+          The screenshot tour covers this review at compact and large sizes.
         tests:
           - apps/desktop/e2e/electron/desktop.spec.ts
+          - apps/desktop/e2e/electron/project-link.spec.ts
           - apps/desktop/src/lib/api/api.test.ts
+          - modules/agent_toolkit_core/copilot_project_install_test.v
           - modules/agent_toolkit_core/install_test.v
           - modules/agent_toolkit_core/uninstall_test.v
           - modules/agent_toolkit_server/server_integration_test.v
@@ -94,8 +103,10 @@ journeys:
           - assets/electron/library/installation-receipts-large.png
           - assets/electron/library/removal-preview-compact.png
           - assets/electron/library/removal-preview-large.png
+          - assets/electron/library/copilot-project-review-compact.png
+          - assets/electron/library/copilot-project-review-large.png
     blockers:
-      - Repository-scoped GitHub Copilot capability installation is not yet exposed in Desktop
+      - Compiled Copilot repository Skills and Agent Definitions are not yet exposed in Desktop; the current project flow installs only the instruction profile
   - id: mcp-configure-probe
     title: Configure an MCP provider and probe it
     destinations: [library]
