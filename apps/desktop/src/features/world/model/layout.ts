@@ -226,7 +226,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // Houses begin just beyond the creek crossing. Keeping the project lane
   // beside the civic commons gives compact windows a landscape-shaped valley
   // that can fit at 32px tiles instead of shrinking the whole world to 16px.
-  const districtY = 5;
+  const districtY = 4;
   const districtX = projectDistrictX;
   if (emptyProject) place(emptyProject, emptyMarkerX, districtY);
   const projectSlots = new Map<string, { x: number; y: number }>();
