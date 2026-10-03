@@ -5,12 +5,13 @@ import os
 // SwarmRunInfo is one filesystem swarm run (list row).
 pub struct SwarmRunInfo {
 pub:
-	run_id     string
-	recipe     string
-	backend    string
-	run_state  string
-	created_at string
-	task       string
+	run_id          string
+	recipe          string
+	backend         string
+	run_state       string
+	created_at      string
+	task            string
+	person_bindings map[string]string
 }
 
 pub struct SwarmListResponse {
@@ -228,6 +229,7 @@ fn swarm_run_info(st SwarmStateFile) SwarmRunInfo {
 		run_state: st.run_state
 		created_at: st.created_at
 		task: st.task
+		person_bindings: clone_string_map(st.person_bindings)
 	}
 }
 

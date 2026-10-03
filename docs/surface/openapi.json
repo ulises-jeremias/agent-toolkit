@@ -983,6 +983,15 @@
                   },
                   "older_than": {
                     "type": "string"
+                  },
+                  "person_bindings": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "launch_sessions": {
+                    "type": "boolean"
                   }
                 }
               }
@@ -3647,6 +3656,12 @@
           },
           "task": {
             "type": "string"
+          },
+          "person_bindings": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           }
         },
         "required": [

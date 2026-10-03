@@ -8,25 +8,27 @@ import time
 // SwarmOptions configures the swarm command family (#524 REDESIGN).
 pub struct SwarmOptions {
 pub:
-	subcommand     string
-	workspace_path string
-	run_id         string
-	gate_id        string
-	recipe         string
-	backend        string
-	runner         string
-	model_profile  string
-	task           string
-	reason         string
-	dry_run        bool
-	force          bool
-	attach         bool
-	no_attach      bool
-	request_file   string
-	issue_ref      string
-	base_ref       string
-	json_output    bool
-	current        bool
+	subcommand      string
+	workspace_path  string
+	run_id          string
+	gate_id         string
+	recipe          string
+	backend         string
+	runner          string
+	model_profile   string
+	person_bindings map[string]string
+	launch_sessions bool
+	task            string
+	reason          string
+	dry_run         bool
+	force           bool
+	attach          bool
+	no_attach       bool
+	request_file    string
+	issue_ref       string
+	base_ref        string
+	json_output     bool
+	current         bool
 	// handoff / task subcommands (swarm handoff create / swarm task next|complete)
 	handoff_sub string
 	htype       string
@@ -75,6 +77,7 @@ pub mut:
 	personas        map[string]string @[json: 'personas']
 	policy          map[string]string @[json: 'policy']
 	active_roles    []string
+	person_bindings map[string]string
 	worktrees       []SwarmWorktree
 }
 
@@ -766,6 +769,16 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 	backend := resolve_swarm_backend(requested)
+	if opts.launch_sessions && backend == 'headless' && !opts.dry_run {
+		return SwarmReport{
+			ok: false
+			message: 'Headless mode records swarm state but cannot launch role sessions. Choose an available Herdr or tmux session adapter, or disable role session launch.'
+			data: {
+				'subcommand': 'start'
+				'backend': backend
+			}
+		}
+	}
 	doc := doctor_backend(backend)
 	if requested in ['herdr', 'tmux'] && !doc.available {
 		return SwarmReport{
@@ -810,6 +823,12 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 	recipe = resolved.metadata.name
+	validate_swarm_person_bindings(ws, recipe, opts.person_bindings) or {
+		return SwarmReport{
+			ok: false
+			message: err.msg()
+		}
+	}
 	rid := swarm_new_run_id()
 	if opts.dry_run {
 		mut persona_info := []string{}
@@ -926,6 +945,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		personas: personas
 		policy: policy_map
 		active_roles: []string{}
+		person_bindings: clone_string_map(opts.person_bindings)
 		worktrees: created_wts
 	}
 	write_swarm_state(run_dir, st) or {
@@ -959,11 +979,12 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 			append_swarm_trace(run_dir, 'budget_exhausted', rid)
 		}
 	}
-	// Herdr UI spawn (ADR-008: UI is adapter, not engine). Only when --attach and not dry-run.
+	// Herdr UI spawn (ADR-008: UI is adapter, not engine). Launch for CLI attach
+	// requests or explicit Desktop role-session requests, never during dry-run.
 	mut herdr_note := ''
 	mut tmux_note := ''
-	if opts.attach && !opts.no_attach && backend == 'herdr' {
-		spawn_res := spawn_herdr_workspace(ws, rid, opts.task, recipe, runner, model_profile)
+	if ((opts.attach && !opts.no_attach) || opts.launch_sessions) && backend == 'herdr' {
+		spawn_res := spawn_herdr_workspace(ws, rid, opts.task, recipe, runner, model_profile, st.person_bindings)
 		if spawn_res.ok {
 			herdr_note = '\n  Herdr: ' + spawn_res.message
 		} else {
@@ -977,8 +998,8 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 	} else if backend == 'herdr' && opts.no_attach {
 		herdr_note = '\n  Herdr: --no-attach (CI mode); workspace not created. Create manually: herdr workspace create --cwd ' + ws + ' --label swarm-' + rid
 	}
-	if opts.attach && !opts.no_attach && backend == 'tmux' {
-		spawn_res := spawn_tmux_session(ws, rid, opts.task, recipe, runner, model_profile)
+	if ((opts.attach && !opts.no_attach) || opts.launch_sessions) && backend == 'tmux' {
+		spawn_res := spawn_tmux_session(ws, rid, opts.task, recipe, runner, model_profile, st.person_bindings)
 		if spawn_res.ok {
 			tmux_note = '\n  tmux: ' + spawn_res.message
 		} else {
@@ -1033,6 +1054,14 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 			'workspace':     ws
 		}
 	}
+}
+
+fn clone_string_map(source map[string]string) map[string]string {
+	mut out := map[string]string{}
+	for key, value in source {
+		out[key] = value
+	}
+	return out
 }
 
 fn herdr_workspace_id(stdout string) string {
@@ -1146,7 +1175,7 @@ fn shell_base_for_user() string {
 // with one window per recipe role and launches the same runner command surface the
 // herdr backend uses (ADR-008: UI is an adapter, not the engine). Mirrors the herdr
 // eager-first behavior: role[0] runs the runner, remaining roles wait for handoffs.
-fn spawn_tmux_session(ws string, run_id string, task string, recipe string, runner string, model_profile string) SwarmReport {
+fn spawn_tmux_session(ws string, run_id string, task string, recipe string, runner string, model_profile string, person_bindings map[string]string) SwarmReport {
 	ps := new_process_service()
 	sock := 'agent-toolkit-swarm-' + run_id
 	session := 'swarm-' + run_id
@@ -1211,11 +1240,13 @@ fn spawn_tmux_session(ws string, run_id string, task string, recipe string, runn
 	for i, role in roles {
 		inner := if i == 0 {
 			if effective_runner == 'skeleton' {
-				"echo '[skeleton:" + role + "] ready -- no LLM' && exec " + base_user
+				person_env := swarm_person_env(role, person_bindings)
+				'export SWARMFORGE_ROLE=' + shell_quote(role) + person_env + " && echo '[skeleton:" + role + "] ready -- no LLM' && exec " + base_user
 			} else {
 				prompt_file := os.join_path(run_dir, 'prompts', role + '.md')
 				runner_cmd := herdr_runner_cmd(effective_runner, role, task, ws, prompt_file)
-				env_prefix := 'export AGENT_TOOLKIT_SWARM_RUN_ID=' + shell_quote(run_id) + ' && export AGENT_TOOLKIT_SWARM_RUN_DIR=' + shell_quote(run_dir) + ' && export AGENT_TOOLKIT_SWARM_REPO=' + shell_quote(ws) + ' && export SWARMFORGE_ROLE=' + shell_quote(role) + ' &&'
+				person_env := swarm_person_env(role, person_bindings)
+				env_prefix := 'export AGENT_TOOLKIT_SWARM_RUN_ID=' + shell_quote(run_id) + ' && export AGENT_TOOLKIT_SWARM_RUN_DIR=' + shell_quote(run_dir) + ' && export AGENT_TOOLKIT_SWARM_REPO=' + shell_quote(ws) + ' && export SWARMFORGE_ROLE=' + shell_quote(role) + person_env + ' &&'
 				env_prefix + ' cd ' + shell_quote(ws) + ' && exec ' + runner_cmd
 			}
 		} else {
@@ -1275,6 +1306,11 @@ fn spawn_tmux_session(ws string, run_id string, task string, recipe string, runn
 			'windows': '${found}/${roles.len}'
 		}
 	}
+}
+
+fn swarm_person_env(role string, person_bindings map[string]string) string {
+	id := person_bindings[role] or { return '' }
+	return ' && export AGENT_TOOLKIT_PERSON_ID=' + shell_quote(id)
 }
 
 // swarm_role_already_started reports whether the role's agent was already
@@ -1432,6 +1468,7 @@ fn swarm_wake_role(ws string, run_id string, recipe string, role string, backend
 
 fn swarm_autostart_role(ws string, run_id string, recipe string, role string, runner string, backend string) SwarmReport {
 	run_dir := swarm_run_dir(ws, run_id)
+	state := read_swarm_state(run_dir) or { SwarmStateFile{} }
 	roles := swarm_recipe_roles(recipe)
 	if !roles.contains(role) {
 		return SwarmReport{
@@ -1457,10 +1494,12 @@ fn swarm_autostart_role(ws string, run_id string, recipe string, role string, ru
 	shell := user_shell()
 	base_user := shell_base_for_user()
 	inner := if effective_runner == 'skeleton' {
-		"echo '[skeleton:" + role + "] ready -- no LLM' && exec " + base_user
+		person_env := swarm_person_env(role, state.person_bindings)
+		'export SWARMFORGE_ROLE=' + shell_quote(role) + person_env + " && echo '[skeleton:" + role + "] ready -- no LLM' && exec " + base_user
 	} else {
 		runner_cmd := herdr_runner_cmd(effective_runner, role, '', ws, prompt_file)
-		env_prefix := 'export AGENT_TOOLKIT_SWARM_RUN_ID=' + shell_quote(run_id) + ' && export AGENT_TOOLKIT_SWARM_RUN_DIR=' + shell_quote(run_dir) + ' && export AGENT_TOOLKIT_SWARM_REPO=' + shell_quote(ws) + ' && export SWARMFORGE_ROLE=' + shell_quote(role) + ' &&'
+		person_env := swarm_person_env(role, state.person_bindings)
+		env_prefix := 'export AGENT_TOOLKIT_SWARM_RUN_ID=' + shell_quote(run_id) + ' && export AGENT_TOOLKIT_SWARM_RUN_DIR=' + shell_quote(run_dir) + ' && export AGENT_TOOLKIT_SWARM_REPO=' + shell_quote(ws) + ' && export SWARMFORGE_ROLE=' + shell_quote(role) + person_env + ' &&'
 		env_prefix + ' cd ' + shell_quote(ws) + ' && exec ' + runner_cmd
 	}
 	cmd := shell + ' -lc ' + shell_quote(inner)
@@ -1559,7 +1598,7 @@ fn swarm_autostart_role(ws string, run_id string, recipe string, role string, ru
 	}
 }
 
-fn spawn_herdr_workspace(ws string, run_id string, task string, recipe string, runner string, model_profile string) SwarmReport {
+fn spawn_herdr_workspace(ws string, run_id string, task string, recipe string, runner string, model_profile string, person_bindings map[string]string) SwarmReport {
 	ps := new_process_service()
 	label := 'swarm-' + run_id
 	res := ps.run(RunOptions{
@@ -1654,7 +1693,8 @@ fn spawn_herdr_workspace(ws string, run_id string, task string, recipe string, r
 		run_dir := swarm_run_dir(ws, run_id)
 		effective_runner := if runner == 'auto' { 'opencode' } else { runner }
 		if effective_runner == 'skeleton' {
-			skeleton_inner := "echo '[skeleton:" + first_role + "] ready -- no LLM' && exec " + shell_base_for_user()
+			person_env := swarm_person_env(first_role, person_bindings)
+			skeleton_inner := 'export SWARMFORGE_ROLE=' + shell_quote(first_role) + person_env + " && echo '[skeleton:" + first_role + "] ready -- no LLM' && exec " + shell_base_for_user()
 			skeleton_cmd := shell + ' -lc ' + shell_quote(skeleton_inner)
 			res2 := ps.run(RunOptions{ argv: ['herdr', 'pane', 'run', root_pane, skeleton_cmd] }) or {
 				append_swarm_trace(run_dir, 'herdr_agent_failed', first_role + ':' + err.msg())
@@ -1683,7 +1723,8 @@ fn spawn_herdr_workspace(ws string, run_id string, task string, recipe string, r
 			}
 		} else {
 			runner_cmd := herdr_runner_cmd(effective_runner, first_role, task, ws, '')
-			env_prefix := 'export AGENT_TOOLKIT_SWARM_RUN_ID=' + shell_quote(run_id) + ' && export AGENT_TOOLKIT_SWARM_RUN_DIR=' + shell_quote(run_dir) + ' && export AGENT_TOOLKIT_SWARM_REPO=' + shell_quote(ws) + ' && export SWARMFORGE_ROLE=' + shell_quote(first_role) + ' &&'
+			person_env := swarm_person_env(first_role, person_bindings)
+			env_prefix := 'export AGENT_TOOLKIT_SWARM_RUN_ID=' + shell_quote(run_id) + ' && export AGENT_TOOLKIT_SWARM_RUN_DIR=' + shell_quote(run_dir) + ' && export AGENT_TOOLKIT_SWARM_REPO=' + shell_quote(ws) + ' && export SWARMFORGE_ROLE=' + shell_quote(first_role) + person_env + ' &&'
 			full_inner := env_prefix + ' cd ' + shell_quote(ws) + ' && exec ' + runner_cmd
 			full_cmd := shell + ' -lc ' + shell_quote(full_inner)
 			res2 := ps.run(RunOptions{ argv: ['herdr', 'pane', 'run', root_pane, full_cmd] }) or {
@@ -2086,9 +2127,7 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 			'backend':          st.backend
 			'run_state':        st.run_state
 			'gates':            gtxt.join(',')
-			'worktrees':        if wlines_joined.len > 0 {
-				wlines_joined} else {
-				worktrees.join(',')}
+			'worktrees':        if wlines_joined.len > 0 { wlines_joined } else { worktrees.join(',') }
 			'budget':           bj
 			'budget_consumed':  bcj
 			'max_total_tokens': b.max_total_tokens.str()

@@ -25,6 +25,38 @@ fn test_people_crud_and_archive_roundtrip() {
 	assert !save_person(ws, lina_json, false)!.person['archived']!.bool()
 }
 
+fn test_swarm_person_bindings_require_active_people_and_canonical_roles() {
+	ws := os.join_path(os.temp_dir(), 'atk-people-swarm-${os.getpid()}')
+	os.mkdir_all(os.join_path(ws, '.git')) or { panic(err) }
+	defer { os.rmdir_all(ws) or {} }
+	save_person(ws, lina_json, true)!
+	validate_swarm_person_bindings(ws, 'team', {
+		'planner': 'lina'
+	}) or { panic(err) }
+	if _ := validate_swarm_person_bindings(ws, 'team', {
+		'unknown-role': 'lina'
+	}) {
+		assert false, 'unknown recipe role accepted'
+	} else {
+		assert err.msg().contains('not in recipe')
+	}
+	if _ := validate_swarm_person_bindings(ws, 'team', {
+		'planner': 'missing'
+	}) {
+		assert false, 'unknown Person accepted'
+	} else {
+		assert err.msg().contains('not found')
+	}
+	save_person(ws, lina_json.replace('"archived":false', '"archived":true'), false)!
+	if _ := validate_swarm_person_bindings(ws, 'team', {
+		'planner': 'lina'
+	}) {
+		assert false, 'archived Person accepted'
+	} else {
+		assert err.msg().contains('archived')
+	}
+}
+
 fn test_people_reject_invalid_runtime_and_symlink_storage() {
 	for invalid in [
 		lina_json.replace('"id":"lina"', '"id":"../lina"'),

@@ -218,3 +218,33 @@ pub fn save_person(workspace string, raw string, create bool) !PersonResponse {
 	}
 	return PersonResponse{ ok: true, person: person }
 }
+
+// validate_swarm_person_bindings ensures each explicit durable collaborator
+// names one role in this canonical recipe and one active workspace Person.
+// Roles remain ephemeral recipe responsibilities; a Person only supplies
+// durable identity to the runtime process that takes that role.
+pub fn validate_swarm_person_bindings(workspace string, recipe string, bindings map[string]string) ! {
+	if bindings.len == 0 {
+		return
+	}
+	roles := swarm_recipe_roles(recipe)
+	mut seen := []string{}
+	for role, id in bindings {
+		if role !in roles {
+			return error('person binding role ${role} is not in recipe ${recipe}')
+		}
+		if id in seen {
+			return error('person ${id} is bound to more than one role')
+		}
+		person := read_person(workspace, id) or { return error('person binding ${role}: ${err.msg()}') }
+		archived := person.person['archived'] or { return error('person ${id} has no archive state') }
+		if archived is bool {
+			if archived {
+				return error('person ${id} is archived and cannot be assigned')
+			}
+		} else {
+			return error('person ${id} has invalid archive state')
+		}
+		seen << id
+	}
+}
