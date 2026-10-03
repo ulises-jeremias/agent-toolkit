@@ -189,12 +189,12 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // The eastern neighborhood starts one bridge-span beyond the shared
   // services. The original x=36 left a long unclaimed field between town and
   // the first house, especially obvious in a one-project workspace.
-  const projectDistrictX = 32;
-  const emptyMarkerX = projectDistrictX + 4;
-  const mapW = Math.max(38, projectDistrictX + (projects.length ? districtW : 7) + 4);
+  const projectDistrictX = 21;
+  const emptyMarkerX = projectDistrictX;
+  const mapW = Math.max(28, projectDistrictX + (projects.length ? districtW : 3) + 4);
 
   // North core: hall west, memory archive beside it, ledgers on the commons edge.
-  const coreX = 7;
+  const coreX = 1;
   if (grounds) place(grounds, coreX, 1);
   if (memoryPlace) place(memoryPlace, coreX + 6, 1);
   let entryX = coreX + 11;
@@ -205,28 +205,32 @@ export function layoutWorld(model: WorldModel): WorldLayout {
 
   // The Library and Operations face the northern commons. Smaller service
   // buildings face its southern side; the east edge leads to the creek.
-  const civicX = 4;
+  const civicX = 0;
   const civicSlots: Record<string, { x: number; y: number }> = {
     'object:library': { x: civicX + 1, y: 5 },
-    'object:workshop': { x: civicX + 18, y: 5 },
-    'object:operations': { x: civicX + 7, y: 5 },
-    'object:terminal': { x: civicX + 13, y: 5 },
-    'object:attention': { x: civicX + 2, y: 9 },
-    'object:files': { x: civicX + 7, y: 9 },
-    'object:settings': { x: civicX + 12, y: 9 },
+    'object:workshop': { x: civicX + 11, y: 9 },
+    'object:operations': { x: civicX + 6, y: 5 },
+    'object:terminal': { x: civicX + 11, y: 5 },
+    'object:attention': { x: civicX + 1, y: 9 },
+    'object:files': { x: civicX + 5, y: 10 },
+    'object:settings': { x: civicX + 8, y: 9 },
   };
   for (const landmark of sharedObjects) {
     const slot = civicSlots[landmark.id]!;
     place(landmark, slot.x, slot.y);
   }
 
-  // Project houses form a distinct southern neighborhood. Slightly wider,
-  // offset rows give each house a garden edge and break the spreadsheet grid.
+  // Project houses form a distinct neighborhood just beyond the creek. The
+  // compact service quarter leaves room for a clear bank, bridge, and garden
+  // lots without making a one-project workspace span an empty panorama.
   // Keep a short shoulder between the civic street and the project lane. On
   // a single-project valley this caps the map at 17 tiles tall, so a large
   // window can render the entire settlement at crisp 48px scale instead of
   // shrinking every landmark to 32px.
-  const districtY = 12;
+  // Houses begin just beyond the bridge at the same valley level as the
+  // civic commons, so a small workspace stays compact instead of pushing its
+  // only real project to the far southern edge of a meadow.
+  const districtY = 10;
   const districtX = projectDistrictX;
   if (emptyProject) place(emptyProject, emptyMarkerX, districtY);
   const projectSlots = new Map<string, { x: number; y: number }>();
