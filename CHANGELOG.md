@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Library installation reviews can target selected user-level tools, report the exact targets applied, and show persistent evidence from real install receipts. World tool actions open the same target-specific review; repository-scoped Copilot installation remains outside this flow.
 - Library can install the complete catalog Skills tree into detected Claude Code and OpenCode homes through the existing dry-run transaction, and review receipt-based removal while preserving user-edited files.
 - Operations can inspect existing loop schedules, review the exact service/timer
   paths and cadence before installing or disabling one, expand the generated
