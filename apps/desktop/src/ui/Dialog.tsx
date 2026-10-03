@@ -22,6 +22,7 @@ export function Dialog({
   footer,
   size = 'normal',
   initialFocus,
+  closeDisabled = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -32,6 +33,8 @@ export function Dialog({
   size?: 'normal' | 'wide';
   /** Element to focus on open; defaults to the first focusable control. */
   initialFocus?: RefObject<HTMLElement | null>;
+  /** Prevent Escape from dismissing a modal while a destructive action is running. */
+  closeDisabled?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -63,6 +66,16 @@ export function Dialog({
     dialog.addEventListener('close', handleClose);
     return () => dialog.removeEventListener('close', handleClose);
   }, [onClose]);
+
+  useEffect(() => {
+    const dialog = ref.current;
+    if (!dialog) return;
+    const preventCancel = (event: Event) => {
+      if (closeDisabled) event.preventDefault();
+    };
+    dialog.addEventListener('cancel', preventCancel);
+    return () => dialog.removeEventListener('cancel', preventCancel);
+  }, [closeDisabled]);
 
   return (
     <dialog

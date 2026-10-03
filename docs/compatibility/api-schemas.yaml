@@ -31,7 +31,7 @@ schemas:
 
   - name: InstallPreviewResponse
     v_struct: CmdResp
-    description: Read-only preview of profile installation targets and conflicts.
+    description: Read-only preview of installation or removal targets and conflicts.
     fields:
       - ok:boolean
       - message:string
@@ -504,6 +504,20 @@ native:
     op: install_preview
     summary: Preview profile installation targets and conflicts without writing files
     response: '#InstallPreviewResponse'
+  - path: /api/v1/uninstall/preview
+    method: get
+    op: uninstall_preview
+    summary: Preview Toolkit-owned file removal and preserve modified files without writing
+    response: '#InstallPreviewResponse'
+  - path: /api/v1/uninstall/reviewed
+    method: post
+    op: uninstall_reviewed
+    summary: Remove files only if the receipt-backed plan still matches its reviewed token
+    query_params: [review_token]
+    response: '#InstallPreviewResponse'
+    errors:
+      - '400:review_token is required'
+      - '409:removal plan changed since review'
   - path: /api/v1/swarms/recipes
     method: get
     op: list_swarm_recipes
