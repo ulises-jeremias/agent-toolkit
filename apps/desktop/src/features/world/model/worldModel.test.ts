@@ -765,6 +765,18 @@ describe('layoutWorld', () => {
     );
     const trails = new Set(first.cells.filter((cell) => cell.tile.startsWith('trail')).map(({ x, y }) => `${x},${y}`));
     const water = new Set(first.cells.filter(({ tile }) => tile === 'water').map(({ x, y }) => `${x},${y}`));
+    const reached = new Set<string>();
+    const queue = [trails.values().next().value as string];
+    while (queue.length) {
+      const at = queue.shift()!;
+      if (reached.has(at)) continue;
+      reached.add(at);
+      const [x = 0, y = 0] = at.split(',').map(Number);
+      for (const next of [`${x},${y - 1}`, `${x - 1},${y}`, `${x + 1},${y}`, `${x},${y + 1}`]) {
+        if (trails.has(next) && !reached.has(next)) queue.push(next);
+      }
+    }
+    expect(reached).toEqual(trails);
     const bridgeRoadY = bridge!.y + 1;
     for (let dx = 0; dx < 3; dx++) {
       expect(trails.has(`${bridge!.x + dx},${bridgeRoadY}`)).toBe(true);
