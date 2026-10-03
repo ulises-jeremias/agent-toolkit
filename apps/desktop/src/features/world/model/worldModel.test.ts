@@ -686,6 +686,11 @@ describe('layoutWorld', () => {
     expect(bridge).toBeTruthy();
     expect(bridge!.y + 1).toBe(laidMarker.y + laidMarker.h);
     expect(bridge!.y + 1).toBeLessThan(layout.rows);
+    // The crossing must join the civic quarter as well as the empty project
+    // lot; a bridge with only an east-bank road is decorative, not navigation.
+    expect(
+      plan.cells.some(({ x, y, tile }) => x === bridge!.x - 1 && y === bridge!.y + 1 && tile.startsWith('trail')),
+    ).toBe(true);
   });
 
   it('makes shared and project memory archives focus their real world index', () => {

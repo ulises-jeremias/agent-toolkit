@@ -561,14 +561,18 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     ? Math.min(...projects.map((project) => project.x))
     : (marker?.x ?? Math.floor(cols / 2));
   const riverX = riverAnchorX - (projects.length ? 2 : 8);
-  const creekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
+  // Leave a walkable west bank between the civic quarter and the creek. The
+  // bridge should connect the shared places to project homes, not begin at
+  // the creek edge as a detached road segment.
+  const civicEastEdge = Math.max(0, ...commons.map((place) => place.x + place.w));
+  const creekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, (workshop ? workshop.x + workshop.w : 6) + 2);
   (p as unknown as { creekX: number }).creekX = creekX;
   const routeEndX = projects.length
     ? Math.max(...projects.map((project) => project.x + Math.floor(project.w / 2)))
     : marker
       ? marker.x + Math.floor(marker.w / 2)
       : cols - 4;
-  road(p, roadY, creekX, routeEndX, Math.max(0, creekX - 1));
+  road(p, roadY, creekX, routeEndX, Math.min(creekX - 1, civicEastEdge));
   // Join each real front door to the street. A grid search avoids routing
   // through another building when project lanes share a column.
   if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h);
