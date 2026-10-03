@@ -304,9 +304,9 @@ describe('WorldEntityMap activation', () => {
       10,
     );
     expect(zoom).toBeGreaterThan(0);
-    // Current original Workspace Hall art is 54x72 source px.
-    expect(parseInt(sprite!.style.width, 10)).toBe((54 * zoom) / 16);
-    expect(parseInt(sprite!.style.height, 10)).toBe((72 * zoom) / 16);
+    // Current original Workspace Hall art is 48x64 source px.
+    expect(parseInt(sprite!.style.width, 10)).toBe((48 * zoom) / 16);
+    expect(parseInt(sprite!.style.height, 10)).toBe((64 * zoom) / 16);
     // Hit box keeps the footprint size (5x4 tiles), independent of sprite anchoring.
     expect(parseInt(hall.style.width, 10)).toBe(5 * zoom);
     expect(parseInt(hall.style.height, 10)).toBe(4 * zoom);
