@@ -927,6 +927,7 @@ export default function People() {
               </Button>
               <Button
                 onClick={() => {
+                  save.reset();
                   setImportReview(null);
                   setImportDraft(importReview.person);
                 }}
