@@ -17,6 +17,29 @@ The world is the dominant `/world` surface. Projects are actual buildings and sh
 
 ## Latest opened review — 2026-10-03
 
+### Workspace switch and project isolation — 2026-10-03
+
+Source build `8377e06a`, Linux Electron E2E with a temporary HOME. The GUI
+switches from the initialized empty workspace to a second workspace, links a
+real `maple-worker` folder, and shows its project building in the World. It
+then switches back and confirms the original workspace still has no projects.
+The test waits for the supervised backend to return to Live after each
+restart. The transient "Project linked" receipt obscured the map in the first
+capture, so the capture flow now dismisses it before taking the final images.
+
+The state change is clear at both sizes, and the return image shows the real
+empty-workspace state rather than a stale project. The visual review still
+finds the project building small in the compact view and the field too broad
+and regular at large size; this evidence closes the workspace-switch journey,
+not the broader world-art quality gap.
+
+Opened files:
+
+- [Alternate workspace with project, compact](assets/electron/workspace/workspace-project-compact.png)
+  and [large](assets/electron/workspace/workspace-project-large.png).
+- [Returned empty workspace, compact](assets/electron/workspace/workspace-return-compact.png)
+  and [large](assets/electron/workspace/workspace-return-large.png).
+
 Linux Electron capture after terrain-generator and capture-viewport changes.
 The review reopened empty, one-project, and multi-project workspaces at
 1024×640 and 1920×1080. The first high-contrast grass palette produced a
