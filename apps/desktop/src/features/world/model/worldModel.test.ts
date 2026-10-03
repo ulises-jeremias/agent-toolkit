@@ -665,6 +665,10 @@ describe('layoutWorld', () => {
     const pathFront = `${laidMarker.x + Math.floor(laidMarker.w / 2)},${laidMarker.y + laidMarker.h}`;
     expect(plan.cells.some(({ tile }) => tile.startsWith('trail'))).toBe(true);
     expect(plan.cells.some(({ x, y, tile }) => `${x},${y}` === pathFront && tile.startsWith('trail'))).toBe(true);
+    const bridge = plan.decor.find((sprite) => sprite.sprite === 'bridge');
+    expect(bridge).toBeTruthy();
+    expect(bridge!.y + 1).toBe(laidMarker.y - 1);
+    expect(bridge!.y + 1).toBeLessThan(layout.rows);
   });
 
   it('makes shared and project memory archives focus their real world index', () => {
@@ -755,6 +759,25 @@ describe('layoutWorld', () => {
         }
       }
     }
+  });
+
+  it('clusters meadow color patches instead of changing grass palette every tile', () => {
+    const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
+    const cells = paintTerrain(layout.entities, layout.cols, layout.rows).cells;
+    const tiles = new Map(cells.map(({ x, y, tile }) => [`${x},${y}`, tile]));
+    let adjacentPairs = 0;
+    let paletteChanges = 0;
+    for (const { x, y, tile } of cells) {
+      if (!tile.startsWith('grass-')) continue;
+      for (const neighbor of [`${x + 1},${y}`, `${x},${y + 1}`]) {
+        const next = tiles.get(neighbor);
+        if (!next?.startsWith('grass-')) continue;
+        adjacentPairs += 1;
+        if (next !== tile) paletteChanges += 1;
+      }
+    }
+    expect(adjacentPairs).toBeGreaterThan(100);
+    expect(paletteChanges / adjacentPairs).toBeLessThan(0.65);
   });
 
   it('lays out a project interior without shared Library or Workshop fixtures', () => {
