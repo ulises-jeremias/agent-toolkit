@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtures';
 
@@ -39,6 +40,49 @@ function killSupervisedServe(binaryPath: string): void {
   if (killed === 0) {
     throw new Error(`no supervised serve process for ${binaryPath}`);
   }
+}
+
+function runSwarmCli(desktop: Desktop, args: string[]): string {
+  const packagedApp = process.env['ATK_E2E_APP_PATH'];
+  const candidates = [
+    process.env['ATK_E2E_BACKEND_BIN'],
+    packagedApp ? path.join(path.dirname(packagedApp), 'resources', 'bin', 'agent-toolkit') : undefined,
+    path.resolve(__dirname, '../../../../dist/agent-toolkit'),
+    path.resolve(__dirname, '../../../../build/agent-toolkit'),
+  ].filter((candidate): candidate is string => Boolean(candidate));
+  const binary = candidates.find((candidate) => fs.existsSync(candidate));
+  if (!binary) throw new Error('The E2E backend binary is unavailable for external swarm-state changes');
+  return execFileSync(binary, ['swarm', ...args, '--workspace', desktop.workspace], {
+    env: {
+      ...process.env,
+      HOME: desktop.home,
+      XDG_CONFIG_HOME: path.join(desktop.home, '.config'),
+      XDG_DATA_HOME: path.join(desktop.home, '.local', 'share'),
+      AGENT_TOOLKIT_WORKSPACE: desktop.workspace,
+    },
+    encoding: 'utf8',
+    stdio: 'pipe',
+  });
+}
+
+function initializeTestRepository(workspace: string): void {
+  execFileSync('git', ['init', '--quiet', workspace]);
+  execFileSync(
+    'git',
+    [
+      '-C',
+      workspace,
+      '-c',
+      'user.name=Agent Toolkit E2E',
+      '-c',
+      'user.email=e2e@agent-toolkit.invalid',
+      'commit',
+      '--allow-empty',
+      '-m',
+      'Initialize isolated E2E workspace',
+    ],
+    { stdio: 'pipe' },
+  );
 }
 
 const DESTINATIONS: ReadonlyArray<{ link: string; path: string }> = [
@@ -325,6 +369,54 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
   await dialog.getByRole('button', { name: 'Start swarm' }).click();
   await expect(dialog).toBeHidden();
   await expect(page.getByRole('region', { name: 'Receipts' })).toContainText(/Swarm start posted/);
+});
+
+test('Operations refreshes a live swarm when its state changes outside Desktop', async () => {
+  const { page, workspace } = desktop;
+  await waitForBackend(page);
+  initializeTestRepository(workspace);
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
+  await page.getByRole('button', { name: 'Start swarm' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Start a swarm' });
+  await dialog.getByLabel('Task').fill('Observe externally updated run state');
+  await dialog.getByText('Runtime options').click();
+  await dialog.getByLabel('Session adapter').selectOption('headless');
+  await expect(dialog.getByText(/Headless records the run without launching agents/)).toBeVisible();
+  await dialog.getByRole('button', { name: 'Start swarm' }).click();
+  await expect(dialog).toBeHidden();
+
+  const runRow = page.getByRole('button', { name: /Observe externally updated run state/ });
+  await expect(runRow).toBeVisible();
+  const dismissReceipt = page.getByRole('button', { name: 'Dismiss: Swarm start posted' });
+  if (await dismissReceipt.isVisible()) await dismissReceipt.click();
+  const runId = (await runRow.innerText()).trim().split(/\s+/)[0];
+  if (!runId) throw new Error('The new swarm run did not expose an ID');
+  await runRow.click();
+  const inspector = page.getByRole('region', { name: 'pair' });
+  await expect(inspector.getByText('running', { exact: true })).toBeVisible();
+  await expect(inspector).toContainText('headless');
+  await expect(inspector.getByRole('region', { name: 'Artifacts' })).toContainText('task-contract.md');
+  await setViewport(desktop.app, 1024, 768);
+  await inspector.evaluate((element) => element.scrollIntoView({ block: 'start' }));
+  await page.screenshot({ path: 'test-results/review/swarm-run-watch-compact.png', fullPage: true });
+  if (CAPTURE) {
+    fs.mkdirSync(CAPTURE_DIR, { recursive: true });
+    await page.screenshot({ path: path.join(CAPTURE_DIR, 'swarm-run-watch-compact.png'), fullPage: true });
+  }
+  await setViewport(desktop.app, 1600, 1000);
+  await inspector.evaluate((element) => element.scrollIntoView({ block: 'start' }));
+  await page.screenshot({ path: 'test-results/review/swarm-run-watch-large.png', fullPage: true });
+  if (CAPTURE) await page.screenshot({ path: path.join(CAPTURE_DIR, 'swarm-run-watch-large.png'), fullPage: true });
+
+  runSwarmCli(desktop, ['pause', runId]);
+  await expect(inspector.getByText('paused', { exact: true })).toBeVisible({ timeout: 14_000 });
+  await inspector.getByRole('button', { name: 'Resume run' }).click();
+  await expect(inspector.getByText('running', { exact: true })).toBeVisible();
+
+  await inspector.getByRole('button', { name: 'Stop' }).click();
+  const stopDialog = page.getByRole('dialog', { name: 'Stop this swarm run?' });
+  await stopDialog.getByRole('button', { name: 'Stop run' }).click();
+  await expect(inspector.getByText('cancelled', { exact: true })).toBeVisible({ timeout: 8_000 });
 });
 
 test('a failed job can be retried as a new job', async () => {
