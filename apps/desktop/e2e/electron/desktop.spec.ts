@@ -351,6 +351,18 @@ test('library shows catalog vs detected vs configured vs verified without dumpin
   await page.screenshot({ path: 'test-results/review/library.png', fullPage: true });
 });
 
+test('a contextual tool destination opens the same target-specific Library review', async () => {
+  const { page } = desktop;
+  const appUrl = page.url().split('#')[0];
+  await page.goto(`${appUrl}#/library?install_target=claude-code`);
+  await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+  const review = page.getByRole('dialog', { name: 'Review capability installation' });
+  await expect(review).toBeVisible();
+  await expect(review.getByRole('checkbox', { name: 'Claude Code' })).toBeChecked();
+  await expect(review.getByLabel('Installation preview')).toContainText('Tools to install: claude-code');
+  await review.getByRole('button', { name: 'Cancel' }).click();
+});
+
 test('insights shows doctor checks and usage without invented cost', async () => {
   const { page } = desktop;
   await waitForBackend(page);
@@ -411,12 +423,14 @@ test('Operations shows doctor, loops and swarms from live endpoints', async () =
 test('Library installs Skills and preserves user changes during reviewed removal', async () => {
   const { page } = desktop;
   let applyRequests = 0;
+  let appliedTargets: string[] = [];
   let uninstallRequests = 0;
   const preservedSkill = path.join(desktop.home, '.claude', 'skills', 'review', 'SKILL.md');
   fs.mkdirSync(path.dirname(preservedSkill), { recursive: true });
   fs.writeFileSync(preservedSkill, 'User-owned skill, keep this file.\n');
-  await page.route('**/api/v1/install', async (route) => {
+  await page.route('**/api/v1/install/reviewed', async (route) => {
     applyRequests += 1;
+    appliedTargets = (route.request().postDataJSON() as { tools: string[] }).tools;
     await route.continue();
   });
   await page.route('**/api/v1/uninstall/reviewed**', async (route) => {
@@ -439,6 +453,11 @@ test('Library installs Skills and preserves user changes during reviewed removal
     path.join(desktop.home, '.claude', 'skills', 'pr-fallback', 'references', 'pr-body-default.md'),
   );
   await expect(preview.getByLabel('Installation preview')).toContainText(preservedSkill);
+  for (const target of ['Claude Code', 'Cursor', 'OpenCode', 'Windsurf', 'Pi', 'Muse Code']) {
+    await preview.getByRole('checkbox', { name: target }).setChecked(target === 'Claude Code' || target === 'Cursor');
+  }
+  await preview.getByRole('button', { name: 'Preview selected targets' }).click();
+  await expect(preview.getByLabel('Installation preview')).toContainText('Tools to install: claude-code, cursor');
   if (CAPTURE) {
     fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
     for (const size of [
@@ -459,13 +478,44 @@ test('Library installs Skills and preserves user changes during reviewed removal
   await expect(page.getByRole('region', { name: 'Receipts' })).not.toContainText('Toolkit capabilities installed');
 
   await page.getByRole('button', { name: 'Review installation' }).click();
-  await page
-    .getByRole('dialog', { name: 'Review capability installation' })
-    .getByRole('button', { name: 'Install reviewed files' })
-    .click();
+  const reviewedInstall = page.getByRole('dialog', { name: 'Review capability installation' });
+  for (const target of ['Claude Code', 'Cursor', 'OpenCode', 'Windsurf', 'Pi', 'Muse Code']) {
+    await reviewedInstall
+      .getByRole('checkbox', { name: target })
+      .setChecked(target === 'Claude Code' || target === 'Cursor');
+  }
+  await reviewedInstall.getByRole('button', { name: 'Preview selected targets' }).click();
+  await expect(reviewedInstall.getByLabel('Installation preview')).toContainText(
+    'Tools to install: claude-code, cursor',
+  );
+  await reviewedInstall.getByRole('button', { name: 'Install reviewed targets' }).click();
   await expect(page.getByRole('region', { name: 'Receipts' })).toContainText('Toolkit capabilities installed');
   expect(applyRequests).toBe(1);
-  await page.getByRole('button', { name: 'Dismiss: Toolkit capabilities installed' }).click();
+  expect(appliedTargets).toEqual(['claude-code', 'cursor']);
+  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('receipts');
+  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('Claude Code');
+  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('Cursor');
+  await page.reload();
+  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('Claude Code');
+  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('Cursor');
+  await expect(page.getByText('Discovering coding tools')).toBeHidden();
+  await expect(page.getByText('Loading agent definitions')).toBeHidden();
+  await expect(page.getByText('Listing swarm runners')).toBeHidden();
+  await expect(page.getByText('Loading the skills catalog')).toBeHidden();
+  if (CAPTURE) {
+    fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
+    for (const size of [
+      { width: 1024, height: 768, key: 'compact' },
+      { width: 1440, height: 900, key: 'large' },
+    ]) {
+      await page.setViewportSize({ width: size.width, height: size.height });
+      await page.screenshot({
+        path: path.join(LIBRARY_CAPTURE_DIR, `installation-receipts-${size.key}.png`),
+        fullPage: true,
+      });
+    }
+    await page.setViewportSize({ width: 1280, height: 800 });
+  }
   expect(fs.readFileSync(preservedSkill, 'utf8')).toBe('User-owned skill, keep this file.\n');
   const toolkitSkill = path.join(desktop.home, '.claude', 'skills', 'pr-fallback', 'references', 'pr-body-default.md');
   expect(fs.existsSync(toolkitSkill)).toBe(true);
@@ -529,6 +579,9 @@ test('Library installs Skills and preserves user changes during reviewed removal
       path.join(desktop.home, '.config', 'agent-toolkit', 'receipts', 'claude-code-agent-toolkit-profiles.json'),
     ),
   ).toBe(false);
+  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText(
+    'No Toolkit capability installations recorded on this machine.',
+  );
 });
 
 test('Library configures MCP providers with secret-free previews and explicit checks', async () => {

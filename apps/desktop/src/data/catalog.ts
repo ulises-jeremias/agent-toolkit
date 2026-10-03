@@ -51,3 +51,12 @@ export function useMcpProviders() {
     enabled: client !== null,
   });
 }
+
+export function useInstallReceipts() {
+  const { client } = useBackend();
+  return useQuery({
+    queryKey: qk.catalog.installReceipts(),
+    queryFn: () => requireClient(client).installReceipts(),
+    enabled: client !== null,
+  });
+}

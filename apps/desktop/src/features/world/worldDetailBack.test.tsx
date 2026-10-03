@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { withContext } from '../../shell/sessionContext';
-import { worldDetailBackExtra, worldDetailBackLabel } from './inspectors';
+import { installTargetForTool, worldDetailBackExtra, worldDetailBackLabel } from './inspectors';
 import { MemoryRecordInspector } from './MemoryRecordInspector';
 import { ToolRecordInspector } from './ToolRecordInspector';
 import { useWorldDetailEscape } from './useWorldDetailEscape';
@@ -43,6 +43,13 @@ const toolFixture: ToolInfo = {
 };
 
 describe('worldDetailBackExtra', () => {
+  it('maps tool catalog ids to canonical Library installation targets', () => {
+    expect(installTargetForTool('claude')).toBe('claude-code');
+    expect(installTargetForTool('cursor')).toBe('cursor');
+    expect(installTargetForTool('muse')).toBe('muse-code');
+    expect(installTargetForTool('unknown')).toBeNull();
+  });
+
   it('keeps project when leaving memory or tool detail', () => {
     const session = { workspace: '/ws', agent: '', run: '' };
     const withProject = withContext('/world', session, {

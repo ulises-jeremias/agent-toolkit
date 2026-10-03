@@ -180,12 +180,21 @@ Opened files:
 ## Library installation and removal — 2026-10-03
 
 Captured from the built Electron app against the real V backend with a disposable
-HOME. The install preview covers five detected local tool targets and 1,293
-planned files; it includes profiles, Agent Definitions, complete Skills and
-references. The removal preview reads five real receipts and scrolls the paths
-inside the framed game-menu dialog while keeping the confirm action fixed.
-Pre-existing user content and a Toolkit file edited after installation were
-verified to survive the real removal operation.
+HOME. The install dialog shows detected targets as selectable choices, makes the
+user refresh the dry-run after changing destinations, and enables apply only when
+the selected set still matches the preview. The captured review explicitly targets
+Claude Code and Cursor and reports 453 planned files, including profiles, Agent
+Definitions, complete Skills and references. After installation the Library shows
+real receipt rows with product, target, ownership counts, and a disclosure for the
+local receipt path. The removal preview reads those receipts and scrolls paths in
+the framed game-menu dialog while keeping confirmation fixed. Pre-existing user
+content and a Toolkit file edited after installation survived the real removal.
+The World tool inspector routes into this same Library review with the relevant
+destination preselected; it no longer exposes a global install action or asks users
+to run the CLI hint shown by the backend catalog.
+GitHub Copilot remains explicitly outside this user-level installer because its
+capabilities belong in a project repository; the dialog calls out that scope and
+the workflow ledger keeps this journey partial until that project-scoped flow exists.
 
 Reviewing the first captures caught two product issues: the install dialog still
 said “profiles” after the operation expanded to catalog Skills, and the removal
@@ -203,13 +212,20 @@ keeps the dialog open, disables dismissal while removal is active, and offers a
 fresh preview after a conflict. A real Electron run changed a file between review
 and confirmation, verified the conflict preserved it, then refreshed and removed
 only unchanged Toolkit files. The opened captures confirm that this guard does not
-crowd the compact or large preview. The flow is still text-heavy and does not yet
-let users choose install targets or inspect receipts in a persistent Library view;
-those workflow gaps remain explicitly partial.
+crowd the compact or large preview. The latest screenshots now include the target
+picker and the receipt-backed evidence section behind the removal dialog. On compact
+screens, target names wrap inside generous hit areas and both review controls remain
+visible; the detailed filesystem plan stays scrollable and readable. The receipt rows
+make installation state visible without claiming that mere catalog presence means
+installed. The remaining visual limitation is the intentionally dense path-by-path
+audit preview, which is useful for review but reads more like a technical report than
+the rest of the game-menu surface.
 
 Opened files:
 
 - [Install preview, compact](assets/electron/library/install-preview-compact.png)
   and [large](assets/electron/library/install-preview-large.png).
+- [Persistent installation receipts, compact](assets/electron/library/installation-receipts-compact.png)
+  and [large](assets/electron/library/installation-receipts-large.png).
 - [Removal preview, compact](assets/electron/library/removal-preview-compact.png)
   and [large](assets/electron/library/removal-preview-large.png).

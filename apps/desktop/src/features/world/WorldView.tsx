@@ -3,15 +3,15 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { requireClient, useBackend } from '../../data/backend';
 import { useTools } from '../../data/catalog';
-import { useOperation, useSubQuery } from '../../data/commands';
+import { useSubQuery } from '../../data/commands';
 import { sortJobs, useJobs } from '../../data/jobs';
 import { useMemoryFile, useMemoryList } from '../../data/memory';
 import { envelopeText } from '../../lib/api';
 import { useTerminalSessions } from '../../data/terminal';
 import { personCharacterSprite } from '../people/avatar';
 import { useSessionContext } from '../../shell/useSessionContext';
-import { EmptyState, ErrorState, LoadingState, useActionReceipt } from '../../ui';
-import { entityAccessibleName, worldDetailBackExtra, worldDetailBackLabel } from './inspectors';
+import { EmptyState, ErrorState, LoadingState } from '../../ui';
+import { entityAccessibleName, installTargetForTool, worldDetailBackExtra, worldDetailBackLabel } from './inspectors';
 import { MemoryRecordInspector } from './MemoryRecordInspector';
 import {
   buildWorldModel,
@@ -59,8 +59,6 @@ export default function WorldView() {
     enabled: Boolean(client && context.workspace && livePersonPtys.length > 0),
     staleTime: 15_000,
   });
-  const install = useOperation('install');
-  const installReceipt = useActionReceipt('Profiles installed');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const workspacePath =
@@ -295,8 +293,10 @@ export default function WorldView() {
           tool={inspectedTool}
           isPending={toolsQuery.isPending}
           error={toolsQuery.error}
-          onInstall={() => install.mutate(undefined, installReceipt)}
-          installBusy={install.isPending}
+          onReviewInstall={() => {
+            const target = installTargetForTool(toolId);
+            navigate(href('/library', { install_target: target ?? undefined }));
+          }}
           onBack={goBackFromDetail}
           backLabel={backLabel}
           onRetry={() => void toolsQuery.refetch()}

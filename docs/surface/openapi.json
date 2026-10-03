@@ -1065,6 +1065,16 @@
         "summary": "Preview profile installation targets and conflicts without writing files",
         "x-scope": "read:*",
         "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "tools",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -1072,6 +1082,66 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/InstallPreviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/install/reviewed": {
+      "post": {
+        "operationId": "install_reviewed",
+        "summary": "Install Toolkit capabilities only for explicitly reviewed targets",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstallReviewedRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallPreviewResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "target selection is empty or unsupported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/install/receipts": {
+      "get": {
+        "operationId": "install_receipts",
+        "summary": "List secret-free receipts proving Toolkit capability installations",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallReceiptsResponse"
                 }
               }
             }
@@ -3209,6 +3279,81 @@
           "ok",
           "message",
           "data"
+        ]
+      },
+      "InstallReviewedRequest": {
+        "type": "object",
+        "properties": {
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "tools"
+        ]
+      },
+      "InstallReceiptSummary": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "installed_at": {
+            "type": "string"
+          },
+          "artifact_count": {
+            "type": "integer"
+          },
+          "created_count": {
+            "type": "integer"
+          },
+          "merged_count": {
+            "type": "integer"
+          },
+          "receipt_path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "product",
+          "target",
+          "scope",
+          "version",
+          "installed_at",
+          "artifact_count",
+          "created_count",
+          "merged_count",
+          "receipt_path"
+        ]
+      },
+      "InstallReceiptsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "receipts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstallReceiptSummary"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "receipts"
         ]
       },
       "McpProviderInfo": {

@@ -343,6 +343,29 @@ pub mut:
 	data    map[string]string
 }
 
+pub struct InstallReceiptsResp {
+pub mut:
+	ok       bool
+	receipts []InstallReceiptSummary
+}
+
+pub struct InstallReceiptSummary {
+pub:
+	product        string
+	target         string
+	scope          string
+	version        string
+	installed_at   string
+	artifact_count int
+	created_count  int
+	merged_count   int
+	receipt_path   string
+}
+
+struct InstallReviewedReq {
+	tools []string
+}
+
 fn deny_if_remote(app &App, ctx Ctx) ?DenyErr {
 	// Host header validation — when bound to loopback, Host must be loopback.
 	// Missing/invalid Host is 400-like; we return ok:false for now (status normalized in #962).
@@ -476,6 +499,8 @@ const registered_api_routes = [
 	'/api/v1/help',
 	'/api/v1/install',
 	'/api/v1/install/preview',
+	'/api/v1/install/reviewed',
+	'/api/v1/install/receipts',
 	'/api/v1/update',
 	'/api/v1/uninstall',
 	'/api/v1/uninstall/preview',
@@ -814,9 +839,89 @@ pub fn (app &App) install_preview(mut ctx Ctx) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
+	tools_raw := ctx.query['tools'] or { '' }
+	tools := if tools_raw.len > 0 { tools_raw.split(',') } else { []string{} }
 	return ctx.json(cmd_resp(agent_toolkit_core.install_result(agent_toolkit_core.run_install(agent_toolkit_core.InstallOptions{
 		dry_run: true
+		tools: tools
 	}))))
+}
+
+@['/api/v1/install/reviewed'; post]
+pub fn (app &App) install_reviewed(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	req := json2.decode[InstallReviewedReq](ctx.req.data) or {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'tools array is required' })
+	}
+	if req.tools.len == 0 {
+		ctx.res.set_status(.unprocessable_entity)
+		return ctx.json(DenyErr{ ok: false, error: 'select at least one installation target' })
+	}
+	if req.tools.len > 6 {
+		ctx.res.set_status(.unprocessable_entity)
+		return ctx.json(DenyErr{ ok: false, error: 'too many installation targets' })
+	}
+	mut seen := []string{}
+	for tool in req.tools {
+		if tool !in agent_toolkit_core.install_valid_tools || tool in ['copilot', 'muse'] {
+			ctx.res.set_status(.unprocessable_entity)
+			return ctx.json(DenyErr{ ok: false, error: 'unsupported installation target: ${tool}' })
+		}
+		if tool in seen {
+			ctx.res.set_status(.unprocessable_entity)
+			return ctx.json(DenyErr{ ok: false, error: 'duplicate installation target: ${tool}' })
+		}
+		seen << tool
+	}
+	return ctx.json(app.run_install_action('install', fn [req] () agent_toolkit_core.CommandResult {
+		return agent_toolkit_core.install_result(agent_toolkit_core.run_install(agent_toolkit_core.InstallOptions{
+			tools: req.tools
+		}))
+	}))
+}
+
+@['/api/v1/install/receipts'; get]
+pub fn (app &App) install_receipts(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	mut receipts := []InstallReceiptSummary{}
+	receipt_dir := agent_toolkit_core.default_receipt_dir()
+	for filename in os.ls(receipt_dir) or { []string{} } {
+		if !filename.ends_with('.json') {
+			continue
+		}
+		receipt_path := os.join_path(receipt_dir, filename)
+		if !os.is_file(receipt_path) {
+			continue
+		}
+		contents := os.read_file(receipt_path) or { continue }
+		receipt := agent_toolkit_core.parse_install_receipt(contents) or { continue }
+		mut created := 0
+		mut merged := 0
+		for artifact in receipt.artifacts {
+			if artifact.ownership == 'created' {
+				created++
+			} else if artifact.ownership == 'merged' { merged++ }
+		}
+		receipts << InstallReceiptSummary{
+			product: receipt.product
+			target: receipt.target
+			scope: receipt.scope
+			version: receipt.version
+			installed_at: receipt.installed_at
+			artifact_count: receipt.artifacts.len
+			created_count: created
+			merged_count: merged
+			receipt_path: os.real_path(receipt_path)
+		}
+	}
+	return ctx.json(InstallReceiptsResp{ ok: true, receipts: receipts })
 }
 
 @['/api/v1/update'; post]

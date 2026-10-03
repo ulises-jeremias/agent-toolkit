@@ -14,7 +14,7 @@ journeys:
   - id: first-run-onboarding
     title: First run to a created or reused workspace
     destinations: [onboarding]
-    status: ok
+    status: partial
     evidence:
       - note: copied Linux package launched outside the checkout with fresh
           HOME/XDG and minimal PATH, workspace created entirely through the GUI
@@ -70,27 +70,32 @@ journeys:
   - id: install-capabilities
     title: Install skills/agents from the Library
     destinations: [library]
-    status: partial
+    status: ok
     evidence:
       - note: >-
           Library previews the actual profile, Agent Definition, and complete Skill file
           transaction for detected tools, including references, user conflicts, and target
-          paths. The GUI applies the same canonical backend installer and receipt-backed
-          removal preview; removal confirmation is bound to a backend snapshot and uses
-          atomic quarantine before deletion. Target selection and a persistent receipt
-          inspector are still missing, so this journey remains partial.
+          paths for explicitly selected tools. The GUI applies only the reviewed targets,
+          then lists secret-free receipt evidence with target, product, version, artifact
+          counts, and local receipt path. Removal preview is receipt-backed; confirmation
+          is bound to a backend snapshot and uses atomic quarantine before deletion.
+          GitHub Copilot remains a separate repository-scoped capability and is not
+          installed by this user-level flow.
         tests:
           - apps/desktop/e2e/electron/desktop.spec.ts
+          - apps/desktop/src/lib/api/api.test.ts
           - modules/agent_toolkit_core/install_test.v
           - modules/agent_toolkit_core/uninstall_test.v
-          - modules/agent_toolkit_server/server_test.v
+          - modules/agent_toolkit_server/server_integration_test.v
         screenshots:
           - assets/electron/library/install-preview-compact.png
           - assets/electron/library/install-preview-large.png
+          - assets/electron/library/installation-receipts-compact.png
+          - assets/electron/library/installation-receipts-large.png
           - assets/electron/library/removal-preview-compact.png
           - assets/electron/library/removal-preview-large.png
     blockers:
-      - target tool selection and installed-receipt inspection are not yet exposed in Library
+      - Repository-scoped GitHub Copilot capability installation is not yet exposed in Desktop
   - id: mcp-configure-probe
     title: Configure an MCP provider and probe it
     destinations: [library]

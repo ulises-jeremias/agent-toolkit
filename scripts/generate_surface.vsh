@@ -1,4 +1,5 @@
 #!/usr/bin/env -S v run
+
 // generate_surface.vsh — emit OpenAPI + CLI help from cli-contract.yaml SSOT.
 //
 // Part of feature-complete serve epic (#831, Phase 0), ADR-030 canonical.
@@ -55,6 +56,7 @@ struct NativeDef {
 	op           string
 	summary      string
 	query_params []string
+	request_body string
 	response     string
 	event_schema string
 	errors       []string
@@ -253,7 +255,9 @@ fn scope_for(cmd Cmd) string {
 		return 'read:*'
 	}
 	fs := cmd.effects.filesystem
-	for key in ['write-profiles-receipts', 'update-profiles-cache', 'delete-owned-files', 'optional-fix-writes', 'write-catalog', 'write-plugins', 'write-loops', 'write-swarm', 'write-memory', 'write-projects', 'write-dc', 'write-mcp', 'write-workspace'] {
+	for key in ['write-profiles-receipts', 'update-profiles-cache', 'delete-owned-files',
+		'optional-fix-writes', 'write-catalog', 'write-plugins', 'write-loops', 'write-swarm',
+		'write-memory', 'write-projects', 'write-dc', 'write-mcp', 'write-workspace'] {
 		if fs.contains(key) {
 			return scope_by_effect(key)
 		}
@@ -451,8 +455,7 @@ fn gen_openapi(contract Contract, api ApiSchemas, version string) JObj {
 		tag := if cmd.surface.len > 0 { cmd.surface } else { 'misc' }
 		extra := sub_route_extras(cmd)
 		responses := if cmd.api_subcommands.len > 0 { sub_responses() } else { std_responses() }
-		op := op_object(cmd.name, summary, tag, scope_for(cmd), needs_confirm(cmd), extra,
-			responses)
+		op := op_object(cmd.name, summary, tag, scope_for(cmd), needs_confirm(cmd), extra, responses)
 		if paths.has(route.path) {
 			mut existing := paths.get(route.path) or { jobj() }
 			if mut existing is JObj {
@@ -622,6 +625,16 @@ fn native_op(entry NativeDef) JObj {
 	if params.len > 0 {
 		op.put('parameters', JArr{params})
 	}
+	if entry.request_body.len > 0 {
+		mut media := jobj()
+		media.put('schema', type_schema('#${entry.request_body}'))
+		mut content := jobj()
+		content.put('application/json', media)
+		mut body := jobj()
+		body.put('required', JBool{true})
+		body.put('content', content)
+		op.put('requestBody', body)
+	}
 	op.put('responses', r)
 	return op
 }
@@ -642,6 +655,9 @@ fn check_schema_refs(api ApiSchemas) []string {
 	for entry in api.native {
 		if entry.response !in ['', 'text', 'sse'] {
 			types << entry.response
+		}
+		if entry.request_body.len > 0 {
+			types << '#${entry.request_body}'
 		}
 		if entry.event_schema.len > 0 {
 			types << '#${entry.event_schema}'
