@@ -22,7 +22,9 @@ const provider: ProviderInfo = {
 describe('personSessionOptions', () => {
   it('builds a real runner PTY with argv and project identity metadata', () => {
     const model: ModelInfo = { profile: 'balanced', runner: 'opencode', model: 'model-x' };
-    expect(personSessionOptions(person, provider, model, '/work/project', 'project')).toEqual({
+    expect(
+      personSessionOptions({ ...person, budget: { max_seconds: 90 } }, provider, model, '/work/project', 'project'),
+    ).toEqual({
       agent: 'Lina',
       personId: 'lina',
       projectId: 'project',
@@ -31,6 +33,7 @@ describe('personSessionOptions', () => {
       cmd: '/usr/bin/opencode',
       args: ['--model', 'model-x'],
       cwd: '/work/project',
+      maxSeconds: 90,
     });
   });
 

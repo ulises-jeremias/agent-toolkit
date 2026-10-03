@@ -90,24 +90,41 @@ export function registerIpc(deps: IpcDeps): void {
         cmd: string;
         args?: string[];
         cwd?: string;
+        maxSeconds?: number;
         cols?: number;
         rows?: number;
       },
     ) => {
       if (!isRecord(options)) return null;
-      const { agent, personId, projectId, provider, model, cmd, args, cwd, cols, rows } = options;
+      const { agent, personId, projectId, provider, model, cmd, args, cwd, maxSeconds, cols, rows } = options;
       if (typeof agent !== 'string' || !agent.trim()) return null;
       if (typeof cmd !== 'string' || !cmd.trim()) return null;
       if (args !== undefined && (!Array.isArray(args) || args.some((a) => typeof a !== 'string'))) return null;
       if (cwd !== undefined && typeof cwd !== 'string') return null;
-      if (personId !== undefined && (typeof personId !== 'string' || !/^[a-z0-9][a-z0-9_-]{0,63}$/.test(personId))) return null;
+      if (maxSeconds !== undefined && (!isPositiveInt(maxSeconds) || maxSeconds > 31_536_000)) return null;
+      if (personId !== undefined && (typeof personId !== 'string' || !/^[a-z0-9][a-z0-9_-]{0,63}$/.test(personId)))
+        return null;
       if (projectId !== undefined && (typeof projectId !== 'string' || projectId.length > 256)) return null;
       if (provider !== undefined && (typeof provider !== 'string' || provider.length > 64)) return null;
       if (model !== undefined && (typeof model !== 'string' || model.length > 256)) return null;
       if (cols !== undefined && !isPositiveInt(cols)) return null;
       if (rows !== undefined && !isPositiveInt(rows)) return null;
       try {
-        return deps.getTerminals()?.create({ agent, personId, projectId, provider, model, cmd, args: args ?? [], cwd, cols, rows }) ?? null;
+        return (
+          deps.getTerminals()?.create({
+            agent,
+            personId,
+            projectId,
+            provider,
+            model,
+            cmd,
+            args: args ?? [],
+            cwd,
+            maxSeconds,
+            cols,
+            rows,
+          }) ?? null
+        );
       } catch (error) {
         if (error instanceof TerminalCwdError) return null;
         throw error;
@@ -115,9 +132,7 @@ export function registerIpc(deps: IpcDeps): void {
     },
   );
   ipcMain.handle('atk:pty-write', (_event, id: unknown, data: unknown) =>
-    typeof id === 'string' && typeof data === 'string'
-      ? (deps.getTerminals()?.write(id, data) ?? false)
-      : false,
+    typeof id === 'string' && typeof data === 'string' ? (deps.getTerminals()?.write(id, data) ?? false) : false,
   );
   ipcMain.handle('atk:pty-resize', (_event, id: unknown, cols: unknown, rows: unknown) =>
     typeof id === 'string' && isPositiveInt(cols) && isPositiveInt(rows)

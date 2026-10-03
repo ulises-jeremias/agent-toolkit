@@ -158,6 +158,9 @@ test('palette actions open the same reviewed terminal, job, loop, and swarm work
     await page.keyboard.press('Control+k');
     const palette = page.getByRole('dialog', { name: 'Commands' });
     await palette.getByLabel('Filter commands').fill(search);
+    const option = palette.getByRole('option').first();
+    await expect(option).toHaveAttribute('aria-selected', 'true');
+    await expect(option).toContainText(search);
     await page.keyboard.press('Enter');
     await expect(page.getByRole('dialog', { name: pattern })).toBeVisible();
   };

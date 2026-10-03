@@ -2,9 +2,10 @@
 
 Status: **PARTIAL PRODUCT DELIVERY** — Desktop supports roster CRUD, reviewed
 one-way Munder import, and starting a discovered runner as a real local PTY
-bound to a Person and project. That PTY is not yet a durable server-side
-`AgentSession`, and Person budgets/isolation are not enforced by this path; see
-[Gaps](#gaps).
+bound to a Person and project. The local PTY enforces `max_seconds`; token and
+cost limits and non-inherited isolation are disclosed as unsupported and need
+explicit acknowledgement. This is not yet a durable server-side
+`AgentSession`; see [Gaps](#gaps).
 
 The screenshots below were captured from the live Electron app and backend at
 both compact and large sizes. A configured Person is offline until a real PTY
@@ -149,8 +150,9 @@ file authoring as the user interface:
 
 - Durable backend `AgentSession` records, session history across Desktop
   restarts, and runner-specific injection of the saved Person goal/definition.
-- Runtime enforcement of Person budget and isolation preferences for the local
-  PTY Start flow.
+- Runtime enforcement of token/cost limits and non-inherited isolation for the
+  local PTY Start flow. `max_seconds` is enforced by Desktop and stops the PTY
+  when its time budget expires.
 - Preferred-Person resolution from `people/bindings.yaml`, per-role runner/model
   preference enforcement, an Agent Toolkit consumer for the swarm Person
   environment hint, swarm-process terminal reopen/stop from Desktop, and

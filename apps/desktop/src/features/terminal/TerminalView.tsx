@@ -57,7 +57,7 @@ export default function TerminalView() {
             </thead>
             <tbody>
               {sessions.map((session) => {
-                const state = sessionState(session.exitCode);
+                const state = sessionState(session.exitCode, session.exitReason);
                 const run = extras[session.id]?.run;
                 return (
                   <tr

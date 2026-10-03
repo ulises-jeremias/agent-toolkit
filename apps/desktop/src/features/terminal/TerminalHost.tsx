@@ -38,7 +38,7 @@ export function TerminalTabs() {
   return (
     <div className={styles.tabs} role="tablist" aria-label="Sessions">
       {sessions.map((session) => {
-        const state = sessionState(session.exitCode);
+        const state = sessionState(session.exitCode, session.exitReason);
         const run = extras[session.id]?.run;
         return (
           <button

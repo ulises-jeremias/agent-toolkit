@@ -13,4 +13,8 @@ describe('sessionState', () => {
   it('surfaces a non-zero exit as an error', () => {
     expect(sessionState(3)).toEqual({ tone: 'err', label: 'exited 3' });
   });
+
+  it('reports a configured time limit separately from a process error', () => {
+    expect(sessionState(143, 'time-budget')).toEqual({ tone: 'warn', label: 'time limit reached' });
+  });
 });

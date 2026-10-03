@@ -333,6 +333,7 @@ export default function People() {
   const [startProject, setStartProject] = useState('');
   const [startProvider, setStartProvider] = useState('');
   const [startModel, setStartModel] = useState('');
+  const [acknowledgeUnenforcedPolicy, setAcknowledgeUnenforcedPolicy] = useState(false);
   const [stoppingSessionId, setStoppingSessionId] = useState<string | null>(null);
   const [sessionActionError, setSessionActionError] = useState<string | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
@@ -413,6 +414,13 @@ export default function People() {
   const chosenProvider = providers.find((provider) => provider.id === startProvider);
   const chosenModel = matchingModels.find((model) => model.model === startModel);
   const chosenProject = projects.find((project) => project.name === startProject);
+  const unenforcedPersonPolicy = starting
+    ? [
+        starting.isolation && starting.isolation !== 'inherited' ? `Isolation: ${starting.isolation}` : null,
+        starting.budget?.max_tokens ? `Token limit: ${starting.budget.max_tokens.toLocaleString()}` : null,
+        starting.budget?.max_cost_usd ? `Cost limit: $${starting.budget.max_cost_usd.toFixed(2)}` : null,
+      ].filter((item): item is string => item !== null)
+    : [];
   const formOpen = creating || editing !== null || importDraft !== null;
 
   useEffect(() => {
@@ -455,6 +463,7 @@ export default function People() {
     setStartProject('');
     setStartProvider(starting.preferred_provider || '');
     setStartModel(starting.preferred_model || '');
+    setAcknowledgeUnenforcedPolicy(false);
     setStartError(null);
   }, [starting]);
 
@@ -468,6 +477,7 @@ export default function People() {
 
   const beginPerson = async () => {
     if (!starting || !chosenProvider || !chosenProject || startBusy) return;
+    if (unenforcedPersonPolicy.length > 0 && !acknowledgeUnenforcedPolicy) return;
     setStartError(null);
     const options = personSessionOptions(
       starting,
@@ -642,7 +652,11 @@ export default function People() {
                       after its process exits.
                     </p>
                   ) : selectedRecentSession ? (
-                    <p role="status">Last local PTY exited with code {selectedRecentSession.exitCode ?? 'unknown'}.</p>
+                    <p role="status">
+                      {selectedRecentSession.exitReason === 'time-budget'
+                        ? `Last local PTY stopped at its ${selectedRecentSession.maxSeconds}s runtime limit.`
+                        : `Last local PTY exited with code ${selectedRecentSession.exitCode ?? 'unknown'}.`}
+                    </p>
                   ) : null}
                   <dl>
                     <dt>Definition</dt>
@@ -659,6 +673,20 @@ export default function People() {
                     <dd>{selected.skills?.join(', ') || 'None configured'}</dd>
                     <dt>MCP</dt>
                     <dd>{selected.mcp_servers?.join(', ') || 'None configured'}</dd>
+                    <dt>Budget</dt>
+                    <dd>
+                      {selected.budget
+                        ? [
+                            selected.budget.max_seconds ? `max ${selected.budget.max_seconds}s runtime` : null,
+                            selected.budget.max_tokens
+                              ? `max ${selected.budget.max_tokens.toLocaleString()} tokens`
+                              : null,
+                            selected.budget.max_cost_usd ? `max $${selected.budget.max_cost_usd.toFixed(2)}` : null,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ') || 'No limits configured'
+                        : 'No limits configured'}
+                    </dd>
                   </dl>
                   <ButtonRow>
                     {selectedSession ? (
@@ -756,21 +784,41 @@ export default function People() {
         open={starting !== null}
         onClose={() => setStarting(null)}
         title={starting ? `Start ${starting.name}` : 'Start Person'}
-        description="This opens the runner in a real local terminal. The goal is shown for reference but not sent automatically; this PTY does not enforce Person budgets or isolation."
+        description="Starts the discovered runner in a real local PTY at the project folder. The Person goal is a reference, not an instruction sent to the runner. Max runtime is enforced; token/cost limits and worktree/session isolation are not supported by this interactive PTY yet."
         size="wide"
         footer={
-          <ButtonRow>
-            <Button onClick={() => setStarting(null)}>Cancel</Button>
-            <Button
-              variant="primary"
-              busy={startBusy}
-              busyLabel="Starting…"
-              disabled={!chosenProject || !chosenProvider || startBusy}
-              onClick={() => void beginPerson()}
-            >
-              Start and open terminal
-            </Button>
-          </ButtonRow>
+          <div className={styles.startFooter}>
+            {unenforcedPersonPolicy.length > 0 ? (
+              <label className={styles.policyAcknowledgement}>
+                <input
+                  type="checkbox"
+                  checked={acknowledgeUnenforcedPolicy}
+                  onChange={(event) => setAcknowledgeUnenforcedPolicy(event.target.checked)}
+                />
+                <span>
+                  Start without enforcing {unenforcedPersonPolicy.join(', ')}. This session will use the selected
+                  project folder; its files may be changed by the runner.
+                </span>
+              </label>
+            ) : null}
+            <ButtonRow>
+              <Button onClick={() => setStarting(null)}>Cancel</Button>
+              <Button
+                variant="primary"
+                busy={startBusy}
+                busyLabel="Starting…"
+                disabled={
+                  !chosenProject ||
+                  !chosenProvider ||
+                  startBusy ||
+                  (unenforcedPersonPolicy.length > 0 && !acknowledgeUnenforcedPolicy)
+                }
+                onClick={() => void beginPerson()}
+              >
+                Start and open terminal
+              </Button>
+            </ButtonRow>
+          </div>
         }
       >
         {starting ? (
@@ -852,6 +900,28 @@ export default function People() {
               <p>
                 <strong>Working folder:</strong> <code>{chosenProject?.target || 'Choose a project'}</code>
               </p>
+              <p>
+                <strong>Isolation:</strong> {starting.isolation || 'inherited'} · this session uses the selected project
+                folder
+              </p>
+              <p>
+                <strong>Runtime cap:</strong>{' '}
+                {starting.budget?.max_seconds
+                  ? `${starting.budget.max_seconds}s · enforced by Desktop`
+                  : 'None configured'}
+              </p>
+              {starting.budget?.max_tokens || starting.budget?.max_cost_usd ? (
+                <p>
+                  <strong>Usage limits:</strong>{' '}
+                  {[
+                    starting.budget.max_tokens ? `${starting.budget.max_tokens.toLocaleString()} tokens` : null,
+                    starting.budget.max_cost_usd ? `$${starting.budget.max_cost_usd.toFixed(2)}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}{' '}
+                  · not enforced for this interactive runner
+                </p>
+              ) : null}
               <p>The runner opens interactively. Enter the task in its terminal to begin.</p>
             </Panel>
             {projectsQuery.isError ? <ErrorState title="Could not load projects" error={projectsQuery.error} /> : null}
