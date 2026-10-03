@@ -387,7 +387,7 @@ test('Operations refreshes a live swarm when its state changes outside Desktop',
 
   const runRow = page.getByRole('button', { name: /Observe externally updated run state/ });
   await expect(runRow).toBeVisible();
-  const dismissReceipt = page.getByRole('button', { name: 'Dismiss: Swarm start posted' });
+  const dismissReceipt = page.getByRole('button', { name: 'Dismiss: Swarm start posted' }).last();
   if (await dismissReceipt.isVisible()) await dismissReceipt.click();
   const runId = (await runRow.innerText()).trim().split(/\s+/)[0];
   if (!runId) throw new Error('The new swarm run did not expose an ID');
