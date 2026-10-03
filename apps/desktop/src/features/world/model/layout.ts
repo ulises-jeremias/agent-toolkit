@@ -186,10 +186,10 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // district, which turned a small workspace into a mostly empty panorama.
   // Lot coordinates remain stable as projects are added.
   const districtW = projects.length ? (Math.min(projects.length, districtCols) - 1) * 5 + 3 : 0;
-  // The eastern neighborhood starts one bridge-span beyond the shared
-  // services. The original x=36 left a long unclaimed field between town and
-  // the first house, especially obvious in a one-project workspace.
-  const projectDistrictX = 21;
+  // Put project homes across a visible creek crossing from the shared
+  // services. Keep the bank gap compact enough that the project district
+  // still reads as part of the same settlement at small window sizes.
+  const projectDistrictX = 26;
   const emptyMarkerX = projectDistrictX;
   const mapW = Math.max(28, projectDistrictX + (projects.length ? districtW : 3) + 4);
 

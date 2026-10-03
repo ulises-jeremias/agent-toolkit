@@ -433,6 +433,9 @@ describe('buildWorldModel', () => {
         expect(water.has(`${x},${y}`)).toBe(false);
       }
     }
+    const waterColumns = [...water].map((cell) => Number(cell.split(',')[0]));
+    expect(house.x).toBeGreaterThanOrEqual(workshop.x + workshop.w + 8);
+    expect(waterColumns.some((x) => x >= workshop.x + workshop.w && x < house.x)).toBe(true);
   });
 
   it('keeps project interiors free of shared workshop fixtures and fake characters', () => {
