@@ -187,6 +187,7 @@ test('links an existing project from the GUI and places it in the world', async 
     await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText(
       'GitHub Copilot · repository',
     );
+    await expect(page.getByRole('button', { name: 'Review removal', exact: true })).toHaveCount(2);
     const githubSidecar = path.join(githubDir, 'settings.yml');
     fs.writeFileSync(githubSidecar, 'pull_request_targets: all\n');
     fs.writeFileSync(copilotFile, `${bundledInstructions}\nUser-owned addition.\n`);

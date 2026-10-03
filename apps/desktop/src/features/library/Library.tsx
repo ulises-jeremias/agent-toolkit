@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAgents, useInstallReceipts, useProviders, useTools } from '../../data/catalog';
 import { useReport, useSubQuery } from '../../data/commands';
 import { requireClient, useBackend } from '../../data/backend';
@@ -155,7 +155,10 @@ export default function Library() {
       action: 'install' | 'remove';
       reviewToken: string;
     }) => requireClient(client).copilotProjectInstallReviewed(workspace, project, action, reviewToken),
-    onSettled: () => invalidateDomains(queryClient, OPERATION_EFFECTS.install),
+    onSettled: async () => {
+      await invalidateDomains(queryClient, OPERATION_EFFECTS.install);
+      await queryClient.invalidateQueries({ queryKey: ['copilot-project-removal-preview', workspacePath] });
+    },
     onSuccess: (result) => {
       setCopilotReview(result);
       setCopilotError(result.ok ? null : result.message);
@@ -207,12 +210,16 @@ export default function Library() {
   const skillRows = skills.data ? parseSkillCatalog(envelopeText(skills.data)) : [];
   const pluginRows = plugins.data ? parsePluginBundles(envelopeText(plugins.data)) : [];
   const selectedCopilotProject = projects.find((project) => project.name === copilotProject && project.status === 'ok');
-  const hasCopilotReceipt = Boolean(
-    selectedCopilotProject &&
-    receipts.data?.receipts.some(
-      (receipt) =>
-        receipt.target === 'copilot-repository' && receipt.scope === `project:${selectedCopilotProject.target}`,
-    ),
+  const copilotRemovalPreview = useQuery({
+    queryKey: ['copilot-project-removal-preview', workspacePath, selectedCopilotProject?.name ?? ''],
+    queryFn: () => {
+      if (!selectedCopilotProject) throw new Error('Choose a linked project before checking its receipt.');
+      return requireClient(client).copilotProjectInstallPreview(workspacePath, selectedCopilotProject.name, 'remove');
+    },
+    enabled: Boolean(workspacePath && selectedCopilotProject),
+  });
+  const canReviewCopilotRemoval = Boolean(
+    copilotRemovalPreview.data && copilotRemovalPreview.data.status !== 'no-receipt',
   );
 
   const reviewCopilotProject = (action: 'install' | 'remove') => {
@@ -541,6 +548,12 @@ export default function Library() {
             {projectsQuery.isError ? (
               <p role="alert">Could not load linked projects: {errorMessage(projectsQuery.error)}</p>
             ) : null}
+            {copilotRemovalPreview.isError && selectedCopilotProject ? (
+              <p role="alert">
+                Could not check Agent Toolkit&apos;s receipt for {selectedCopilotProject.name}:{' '}
+                {errorMessage(copilotRemovalPreview.error)}
+              </p>
+            ) : null}
             {!workspacePath ? (
               <p role="status">Choose a workspace in Settings before configuring project instructions.</p>
             ) : null}
@@ -577,7 +590,7 @@ export default function Library() {
                   >
                     Review project setup
                   </Button>
-                  {hasCopilotReceipt ? (
+                  {canReviewCopilotRemoval ? (
                     <Button
                       variant="secondary"
                       disabled={
