@@ -134,11 +134,21 @@ journeys:
   - id: terminal-lifecycle
     title: Open, use, and close a real PTY terminal
     destinations: [terminal]
-    status: partial
+    status: ok
     evidence:
-      - note: real node-pty transport over the typed preload bridge
-    blockers:
-      - exit/reap and restart-on-backend-crash review not on file
+      - note: >-
+          Real node-pty tests cover output, buffered scrollback, cwd validation,
+          resize, signals, process exit, close/reap, and Person/project identity.
+          Electron E2E verifies typing/output, navigation persistence, exit
+          scrollback and restart, explicit close consequences, backend restart
+          review, and that an active PTY remains available when the supervised
+          backend crashes. Crash recovery is surfaced as attention without
+          inventing a successful backend restart.
+        build: "7cf5b279 (Linux Electron E2E; temporary HOME)"
+        tests:
+          - apps/desktop/electron/terminal.test.ts
+          - apps/desktop/e2e/electron/desktop.spec.ts
+    blockers: []
   - id: people-crud
     title: Create, edit and archive a Person
     destinations: [people]
