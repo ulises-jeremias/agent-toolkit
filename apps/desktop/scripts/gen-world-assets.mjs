@@ -897,6 +897,17 @@ function grassTile(seed) {
       for (const [x, y, color] of patches[(i + rotation) % patches.length]) img.set(x, y, color);
     }
   }
+  // A legible four-pixel clover mark gives each source tile a hand-painted
+  // landmark at 3× zoom; the position shifts by variant so the meadow does
+  // not read as repeated stamps. Keep it clear of the tile edge for seams.
+  const cloverX = 1 + (s % 10);
+  const cloverY = 1 + ((s * 3) % 11);
+  img
+    .set(cloverX, cloverY + 1, 'fl')
+    .set(cloverX + 1, cloverY, 'gl')
+    .set(cloverX + 1, cloverY + 1, 'gt')
+    .set(cloverX + 2, cloverY + 1, 'gd')
+    .set(cloverX + 1, cloverY + 2, 'fl');
   const glintX = ((s * 7) % 13) + 1;
   const glintY = ((s * 11) % 13) + 1;
   img.set(glintX, glintY, 'gt');
