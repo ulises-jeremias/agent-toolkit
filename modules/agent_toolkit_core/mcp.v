@@ -65,7 +65,7 @@ const mcp_pinned_shas = {
 	'chrome-devtools': '660283933ff9bab1b1f7bf55bcaebe7fe63151b91a6458f37e5de4c87152dba9'
 	'clickup':         '5d59cd887638c849b95bf7841e4648ad5ae024af48a3125efaa535676c050090'
 	'figma':           '7731bc20a47c3ad8f146b42bfed4e59ee7642f383b0b891765a28e9421946676'
-	'github':          '60d62ae1f1bbc72db8a23faa2bca97f2248df45e83b7586b8e0b1ecf654fe6e1'
+	'github':          'f1aeee47179b58e018823bdf55ad12f1f8c8888cddb7796e2b459db836d4e409'
 	'linear':          '79af5262f93c0f74387c984e1a52a65df704d07c8c1c179cca22c1398735b923'
 	'notion':          'd26d957fa1e489885f5fd7c584b439b1b1c36ade2ab3dc06ecca63273cc612ab'
 	'slack':           '61366d94252dd7a59aea17d346157eb85c4bd1a0cacefc23a03c82153b2e4e74'
@@ -80,7 +80,13 @@ pub fn run_mcp(opts McpOptions) McpReport {
 			message: mcp_help_text()
 		}
 	}
-	root := if opts.toolkit_root.len > 0 { opts.toolkit_root } else { lookup_checkout_root() }
+	root := if opts.toolkit_root.len > 0 {
+		opts.toolkit_root
+	} else if resolved := find_toolkit_root() {
+		resolved.path
+	} else {
+		lookup_checkout_root()
+	}
 	cfg_path := if opts.config_path.len > 0 { opts.config_path } else { default_mcp_config_path() }
 	return match sub {
 		'list' { mcp_list(root, cfg_path) }
@@ -140,7 +146,11 @@ fn default_mcp_config_path() string {
 
 // list_mcp_providers returns canonical MCP catalogue/configuration state for the local user.
 pub fn list_mcp_providers() McpProvidersResponse {
-	root := lookup_checkout_root()
+	root := if resolved := find_toolkit_root() {
+		resolved.path
+	} else {
+		lookup_checkout_root()
+	}
 	return mcp_provider_catalog(root, default_mcp_config_path())
 }
 
@@ -149,7 +159,7 @@ fn mcp_provider_catalog(root string, cfg_path string) McpProvidersResponse {
 		return McpProvidersResponse{ message: 'Cannot locate toolkit directory', config_path: cfg_path }
 	}
 	tdir := mcp_templates_dir(root)
-	if !os.is_dir(tdir) && !os.is_dir(mcp_registry_dir(root)) {
+	if !data_is_dir(root, tdir) && !data_is_dir(root, mcp_registry_dir(root)) {
 		return McpProvidersResponse{ message: 'MCP templates directory not found: ${tdir}', config_path: cfg_path }
 	}
 	cfg := load_mcp_config(cfg_path)
@@ -158,7 +168,7 @@ fn mcp_provider_catalog(root string, cfg_path string) McpProvidersResponse {
 		meta := load_registry_meta(root, id) or {
 			RegistryMeta{ id: id, display_name: id }
 		}
-		required := if meta.env_vars.len > 0 { meta.env_vars } else { template_env_vars(tdir, id) }
+		required := if meta.env_vars.len > 0 { meta.env_vars } else { template_env_vars(root, id) }
 		mut missing := []string{}
 		for name in required {
 			if os.getenv(name).len == 0 {
@@ -177,7 +187,7 @@ fn mcp_provider_catalog(root string, cfg_path string) McpProvidersResponse {
 			missing_env: missing
 			configured: configured
 			enabled: configured && provider_cfg.enabled
-			template_available: os.is_file(os.join_path(tdir, id, 'config.template.json'))
+			template_available: data_is_file(root, os.join_path(tdir, id, 'config.template.json'))
 			template_sha: if sha.len > 0 { sha[..8] } else { '' }
 			template_is_pinned: pin.len > 0
 			template_matches_pin: pin.len > 0 && sha == pin
@@ -201,16 +211,16 @@ pub fn is_mcp_cached(provider string, root string) bool {
 		return false
 	}
 	tdir := os.join_path(mcp_templates_dir(root), provider)
-	if os.is_dir(tdir) {
+	if data_is_dir(root, tdir) {
 		cfg := os.join_path(tdir, 'config.template.json')
-		if os.is_file(cfg) {
+		if data_is_file(root, cfg) {
 			return true
 		}
 		// template dir exists even without config (e.g. registry-only) counts as cached
 		return true
 	}
 	reg := os.join_path(mcp_registry_dir(root), '${provider}.yaml')
-	if os.is_file(reg) {
+	if data_is_file(root, reg) {
 		return true
 	}
 	return false
@@ -222,10 +232,10 @@ fn mcp_pinned_sha(provider string) string {
 
 fn mcp_template_sha(root string, provider string) string {
 	path := os.join_path(mcp_templates_dir(root), provider, 'config.template.json')
-	if !os.is_file(path) {
+	if !data_is_file(root, path) {
 		return ''
 	}
-	text := os.read_file(path) or { return '' }
+	text := data_read_file(root, path) or { return '' }
 	return sha256.hexhash(text)
 }
 
@@ -291,13 +301,13 @@ fn mcp_list(root string, cfg_path string) McpReport {
 		}
 	}
 	tdir := mcp_templates_dir(root)
-	if !os.is_dir(tdir) {
+	if !data_is_dir(root, tdir) {
 		return McpReport{
 			ok: false
 			message: 'MCP templates directory not found: ${tdir}'
 		}
 	}
-	providers := list_template_providers(tdir)
+	providers := list_template_providers(root)
 	if providers.len == 0 {
 		return McpReport{
 			ok: true
@@ -312,7 +322,7 @@ fn mcp_list(root string, cfg_path string) McpReport {
 	lines << '  Provider          Status        Required env vars'
 	lines << '  ------------------------------------------------'
 	for provider in providers {
-		env_vars := template_env_vars(tdir, provider)
+		env_vars := template_env_vars(root, provider)
 		env_str := if env_vars.len > 0 { env_vars.join(', ') } else { '(none)' }
 		status := mcp_provider_status(cfg, provider)
 		lines << '  ${provider:-16}  ${status:-12}  ${env_str}'
@@ -357,8 +367,7 @@ fn mcp_setup(root string, cfg_path string, provider string, offline bool) McpRep
 			message: "Provider '${provider}' not found.\n  Available: ${known.join(', ')}"
 		}
 	}
-	tdir := mcp_templates_dir(root)
-	env_vars := template_env_vars(tdir, provider)
+	env_vars := template_env_vars(root, provider)
 	reg_env := registry_env_vars(root, provider)
 	mut required := if reg_env.len > 0 { reg_env } else { env_vars }
 	mut lines := []string{}
@@ -567,7 +576,6 @@ fn mcp_doctor(root string, cfg_path string, provider string) McpReport {
 	mut total_err := 0
 	mut total_ok := 0
 	mut total_warn := 0
-	tdir := mcp_templates_dir(root)
 	for p in targets {
 		lines << ''
 		lines << '── ${p} ──'
@@ -584,7 +592,7 @@ fn mcp_doctor(root string, cfg_path string, provider string) McpReport {
 				total_warn++
 			}
 		}
-		env_vars := template_env_vars(tdir, p)
+		env_vars := template_env_vars(root, p)
 		for var in env_vars {
 			if os.getenv(var).len > 0 {
 				lines << '  ✓  ${var}: set'
@@ -685,11 +693,12 @@ fn mcp_uninstall(cfg_path string, provider string) McpReport {
 	}
 }
 
-fn list_template_providers(tdir string) []string {
+fn list_template_providers(root string) []string {
+	tdir := mcp_templates_dir(root)
 	mut names := []string{}
-	entries := os.ls(tdir) or { return names }
+	entries := data_ls(root, tdir)
 	for e in entries {
-		if os.is_dir(os.join_path(tdir, e)) {
+		if data_is_dir(root, os.join_path(tdir, e)) {
 			names << e
 		}
 	}
@@ -699,14 +708,14 @@ fn list_template_providers(tdir string) []string {
 
 fn list_known_mcp_providers(root string) []string {
 	mut names := []string{}
-	for n in list_template_providers(mcp_templates_dir(root)) {
+	for n in list_template_providers(root) {
 		if n !in names {
 			names << n
 		}
 	}
 	reg := mcp_registry_dir(root)
-	if os.is_dir(reg) {
-		entries := os.ls(reg) or { []string{} }
+	if data_is_dir(root, reg) {
+		entries := data_ls(root, reg)
 		for e in entries {
 			if e.ends_with('.yaml') {
 				stem := e.all_before_last('.yaml')
@@ -725,12 +734,13 @@ fn registry_env_vars(root string, provider string) []string {
 	return meta.env_vars
 }
 
-fn template_env_vars(tdir string, provider string) []string {
+fn template_env_vars(root string, provider string) []string {
+	tdir := mcp_templates_dir(root)
 	path := os.join_path(tdir, provider, 'config.template.json')
-	if !os.is_file(path) {
+	if !data_is_file(root, path) {
 		return []
 	}
-	text := os.read_file(path) or { return [] }
+	text := data_read_file(root, path) or { return [] }
 	return extract_template_env_names(text)
 }
 
@@ -767,9 +777,9 @@ struct RegistryMeta {
 
 fn load_registry_meta(root string, provider string) ?RegistryMeta {
 	path := os.join_path(mcp_registry_dir(root), '${provider}.yaml')
-	if !os.is_file(path) {
+	if !data_is_file(root, path) {
 		tdir := os.join_path(mcp_templates_dir(root), provider)
-		if os.is_dir(tdir) {
+		if data_is_dir(root, tdir) {
 			return RegistryMeta{
 				id: provider
 				display_name: provider
@@ -777,7 +787,7 @@ fn load_registry_meta(root string, provider string) ?RegistryMeta {
 		}
 		return none
 	}
-	text := os.read_file(path) or { return none }
+	text := data_read_file(root, path) or { return none }
 	mut id := yaml_scalar(text, 'id')
 	if id.len == 0 {
 		id = provider

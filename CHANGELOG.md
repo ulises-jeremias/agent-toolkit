@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Library presents a typed MCP provider catalog with secret-free environment
   readiness, reviewed Toolkit-only setup/removal, local validation, and an
   executable probe that clearly does not imply a live MCP connection.
+- MCP discovery and setup resolve packaged embedded templates as well as
+  checkout/XDG data, and the GitHub template pin now matches its reviewed file.
 - Project interiors now separate actual project files from shared/project memory:
   the filing cabinet opens read-only files from the registered project root
   through a typed, symlink-contained API, while the project overview board

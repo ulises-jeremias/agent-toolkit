@@ -501,7 +501,7 @@ test('Library configures MCP providers with secret-free previews and explicit ch
             configured,
             enabled,
             template_available: true,
-            template_sha: '60d62ae1',
+            template_sha: 'f1aeee47',
             template_is_pinned: true,
             template_matches_pin: true,
           },

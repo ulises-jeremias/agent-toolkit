@@ -3,6 +3,24 @@ module agent_toolkit_core
 import os
 import x.json2
 
+fn test_mcp_provider_catalog_reads_embedded_desktop_data() {
+	cfg := os.join_path(os.temp_dir(), 'at-mcp-embedded-${os.getpid()}.json')
+	response := mcp_provider_catalog('embedded', cfg)
+	assert response.ok, response.message
+	assert response.providers.len >= 7
+	for provider in response.providers {
+		if provider.template_is_pinned {
+			assert provider.template_matches_pin, 'template pin mismatch for ${provider.id}'
+		}
+	}
+	github := response.providers.filter(it.id == 'github')
+	assert github.len == 1
+	assert github[0].template_available
+	assert github[0].template_is_pinned
+	assert github[0].template_matches_pin
+	assert 'GITHUB_PERSONAL_ACCESS_TOKEN' in github[0].required_env
+}
+
 fn test_mcp_provider_catalog_returns_typed_secret_free_state() {
 	secret_value := 'catalog-test-secret-value'
 	previous_token := os.getenv('ATK_MCP_CATALOG_TOKEN')
