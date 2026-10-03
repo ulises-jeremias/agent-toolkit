@@ -1,11 +1,14 @@
 import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { useAgents, useProviders, useTools } from '../../data/catalog';
 import { useOperation, useReport, useSubQuery } from '../../data/commands';
-import { envelopeText, type ToolEnabled, type ToolInfo } from '../../lib/api';
+import { requireClient, useBackend } from '../../data/backend';
+import { envelopeText, errorMessage, type CommandEnvelope, type ToolEnabled, type ToolInfo } from '../../lib/api';
 import { mcpStatusTone, parseMcpProviders, parsePluginBundles, parseSkillCatalog } from '../../lib/reports';
 import {
   Button,
-  ConfirmAction,
+  ButtonRow,
+  Dialog,
   EmptyState,
   Grid,
   Mono,
@@ -37,6 +40,12 @@ function toolSummary(tools: readonly ToolInfo[]): string {
   return `${tools.length} catalog · ${detected} detected · ${configured} configured · ${verified} verified`;
 }
 
+function installSummary(preview: CommandEnvelope): string {
+  const targets = Number(preview.data['tools_ok'] ?? 0);
+  const files = Number(preview.data['files_written'] ?? 0);
+  return `${targets} ${targets === 1 ? 'tool target' : 'tool targets'} reviewed · ${files} ${files === 1 ? 'file' : 'files'} to write or merge`;
+}
+
 /**
  * Library: the capability room the world opens for shared/project knowledge.
  * Catalog vs this machine. Memory is a different place and is omitted when
@@ -44,6 +53,7 @@ function toolSummary(tools: readonly ToolInfo[]): string {
  * Running and marketplace install counts stay unknown unless the API reports them.
  */
 export default function Library() {
+  const { client } = useBackend();
   const inventory = useReport('inventory');
   const catalogRoot = inventory.data?.data['root'];
   const tools = useTools();
@@ -55,6 +65,11 @@ export default function Library() {
   const [probeMcp, setProbeMcp] = useState(false);
   const mcpHealth = useSubQuery('mcp', 'health', undefined, { enabled: probeMcp, failureIsData: true });
   const install = useOperation('install');
+  const [installPreview, setInstallPreview] = useState<CommandEnvelope | null>(null);
+  const previewInstall = useMutation({
+    mutationFn: () => requireClient(client).installPreview(),
+    onSuccess: setInstallPreview,
+  });
   const installReceipt = useActionReceipt('Profiles installed');
 
   const drift = plugins.data?.ok ? plugins.data.data['drift'] : undefined;
@@ -75,18 +90,72 @@ export default function Library() {
             : 'Inspector for catalog knowledge the world opens here. Memory is not this room. Running is unknown here.'
         }
         actions={
-          <ConfirmAction
-            label="Install profiles"
-            triggerVariant="primary"
+          <Button
             variant="primary"
-            title="Install tool profiles?"
-            description="Runs agent-toolkit install: writes the toolkit's skills, agents and rules into the coding tools it detects on this machine."
-            confirmLabel="Install"
-            busy={install.isPending}
-            onConfirm={() => install.mutate(undefined, installReceipt)}
-          />
+            busy={previewInstall.isPending}
+            busyLabel="Inspecting targets…"
+            onClick={() => {
+              setInstallPreview(null);
+              previewInstall.mutate();
+            }}
+          >
+            Review installation
+          </Button>
         }
       />
+      <Dialog
+        open={installPreview !== null || previewInstall.isError}
+        onClose={() => {
+          setInstallPreview(null);
+          previewInstall.reset();
+        }}
+        title="Review profile installation"
+        description="This preview comes from the installer and does not write files. Targets stay in your user home; it does not request elevated permissions or change system files. Existing user-owned files are preserved, and JSON settings merge without replacing existing keys."
+        size="wide"
+        footer={
+          <ButtonRow>
+            <Button
+              onClick={() => {
+                setInstallPreview(null);
+                previewInstall.reset();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              disabled={!installPreview?.ok || install.isPending}
+              busy={install.isPending}
+              busyLabel="Installing…"
+              onClick={() =>
+                install.mutate(undefined, {
+                  ...installReceipt,
+                  onSuccess: (result) => {
+                    installReceipt.onSuccess?.(result);
+                    setInstallPreview(null);
+                  },
+                })
+              }
+            >
+              Install profiles
+            </Button>
+          </ButtonRow>
+        }
+      >
+        {previewInstall.isError ? <p role="alert">{errorMessage(previewInstall.error)}</p> : null}
+        {installPreview ? (
+          <>
+            <p role="status">
+              {installPreview.ok
+                ? installSummary(installPreview)
+                : 'The installer could not prepare a safe installation. Review the details below.'}
+            </p>
+            <pre className={styles.installPreview} aria-label="Installation preview">
+              {installPreview.message}
+            </pre>
+          </>
+        ) : null}
+      </Dialog>
       <div className={styles.shelves}>
         <Stack>
           <Panel title="Coding tools" meta={tools.data ? toolSummary(tools.data.tools) : undefined}>

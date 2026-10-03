@@ -22,6 +22,7 @@ export type LoopStatusResponse = components['schemas']['LoopStatusResponse'];
 export type LoopHistoryResponse = components['schemas']['LoopHistoryResponse'];
 export type LoopAuditResponse = components['schemas']['LoopAuditResponse'];
 export type LoopCostResponse = components['schemas']['LoopCostResponse'];
+export type InstallPreviewResponse = components['schemas']['InstallPreviewResponse'];
 
 export interface SelfcheckCheck {
   name: string;

@@ -1039,6 +1039,26 @@
         }
       }
     },
+    "/api/v1/install/preview": {
+      "get": {
+        "operationId": "install_preview",
+        "summary": "Preview profile installation targets and conflicts without writing files",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallPreviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/swarms/recipes": {
       "get": {
         "operationId": "list_swarm_recipes",
@@ -3076,6 +3096,29 @@
         "required": [
           "ok",
           "message"
+        ]
+      },
+      "InstallPreviewResponse": {
+        "type": "object",
+        "description": "Read-only preview of profile installation targets and conflicts.",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "message",
+          "data"
         ]
       },
       "VersionResponse": {

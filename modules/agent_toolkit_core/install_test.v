@@ -1,5 +1,6 @@
 module agent_toolkit_core
 
+import crypto.sha256
 import os
 
 fn test_install_cursor_dry_run_writes_nothing() {
@@ -83,6 +84,19 @@ fn test_install_preserves_without_force() {
 		assert false, err.msg()
 		return
 	}
+	preview := run_install(InstallOptions{
+		tools: ['cursor']
+		dry_run: true
+		home_dir: home
+		data_root: data
+		receipt_dir: receipt_dir
+	})
+	assert preview.ok, preview.message
+	assert preview.dry_run
+	assert preview.message.contains('Would preserve existing file (no overwrite): ${dst}')
+	assert !preview.message.contains('Would install: ${dst}')
+	assert os.read_file(dst) or { '' } == 'user\n'
+	assert !os.is_dir(receipt_dir) || os.ls(receipt_dir) or { []string{} }.len == 0
 	report := run_install(InstallOptions{
 		tools: ['cursor']
 		home_dir: home
@@ -122,6 +136,114 @@ fn test_install_force_overwrites() {
 	})
 	assert report.ok, report.message
 	assert os.read_file(dst) or { '' } == 'new\n'
+}
+
+fn test_install_preview_reports_stale_owned_files_without_removing_them() {
+	base := os.join_path(os.temp_dir(), 'at-ins-stale-preview-${os.getpid()}')
+	data := os.join_path(base, 'data')
+	home := os.join_path(base, 'home')
+	receipt_dir := os.join_path(base, 'receipts')
+	os.mkdir_all(os.join_path(data, 'profiles', 'cursor', 'rules')) or { assert false, err.msg() }
+	os.mkdir_all(home) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	os.write_file(os.join_path(data, 'profiles', 'cursor', 'rules', 'current.mdc'), 'current\n') or {
+		assert false, err.msg()
+		return
+	}
+	stale := os.join_path(home, '.cursor', 'rules', 'retired.mdc')
+	os.mkdir_all(os.dir(stale)) or { assert false, err.msg() }
+	os.write_file(stale, 'toolkit-owned\n') or { assert false, err.msg() }
+	mut prior := new_install_receipt(profiles_product, 'cursor', 'user-home', '1.0.0', 'old')
+	prior.artifacts << ArtifactEntry{
+		path: stale
+		digest: sha256.hexhash('toolkit-owned\n')[..16]
+		ownership: 'created'
+	}
+	save_install_receipt(mut prior, receipt_dir) or {
+		assert false, err.msg()
+		return
+	}
+	preview := run_install(InstallOptions{
+		tools: ['cursor']
+		dry_run: true
+		home_dir: home
+		data_root: data
+		receipt_dir: receipt_dir
+	})
+	assert preview.ok, preview.message
+	assert preview.message.contains('Would remove stale Toolkit-owned file: ${stale}')
+	assert os.is_file(stale)
+}
+
+fn test_install_skips_changed_stale_owned_file() {
+	base := os.join_path(os.temp_dir(), 'at-ins-stale-changed-${os.getpid()}')
+	data := os.join_path(base, 'data')
+	home := os.join_path(base, 'home')
+	receipt_dir := os.join_path(base, 'receipts')
+	os.mkdir_all(os.join_path(data, 'profiles', 'cursor', 'rules')) or { assert false, err.msg() }
+	os.mkdir_all(home) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	os.write_file(os.join_path(data, 'profiles', 'cursor', 'rules', 'current.mdc'), 'current\n') or {
+		assert false, err.msg()
+		return
+	}
+	stale := os.join_path(home, '.cursor', 'rules', 'retired.mdc')
+	os.mkdir_all(os.dir(stale)) or { assert false, err.msg() }
+	os.write_file(stale, 'edited by user\n') or { assert false, err.msg() }
+	mut prior := new_install_receipt(profiles_product, 'cursor', 'user-home', '1.0.0', 'old')
+	prior.artifacts << ArtifactEntry{
+		path: stale
+		digest: sha256.hexhash('toolkit-owned\n')[..16]
+		ownership: 'created'
+	}
+	save_install_receipt(mut prior, receipt_dir) or { assert false, err.msg() }
+	result := run_install(InstallOptions{
+		tools: ['cursor']
+		home_dir: home
+		data_root: data
+		receipt_dir: receipt_dir
+	})
+	assert result.ok, result.message
+	assert result.message.contains('Skipping stale file changed since Toolkit installed it: ${stale}')
+	assert os.read_file(stale) or { '' } == 'edited by user\n'
+}
+
+fn test_install_skips_stale_receipt_path_outside_home() {
+	base := os.join_path(os.temp_dir(), 'at-ins-stale-outside-${os.getpid()}')
+	data := os.join_path(base, 'data')
+	home := os.join_path(base, 'home')
+	receipt_dir := os.join_path(base, 'receipts')
+	os.mkdir_all(os.join_path(data, 'profiles', 'cursor', 'rules')) or { assert false, err.msg() }
+	os.mkdir_all(home) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	os.write_file(os.join_path(data, 'profiles', 'cursor', 'rules', 'current.mdc'), 'current\n') or {
+		assert false, err.msg()
+		return
+	}
+	outside := os.join_path(base, 'outside.mdc')
+	os.write_file(outside, 'toolkit-owned\n') or { assert false, err.msg() }
+	mut prior := new_install_receipt(profiles_product, 'cursor', 'user-home', '1.0.0', 'old')
+	prior.artifacts << ArtifactEntry{
+		path: outside
+		digest: receipt_artifact_digest(outside)
+		ownership: 'created'
+	}
+	save_install_receipt(mut prior, receipt_dir) or { assert false, err.msg() }
+	result := run_install(InstallOptions{
+		tools: ['cursor']
+		home_dir: home
+		data_root: data
+		receipt_dir: receipt_dir
+	})
+	assert result.ok, result.message
+	assert result.message.contains('Skipping stale path outside user home: ${outside}')
+	assert os.is_file(outside)
 }
 
 fn test_install_unknown_tool_skipped() {

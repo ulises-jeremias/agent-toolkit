@@ -3,6 +3,7 @@ import type {
   Job,
   JobCreateRequest,
   JobRegistry,
+  InstallPreviewResponse,
   LoopListResponse,
   LoopStatusResponse,
   LoopHistoryResponse,
@@ -163,6 +164,10 @@ export class ApiClient {
 
   async operation(kind: OperationKind): Promise<CommandEnvelope> {
     return toEnvelope(await this.json<unknown>('POST', OPERATION_PATHS[kind]));
+  }
+
+  async installPreview(): Promise<InstallPreviewResponse> {
+    return this.json<InstallPreviewResponse>('GET', '/api/v1/install/preview' satisfies PathWith<'get'>);
   }
 
   /**

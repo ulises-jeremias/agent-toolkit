@@ -7,6 +7,7 @@ import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtur
 const CAPTURE = process.env['ATK_CAPTURE'] === '1';
 const CAPTURE_DIR = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/swarms');
 const PALETTE_CAPTURE_DIR = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/palette');
+const LIBRARY_CAPTURE_DIR = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/library');
 
 /**
  * Kill the supervised `agent-toolkit serve` child. After ADR-034 the renderer
@@ -405,6 +406,72 @@ test('Operations shows doctor, loops and swarms from live endpoints', async () =
   await expect(page.getByRole('region', { name: 'Loops' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Swarms' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Swarms' })).toContainText(/GET \/api\/v1\/swarms|No swarm runs/);
+});
+
+test('Library reviews installer targets before any files can be written', async () => {
+  const { page } = desktop;
+  let applyRequests = 0;
+  await page.route('**/api/v1/install/preview', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        message: [
+          'agent-toolkit installer',
+          'Toolkit: /opt/agent-toolkit',
+          '',
+          '  ⚠  DRY RUN — no files will be written',
+          '  [info]  Targets are limited to the current user home; no files or receipts will be changed.',
+          '  [info]  Tools to install: cursor',
+          '  [info]  Reviewing: cursor',
+          '  [dry]   Would install: /home/e2e/.cursor/rules/reviewer.mdc',
+          '  [dry]   Would preserve existing file (no overwrite): /home/e2e/.cursor/rules/custom.mdc',
+          '  [dry]   Would remove stale Toolkit-owned file: /home/e2e/.cursor/rules/retired.mdc',
+          '',
+          '  [info]  Review the listed changes, then confirm Install profiles in Desktop to apply them.',
+        ].join('\n'),
+        data: { dry_run: 'true', tools_ok: '1', files_written: '1' },
+      }),
+    }),
+  );
+  await page.route('**/api/v1/install', async (route) => {
+    applyRequests += 1;
+    await route.continue();
+  });
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+  await expect(page.getByText('Discovering coding tools')).toBeHidden();
+  await expect(page.getByText('Loading agent definitions')).toBeHidden();
+  await expect(page.getByText('Loading the skills catalog')).toBeHidden();
+  await page.getByRole('button', { name: 'Review installation' }).click();
+  const preview = page.getByRole('dialog', { name: 'Review profile installation' });
+  await expect(preview).toBeVisible();
+  await expect(preview).toContainText('does not write files');
+  await expect(preview.getByLabel('Installation preview')).toContainText('DRY RUN');
+  await expect(preview.getByLabel('Installation preview')).toContainText('no files or receipts will be changed');
+  await expect(preview.getByLabel('Installation preview')).toContainText('Would preserve existing file');
+  await expect(preview.getByLabel('Installation preview')).toContainText('Would remove stale Toolkit-owned file');
+  if (CAPTURE) {
+    fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
+    for (const size of [
+      { width: 1024, height: 768, key: 'compact' },
+      { width: 1600, height: 1000, key: 'large' },
+    ]) {
+      await setViewport(desktop.app, size.width, size.height);
+      await page.setViewportSize({ width: size.width, height: size.height });
+      await page.screenshot({
+        path: path.join(LIBRARY_CAPTURE_DIR, `install-preview-${size.key}.png`),
+        fullPage: true,
+      });
+    }
+    await setViewport(desktop.app, 1280, 800);
+    await page.setViewportSize({ width: 1280, height: 800 });
+  }
+  await preview.getByRole('button', { name: 'Cancel' }).click();
+  await expect(preview).toBeHidden();
+  expect(applyRequests).toBe(0);
+  await expect(page.getByRole('region', { name: 'Receipts' })).not.toContainText('Profiles installed');
 });
 
 test('swarm start reviews canonical topology and keeps runner separate from adapter', async () => {

@@ -1,6 +1,7 @@
 module agent_toolkit_core
 
 import os
+import crypto.sha256
 import x.json2
 
 // install_valid_tools lists profile tools supported by `agent-toolkit install`.
@@ -90,6 +91,9 @@ pub fn run_install(opts InstallOptions) InstallReport {
 
 	lines << ''
 	lines << '  [info]  Tools to install: ${tools.join(', ')}'
+	if opts.dry_run {
+		lines << '  [info]  Targets are limited to the current user home; no files or receipts will be changed.'
+	}
 
 	mut installed := []string{}
 	mut skipped_tools := []string{}
@@ -128,7 +132,11 @@ pub fn run_install(opts InstallOptions) InstallReport {
 	lines << '----------------------------------------------------------------------'
 	lines << 'Installation summary'
 	if installed.len > 0 {
-		lines << '  ✓  Installed: ${installed.join(', ')}'
+		lines << if opts.dry_run {
+			'  [dry]   Reviewed: ${installed.join(', ')}'
+		} else {
+			'  ✓  Installed: ${installed.join(', ')}'
+		}
 	}
 	if skipped_tools.len > 0 {
 		lines << '  -  Skipped:   ${skipped_tools.join(', ')}'
@@ -138,9 +146,13 @@ pub fn run_install(opts InstallOptions) InstallReport {
 		report.failures = failed
 	}
 	lines << ''
-	lines << '  [info]  Next steps:'
-	lines << '  [info]    1. Restart your AI tool(s) to load the new profiles'
-	lines << "  [info]    2. Run 'agent-toolkit doctor' to verify the installation"
+	if opts.dry_run {
+		lines << '  [info]  Review the listed changes, then confirm Install profiles in Desktop to apply them.'
+	} else {
+		lines << '  [info]  Next steps:'
+		lines << '  [info]    1. Restart your AI tool(s) to load the new profiles'
+		lines << "  [info]    2. Run 'agent-toolkit doctor' to verify the installation"
+	}
 	report.files_written = files
 	report.message = lines.join('\n')
 	if failed.len > 0 {
@@ -207,7 +219,7 @@ fn install_tool_on_path(name string) bool {
 fn install_one_tool(tool string, data_root string, home string, receipt_dir string, dry_run bool, force bool) (bool, int, string) {
 	mut lines := []string{}
 	lines << ''
-	lines << '  [info]  Installing: ${tool}'
+	lines << if dry_run { '  [info]  Reviewing: ${tool}' } else { '  [info]  Installing: ${tool}' }
 	if !install_source_present(tool, data_root) {
 		lines << '  ⚠  Profile source not found for ${tool}'
 		return false, 0, lines.join('\n')
@@ -217,14 +229,8 @@ fn install_one_tool(tool string, data_root string, home string, receipt_dir stri
 		lines << '  ⚠  No installable files for ${tool}'
 		return false, 0, lines.join('\n')
 	}
-	if dry_run {
-		for m in mappings {
-			lines << '  [dry]   Would copy: ${os.file_name(m.src)} → ${m.dst}'
-		}
-		return true, mappings.len, lines.join('\n')
-	}
 	mut tx := new_install_transaction(tool, InstallTxOptions{
-		dry_run: false
+		dry_run: dry_run
 		force: force
 		receipt_dir: receipt_dir
 		toolkit_root: data_root
@@ -249,14 +255,26 @@ fn install_one_tool(tool string, data_root string, home string, receipt_dir stri
 				lines << '  -  Already up to date: ${m.dst}'
 			}
 			'skip_preserve' {
-				lines << '  -  Preserving user-owned file (use --force to overwrite): ${m.dst}'
+				lines << if dry_run {
+					'  [dry]   Would preserve existing file (no overwrite): ${m.dst}'
+				} else {
+					'  -  Preserving user-owned file (use --force to overwrite): ${m.dst}'
+				}
 			}
 			'merged' {
-				lines << '  ✓  Merged config: ${m.dst}'
+				lines << if dry_run {
+					'  [dry]   Would merge config without overwriting existing keys: ${m.dst}'
+				} else {
+					'  ✓  Merged config: ${m.dst}'
+				}
 				planned++
 			}
 			else {
-				lines << '  ✓  Installed: ${m.dst}'
+				lines << if dry_run {
+					'  [dry]   Would install: ${m.dst}'
+				} else {
+					'  ✓  Installed: ${m.dst}'
+				}
 				planned++
 			}
 		}
@@ -265,7 +283,7 @@ fn install_one_tool(tool string, data_root string, home string, receipt_dir stri
 	// but no longer present in the new install set (#872). Preserves user files:
 	// only removes paths listed in the prior receipt with ownership == 'created'
 	// and not in current mappings. Skips path escapes.
-	stale := cleanup_stale_install_files(tool, receipt_dir, home, mappings)
+	stale := cleanup_stale_install_files(tool, receipt_dir, home, mappings, dry_run)
 	for s in stale {
 		lines << s
 	}
@@ -577,7 +595,7 @@ fn muse_skill_mappings(data_root string, home string) []FileMapping {
 // agent/skill set (#872: typescript-reviewer etc. archived to references/).
 // Preserves user files — only paths the old receipt claims as Toolkit-owned.
 // Called before commit so new receipt does not re-list removed artifacts.
-fn cleanup_stale_install_files(tool string, receipt_dir string, _home string, mappings []FileMapping) []string {
+fn cleanup_stale_install_files(tool string, receipt_dir string, home string, mappings []FileMapping, dry_run bool) []string {
 	mut lines := []string{}
 	prior := load_install_receipt(tool, profiles_product, receipt_dir) or { return lines }
 	if prior.artifacts.len == 0 {
@@ -602,18 +620,45 @@ fn cleanup_stale_install_files(tool string, receipt_dir string, _home string, ma
 		if !os.exists(a.path) {
 			continue
 		}
-		// Double-check not overwriting a user file not in current Toolkit set but
-		// present on disk — only delete if it matches prior digest or is an agent artifact.
-		// We still remove stale Toolkit-owned agents (database-reviewer etc.).
-		os.rm(a.path) or {
-			lines << '  ⚠  Failed to remove stale: ${a.path}: ${err}'
+		home_real := os.real_path(home)
+		path_real := os.real_path(a.path)
+		if home_real.len == 0 || path_real.len == 0 || !path_real.starts_with(home_real + os.path_separator) {
+			lines << '  ⚠  Skipping stale path outside user home: ${a.path}'
 			continue
 		}
-		lines << '  -  Removed stale: ${a.path}'
+		contents := os.read_file(a.path) or {
+			lines << '  ⚠  Skipping unreadable stale file: ${a.path}'
+			continue
+		}
+		content_digest := sha256.hexhash(contents)
+		current_digest := if content_digest.len > 16 {
+			content_digest[..16]
+		} else {
+			content_digest
+		}
+		if a.digest.len == 0 || current_digest != a.digest {
+			lines << '  ⚠  Skipping stale file changed since Toolkit installed it: ${a.path}'
+			continue
+		}
+		if !dry_run {
+			os.rm(a.path) or {
+				lines << '  ⚠  Failed to remove stale: ${a.path}: ${err}'
+				continue
+			}
+		}
+		lines << if dry_run {
+			'  [dry]   Would remove stale Toolkit-owned file: ${a.path}'
+		} else {
+			'  -  Removed stale: ${a.path}'
+		}
 		removed++
 	}
 	if removed > 0 {
-		lines << '  [info]  Cleaned ${removed} stale Toolkit-owned file(s) from prior install'
+		lines << if dry_run {
+			'  [info]  ${removed} stale Toolkit-owned file(s) would be removed from prior install'
+		} else {
+			'  [info]  Cleaned ${removed} stale Toolkit-owned file(s) from prior install'
+		}
 	}
 	return lines
 }
