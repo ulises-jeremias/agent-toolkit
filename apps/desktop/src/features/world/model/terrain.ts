@@ -403,7 +403,11 @@ function forest(p: Painter) {
         [-2, -1, 0, 1, 2].some((dx) => p.paths.has(key(x + dx, y + dy))),
       );
       const grove = insideGrove(x, y);
+      // Keep tall canopies fully inside the framed world; low grass and
+      // flowers can still reach the edge without looking accidentally cut.
+      const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 2;
       const wantTree =
+        treeInsideFrame &&
         !nearBuilding &&
         !nearTree &&
         !nearTrail &&
@@ -492,7 +496,7 @@ function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonl
 /** One hornero perched near the hall + butterflies over flower beds. */
 function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
   if (hall) {
-    p.sprite('hornero:hall', hall.x + hall.w, hall.y - 1, 'hornero', 16, 12, 4, 6, true, true);
+    p.sprite('hornero:hall', hall.x + hall.w, hall.y + 1, 'hornero', 16, 12, 4, 6, true, true);
   }
   let seen = 0;
   for (const [at, tile] of p.cells) {

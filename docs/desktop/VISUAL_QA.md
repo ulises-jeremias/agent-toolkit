@@ -15,6 +15,28 @@ Review fresh empty/one/many-project worlds, project selection and interior, Peop
 
 The world is the dominant `/world` surface. Projects are actual buildings and shared capabilities have distinct places. A configured offline Person is shown in the roster, never as a world worker. Runtime characters require a real session/job/run and disappear when it ends. Furniture, signs, labels, and ambient animation must not imply nonexistent activity.
 
+## Compact valley composition review — 2026-10-03
+
+After tightening the civic streets and moving project houses beside the creek
+crossing, empty and one-project valleys now fit at crisp 32px tiles in a
+1024×640 window; the world becomes the main surface instead of a small map in
+the middle of a tall lawn. Three-project layouts still use the smaller fit zoom
+because preserving every house and the shared landmarks in one frame takes
+priority over cropping the settlement. Opened and reviewed the fresh captures:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+
+The compact one-project composition is substantially more legible and keeps
+the whole project house and civic district visible. The meadow remains visually
+too uniform across long distances, the path is angular, and several landmark
+sprites still look like simple prototypes; those are still open art-direction
+work, not quality claims closed by this framing change.
+
 ## Latest opened review — 2026-10-03
 
 ### Workspace switch and project isolation — 2026-10-03
