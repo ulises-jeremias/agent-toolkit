@@ -45,7 +45,7 @@ export function projectFacade(name: string): ProjectFacade {
 export function projectFacades(names: readonly string[]): ReadonlyMap<string, ProjectFacade> {
   const assigned = new Map<string, ProjectFacade>();
   const used = new Set<ProjectFacade>();
-  for (const name of [...new Set(names)].sort((left, right) => left.localeCompare(right))) {
+  for (const name of [...new Set(names)].sort((left, right) => (left < right ? -1 : left > right ? 1 : 0))) {
     const first = facadeIndex(name);
     let selected: ProjectFacade | undefined;
     for (let offset = 0; offset < PROJECT_FACADES.length; offset += 1) {
