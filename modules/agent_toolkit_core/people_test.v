@@ -57,6 +57,29 @@ fn test_swarm_person_bindings_require_active_people_and_canonical_roles() {
 	}
 }
 
+fn test_swarm_person_binding_resolution_prefers_explicit_then_compatible_unique_people() {
+	ws := os.join_path(os.temp_dir(), 'atk-people-swarm-resolve-${os.getpid()}')
+	os.mkdir_all(os.join_path(ws, '.git')) or { panic(err) }
+	defer { os.rmdir_all(ws) or {} }
+	save_person(ws, lina_json.replace('"role":"reviewer"', '"role":"designer","definition_id":"planner"'), true)!
+	save_person(ws, lina_json.replace('"id":"lina"', '"id":"alex"').replace('"name":"Lina"', '"name":"Alex"'), true)!
+	save_person(ws, lina_json.replace('"id":"lina"', '"id":"zoe"').replace('"name":"Lina"', '"name":"Zoe"'), true)!
+	save_person(ws, lina_json.replace('"id":"lina"', '"id":"aaron"').replace('"name":"Lina"', '"name":"Aaron"').replace('"archived":false', '"archived":true'), true)!
+	save_person(ws, lina_json.replace('"id":"lina"', '"id":"mira"').replace('"name":"Lina"', '"name":"Mira"').replace('"role":"reviewer"', '"role":"qa"'), true)!
+	resolved := resolve_swarm_person_bindings(ws, 'team', {
+		'architect': 'mira'
+	})!
+	assert resolved['architect'] == 'mira'
+	assert resolved['planner'] == 'lina'
+	assert resolved['reviewer'] == 'alex'
+	assert 'implementer' !in resolved
+	mut unique_people := []string{}
+	for person_id in resolved.values() {
+		if person_id !in unique_people { unique_people << person_id }
+	}
+	assert resolved.values().len == unique_people.len
+}
+
 fn test_people_reject_invalid_runtime_and_symlink_storage() {
 	for invalid in [
 		lina_json.replace('"id":"lina"', '"id":"../lina"'),

@@ -212,21 +212,21 @@ journeys:
     status: partial
     evidence:
       - note: >-
-          Operations loads the active roster, lets the user explicitly bind one
-          Person per canonical recipe role, preserves Auto/ephemeral fallback,
-          and submits the typed binding to the backend. The backend validates
-          recipe membership, Person existence/archive state and uniqueness,
-          persists the binding on the run and exports AGENT_TOOLKIT_PERSON_ID
-          as an adapter hint to role processes launched by Herdr/tmux. Agent
-          Toolkit does not yet consume that hint to associate an AgentSession,
-          terminal, or World character. Headless mode rejects an explicit
-          launch request. Runner/model remain swarm-wide settings.
-        build: "feat/desktop-swarm-people-bindings (V + Electron E2E)"
+          Operations loads the active roster and asks the live V backend to
+          preview the resolved binding before Start. An explicit per-role
+          choice wins; Auto then selects a unique active Person whose saved
+          role or AgentDefinition matches the recipe role, and unmatched roles
+          remain ephemeral. The same resolver runs before persistence, the
+          resolved IDs are stored with the run and exported as
+          AGENT_TOOLKIT_PERSON_ID adapter hints. The hint is not yet consumed
+          as an AgentSession identity, terminal action, or World character.
+          Runner/model remain swarm-wide settings.
+        build: "feat/swarm-person-preferences (V core + Electron E2E)"
         screenshots:
           - assets/electron/swarms/swarm-start-compact.png
           - assets/electron/swarms/swarm-start-large.png
     blockers:
-      - preferred compatible Person resolution from people/bindings.yaml is not implemented
+      - role preferences from people/bindings.yaml are not read; automatic matching uses saved Person role/AgentDefinition
       - per-Person provider/model preference and Person-specific terminal actions are not implemented
       - Agent Toolkit does not consume the role-process Person hint as a session identity
       - swarm role sessions are not yet projected into truthful World characters

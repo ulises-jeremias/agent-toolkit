@@ -248,3 +248,37 @@ pub fn validate_swarm_person_bindings(workspace string, recipe string, bindings 
 		seen << id
 	}
 }
+
+// resolve_swarm_person_bindings preserves explicit assignments, then assigns
+// one active Person whose durable role or AgentDefinition matches each
+// remaining recipe role. Unmatched roles stay absent and use the ephemeral
+// recipe role.
+pub fn resolve_swarm_person_bindings(workspace string, recipe string, explicit map[string]string) !map[string]string {
+	validate_swarm_person_bindings(workspace, recipe, explicit)!
+	mut resolved := explicit.clone()
+	mut used := []string{}
+	for _, person_id in resolved {
+		used << person_id
+	}
+	people := list_people(workspace)!
+	config := resolve_swarm_config(workspace, recipe, '', '', '')!
+	for role_name in swarm_recipe_roles(recipe) {
+		if role_name in resolved { continue }
+		role := config.spec.roles[role_name] or { continue }
+		for person in people.people {
+			id := person_string(person, 'id', true, 64, 'id')!
+			if id in used { continue }
+			archived := person['archived'] or { continue }
+			if archived is bool {
+				if archived { continue }
+			} else { continue }
+			person_role := person_string(person, 'role', true, 64, 'id')!
+			definition_id := person_string(person, 'definition_id', false, 128, 'ref')!
+			if person_role != role_name && (role.persona.len == 0 || definition_id != role.persona) { continue }
+			resolved[role_name] = id
+			used << id
+			break
+		}
+	}
+	return resolved
+}
