@@ -863,6 +863,7 @@ describe('layoutWorld', () => {
     expect(exit!.x).toBe(1);
     expect(room!.x).toBeGreaterThan(exit!.x);
     expect(records?.x).toBe(8);
-    expect(layout.cols).toBeLessThanOrEqual(13);
+    expect(layout.cols).toBe(12);
+    expect(layout.rows).toBe(9);
   });
 });

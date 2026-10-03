@@ -114,8 +114,10 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   }
 
   return {
-    cols: Math.max(maxX + 1, 12),
-    rows: Math.max(maxY + 1, 12),
+    // Keep a small comfortable room at minimum size; let real furniture,
+    // records, or active sessions expand it instead of drawing empty floor.
+    cols: Math.max(maxX, 10),
+    rows: Math.max(maxY, 9),
     entities: laid,
   };
 }
