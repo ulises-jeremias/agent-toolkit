@@ -253,15 +253,11 @@
   transform: translate(-50%, 0);
 }
 
-/* Game-style name plaque under places/objects. */
-.entityLabel {
+/* Game-style semantic plaques are a layer above the sprite/depth pass. */
+.worldLabel {
   position: absolute;
-  /* Plaques sit below their hit box, where later-painted building canopies
-     used to cover them. Keep semantic names readable above adjacent sprites. */
-  z-index: 6;
-  left: 50%;
-  bottom: -2px;
-  transform: translate(-50%, 100%);
+  z-index: 10;
+  transform: translate(-50%, 0);
   font-family: var(--font-display);
   font-size: clamp(7px, calc(var(--world-tile-size, 16px) * 0.34), 12px);
   line-height: 1.3;
@@ -275,9 +271,10 @@
   max-width: 12rem;
   overflow: hidden;
   text-overflow: ellipsis;
+  pointer-events: none;
 }
 
-.entity[data-kind='place'] .entityLabel {
+.worldLabel[data-label-kind='place'] {
   width: max-content;
   max-width: 12rem;
   font-size: clamp(7px, calc(var(--world-tile-size, 16px) * 0.34), 12px);
@@ -285,25 +282,10 @@
   overflow-wrap: normal;
 }
 
-.entity[data-selected='true'] .entityLabel,
-.entity:focus-visible .entityLabel {
+.worldLabel[data-selected='true'] {
   background: var(--accent-gold);
   color: #241d2e;
   border-color: var(--accent-gold);
-}
-
-.entity:hover .entityLabel {
-  z-index: 7;
-}
-
-/* Individual archive records are inspectable signs. Their titles can be long;
-   reveal the plaque on inspection so neighboring signs stay readable. */
-.entity[data-theme-key='memory.entry'] .entityLabel {
-  opacity: 0;
-}
-
-.entity[data-theme-key='memory.entry']:is(:hover, :focus-visible, [data-selected='true']) .entityLabel {
-  opacity: 1;
 }
 
 /* Blocked characters raise a red "!" bubble. */

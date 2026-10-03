@@ -303,6 +303,25 @@ export function WorldEntityMap({
           .map((d) => (
             <DecorSpriteView key={d.id} decor={d} theme={theme} scale={scale} />
           ))}
+        {entities
+          .filter(
+            (entity) => entity.kind !== 'character' && (entity.themeKey !== 'memory.entry' || entity.id === selectedId),
+          )
+          .map((entity) => (
+            <span
+              key={`label:${entity.id}`}
+              className={styles.worldLabel}
+              data-label-kind={entity.kind}
+              data-selected={entity.id === selectedId ? 'true' : undefined}
+              style={{
+                left: (entity.x + entity.w / 2) * zoom,
+                top: (entity.y + entity.h) * zoom + 2,
+                ['--world-tile-size' as string]: `${zoom}px`,
+              }}
+            >
+              {entity.name}
+            </span>
+          ))}
       </div>
       <div className={styles.cameraHud} role="group" aria-label="Map view controls">
         <button type="button" className={styles.hudButton} onClick={zoomOut} aria-label="Zoom out">
@@ -435,7 +454,6 @@ function EntityTile({
       {entity.kind === 'character' && entity.activity === 'blocked' ? (
         <span className={styles.alertBubble} aria-hidden="true" />
       ) : null}
-      {entity.kind !== 'character' ? <span className={styles.entityLabel}>{entity.name}</span> : null}
       {canInspect ? (
         <span className={styles.entityTooltip} id={`world-entity-tip-${encodeURIComponent(entity.id)}`}>
           <strong>{entity.name}</strong>
