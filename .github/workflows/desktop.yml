@@ -67,6 +67,9 @@ jobs:
       - run: pnpm --filter agent-toolkit-desktop exec playwright install chromium --with-deps
       - name: E2E (renderer)
         run: pnpm --filter agent-toolkit-desktop exec playwright test --project=renderer
+      - name: Prepare Electron for world capture
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
+        run: pnpm --filter agent-toolkit-desktop exec electron --version
       - name: Capture world visual review
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
         env:
