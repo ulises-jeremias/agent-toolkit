@@ -634,7 +634,7 @@ describe('layoutWorld', () => {
     expect(secondAlpha).toMatchObject({ x: firstAlpha.x, y: firstAlpha.y, w: firstAlpha.w, h: firstAlpha.h });
     const compactTeam = layoutFor(['alpha', 'beta', 'gamma']);
     expect(compactTeam.cols).toBeLessThanOrEqual(28);
-    expect(compactTeam.rows).toBeLessThanOrEqual(14);
+    expect(compactTeam.rows).toBeLessThanOrEqual(12);
   });
 
   it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {

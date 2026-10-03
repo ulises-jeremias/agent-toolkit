@@ -268,7 +268,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   }
 
   const districtRows = Math.ceil(projects.length / Math.max(1, districtCols));
-  const mapRows = districtY + Math.max(0, districtRows - 1) * 5 + 5;
+  const mapRows = districtY + Math.max(0, districtRows - 1) * 5 + 3;
   return {
     // maxX is already an exclusive tile bound; do not add a second padding
     // tile beyond it, which made short project rosters look needlessly wide.
