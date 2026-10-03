@@ -413,6 +413,42 @@
       "h": 16,
       "frames": 1
     },
+    "grass-g": {
+      "file": "grass-g.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-h": {
+      "file": "grass-h.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-i": {
+      "file": "grass-i.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-j": {
+      "file": "grass-j.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-k": {
+      "file": "grass-k.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-l": {
+      "file": "grass-l.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
     "flowers-poppy": {
       "file": "flowers-poppy.png",
       "w": 16,

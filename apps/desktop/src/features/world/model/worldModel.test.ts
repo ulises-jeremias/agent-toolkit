@@ -776,6 +776,9 @@ describe('layoutWorld', () => {
   it('clusters meadow color patches instead of changing grass palette every tile', () => {
     const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
     const cells = paintTerrain(layout.entities, layout.cols, layout.rows).cells;
+    expect(new Set(cells.filter(({ tile }) => tile.startsWith('grass-')).map(({ tile }) => tile)).size).toBeGreaterThan(
+      6,
+    );
     const tiles = new Map(cells.map(({ x, y, tile }) => [`${x},${y}`, tile]));
     let adjacentPairs = 0;
     let paletteChanges = 0;

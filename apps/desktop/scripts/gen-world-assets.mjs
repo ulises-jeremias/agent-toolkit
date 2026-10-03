@@ -1642,7 +1642,7 @@ function collect() {
     hornero(),
   ])
     for (const s of group) put(s.name, s.img, s.frames);
-  for (let i = 0; i < 6; i++) put(`grass-${'abcdef'[i]}`, grassTile(i + 1));
+  for (let i = 0; i < 12; i++) put(`grass-${'abcdefghijkl'[i]}`, grassTile(i + 1));
   for (let i = 0; i < 4; i++) put(`flowers-${['poppy', 'daisy', 'lavender', 'gold'][i]}`, flowerTile(i));
   for (const t of dirtTiles()) put(t.name, t.img);
   for (const t of plazaTiles()) put(t.name, t.img);

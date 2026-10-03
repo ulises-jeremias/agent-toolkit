@@ -158,7 +158,10 @@ function baseGround(p: Painter) {
                   : moisture < 0.94
                     ? 3
                     : 5;
-        p.set(x, y, `grass-${grass}`);
+        // Each moisture band has two authored tile patterns. Stable per-cell
+        // choice breaks up repeated 16px stamps without adding visual noise.
+        const texture = h2(x, y, 59) % 2;
+        p.set(x, y, `grass-${grass * 2 + texture}`);
       }
     }
   }
