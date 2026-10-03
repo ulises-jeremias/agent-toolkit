@@ -65,8 +65,7 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
           (await start.getByText('No interactive runner is installed').count()) > 0,
       )
       .toBe(true);
-    const runnerId = await installedOptions.first().getAttribute('value');
-    if (!runnerId) {
+    if ((await installedOptions.count()) === 0) {
       await expect(start.getByRole('status')).toContainText('No interactive runner is installed');
       if (CAPTURE) {
         await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-compact.png') });
@@ -77,6 +76,8 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
       await expect(page.getByRole('button', { name: /Lina.*reviewer.*Offline/ })).toBeVisible();
       return;
     }
+    const runnerId = await installedOptions.first().getAttribute('value');
+    if (!runnerId) throw new Error('Discovered runner option is missing its id.');
     await runner.selectOption(runnerId);
     if (CAPTURE) {
       await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-compact.png') });
