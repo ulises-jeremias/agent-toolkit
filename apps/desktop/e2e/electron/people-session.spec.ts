@@ -86,6 +86,16 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
     const personCharacter = page.getByRole('button', { name: /Lina.*Person session.*session open/i });
     await expect(personCharacter).toBeVisible({ timeout: 15_000 });
+    const projectHouse = page.locator('[data-entity-id="place:project:agent-toolkit"]');
+    await expect(projectHouse).toBeVisible();
+    const personBox = await personCharacter.boundingBox();
+    const houseBox = await projectHouse.boundingBox();
+    expect(personBox).not.toBeNull();
+    expect(houseBox).not.toBeNull();
+    expect(personBox!.x).toBeGreaterThanOrEqual(houseBox!.x);
+    expect(personBox!.x).toBeLessThan(houseBox!.x + houseBox!.width);
+    expect(personBox!.y).toBeGreaterThanOrEqual(houseBox!.y);
+    expect(personBox!.y).toBeLessThan(houseBox!.y + houseBox!.height);
     if (CAPTURE) {
       await setViewport(desktop.app, 1024, 640);
       await page.screenshot({ path: path.join(CAPTURE_DIR, 'world-person-compact.png') });

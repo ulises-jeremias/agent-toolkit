@@ -14,6 +14,7 @@ test('links an existing project from the GUI and places it in the world', async 
       fs.mkdirSync(captureDir, { recursive: true });
       await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
       await expect(page.getByRole('button', { name: /No projects yet/ })).toBeVisible();
+      await expect(page.locator('[data-entity-id="object:workshop"]')).toHaveCount(1);
       for (const size of [
         { width: 1024, height: 640, key: 'compact' },
         { width: 1920, height: 1080, key: 'large' },
@@ -77,6 +78,8 @@ test('links an existing project from the GUI and places it in the world', async 
     await expect(projectCommand).toBeVisible();
     await projectCommand.click();
     await expect(page.getByRole('application', { name: 'Interior of garden-api' })).toBeVisible();
+    await expect(page.locator('[data-entity-id="object:workshop"]')).toHaveCount(0);
+    await expect(page.locator('[data-entity-id^="object:tool:"]')).toHaveCount(0);
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
     const world = page.getByRole('application', { name: 'Semantic workspace world' });
     if (process.env.ATK_CAPTURE === '1') {
@@ -116,7 +119,7 @@ test('links an existing project from the GUI and places it in the world', async 
     await page.getByRole('button', { name: /Files · Project files/ }).click();
     await expect(page).toHaveURL(/workspace\?[^#]*panel=files[^#]*project=garden-api/);
     await expect(page.getByRole('heading', { name: 'garden-api files' })).toBeVisible();
-    await page.getByRole('button', { name: /README\.md/ }).click();
+    await page.getByRole('button', { name: 'file README.md 13 B', exact: true }).click();
     await expect(page.getByText('# Garden API')).toBeVisible();
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
     await page.getByRole('button', { name: /garden-api · Project/ }).click();

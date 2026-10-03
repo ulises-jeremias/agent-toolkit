@@ -147,7 +147,7 @@ describe('buildWorldModel memory + standAt', () => {
     expect(beta.entities.map((e) => e.id)).toContain('object:memory:b.md');
   });
 
-  it('places a character at the interior object named by job.cmd', () => {
+  it('keeps a project job in its project room instead of placing it beside global tool inventory', () => {
     const tools: ToolRecord[] = [
       {
         id: 'cursor',
@@ -168,12 +168,12 @@ describe('buildWorldModel memory + standAt', () => {
       }),
     );
     const character = model.entities.find((e) => e.id === 'character:job:j1');
-    expect(character?.standAtId).toBe('object:tool:cursor');
+    expect(character?.standAtId).toBeUndefined();
+    expect(model.entities.some((entity) => entity.id === 'object:tool:cursor')).toBe(false);
     const laid = layoutWorld(model);
-    const tool = laid.entities.find((e) => e.id === 'object:tool:cursor')!;
     const body = laid.entities.find((e) => e.id === 'character:job:j1')!;
-    expect(body.x).toBe(tool.x + tool.w);
-    expect(body.y).toBe(tool.y + tool.h - 1);
+    expect(body.projectId).toBe('alpha');
+    expect(body.y).toBeGreaterThan(laid.entities.find((e) => e.id === 'place:project:alpha')!.y);
   });
 
   it('keeps a failed house enterable without retaining a finished worker', () => {

@@ -222,9 +222,16 @@ function renderPaths(p: Painter) {
 }
 
 /** A broad east-valley creek with a slow, bridge-anchored meander. */
-function creek(p: Painter, preferredX: number, bridgeRows: ReadonlySet<number>, eastLimit: number) {
+function creek(
+  p: Painter,
+  preferredX: number,
+  bridgeRows: ReadonlySet<number>,
+  eastLimit: number,
+  workshopBankX: number,
+) {
   const bridgeY = [...bridgeRows][0] ?? Math.floor(p.rows / 2);
   const maxCenterX = Math.max(7, Math.min(p.cols - 6, eastLimit));
+  const minCenterX = Math.max(6, Math.min(maxCenterX, workshopBankX));
   const baseX = Math.max(7, Math.min(maxCenterX, preferredX));
   let x = baseX;
   let crossingX = x;
@@ -233,7 +240,7 @@ function creek(p: Painter, preferredX: number, bridgeRows: ReadonlySet<number>, 
     // Two slow waves create natural reaches and gentle bends while preserving
     // the bridge crossing as a fixed, navigable landmark.
     x = baseX + Math.round(Math.sin(along * 0.15) * 5.5 + Math.sin(along * 0.05) * 2.25);
-    x = Math.max(6, Math.min(maxCenterX, x));
+    x = Math.max(minCenterX, Math.min(maxCenterX, x));
     if (bridgeRows.has(y)) crossingX = x;
     const width = 3;
     for (let cx = x; cx < x + width; cx++) {
@@ -476,11 +483,12 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
 
   // creek first so roads bridge it
   const marker = entities.find((e) => e.id === 'place:projects-empty');
+  const workshop = entities.find((e) => e.id === 'object:workshop');
   const riverAnchorX = projects.length
     ? Math.min(...projects.map((project) => project.x))
     : (marker?.x ?? Math.floor(cols / 2));
-  const riverX = riverAnchorX - (projects.length ? 6 : 8);
-  const creekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 4);
+  const riverX = riverAnchorX - (projects.length ? 2 : 8);
+  const creekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
   (p as unknown as { creekX: number }).creekX = creekX;
   const routeEndX = projects.length
     ? Math.max(...projects.map((project) => project.x + project.w)) + 2
@@ -545,7 +553,10 @@ export function paintInterior(entities: readonly LaidOutEntity[], cols: number, 
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       const wall = y === 0 || y === rows - 1 || x === 0 || x === cols - 1;
-      p.set(x, y, wall ? 'wall' : (x + y) % 2 ? 'floor-a' : 'floor-b', true);
+      // Alternate staggered plank courses so seams and grain do not line up
+      // into broad stripes across the whole room.
+      const floorVariant = (x + y) % 2 === 0 ? 'floor-a' : 'floor-b';
+      p.set(x, y, wall ? 'wall' : floorVariant, true);
     }
   }
   return { cells: cellsToArray(p), decor: p.decor };
