@@ -108,14 +108,17 @@ counted as configured people.
 When a swarm recipe names a role:
 
 Desktop lets the user assign one active Person to each canonical recipe role
-before starting. Roles remain ephemeral responsibilities; the Person ID is
-stored with the run and exported as `AGENT_TOOLKIT_PERSON_ID` to that role's
-adapter process, including roles started after handoff. This is currently
-run metadata and an environment hint: Agent Toolkit does not yet consume it to
-associate the process with a canonical `AgentSession`, terminal action, or
-World character. The backend rejects
-unknown roles, missing or archived People, and duplicate assignments. Auto
-leaves the role unbound and keeps the recipe's ephemeral fallback.
+before starting. The live backend preview resolves each role in the same way
+the run will: an explicit selection wins, then one unused active Person whose
+saved `role` or `definition_id` matches the recipe slot, then an ephemeral
+recipe role. The review names each selected or matched Person and shows the
+ephemeral fallbacks before Start. Roles remain ephemeral responsibilities; the
+Person ID is stored with the run and exported as `AGENT_TOOLKIT_PERSON_ID` to
+that role's adapter process, including roles started after handoff. This is
+currently run metadata and an environment hint: Agent Toolkit does not yet
+consume it to associate the process with a canonical `AgentSession`, terminal
+action, or World character. The backend rejects unknown roles, missing or
+archived People, and duplicate assignments.
 
 The `launch_sessions` API option starts real Herdr/tmux role processes without
 attaching the server request to an interactive terminal. Headless mode records
@@ -158,6 +161,6 @@ file authoring as the user interface:
   environment hint, swarm-process terminal reopen/stop from Desktop, and
   truthful swarm-session projection into the World.
 
-Explicit assignment and the unbound ephemeral fallback are supported. Preferred
-Person auto-resolution remains separate work and is not implied by the current
-picker.
+Explicit assignment, automatic matching by saved `role` or `definition_id`, and
+the unbound ephemeral fallback are supported. Preferences from
+`people/bindings.yaml` remain separate work and are not read by the resolver.

@@ -755,7 +755,13 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
     'Direct base merge: Not allowed',
   );
   await dialog.getByLabel('Task').fill('Inspect the existing Desktop architecture');
+  await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText(
+    'reviewer → Lina · matched role',
+  );
   await dialog.getByLabel('Person for reviewer').selectOption('lina');
+  await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText(
+    'reviewer → Lina · selected',
+  );
   await expect(dialog.getByText(/Runner and model remain swarm-wide settings/)).toBeVisible();
   await setViewport(desktop.app, 1024, 768);
   await page.screenshot({ path: 'test-results/review/swarms-start-compact.png', fullPage: true });

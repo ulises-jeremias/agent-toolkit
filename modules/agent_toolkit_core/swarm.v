@@ -823,7 +823,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 	recipe = resolved.metadata.name
-	validate_swarm_person_bindings(ws, recipe, opts.person_bindings) or {
+	resolved_person_bindings := resolve_swarm_person_bindings(ws, recipe, opts.person_bindings) or {
 		return SwarmReport{
 			ok: false
 			message: err.msg()
@@ -838,7 +838,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		}
 		return SwarmReport{
 			ok: true
-			message: '[swarm] dry-run start recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} run_id=${rid}\n  roles: ${swarm_recipe_roles(recipe).join(', ')}\n  personas: ${persona_info.join(', ')}\n  budget: ${json2.encode(resolved.budget,
+			message: '[swarm] dry-run start recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} run_id=${rid}\n  roles: ${swarm_recipe_roles(recipe).join(', ')}\n  personas: ${persona_info.join(', ')}\n  people: ${json2.encode(resolved_person_bindings, escape_unicode: true)}\n  budget: ${json2.encode(resolved.budget,
 				escape_unicode: true
 			)}\n  no filesystem writes; UI spawn skipped (ADR-020 fail-closed)'
 			data: {
@@ -849,6 +849,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 				'runner':        runner
 				'model_profile': model_profile
 				'run_id':        rid
+				'person_bindings': json2.encode(resolved_person_bindings, escape_unicode: true)
 			}
 		}
 	}
@@ -945,7 +946,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		personas: personas
 		policy: policy_map
 		active_roles: []string{}
-		person_bindings: clone_string_map(opts.person_bindings)
+		person_bindings: clone_string_map(resolved_person_bindings)
 		worktrees: created_wts
 	}
 	write_swarm_state(run_dir, st) or {
@@ -1052,6 +1053,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 			'model_profile': model_profile
 			'run_state':     initial
 			'workspace':     ws
+			'person_bindings': json2.encode(resolved_person_bindings, escape_unicode: true)
 		}
 	}
 }

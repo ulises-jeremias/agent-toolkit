@@ -1,9 +1,9 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useModels, useProviders } from '../../data/catalog';
 import { useLiveStatus } from '../../data/live';
 import { useSwarmCommand, useSwarmRecipes, useSwarmRun, useSwarmRunAction, useSwarms } from '../../data/swarms';
-import type { CommandEnvelope, SubBody, SwarmRunInfo, SwarmRunResponse } from '../../lib/api';
+import { requireOk, type CommandEnvelope, type SubBody, type SwarmRunInfo, type SwarmRunResponse } from '../../lib/api';
 import { requireClient, useBackend } from '../../data/backend';
 import { useSessionContext } from '../../shell/useSessionContext';
 import {
@@ -524,6 +524,11 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   const [dryRun, setDryRun] = useState(false);
   const [launchSessions, setLaunchSessions] = useState(true);
   const [personBindings, setPersonBindings] = useState<Record<string, string>>({});
+  const [previewTask, setPreviewTask] = useState('');
+  useEffect(() => {
+    const timer = window.setTimeout(() => setPreviewTask(task.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [task]);
   const peopleQuery = useQuery({
     queryKey: ['people', context.workspace],
     queryFn: () => requireClient(client).people(context.workspace),
@@ -569,6 +574,30 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
     };
     return compactBody(payload);
   }, [activePersonBindings, backend, context.workspace, dryRun, model, recipe, runner, task, willLaunchSessions]);
+  const previewBody = useMemo(
+    () => compactBody({ ...body, task: previewTask, launch_sessions: false, dry_run: true }),
+    [body, previewTask],
+  );
+  const startPreview = useQuery({
+    queryKey: ['swarms', 'start-preview', previewBody],
+    queryFn: async () => requireOk(await requireClient(client).sub('swarms', 'start', previewBody)),
+    enabled: open && Boolean(context.workspace) && Boolean(previewTask) && Boolean(selectedRecipe) && client !== null,
+    retry: false,
+    staleTime: 500,
+  });
+  const resolvedPeople = useMemo<Record<string, string>>(() => {
+    const raw = startPreview.data?.data['person_bindings'];
+    if (!raw) return {};
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
+      return Object.fromEntries(
+        Object.entries(parsed).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+      );
+    } catch {
+      return {};
+    }
+  }, [startPreview.data]);
 
   const close = () => {
     setRecipe('pair');
@@ -667,7 +696,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
                           }
                           {...control}
                         >
-                          <option value="">Auto · ephemeral</option>
+                          <option value="">Auto · match role, else ephemeral</option>
                           {people.map((candidate) => (
                             <option
                               key={candidate.id}
@@ -687,12 +716,14 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
             {peopleQuery.isPending ? <p>Loading People…</p> : null}
             {peopleQuery.isError ? <ErrorState title="Could not load People" error={peopleQuery.error} /> : null}
             {people.length === 0 && peopleQuery.isSuccess ? (
-              <p>No active People are configured. Auto keeps every recipe role available.</p>
+              <p>
+                No active People are configured. Auto keeps every recipe role available with ephemeral role sessions.
+              </p>
             ) : null}
             {Object.keys(activePersonBindings).length > 0 ? (
               <p className={styles.bindingNote}>
-                A selected Person is recorded on the run and passed to the role adapter as an environment hint; it is
-                not yet linked to a Toolkit session or terminal. Runner and model remain swarm-wide settings.
+                Explicit choices win. Auto assigns a unique active Person with a matching saved role or Agent
+                Definition, then falls back to an ephemeral role. Runner and model remain swarm-wide settings.
               </p>
             ) : null}
             <div className={styles.recipeSummary}>
@@ -839,18 +870,29 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
               ? 'Real role processes will start in the selected session adapter.'
               : 'No role processes will start; only the run record will be created.'}
           </p>
-          {Object.keys(activePersonBindings).length > 0 ? (
-            <p>
-              People:{' '}
-              {(selectedRecipe?.roles ?? [])
-                .filter((role) => activePersonBindings[role.name])
-                .map(
-                  (role) =>
-                    `${role.name} → ${people.find((item) => item.id === activePersonBindings[role.name])?.name ?? activePersonBindings[role.name]}`,
-                )
-                .join(' · ')}
-            </p>
-          ) : null}
+          <section aria-label="Resolved swarm People">
+            <p className={styles.previewLabel}>People per role</p>
+            {!previewTask ? <p>Add a task to preview compatible People and ephemeral fallbacks.</p> : null}
+            {startPreview.isFetching ? <p role="status">Resolving role assignments…</p> : null}
+            {startPreview.isError ? (
+              <ErrorState title="Could not preview role assignments" error={startPreview.error} />
+            ) : null}
+            {startPreview.data ? (
+              <div className={styles.recipeSummary}>
+                {(selectedRecipe?.roles ?? []).map((role) => {
+                  const personId = resolvedPeople[role.name];
+                  const person = people.find((item) => item.id === personId);
+                  const explicit = activePersonBindings[role.name] === personId;
+                  return (
+                    <span key={role.name}>
+                      {role.name} → <strong>{person?.name ?? (personId ? personId : 'Ephemeral role session')}</strong>
+                      {person ? ` · ${explicit ? 'selected' : 'matched role'}` : ''}
+                    </span>
+                  );
+                })}
+              </div>
+            ) : null}
+          </section>
           {dryRun ? <StatusBadge tone="warn" label="Dry run · no run will be created" /> : null}
         </div>
         {mutate.error ? <ErrorState title="The swarm did not start" error={mutate.error} /> : null}
