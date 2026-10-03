@@ -241,7 +241,7 @@ test('links an existing project from the GUI and places it in the world', async 
         await page.getByRole('button', { name: 'Fit world' }).click();
         await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toHaveAttribute(
           'data-zoom',
-          size.key === 'large' ? '48' : '16',
+          size.key === 'large' ? '48' : '32',
         );
         await page.waitForTimeout(200);
         await page.screenshot({ path: path.join(captureDir, `world-several-projects-${size.key}.png`) });

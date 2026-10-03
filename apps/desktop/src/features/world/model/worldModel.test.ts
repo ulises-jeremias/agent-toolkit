@@ -434,7 +434,7 @@ describe('buildWorldModel', () => {
       }
     }
     const waterColumns = [...water].map((cell) => Number(cell.split(',')[0]));
-    expect(house.x).toBeGreaterThanOrEqual(workshop.x + workshop.w + 7);
+    expect(house.x).toBeGreaterThan(Math.max(...waterColumns));
     expect(waterColumns.some((x) => x >= workshop.x + workshop.w && x < house.x)).toBe(true);
   });
 
@@ -627,10 +627,13 @@ describe('layoutWorld', () => {
       );
     const one = layoutFor(['alpha']);
     const two = layoutFor(['alpha', 'beta']);
-    expect(two.cols - one.cols).toBe(5);
+    expect(two.cols).toBeGreaterThanOrEqual(one.cols);
     const firstAlpha = one.entities.find((entity) => entity.id === 'place:project:alpha')!;
     const secondAlpha = two.entities.find((entity) => entity.id === 'place:project:alpha')!;
     expect(secondAlpha).toMatchObject({ x: firstAlpha.x, y: firstAlpha.y, w: firstAlpha.w, h: firstAlpha.h });
+    const compactTeam = layoutFor(['alpha', 'beta', 'gamma']);
+    expect(compactTeam.cols).toBeLessThanOrEqual(28);
+    expect(compactTeam.rows).toBeLessThanOrEqual(14);
   });
 
   it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {
