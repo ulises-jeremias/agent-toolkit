@@ -161,6 +161,6 @@ file authoring as the user interface:
   environment hint, swarm-process terminal reopen/stop from Desktop, and
   truthful swarm-session projection into the World.
 
-Explicit assignment and the unbound ephemeral fallback are supported. Preferred
-Person auto-resolution remains separate work and is not implied by the current
-picker.
+Explicit assignment, automatic matching by saved `role` or `definition_id`, and
+the unbound ephemeral fallback are supported. Preferences from
+`people/bindings.yaml` remain separate work and are not read by the resolver.
