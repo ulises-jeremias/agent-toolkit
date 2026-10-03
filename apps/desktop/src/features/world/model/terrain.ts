@@ -45,6 +45,24 @@ function h2(x: number, y: number, salt = 0): number {
   return (h ^ (h >>> 16)) >>> 0;
 }
 
+/** Irregular grove patches seeded on a coarse lattice, not checkerboard tiles. */
+function insideGrove(x: number, y: number): boolean {
+  const cellSize = 9;
+  const cellX = Math.floor(x / cellSize);
+  const cellY = Math.floor(y / cellSize);
+  for (let gy = cellY - 1; gy <= cellY + 1; gy++) {
+    for (let gx = cellX - 1; gx <= cellX + 1; gx++) {
+      const seedX = gx * cellSize + 2 + (h2(gx, gy, 23) % 5);
+      const seedY = gy * cellSize + 2 + (h2(gx, gy, 29) % 5);
+      const radius = 3 + (h2(gx, gy, 31) % 4);
+      const dx = x - seedX;
+      const dy = (y - seedY) * 1.15;
+      if (dx * dx + dy * dy <= radius * radius) return true;
+    }
+  }
+  return false;
+}
+
 function key(x: number, y: number) {
   return `${x},${y}`;
 }
@@ -356,7 +374,7 @@ function forest(p: Painter) {
       const nearTrail = [-2, -1, 0, 1, 2].some((dy) =>
         [-2, -1, 0, 1, 2].some((dx) => p.paths.has(key(x + dx, y + dy))),
       );
-      const grove = h2(x >> 2, y >> 2, 23) % 2 === 0;
+      const grove = insideGrove(x, y);
       const wantTree =
         !nearBuilding &&
         !nearTree &&
@@ -364,17 +382,19 @@ function forest(p: Painter) {
         (edge ? roll < 18 : nearCreek ? grove && roll < 12 : grove && roll < 17);
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
+        const canopyOffsetX = (h2(x, y, 47) % 5) - 2;
+        const canopyOffsetY = (h2(x, y, 53) % 3) - 1;
         const tree =
           nearCreek && kind < 4
             ? 'tree-willow'
-            : kind < 4
+            : kind < 2
               ? 'tree-pine'
               : kind < 6
                 ? 'tree-blossom'
                 : kind < 8
                   ? 'tree-amber'
                   : 'tree-round';
-        p.sprite(`tree:${x},${y}`, x, y, tree, 32, 40, -8, -26, true);
+        p.sprite(`tree:${x},${y}`, x, y, tree, 32, 40, -8 + canopyOffsetX, -26 + canopyOffsetY, true);
         planted.add(key(x, y));
       } else if (roll === 6) p.sprite(`bush:${x},${y}`, x, y, 'bush', 16, 12, 0, 4);
       else if (roll === 7) p.sprite(`rock:${x},${y}`, x, y, 'rock', 16, 12, 0, 5);
