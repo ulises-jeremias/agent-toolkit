@@ -1,12 +1,23 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 
 export interface Destination {
-  path: string;
+  path: DestinationPath;
   label: string;
   /** The question the destination answers (docs/desktop/UX_ARCHITECTURE.md). */
   question: string;
   component: LazyExoticComponent<ComponentType>;
 }
+
+export type DestinationPath =
+  | '/world'
+  | '/office'
+  | '/operations'
+  | '/workspace'
+  | '/library'
+  | '/people'
+  | '/insights'
+  | '/terminal'
+  | '/settings';
 
 export const DESTINATIONS: readonly Destination[] = [
   {

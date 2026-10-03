@@ -205,9 +205,17 @@ journeys:
     blockers:
       - live run/watch journey against the current build is not verified from Desktop
   - id: universal-search-actions
-    title: Search/Run palette reaches everything with permission preview
+    title: Search and launch core actions with safe previews
     destinations: [shell]
-    status: blocked
-    evidence: []
+    status: partial
+    evidence:
+      - note: Typed palette actions map navigation, project houses, People, terminal, jobs, loops, swarm start, workspace chooser, and attention to existing GUI routes. Electron E2E exercises terminal/job/loop/swarm dialogs, workspace chooser focus, project entry, and backend restart reviews from both the palette and Settings. Both restart reviews default focus to Cancel; the palette review is captured at compact and large sizes.
+        build: "feat/desktop-palette-reachability (Linux Electron E2E)"
+        screenshots:
+          - assets/electron/palette/backend-restart-compact.png
+          - assets/electron/palette/backend-restart-large.png
+        tests:
+          - apps/desktop/e2e/electron/desktop.spec.ts
+          - apps/desktop/e2e/electron/project-link.spec.ts
     blockers:
-      - typed action registry reachability for critical journeys not on file for Electron
+      - direct palette actions for capability installation, MCP configuration, loop scheduling, People CRUD/import, and swarm run recovery remain incomplete

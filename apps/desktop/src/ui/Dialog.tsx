@@ -102,6 +102,7 @@ export function ConfirmAction({
   onConfirm,
   variant = 'danger',
   triggerVariant,
+  size = 'md',
   disabled,
   busy,
   children,
@@ -113,6 +114,7 @@ export function ConfirmAction({
   onConfirm: () => void;
   variant?: ButtonVariant;
   triggerVariant?: ButtonVariant;
+  size?: 'sm' | 'md';
   disabled?: boolean;
   busy?: boolean;
   children?: ReactNode;
@@ -123,6 +125,7 @@ export function ConfirmAction({
     <>
       <Button
         variant={triggerVariant ?? (variant === 'danger' ? 'secondary' : variant)}
+        size={size}
         disabled={disabled}
         busy={busy}
         busyLabel={`${label}…`}

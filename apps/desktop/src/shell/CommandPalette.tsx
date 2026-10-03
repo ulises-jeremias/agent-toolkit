@@ -4,14 +4,14 @@ import { useQuery } from '@tanstack/react-query';
 import { requireClient, useBackend } from '../data/backend';
 import { useSubQuery } from '../data/commands';
 import { useTerminalSessions } from '../data/terminal';
-import { setThemePreference, type ThemePreference } from '../design/theme';
+import { setThemePreference } from '../design/theme';
 import { takeNextNeedsMe } from '../features/office/attention';
 import { useAttention } from '../features/office/useAttention';
 import { requestOnboardingReplay } from '../features/onboarding/complete';
 import { parseProjectListMessage } from '../features/world/model';
-import { projectWorldCommands, resolveWorldJump } from '../features/world/worldJumps';
+import { projectWorldCommands, resolveProjectWorldJump, resolveWorldJump } from '../features/world/worldJumps';
 import { envelopeText } from '../lib/api';
-import { Dialog, Kbd, TextInput, VisuallyHidden } from '../ui';
+import { Button, Dialog, Kbd, TextInput, VisuallyHidden } from '../ui';
 import { filterCommands, PALETTE_COMMANDS, personCommands, SHORTCUTS, type PaletteCommand } from './commands';
 import { DESTINATIONS } from './destinations';
 import { useSessionContext } from './useSessionContext';
@@ -37,6 +37,8 @@ export function CommandPalette() {
   const [selected, setSelected] = useState(0);
   const [shortcuts, setShortcuts] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const restartCancelRef = useRef<HTMLButtonElement>(null);
+  const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const navigate = useNavigate();
   const { context, href } = useSessionContext();
   const { client, restartBackend } = useBackend();
@@ -114,172 +116,203 @@ export function CommandPalette() {
 
   const run = (command: PaletteCommand | undefined) => {
     if (!command) return;
-    if (command.id === 'help:shortcuts') {
+    const action = command.action;
+    if (action.type === 'help') {
       setShortcuts(true);
       return;
     }
     setOpen(false);
-    if (command.id.startsWith('people:')) {
-      const [, action, personId] = command.id.split(':');
-      if (!personId) return;
-      if (action === 'start') {
-        navigate(href('/people', { person: personId, start: '1' }));
-      } else if (action === 'session') {
-        const session = terminals.sessions.find(
-          (candidate) => candidate.personId === personId && candidate.exitCode === null,
-        );
-        navigate(session ? href('/terminal', { pty: session.id }) : href('/people', { person: personId }));
-      } else {
-        navigate(href('/people', { person: personId }));
-      }
-      return;
-    }
-    if (command.id.startsWith('go:')) {
-      const target = command.id.slice(3);
-      if (target === 'world-knowledge') {
-        navigate(href('/library'));
+    switch (action.type) {
+      case 'navigate':
+        navigate(href(action.path));
+        return;
+      case 'workspace-switch':
+        navigate(href('/settings', { panel: 'harness' }));
+        return;
+      case 'world-jump': {
+        if (action.target === 'world-knowledge') {
+          navigate(href('/library'));
+          return;
+        }
+        const jump = resolveWorldJump(action.target);
+        if (jump) navigate(href(jump.path, jump.extra));
         return;
       }
-      const jump = resolveWorldJump(target);
-      if (jump) {
-        navigate(href(jump.path, jump.extra));
+      case 'world-project': {
+        const jump = resolveProjectWorldJump(action.projectName);
+        if (jump) navigate(href(jump.path, jump.extra));
         return;
       }
-      navigate(href(target));
-      return;
-    }
-    switch (command.id) {
-      case 'session:new-terminal':
-        navigate(href('/terminal'));
-        terminals.setCreating(true);
-        break;
-      case 'session:start-job':
-        navigate(href('/operations', { dialog: 'start-job' }));
-        break;
-      case 'session:run-loop':
-        navigate(href('/operations', { dialog: 'run-loop' }));
-        break;
-      case 'session:start-swarm':
-        navigate(href('/operations', { dialog: 'start-swarm' }));
-        break;
-      case 'session:next-needs-me': {
-        const next = takeNextNeedsMe(attention.targets);
-        navigate(next ? next.href : href('/office'));
-        break;
+      case 'person': {
+        if (action.intent === 'start') {
+          navigate(href('/people', { person: action.personId, start: '1' }));
+        } else if (action.intent === 'session') {
+          const session = terminals.sessions.find(
+            (candidate) => candidate.personId === action.personId && candidate.exitCode === null,
+          );
+          navigate(session ? href('/terminal', { pty: session.id }) : href('/people', { person: action.personId }));
+        } else {
+          navigate(href('/people', { person: action.personId }));
+        }
+        return;
       }
-      case 'session:restart-backend':
-        void restartBackend();
-        break;
-      case 'session:replay-onboarding':
-        requestOnboardingReplay();
-        break;
-      case 'appearance:meadow':
-      case 'appearance:dusk':
-      case 'appearance:system':
-        setThemePreference(command.id.slice('appearance:'.length) as ThemePreference);
-        break;
-      default:
-        break;
+      case 'session':
+        switch (action.intent) {
+          case 'new-terminal':
+            navigate(href('/terminal'));
+            terminals.setCreating(true);
+            return;
+          case 'start-job':
+            navigate(href('/operations', { dialog: 'start-job' }));
+            return;
+          case 'run-loop':
+            navigate(href('/operations', { dialog: 'run-loop' }));
+            return;
+          case 'start-swarm':
+            navigate(href('/operations', { dialog: 'start-swarm' }));
+            return;
+          case 'next-needs-me': {
+            const next = takeNextNeedsMe(attention.targets);
+            navigate(next ? next.href : href('/office'));
+            return;
+          }
+          case 'restart-backend':
+            setRestartConfirmOpen(true);
+            return;
+          case 'replay-onboarding':
+            requestOnboardingReplay();
+            return;
+        }
+        return;
+      case 'theme':
+        setThemePreference(action.theme);
+        return;
     }
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={() => setOpen(false)}
-      title={shortcuts ? 'Keyboard shortcuts' : 'Commands'}
-      description={
-        shortcuts
-          ? 'Bindings that work anywhere in the shell. Destination-specific shortcuts stay on those screens.'
-          : 'Go to a destination or run a session action. Type to filter.'
-      }
-      initialFocus={inputRef}
-      size="wide"
-      footer={
-        shortcuts ? (
-          <p className={styles.paletteHint}>
-            Press <Kbd keys={['Ctrl', 'K']} /> to search commands
-          </p>
+    <>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title={shortcuts ? 'Keyboard shortcuts' : 'Commands'}
+        description={
+          shortcuts
+            ? 'Bindings that work anywhere in the shell. Destination-specific shortcuts stay on those screens.'
+            : 'Go to a destination or run a session action. Type to filter.'
+        }
+        initialFocus={inputRef}
+        size="wide"
+        footer={
+          shortcuts ? (
+            <p className={styles.paletteHint}>
+              Press <Kbd keys={['Ctrl', 'K']} /> to search commands
+            </p>
+          ) : (
+            <p className={styles.paletteHint}>
+              <Kbd keys={['↑']} /> <Kbd keys={['↓']} /> move · <Kbd keys={['Enter']} /> run · <Kbd keys={['Esc']} />{' '}
+              close
+            </p>
+          )
+        }
+      >
+        {shortcuts ? (
+          <table className={styles.shortcutTable}>
+            <caption>
+              <VisuallyHidden>Shortcut map</VisuallyHidden>
+            </caption>
+            <tbody>
+              {SHORTCUTS.map((row) => (
+                <tr key={row.action}>
+                  <th scope="row">{row.action}</th>
+                  <td>
+                    <Kbd keys={row.keys} />
+                  </td>
+                </tr>
+              ))}
+              {DESTINATIONS.map((destination) => (
+                <tr key={destination.path}>
+                  <th scope="row">Go to {destination.label}</th>
+                  <td>
+                    <Kbd keys={['Ctrl', 'K']} /> then type {destination.label}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : (
-          <p className={styles.paletteHint}>
-            <Kbd keys={['↑']} /> <Kbd keys={['↓']} /> move · <Kbd keys={['Enter']} /> run · <Kbd keys={['Esc']} /> close
-          </p>
-        )
-      }
-    >
-      {shortcuts ? (
-        <table className={styles.shortcutTable}>
-          <caption>
-            <VisuallyHidden>Shortcut map</VisuallyHidden>
-          </caption>
-          <tbody>
-            {SHORTCUTS.map((row) => (
-              <tr key={row.action}>
-                <th scope="row">{row.action}</th>
-                <td>
-                  <Kbd keys={row.keys} />
-                </td>
-              </tr>
-            ))}
-            {DESTINATIONS.map((destination) => (
-              <tr key={destination.path}>
-                <th scope="row">Go to {destination.label}</th>
-                <td>
-                  <Kbd keys={['Ctrl', 'K']} /> then type {destination.label}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <div className={styles.palette}>
-          <TextInput
-            ref={inputRef}
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'ArrowDown') {
-                event.preventDefault();
-                setSelected((index) => Math.min(index + 1, matches.length - 1));
-              } else if (event.key === 'ArrowUp') {
-                event.preventDefault();
-                setSelected((index) => Math.max(index - 1, 0));
-              } else if (event.key === 'Enter') {
-                event.preventDefault();
-                run(active);
-              }
-            }}
-            placeholder="Go to… or start a session"
-            aria-label="Filter commands"
-            aria-controls="command-palette-list"
-            aria-activedescendant={active ? `command-${active.id}` : undefined}
-            autoComplete="off"
-          />
-          <ul id="command-palette-list" className={styles.paletteList} role="listbox" aria-label="Commands">
-            {matches.length === 0 ? (
-              <li className={styles.paletteEmpty}>No commands match.</li>
-            ) : (
-              matches.map((command) => (
-                <li key={command.id} role="none">
-                  <button
-                    id={`command-${command.id}`}
-                    type="button"
-                    role="option"
-                    aria-selected={command.id === active?.id}
-                    className={styles.paletteItem}
-                    onClick={() => run(command)}
-                  >
-                    <span className={styles.paletteGroup}>{command.group}</span>
-                    <span className={styles.paletteTitle}>{command.title}</span>
-                    {command.hint ? <span className={styles.paletteItemHint}>{command.hint}</span> : null}
-                    {command.keys ? <Kbd keys={command.keys} /> : null}
-                  </button>
-                </li>
-              ))
-            )}
-          </ul>
-        </div>
-      )}
-    </Dialog>
+          <div className={styles.palette}>
+            <TextInput
+              ref={inputRef}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'ArrowDown') {
+                  event.preventDefault();
+                  setSelected((index) => Math.min(index + 1, matches.length - 1));
+                } else if (event.key === 'ArrowUp') {
+                  event.preventDefault();
+                  setSelected((index) => Math.max(index - 1, 0));
+                } else if (event.key === 'Enter') {
+                  event.preventDefault();
+                  run(active);
+                }
+              }}
+              placeholder="Go to… or start a session"
+              aria-label="Filter commands"
+              aria-controls="command-palette-list"
+              aria-activedescendant={active ? `command-${active.id}` : undefined}
+              autoComplete="off"
+            />
+            <ul id="command-palette-list" className={styles.paletteList} role="listbox" aria-label="Commands">
+              {matches.length === 0 ? (
+                <li className={styles.paletteEmpty}>No commands match.</li>
+              ) : (
+                matches.map((item) => (
+                  <li key={item.id} role="none">
+                    <button
+                      id={`command-${item.id}`}
+                      type="button"
+                      role="option"
+                      aria-selected={item.id === active?.id}
+                      className={styles.paletteItem}
+                      onClick={() => run(item)}
+                    >
+                      <span className={styles.paletteGroup}>{item.group}</span>
+                      <span className={styles.paletteTitle}>{item.title}</span>
+                      {item.hint ? <span className={styles.paletteItemHint}>{item.hint}</span> : null}
+                      {item.keys ? <Kbd keys={item.keys} /> : null}
+                    </button>
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
+        )}
+      </Dialog>
+      <Dialog
+        open={restartConfirmOpen}
+        onClose={() => setRestartConfirmOpen(false)}
+        title="Restart the local backend?"
+        description="Current API requests or jobs may be interrupted. Desktop will reconnect when the backend is ready."
+        initialFocus={restartCancelRef}
+        footer={
+          <>
+            <Button ref={restartCancelRef} variant="ghost" onClick={() => setRestartConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                setRestartConfirmOpen(false);
+                void restartBackend();
+              }}
+            >
+              Restart backend
+            </Button>
+          </>
+        }
+      />
+    </>
   );
 }

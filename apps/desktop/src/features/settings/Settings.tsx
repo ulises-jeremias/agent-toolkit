@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { useOperation } from '../../data/commands';
 import { useBackend, useHealth, useHelp, useSelfcheck } from '../../data/backend';
 import { backendProblemCopy } from '../../lib/backend-copy';
@@ -95,6 +96,8 @@ function Choice<T extends string>({
 
 /** Settings: how is this Desktop configured? */
 export default function Settings() {
+  const [searchParams] = useSearchParams();
+  const harnessChooseRef = useRef<HTMLButtonElement>(null);
   const appearance = useAppearance();
   const { backend, backendUrl, restartBackend } = useBackend();
   const health = useHealth();
@@ -130,6 +133,12 @@ export default function Settings() {
   const lockedBy = harnessStatus.data?.lockedBy ?? null;
   const recent = harnessStatus.data?.recent ?? [];
   const switchDisabled = harnessBusy || Boolean(lockedBy);
+
+  useEffect(() => {
+    if (searchParams.get('panel') !== 'harness') return;
+    const frame = window.requestAnimationFrame(() => harnessChooseRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [searchParams]);
 
   return (
     <>
@@ -171,9 +180,15 @@ export default function Settings() {
             actions={
               window.atk ? (
                 <ButtonRow>
-                  <Button size="sm" onClick={() => void restartBackend()}>
-                    Restart backend
-                  </Button>
+                  <ConfirmAction
+                    label="Restart backend"
+                    title="Restart the local backend?"
+                    description="Current API requests or jobs may be interrupted. Desktop will reconnect when the backend is ready."
+                    confirmLabel="Restart backend"
+                    variant="danger"
+                    size="sm"
+                    onConfirm={() => void restartBackend()}
+                  />
                   <Button size="sm" variant="ghost" onClick={requestOnboardingReplay}>
                     Run first-run setup again
                   </Button>
@@ -261,6 +276,7 @@ export default function Settings() {
             {bridge ? (
               <ButtonRow>
                 <Button
+                  ref={harnessChooseRef}
                   size="sm"
                   disabled={switchDisabled}
                   busy={harnessBusy}
