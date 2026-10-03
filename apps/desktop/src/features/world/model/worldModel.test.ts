@@ -652,6 +652,12 @@ describe('layoutWorld', () => {
       }
       expect(layout.cols).toBeGreaterThan(0);
       expect(layout.rows).toBeGreaterThan(0);
+      for (const entity of layout.entities) {
+        expect(entity.x).toBeGreaterThanOrEqual(0);
+        expect(entity.y).toBeGreaterThanOrEqual(0);
+        expect(entity.x + entity.w).toBeLessThanOrEqual(layout.cols);
+        expect(entity.y + entity.h).toBeLessThanOrEqual(layout.rows);
+      }
     }
   });
 
@@ -778,6 +784,19 @@ describe('layoutWorld', () => {
     }
     expect(adjacentPairs).toBeGreaterThan(100);
     expect(paletteChanges / adjacentPairs).toBeLessThan(0.65);
+  });
+
+  it('keeps tall tree canopies inside the framed world edge', () => {
+    const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
+    const decor = paintTerrain(layout.entities, layout.cols, layout.rows).decor;
+    const trees = decor.filter((sprite) => sprite.sprite.startsWith('tree-'));
+    expect(trees.length).toBeGreaterThan(0);
+    for (const tree of trees) {
+      expect(tree.x).toBeGreaterThanOrEqual(1);
+      expect(tree.x).toBeLessThan(layout.cols - 1);
+      expect(tree.y).toBeGreaterThanOrEqual(2);
+    }
+    expect(decor.find((sprite) => sprite.id === 'hornero:hall')?.y).toBeGreaterThanOrEqual(0);
   });
 
   it('lays out a project interior without shared Library or Workshop fixtures', () => {

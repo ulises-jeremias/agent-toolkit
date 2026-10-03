@@ -48,8 +48,8 @@ journeys:
         screenshots:
           - assets/electron/world/project-files-room-compact.png
           - assets/electron/world/project-files-room-large.png
-      - note: World composition keeps shared landmarks on the commons bank and registered project houses across a traversable bridge; empty, one-project, and three-project layouts are captured at compact and large viewports, with semantic project linking and building entry exercised through the GUI. Smooth deterministic meadow patches reduce tile-by-tile color noise, and the empty-workspace bridge is anchored to the real path by the project marker.
-        build: "feat/desktop-organic-meadow-ground (Linux Electron E2E; project-link.spec.ts; world screenshots opened)"
+      - note: World composition keeps shared landmarks on the commons bank and registered project houses across a traversable bridge; empty, one-project, and three-project layouts are captured at compact and large viewports, with semantic project linking and building entry exercised through the GUI. The tightened vertical layout lets empty and one-project valleys fit at crisp 32px tiles in compact windows; wider multi-project valleys retain fit-to-world behavior. Smooth deterministic meadow patches reduce tile-by-tile color noise, and the empty-workspace bridge is anchored to the real path by the project marker.
+        build: "feat/desktop-world-fit-compact (Linux Electron E2E; project-link.spec.ts; world screenshots opened)"
         screenshots:
           - assets/electron/world/world-empty-compact.png
           - assets/electron/world/world-empty-large.png

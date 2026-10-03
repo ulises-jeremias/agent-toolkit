@@ -21,6 +21,10 @@ test('links an existing project from the GUI and places it in the world', async 
       ]) {
         await setViewport(desktop.app, size.width, size.height);
         await page.getByRole('button', { name: 'Fit world' }).click();
+        await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toHaveAttribute(
+          'data-zoom',
+          size.key === 'large' ? '64' : '32',
+        );
         await page.screenshot({ path: path.join(captureDir, `world-empty-${size.key}.png`) });
       }
     }
@@ -89,20 +93,20 @@ test('links an existing project from the GUI and places it in the world', async 
       ]) {
         await setViewport(desktop.app, size.width, size.height);
         await page.getByRole('button', { name: 'Fit world' }).click();
-        await expect(world).toHaveAttribute('data-zoom', size.key === 'large' ? '48' : '16');
+        await expect(world).toHaveAttribute('data-zoom', size.key === 'large' ? '64' : '32');
         await page.waitForTimeout(200);
         await page.screenshot({ path: path.join(captureDir, `world-one-project-${size.key}.png`) });
       }
     }
     await setViewport(desktop.app, 1024, 640);
     await page.getByRole('button', { name: 'Fit world' }).click();
-    await expect(world).toHaveAttribute('data-zoom', '16');
+    await expect(world).toHaveAttribute('data-zoom', '32');
     await page.getByRole('button', { name: 'Pan map with arrow keys; Home fits the world' }).focus();
     await page.keyboard.press('Home');
-    await expect(world).toHaveAttribute('data-zoom', '16');
+    await expect(world).toHaveAttribute('data-zoom', '32');
     await setViewport(desktop.app, 1920, 1080);
     await page.getByRole('button', { name: 'Fit world' }).click();
-    await expect(world).toHaveAttribute('data-zoom', '48');
+    await expect(world).toHaveAttribute('data-zoom', '64');
     // Spatial and direct navigation share the same canonical destinations:
     // entering the house opens its project interior; its terminal desk opens
     // the actual Terminal route.

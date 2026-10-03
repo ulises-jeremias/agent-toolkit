@@ -195,11 +195,11 @@ export function layoutWorld(model: WorldModel): WorldLayout {
 
   // North core: hall west, memory archive beside it, ledgers on the commons edge.
   const coreX = 1;
-  if (grounds) place(grounds, coreX, 1);
-  if (memoryPlace) place(memoryPlace, coreX + 6, 1);
+  if (grounds) place(grounds, coreX, 0);
+  if (memoryPlace) place(memoryPlace, coreX + 6, 0);
   let entryX = coreX + 11;
   for (const entry of memoryEntries) {
-    place(entry, entryX, 2);
+    place(entry, entryX, 1);
     entryX += 2;
   }
 
@@ -207,13 +207,13 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // buildings face its southern side; the east edge leads to the creek.
   const civicX = 0;
   const civicSlots: Record<string, { x: number; y: number }> = {
-    'object:library': { x: civicX + 1, y: 5 },
-    'object:workshop': { x: civicX + 11, y: 9 },
-    'object:operations': { x: civicX + 6, y: 5 },
-    'object:terminal': { x: civicX + 11, y: 5 },
-    'object:attention': { x: civicX + 1, y: 9 },
-    'object:files': { x: civicX + 5, y: 10 },
-    'object:settings': { x: civicX + 8, y: 9 },
+    'object:library': { x: civicX + 1, y: 4 },
+    'object:workshop': { x: civicX + 11, y: 8 },
+    'object:operations': { x: civicX + 6, y: 4 },
+    'object:terminal': { x: civicX + 11, y: 4 },
+    'object:attention': { x: civicX + 1, y: 8 },
+    'object:files': { x: civicX + 5, y: 9 },
+    'object:settings': { x: civicX + 8, y: 8 },
   };
   for (const landmark of sharedObjects) {
     const slot = civicSlots[landmark.id]!;
@@ -223,14 +223,10 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // Project houses form a distinct neighborhood just beyond the creek. The
   // compact service quarter leaves room for a clear bank, bridge, and garden
   // lots without making a one-project workspace span an empty panorama.
-  // Keep a short shoulder between the civic street and the project lane. On
-  // a single-project valley this caps the map at 17 tiles tall, so a large
-  // window can render the entire settlement at crisp 48px scale instead of
-  // shrinking every landmark to 32px.
-  // Houses begin just beyond the bridge at the same valley level as the
-  // civic commons, so a small workspace stays compact instead of pushing its
-  // only real project to the far southern edge of a meadow.
-  const districtY = 10;
+  // Houses begin just beyond the creek crossing. Keeping the project lane
+  // beside the civic commons gives compact windows a landscape-shaped valley
+  // that can fit at 32px tiles instead of shrinking the whole world to 16px.
+  const districtY = 7;
   const districtX = projectDistrictX;
   if (emptyProject) place(emptyProject, emptyMarkerX, districtY);
   const projectSlots = new Map<string, { x: number; y: number }>();
@@ -274,7 +270,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     // Reserve a complete creek + bank margin beyond the last project lot so
     // the river never cuts through a real building when the roster grows.
     cols: Math.max(mapW, maxX + 3),
-    rows: Math.max(maxY + 1, mapRows),
+    rows: Math.max(maxY, mapRows),
     entities: laid,
   };
 }
