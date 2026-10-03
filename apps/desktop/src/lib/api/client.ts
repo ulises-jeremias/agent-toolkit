@@ -175,6 +175,12 @@ export class ApiClient {
     return this.json<InstallPreviewResponse>('GET', '/api/v1/uninstall/preview' satisfies PathWith<'get'>);
   }
 
+  async uninstallReviewed(reviewToken: string): Promise<InstallPreviewResponse> {
+    return this.json<InstallPreviewResponse>('POST', '/api/v1/uninstall/reviewed' satisfies PathWith<'post'>, {
+      query: { review_token: reviewToken },
+    });
+  }
+
   mcpProviders(): Promise<ResponseOf<OperationOf<'/api/v1/mcp/providers', 'get'>, McpProvidersResponse>> {
     return this.json('GET', '/api/v1/mcp/providers' satisfies PathWith<'get'>);
   }

@@ -70,15 +70,15 @@ journeys:
   - id: install-capabilities
     title: Install skills/agents from the Library
     destinations: [library]
-    status: ok
+    status: partial
     evidence:
       - note: >-
           Library previews the actual profile, Agent Definition, and complete Skill file
           transaction for detected tools, including references, user conflicts, and target
           paths. The GUI applies the same canonical backend installer and receipt-backed
-          removal preview; unchanged Toolkit-owned files are removed while pre-existing and
-          subsequently edited files remain. Electron E2E verifies install, edit, preview,
-          cancel, removal, preservation, and receipt cleanup under an isolated HOME.
+          removal preview; removal confirmation is bound to a backend snapshot and uses
+          atomic quarantine before deletion. Target selection and a persistent receipt
+          inspector are still missing, so this journey remains partial.
         tests:
           - apps/desktop/e2e/electron/desktop.spec.ts
           - modules/agent_toolkit_core/install_test.v
@@ -89,7 +89,8 @@ journeys:
           - assets/electron/library/install-preview-large.png
           - assets/electron/library/removal-preview-compact.png
           - assets/electron/library/removal-preview-large.png
-    blockers: []
+    blockers:
+      - target tool selection and installed-receipt inspection are not yet exposed in Library
   - id: mcp-configure-probe
     title: Configure an MCP provider and probe it
     destinations: [library]

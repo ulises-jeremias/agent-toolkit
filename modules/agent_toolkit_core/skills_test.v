@@ -78,3 +78,21 @@ fn test_skills_unknown_subcommand() {
 	assert !r.ok
 	assert r.message.contains('Unknown subcommand')
 }
+
+fn test_skills_reject_duplicate_install_names() {
+	base := os.join_path(os.temp_dir(), 'at-skills-duplicates-${os.getpid()}')
+	os.mkdir_all(os.join_path(base, 'catalogs')) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	os.write_file(os.join_path(base, 'catalogs', 'skills-layout.json'), '{"skills":[{"id":"review/shared","name":"shared","domain":"review"},{"id":"design/shared","name":"shared","domain":"design"}]}') or {
+		assert false, err.msg()
+		return
+	}
+	result := run_skills(SkillsOptions{
+		subcommand: 'list'
+		toolkit_root: base
+	})
+	assert !result.ok
+	assert result.message.contains('Duplicate skill name')
+}

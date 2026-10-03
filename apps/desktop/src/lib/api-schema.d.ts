@@ -394,6 +394,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/uninstall/reviewed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove files only if the receipt-backed plan still matches its reviewed token */
+        post: operations["uninstall_reviewed"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/swarms/recipes": {
         parameters: {
             query?: never;
@@ -2494,6 +2511,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InstallPreviewResponse"];
+                };
+            };
+        };
+    };
+    uninstall_reviewed: {
+        parameters: {
+            query: {
+                review_token: Record<string, never>;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstallPreviewResponse"];
+                };
+            };
+            /** @description review_token is required */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description removal plan changed since review */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
                 };
             };
         };

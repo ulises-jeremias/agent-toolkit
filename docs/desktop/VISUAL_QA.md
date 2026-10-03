@@ -196,6 +196,17 @@ stays scrollable with both actions visible; at the wider size the Library contex
 remains visible around the modal. The large removal list is intentionally dense,
 but remains crisp, selectable monospace text with a visible scrollbar.
 
+The follow-up review also caught a safety gap that screenshots alone could not
+show: the removal confirmation was not bound to the plan that had been reviewed.
+The backend now rejects a stale plan before deleting anything, and the Desktop
+keeps the dialog open, disables dismissal while removal is active, and offers a
+fresh preview after a conflict. A real Electron run changed a file between review
+and confirmation, verified the conflict preserved it, then refreshed and removed
+only unchanged Toolkit files. The opened captures confirm that this guard does not
+crowd the compact or large preview. The flow is still text-heavy and does not yet
+let users choose install targets or inspect receipts in a persistent Library view;
+those workflow gaps remain explicitly partial.
+
 Opened files:
 
 - [Install preview, compact](assets/electron/library/install-preview-compact.png)

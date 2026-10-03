@@ -94,6 +94,71 @@ fn test_uninstall_preserves_created_file_changed_after_install() {
 	assert os.read_file(created) or { '' } == 'edited by the user\n'
 }
 
+fn test_uninstall_review_token_rejects_changed_plan_before_removal() {
+	base := os.join_path(os.temp_dir(), 'at-un-review-${os.getpid()}')
+	receipt_dir := os.join_path(base, 'receipts')
+	os.mkdir_all(receipt_dir) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	created := os.join_path(base, 'created.md')
+	os.write_file(created, 'original\n') or { assert false, err.msg() }
+	mut receipt := new_install_receipt(profiles_product, 'cursor', 'user-home', '1.0.0', 'x')
+	receipt.artifacts << ArtifactEntry{
+		path: created
+		digest: receipt_artifact_digest(created)
+		ownership: 'created'
+	}
+	save_install_receipt(mut receipt, receipt_dir) or { assert false, err.msg() }
+	preview := run_uninstall(UninstallOptions{
+		tools: ['cursor']
+		dry_run: true
+		receipt_dir: receipt_dir
+	})
+	assert preview.ok
+	assert preview.review_token.len == 64
+	os.write_file(created, 'user edit after preview\n') or { assert false, err.msg() }
+
+	result := run_uninstall(UninstallOptions{
+		tools: ['cursor']
+		receipt_dir: receipt_dir
+		review_token: preview.review_token
+	})
+	assert !result.ok
+	assert result.message.contains('Nothing was removed')
+	assert os.read_file(created) or { '' } == 'user edit after preview\n'
+	assert load_install_receipt('cursor', profiles_product, receipt_dir) != none
+}
+
+fn test_uninstall_preserves_symbolic_link_without_touching_target() {
+	base := os.join_path(os.temp_dir(), 'at-un-link-${os.getpid()}')
+	receipt_dir := os.join_path(base, 'receipts')
+	os.mkdir_all(receipt_dir) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	target := os.join_path(base, 'target.md')
+	link := os.join_path(base, 'owned.md')
+	os.write_file(target, 'user data\n') or { assert false, err.msg() }
+	os.symlink(target, link) or { assert false, err.msg() }
+	mut receipt := new_install_receipt(profiles_product, 'cursor', 'user-home', '1.0.0', 'x')
+	receipt.artifacts << ArtifactEntry{
+		path: link
+		digest: 'anything'
+		ownership: 'created'
+	}
+	save_install_receipt(mut receipt, receipt_dir) or { assert false, err.msg() }
+
+	result := run_uninstall(UninstallOptions{
+		tools: ['cursor']
+		receipt_dir: receipt_dir
+	})
+	assert result.ok
+	assert result.message.contains('Preserving symbolic link: ${link}')
+	assert os.is_link(link)
+	assert os.read_file(target) or { '' } == 'user data\n'
+}
+
 fn test_uninstall_no_receipts() {
 	base := os.join_path(os.temp_dir(), 'at-un-empty-${os.getpid()}')
 	os.mkdir_all(base) or { assert false, err.msg() }

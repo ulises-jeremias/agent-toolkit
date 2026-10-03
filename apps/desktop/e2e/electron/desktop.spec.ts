@@ -419,8 +419,9 @@ test('Library installs Skills and preserves user changes during reviewed removal
     applyRequests += 1;
     await route.continue();
   });
-  await page.route('**/api/v1/uninstall', async (route) => {
+  await page.route('**/api/v1/uninstall/reviewed**', async (route) => {
     uninstallRequests += 1;
+    await new Promise((resolve) => setTimeout(resolve, 2500));
     await route.continue();
   });
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
@@ -480,6 +481,7 @@ test('Library installs Skills and preserves user changes during reviewed removal
   await expect(removal.getByLabel('Removal preview')).toContainText(
     `Preserving file changed since Toolkit installed it: ${toolkitSkill}`,
   );
+  const changedAfterReview = path.join(desktop.home, '.claude', 'skills', 'assistant', 'SKILL.md');
   if (CAPTURE) {
     fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
     for (const size of [
@@ -500,12 +502,26 @@ test('Library installs Skills and preserves user changes during reviewed removal
   expect(uninstallRequests).toBe(0);
 
   await page.getByRole('button', { name: 'Review removal' }).click();
-  await page
-    .getByRole('dialog', { name: 'Review Toolkit file removal' })
-    .getByRole('button', { name: 'Remove reviewed files' })
-    .click();
-  await expect(page.getByRole('region', { name: 'Receipts' })).toContainText('Toolkit files removed');
-  expect(uninstallRequests).toBe(1);
+  const confirmedRemoval = page.getByRole('dialog', { name: 'Review Toolkit file removal' });
+  await expect(confirmedRemoval).toBeVisible();
+  fs.writeFileSync(changedAfterReview, 'Edited between review and confirmation.\n');
+  await confirmedRemoval.getByRole('button', { name: 'Remove reviewed files' }).click();
+  await expect.poll(() => uninstallRequests).toBe(1);
+  await expect(confirmedRemoval.getByRole('button', { name: 'Removing files…' })).toBeVisible();
+  await expect(confirmedRemoval.getByRole('button', { name: 'Keep files' })).toBeDisabled();
+  await page.keyboard.press('Escape');
+  await expect(confirmedRemoval).toBeVisible();
+  await expect(confirmedRemoval.getByRole('alert')).toContainText('Removal plan changed since review');
+  expect(fs.readFileSync(changedAfterReview, 'utf8')).toBe('Edited between review and confirmation.\n');
+  await confirmedRemoval.getByRole('button', { name: 'Refresh removal plan' }).click();
+  await expect(confirmedRemoval.getByLabel('Removal preview')).toContainText(
+    `Preserving file changed since Toolkit installed it: ${changedAfterReview}`,
+  );
+  await confirmedRemoval.getByRole('button', { name: 'Remove reviewed files' }).click();
+  await expect(
+    page.getByRole('region', { name: 'Receipts' }).getByText('Toolkit files removed', { exact: true }),
+  ).toBeVisible();
+  expect(uninstallRequests).toBe(2);
   expect(fs.readFileSync(toolkitSkill, 'utf8')).toBe('Edited by the user after Toolkit installed it.\n');
   expect(fs.readFileSync(preservedSkill, 'utf8')).toBe('User-owned skill, keep this file.\n');
   expect(

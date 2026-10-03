@@ -1,9 +1,17 @@
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAgents, useProviders, useTools } from '../../data/catalog';
 import { useOperation, useReport, useSubQuery } from '../../data/commands';
 import { requireClient, useBackend } from '../../data/backend';
-import { envelopeText, errorMessage, type CommandEnvelope, type ToolEnabled, type ToolInfo } from '../../lib/api';
+import {
+  envelopeText,
+  errorMessage,
+  requireOk,
+  type CommandEnvelope,
+  type ToolEnabled,
+  type ToolInfo,
+} from '../../lib/api';
+import { invalidateDomains, OPERATION_EFFECTS } from '../../lib/query/invalidation';
 import { parsePluginBundles, parseSkillCatalog } from '../../lib/reports';
 import {
   Button,
@@ -60,10 +68,14 @@ export default function Library() {
   const tools = useTools();
   const agents = useAgents();
   const providers = useProviders();
+  const queryClient = useQueryClient();
   const skills = useSubQuery('skills', 'list');
   const plugins = useSubQuery('plugin', 'check', undefined, { failureIsData: true });
   const install = useOperation('install');
-  const uninstall = useOperation('uninstall');
+  const uninstall = useMutation({
+    mutationFn: async (reviewToken: string) => requireOk(await requireClient(client).uninstallReviewed(reviewToken)),
+    onSettled: () => invalidateDomains(queryClient, OPERATION_EFFECTS.uninstall),
+  });
   const [installPreview, setInstallPreview] = useState<CommandEnvelope | null>(null);
   const [uninstallPreview, setUninstallPreview] = useState<CommandEnvelope | null>(null);
   const previewInstall = useMutation({
@@ -175,7 +187,9 @@ export default function Library() {
       </Dialog>
       <Dialog
         open={uninstallPreview !== null || previewUninstall.isError}
+        closeDisabled={uninstall.isPending}
         onClose={() => {
+          if (uninstall.isPending) return;
           setUninstallPreview(null);
           previewUninstall.reset();
         }}
@@ -185,6 +199,7 @@ export default function Library() {
         footer={
           <ButtonRow>
             <Button
+              disabled={uninstall.isPending}
               onClick={() => {
                 setUninstallPreview(null);
                 previewUninstall.reset();
@@ -197,15 +212,17 @@ export default function Library() {
               disabled={!uninstallPreview?.ok || uninstall.isPending}
               busy={uninstall.isPending}
               busyLabel="Removing files…"
-              onClick={() =>
-                uninstall.mutate(undefined, {
+              onClick={() => {
+                const reviewToken = uninstallPreview?.data['review_token'];
+                if (!reviewToken) return;
+                uninstall.mutate(reviewToken, {
                   ...uninstallReceipt,
                   onSuccess: (result) => {
                     uninstallReceipt.onSuccess?.(result);
                     setUninstallPreview(null);
                   },
-                })
-              }
+                });
+              }}
             >
               Remove reviewed files
             </Button>
@@ -213,6 +230,21 @@ export default function Library() {
         }
       >
         {previewUninstall.isError ? <p role="alert">{errorMessage(previewUninstall.error)}</p> : null}
+        {uninstall.isError ? (
+          <div role="alert">
+            <p>{errorMessage(uninstall.error)}</p>
+            <Button
+              disabled={uninstall.isPending || previewUninstall.isPending}
+              onClick={() => {
+                setUninstallPreview(null);
+                uninstall.reset();
+                previewUninstall.mutate();
+              }}
+            >
+              Refresh removal plan
+            </Button>
+          </div>
+        ) : null}
         {uninstallPreview ? (
           <>
             <p role="status">

@@ -306,22 +306,32 @@ fn skills_validate(root string) SkillsReport {
 }
 
 fn load_skills_layout(root string) !SkillsLayoutFile {
+	mut layout := SkillsLayoutFile{}
 	if is_embedded_root(root) {
 		text := embedded_read_file('catalogs/skills-layout.json') or {
 			return error('Cannot parse skills-layout.json: ${err}')
 		}
-		return json2.decode[SkillsLayoutFile](text) or {
+		layout = json2.decode[SkillsLayoutFile](text) or {
+			return error('Cannot parse skills-layout.json: ${err}')
+		}
+	} else {
+		path := os.join_path(root, 'catalogs', 'skills-layout.json')
+		if !os.is_file(path) {
+			return error('skills-layout.json not found: ${path}')
+		}
+		text := os.read_file(path) or { return error('Cannot parse skills-layout.json: ${err}') }
+		layout = json2.decode[SkillsLayoutFile](text) or {
 			return error('Cannot parse skills-layout.json: ${err}')
 		}
 	}
-	path := os.join_path(root, 'catalogs', 'skills-layout.json')
-	if !os.is_file(path) {
-		return error('skills-layout.json not found: ${path}')
+	mut names := map[string]bool{}
+	for skill in layout.skills {
+		if skill.name in names {
+			return error('Duplicate skill name in skills-layout.json: ${skill.name}')
+		}
+		names[skill.name] = true
 	}
-	text := os.read_file(path) or { return error('Cannot parse skills-layout.json: ${err}') }
-	return json2.decode[SkillsLayoutFile](text) or {
-		return error('Cannot parse skills-layout.json: ${err}')
-	}
+	return layout
 }
 
 fn skill_description(skill_md string) string {

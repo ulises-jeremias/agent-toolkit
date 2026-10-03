@@ -1,6 +1,7 @@
 module agent_toolkit_core
 
 import os
+import crypto.sha256
 
 // uninstall_tool_targets maps CLI tool names to receipt target ids (Python uninstall.py).
 pub const uninstall_tool_targets = {
@@ -16,9 +17,10 @@ pub const uninstall_tool_targets = {
 // UninstallOptions configures receipt-based uninstall / rollback.
 pub struct UninstallOptions {
 pub:
-	tools       []string
-	dry_run     bool
-	receipt_dir string // empty → default_receipt_dir()
+	tools        []string
+	dry_run      bool
+	receipt_dir  string // empty → default_receipt_dir()
+	review_token string // when set, the current removal plan must still match this preview
 }
 
 // UninstallReport summarizes uninstall outcomes.
@@ -30,6 +32,7 @@ pub mut:
 	files_removed   int
 	skipped         int
 	failures        []string
+	review_token    string
 }
 
 // run_uninstall removes toolkit-owned (`created`) artifacts from install receipts.
@@ -47,6 +50,15 @@ pub fn run_uninstall(opts UninstallOptions) UninstallReport {
 		report.ok = false
 		report.message = 'No install receipts found. Nothing to uninstall.'
 		return report
+	}
+	tools.sort()
+	review_token := uninstall_review_token(dir, tools)
+	if opts.review_token.len > 0 && opts.review_token != review_token {
+		return UninstallReport{
+			ok: false
+			message: 'Removal plan changed since review. Nothing was removed. Review the plan again.'
+			review_token: review_token
+		}
 	}
 	mut lines := []string{}
 	lines << 'agent-toolkit uninstall'
@@ -70,6 +82,7 @@ pub fn run_uninstall(opts UninstallOptions) UninstallReport {
 			report.failures << tool
 		}
 	}
+	report.review_token = review_token
 	report.message = lines.join('\n')
 	return report
 }
@@ -98,8 +111,40 @@ pub fn discover_uninstall_tools(receipt_dir string) []string {
 	return found
 }
 
+fn uninstall_review_token(receipt_dir string, tools []string) string {
+	mut snapshot := []string{}
+	for tool in tools {
+		target := uninstall_tool_targets[tool] or { continue }
+		receipt_path := os.join_path(receipt_dir, receipt_filename(target, profiles_product))
+		if !os.is_file(receipt_path) {
+			snapshot << '${tool}:missing-receipt'
+			continue
+		}
+		receipt_text := os.read_file(receipt_path) or { '${tool}:unreadable-receipt' }
+		snapshot << '${tool}:receipt:${sha256.hexhash(receipt_text)}'
+		receipt := parse_install_receipt(receipt_text) or { continue }
+		for entry in receipt.artifacts {
+			if entry.ownership != 'created' || receipt_path_escapes(entry.path) {
+				continue
+			}
+			state := if os.is_link(entry.path) {
+				'link:${os.readlink(entry.path) or { '?' }}'
+			} else if os.is_file(entry.path) {
+				'file:${receipt_artifact_digest(entry.path)}'
+			} else {
+				'absent'
+			}
+			snapshot << '${entry.path}:${entry.digest}:${state}'
+		}
+	}
+	snapshot.sort()
+	return sha256.hexhash(snapshot.join('\n'))
+}
+
 fn uninstall_one_tool(tool string, target string, receipt_dir string, dry_run bool) (bool, string, int, int) {
 	mut lines := []string{}
+	receipt_path := os.join_path(receipt_dir, receipt_filename(target, profiles_product))
+	receipt_text := os.read_file(receipt_path) or { '' }
 	receipt := load_install_receipt(target, profiles_product, receipt_dir) or {
 		lines << '  -  No receipt for ${tool} — nothing to uninstall'
 		return true, lines.join('\n'), 0, 0
@@ -117,6 +162,11 @@ fn uninstall_one_tool(tool string, target string, receipt_dir string, dry_run bo
 			lines << '  ✗  Refused path escape: ${entry.path}'
 			return false, lines.join('\n'), removed, skipped
 		}
+		if os.is_link(entry.path) {
+			lines << '  -  Preserving symbolic link: ${entry.path}'
+			skipped++
+			continue
+		}
 		if !os.exists(entry.path) {
 			lines << '  -  Already absent: ${entry.path}'
 			skipped++
@@ -132,16 +182,43 @@ fn uninstall_one_tool(tool string, target string, receipt_dir string, dry_run bo
 			removed++
 			continue
 		}
-		os.rm(entry.path) or {
-			lines << '  ✗  Failed to remove ${entry.path}: ${err}'
+		mut quarantine := '${entry.path}.agent-toolkit-removal-${os.getpid()}'
+		mut suffix := 0
+		for os.exists(quarantine) || os.is_link(quarantine) {
+			suffix++
+			quarantine = '${entry.path}.agent-toolkit-removal-${os.getpid()}-${suffix}'
+		}
+		os.rename(entry.path, quarantine) or {
+			lines << '  ✗  Could not safely quarantine ${entry.path}: ${err}'
+			return false, lines.join('\n'), removed, skipped
+		}
+		if os.is_link(quarantine) || receipt_artifact_digest(quarantine) != entry.digest {
+			if !os.exists(entry.path) && !os.is_link(entry.path) {
+				os.rename(quarantine, entry.path) or {
+					lines << '  ✗  Preserved changed file at recovery path ${quarantine}; restore failed: ${err}'
+					return false, lines.join('\n'), removed, skipped
+				}
+			} else {
+				lines << '  ⚠  Preserved changed file at ${quarantine}; original path was recreated during removal'
+				skipped++
+				continue
+			}
+			lines << '  -  Preserving file changed during removal: ${entry.path}'
+			skipped++
+			continue
+		}
+		os.rm(quarantine) or {
+			lines << '  ✗  Could not remove quarantined file; preserved at ${quarantine}: ${err}'
 			return false, lines.join('\n'), removed, skipped
 		}
 		lines << '  ✓  Removed: ${entry.path}'
 		removed++
 	}
 	if !dry_run {
-		receipt_path := os.join_path(receipt_dir, receipt_filename(target, profiles_product))
-		if os.is_file(receipt_path) {
+		current_receipt := os.read_file(receipt_path) or { '' }
+		if current_receipt != receipt_text {
+			lines << '  ⚠  Preserving receipt changed during removal: ${receipt_path}'
+		} else if os.is_file(receipt_path) {
 			os.rm(receipt_path) or {
 				lines << '  ✗  Failed to remove receipt: ${err}'
 				return false, lines.join('\n'), removed, skipped
@@ -165,6 +242,7 @@ pub fn uninstall_result(report UninstallReport) CommandResult {
 			'skipped':         '${report.skipped}'
 			'failures':        report.failures.join(',')
 			'dry_run':         if report.message.contains('DRY RUN') { 'true' } else { 'false' }
+			'review_token':    report.review_token
 		}
 	}
 }

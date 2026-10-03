@@ -560,7 +560,11 @@ fn detect_stale_install_check(tool string, home string) []string {
 	mut data_root := find_toolkit_root() or { ToolkitRoot{} }.path
 	mut current := map[string]bool{}
 	if data_root.len > 0 {
-		for m in install_file_mappings(tool, data_root, home) {
+		mappings := install_file_mappings(tool, data_root, home) or {
+			out << 'Could not inspect current install mappings: ${err}'
+			return out
+		}
+		for m in mappings {
 			current[m.dst] = true
 		}
 	} else if is_embedded_root('embedded') {

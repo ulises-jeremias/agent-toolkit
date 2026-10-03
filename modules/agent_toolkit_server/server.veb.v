@@ -479,6 +479,7 @@ const registered_api_routes = [
 	'/api/v1/update',
 	'/api/v1/uninstall',
 	'/api/v1/uninstall/preview',
+	'/api/v1/uninstall/reviewed',
 	'/api/v1/skills/:sub',
 	'/api/v1/mcp/providers',
 	'/api/v1/mcp/:sub',
@@ -849,6 +850,28 @@ pub fn (app &App) uninstall_preview(mut ctx Ctx) veb.Result {
 	return ctx.json(cmd_resp(agent_toolkit_core.uninstall_result(agent_toolkit_core.run_uninstall(agent_toolkit_core.UninstallOptions{
 		dry_run: true
 	}))))
+}
+
+@['/api/v1/uninstall/reviewed'; post]
+pub fn (app &App) uninstall_reviewed(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	token := ctx.query['review_token'] or { '' }
+	if token.len == 0 {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'review_token is required' })
+	}
+	result := agent_toolkit_core.uninstall_result(agent_toolkit_core.run_uninstall(agent_toolkit_core.UninstallOptions{
+		review_token: token
+	}))
+	if !result.ok && result.message.contains('Removal plan changed since review') {
+		ctx.res.set_status(.conflict)
+	}
+	return ctx.json(app.run_install_action('uninstall', fn [result] () agent_toolkit_core.CommandResult {
+		return result
+	}))
 }
 
 @['/api/v1/skills/:sub'; get; post]
