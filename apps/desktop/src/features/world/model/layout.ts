@@ -209,12 +209,12 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   const civicX = 0;
   const civicSlots: Record<string, { x: number; y: number }> = {
     'object:library': { x: civicX + 1, y: 4 },
-    'object:workshop': { x: civicX + 11, y: 8 },
+    'object:workshop': { x: civicX + 10, y: 8 },
     'object:operations': { x: civicX + 6, y: 4 },
     'object:terminal': { x: civicX + 11, y: 4 },
     'object:attention': { x: civicX + 1, y: 8 },
-    'object:files': { x: civicX + 5, y: 9 },
-    'object:settings': { x: civicX + 8, y: 8 },
+    'object:files': { x: civicX + 4, y: 9 },
+    'object:settings': { x: civicX + 7, y: 8 },
   };
   for (const landmark of sharedObjects) {
     const slot = civicSlots[landmark.id]!;

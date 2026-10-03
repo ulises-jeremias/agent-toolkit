@@ -222,7 +222,7 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number): Map<nu
     const sideStart = x <= bridgeX ? 4 : bridgeX;
     const sideEnd = x <= bridgeX ? bridgeX : endX;
     const t = (x - sideStart) / Math.max(1, sideEnd - sideStart);
-    const bend = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 2 + phase) * 1.4;
+    const bend = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 2 + phase) * 2;
     const crossing = x >= bridgeX && x < bridgeX + 3;
     const current = { x, y: crossing ? y : y + Math.round(bend) };
     rasterLine(p, previous.x, previous.y, current.x, current.y);
@@ -270,7 +270,7 @@ function renderPaths(p: Painter) {
   }
 }
 
-/** A broad east-valley creek with a slow, bridge-anchored meander. */
+/** A narrow east-valley stream with a slow, bridge-anchored meander. */
 function creek(
   p: Painter,
   preferredX: number,
@@ -291,7 +291,7 @@ function creek(
     x = baseX + Math.round(Math.sin(along * 0.15) * 5.5 + Math.sin(along * 0.05) * 2.25);
     x = Math.max(minCenterX, Math.min(maxCenterX, x));
     if (bridgeRows.has(y)) crossingX = x;
-    const width = 3;
+    const width = 2;
     for (let cx = x; cx < x + width; cx++) {
       if (bridgeRows.has(y)) {
         p.set(cx, y, 'dirt', true);
