@@ -64,6 +64,7 @@ export default function Operations() {
   const selectedId = params.get('job');
   const selectedLoop = params.get('loop');
   const selectedSwarm = params.get('swarm');
+  const scheduleName = params.get('schedule') === '1' ? selectedLoop : null;
   const dialog = params.get('dialog');
   const jobs = useJobs();
   const { connection } = useLiveStatus();
@@ -152,9 +153,12 @@ export default function Operations() {
         </div>
         <LoopsPanel
           selectedName={selectedLoop}
+          scheduleName={scheduleName}
           dialogOpen={dialog === 'run-loop'}
           onSelect={(name) => patchParams(setParams, { loop: name })}
           onRun={(name) => patchParams(setParams, { loop: name, dialog: 'run-loop' })}
+          onSchedule={(name) => patchParams(setParams, { loop: name, schedule: '1' })}
+          onCloseSchedule={() => patchParams(setParams, { schedule: null })}
           onCloseDialog={() => patchParams(setParams, { dialog: null })}
           onStarted={(id) => patchParams(setParams, { job: id, dialog: null })}
         />

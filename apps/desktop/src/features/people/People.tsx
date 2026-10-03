@@ -315,7 +315,7 @@ function PersonForm({
 }
 
 export default function People() {
-  const { client } = useBackend();
+  const { backend, client } = useBackend();
   const { context, href } = useSessionContext();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -327,6 +327,7 @@ export default function People() {
   const [creating, setCreating] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [importReview, setImportReview] = useState<MunderReview | null>(null);
+  const [importPromptOpen, setImportPromptOpen] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [starting, setStarting] = useState<Person | null>(null);
   const [startProject, setStartProject] = useState('');
@@ -373,6 +374,7 @@ export default function People() {
       setImportReview(null);
     },
   });
+  const resetSave = save.reset;
   const archive = useMutation({
     mutationFn: (person: Person) =>
       person.archived
@@ -417,6 +419,26 @@ export default function People() {
     const personId = params.get('person');
     if (personId) setSelectedId(personId);
   }, [params]);
+
+  useEffect(() => {
+    const action = params.get('action');
+    if (action !== 'create' && action !== 'import') return;
+    // The shell seeds workspace from the Electron harness after backend
+    // discovery. Keep deep-linked actions intact until that default is known.
+    if (!workspace && (backend?.harness?.path || (window.atk && !backend))) return;
+    if (!workspace) {
+      setCreating(false);
+      setImportPromptOpen(false);
+    } else if (action === 'create') {
+      resetSave();
+      setCreating(true);
+    } else {
+      setImportPromptOpen(true);
+    }
+    const next = new URLSearchParams(params);
+    next.delete('action');
+    setParams(next, { replace: true });
+  }, [backend, params, resetSave, setParams, workspace]);
 
   useEffect(() => {
     if (params.get('start') !== '1' || !list.isSuccess) return;
@@ -508,6 +530,32 @@ export default function People() {
           </ButtonRow>
         }
       />
+      <Dialog
+        open={importPromptOpen}
+        onClose={() => setImportPromptOpen(false)}
+        title="Import a Munder Difflin hire"
+        description="Choose a hire JSON file to review its mapped fields before saving a Person. Import never starts a session, runs embedded commands, installs code, or enables live sync."
+        footer={
+          <ButtonRow>
+            <Button onClick={() => setImportPromptOpen(false)}>Cancel</Button>
+            <Button
+              variant="primary"
+              disabled={!workspace}
+              onClick={() => {
+                setImportPromptOpen(false);
+                importInput.current?.click();
+              }}
+            >
+              Choose hire file
+            </Button>
+          </ButtonRow>
+        }
+      >
+        <p>
+          The file is read locally. You can inspect supported fields and ignored source data before creating a
+          collaborator.
+        </p>
+      </Dialog>
       {!workspace ? (
         <EmptyState title="Choose a workspace first.">
           People belong to a workspace. Select one in Workspace, then return here.

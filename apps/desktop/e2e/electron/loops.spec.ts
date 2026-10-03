@@ -39,7 +39,10 @@ test('adds a loop from the Library template, runs it, and reads its typed report
     await expect(loops).toContainText('Goal');
     await expect(loops).toContainText('Token budget');
     await expect(loops.getByRole('region', { name: 'daily-triage run history' })).toContainText('No run records yet.');
-    await loops.getByRole('button', { name: 'Manage schedule' }).click();
+    await page.keyboard.press('Control+k');
+    const palette = page.getByRole('dialog', { name: 'Commands' });
+    await palette.getByLabel('Filter commands').fill('Manage daily-triage schedule');
+    await page.keyboard.press('Enter');
     const schedule = page.getByRole('dialog', { name: 'Schedule daily-triage' });
     await expect(schedule).toContainText('No scheduled loops found.');
     await schedule.getByRole('button', { name: 'Review install' }).click();
