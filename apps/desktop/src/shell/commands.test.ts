@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { filterCommands, PALETTE_COMMANDS, personCommands } from './commands';
+import {
+  filterCommands,
+  commandsForWorkspace,
+  loopScheduleCommands,
+  PALETTE_COMMANDS,
+  personCommands,
+  recoverableSwarmCommands,
+} from './commands';
 
 describe('filterCommands', () => {
   it('returns every command when the query is empty', () => {
@@ -95,5 +102,50 @@ describe('filterCommands', () => {
       intent: 'start',
       personId: 'lina',
     });
+  });
+
+  it('offers direct People workflows and only real loop schedules and recoverable swarm runs', () => {
+    const staticIds = PALETTE_COMMANDS.map((command) => command.id);
+    expect(staticIds).toEqual(expect.arrayContaining(['people:create', 'people:import-munder']));
+    expect(PALETTE_COMMANDS.find((command) => command.id === 'people:import-munder')?.action).toEqual({
+      type: 'people-workflow',
+      intent: 'import',
+    });
+
+    const loops = loopScheduleCommands([{ name: 'daily-triage', cadence: 'daily' }]);
+    expect(filterCommands(loops, 'schedule daily triage').map((command) => command.id)).toEqual([
+      'loop:schedule:daily-triage',
+    ]);
+    expect(loops[0]?.action).toEqual({ type: 'loop-schedule', name: 'daily-triage' });
+
+    const swarms = recoverableSwarmCommands([
+      { run_id: 'paused-run', task: 'Review change', recipe: 'pair', run_state: 'paused' },
+      { run_id: 'budget-run', task: 'Check budget', recipe: 'pair', run_state: 'budget_exhausted' },
+      { run_id: 'failed-run', task: 'Retry failure', recipe: 'pair', run_state: 'failed' },
+      { run_id: 'approval-run', task: 'Approve plan', recipe: 'pair', run_state: 'awaiting_plan_approval' },
+      { run_id: 'human-run', task: 'Review handoff', recipe: 'pair', run_state: 'awaiting_human' },
+      { run_id: 'done-run', task: 'Finished task', recipe: 'pair', run_state: 'completed' },
+    ]);
+    expect(swarms.map((command) => command.id)).toEqual([
+      'swarm:inspect:paused-run',
+      'swarm:inspect:budget-run',
+      'swarm:inspect:failed-run',
+      'swarm:inspect:approval-run',
+      'swarm:inspect:human-run',
+    ]);
+    expect(swarms[0]?.action).toEqual({ type: 'swarm-run', runId: 'paused-run' });
+    expect(filterCommands(swarms, 'approve plan').map((command) => command.id)).toEqual([
+      'swarm:inspect:approval-run',
+      'swarm:inspect:human-run',
+    ]);
+  });
+
+  it('hides People create and import commands until a workspace exists', () => {
+    expect(commandsForWorkspace(false).map((command) => command.id)).not.toEqual(
+      expect.arrayContaining(['people:create', 'people:import-munder']),
+    );
+    expect(commandsForWorkspace(true).map((command) => command.id)).toEqual(
+      expect.arrayContaining(['people:create', 'people:import-munder']),
+    );
   });
 });

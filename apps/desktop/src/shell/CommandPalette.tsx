@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { requireClient, useBackend } from '../data/backend';
 import { useSubQuery } from '../data/commands';
+import { useLoops } from '../data/loops';
+import { useSwarms } from '../data/swarms';
 import { useTerminalSessions } from '../data/terminal';
 import { setThemePreference } from '../design/theme';
 import { takeNextNeedsMe } from '../features/office/attention';
@@ -12,7 +14,15 @@ import { parseProjectListMessage } from '../features/world/model';
 import { projectWorldCommands, resolveProjectWorldJump, resolveWorldJump } from '../features/world/worldJumps';
 import { envelopeText } from '../lib/api';
 import { Button, Dialog, Kbd, TextInput, VisuallyHidden } from '../ui';
-import { filterCommands, PALETTE_COMMANDS, personCommands, SHORTCUTS, type PaletteCommand } from './commands';
+import {
+  filterCommands,
+  commandsForWorkspace,
+  loopScheduleCommands,
+  personCommands,
+  recoverableSwarmCommands,
+  SHORTCUTS,
+  type PaletteCommand,
+} from './commands';
 import { DESTINATIONS } from './destinations';
 import { useSessionContext } from './useSessionContext';
 import styles from './shell.module.css';
@@ -45,6 +55,8 @@ export function CommandPalette() {
   const terminals = useTerminalSessions();
   const attention = useAttention();
   const projectsQuery = useSubQuery('project', 'list');
+  const loopsQuery = useLoops();
+  const swarmsQuery = useSwarms();
   const peopleQuery = useQuery({
     queryKey: ['people', context.workspace],
     queryFn: () => requireClient(client).people(context.workspace),
@@ -62,6 +74,8 @@ export function CommandPalette() {
     () => personCommands(peopleQuery.data?.people ?? [], terminals.sessions),
     [peopleQuery.data, terminals.sessions],
   );
+  const loopCommands = useMemo(() => loopScheduleCommands(loopsQuery.data?.loops ?? []), [loopsQuery.data]);
+  const recoverableRuns = useMemo(() => recoverableSwarmCommands(swarmsQuery.data?.runs ?? []), [swarmsQuery.data]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -104,8 +118,14 @@ export function CommandPalette() {
   }, [open]);
 
   const catalog = useMemo(
-    () => [...PALETTE_COMMANDS, ...projectCommands, ...peoplePaletteCommands],
-    [peoplePaletteCommands, projectCommands],
+    () => [
+      ...commandsForWorkspace(Boolean(context.workspace)),
+      ...projectCommands,
+      ...peoplePaletteCommands,
+      ...loopCommands,
+      ...recoverableRuns,
+    ],
+    [context.workspace, loopCommands, peoplePaletteCommands, projectCommands, recoverableRuns],
   );
   const matches = useMemo(() => filterCommands(catalog, query), [catalog, query]);
   const active = matches[Math.min(selected, Math.max(matches.length - 1, 0))];
@@ -156,6 +176,15 @@ export function CommandPalette() {
         }
         return;
       }
+      case 'people-workflow':
+        navigate(href('/people', { action: action.intent }));
+        return;
+      case 'loop-schedule':
+        navigate(href('/operations', { loop: action.name, schedule: '1' }));
+        return;
+      case 'swarm-run':
+        navigate(href('/operations', { swarm: action.runId }));
+        return;
       case 'session':
         switch (action.intent) {
           case 'new-terminal':

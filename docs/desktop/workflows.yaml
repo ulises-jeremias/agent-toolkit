@@ -247,5 +247,21 @@ journeys:
         tests:
           - apps/desktop/e2e/electron/desktop.spec.ts
           - apps/desktop/e2e/electron/project-link.spec.ts
+      - note: >-
+          Direct palette commands open the existing People create form and an
+          explicit Munder file chooser/review, dynamically list installed loop
+          schedule controls, and select recoverable swarm runs in Operations.
+          E2E confirms import remains unsaved and inert, schedule previews still
+          gate changes, and a paused run can be resumed from its canonical
+          inspector after palette navigation.
+        build: "feat/desktop-world-semantic-actions (Linux Electron E2E)"
+        screenshots:
+          - assets/electron/palette/people-create-compact.png
+          - assets/electron/palette/people-create-large.png
+          - assets/electron/palette/munder-review-compact.png
+          - assets/electron/palette/munder-review-large.png
+        tests:
+          - apps/desktop/e2e/electron/desktop.spec.ts
+          - apps/desktop/e2e/electron/loops.spec.ts
     blockers:
-      - direct palette actions for capability installation, MCP configuration, loop scheduling, People CRUD/import, and swarm run recovery remain incomplete
+      - direct palette actions for capability installation and MCP configuration remain incomplete because those mutation journeys do not yet have complete canonical Desktop workflows

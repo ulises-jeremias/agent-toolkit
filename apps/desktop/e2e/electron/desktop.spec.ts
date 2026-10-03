@@ -6,6 +6,7 @@ import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtur
 
 const CAPTURE = process.env['ATK_CAPTURE'] === '1';
 const CAPTURE_DIR = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/swarms');
+const PALETTE_CAPTURE_DIR = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/palette');
 
 /**
  * Kill the supervised `agent-toolkit serve` child. After ADR-034 the renderer
@@ -175,6 +176,83 @@ test('palette actions open the same reviewed terminal, job, loop, and swarm work
   await openAction('New terminal session', 'New terminal session');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'New terminal session' })).toBeHidden();
+});
+
+test('palette reaches Person creation and Munder import review without saving or spawning', async () => {
+  const { page } = desktop;
+  await page.keyboard.press('Control+k');
+  let palette = page.getByRole('dialog', { name: 'Commands' });
+  await palette.getByLabel('Filter commands').fill('Create Person');
+  await expect(palette.getByRole('option', { name: /Create Person/ })).toBeVisible();
+  await page.keyboard.press('Enter');
+  const create = page.getByRole('dialog', { name: 'Create Person' });
+  await expect(create).toBeVisible();
+  await expect(create).toContainText('Saving this form does not start a process');
+  if (CAPTURE) {
+    fs.mkdirSync(PALETTE_CAPTURE_DIR, { recursive: true });
+    for (const size of [
+      { width: 1024, height: 768, key: 'compact' },
+      { width: 1600, height: 1000, key: 'large' },
+    ]) {
+      await setViewport(desktop.app, size.width, size.height);
+      await page.setViewportSize({ width: size.width, height: size.height });
+      await page.screenshot({ path: path.join(PALETTE_CAPTURE_DIR, `people-create-${size.key}.png`), fullPage: true });
+    }
+    await setViewport(desktop.app, 1280, 800);
+    await page.setViewportSize({ width: 1280, height: 800 });
+  }
+  await create.getByRole('button', { name: 'Cancel' }).click();
+  await expect(create).toBeHidden();
+
+  await page.keyboard.press('Control+k');
+  palette = page.getByRole('dialog', { name: 'Commands' });
+  await palette.getByLabel('Filter commands').fill('Import Person from Munder Difflin');
+  await expect(palette.getByRole('option', { name: /Import Person from Munder Difflin/ })).toBeVisible();
+  await page.keyboard.press('Enter');
+  const importPrompt = page.getByRole('dialog', { name: 'Import a Munder Difflin hire' });
+  await expect(importPrompt).toBeVisible();
+  await expect(importPrompt).toContainText('Import never starts a session');
+  const chooser = page.waitForEvent('filechooser');
+  await importPrompt.getByRole('button', { name: 'Choose hire file' }).click();
+  await (
+    await chooser
+  ).setFiles({
+    name: 'lina.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(
+      JSON.stringify({
+        spec: 'munder-difflin/hire@1',
+        name: 'Lina',
+        role: 'Senior Reviewer',
+        goal: 'Review changes',
+        command: 'unsafe content is ignored',
+      }),
+    ),
+  });
+  const review = page.getByRole('dialog', { name: 'Review Munder import' });
+  await expect(review).toContainText('Lina');
+  await expect(review).toContainText('command');
+  await expect(review).toContainText('Import never starts a session');
+  if (CAPTURE) {
+    for (const size of [
+      { width: 1024, height: 768, key: 'compact' },
+      { width: 1600, height: 1000, key: 'large' },
+    ]) {
+      await setViewport(desktop.app, size.width, size.height);
+      await page.setViewportSize({ width: size.width, height: size.height });
+      await page.screenshot({ path: path.join(PALETTE_CAPTURE_DIR, `munder-review-${size.key}.png`), fullPage: true });
+    }
+    await setViewport(desktop.app, 1280, 800);
+    await page.setViewportSize({ width: 1280, height: 800 });
+  }
+  await page.keyboard.press('Escape');
+
+  await page.evaluate(() => {
+    window.location.hash = '/people?action=create';
+  });
+  await expect(page.getByRole('dialog', { name: 'Create Person' })).toBeVisible();
+  await expect(page).toHaveURL(/workspace=/);
+  await page.getByRole('dialog', { name: 'Create Person' }).getByRole('button', { name: 'Cancel' }).click();
 });
 
 test('palette workspace switching focuses the native harness chooser', async () => {
@@ -410,6 +488,12 @@ test('Operations refreshes a live swarm when its state changes outside Desktop',
 
   runSwarmCli(desktop, ['pause', runId]);
   await expect(inspector.getByText('paused', { exact: true })).toBeVisible({ timeout: 14_000 });
+  await page.keyboard.press('Control+k');
+  const palette = page.getByRole('dialog', { name: 'Commands' });
+  await palette.getByLabel('Filter commands').fill('Review paused swarm');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(new RegExp(`swarm=${encodeURIComponent(runId)}`));
+  await expect(inspector.getByRole('button', { name: 'Resume run' })).toBeVisible();
   await inspector.getByRole('button', { name: 'Resume run' }).click();
   await expect(inspector.getByText('running', { exact: true })).toBeVisible();
 

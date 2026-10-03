@@ -1,8 +1,8 @@
 import { DESTINATIONS, type DestinationPath } from './destinations';
-import type { Person } from '../lib/api';
+import type { LoopInfo, Person, SwarmRunInfo } from '../lib/api';
 import type { PtySessionInfo } from '../types/electron';
 
-export type CommandGroup = 'Go' | 'People' | 'Session' | 'Appearance' | 'Help';
+export type CommandGroup = 'Go' | 'People' | 'Loops' | 'Swarms' | 'Session' | 'Appearance' | 'Help';
 
 export type PaletteAction =
   | { type: 'navigate'; path: DestinationPath }
@@ -13,6 +13,9 @@ export type PaletteAction =
     }
   | { type: 'world-project'; projectName: string }
   | { type: 'person'; intent: 'inspect' | 'start' | 'session'; personId: string }
+  | { type: 'people-workflow'; intent: 'create' | 'import' }
+  | { type: 'loop-schedule'; name: string }
+  | { type: 'swarm-run'; runId: string }
   | {
       type: 'session';
       intent:
@@ -93,6 +96,22 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     hint: 'Open a PTY at this workstation',
     keywords: ['pty', 'shell', 'dock', 'workstation'],
     action: { type: 'session', intent: 'new-terminal' },
+  },
+  {
+    id: 'people:create',
+    group: 'People',
+    title: 'Create Person',
+    hint: 'Open the roster form for a reusable collaborator',
+    keywords: ['new', 'collaborator', 'hire', 'profile'],
+    action: { type: 'people-workflow', intent: 'create' },
+  },
+  {
+    id: 'people:import-munder',
+    group: 'People',
+    title: 'Import Person from Munder Difflin',
+    hint: 'Review a hire file before saving; import never starts a session',
+    keywords: ['hire', 'json', 'review', 'munder', 'import'],
+    action: { type: 'people-workflow', intent: 'import' },
   },
   {
     id: 'go:switch-workspace',
@@ -181,6 +200,12 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
   },
 ];
 
+export function commandsForWorkspace(hasWorkspace: boolean): readonly PaletteCommand[] {
+  return hasWorkspace
+    ? PALETTE_COMMANDS
+    : PALETTE_COMMANDS.filter((command) => command.action.type !== 'people-workflow');
+}
+
 /** Dynamic direct actions for saved People; session actions require a live PTY. */
 export function personCommands(
   people: readonly Pick<Person, 'id' | 'name' | 'role' | 'archived'>[],
@@ -222,6 +247,54 @@ export function personCommands(
       }
       return commands;
     });
+}
+
+export function loopScheduleCommands(loops: readonly Pick<LoopInfo, 'name' | 'cadence'>[]): PaletteCommand[] {
+  return [...loops]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((loop) => ({
+      id: `loop:schedule:${loop.name}`,
+      group: 'Loops',
+      title: `Manage ${loop.name} schedule`,
+      hint: `${loop.cadence} · review install or disable`,
+      keywords: ['schedule', 'timer', 'launchd', 'systemd', 'loop', loop.name],
+      action: { type: 'loop-schedule', name: loop.name },
+    }));
+}
+
+const ACTIONABLE_SWARM_STATES = new Set([
+  'paused',
+  'budget_exhausted',
+  'failed',
+  'awaiting_human',
+  'awaiting_plan_approval',
+]);
+
+export function recoverableSwarmCommands(
+  runs: readonly Pick<SwarmRunInfo, 'run_id' | 'task' | 'run_state' | 'recipe'>[],
+) {
+  return runs
+    .filter((run) => ACTIONABLE_SWARM_STATES.has(run.run_state))
+    .map((run) => ({
+      id: `swarm:inspect:${run.run_id}`,
+      group: 'Swarms' as const,
+      title: `Review ${run.run_state} swarm`,
+      hint: `${run.task || run.recipe || 'Swarm run'} · ${run.run_id}`,
+      keywords: [
+        'recover',
+        'resume',
+        'failed',
+        'paused',
+        'budget',
+        ...(run.run_state === 'awaiting_human' || run.run_state === 'awaiting_plan_approval'
+          ? ['approve', 'approval', 'human', 'plan', 'gate']
+          : []),
+        run.task,
+        run.recipe,
+        run.run_id,
+      ],
+      action: { type: 'swarm-run' as const, runId: run.run_id },
+    }));
 }
 
 export const SHORTCUTS: ReadonlyArray<{ keys: readonly string[]; action: string }> = [

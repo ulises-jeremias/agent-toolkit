@@ -36,16 +36,22 @@ import styles from './operations.module.css';
 
 export function LoopsPanel({
   selectedName,
+  scheduleName,
   dialogOpen,
   onSelect,
   onRun,
+  onSchedule,
+  onCloseSchedule,
   onCloseDialog,
   onStarted,
 }: {
   selectedName: string | null;
+  scheduleName: string | null;
   dialogOpen: boolean;
   onSelect: (name: string | null) => void;
   onRun: (name: string) => void;
+  onSchedule: (name: string) => void;
+  onCloseSchedule: () => void;
   onCloseDialog: () => void;
   onStarted: (jobId: string) => void;
 }) {
@@ -58,7 +64,6 @@ export function LoopsPanel({
   ).filter((entry) => !installed.some((loop) => loop.name === entry.name));
   const selectedLoop = installed.find((loop) => loop.name === selectedName);
   const selectedTemplate = templateEntries.find((entry) => entry.name === selectedName);
-  const [scheduleName, setScheduleName] = useState<string | null>(null);
 
   return (
     <>
@@ -93,7 +98,7 @@ export function LoopsPanel({
           <LoopDetail
             loop={selectedLoop}
             onRun={() => onRun(selectedLoop.name)}
-            onSchedule={() => setScheduleName(selectedLoop.name)}
+            onSchedule={() => onSchedule(selectedLoop.name)}
           />
         ) : null}
         {selectedTemplate ? <TemplateDetail entry={selectedTemplate} onInitialized={onSelect} /> : null}
@@ -108,7 +113,7 @@ export function LoopsPanel({
       <ManageLoopScheduleDialog
         open={scheduleName !== null}
         loop={installed.find((loop) => loop.name === scheduleName) ?? null}
-        onClose={() => setScheduleName(null)}
+        onClose={onCloseSchedule}
       />
     </>
   );
