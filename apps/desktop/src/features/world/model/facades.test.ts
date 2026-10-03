@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PROJECT_FACADES, projectFacade } from './facades';
+import { PROJECT_FACADES, projectFacade, projectFacades } from './facades';
 
 describe('projectFacade', () => {
   it('is stable for the same project name', () => {
@@ -17,5 +17,12 @@ describe('projectFacade', () => {
     for (const facade of seen) {
       expect(PROJECT_FACADES).toContain(facade);
     }
+  });
+
+  it('keeps project silhouettes distinct within the same valley and ignores input order', () => {
+    const names = ['garden-api', 'maple-worker', 'river-notes'];
+    const facades = projectFacades(names);
+    expect(new Set(facades.values()).size).toBe(names.length);
+    expect(projectFacades([...names].reverse())).toEqual(facades);
   });
 });
