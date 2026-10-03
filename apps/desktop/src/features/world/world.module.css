@@ -256,6 +256,9 @@
 /* Game-style name plaque under places/objects. */
 .entityLabel {
   position: absolute;
+  /* Plaques sit below their hit box, where later-painted building canopies
+     used to cover them. Keep semantic names readable above adjacent sprites. */
+  z-index: 6;
   left: 50%;
   bottom: -2px;
   transform: translate(-50%, 100%);
