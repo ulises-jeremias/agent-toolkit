@@ -3,6 +3,7 @@ import {
   filterCommands,
   commandsForWorkspace,
   loopScheduleCommands,
+  mcpProviderCommands,
   PALETTE_COMMANDS,
   personCommands,
   recoverableSwarmCommands,
@@ -138,6 +139,28 @@ describe('filterCommands', () => {
       'swarm:inspect:approval-run',
       'swarm:inspect:human-run',
     ]);
+  });
+
+  it('creates direct MCP provider actions from the live catalog and routes them to review', () => {
+    const providers = mcpProviderCommands([
+      {
+        id: 'github',
+        display_name: 'GitHub',
+        package: 'ghcr.io/github/github-mcp-server',
+        required_env: ['GITHUB_PERSONAL_ACCESS_TOKEN'],
+      },
+    ]);
+    expect(filterCommands(providers, 'configure github mcp').map((command) => command.id)).toEqual([
+      'library:mcp:github',
+    ]);
+    expect(filterCommands(providers, 'GITHUB_PERSONAL_ACCESS_TOKEN').map((command) => command.id)).toEqual([
+      'library:mcp:github',
+    ]);
+    expect(providers[0]?.action).toEqual({ type: 'mcp-provider', providerId: 'github' });
+    expect(PALETTE_COMMANDS.find((command) => command.id === 'library:review-installation')?.action).toEqual({
+      type: 'library-workflow',
+      intent: 'review-installation',
+    });
   });
 
   it('hides People create and import commands until a workspace exists', () => {

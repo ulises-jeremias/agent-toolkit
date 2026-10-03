@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { requireClient, useBackend } from '../data/backend';
 import { useSubQuery } from '../data/commands';
+import { useMcpProviders } from '../data/catalog';
 import { useLoops } from '../data/loops';
 import { useSwarms } from '../data/swarms';
 import { useTerminalSessions } from '../data/terminal';
@@ -18,6 +19,7 @@ import {
   filterCommands,
   commandsForWorkspace,
   loopScheduleCommands,
+  mcpProviderCommands,
   personCommands,
   recoverableSwarmCommands,
   SHORTCUTS,
@@ -57,6 +59,7 @@ export function CommandPalette() {
   const projectsQuery = useSubQuery('project', 'list');
   const loopsQuery = useLoops();
   const swarmsQuery = useSwarms();
+  const mcpProvidersQuery = useMcpProviders({ enabled: open, staleTime: 15_000 });
   const peopleQuery = useQuery({
     queryKey: ['people', context.workspace],
     queryFn: () => requireClient(client).people(context.workspace),
@@ -76,6 +79,10 @@ export function CommandPalette() {
   );
   const loopCommands = useMemo(() => loopScheduleCommands(loopsQuery.data?.loops ?? []), [loopsQuery.data]);
   const recoverableRuns = useMemo(() => recoverableSwarmCommands(swarmsQuery.data?.runs ?? []), [swarmsQuery.data]);
+  const mcpCommands = useMemo(
+    () => mcpProviderCommands(mcpProvidersQuery.data?.ok ? mcpProvidersQuery.data.providers : []),
+    [mcpProvidersQuery.data],
+  );
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -122,10 +129,11 @@ export function CommandPalette() {
       ...commandsForWorkspace(Boolean(context.workspace)),
       ...projectCommands,
       ...peoplePaletteCommands,
+      ...mcpCommands,
       ...loopCommands,
       ...recoverableRuns,
     ],
-    [context.workspace, loopCommands, peoplePaletteCommands, projectCommands, recoverableRuns],
+    [context.workspace, loopCommands, mcpCommands, peoplePaletteCommands, projectCommands, recoverableRuns],
   );
   const matches = useMemo(() => filterCommands(catalog, query), [catalog, query]);
   const active = matches[Math.min(selected, Math.max(matches.length - 1, 0))];
@@ -178,6 +186,12 @@ export function CommandPalette() {
       }
       case 'people-workflow':
         navigate(href('/people', { action: action.intent }));
+        return;
+      case 'library-workflow':
+        navigate(href('/library', { install_review: '1' }));
+        return;
+      case 'mcp-provider':
+        navigate(href('/library', { mcp_action: 'configure', mcp_provider: action.providerId }));
         return;
       case 'loop-schedule':
         navigate(href('/operations', { loop: action.name, schedule: '1' }));

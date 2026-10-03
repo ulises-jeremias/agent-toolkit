@@ -1,8 +1,8 @@
 import { DESTINATIONS, type DestinationPath } from './destinations';
-import type { LoopInfo, Person, SwarmRunInfo } from '../lib/api';
+import type { LoopInfo, McpProviderInfo, Person, SwarmRunInfo } from '../lib/api';
 import type { PtySessionInfo } from '../types/electron';
 
-export type CommandGroup = 'Go' | 'People' | 'Loops' | 'Swarms' | 'Session' | 'Appearance' | 'Help';
+export type CommandGroup = 'Go' | 'Library' | 'People' | 'Loops' | 'Swarms' | 'Session' | 'Appearance' | 'Help';
 
 export type PaletteAction =
   | { type: 'navigate'; path: DestinationPath }
@@ -14,6 +14,8 @@ export type PaletteAction =
   | { type: 'world-project'; projectName: string }
   | { type: 'person'; intent: 'inspect' | 'start' | 'session'; personId: string }
   | { type: 'people-workflow'; intent: 'create' | 'import' }
+  | { type: 'library-workflow'; intent: 'review-installation' }
+  | { type: 'mcp-provider'; providerId: string }
   | { type: 'loop-schedule'; name: string }
   | { type: 'swarm-run'; runId: string }
   | {
@@ -104,6 +106,14 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     hint: 'Open the roster form for a reusable collaborator',
     keywords: ['new', 'collaborator', 'hire', 'profile'],
     action: { type: 'people-workflow', intent: 'create' },
+  },
+  {
+    id: 'library:review-installation',
+    group: 'Library',
+    title: 'Review capability installation',
+    hint: 'Inspect targets and paths before anything is written',
+    keywords: ['install', 'skills', 'agents', 'packs', 'preview', 'capabilities'],
+    action: { type: 'library-workflow', intent: 'review-installation' },
   },
   {
     id: 'people:import-munder',
@@ -199,6 +209,33 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     action: { type: 'help', intent: 'shortcuts' },
   },
 ];
+
+/** Dynamic provider actions route to the same reviewed flow used in Library. */
+export function mcpProviderCommands(
+  providers: readonly Pick<McpProviderInfo, 'id' | 'display_name' | 'package' | 'required_env'>[],
+): PaletteCommand[] {
+  return [...providers]
+    .sort((a, b) => (a.display_name || a.id).localeCompare(b.display_name || b.id))
+    .map<PaletteCommand>((provider) => {
+      const name = provider.display_name || provider.id;
+      return {
+        id: `library:mcp:${provider.id}`,
+        group: 'Library',
+        title: `Configure ${name} MCP`,
+        hint: 'Review provider requirements and local changes first',
+        keywords: [
+          'mcp',
+          'provider',
+          'connector',
+          'configure',
+          provider.id,
+          provider.package,
+          ...provider.required_env,
+        ],
+        action: { type: 'mcp-provider', providerId: provider.id },
+      };
+    });
+}
 
 export function commandsForWorkspace(hasWorkspace: boolean): readonly PaletteCommand[] {
   return hasWorkspace

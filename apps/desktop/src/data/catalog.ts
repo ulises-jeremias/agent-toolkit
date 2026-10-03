@@ -43,12 +43,13 @@ export function useModels() {
   });
 }
 
-export function useMcpProviders() {
+export function useMcpProviders(options: { enabled?: boolean; staleTime?: number } = {}) {
   const { client } = useBackend();
   return useQuery({
     queryKey: qk.catalog.mcp(),
     queryFn: () => requireClient(client).mcpProviders(),
-    enabled: client !== null,
+    enabled: client !== null && (options.enabled ?? true),
+    staleTime: options.staleTime,
   });
 }
 
