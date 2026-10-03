@@ -25,10 +25,19 @@ journeys:
   - id: workspace-switch-inspect
     title: Switch workspace and read its truth in the World
     destinations: [world, workspace]
-    status: partial
-    evidence: []
-    blockers:
-      - per-state visual evidence at compact and large viewports reviewed in a PR, not yet on file
+    status: ok
+    evidence:
+      - note: Electron E2E changes to a second workspace through Settings, links a real project using the GUI, verifies its building in World, switches back, and verifies that the original workspace remains empty. The flow waits for the supervised backend to become live after each restart.
+        build: "8377e06a (Linux Electron E2E; temporary HOME)"
+        tests:
+          - apps/desktop/e2e/electron/workspace-switch.spec.ts
+        screenshots:
+          - assets/electron/workspace/workspace-project-compact.png
+          - assets/electron/workspace/workspace-project-large.png
+          - assets/electron/workspace/workspace-return-compact.png
+          - assets/electron/workspace/workspace-return-large.png
+    blockers: []
+    recovery: Settings keeps harness selection available; wait for backend live status before workspace operations, then retry or switch back to the previous workspace.
   - id: project-spatial-files
     title: Enter a project and inspect its real files in the World
     destinations: [world, workspace]

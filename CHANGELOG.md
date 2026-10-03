@@ -36,6 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Desktop now completes workspace switching through Settings: the backend
+  restarts against the selected workspace, and the World reflects that
+  workspace's own project buildings after the service is live.
 - Recovering a Munder import ID collision by editing the Person now clears the
   stale save error before opening the create form.
 - People edit, archive, and restore now have a reviewed GUI lifecycle that
