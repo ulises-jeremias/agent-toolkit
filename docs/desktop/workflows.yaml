@@ -110,21 +110,27 @@ journeys:
   - id: people-crud
     title: Create, edit and archive a Person
     destinations: [people]
-    status: partial
+    status: ok
     evidence:
       - note: Electron screenshot tour creates Lina through the UI and confirms the offline roster; V people_test.v covers CRUD, archive, restore and invalid declarations
         build: "feat/product-stabilization (pre-merge)"
-    blockers:
-      - GUI edit/archive/restore failure paths need full Electron review
+      - note: Electron E2E creates Milo, edits his goal and appearance, then archives and restores him with explicit confirmations; his offline state persists and archive never starts a session
+        build: "feat/desktop-people-import-review (Linux Electron E2E)"
+        screenshots:
+          - assets/electron/people/people-roster-edit-compact.png
+          - assets/electron/people/people-roster-edit-large.png
   - id: people-import-review
     title: Review a munder-difflin/hire@1 import
     destinations: [people]
-    status: partial
+    status: ok
     evidence:
       - note: Electron screenshot tour reviews Maya JSON, displays ignored command field, saves and observes offline roster; importMunder.test.ts covers inert source mapping
         build: "feat/product-stabilization (pre-merge)"
-    blockers:
-      - malformed-file and collision recovery need full Electron review
+      - note: Electron review also covers malformed JSON recovery, safe import review, duplicate ID conflict, edit-before-save recovery, and confirms the new Person remains offline
+        build: "feat/desktop-people-import-review (Linux Electron E2E)"
+        screenshots:
+          - assets/electron/people/munder-import-collision-compact.png
+          - assets/electron/people/munder-import-collision-large.png
   - id: people-start-session
     title: Start a session as a Person
     destinations: [people, terminal, world]

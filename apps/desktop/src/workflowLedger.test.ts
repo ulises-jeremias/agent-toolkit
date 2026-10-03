@@ -21,12 +21,12 @@ describe('Desktop workflow ledger (docs/desktop/workflows.yaml)', () => {
     for (const journey of journeys) {
       expect(['ok', 'partial', 'blocked', 'not-implemented']).toContain(journey.status);
     }
-    // CRUD/import and an initial PTY-backed start journey exist, but are not
-    // end-to-end complete until recovery and durable AgentSession binding land.
+    // CRUD and import now have Electron coverage with reviewed screenshots;
+    // starting a Person still lacks durable AgentSession recovery semantics.
     for (const id of ['people-crud', 'people-import-review']) {
       const journey = journeys.find((j) => j.id === id);
       expect(journey, id).toBeDefined();
-      expect(journey!.status).toBe('partial');
+      expect(journey!.status).toBe('ok');
     }
     for (const id of ['people-start-session']) {
       const journey = journeys.find((j) => j.id === id);

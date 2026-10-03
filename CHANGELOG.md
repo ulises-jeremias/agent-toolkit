@@ -36,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Recovering a Munder import ID collision by editing the Person now clears the
+  stale save error before opening the create form.
+- People edit, archive, and restore now have a reviewed GUI lifecycle that
+  keeps the saved collaborator offline until a real session is started.
 - Desktop's World places shared services around a civic commons and registered
   project houses across a traversable creek; deterministic grass, willow, and
   shoreline art ground empty, single-project, and multi-project layouts.
