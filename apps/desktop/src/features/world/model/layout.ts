@@ -86,8 +86,8 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   if (exit) place(exit, 0, 2);
   if (room) place(room, 2, 0);
   if (memory) place(memory, 7, 0);
-  if (terminal) place(terminal, 1, 4);
-  if (files) place(files, 4, 4);
+  if (terminal) place(terminal, 1, 3);
+  if (files) place(files, 4, 3);
 
   let entryX = 10;
   const entryY = 1;

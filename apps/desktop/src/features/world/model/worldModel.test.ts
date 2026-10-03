@@ -860,10 +860,14 @@ describe('layoutWorld', () => {
     const exit = layout.entities.find((e) => e.id === 'object:exit-grounds');
     const room = layout.entities.find((e) => e.id === 'place:project:alpha');
     const records = layout.entities.find((e) => e.id === 'place:memory-project:alpha');
+    const terminal = layout.entities.find((e) => e.id === 'object:terminal-project:alpha');
+    const files = layout.entities.find((e) => e.id === 'object:files-project:alpha');
     expect(exit && room).toBeTruthy();
     expect(exit!.x).toBe(1);
     expect(room!.x).toBeGreaterThan(exit!.x);
     expect(records?.x).toBe(8);
+    expect(terminal?.y).toBe(4);
+    expect(files?.y).toBe(4);
     expect(layout.cols).toBe(12);
     expect(layout.rows).toBe(9);
   });
