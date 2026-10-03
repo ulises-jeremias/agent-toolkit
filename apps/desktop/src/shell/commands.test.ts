@@ -42,6 +42,24 @@ describe('filterCommands', () => {
     expect(PALETTE_COMMANDS.some((command) => /Paper|\bInk\b/.test(command.title))).toBe(false);
   });
 
+  it('binds universal commands to typed canonical actions rather than parsing command ids', () => {
+    expect(PALETTE_COMMANDS.find((command) => command.id === 'go:/operations')?.action).toEqual({
+      type: 'navigate',
+      path: '/operations',
+    });
+    expect(PALETTE_COMMANDS.find((command) => command.id === 'session:start-swarm')?.action).toEqual({
+      type: 'session',
+      intent: 'start-swarm',
+    });
+    expect(PALETTE_COMMANDS.find((command) => command.id === 'session:restart-backend')?.action).toEqual({
+      type: 'session',
+      intent: 'restart-backend',
+    });
+    expect(PALETTE_COMMANDS.find((command) => command.id === 'go:switch-workspace')?.action).toEqual({
+      type: 'workspace-switch',
+    });
+  });
+
   it('exposes world jumps for memory, projects, terminal, and attention', () => {
     const ids = PALETTE_COMMANDS.map((command) => command.id);
     expect(ids).toEqual(
@@ -72,5 +90,10 @@ describe('filterCommands', () => {
     expect(filterCommands(commands, 'terminal agent-toolkit').map((command) => command.id)).toEqual([
       'people:session:alex',
     ]);
+    expect(commands.find((command) => command.id === 'people:start:lina')?.action).toEqual({
+      type: 'person',
+      intent: 'start',
+      personId: 'lina',
+    });
   });
 });

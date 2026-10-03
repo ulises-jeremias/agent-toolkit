@@ -103,6 +103,89 @@ test('Ctrl+K opens the command palette and keeps session context', async () => {
   await expect(page).toHaveURL(new RegExp(`workspace=${encodeURIComponent(workspace)}`));
 });
 
+test('palette actions open the same reviewed terminal, job, loop, and swarm workflows', async () => {
+  const { page } = desktop;
+  const openAction = async (search: string, pattern: string | RegExp) => {
+    await page.keyboard.press('Control+k');
+    const palette = page.getByRole('dialog', { name: 'Commands' });
+    await palette.getByLabel('Filter commands').fill(search);
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog', { name: pattern })).toBeVisible();
+  };
+
+  await openAction('Start a swarm', 'Start a swarm');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Start a swarm' })).toBeHidden();
+
+  await openAction('Run a loop', 'Run a loop once');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Run a loop once' })).toBeHidden();
+
+  await openAction('Start a job', 'Start a job');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Start a job' })).toBeHidden();
+
+  await openAction('New terminal session', 'New terminal session');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'New terminal session' })).toBeHidden();
+});
+
+test('palette workspace switching focuses the native harness chooser', async () => {
+  const { page } = desktop;
+  await page.keyboard.press('Control+k');
+  const palette = page.getByRole('dialog', { name: 'Commands' });
+  await palette.getByLabel('Filter commands').fill('Switch workspace');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/#\/settings/);
+  await expect(page).toHaveURL(/panel=harness/);
+  await expect(page.getByRole('button', { name: /Change harness/ })).toBeFocused();
+});
+
+test('palette protects backend restart behind a consequence review', async () => {
+  const { page } = desktop;
+  await expect(
+    page.getByText('Reading workspace, projects, memory, tools, jobs, and active People sessions'),
+  ).toBeHidden();
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
+  await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
+  await page.keyboard.press('Control+k');
+  const palette = page.getByRole('dialog', { name: 'Commands' });
+  await palette.getByLabel('Filter commands').fill('Restart backend');
+  await page.keyboard.press('Enter');
+  const review = page.getByRole('dialog', { name: 'Restart the local backend?' });
+  await expect(review).toContainText('Current API requests or jobs may be interrupted');
+  if (process.env.ATK_CAPTURE === '1') {
+    const captureDir =
+      process.env.ATK_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/palette');
+    fs.mkdirSync(captureDir, { recursive: true });
+    for (const size of [
+      { width: 1024, height: 640, key: 'compact' },
+      { width: 1600, height: 1000, key: 'large' },
+    ]) {
+      await setViewport(desktop.app, size.width, size.height);
+      await page.setViewportSize({ width: size.width, height: size.height });
+      await page.screenshot({ path: path.join(captureDir, `backend-restart-${size.key}.png`), fullPage: true });
+    }
+    await setViewport(desktop.app, 1280, 800);
+    await page.setViewportSize({ width: 1280, height: 800 });
+  }
+  await review.getByRole('button', { name: 'Cancel' }).click();
+  await expect(review).toBeHidden();
+  await waitForBackend(page);
+});
+
+test('Settings also reviews backend restart before it can interrupt work', async () => {
+  const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
+  const backend = page.getByRole('region', { name: 'Backend' });
+  await backend.getByRole('button', { name: 'Restart backend' }).click();
+  const review = page.getByRole('dialog', { name: 'Restart the local backend?' });
+  await expect(review.getByRole('button', { name: 'Cancel' })).toBeFocused();
+  await review.getByRole('button', { name: 'Cancel' }).click();
+  await expect(review).toBeHidden();
+  await waitForBackend(page);
+});
+
 test('every destination renders from live data without a crash boundary', async () => {
   const { page } = desktop;
   const nav = page.getByRole('navigation', { name: 'Destinations' });

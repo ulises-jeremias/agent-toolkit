@@ -70,6 +70,14 @@ test('links an existing project from the GUI and places it in the world', async 
     await expect.poll(() => fs.realpathSync(linkPath)).toBe(fs.realpathSync(projectPath));
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
     await expect(page.getByRole('button', { name: /garden-api.*Project/ })).toBeVisible();
+    await page.keyboard.press('Control+k');
+    const palette = page.getByRole('dialog', { name: 'Commands' });
+    await palette.getByLabel('Filter commands').fill('Open project garden-api');
+    const projectCommand = palette.getByRole('option', { name: /Open project garden-api/ });
+    await expect(projectCommand).toBeVisible();
+    await projectCommand.click();
+    await expect(page.getByRole('application', { name: 'Interior of garden-api' })).toBeVisible();
+    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
     const world = page.getByRole('application', { name: 'Semantic workspace world' });
     if (process.env.ATK_CAPTURE === '1') {
       for (const size of [

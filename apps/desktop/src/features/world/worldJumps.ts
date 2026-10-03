@@ -49,6 +49,16 @@ export function resolveWorldJump(goTarget: string): WorldJump | null {
   return WORLD_JUMPS[goTarget] ?? null;
 }
 
+export function resolveProjectWorldJump(projectName: string): WorldJump | null {
+  const name = projectName.trim();
+  if (!name) return null;
+  return {
+    path: '/world',
+    extra: { project: name, place: undefined },
+    focusEntityId: `place:project:${name}`,
+  };
+}
+
 /** Dynamic palette rows for real project houses (never invent names). */
 export function projectWorldCommands(projectNames: readonly string[]): ReadonlyArray<{
   id: string;
@@ -56,6 +66,7 @@ export function projectWorldCommands(projectNames: readonly string[]): ReadonlyA
   title: string;
   hint: string;
   keywords: readonly string[];
+  action: { type: 'world-project'; projectName: string };
 }> {
   return [...projectNames]
     .filter(Boolean)
@@ -66,5 +77,6 @@ export function projectWorldCommands(projectNames: readonly string[]): ReadonlyA
       title: `Open project ${name}`,
       hint: 'Enter the project house on the world',
       keywords: ['project', 'house', 'world', name],
+      action: { type: 'world-project' as const, projectName: name },
     }));
 }

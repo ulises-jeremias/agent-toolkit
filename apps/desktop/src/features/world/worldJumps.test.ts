@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { projectWorldCommands, resolveWorldJump } from './worldJumps';
+import { projectWorldCommands, resolveProjectWorldJump, resolveWorldJump } from './worldJumps';
 
 describe('resolveWorldJump', () => {
   it('focuses memory, terminal, and attention places on /world', () => {
@@ -21,13 +21,12 @@ describe('resolveWorldJump', () => {
   });
 
   it('opens a named project interior without inventing houses', () => {
-    expect(resolveWorldJump('world-project:hornero')).toEqual({
+    expect(resolveProjectWorldJump('hornero')).toEqual({
       path: '/world',
       extra: { project: 'hornero', place: undefined },
       focusEntityId: 'place:project:hornero',
     });
-    expect(resolveWorldJump('world-project:')).toBeNull();
-    expect(resolveWorldJump('world-project:   ')).toBeNull();
+    expect(resolveProjectWorldJump('   ')).toBeNull();
   });
 
   it('returns null for unknown go targets', () => {
@@ -41,6 +40,7 @@ describe('projectWorldCommands', () => {
     const commands = projectWorldCommands(['zebra', 'alpha']);
     expect(commands.map((c) => c.id)).toEqual(['go:world-project:alpha', 'go:world-project:zebra']);
     expect(commands[0]?.title).toBe('Open project alpha');
+    expect(commands[0]?.action).toEqual({ type: 'world-project', projectName: 'alpha' });
   });
 
   it('skips empty names', () => {
