@@ -77,11 +77,18 @@ journeys:
       - GUI install and removal of reusable skills/agent definitions from the catalog is not implemented
   - id: mcp-configure-probe
     title: Configure an MCP provider and probe it
-    destinations: [settings, operations]
-    status: blocked
-    evidence: []
+    destinations: [library]
+    status: partial
+    evidence:
+      - note: Library uses a typed secret-free provider catalog. Configure and remove actions preview their exact local MCP registry file; validation checks environment names and template provenance; probe explains that it checks the local executable, not a live model connection.
+        tests:
+          - apps/desktop/e2e/electron/desktop.spec.ts
+          - modules/agent_toolkit_core/mcp_test.v
+        screenshots:
+          - assets/electron/library/mcp-configure-compact.png
+          - assets/electron/library/mcp-configure-large.png
     blockers:
-      - typed MCP configuration journey without manual file edits not implemented
+      - Desktop does not manage or store secret values; required values must already be available to the backend launch environment
   - id: jobs-run-observe
     title: Start a job, watch it work, see the outcome
     destinations: [operations, world]

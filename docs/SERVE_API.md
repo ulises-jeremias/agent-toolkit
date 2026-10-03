@@ -41,6 +41,7 @@ Regenerate after changing the contract:
   `skills/:sub`, `mcp/:sub`, `plugin/:sub`, `workspace/:sub`, `memory/:sub`,
   `project/:sub`, `loops/:sub`, `dc/:sub`, `swarms/:sub`, `build`)
 - `GET /api/v1/install/preview` — read-only profile target, conflict, and stale-owned-file preview
+- `GET /api/v1/mcp/providers` — typed provider catalog, template provenance, configured state, and missing environment-variable names; secret values are never returned
 - Generic subcommand routes (`<family>/:sub`) take a typed JSON body — see
   [Typed subcommand bodies](#typed-subcommand-bodies)
 - Jobs — `POST /api/v1/jobs`, `GET /api/v1/jobs`, `GET /api/v1/jobs/:id`,

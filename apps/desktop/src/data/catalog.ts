@@ -42,3 +42,12 @@ export function useModels() {
     enabled: client !== null,
   });
 }
+
+export function useMcpProviders() {
+  const { client } = useBackend();
+  return useQuery({
+    queryKey: qk.catalog.mcp(),
+    queryFn: () => requireClient(client).mcpProviders(),
+    enabled: client !== null,
+  });
+}

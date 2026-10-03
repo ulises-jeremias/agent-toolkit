@@ -58,6 +58,7 @@ export const qk = {
     tools: () => ['tools', 'list'] as const,
     providers: () => ['providers', 'list'] as const,
     models: () => ['models', 'list'] as const,
+    mcp: () => ['mcp', 'providers'] as const,
   },
 
   loops: {

@@ -1039,6 +1039,26 @@
         }
       }
     },
+    "/api/v1/mcp/providers": {
+      "get": {
+        "operationId": "mcp_providers",
+        "summary": "List MCP providers and secret-free local configuration state",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpProvidersResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/install/preview": {
       "get": {
         "operationId": "install_preview",
@@ -3119,6 +3139,90 @@
           "ok",
           "message",
           "data"
+        ]
+      },
+      "McpProviderInfo": {
+        "type": "object",
+        "description": "Secret-free MCP provider catalogue and local setup state.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "package": {
+            "type": "string"
+          },
+          "required_env": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missing_env": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "template_available": {
+            "type": "boolean"
+          },
+          "template_sha": {
+            "type": "string"
+          },
+          "template_is_pinned": {
+            "type": "boolean"
+          },
+          "template_matches_pin": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "display_name",
+          "package",
+          "required_env",
+          "missing_env",
+          "configured",
+          "enabled",
+          "template_available",
+          "template_sha",
+          "template_is_pinned",
+          "template_matches_pin"
+        ]
+      },
+      "McpProvidersResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "config_path": {
+            "type": "string"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/McpProviderInfo"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "message",
+          "config_path",
+          "providers"
         ]
       },
       "VersionResponse": {

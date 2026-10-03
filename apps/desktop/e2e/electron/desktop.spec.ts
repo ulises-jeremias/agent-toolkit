@@ -474,6 +474,153 @@ test('Library reviews installer targets before any files can be written', async 
   await expect(page.getByRole('region', { name: 'Receipts' })).not.toContainText('Profiles installed');
 });
 
+test('Library configures MCP providers with secret-free previews and explicit checks', async () => {
+  const { page } = desktop;
+  let enabled = false;
+  let configured = false;
+  let setupRequests = 0;
+  let validationRequests = 0;
+  let probeRequests = 0;
+  let removeRequests = 0;
+
+  await page.route('**/api/v1/mcp/providers', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        message: '',
+        config_path: path.join(desktop.home, '.config/agent-toolkit/mcp-config.json'),
+        providers: [
+          {
+            id: 'github',
+            display_name: 'GitHub',
+            package: 'ghcr.io/github/github-mcp-server',
+            required_env: ['GITHUB_PERSONAL_ACCESS_TOKEN'],
+            missing_env: ['GITHUB_PERSONAL_ACCESS_TOKEN'],
+            configured,
+            enabled,
+            template_available: true,
+            template_sha: '60d62ae1',
+            template_is_pinned: true,
+            template_matches_pin: true,
+          },
+        ],
+      }),
+    }),
+  );
+  await page.route('**/api/v1/mcp/setup', async (route) => {
+    setupRequests += 1;
+    const body = route.request().postDataJSON() as { provider: string; offline: boolean };
+    expect(body).toEqual({ provider: 'github', offline: true });
+    expect(JSON.stringify(body)).not.toContain('secret');
+    configured = true;
+    enabled = true;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, message: 'Saved provider to Toolkit MCP configuration.', data: { count: '1' } }),
+    });
+  });
+  await page.route('**/api/v1/mcp/doctor', async (route) => {
+    validationRequests += 1;
+    const body = route.request().postDataJSON() as { provider: string; offline: boolean };
+    expect(body).toEqual({ provider: 'github', offline: false });
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        message: 'GITHUB_PERSONAL_ACCESS_TOKEN: not set in environment',
+        data: { count: '1' },
+      }),
+    });
+  });
+  await page.route('**/api/v1/mcp/health', async (route) => {
+    probeRequests += 1;
+    const body = route.request().postDataJSON() as { provider: string; offline: boolean };
+    expect(body).toEqual({ provider: 'github', offline: true });
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        message: 'probe binary: docker present; health probe ok',
+        data: { count: '1' },
+      }),
+    });
+  });
+  await page.route('**/api/v1/mcp/uninstall', async (route) => {
+    removeRequests += 1;
+    const body = route.request().postDataJSON() as { provider: string; offline: boolean };
+    expect(body.provider).toBe('github');
+    configured = false;
+    enabled = false;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        message: 'Removed github from Toolkit MCP configuration.',
+        data: { count: '1' },
+      }),
+    });
+  });
+
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
+  const panel = page.getByRole('region', { name: 'MCP providers' });
+  await expect(panel).toBeVisible();
+  const row = panel.getByRole('row', { name: /GitHub/ });
+  await row.getByRole('button', { name: 'Configure' }).click();
+  const configure = page.getByRole('dialog', { name: 'Configure GitHub' });
+  await expect(configure).toContainText('does not store secret values');
+  await expect(configure).toContainText('GITHUB_PERSONAL_ACCESS_TOKEN');
+  await expect(configure).toContainText('not in app environment');
+  expect(setupRequests).toBe(0);
+  if (CAPTURE) {
+    fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
+    for (const size of [
+      { width: 1024, height: 768, key: 'mcp-configure-compact' },
+      { width: 1600, height: 1000, key: 'mcp-configure-large' },
+    ]) {
+      await setViewport(desktop.app, size.width, size.height);
+      await page.setViewportSize({ width: size.width, height: size.height });
+      await page.screenshot({ path: path.join(LIBRARY_CAPTURE_DIR, `${size.key}.png`), fullPage: true });
+    }
+    await setViewport(desktop.app, 1280, 800);
+    await page.setViewportSize({ width: 1280, height: 800 });
+  }
+  await configure.getByRole('button', { name: 'Save provider' }).click();
+  await expect(configure.getByRole('status')).toContainText('Saved provider');
+  await configure.getByRole('button', { name: 'Close' }).click();
+  await expect(row.getByText('enabled')).toBeVisible();
+  expect(setupRequests).toBe(1);
+
+  await row.getByRole('button', { name: 'Validate' }).click();
+  const validate = page.getByRole('dialog', { name: 'Validate GitHub' });
+  await validate.getByRole('button', { name: 'Validate' }).click();
+  await expect(validate.getByRole('status')).toContainText('not set in environment');
+  await validate.getByRole('button', { name: 'Close' }).click();
+  expect(validationRequests).toBe(1);
+
+  await row.getByRole('button', { name: 'Probe' }).click();
+  const probe = page.getByRole('dialog', { name: 'Probe GitHub' });
+  await expect(probe).toContainText('does not start an MCP session');
+  await probe.getByRole('button', { name: 'Run probe' }).click();
+  await expect(probe.getByRole('status')).toContainText('health probe ok');
+  await probe.getByRole('button', { name: 'Close' }).click();
+  expect(probeRequests).toBe(1);
+
+  await row.getByRole('button', { name: 'Remove' }).click();
+  const remove = page.getByRole('dialog', { name: 'Remove GitHub' });
+  await expect(remove).toContainText('does not delete environment variables');
+  await remove.getByRole('button', { name: 'Remove provider' }).click();
+  await expect(remove.getByRole('status')).toContainText('Removed github');
+  await remove.getByRole('button', { name: 'Close' }).click();
+  await expect(row.getByText('not configured')).toBeVisible();
+  expect(removeRequests).toBe(1);
+});
+
 test('swarm start reviews canonical topology and keeps runner separate from adapter', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'People' }).click();

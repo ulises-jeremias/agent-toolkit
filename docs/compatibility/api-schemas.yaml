@@ -37,6 +37,30 @@ schemas:
       - message:string
       - data:map<string>
 
+  - name: McpProviderInfo
+    v_struct: McpProviderInfo
+    description: Secret-free MCP provider catalogue and local setup state.
+    fields:
+      - id:string
+      - display_name:string
+      - package:string
+      - required_env:string[]
+      - missing_env:string[]
+      - configured:boolean
+      - enabled:boolean
+      - template_available:boolean
+      - template_sha:string
+      - template_is_pinned:boolean
+      - template_matches_pin:boolean
+
+  - name: McpProvidersResponse
+    v_struct: McpProvidersResponse
+    fields:
+      - ok:boolean
+      - message:string
+      - config_path:string
+      - 'providers:#McpProviderInfo[]'
+
   - name: VersionResponse
     v_struct: VersionResp
     fields:
@@ -470,6 +494,11 @@ schemas:
 # `errors` lists `code:description` pairs answered with #ApiError.
 # `query_params` uses `name:type`; append `?` to mark an optional query value.
 native:
+  - path: /api/v1/mcp/providers
+    method: get
+    op: mcp_providers
+    summary: List MCP providers and secret-free local configuration state
+    response: '#McpProvidersResponse'
   - path: /api/v1/install/preview
     method: get
     op: install_preview

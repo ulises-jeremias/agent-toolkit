@@ -479,6 +479,7 @@ const registered_api_routes = [
 	'/api/v1/update',
 	'/api/v1/uninstall',
 	'/api/v1/skills/:sub',
+	'/api/v1/mcp/providers',
 	'/api/v1/mcp/:sub',
 	'/api/v1/plugin/:sub',
 	'/api/v1/workspace/:sub',
@@ -516,6 +517,7 @@ const registered_api_routes = [
 	'/api/v1/events',
 	'/api/v1/agents',
 	'/api/v1/tools',
+	'/api/v1/mcp/providers',
 	'/api/v1/providers',
 	'/api/v1/models',
 ]
@@ -689,6 +691,15 @@ pub fn (app &App) providers(mut ctx Ctx) veb.Result {
 		ok: true
 		providers: agent_toolkit_core.list_providers()
 	})
+}
+
+@['/api/v1/mcp/providers'; get]
+pub fn (app &App) mcp_providers(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	return ctx.json(agent_toolkit_core.list_mcp_providers())
 }
 
 @['/api/v1/models'; get]

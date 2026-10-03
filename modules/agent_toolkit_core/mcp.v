@@ -23,6 +23,31 @@ pub mut:
 	count   int
 }
 
+// McpProviderInfo is the secret-free, typed catalogue entry used by Desktop.
+pub struct McpProviderInfo {
+pub:
+	id                   string
+	display_name         string
+	package              string
+	required_env         []string
+	missing_env          []string
+	configured           bool
+	enabled              bool
+	template_available   bool
+	template_sha         string
+	template_is_pinned   bool
+	template_matches_pin bool
+}
+
+// McpProvidersResponse lists providers and local setup evidence without exposing secret values.
+pub struct McpProvidersResponse {
+pub:
+	ok          bool
+	message     string
+	config_path string
+	providers   []McpProviderInfo
+}
+
 struct McpProviderCfg {
 	enabled      bool
 	required_env []string
@@ -111,6 +136,54 @@ Credentials: never stored in mcp-config.json; never printed. Export tokens in th
 
 fn default_mcp_config_path() string {
 	return os.join_path(new_fs().toolkit_config_dir(), 'mcp-config.json')
+}
+
+// list_mcp_providers returns canonical MCP catalogue/configuration state for the local user.
+pub fn list_mcp_providers() McpProvidersResponse {
+	root := lookup_checkout_root()
+	return mcp_provider_catalog(root, default_mcp_config_path())
+}
+
+fn mcp_provider_catalog(root string, cfg_path string) McpProvidersResponse {
+	if root.len == 0 {
+		return McpProvidersResponse{ message: 'Cannot locate toolkit directory', config_path: cfg_path }
+	}
+	tdir := mcp_templates_dir(root)
+	if !os.is_dir(tdir) && !os.is_dir(mcp_registry_dir(root)) {
+		return McpProvidersResponse{ message: 'MCP templates directory not found: ${tdir}', config_path: cfg_path }
+	}
+	cfg := load_mcp_config(cfg_path)
+	mut providers := []McpProviderInfo{}
+	for id in list_known_mcp_providers(root) {
+		meta := load_registry_meta(root, id) or {
+			RegistryMeta{ id: id, display_name: id }
+		}
+		required := if meta.env_vars.len > 0 { meta.env_vars } else { template_env_vars(tdir, id) }
+		mut missing := []string{}
+		for name in required {
+			if os.getenv(name).len == 0 {
+				missing << name
+			}
+		}
+		configured := id in cfg.providers
+		provider_cfg := cfg.providers[id] or { McpProviderCfg{} }
+		sha := mcp_template_sha(root, id)
+		pin := mcp_pinned_sha(id)
+		providers << McpProviderInfo{
+			id: id
+			display_name: meta.display_name
+			package: meta.package
+			required_env: required
+			missing_env: missing
+			configured: configured
+			enabled: configured && provider_cfg.enabled
+			template_available: os.is_file(os.join_path(tdir, id, 'config.template.json'))
+			template_sha: if sha.len > 0 { sha[..8] } else { '' }
+			template_is_pinned: pin.len > 0
+			template_matches_pin: pin.len > 0 && sha == pin
+		}
+	}
+	return McpProvidersResponse{ ok: true, config_path: cfg_path, providers: providers }
 }
 
 fn mcp_templates_dir(root string) string {
