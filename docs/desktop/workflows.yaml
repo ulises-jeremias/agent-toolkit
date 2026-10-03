@@ -217,10 +217,23 @@ journeys:
   - id: swarm-run-watch
     title: Run a swarm and watch lane progress
     destinations: [operations]
-    status: blocked
-    evidence: []
+    status: partial
+    evidence:
+      - note: >-
+          Operations refreshes active swarm lists and the selected run, shows
+          backend state transitions made through the CLI, and inspects real
+          approvals, tasks, handoffs, artifacts, and trace entries. The
+          reviewed Electron E2E starts a headless run record, observes external
+          run/pause changes, resumes it in Desktop, and stops it. Headless is
+          identified explicitly and does not imply that agents are running.
+        build: "feat/desktop-swarm-live-watch (Linux Electron E2E)"
+        screenshots:
+          - assets/electron/swarms/swarm-run-watch-compact.png
+          - assets/electron/swarms/swarm-run-watch-large.png
+        tests:
+          - apps/desktop/e2e/electron/desktop.spec.ts
     blockers:
-      - live run/watch journey against the current build is not verified from Desktop
+      - adapter-backed worker starts, handoff progress, and failure recovery are not yet verified in an end-to-end Desktop run
   - id: universal-search-actions
     title: Search and launch core actions with safe previews
     destinations: [shell]

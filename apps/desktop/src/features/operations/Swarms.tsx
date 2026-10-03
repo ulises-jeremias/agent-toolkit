@@ -358,6 +358,7 @@ function SwarmRunBody({ data }: { data: SwarmRunResponse }) {
         items={[
           { label: 'State', value: <StatusBadge tone={jobTone(run.run_state)} label={run.run_state} /> },
           { label: 'Task', value: run.task || '—' },
+          { label: 'Session adapter', value: run.backend || '—', mono: true },
           { label: 'Runner', value: data.runner || '—', mono: true },
           { label: 'Model', value: data.model || '—', mono: true },
           { label: 'Tokens', value: `${budget.total_tokens} / ${budget.max_total_tokens}` },
@@ -457,6 +458,30 @@ function SwarmRunBody({ data }: { data: SwarmRunResponse }) {
                   </td>
                   <td>{handoff.from_role}</td>
                   <td>{handoff.to_role}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        ) : null}
+      </SwarmSection>
+      <SwarmSection title="Artifacts" empty="No artifacts recorded for this run.">
+        {data.artifacts.length > 0 ? (
+          <Table>
+            <thead>
+              <tr>
+                <th scope="col">Artifact</th>
+                <th scope="col">Path</th>
+                <th scope="col">Size</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.artifacts.map((artifact) => (
+                <tr key={artifact.path}>
+                  <th scope="row">{artifact.name}</th>
+                  <td>
+                    <Mono>{artifact.path}</Mono>
+                  </td>
+                  <td>{artifact.size.toLocaleString()} bytes</td>
                 </tr>
               ))}
             </tbody>
