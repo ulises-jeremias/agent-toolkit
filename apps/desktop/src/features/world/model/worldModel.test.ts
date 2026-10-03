@@ -677,6 +677,10 @@ describe('layoutWorld', () => {
     const pathFront = `${laidMarker.x + Math.floor(laidMarker.w / 2)},${laidMarker.y + laidMarker.h}`;
     expect(plan.cells.some(({ tile }) => tile.startsWith('trail'))).toBe(true);
     expect(plan.cells.some(({ x, y, tile }) => `${x},${y}` === pathFront && tile.startsWith('trail'))).toBe(true);
+    const trailCells = plan.cells.filter(({ tile }) => tile.startsWith('trail'));
+    expect(Math.max(...trailCells.map(({ x }) => x))).toBeLessThanOrEqual(
+      laidMarker.x + Math.floor(laidMarker.w / 2) + 1,
+    );
     const bridge = plan.decor.find((sprite) => sprite.sprite === 'bridge');
     expect(bridge).toBeTruthy();
     expect(bridge!.y + 1).toBe(laidMarker.y - 1);
@@ -750,7 +754,11 @@ describe('layoutWorld', () => {
     expect(first.cells.some((cell) => cell.tile.startsWith('trail'))).toBe(true);
     const bridge = first.decor.find((sprite) => sprite.sprite === 'bridge');
     expect(bridge).toBeTruthy();
-    expect(new Set(first.cells.filter(({ tile }) => tile === 'water').map(({ x }) => x)).size).toBeGreaterThan(2);
+    const waterRows = new Map<number, number[]>();
+    for (const cell of first.cells.filter(({ tile }) => tile === 'water')) {
+      waterRows.set(cell.y, [...(waterRows.get(cell.y) ?? []), cell.x]);
+    }
+    expect(new Set([...waterRows.values()].map((xs) => Math.min(...xs))).size).toBeGreaterThan(1);
     expect(new Set(first.cells.filter(({ tile }) => tile.startsWith('trail')).map(({ y }) => y)).size).toBeGreaterThan(
       4,
     );

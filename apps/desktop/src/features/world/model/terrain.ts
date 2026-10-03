@@ -217,7 +217,7 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number): Map<nu
   const rows = new Map<number, number>();
   let previous = { x: 4, y };
   const phase = ((h2(0, y, 31) % 1000) / 1000) * Math.PI * 2;
-  const endX = Math.max(bridgeX + 1, Math.min(p.cols - 4, routeEndX));
+  const endX = Math.max(bridgeX + 1, Math.min(p.cols - 1, routeEndX));
   for (let x = 4; x <= endX; x++) {
     const sideStart = x <= bridgeX ? 4 : bridgeX;
     const sideEnd = x <= bridgeX ? bridgeX : endX;
@@ -546,9 +546,9 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const creekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
   (p as unknown as { creekX: number }).creekX = creekX;
   const routeEndX = projects.length
-    ? Math.max(...projects.map((project) => project.x + project.w)) + 2
+    ? Math.max(...projects.map((project) => project.x + Math.floor(project.w / 2)))
     : marker
-      ? marker.x + marker.w + 2
+      ? marker.x + Math.floor(marker.w / 2)
       : cols - 4;
   const roadRows = road(p, roadY, creekX, routeEndX);
   // A continuous north-south path links the hall, civic square and projects.

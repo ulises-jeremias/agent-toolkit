@@ -185,13 +185,14 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // previous reservation made one house inherit the width of a five-lot
   // district, which turned a small workspace into a mostly empty panorama.
   // Lot coordinates remain stable as projects are added.
-  const districtW = projects.length ? (Math.min(projects.length, districtCols) - 1) * 5 + 3 : 0;
+  const projectLaneGap = 4;
+  const districtW = projects.length ? (Math.min(projects.length, districtCols) - 1) * projectLaneGap + 3 : 0;
   // Put project homes across a visible creek crossing from the shared
   // services. Keep the bank gap compact enough that the project district
   // still reads as part of the same settlement at small window sizes.
-  const projectDistrictX = 19;
+  const projectDistrictX = 21;
   const emptyMarkerX = projectDistrictX;
-  const mapW = Math.max(28, projectDistrictX + (projects.length ? districtW : 3) + 1);
+  const mapW = Math.max(28, projectDistrictX + (projects.length ? districtW : 3));
 
   // North core: hall west, memory archive beside it, ledgers on the commons edge.
   const coreX = 1;
@@ -234,7 +235,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     const col = index % districtCols;
     const row = Math.floor(index / districtCols);
     // Keep existing lots fixed as a roster grows; only new lots are appended.
-    const x = districtX + col * 5;
+    const x = districtX + col * projectLaneGap;
     const y = districtY + row * 4;
     place(project, x, y);
     if (project.projectId) projectSlots.set(project.projectId, { x, y });
@@ -265,10 +266,9 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   const districtRows = Math.ceil(projects.length / Math.max(1, districtCols));
   const mapRows = districtY + Math.max(0, districtRows - 1) * 4 + 4;
   return {
-    // The creek is composed between civic and project districts; keep one
-    // clear edge tile beyond the final lot without scaling the whole valley
-    // down for unused land.
-    cols: Math.max(mapW, maxX + 1),
+    // maxX is already an exclusive tile bound; do not add a second padding
+    // tile beyond it, which made short project rosters look needlessly wide.
+    cols: Math.max(mapW, maxX),
     rows: Math.max(maxY, mapRows),
     entities: laid,
   };
