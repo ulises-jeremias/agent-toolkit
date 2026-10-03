@@ -1,16 +1,5 @@
 import type { ToolEnabled, ToolInfo } from '../../lib/api';
-import {
-  Button,
-  ConfirmAction,
-  ErrorState,
-  KeyValue,
-  LoadingState,
-  Mono,
-  Panel,
-  Stack,
-  StatusBadge,
-  type Tone,
-} from '../../ui';
+import { Button, ErrorState, KeyValue, LoadingState, Mono, Panel, Stack, StatusBadge, type Tone } from '../../ui';
 import styles from './world.module.css';
 
 function yesNo(value: boolean): { tone: Tone; label: string } {
@@ -29,9 +18,8 @@ export interface ToolRecordInspectorProps {
   tool?: ToolInfo | null;
   isPending?: boolean;
   error?: Error | null;
-  /** Real POST /api/v1/install when install_hint is non-empty. Omit → hint is text only. */
-  onInstall?: () => void;
-  installBusy?: boolean;
+  /** Opens Library's reviewed install flow for this tool. */
+  onReviewInstall?: () => void;
   /** Visible Back control — returns to project interior or world. */
   onBack: () => void;
   backLabel?: string;
@@ -39,7 +27,7 @@ export interface ToolRecordInspectorProps {
 }
 
 /**
- * Paper Co. inspector for one coding tool. Renders only fields the tools
+ * Cozy Pixel World inspector for one coding tool. Renders only fields the tools
  * payload already has: id, detected, configured, enabled, verified, install_hint.
  */
 export function ToolRecordInspector({
@@ -47,8 +35,7 @@ export function ToolRecordInspector({
   tool,
   isPending,
   error,
-  onInstall,
-  installBusy,
+  onReviewInstall,
   onBack,
   backLabel = 'Back',
   onRetry,
@@ -101,25 +88,23 @@ export function ToolRecordInspector({
                   value: <StatusBadge tone={yesNo(tool.verified).tone} label={yesNo(tool.verified).label} />,
                 },
                 {
-                  label: 'Install hint',
-                  value: hint ? <Mono>{hint}</Mono> : '—',
+                  label: 'Toolkit capabilities',
+                  value: hint ? 'Available for reviewed install' : 'Not offered by Toolkit',
                 },
               ]}
             />
             {hint ? (
-              onInstall ? (
-                <ConfirmAction
-                  label="Install profiles"
-                  triggerVariant="primary"
-                  variant="primary"
-                  title="Install tool profiles?"
-                  description={`Runs the real install API (POST /api/v1/install). Hint from catalog: ${hint}`}
-                  confirmLabel="Install"
-                  busy={installBusy}
-                  onConfirm={() => onInstall()}
-                />
+              onReviewInstall ? (
+                <>
+                  <p className={styles.detailEmpty}>
+                    Review exact destinations and file changes before Toolkit writes user configuration.
+                  </p>
+                  <Button variant="primary" onClick={onReviewInstall}>
+                    Review installation in Library
+                  </Button>
+                </>
               ) : (
-                <p className={styles.detailEmpty}>Install hint is text only — no install API wired.</p>
+                <p className={styles.detailEmpty}>No reviewed installation flow is available from this inspector.</p>
               )
             ) : null}
           </Stack>

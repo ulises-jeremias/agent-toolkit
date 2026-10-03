@@ -30,6 +30,7 @@ pub mut:
 	ok            bool
 	message       string
 	data_root     string
+	targets       []string
 	files_written int
 	tools_ok      int
 	skipped       int
@@ -88,6 +89,14 @@ pub fn run_install(opts InstallOptions) InstallReport {
 			return report
 		}
 	}
+	mut canonical_tools := []string{}
+	for tool in tools {
+		canonical := canonical_install_tool(tool)
+		if canonical.len > 0 && canonical !in canonical_tools {
+			canonical_tools << canonical
+		}
+	}
+	report.targets = canonical_tools
 
 	lines << ''
 	lines << '  [info]  Tools to install: ${tools.join(', ')}'
@@ -174,6 +183,7 @@ pub fn install_result(report InstallReport) CommandResult {
 			'skipped':       '${report.skipped}'
 			'dry_run':       if report.dry_run { 'true' } else { 'false' }
 			'failures':      report.failures.join(',')
+			'targets':       report.targets.join(',')
 		}
 	}
 }

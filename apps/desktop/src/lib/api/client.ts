@@ -4,6 +4,7 @@ import type {
   JobCreateRequest,
   JobRegistry,
   InstallPreviewResponse,
+  InstallReceiptsResponse,
   LoopListResponse,
   LoopStatusResponse,
   LoopHistoryResponse,
@@ -167,8 +168,20 @@ export class ApiClient {
     return toEnvelope(await this.json<unknown>('POST', OPERATION_PATHS[kind]));
   }
 
-  async installPreview(): Promise<InstallPreviewResponse> {
-    return this.json<InstallPreviewResponse>('GET', '/api/v1/install/preview' satisfies PathWith<'get'>);
+  async installPreview(tools?: readonly string[]): Promise<InstallPreviewResponse> {
+    return this.json<InstallPreviewResponse>('GET', '/api/v1/install/preview' satisfies PathWith<'get'>, {
+      query: tools?.length ? { tools: tools.join(',') } : undefined,
+    });
+  }
+
+  async installReviewed(tools: readonly string[]): Promise<InstallPreviewResponse> {
+    return this.json<InstallPreviewResponse>('POST', '/api/v1/install/reviewed' satisfies PathWith<'post'>, {
+      body: { tools },
+    });
+  }
+
+  async installReceipts(): Promise<InstallReceiptsResponse> {
+    return this.json<InstallReceiptsResponse>('GET', '/api/v1/install/receipts' satisfies PathWith<'get'>);
   }
 
   async uninstallPreview(): Promise<InstallPreviewResponse> {

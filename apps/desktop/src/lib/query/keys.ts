@@ -59,6 +59,7 @@ export const qk = {
     providers: () => ['providers', 'list'] as const,
     models: () => ['models', 'list'] as const,
     mcp: () => ['mcp', 'providers'] as const,
+    installReceipts: () => ['inventory', 'install-receipts'] as const,
   },
 
   loops: {

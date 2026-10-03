@@ -123,6 +123,23 @@ describe('ApiClient', () => {
     expect(calls[0]?.init?.body).toBeUndefined();
   });
 
+  it('reviews explicit installation targets and applies only that selection', async () => {
+    const api = client({ ok: true, message: 'reviewed', data: { targets: 'cursor,opencode' } });
+    await api.installPreview(['cursor', 'opencode']);
+    expect(calls[0]?.url).toBe('http://127.0.0.1:9/api/v1/install/preview?tools=cursor%2Copencode');
+    await api.installReviewed(['cursor', 'opencode']);
+    expect(calls[1]?.url).toBe('http://127.0.0.1:9/api/v1/install/reviewed');
+    expect(calls[1]?.init?.method).toBe('POST');
+    expect(calls[1]?.init?.body).toBe('{"tools":["cursor","opencode"]}');
+  });
+
+  it('reads installation evidence from the receipt endpoint', async () => {
+    const response = await client({ ok: true, receipts: [] }).installReceipts();
+    expect(response.receipts).toEqual([]);
+    expect(calls[0]?.url).toBe('http://127.0.0.1:9/api/v1/install/receipts');
+    expect(calls[0]?.init?.method).toBe('GET');
+  });
+
   it('loads MCP provider catalogue state from its typed endpoint', async () => {
     const response = await client({
       ok: true,

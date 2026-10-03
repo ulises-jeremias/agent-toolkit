@@ -89,6 +89,21 @@ export function toolInspectExtra(toolId: string, projectId?: string): Record<str
   };
 }
 
+/** Canonical installer target for a coding-tool catalog id, when supported. */
+export function installTargetForTool(toolId: string): string | null {
+  const targets: Record<string, string> = {
+    claude: 'claude-code',
+    'claude-code': 'claude-code',
+    cursor: 'cursor',
+    opencode: 'opencode',
+    windsurf: 'windsurf',
+    pi: 'pi',
+    muse: 'muse-code',
+    'muse-code': 'muse-code',
+  };
+  return targets[toolId] ?? null;
+}
+
 /**
  * Leave a memory/tool detail inspector. Keeps `?project=` when set so Back
  * returns to the interior that opened the detail; otherwise returns to grounds.

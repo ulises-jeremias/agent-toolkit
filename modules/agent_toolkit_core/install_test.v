@@ -31,6 +31,7 @@ fn test_install_claude_previews_complete_skills_and_preserves_user_conflicts() {
 		receipt_dir: receipt_dir
 	})
 	assert preview.ok, preview.message
+	assert preview.targets == ['claude-code']
 	assert preview.message.contains('Would preserve existing file (no overwrite): ${conflict}')
 	assert preview.message.contains('Would install: ${os.join_path(home, '.claude', 'skills', 'reviewer', 'references', 'checklist.md')}')
 	assert !os.is_file(os.join_path(home, '.claude', 'skills', 'reviewer', 'references', 'checklist.md'))
@@ -42,6 +43,8 @@ fn test_install_claude_previews_complete_skills_and_preserves_user_conflicts() {
 		receipt_dir: receipt_dir
 	})
 	assert installed.ok, installed.message
+	assert installed.targets == ['claude-code']
+	assert install_result(installed).data['targets'] == 'claude-code'
 	assert os.read_file(conflict) or { '' } == 'User-edited skill\n'
 	checklist := os.join_path(home, '.claude', 'skills', 'reviewer', 'references', 'checklist.md')
 	assert os.read_file(checklist) or { '' } == 'Toolkit checklist\n'

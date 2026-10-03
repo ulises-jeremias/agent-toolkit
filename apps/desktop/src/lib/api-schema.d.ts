@@ -377,6 +377,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/install/reviewed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Install Toolkit capabilities only for explicitly reviewed targets */
+        post: operations["install_reviewed"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/install/receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List secret-free receipts proving Toolkit capability installations */
+        get: operations["install_receipts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/uninstall/preview": {
         parameters: {
             query?: never;
@@ -1153,6 +1187,24 @@ export interface components {
             data: {
                 [key: string]: string;
             };
+        };
+        InstallReviewedRequest: {
+            tools: string[];
+        };
+        InstallReceiptSummary: {
+            product: string;
+            target: string;
+            scope: string;
+            version: string;
+            installed_at: string;
+            artifact_count: number;
+            created_count: number;
+            merged_count: number;
+            receipt_path: string;
+        };
+        InstallReceiptsResponse: {
+            ok: boolean;
+            receipts: components["schemas"]["InstallReceiptSummary"][];
         };
         /** @description Secret-free MCP provider catalogue and local setup state. */
         McpProviderInfo: {
@@ -2477,7 +2529,9 @@ export interface operations {
     };
     install_preview: {
         parameters: {
-            query?: never;
+            query?: {
+                tools?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2491,6 +2545,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InstallPreviewResponse"];
+                };
+            };
+        };
+    };
+    install_reviewed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InstallReviewedRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstallPreviewResponse"];
+                };
+            };
+            /** @description target selection is empty or unsupported */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    install_receipts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstallReceiptsResponse"];
                 };
             };
         };

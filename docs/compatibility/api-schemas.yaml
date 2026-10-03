@@ -37,6 +37,30 @@ schemas:
       - message:string
       - data:map<string>
 
+  - name: InstallReviewedRequest
+    v_struct: InstallReviewedReq
+    fields:
+      - 'tools:string[]'
+
+  - name: InstallReceiptSummary
+    v_struct: InstallReceiptSummary
+    fields:
+      - product:string
+      - target:string
+      - scope:string
+      - version:string
+      - installed_at:string
+      - artifact_count:integer
+      - created_count:integer
+      - merged_count:integer
+      - receipt_path:string
+
+  - name: InstallReceiptsResponse
+    v_struct: InstallReceiptsResp
+    fields:
+      - ok:boolean
+      - 'receipts:#InstallReceiptSummary[]'
+
   - name: McpProviderInfo
     v_struct: McpProviderInfo
     description: Secret-free MCP provider catalogue and local setup state.
@@ -503,7 +527,21 @@ native:
     method: get
     op: install_preview
     summary: Preview profile installation targets and conflicts without writing files
+    query_params: ['tools?:string']
     response: '#InstallPreviewResponse'
+  - path: /api/v1/install/reviewed
+    method: post
+    op: install_reviewed
+    summary: Install Toolkit capabilities only for explicitly reviewed targets
+    request_body: InstallReviewedRequest
+    response: '#InstallPreviewResponse'
+    errors:
+      - '422:target selection is empty or unsupported'
+  - path: /api/v1/install/receipts
+    method: get
+    op: install_receipts
+    summary: List secret-free receipts proving Toolkit capability installations
+    response: '#InstallReceiptsResponse'
   - path: /api/v1/uninstall/preview
     method: get
     op: uninstall_preview

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAgents, useProviders, useTools } from '../../data/catalog';
-import { useOperation, useReport, useSubQuery } from '../../data/commands';
+import { useAgents, useInstallReceipts, useProviders, useTools } from '../../data/catalog';
+import { useReport, useSubQuery } from '../../data/commands';
 import { requireClient, useBackend } from '../../data/backend';
 import {
   envelopeText,
@@ -55,6 +56,31 @@ function installSummary(preview: CommandEnvelope): string {
   return `${targets} ${targets === 1 ? 'tool target' : 'tool targets'} reviewed · ${files} ${files === 1 ? 'file' : 'files'} to write or merge`;
 }
 
+const INSTALL_TARGETS = [
+  { id: 'claude-code', label: 'Claude Code' },
+  { id: 'cursor', label: 'Cursor' },
+  { id: 'opencode', label: 'OpenCode' },
+  { id: 'windsurf', label: 'Windsurf' },
+  { id: 'pi', label: 'Pi' },
+  { id: 'muse-code', label: 'Muse Code' },
+] as const;
+
+function reviewedTargets(preview: CommandEnvelope | null): string[] {
+  return (preview?.data['targets'] ?? '').split(',').filter(Boolean).sort();
+}
+
+function sameTargets(selected: readonly string[], preview: CommandEnvelope | null): boolean {
+  const reviewed = reviewedTargets(preview);
+  return reviewed.length === selected.length && selected.every((target, index) => target === reviewed[index]);
+}
+
+function receiptDate(value: string): string {
+  const time = Date.parse(value);
+  return Number.isNaN(time)
+    ? 'Date unavailable'
+    : new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(time);
+}
+
 /**
  * Library: the capability room the world opens for shared/project knowledge.
  * Catalog vs this machine. Memory is a different place and is omitted when
@@ -62,30 +88,63 @@ function installSummary(preview: CommandEnvelope): string {
  * Running and marketplace install counts stay unknown unless the API reports them.
  */
 export default function Library() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedInstallTarget = searchParams.get('install_target');
+  const handledInstallTarget = useRef<string | null>(null);
   const { client } = useBackend();
   const inventory = useReport('inventory');
   const catalogRoot = inventory.data?.data['root'];
   const tools = useTools();
+  const receipts = useInstallReceipts();
   const agents = useAgents();
   const providers = useProviders();
   const queryClient = useQueryClient();
   const skills = useSubQuery('skills', 'list');
   const plugins = useSubQuery('plugin', 'check', undefined, { failureIsData: true });
-  const install = useOperation('install');
+  const install = useMutation({
+    mutationFn: async (targets: string[]) => requireOk(await requireClient(client).installReviewed(targets)),
+    onSettled: () => invalidateDomains(queryClient, OPERATION_EFFECTS.install),
+  });
   const uninstall = useMutation({
     mutationFn: async (reviewToken: string) => requireOk(await requireClient(client).uninstallReviewed(reviewToken)),
     onSettled: () => invalidateDomains(queryClient, OPERATION_EFFECTS.uninstall),
   });
   const [installPreview, setInstallPreview] = useState<CommandEnvelope | null>(null);
+  const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
   const [uninstallPreview, setUninstallPreview] = useState<CommandEnvelope | null>(null);
   const previewInstall = useMutation({
-    mutationFn: () => requireClient(client).installPreview(),
-    onSuccess: setInstallPreview,
+    mutationFn: (targets?: string[]) => requireClient(client).installPreview(targets),
+    onSuccess: (response) => {
+      setInstallPreview(response);
+      if (selectedTargets.length === 0 || !sameTargets(selectedTargets, response)) {
+        setSelectedTargets(reviewedTargets(response));
+      }
+    },
   });
   const previewUninstall = useMutation({
     mutationFn: () => requireClient(client).uninstallPreview(),
     onSuccess: setUninstallPreview,
   });
+  useEffect(() => {
+    if (!requestedInstallTarget) {
+      handledInstallTarget.current = null;
+      return;
+    }
+    if (!INSTALL_TARGETS.some((target) => target.id === requestedInstallTarget)) return;
+    if (handledInstallTarget.current === requestedInstallTarget) return;
+    handledInstallTarget.current = requestedInstallTarget;
+    setInstallPreview(null);
+    setSelectedTargets([requestedInstallTarget]);
+    previewInstall.mutate([requestedInstallTarget]);
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        next.delete('install_target');
+        return next;
+      },
+      { replace: true },
+    );
+  }, [previewInstall, requestedInstallTarget, setSearchParams]);
   const installReceipt = useActionReceipt('Toolkit capabilities installed');
   const uninstallReceipt = useActionReceipt('Toolkit files removed');
 
@@ -136,6 +195,7 @@ export default function Library() {
         open={installPreview !== null || previewInstall.isError}
         onClose={() => {
           setInstallPreview(null);
+          setSelectedTargets([]);
           previewInstall.reset();
         }}
         title="Review capability installation"
@@ -146,27 +206,41 @@ export default function Library() {
             <Button
               onClick={() => {
                 setInstallPreview(null);
+                setSelectedTargets([]);
                 previewInstall.reset();
               }}
             >
               Cancel
             </Button>
             <Button
+              variant="secondary"
+              disabled={selectedTargets.length === 0 || previewInstall.isPending || install.isPending}
+              busy={previewInstall.isPending}
+              busyLabel="Updating preview…"
+              onClick={() => {
+                setInstallPreview(null);
+                previewInstall.mutate(selectedTargets);
+              }}
+            >
+              Preview selected targets
+            </Button>
+            <Button
               variant="primary"
-              disabled={!installPreview?.ok || install.isPending}
+              disabled={!installPreview?.ok || !sameTargets(selectedTargets, installPreview) || install.isPending}
               busy={install.isPending}
               busyLabel="Installing…"
               onClick={() =>
-                install.mutate(undefined, {
+                install.mutate(selectedTargets, {
                   ...installReceipt,
                   onSuccess: (result) => {
                     installReceipt.onSuccess?.(result);
                     setInstallPreview(null);
+                    setSelectedTargets([]);
                   },
                 })
               }
             >
-              Install reviewed files
+              Install reviewed targets
             </Button>
           </ButtonRow>
         }
@@ -179,6 +253,34 @@ export default function Library() {
                 ? installSummary(installPreview)
                 : 'The installer could not prepare a safe installation. Review the details below.'}
             </p>
+            <fieldset className={styles.targetPicker}>
+              <legend>Where should Toolkit capabilities be installed?</legend>
+              <p>Choose only tools you use. The preview must match this selection before installation is enabled.</p>
+              <p>GitHub Copilot installs are repository-scoped and are not included in this user-level installer.</p>
+              <div className={styles.targetGrid}>
+                {INSTALL_TARGETS.map((target) => (
+                  <label key={target.id}>
+                    <input
+                      type="checkbox"
+                      disabled={previewInstall.isPending || install.isPending}
+                      checked={selectedTargets.includes(target.id)}
+                      onChange={(event) => {
+                        setSelectedTargets((current) =>
+                          event.target.checked
+                            ? [...current, target.id].sort()
+                            : current.filter((value) => value !== target.id),
+                        );
+                      }}
+                    />
+                    <span>{target.label}</span>
+                    {reviewedTargets(installPreview).includes(target.id) ? <small>in preview</small> : null}
+                  </label>
+                ))}
+              </div>
+              {!sameTargets(selectedTargets, installPreview) ? (
+                <p role="status">Selection changed. Update the preview before applying.</p>
+              ) : null}
+            </fieldset>
             <pre className={styles.installPreview} aria-label="Installation preview">
               {installPreview.message}
             </pre>
@@ -260,6 +362,60 @@ export default function Library() {
       </Dialog>
       <div className={styles.shelves}>
         <Stack>
+          <Panel
+            title="Installation evidence"
+            meta={receipts.data ? `${receipts.data.receipts.length} receipts` : undefined}
+          >
+            <QueryView
+              query={receipts}
+              loading="Reading installation receipts"
+              errorTitle="Could not read installation evidence"
+            >
+              {(response) =>
+                response.receipts.length === 0 ? (
+                  <EmptyState title="No Toolkit capability installations recorded on this machine.">
+                    Review an installation above to choose destinations. Existing files are never reported as installed
+                    without a backend receipt.
+                  </EmptyState>
+                ) : (
+                  <Table>
+                    <thead>
+                      <tr>
+                        <th scope="col">Target</th>
+                        <th scope="col">Product</th>
+                        <th scope="col">Installed</th>
+                        <th scope="col">Files</th>
+                        <th scope="col">Receipt</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {response.receipts.map((receipt) => (
+                        <tr key={`${receipt.target}/${receipt.product}`}>
+                          <th scope="row">
+                            {INSTALL_TARGETS.find((target) => target.id === receipt.target)?.label ?? receipt.target}
+                          </th>
+                          <td>
+                            <Mono>{receipt.product}</Mono>
+                          </td>
+                          <td>{receiptDate(receipt.installed_at)}</td>
+                          <td>
+                            {receipt.artifact_count} total · {receipt.created_count} created · {receipt.merged_count}{' '}
+                            merged
+                          </td>
+                          <td>
+                            <details>
+                              <summary>Local receipt path</summary>
+                              <Mono>{receipt.receipt_path}</Mono>
+                            </details>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                )
+              }
+            </QueryView>
+          </Panel>
           <Panel title="Coding tools" meta={tools.data ? toolSummary(tools.data.tools) : undefined}>
             <QueryView query={tools} loading="Discovering coding tools" errorTitle="Could not list coding tools">
               {(response) =>
