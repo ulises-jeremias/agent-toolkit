@@ -189,9 +189,9 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // Put project homes across a visible creek crossing from the shared
   // services. Keep the bank gap compact enough that the project district
   // still reads as part of the same settlement at small window sizes.
-  const projectDistrictX = 26;
+  const projectDistrictX = 24;
   const emptyMarkerX = projectDistrictX;
-  const mapW = Math.max(28, projectDistrictX + (projects.length ? districtW : 3) + 4);
+  const mapW = Math.max(28, projectDistrictX + (projects.length ? districtW : 3) + 1);
 
   // North core: hall west, memory archive beside it, ledgers on the commons edge.
   const coreX = 1;
