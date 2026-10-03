@@ -42,6 +42,27 @@ schemas:
     fields:
       - 'tools:string[]'
 
+  - name: CopilotProjectInstallRequest
+    v_struct: CopilotProjectInstallReq
+    fields:
+      - workspace:string
+      - project:string
+      - action:string=install|remove
+      - review_token:string
+
+  - name: CopilotProjectInstallResponse
+    v_struct: CopilotProjectInstallResp
+    fields:
+      - ok:boolean
+      - message:string
+      - project:string
+      - path:string
+      - content:string
+      - status:string
+      - review_token:string
+      - files_written:integer
+      - files_removed:integer
+
   - name: InstallReceiptSummary
     v_struct: InstallReceiptSummary
     fields:
@@ -537,6 +558,25 @@ native:
     response: '#InstallPreviewResponse'
     errors:
       - '422:target selection is empty or unsupported'
+  - path: /api/v1/install/copilot-project/preview
+    method: get
+    op: copilot_project_install_preview
+    summary: Review install or receipt-backed removal of Copilot instructions for a linked project
+    query_params: [workspace, project, 'action?:string=install|remove']
+    response: '#CopilotProjectInstallResponse'
+    errors:
+      - '400:workspace or project is missing'
+      - '422:action is not install or remove'
+  - path: /api/v1/install/copilot-project/reviewed
+    method: post
+    op: copilot_project_install_reviewed
+    summary: Apply reviewed Copilot instruction install or receipt-backed removal for a linked project
+    request_body: CopilotProjectInstallRequest
+    response: '#CopilotProjectInstallResponse'
+    errors:
+      - '400:request body is invalid'
+      - '422:required field is missing or action is unsupported'
+      - '409:project changed since review; no mutation is applied'
   - path: /api/v1/install/receipts
     method: get
     op: install_receipts

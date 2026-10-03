@@ -1,25 +1,29 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAgents, useInstallReceipts, useProviders, useTools } from '../../data/catalog';
 import { useReport, useSubQuery } from '../../data/commands';
 import { requireClient, useBackend } from '../../data/backend';
+import { useSessionContext } from '../../shell/useSessionContext';
 import {
   envelopeText,
   errorMessage,
   requireOk,
   type CommandEnvelope,
+  type CopilotProjectInstallResponse,
   type ToolEnabled,
   type ToolInfo,
 } from '../../lib/api';
 import { invalidateDomains, OPERATION_EFFECTS } from '../../lib/query/invalidation';
 import { parsePluginBundles, parseSkillCatalog } from '../../lib/reports';
+import { parseProjectListMessage } from '../world/model';
 import {
   Button,
   ButtonRow,
   Dialog,
   EmptyState,
   Grid,
+  KeyValue,
   Mono,
   PageHeader,
   Panel,
@@ -91,13 +95,20 @@ export default function Library() {
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedInstallTarget = searchParams.get('install_target');
   const handledInstallTarget = useRef<string | null>(null);
-  const { client } = useBackend();
+  const { client, backend } = useBackend();
+  const { context } = useSessionContext();
+  const workspacePath = context.workspace || backend?.harness?.path || '';
   const inventory = useReport('inventory');
   const catalogRoot = inventory.data?.data['root'];
   const tools = useTools();
   const receipts = useInstallReceipts();
   const agents = useAgents();
   const providers = useProviders();
+  const projectsQuery = useSubQuery('project', 'list');
+  const projects = useMemo(
+    () => (projectsQuery.data ? parseProjectListMessage(envelopeText(projectsQuery.data)) : []),
+    [projectsQuery.data],
+  );
   const queryClient = useQueryClient();
   const skills = useSubQuery('skills', 'list');
   const plugins = useSubQuery('plugin', 'check', undefined, { failureIsData: true });
@@ -112,6 +123,53 @@ export default function Library() {
   const [installPreview, setInstallPreview] = useState<CommandEnvelope | null>(null);
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
   const [uninstallPreview, setUninstallPreview] = useState<CommandEnvelope | null>(null);
+  const [copilotProject, setCopilotProject] = useState('');
+  const [copilotAction, setCopilotAction] = useState<'install' | 'remove'>('install');
+  const [copilotReview, setCopilotReview] = useState<CopilotProjectInstallResponse | null>(null);
+  const [copilotError, setCopilotError] = useState<string | null>(null);
+  const previewCopilot = useMutation({
+    mutationFn: ({
+      workspace,
+      project,
+      action,
+    }: {
+      workspace: string;
+      project: string;
+      action: 'install' | 'remove';
+    }) => requireClient(client).copilotProjectInstallPreview(workspace, project, action),
+    onSuccess: (result) => {
+      setCopilotReview(result);
+      setCopilotError(null);
+    },
+    onError: (error) => setCopilotError(`The read-only review failed; no file was written. ${errorMessage(error)}`),
+  });
+  const applyCopilot = useMutation({
+    mutationFn: ({
+      workspace,
+      project,
+      action,
+      reviewToken,
+    }: {
+      workspace: string;
+      project: string;
+      action: 'install' | 'remove';
+      reviewToken: string;
+    }) => requireClient(client).copilotProjectInstallReviewed(workspace, project, action, reviewToken),
+    onSettled: async () => {
+      await invalidateDomains(queryClient, OPERATION_EFFECTS.install);
+      await queryClient.invalidateQueries({ queryKey: ['copilot-project-removal-preview', workspacePath] });
+    },
+    onSuccess: (result) => {
+      setCopilotReview(result);
+      setCopilotError(result.ok ? null : result.message);
+    },
+    onError: (error) => {
+      setCopilotError(
+        `The action outcome could not be confirmed. Review the project again to check its current file and receipt state. ${errorMessage(error)}`,
+      );
+      setCopilotReview((current) => (current ? { ...current, status: 'stale-review' } : current));
+    },
+  });
   const previewInstall = useMutation({
     mutationFn: (targets?: string[]) => requireClient(client).installPreview(targets),
     onSuccess: (response) => {
@@ -151,6 +209,27 @@ export default function Library() {
   const drift = plugins.data?.ok ? plugins.data.data['drift'] : undefined;
   const skillRows = skills.data ? parseSkillCatalog(envelopeText(skills.data)) : [];
   const pluginRows = plugins.data ? parsePluginBundles(envelopeText(plugins.data)) : [];
+  const selectedCopilotProject = projects.find((project) => project.name === copilotProject && project.status === 'ok');
+  const copilotRemovalPreview = useQuery({
+    queryKey: ['copilot-project-removal-preview', workspacePath, selectedCopilotProject?.name ?? ''],
+    queryFn: () => {
+      if (!selectedCopilotProject) throw new Error('Choose a linked project before checking its receipt.');
+      return requireClient(client).copilotProjectInstallPreview(workspacePath, selectedCopilotProject.name, 'remove');
+    },
+    enabled: Boolean(workspacePath && selectedCopilotProject),
+  });
+  const canReviewCopilotRemoval = Boolean(
+    copilotRemovalPreview.data && copilotRemovalPreview.data.status !== 'no-receipt',
+  );
+
+  const reviewCopilotProject = (action: 'install' | 'remove') => {
+    if (!workspacePath || !selectedCopilotProject) return;
+    setCopilotAction(action);
+    setCopilotReview(null);
+    setCopilotError(null);
+    applyCopilot.reset();
+    previewCopilot.mutate({ workspace: workspacePath, project: selectedCopilotProject.name, action });
+  };
 
   return (
     <div className={styles.room}>
@@ -191,6 +270,105 @@ export default function Library() {
           </ButtonRow>
         }
       />
+      <Dialog
+        open={copilotReview !== null || previewCopilot.isPending || previewCopilot.isError}
+        closeDisabled={applyCopilot.isPending}
+        onClose={() => {
+          if (applyCopilot.isPending) return;
+          setCopilotReview(null);
+          setCopilotError(null);
+          previewCopilot.reset();
+          applyCopilot.reset();
+        }}
+        title={copilotAction === 'install' ? 'Review GitHub Copilot setup' : 'Review GitHub Copilot removal'}
+        description={
+          copilotAction === 'install'
+            ? "This installs Agent Toolkit's repository-scoped Copilot instructions in one linked project. It does not launch an agent or change user-level tools. Existing project instructions are preserved."
+            : 'This removes only the unchanged instructions file recorded in the selected project receipt. Any file edited since installation is preserved.'
+        }
+        size="normal"
+        footer={
+          <ButtonRow>
+            <Button
+              disabled={applyCopilot.isPending}
+              onClick={() => {
+                setCopilotReview(null);
+                setCopilotError(null);
+                previewCopilot.reset();
+                applyCopilot.reset();
+              }}
+            >
+              Close
+            </Button>
+            {copilotReview?.status === 'stale-review' ? (
+              <Button
+                variant="secondary"
+                disabled={previewCopilot.isPending}
+                onClick={() => reviewCopilotProject(copilotAction)}
+              >
+                Review again
+              </Button>
+            ) : null}
+            {copilotReview?.status === (copilotAction === 'install' ? 'ready' : 'ready-remove') ? (
+              <Button
+                variant="primary"
+                disabled={applyCopilot.isPending || !copilotReview.review_token || !selectedCopilotProject}
+                busy={applyCopilot.isPending}
+                busyLabel={copilotAction === 'install' ? 'Installing instructions…' : 'Removing instructions…'}
+                onClick={() => {
+                  if (!workspacePath || !selectedCopilotProject || !copilotReview.review_token) return;
+                  applyCopilot.mutate({
+                    workspace: workspacePath,
+                    project: selectedCopilotProject.name,
+                    action: copilotAction,
+                    reviewToken: copilotReview.review_token,
+                  });
+                }}
+              >
+                {copilotAction === 'install' ? 'Install reviewed instructions' : 'Remove reviewed instructions'}
+              </Button>
+            ) : null}
+          </ButtonRow>
+        }
+      >
+        {previewCopilot.isPending ? (
+          <p role="status">
+            {copilotAction === 'install'
+              ? 'Checking the linked repository and destination…'
+              : 'Checking receipt ownership and file state…'}
+          </p>
+        ) : null}
+        {copilotError ? <p role="alert">{copilotError}</p> : null}
+        {copilotReview ? (
+          <>
+            <p role={copilotReview.ok ? 'status' : 'alert'}>{copilotReview.message}</p>
+            <KeyValue
+              items={[
+                { label: 'Project', value: copilotReview.project },
+                {
+                  label: 'Destination',
+                  value: selectedCopilotProject
+                    ? `${selectedCopilotProject.target.replace(/\\/g, '/')}/${copilotReview.path}`
+                    : copilotReview.path,
+                },
+                {
+                  label: copilotAction === 'install' ? 'Files to add' : 'Files to remove',
+                  value: copilotReview.status === 'ready' || copilotReview.status === 'ready-remove' ? '1' : '0',
+                },
+              ]}
+            />
+            {copilotReview.status === 'ready' && copilotReview.content ? (
+              <details className={styles.copilotFilePreview}>
+                <summary>Review file contents</summary>
+                <pre className={styles.installPreview} aria-label="Copilot instructions file contents">
+                  {copilotReview.content}
+                </pre>
+              </details>
+            ) : null}
+          </>
+        ) : null}
+      </Dialog>
+
       <Dialog
         open={installPreview !== null || previewInstall.isError}
         onClose={() => {
@@ -362,6 +540,73 @@ export default function Library() {
       </Dialog>
       <div className={styles.shelves}>
         <Stack>
+          <Panel title="GitHub Copilot" meta="Repository instructions">
+            <p>
+              Add the Agent Toolkit Copilot instructions to one linked project. The Library previews the exact file and
+              keeps existing repository instructions untouched.
+            </p>
+            {projectsQuery.isError ? (
+              <p role="alert">Could not load linked projects: {errorMessage(projectsQuery.error)}</p>
+            ) : null}
+            {copilotRemovalPreview.isError && selectedCopilotProject ? (
+              <p role="alert">
+                Could not check Agent Toolkit&apos;s receipt for {selectedCopilotProject.name}:{' '}
+                {errorMessage(copilotRemovalPreview.error)}
+              </p>
+            ) : null}
+            {!workspacePath ? (
+              <p role="status">Choose a workspace in Settings before configuring project instructions.</p>
+            ) : null}
+            {projectsQuery.isSuccess && projects.length === 0 ? (
+              <EmptyState title="No linked projects yet.">
+                Link a repository in Workspace, then set up Copilot here.
+              </EmptyState>
+            ) : null}
+            {projects.length > 0 ? (
+              <div className={styles.projectInstall}>
+                <label htmlFor="copilot-project">Project</label>
+                <select
+                  id="copilot-project"
+                  value={copilotProject}
+                  onChange={(event) => setCopilotProject(event.target.value)}
+                >
+                  <option value="">Choose a linked project</option>
+                  {projects.map((project) => (
+                    <option key={project.name} value={project.name} disabled={project.status !== 'ok'}>
+                      {project.name}
+                      {project.status !== 'ok' ? ' · unavailable' : ''}
+                    </option>
+                  ))}
+                </select>
+                <ButtonRow>
+                  <Button
+                    variant="primary"
+                    disabled={
+                      !workspacePath || !selectedCopilotProject || previewCopilot.isPending || applyCopilot.isPending
+                    }
+                    busy={previewCopilot.isPending && copilotAction === 'install'}
+                    busyLabel="Reviewing project…"
+                    onClick={() => reviewCopilotProject('install')}
+                  >
+                    Review project setup
+                  </Button>
+                  {canReviewCopilotRemoval ? (
+                    <Button
+                      variant="secondary"
+                      disabled={
+                        !workspacePath || !selectedCopilotProject || previewCopilot.isPending || applyCopilot.isPending
+                      }
+                      busy={previewCopilot.isPending && copilotAction === 'remove'}
+                      busyLabel="Checking receipt…"
+                      onClick={() => reviewCopilotProject('remove')}
+                    >
+                      Review removal
+                    </Button>
+                  ) : null}
+                </ButtonRow>
+              </div>
+            ) : null}
+          </Panel>
           <Panel
             title="Installation evidence"
             meta={receipts.data ? `${receipts.data.receipts.length} receipts` : undefined}
@@ -383,6 +628,7 @@ export default function Library() {
                       <tr>
                         <th scope="col">Target</th>
                         <th scope="col">Product</th>
+                        <th scope="col">Scope</th>
                         <th scope="col">Installed</th>
                         <th scope="col">Files</th>
                         <th scope="col">Receipt</th>
@@ -392,10 +638,27 @@ export default function Library() {
                       {response.receipts.map((receipt) => (
                         <tr key={`${receipt.target}/${receipt.product}`}>
                           <th scope="row">
-                            {INSTALL_TARGETS.find((target) => target.id === receipt.target)?.label ?? receipt.target}
+                            {receipt.target === 'copilot-repository'
+                              ? 'GitHub Copilot · repository'
+                              : (INSTALL_TARGETS.find((target) => target.id === receipt.target)?.label ??
+                                receipt.target)}
                           </th>
                           <td>
-                            <Mono>{receipt.product}</Mono>
+                            {receipt.target === 'copilot-repository' ? (
+                              'Copilot instructions'
+                            ) : (
+                              <Mono>{receipt.product}</Mono>
+                            )}
+                          </td>
+                          <td>
+                            {receipt.scope.startsWith('project:') ? (
+                              <details>
+                                <summary>Project scope</summary>
+                                <Mono>{receipt.scope.slice('project:'.length)}</Mono>
+                              </details>
+                            ) : (
+                              receipt.scope
+                            )}
                           </td>
                           <td>{receiptDate(receipt.installed_at)}</td>
                           <td>

@@ -86,6 +86,15 @@ You are a senior code reviewer...
 
 ### Installation
 
+**Agent Toolkit Desktop:** open **Library → GitHub Copilot**, choose a linked
+project, review the exact `.github/copilot-instructions.md` destination, then
+inspect the instruction contents, then install. Desktop preserves any existing
+instructions and records installation evidence; removal preserves any edits
+made since install. This guided flow installs the base instruction profile; compiled
+repository Skills and Agent Definitions are not part of it yet.
+
+**CLI automation:**
+
 ```bash
 # Global install (affects all projects on this machine)
 cp profiles/claude-code/CLAUDE.md ~/.claude/CLAUDE.md
