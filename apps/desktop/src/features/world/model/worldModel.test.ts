@@ -611,6 +611,7 @@ describe('layoutWorld', () => {
     const first = wide.entities.find((row) => row.id === 'place:project:p00')!;
     const eighth = wide.entities.find((row) => row.id === 'place:project:p07')!;
     expect(eighth.y).toBeGreaterThan(first.y);
+    expect(eighth.x).toBe(first.x + 2);
     expect(a.y).toBeGreaterThan(memory.y);
     expect(a.x).toBeGreaterThan(library.x + library.w);
   });
@@ -633,7 +634,7 @@ describe('layoutWorld', () => {
     expect(secondAlpha).toMatchObject({ x: firstAlpha.x, y: firstAlpha.y, w: firstAlpha.w, h: firstAlpha.h });
     const compactTeam = layoutFor(['alpha', 'beta', 'gamma']);
     expect(compactTeam.cols).toBeLessThanOrEqual(28);
-    expect(compactTeam.rows).toBeLessThanOrEqual(12);
+    expect(compactTeam.rows).toBeLessThanOrEqual(14);
   });
 
   it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {
@@ -683,7 +684,7 @@ describe('layoutWorld', () => {
     );
     const bridge = plan.decor.find((sprite) => sprite.sprite === 'bridge');
     expect(bridge).toBeTruthy();
-    expect(bridge!.y + 1).toBe(laidMarker.y - 1);
+    expect(bridge!.y + 1).toBe(laidMarker.y + laidMarker.h);
     expect(bridge!.y + 1).toBeLessThan(layout.rows);
   });
 
@@ -761,7 +762,7 @@ describe('layoutWorld', () => {
     expect(new Set([...waterRows.values()].map((xs) => Math.min(...xs))).size).toBeGreaterThan(1);
     expect([...waterRows.values()].every((xs) => xs.length === 2)).toBe(true);
     expect(new Set(first.cells.filter(({ tile }) => tile.startsWith('trail')).map(({ y }) => y)).size).toBeGreaterThan(
-      4,
+      1,
     );
     const trails = new Set(first.cells.filter((cell) => cell.tile.startsWith('trail')).map(({ x, y }) => `${x},${y}`));
     const water = new Set(first.cells.filter(({ tile }) => tile === 'water').map(({ x, y }) => `${x},${y}`));

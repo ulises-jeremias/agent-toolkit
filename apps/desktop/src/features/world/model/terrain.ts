@@ -194,17 +194,19 @@ function rasterLine(p: Painter, x0: number, y0: number, x1: number, y1: number) 
 }
 
 /** Main commons route meanders, but meets the bridge at its exact level. */
-function road(p: Painter, y: number, bridgeX: number, routeEndX: number) {
-  let previous = { x: 4, y };
+function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX: number) {
+  let previous = { x: startX, y };
   const phase = ((h2(0, y, 31) % 1000) / 1000) * Math.PI * 2;
   const endX = Math.max(bridgeX + 1, Math.min(p.cols - 1, routeEndX));
-  for (let x = 4; x <= endX; x++) {
+  for (let x = startX; x <= endX; x++) {
     const sideStart = x <= bridgeX ? 4 : bridgeX;
     const sideEnd = x <= bridgeX ? bridgeX : endX;
     const t = (x - sideStart) / Math.max(1, sideEnd - sideStart);
     const bend = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 2 + phase) * 1;
     const crossing = x >= bridgeX && x < bridgeX + 3;
-    const current = { x, y: crossing ? y : y + Math.round(bend) };
+    // The project-facing road can bow south into open ground, never north
+    // through the front walls of houses that sit directly behind it.
+    const current = { x, y: crossing ? y : y + Math.max(0, Math.round(bend)) };
     rasterLine(p, previous.x, previous.y, current.x, current.y);
     previous = current;
   }
@@ -549,9 +551,9 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const commons = entities.filter(
     (e) => e.kind === 'place' && e.id !== 'place:workspace' && !e.id.startsWith('place:project:'),
   );
-  const projectYs = projects.map((e) => e.y);
   const marker = entities.find((e) => e.id === 'place:projects-empty');
-  const roadY = projectYs.length ? Math.min(...projectYs) - 1 : marker ? marker.y - 1 : Math.floor(rows / 2);
+  const firstStreetDoorY = projects[0] ? projects[0].y + projects[0].h : marker ? marker.y + marker.h : undefined;
+  const roadY = firstStreetDoorY ?? Math.floor(rows / 2);
 
   // creek first so roads bridge it
   const workshop = entities.find((e) => e.id === 'object:workshop');
@@ -566,7 +568,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     : marker
       ? marker.x + Math.floor(marker.w / 2)
       : cols - 4;
-  road(p, roadY, creekX, routeEndX);
+  road(p, roadY, creekX, routeEndX, Math.max(0, creekX - 1));
   // Join each real front door to the street. A grid search avoids routing
   // through another building when project lanes share a column.
   if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h);

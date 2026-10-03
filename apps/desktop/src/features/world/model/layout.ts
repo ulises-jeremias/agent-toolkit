@@ -237,8 +237,10 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     const col = index % districtCols;
     const row = Math.floor(index / districtCols);
     // Keep existing lots fixed as a roster grows; only new lots are appended.
-    const x = districtX + col * projectLaneGap;
-    const y = districtY + row * 4;
+    // Stagger alternate streets so a rear house never shares its front-door
+    // path with a house directly in front of it.
+    const x = districtX + col * projectLaneGap + (row % 2 === 1 ? 2 : 0);
+    const y = districtY + row * 5;
     place(project, x, y);
     if (project.projectId) projectSlots.set(project.projectId, { x, y });
   });
@@ -266,7 +268,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   }
 
   const districtRows = Math.ceil(projects.length / Math.max(1, districtCols));
-  const mapRows = districtY + Math.max(0, districtRows - 1) * 4 + 4;
+  const mapRows = districtY + Math.max(0, districtRows - 1) * 5 + 5;
   return {
     // maxX is already an exclusive tile bound; do not add a second padding
     // tile beyond it, which made short project rosters look needlessly wide.
