@@ -147,7 +147,7 @@ pub fn run_install(opts InstallOptions) InstallReport {
 	}
 	lines << ''
 	if opts.dry_run {
-		lines << '  [info]  Review the listed changes, then confirm Install profiles in Desktop to apply them.'
+		lines << '  [info]  Review the listed changes, then confirm Install reviewed files in Desktop to apply them.'
 	} else {
 		lines << '  [info]  Next steps:'
 		lines << '  [info]    1. Restart your AI tool(s) to load the new profiles'
@@ -433,6 +433,7 @@ fn install_file_mappings(tool string, data_root string, home string) []FileMappi
 				mappings << FileMapping{claude_md, os.join_path(home, '.claude', 'CLAUDE.md')}
 			}
 			mappings << agent_dest_mappings(tool, data_root, compiled, os.join_path(home, '.claude', 'agents'))
+			mappings << catalog_skill_mappings(data_root, os.join_path(home, '.claude', 'skills'))
 		}
 		'cursor' {
 			src := os.join_path(data_root, 'profiles', 'cursor', 'rules')
@@ -444,6 +445,7 @@ fn install_file_mappings(tool string, data_root string, home string) []FileMappi
 				mappings << FileMapping{cfg, os.join_path(home, '.config', 'opencode', 'opencode.json')}
 			}
 			mappings << agent_dest_mappings(tool, data_root, compiled, os.join_path(home, '.config', 'opencode', 'agents'))
+			mappings << catalog_skill_mappings(data_root, os.join_path(home, '.config', 'opencode', 'skills'))
 		}
 		'windsurf' {
 			src := os.join_path(data_root, 'profiles', 'windsurf')
@@ -465,6 +467,19 @@ fn install_file_mappings(tool string, data_root string, home string) []FileMappi
 			mappings << muse_skill_mappings(data_root, home)
 		}
 		else {}
+	}
+	return mappings
+}
+
+// catalog_skill_mappings installs each reusable skill as a complete directory,
+// including references and scripts. The receipt transaction then previews,
+// preserves conflicts, and owns only files it actually creates.
+fn catalog_skill_mappings(data_root string, dst_root string) []FileMapping {
+	layout := load_skills_layout(data_root) or { return []FileMapping{} }
+	mut mappings := []FileMapping{}
+	for skill in layout.skills {
+		src := os.join_path(data_root, 'skills', skill.domain, skill.name)
+		mappings << data_map_tree_files(data_root, src, os.join_path(dst_root, skill.name))
 	}
 	return mappings
 }

@@ -31,7 +31,7 @@ schemas:
 
   - name: InstallPreviewResponse
     v_struct: CmdResp
-    description: Read-only preview of profile installation targets and conflicts.
+    description: Read-only preview of installation or removal targets and conflicts.
     fields:
       - ok:boolean
       - message:string
@@ -503,6 +503,11 @@ native:
     method: get
     op: install_preview
     summary: Preview profile installation targets and conflicts without writing files
+    response: '#InstallPreviewResponse'
+  - path: /api/v1/uninstall/preview
+    method: get
+    op: uninstall_preview
+    summary: Preview Toolkit-owned file removal and preserve modified files without writing
     response: '#InstallPreviewResponse'
   - path: /api/v1/swarms/recipes
     method: get

@@ -193,7 +193,7 @@ test('palette reaches Person creation and Munder import review without saving or
     fs.mkdirSync(PALETTE_CAPTURE_DIR, { recursive: true });
     for (const size of [
       { width: 1024, height: 768, key: 'compact' },
-      { width: 1600, height: 1000, key: 'large' },
+      { width: 1440, height: 900, key: 'large' },
     ]) {
       await setViewport(desktop.app, size.width, size.height);
       await page.setViewportSize({ width: size.width, height: size.height });
@@ -237,7 +237,7 @@ test('palette reaches Person creation and Munder import review without saving or
   if (CAPTURE) {
     for (const size of [
       { width: 1024, height: 768, key: 'compact' },
-      { width: 1600, height: 1000, key: 'large' },
+      { width: 1440, height: 900, key: 'large' },
     ]) {
       await setViewport(desktop.app, size.width, size.height);
       await page.setViewportSize({ width: size.width, height: size.height });
@@ -408,35 +408,19 @@ test('Operations shows doctor, loops and swarms from live endpoints', async () =
   await expect(page.getByRole('region', { name: 'Swarms' })).toContainText(/GET \/api\/v1\/swarms|No swarm runs/);
 });
 
-test('Library reviews installer targets before any files can be written', async () => {
+test('Library installs Skills and preserves user changes during reviewed removal', async () => {
   const { page } = desktop;
   let applyRequests = 0;
-  await page.route('**/api/v1/install/preview', (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        ok: true,
-        message: [
-          'agent-toolkit installer',
-          'Toolkit: /opt/agent-toolkit',
-          '',
-          '  ⚠  DRY RUN — no files will be written',
-          '  [info]  Targets are limited to the current user home; no files or receipts will be changed.',
-          '  [info]  Tools to install: cursor',
-          '  [info]  Reviewing: cursor',
-          '  [dry]   Would install: /home/e2e/.cursor/rules/reviewer.mdc',
-          '  [dry]   Would preserve existing file (no overwrite): /home/e2e/.cursor/rules/custom.mdc',
-          '  [dry]   Would remove stale Toolkit-owned file: /home/e2e/.cursor/rules/retired.mdc',
-          '',
-          '  [info]  Review the listed changes, then confirm Install profiles in Desktop to apply them.',
-        ].join('\n'),
-        data: { dry_run: 'true', tools_ok: '1', files_written: '1' },
-      }),
-    }),
-  );
+  let uninstallRequests = 0;
+  const preservedSkill = path.join(desktop.home, '.claude', 'skills', 'review', 'SKILL.md');
+  fs.mkdirSync(path.dirname(preservedSkill), { recursive: true });
+  fs.writeFileSync(preservedSkill, 'User-owned skill, keep this file.\n');
   await page.route('**/api/v1/install', async (route) => {
     applyRequests += 1;
+    await route.continue();
+  });
+  await page.route('**/api/v1/uninstall', async (route) => {
+    uninstallRequests += 1;
     await route.continue();
   });
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
@@ -445,33 +429,90 @@ test('Library reviews installer targets before any files can be written', async 
   await expect(page.getByText('Loading agent definitions')).toBeHidden();
   await expect(page.getByText('Loading the skills catalog')).toBeHidden();
   await page.getByRole('button', { name: 'Review installation' }).click();
-  const preview = page.getByRole('dialog', { name: 'Review profile installation' });
+  const preview = page.getByRole('dialog', { name: 'Review capability installation' });
   await expect(preview).toBeVisible();
   await expect(preview).toContainText('does not write files');
   await expect(preview.getByLabel('Installation preview')).toContainText('DRY RUN');
   await expect(preview.getByLabel('Installation preview')).toContainText('no files or receipts will be changed');
-  await expect(preview.getByLabel('Installation preview')).toContainText('Would preserve existing file');
-  await expect(preview.getByLabel('Installation preview')).toContainText('Would remove stale Toolkit-owned file');
+  await expect(preview.getByLabel('Installation preview')).toContainText(
+    path.join(desktop.home, '.claude', 'skills', 'pr-fallback', 'references', 'pr-body-default.md'),
+  );
+  await expect(preview.getByLabel('Installation preview')).toContainText(preservedSkill);
   if (CAPTURE) {
     fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
     for (const size of [
       { width: 1024, height: 768, key: 'compact' },
-      { width: 1600, height: 1000, key: 'large' },
+      { width: 1440, height: 900, key: 'large' },
     ]) {
-      await setViewport(desktop.app, size.width, size.height);
       await page.setViewportSize({ width: size.width, height: size.height });
       await page.screenshot({
         path: path.join(LIBRARY_CAPTURE_DIR, `install-preview-${size.key}.png`),
         fullPage: true,
       });
     }
-    await setViewport(desktop.app, 1280, 800);
     await page.setViewportSize({ width: 1280, height: 800 });
   }
   await preview.getByRole('button', { name: 'Cancel' }).click();
   await expect(preview).toBeHidden();
   expect(applyRequests).toBe(0);
-  await expect(page.getByRole('region', { name: 'Receipts' })).not.toContainText('Profiles installed');
+  await expect(page.getByRole('region', { name: 'Receipts' })).not.toContainText('Toolkit capabilities installed');
+
+  await page.getByRole('button', { name: 'Review installation' }).click();
+  await page
+    .getByRole('dialog', { name: 'Review capability installation' })
+    .getByRole('button', { name: 'Install reviewed files' })
+    .click();
+  await expect(page.getByRole('region', { name: 'Receipts' })).toContainText('Toolkit capabilities installed');
+  expect(applyRequests).toBe(1);
+  await page.getByRole('button', { name: 'Dismiss: Toolkit capabilities installed' }).click();
+  expect(fs.readFileSync(preservedSkill, 'utf8')).toBe('User-owned skill, keep this file.\n');
+  const toolkitSkill = path.join(desktop.home, '.claude', 'skills', 'pr-fallback', 'references', 'pr-body-default.md');
+  expect(fs.existsSync(toolkitSkill)).toBe(true);
+  fs.writeFileSync(toolkitSkill, 'Edited by the user after Toolkit installed it.\n');
+
+  await page.getByRole('button', { name: 'Review removal' }).click();
+  const removal = page.getByRole('dialog', { name: 'Review Toolkit file removal' });
+  await expect(removal).toBeVisible();
+  await expect(removal).toContainText('Files you edited after installation and merged settings are preserved');
+  await expect(removal.getByLabel('Removal preview')).toContainText(
+    `Would remove: ${path.join(desktop.home, '.claude', 'skills', 'pr-fallback', 'SKILL.md')}`,
+  );
+  await expect(removal.getByLabel('Removal preview')).toContainText(
+    `Preserving file changed since Toolkit installed it: ${toolkitSkill}`,
+  );
+  if (CAPTURE) {
+    fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
+    for (const size of [
+      { width: 1024, height: 768, key: 'compact' },
+      { width: 1440, height: 900, key: 'large' },
+    ]) {
+      await page.setViewportSize({ width: size.width, height: size.height });
+      await page.screenshot({
+        path: path.join(LIBRARY_CAPTURE_DIR, `removal-preview-${size.key}.png`),
+        fullPage: true,
+      });
+    }
+    await page.setViewportSize({ width: 1280, height: 800 });
+  }
+  expect(uninstallRequests).toBe(0);
+  await removal.getByRole('button', { name: 'Keep files' }).click();
+  await expect(removal).toBeHidden();
+  expect(uninstallRequests).toBe(0);
+
+  await page.getByRole('button', { name: 'Review removal' }).click();
+  await page
+    .getByRole('dialog', { name: 'Review Toolkit file removal' })
+    .getByRole('button', { name: 'Remove reviewed files' })
+    .click();
+  await expect(page.getByRole('region', { name: 'Receipts' })).toContainText('Toolkit files removed');
+  expect(uninstallRequests).toBe(1);
+  expect(fs.readFileSync(toolkitSkill, 'utf8')).toBe('Edited by the user after Toolkit installed it.\n');
+  expect(fs.readFileSync(preservedSkill, 'utf8')).toBe('User-owned skill, keep this file.\n');
+  expect(
+    fs.existsSync(
+      path.join(desktop.home, '.config', 'agent-toolkit', 'receipts', 'claude-code-agent-toolkit-profiles.json'),
+    ),
+  ).toBe(false);
 });
 
 test('Library configures MCP providers with secret-free previews and explicit checks', async () => {

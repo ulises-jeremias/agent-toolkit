@@ -63,12 +63,19 @@ export default function Library() {
   const skills = useSubQuery('skills', 'list');
   const plugins = useSubQuery('plugin', 'check', undefined, { failureIsData: true });
   const install = useOperation('install');
+  const uninstall = useOperation('uninstall');
   const [installPreview, setInstallPreview] = useState<CommandEnvelope | null>(null);
+  const [uninstallPreview, setUninstallPreview] = useState<CommandEnvelope | null>(null);
   const previewInstall = useMutation({
     mutationFn: () => requireClient(client).installPreview(),
     onSuccess: setInstallPreview,
   });
-  const installReceipt = useActionReceipt('Profiles installed');
+  const previewUninstall = useMutation({
+    mutationFn: () => requireClient(client).uninstallPreview(),
+    onSuccess: setUninstallPreview,
+  });
+  const installReceipt = useActionReceipt('Toolkit capabilities installed');
+  const uninstallReceipt = useActionReceipt('Toolkit files removed');
 
   const drift = plugins.data?.ok ? plugins.data.data['drift'] : undefined;
   const skillRows = skills.data ? parseSkillCatalog(envelopeText(skills.data)) : [];
@@ -87,17 +94,30 @@ export default function Library() {
             : 'Inspector for catalog knowledge the world opens here. Memory is not this room. Running is unknown here.'
         }
         actions={
-          <Button
-            variant="primary"
-            busy={previewInstall.isPending}
-            busyLabel="Inspecting targets…"
-            onClick={() => {
-              setInstallPreview(null);
-              previewInstall.mutate();
-            }}
-          >
-            Review installation
-          </Button>
+          <ButtonRow>
+            <Button
+              variant="secondary"
+              busy={previewUninstall.isPending}
+              busyLabel="Checking receipts…"
+              onClick={() => {
+                setUninstallPreview(null);
+                previewUninstall.mutate();
+              }}
+            >
+              Review removal
+            </Button>
+            <Button
+              variant="primary"
+              busy={previewInstall.isPending}
+              busyLabel="Inspecting targets…"
+              onClick={() => {
+                setInstallPreview(null);
+                previewInstall.mutate();
+              }}
+            >
+              Review installation
+            </Button>
+          </ButtonRow>
         }
       />
       <Dialog
@@ -106,8 +126,8 @@ export default function Library() {
           setInstallPreview(null);
           previewInstall.reset();
         }}
-        title="Review profile installation"
-        description="This preview comes from the installer and does not write files. Targets stay in your user home; it does not request elevated permissions or change system files. Existing user-owned files are preserved, and JSON settings merge without replacing existing keys."
+        title="Review capability installation"
+        description="This preview does not write files. Toolkit profiles, Agent Definitions, and complete Skills (including references) stay inside your user configuration; no elevated permissions or system files are involved. Existing user-owned files are preserved, and JSON settings merge without replacing existing keys."
         size="wide"
         footer={
           <ButtonRow>
@@ -134,7 +154,7 @@ export default function Library() {
                 })
               }
             >
-              Install profiles
+              Install reviewed files
             </Button>
           </ButtonRow>
         }
@@ -149,6 +169,59 @@ export default function Library() {
             </p>
             <pre className={styles.installPreview} aria-label="Installation preview">
               {installPreview.message}
+            </pre>
+          </>
+        ) : null}
+      </Dialog>
+      <Dialog
+        open={uninstallPreview !== null || previewUninstall.isError}
+        onClose={() => {
+          setUninstallPreview(null);
+          previewUninstall.reset();
+        }}
+        title="Review Toolkit file removal"
+        description="This removes unchanged files owned by Agent Toolkit, as recorded in installation receipts. Files you edited after installation and merged settings are preserved. Review every path before confirming."
+        size="wide"
+        footer={
+          <ButtonRow>
+            <Button
+              onClick={() => {
+                setUninstallPreview(null);
+                previewUninstall.reset();
+              }}
+            >
+              Keep files
+            </Button>
+            <Button
+              variant="danger"
+              disabled={!uninstallPreview?.ok || uninstall.isPending}
+              busy={uninstall.isPending}
+              busyLabel="Removing files…"
+              onClick={() =>
+                uninstall.mutate(undefined, {
+                  ...uninstallReceipt,
+                  onSuccess: (result) => {
+                    uninstallReceipt.onSuccess?.(result);
+                    setUninstallPreview(null);
+                  },
+                })
+              }
+            >
+              Remove reviewed files
+            </Button>
+          </ButtonRow>
+        }
+      >
+        {previewUninstall.isError ? <p role="alert">{errorMessage(previewUninstall.error)}</p> : null}
+        {uninstallPreview ? (
+          <>
+            <p role="status">
+              {uninstallPreview.ok
+                ? 'No files have been removed. This is the receipt-based removal plan.'
+                : 'No safe removal plan is available. Review the details below; nothing has been removed.'}
+            </p>
+            <pre className={styles.installPreview} aria-label="Removal preview">
+              {uninstallPreview.message}
             </pre>
           </>
         ) : null}

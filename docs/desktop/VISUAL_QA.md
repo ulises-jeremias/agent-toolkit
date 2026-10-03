@@ -176,3 +176,29 @@ Opened files:
   and [large](assets/electron/world/world-one-project-large.png).
 - [Several projects, large](assets/electron/world/world-several-projects-large.png).
 - [Project Files room, large](assets/electron/world/project-files-room-large.png).
+
+## Library installation and removal — 2026-10-03
+
+Captured from the built Electron app against the real V backend with a disposable
+HOME. The install preview covers five detected local tool targets and 1,293
+planned files; it includes profiles, Agent Definitions, complete Skills and
+references. The removal preview reads five real receipts and scrolls the paths
+inside the framed game-menu dialog while keeping the confirm action fixed.
+Pre-existing user content and a Toolkit file edited after installation were
+verified to survive the real removal operation.
+
+Reviewing the first captures caught two product issues: the install dialog still
+said “profiles” after the operation expanded to catalog Skills, and the removal
+capture included the successful-install receipt over the preview. I renamed the
+dialog and confirmation action to describe the reviewed files and dismissed the
+receipt before taking the final removal screenshots. At compact size the preview
+stays scrollable with both actions visible; at the wider size the Library context
+remains visible around the modal. The large removal list is intentionally dense,
+but remains crisp, selectable monospace text with a visible scrollbar.
+
+Opened files:
+
+- [Install preview, compact](assets/electron/library/install-preview-compact.png)
+  and [large](assets/electron/library/install-preview-large.png).
+- [Removal preview, compact](assets/electron/library/removal-preview-compact.png)
+  and [large](assets/electron/library/removal-preview-large.png).

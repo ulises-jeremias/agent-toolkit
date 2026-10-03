@@ -122,6 +122,11 @@ fn uninstall_one_tool(tool string, target string, receipt_dir string, dry_run bo
 			skipped++
 			continue
 		}
+		if receipt_artifact_digest(entry.path) != entry.digest {
+			lines << '  -  Preserving file changed since Toolkit installed it: ${entry.path}'
+			skipped++
+			continue
+		}
 		if dry_run {
 			lines << '  [dry]   Would remove: ${entry.path}'
 			removed++

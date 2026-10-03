@@ -478,6 +478,7 @@ const registered_api_routes = [
 	'/api/v1/install/preview',
 	'/api/v1/update',
 	'/api/v1/uninstall',
+	'/api/v1/uninstall/preview',
 	'/api/v1/skills/:sub',
 	'/api/v1/mcp/providers',
 	'/api/v1/mcp/:sub',
@@ -837,6 +838,17 @@ pub fn (app &App) uninstall_route(mut ctx Ctx) veb.Result {
 	return ctx.json(app.run_install_action('uninstall', fn () agent_toolkit_core.CommandResult {
 		return agent_toolkit_core.uninstall_result(agent_toolkit_core.run_uninstall(agent_toolkit_core.UninstallOptions{}))
 	}))
+}
+
+@['/api/v1/uninstall/preview'; get]
+pub fn (app &App) uninstall_preview(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	return ctx.json(cmd_resp(agent_toolkit_core.uninstall_result(agent_toolkit_core.run_uninstall(agent_toolkit_core.UninstallOptions{
+		dry_run: true
+	}))))
 }
 
 @['/api/v1/skills/:sub'; get; post]

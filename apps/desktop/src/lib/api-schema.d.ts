@@ -377,6 +377,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/uninstall/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview Toolkit-owned file removal and preserve modified files without writing */
+        get: operations["uninstall_preview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/swarms/recipes": {
         parameters: {
             query?: never;
@@ -1112,7 +1129,7 @@ export interface components {
             ok: boolean;
             message: string;
         };
-        /** @description Read-only preview of profile installation targets and conflicts. */
+        /** @description Read-only preview of installation or removal targets and conflicts. */
         InstallPreviewResponse: {
             ok: boolean;
             message: string;
@@ -2442,6 +2459,26 @@ export interface operations {
         };
     };
     install_preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstallPreviewResponse"];
+                };
+            };
+        };
+    };
+    uninstall_preview: {
         parameters: {
             query?: never;
             header?: never;

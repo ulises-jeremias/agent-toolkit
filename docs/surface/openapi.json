@@ -1079,6 +1079,26 @@
         }
       }
     },
+    "/api/v1/uninstall/preview": {
+      "get": {
+        "operationId": "uninstall_preview",
+        "summary": "Preview Toolkit-owned file removal and preserve modified files without writing",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallPreviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/swarms/recipes": {
       "get": {
         "operationId": "list_swarm_recipes",
@@ -3120,7 +3140,7 @@
       },
       "InstallPreviewResponse": {
         "type": "object",
-        "description": "Read-only preview of profile installation targets and conflicts.",
+        "description": "Read-only preview of installation or removal targets and conflicts.",
         "properties": {
           "ok": {
             "type": "boolean"
