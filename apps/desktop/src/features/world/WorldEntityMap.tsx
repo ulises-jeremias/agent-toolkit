@@ -311,6 +311,7 @@ export function WorldEntityMap({
             <span
               key={`label:${entity.id}`}
               className={styles.worldLabel}
+              aria-hidden="true"
               data-label-kind={entity.kind}
               data-selected={entity.id === selectedId ? 'true' : undefined}
               style={{
