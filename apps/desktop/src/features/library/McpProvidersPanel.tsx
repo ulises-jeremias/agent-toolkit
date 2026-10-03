@@ -151,20 +151,29 @@ export function McpProvidersPanel() {
       handledRequest.current = '';
       return;
     }
-    if (requestedAction !== 'configure' || !providers.data?.ok) return;
+    if (requestedAction !== 'configure' || providers.isFetching) return;
     const request = `${requestedAction}:${requestedProvider}`;
     if (handledRequest.current === request) return;
     handledRequest.current = request;
+    const clearRequest = () =>
+      setSearchParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+          next.delete('mcp_action');
+          next.delete('mcp_provider');
+          return next;
+        },
+        { replace: true },
+      );
+    if (providers.isError || !providers.data?.ok) {
+      clearRequest();
+      setRouteError(
+        'The MCP catalog could not be refreshed, so no provider review was opened. Retry discovery from the Library.',
+      );
+      return;
+    }
     const provider = providers.data.providers.find((candidate) => candidate.id === requestedProvider);
-    setSearchParams(
-      (current) => {
-        const next = new URLSearchParams(current);
-        next.delete('mcp_action');
-        next.delete('mcp_provider');
-        return next;
-      },
-      { replace: true },
-    );
+    clearRequest();
     if (provider) {
       openReview('configure', provider);
     } else {
@@ -172,7 +181,15 @@ export function McpProvidersPanel() {
         `The requested MCP provider “${requestedProvider}” is no longer in the current catalog. Refresh the Library and try again.`,
       );
     }
-  }, [openReview, providers.data, requestedAction, requestedProvider, setSearchParams]);
+  }, [
+    openReview,
+    providers.data,
+    providers.isError,
+    providers.isFetching,
+    requestedAction,
+    requestedProvider,
+    setSearchParams,
+  ]);
 
   const actionLabel =
     review?.action === 'configure'
