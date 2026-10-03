@@ -87,6 +87,8 @@ export interface PtyCreateOptions {
   args?: string[];
   /** Defaults to the resolved harness; relative paths resolve against it; must exist. */
   cwd?: string;
+  /** Person runtime budget in seconds. The PTY supervisor terminates the process when reached. */
+  maxSeconds?: number;
   cols?: number;
   rows?: number;
 }
@@ -101,6 +103,8 @@ export interface PtySessionInfo {
   cmd: string;
   args: string[];
   cwd: string;
+  maxSeconds?: number;
+  exitReason?: 'time-budget';
   cols: number;
   rows: number;
   exitCode: number | null;
@@ -115,6 +119,7 @@ export interface PtyDataEvent {
 export interface PtyExitEvent {
   id: string;
   exitCode: number;
+  exitReason?: 'time-budget';
 }
 
 export type Unsubscribe = () => void;

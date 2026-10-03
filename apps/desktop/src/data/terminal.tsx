@@ -166,6 +166,7 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
           cmd: session.cmd,
           args: session.args,
           cwd: session.cwd,
+          maxSeconds: session.maxSeconds,
         },
         extra,
       );

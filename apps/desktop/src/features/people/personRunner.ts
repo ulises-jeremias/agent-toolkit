@@ -20,5 +20,6 @@ export function personSessionOptions(
     cmd: provider.bin,
     args,
     cwd,
+    ...(person.budget?.max_seconds ? { maxSeconds: person.budget.max_seconds } : {}),
   };
 }

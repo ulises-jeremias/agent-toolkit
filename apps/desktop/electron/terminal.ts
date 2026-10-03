@@ -26,6 +26,8 @@ export interface TerminalSessionInfo {
   /** argv used at spawn (cmd excluded); exposed so restart reproduces the session. */
   args: string[];
   cwd: string;
+  maxSeconds?: number;
+  exitReason?: 'time-budget';
   cols: number;
   rows: number;
   exitCode: number | null;
@@ -35,12 +37,15 @@ export interface TerminalSessionInfo {
 interface Session extends TerminalSessionInfo {
   proc: pty.IPty;
   tail: string;
+  budgetTimer?: NodeJS.Timeout;
+  forceKillTimer?: NodeJS.Timeout;
 }
 
 const MAX_TAIL_CHARS = 8 * 1024;
+const MAX_TIMER_DELAY_MS = 2_147_000_000;
 
 type DataListener = (id: string, chunk: string) => void;
-type ExitListener = (id: string, exitCode: number) => void;
+type ExitListener = (id: string, exitCode: number, exitReason?: 'time-budget') => void;
 
 export interface TerminalServiceOptions {
   /** cwd for sessions created without one: the resolved harness in the app. */
@@ -105,12 +110,19 @@ export class TerminalService {
     cmd: string;
     args?: string[];
     cwd?: string;
+    maxSeconds?: number;
     cols?: number;
     rows?: number;
   }): TerminalSessionInfo {
     const id = randomUUID();
     const cols = options.cols ?? 120;
     const rows = options.rows ?? 30;
+    if (
+      options.maxSeconds !== undefined &&
+      (!Number.isSafeInteger(options.maxSeconds) || options.maxSeconds < 1 || options.maxSeconds > 31_536_000)
+    ) {
+      throw new RangeError('maxSeconds must be an integer between 1 and 31536000');
+    }
     const cwd = this.resolveCwd(options.cwd);
     const proc = pty.spawn(options.cmd, options.args ?? [], {
       name: 'xterm-256color',
@@ -129,6 +141,7 @@ export class TerminalService {
       cmd: options.cmd,
       args: options.args ?? [],
       cwd,
+      maxSeconds: options.maxSeconds,
       cols,
       rows,
       exitCode: null,
@@ -143,10 +156,12 @@ export class TerminalService {
     });
     proc.onExit(({ exitCode }: { exitCode: number }) => {
       session.exitCode = exitCode;
-      for (const listener of this.exitListeners) listener(id, exitCode);
-      this.windowOf?.()?.webContents.send('atk:pty-exit', { id, exitCode });
+      this.clearTimers(session);
+      for (const listener of this.exitListeners) listener(id, exitCode, session.exitReason);
+      this.windowOf?.()?.webContents.send('atk:pty-exit', { id, exitCode, exitReason: session.exitReason });
     });
     this.sessions.set(id, session);
+    if (options.maxSeconds !== undefined) this.scheduleBudgetExpiry(session, Date.now() + options.maxSeconds * 1000);
     return this.infoOf(session);
   }
 
@@ -174,6 +189,7 @@ export class TerminalService {
   signal(id: string, signal: 'int' | 'term' | 'kill'): boolean {
     const session = this.sessions.get(id);
     if (!session || session.exitCode !== null) return false;
+    if (signal !== 'int' && session.exitReason !== 'time-budget') this.clearTimers(session);
     try {
       if (signal === 'int') session.proc.write('\x03');
       else if (signal === 'term') process.kill(session.proc.pid, 'SIGTERM');
@@ -192,6 +208,7 @@ export class TerminalService {
     } catch {
       // already gone
     }
+    this.clearTimers(session);
     this.sessions.delete(id);
     return true;
   }
@@ -201,7 +218,35 @@ export class TerminalService {
   }
 
   private infoOf(session: Session): TerminalSessionInfo {
-    const { proc: _proc, tail: _tail, ...info } = session;
+    const { proc: _proc, tail: _tail, budgetTimer: _budgetTimer, forceKillTimer: _forceKillTimer, ...info } = session;
     return info;
+  }
+
+  private scheduleBudgetExpiry(session: Session, expiresAt: number): void {
+    const remaining = Math.max(0, expiresAt - Date.now());
+    session.budgetTimer = setTimeout(
+      () => {
+        if (Date.now() < expiresAt) {
+          this.scheduleBudgetExpiry(session, expiresAt);
+          return;
+        }
+        if (session.exitCode !== null) return;
+        session.exitReason = 'time-budget';
+        this.signal(session.id, 'term');
+        session.forceKillTimer = setTimeout(() => {
+          if (session.exitCode === null) this.signal(session.id, 'kill');
+        }, 5_000);
+        session.forceKillTimer.unref();
+      },
+      Math.min(remaining, MAX_TIMER_DELAY_MS),
+    );
+    session.budgetTimer.unref();
+  }
+
+  private clearTimers(session: Session): void {
+    if (session.budgetTimer) clearTimeout(session.budgetTimer);
+    if (session.forceKillTimer) clearTimeout(session.forceKillTimer);
+    session.budgetTimer = undefined;
+    session.forceKillTimer = undefined;
   }
 }

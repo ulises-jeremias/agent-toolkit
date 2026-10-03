@@ -33,6 +33,10 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
     await create.getByRole('textbox', { name: 'ID' }).fill('lina');
     await create.getByRole('textbox', { name: 'Role' }).fill('reviewer');
     await create.getByRole('textbox', { name: 'Goal' }).fill('Review changes in this project');
+    await create.getByText('Capabilities and limits', { exact: true }).click();
+    await create.getByRole('combobox', { name: 'Isolation' }).selectOption('worktree');
+    await create.getByRole('spinbutton', { name: 'Max tokens' }).fill('1000');
+    await create.getByRole('spinbutton', { name: 'Max seconds' }).fill('120');
     await create.getByRole('button', { name: 'Create Person' }).click();
     await expect(create).toBeHidden();
     await page.getByRole('button', { name: /Lina.*reviewer.*Offline/ }).click();
@@ -48,11 +52,10 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
 
     const start = page.getByRole('dialog', { name: 'Start Lina' });
     await expect(start.getByRole('combobox', { name: 'Project and working folder' })).toHaveValue('agent-toolkit');
-    if (CAPTURE) {
-      await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-compact.png') });
-      await setViewport(desktop.app, 1920, 1080);
-      await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-large.png') });
-    }
+    await expect(start.getByText('120s · enforced by Desktop')).toBeVisible();
+    await expect(start.getByText(/1,000 tokens · not enforced for this interactive runner/)).toBeVisible();
+    const startButton = start.getByRole('button', { name: 'Start and open terminal' });
+    await expect(startButton).toBeDisabled();
     const runner = start.getByRole('combobox', { name: 'Runner' });
     const installedOptions = runner.locator('option:enabled:not([value=""])');
     await expect
@@ -62,15 +65,26 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
           (await start.getByText('No interactive runner is installed').count()) > 0,
       )
       .toBe(true);
-    if ((await installedOptions.count()) === 0) {
+    const runnerId = await installedOptions.first().getAttribute('value');
+    if (!runnerId) {
       await expect(start.getByRole('status')).toContainText('No interactive runner is installed');
+      if (CAPTURE) {
+        await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-compact.png') });
+        await setViewport(desktop.app, 1920, 1080);
+        await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-large.png') });
+      }
       await start.getByRole('button', { name: 'Cancel' }).click();
       await expect(page.getByRole('button', { name: /Lina.*reviewer.*Offline/ })).toBeVisible();
       return;
     }
-    const runnerId = await installedOptions.first().getAttribute('value');
-    if (!runnerId) throw new Error('Discovered runner option is missing its id.');
     await runner.selectOption(runnerId);
+    if (CAPTURE) {
+      await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-compact.png') });
+      await setViewport(desktop.app, 1920, 1080);
+      await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-large.png') });
+    }
+    await start.getByRole('checkbox').check();
+    await expect(startButton).toBeEnabled();
     await start.getByRole('button', { name: 'Start and open terminal' }).click();
     await expect(start).toBeHidden();
     await expect(page).toHaveURL(/#\/terminal\?[^#]*pty=/);

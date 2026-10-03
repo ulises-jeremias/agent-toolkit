@@ -107,6 +107,33 @@ describe('TerminalService', () => {
     }
   });
 
+  it('terminates a Person PTY when its configured time budget expires', async () => {
+    const service = new TerminalService();
+    try {
+      const session = service.create({
+        agent: 'bounded-person',
+        personId: 'bounded',
+        cmd: '/bin/sleep',
+        args: ['30'],
+        maxSeconds: 1,
+      });
+      expect(session.maxSeconds).toBe(1);
+      const exit = await new Promise<{ code: number; reason?: string }>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('time budget did not stop the PTY within 10s')), 10_000);
+        const off = service.onExit((id, code) => {
+          if (id !== session.id) return;
+          clearTimeout(timer);
+          off();
+          resolve({ code, reason: service.list().find((item) => item.id === id)?.exitReason });
+        });
+      });
+      expect(exit.reason).toBe('time-budget');
+      expect(typeof exit.code).toBe('number');
+    } finally {
+      service.dispose();
+    }
+  }, 15_000);
+
   it('resizes, signals, and closes a live session', async () => {
     const service = new TerminalService();
     try {

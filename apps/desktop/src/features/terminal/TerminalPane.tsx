@@ -5,7 +5,7 @@ import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
 import { useEffect, useRef, useState } from 'react';
 import { TERMINAL_OPTIONS } from '../../design/terminalTheme';
-import type { PtySessionInfo } from '../../types/electron';
+import type { PtyExitEvent, PtySessionInfo } from '../../types/electron';
 import { Button, ConfirmAction, StatusBadge } from '../../ui';
 import { sessionState } from './sessionState';
 import styles from './terminal.module.css';
@@ -29,6 +29,7 @@ export function TerminalPane({
   const containerRef = useRef<HTMLDivElement>(null);
   const searchAddonRef = useRef<SearchAddon | null>(null);
   const [exitCode, setExitCode] = useState<number | null>(session.exitCode);
+  const [exitReason, setExitReason] = useState<PtyExitEvent['exitReason']>(session.exitReason);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
@@ -64,7 +65,10 @@ export function TerminalPane({
         caughtUp = true;
       });
     const offExit = bridge.onPtyExit((event) => {
-      if (event.id === session.id) setExitCode(event.exitCode);
+      if (event.id === session.id) {
+        setExitCode(event.exitCode);
+        setExitReason(event.exitReason);
+      }
     });
     const onData = term.onData((data) => {
       void bridge.ptyWrite(session.id, data);
@@ -96,7 +100,7 @@ export function TerminalPane({
   }, [search]);
 
   const exited = exitCode !== null;
-  const state = sessionState(exitCode);
+  const state = sessionState(exitCode, exitReason);
   const commandLine = [session.cmd, ...session.args].join(' ');
 
   return (
@@ -162,7 +166,10 @@ export function TerminalPane({
       </div>
       {exited ? (
         <p className={styles.exitNotice} role="status">
-          The process ended with exit code {exitCode}. Output is kept until you close or restart the session.
+          {exitReason === 'time-budget'
+            ? `The configured ${session.maxSeconds}s time limit ended this process.`
+            : `The process ended with exit code ${exitCode}.`}{' '}
+          Output is kept until you close or restart the session.
         </p>
       ) : null}
       <div ref={containerRef} className={styles.viewport} aria-label={`Terminal for ${session.agent}`} />
