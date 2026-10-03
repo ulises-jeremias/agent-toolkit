@@ -15,7 +15,34 @@ Review fresh empty/one/many-project worlds, project selection and interior, Peop
 
 The world is the dominant `/world` surface. Projects are actual buildings and shared capabilities have distinct places. A configured offline Person is shown in the roster, never as a world worker. Runtime characters require a real session/job/run and disappear when it ends. Furniture, signs, labels, and ambient animation must not imply nonexistent activity.
 
-## Latest opened review — 2026-10-02
+## Latest opened review — 2026-10-03
+
+Linux Electron capture after terrain-generator and capture-viewport changes.
+The review reopened empty, one-project, and multi-project workspaces at
+1024×640 and 1920×1080. The first high-contrast grass palette produced a
+checkerboard at map scale; that iteration was rejected. The final palette
+variation is deliberately subtler. The creek now has a slower two-wave bend,
+shoreline reeds, and more varied framing trees. The capture helper waits for
+the renderer to reach its requested viewport before taking evidence, removing
+the intermittent undersized first screenshot.
+
+The new captures confirm stable layout and readable landmarks at both sizes.
+They also confirm that the art gap remains: the large meadow still reads as a
+wide lawn, project paths are visibly angular, and the landmark sprites are
+simple at full scale. These images are current evidence, not a claim that the
+world has reached the supplied art-direction target; terrain composition and
+building art need a deeper pass.
+
+Opened files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+
+## Opened review — 2026-10-02
 
 Source build `9deb8f6b` (Linux Electron E2E). The project-link tour captures
 empty, one-project and three-project worlds at 1024×640 and 1920×1080, then
