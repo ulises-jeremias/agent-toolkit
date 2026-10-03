@@ -24,6 +24,13 @@ on:
       - 'modules/agent_toolkit_server/**'
       - 'modules/agent_toolkit_core/**'
       - 'cmd/agent-toolkit/**'
+  workflow_dispatch:
+    inputs:
+      capture_visual_review:
+        description: Capture fresh Electron screenshots for visual review
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   gates:
@@ -63,6 +70,8 @@ jobs:
       - name: E2E (Electron + real backend)
         env:
           ATK_E2E_BACKEND_BIN: ${{ github.workspace }}/dist/agent-toolkit
+          ATK_CAPTURE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true' && '1' || '0' }}
+          ATK_CAPTURE_DIR: test-results/review
         run: >-
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
           pnpm --filter agent-toolkit-desktop exec playwright test --project=electron
