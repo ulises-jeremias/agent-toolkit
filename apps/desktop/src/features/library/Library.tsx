@@ -95,6 +95,7 @@ export default function Library() {
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedInstallTarget = searchParams.get('install_target');
   const handledInstallTarget = useRef<string | null>(null);
+  const handledInstallReview = useRef(false);
   const { client, backend } = useBackend();
   const { context } = useSessionContext();
   const workspacePath = context.workspace || backend?.harness?.path || '';
@@ -183,6 +184,24 @@ export default function Library() {
     mutationFn: () => requireClient(client).uninstallPreview(),
     onSuccess: setUninstallPreview,
   });
+  useEffect(() => {
+    if (searchParams.get('install_review') !== '1') {
+      handledInstallReview.current = false;
+      return;
+    }
+    if (handledInstallReview.current) return;
+    handledInstallReview.current = true;
+    setInstallPreview(null);
+    previewInstall.mutate();
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        next.delete('install_review');
+        return next;
+      },
+      { replace: true },
+    );
+  }, [previewInstall, searchParams, setSearchParams]);
   useEffect(() => {
     if (!requestedInstallTarget) {
       handledInstallTarget.current = null;

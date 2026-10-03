@@ -446,7 +446,11 @@ test('Library installs Skills and preserves user changes during reviewed removal
   await expect(page.getByText('Discovering coding tools')).toBeHidden();
   await expect(page.getByText('Loading agent definitions')).toBeHidden();
   await expect(page.getByText('Loading the skills catalog')).toBeHidden();
-  await page.getByRole('button', { name: 'Review installation' }).click();
+  await page.keyboard.press('Control+k');
+  const palette = page.getByRole('dialog', { name: 'Commands' });
+  await palette.getByLabel('Filter commands').fill('Review capability installation');
+  await expect(palette.getByRole('option', { name: /Review capability installation/ })).toBeVisible();
+  await page.keyboard.press('Enter');
   const preview = page.getByRole('dialog', { name: 'Review capability installation' });
   await expect(preview).toBeVisible();
   await expect(preview).toContainText('does not write files');
@@ -680,11 +684,16 @@ test('Library configures MCP providers with secret-free previews and explicit ch
     });
   });
 
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
+  await page.keyboard.press('Control+k');
+  const palette = page.getByRole('dialog', { name: 'Commands' });
+  await palette.getByLabel('Filter commands').fill('Configure GitHub MCP');
+  await expect(palette.getByRole('option', { name: /Configure GitHub MCP/ })).toBeVisible();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/#\/library/);
+  await expect(page).not.toHaveURL(/mcp_action|mcp_provider/);
   const panel = page.getByRole('region', { name: 'MCP providers' });
   await expect(panel).toBeVisible();
   const row = panel.getByRole('row', { name: /GitHub/ });
-  await row.getByRole('button', { name: 'Configure' }).click();
   const configure = page.getByRole('dialog', { name: 'Configure GitHub' });
   await expect(configure).toContainText('does not store secret values');
   await expect(configure).toContainText('GITHUB_PERSONAL_ACCESS_TOKEN');

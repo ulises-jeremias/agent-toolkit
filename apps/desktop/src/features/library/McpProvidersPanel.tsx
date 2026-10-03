@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { useSubMutation } from '../../data/commands';
 import { useMcpProviders } from '../../data/catalog';
 import { envelopeText, errorMessage, type McpProviderInfo } from '../../lib/api';
@@ -61,14 +62,23 @@ function actionDescription(action: ReviewAction, configPath: string) {
 
 export function McpProvidersPanel() {
   const providers = useMcpProviders();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const handledRequest = useRef('');
+  const requestedAction = searchParams.get('mcp_action');
+  const requestedProvider = searchParams.get('mcp_provider');
   const [review, setReview] = useState<ReviewState | null>(null);
   const [resultText, setResultText] = useState('');
+  const [routeError, setRouteError] = useState('');
   const setup = useSubMutation('mcp', 'setup');
   const doctor = useSubMutation('mcp', 'doctor');
   const health = useSubMutation('mcp', 'health');
   const uninstall = useSubMutation('mcp', 'uninstall');
   const configureReceipt = useActionReceipt('MCP provider configured');
   const removeReceipt = useActionReceipt('MCP provider removed');
+  const resetSetup = setup.reset;
+  const resetDoctor = doctor.reset;
+  const resetHealth = health.reset;
+  const resetUninstall = uninstall.reset;
   const pending = setup.isPending || doctor.isPending || health.isPending || uninstall.isPending;
   const configPath = providers.data?.config_path || '~/.config/agent-toolkit/mcp-config.json';
 
@@ -113,14 +123,18 @@ export function McpProvidersPanel() {
     }
   }
 
-  function openReview(action: ReviewAction, provider: McpProviderInfo) {
-    setup.reset();
-    doctor.reset();
-    health.reset();
-    uninstall.reset();
-    setResultText('');
-    setReview({ action, provider });
-  }
+  const openReview = useCallback(
+    (action: ReviewAction, provider: McpProviderInfo) => {
+      resetSetup();
+      resetDoctor();
+      resetHealth();
+      resetUninstall();
+      setResultText('');
+      setRouteError('');
+      setReview({ action, provider });
+    },
+    [resetDoctor, resetHealth, resetSetup, resetUninstall],
+  );
 
   function closeReview() {
     if (pending) return;
@@ -131,6 +145,51 @@ export function McpProvidersPanel() {
     health.reset();
     uninstall.reset();
   }
+
+  useEffect(() => {
+    if (!requestedAction || !requestedProvider) {
+      handledRequest.current = '';
+      return;
+    }
+    if (requestedAction !== 'configure' || providers.isFetching) return;
+    const request = `${requestedAction}:${requestedProvider}`;
+    if (handledRequest.current === request) return;
+    handledRequest.current = request;
+    const clearRequest = () =>
+      setSearchParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+          next.delete('mcp_action');
+          next.delete('mcp_provider');
+          return next;
+        },
+        { replace: true },
+      );
+    if (providers.isError || !providers.data?.ok) {
+      clearRequest();
+      setRouteError(
+        'The MCP catalog could not be refreshed, so no provider review was opened. Retry discovery from the Library.',
+      );
+      return;
+    }
+    const provider = providers.data.providers.find((candidate) => candidate.id === requestedProvider);
+    clearRequest();
+    if (provider) {
+      openReview('configure', provider);
+    } else {
+      setRouteError(
+        `The requested MCP provider “${requestedProvider}” is no longer in the current catalog. Refresh the Library and try again.`,
+      );
+    }
+  }, [
+    openReview,
+    providers.data,
+    providers.isError,
+    providers.isFetching,
+    requestedAction,
+    requestedProvider,
+    setSearchParams,
+  ]);
 
   const actionLabel =
     review?.action === 'configure'
@@ -237,6 +296,7 @@ export function McpProvidersPanel() {
             )
           }
         </QueryView>
+        {routeError ? <p role="status">{routeError}</p> : null}
         <p className={styles.guidance}>
           Secret values are never returned by the backend. Missing variables must be made available to the Desktop
           backend&apos;s launch environment; saving a provider does not create or store credentials. Configured means

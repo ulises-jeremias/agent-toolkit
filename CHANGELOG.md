@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Command palette now opens the Library's reviewed capability installation preview and offers catalog-backed MCP provider configuration reviews.
 - Library can review the exact GitHub Copilot instruction contents and destination in a linked project, reject destination symlinks, preserve existing instructions, bind install and removal to reviewed snapshots, preserve post-install edits, and show receipt evidence.
 - Library installation reviews can target selected user-level tools, report the exact targets applied, and show persistent evidence from real install receipts. World tool actions open the same target-specific review; repository-scoped Copilot installation remains outside this flow.
 - Library can install the complete catalog Skills tree into detected Claude Code and OpenCode homes through the existing dry-run transaction, and review receipt-based removal while preserving user-edited files.

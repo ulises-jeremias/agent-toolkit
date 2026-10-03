@@ -311,7 +311,7 @@ journeys:
   - id: universal-search-actions
     title: Search and launch core actions with safe previews
     destinations: [shell]
-    status: partial
+    status: ok
     evidence:
       - note: Typed palette actions map navigation, project houses, People, terminal, jobs, loops, swarm start, workspace chooser, and attention to existing GUI routes. Electron E2E exercises terminal/job/loop/swarm dialogs, workspace chooser focus, project entry, and backend restart reviews from both the palette and Settings. Both restart reviews default focus to Cancel; the palette review is captured at compact and large sizes.
         build: "feat/desktop-palette-reachability (Linux Electron E2E)"
@@ -337,5 +337,18 @@ journeys:
         tests:
           - apps/desktop/e2e/electron/desktop.spec.ts
           - apps/desktop/e2e/electron/loops.spec.ts
-    blockers:
-      - direct palette actions for capability installation and MCP configuration remain incomplete because those mutation journeys do not yet have complete canonical Desktop workflows
+      - note: >-
+          The palette opens the existing capability installation preview and
+          creates Configure <provider> MCP actions from the live typed catalog.
+          MCP commands open the provider's review dialog without applying the
+          change; both journeys continue through their canonical Library flows.
+        build: "feat/desktop-library-palette-actions (Linux Electron E2E)"
+        screenshots:
+          - assets/electron/library/install-preview-compact.png
+          - assets/electron/library/install-preview-large.png
+          - assets/electron/library/mcp-configure-compact.png
+          - assets/electron/library/mcp-configure-large.png
+        tests:
+          - apps/desktop/src/shell/commands.test.ts
+          - apps/desktop/e2e/electron/desktop.spec.ts
+    blockers: []
