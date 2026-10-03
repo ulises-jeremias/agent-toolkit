@@ -31,7 +31,13 @@ SUB_ROUTE_FAMILIES = {
     "devcompanion": ("dc", "DcSubReq"),
     "swarm": ("swarms", "SwarmsSubReq"),
 }
-V_TO_SCHEMA_TYPE = {"string": "string", "bool": "boolean", "int": "integer", "[]string": "string[]"}
+V_TO_SCHEMA_TYPE = {
+    "string": "string",
+    "bool": "boolean",
+    "int": "integer",
+    "[]string": "string[]",
+    "map[string]string": "map<string>",
+}
 
 RETIRED_ARTIFACTS = [
     ROOT / "modules" / "agent_toolkit_server" / "tui_registry.v",
@@ -204,6 +210,12 @@ def test_sub_route_bodies_match_contract():
             "application/json"
         ]["schema"]
         assert set(schema["properties"]) == set(contract), f"{family}: requestBody drift"
+        for field, typ in contract.items():
+            if typ.startswith("map<"):
+                prop = schema["properties"][field]
+                assert prop["type"] == "object" and prop["additionalProperties"] == {
+                    "type": typ[4:-1]
+                }, f"{family}.{field}: map schema drift"
 
 
 API_SCHEMAS = ROOT / "docs" / "compatibility" / "api-schemas.yaml"

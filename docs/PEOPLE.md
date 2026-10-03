@@ -102,14 +102,26 @@ duplicate keys, and prints a static diagnostic that never echoes values, keys,
 or control bytes. Templates under `templates/people/` are validated but never
 counted as configured people.
 
-## Role resolution (contract)
+## Swarm role binding
 
 When a swarm recipe names a role:
 
-1. An explicit Person choice is used; an invalid choice fails.
-2. Otherwise the first compatible preferred Person (ordered by
-   `people/bindings.yaml`).
-3. Otherwise an ephemeral canonical session, with role selection before start.
+Desktop lets the user assign one active Person to each canonical recipe role
+before starting. Roles remain ephemeral responsibilities; the Person ID is
+stored with the run and exported as `AGENT_TOOLKIT_PERSON_ID` to that role's
+adapter process, including roles started after handoff. This is currently
+run metadata and an environment hint: Agent Toolkit does not yet consume it to
+associate the process with a canonical `AgentSession`, terminal action, or
+World character. The backend rejects
+unknown roles, missing or archived People, and duplicate assignments. Auto
+leaves the role unbound and keeps the recipe's ephemeral fallback.
+
+The `launch_sessions` API option starts real Herdr/tmux role processes without
+attaching the server request to an interactive terminal. Headless mode records
+run state only and rejects a request to launch sessions. Runner and model are
+still selected for the swarm as a whole; saved per-Person runner/model
+preferences are not applied by this runtime. Runtime presence is not projected
+into the World from swarm bindings yet.
 
 Not implemented yet; see below.
 
@@ -126,7 +138,9 @@ discovered runner and optional runner model, then opens that runner in the
 project's real working folder through node-pty. The PTY retains the Person and
 project IDs so a living process can be inspected from the world and reopened in
 Terminal; stopping/reaping it leaves the Person untouched. The portrait uses
-original Toolkit sprites; source appearance is attribution only.
+original Toolkit sprites; source appearance is attribution only. Operations
+also offers explicit Person assignment per swarm role, validates the choice
+against the workspace roster, and can launch real adapter-backed role sessions.
 
 ## Gaps
 
@@ -137,7 +151,11 @@ file authoring as the user interface:
   restarts, and runner-specific injection of the saved Person goal/definition.
 - Runtime enforcement of Person budget and isolation preferences for the local
   PTY Start flow.
-- Swarm role picker with pre-start Person selection.
+- Preferred-Person resolution from `people/bindings.yaml`, per-role runner/model
+  preference enforcement, an Agent Toolkit consumer for the swarm Person
+  environment hint, swarm-process terminal reopen/stop from Desktop, and
+  truthful swarm-session projection into the World.
 
-Swarm resolution still requires canonical backend operations before Desktop
-can offer explicit/preferred Person binding with ephemeral fallback.
+Explicit assignment and the unbound ephemeral fallback are supported. Preferred
+Person auto-resolution remains separate work and is not implied by the current
+picker.

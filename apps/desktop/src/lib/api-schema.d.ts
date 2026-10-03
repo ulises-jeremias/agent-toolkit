@@ -1225,6 +1225,9 @@ export interface components {
             run_state: string;
             created_at: string;
             task: string;
+            person_bindings?: {
+                [key: string]: string;
+            };
         };
         SwarmListResponse: {
             ok: boolean;
@@ -2279,6 +2282,10 @@ export interface operations {
                     handoff_id?: string;
                     to_recipe?: string;
                     older_than?: string;
+                    person_bindings?: {
+                        [key: string]: string;
+                    };
+                    launch_sessions?: boolean;
                 };
             };
         };

@@ -501,6 +501,8 @@ struct SwarmsSubReq {
 	backend       string
 	runner        string
 	model_profile string
+	person_bindings map[string]string
+	launch_sessions bool
 	task          string
 	reason        string
 	dry_run       bool
@@ -564,6 +566,8 @@ pub fn build_swarms_options(sub string, body string) !agent_toolkit_core.SwarmOp
 		backend: req.backend
 		runner: req.runner
 		model_profile: req.model_profile
+		person_bindings: req.person_bindings
+		launch_sessions: req.launch_sessions
 		task: req.task
 		reason: req.reason
 		dry_run: req.dry_run

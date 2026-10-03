@@ -31,7 +31,7 @@ struct Cmd {
 	// api is optional: absent means True (Python `cmd.get("api", True)`).
 	api ?bool
 	// Generic `{sub}` routes: the HTTP subcommand allowlist and typed body
-	// fields (`name:type`, type = string|boolean|integer|string[], optional
+	// fields (`name:type`, type = string|boolean|integer|string[]|map<string>, optional
 	// `=a|b` enum suffix). Mirrored by modules/agent_toolkit_server/sub_routes.v.
 	api_subcommands []string
 	api_body        []string
@@ -386,7 +386,10 @@ fn body_field_schema(spec string) (string, JObj) {
 		typ = typ.all_before('=')
 	}
 	mut schema := jobj()
-	if typ.ends_with('[]') {
+	if typ.starts_with('map<') && typ.ends_with('>') {
+		schema.put('type', JStr{'object'})
+		schema.put('additionalProperties', type_schema(typ[4..typ.len - 1]))
+	} else if typ.ends_with('[]') {
 		schema.put('type', JStr{'array'})
 		mut items := jobj()
 		items.put('type', JStr{typ.trim_string_right('[]')})

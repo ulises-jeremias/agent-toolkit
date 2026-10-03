@@ -208,6 +208,7 @@ schemas:
       - run_state:string
       - created_at:string
       - task:string
+      - person_bindings?:map<string>
 
   - name: SwarmListResponse
     fields:

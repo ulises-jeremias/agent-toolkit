@@ -36,7 +36,7 @@ describe('Desktop workflow ledger (docs/desktop/workflows.yaml)', () => {
     for (const id of ['swarm-role-picker']) {
       const journey = journeys.find((j) => j.id === id);
       expect(journey, id).toBeDefined();
-      expect(journey!.status).toBe('not-implemented');
+      expect(journey!.status).toBe('partial');
     }
   });
 });

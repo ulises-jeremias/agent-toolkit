@@ -152,12 +152,24 @@ fn test_swarms_fields_forwarded_and_never_attach() {
 	assert opts.no_attach
 	assert !opts.attach
 	// attach is not a DTO field: a body cannot turn it on
-	start := build_swarms_options('start', '{"attach":true,"no_attach":false,"recipe":"pair"}') or {
+	start := build_swarms_options('start', '{"attach":true,"no_attach":false,"launch_sessions":true,"recipe":"pair"}') or {
 		panic(err.msg())
 	}
 	assert start.no_attach
 	assert !start.attach
 	assert start.recipe == 'pair'
+	assert start.launch_sessions
+}
+
+fn test_swarm_person_bindings_map_is_typed_and_forwarded() {
+	start := build_swarms_options('start', '{"person_bindings":{"planner":"maya","reviewer":"lina"},"launch_sessions":true}') or {
+		panic(err.msg())
+	}
+	assert start.person_bindings['planner'] == 'maya'
+	assert start.person_bindings['reviewer'] == 'lina'
+	assert start.launch_sessions
+	assert start.no_attach
+	assert !start.attach
 }
 
 fn test_workspace_project_dc_fields_forwarded() {

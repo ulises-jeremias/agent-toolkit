@@ -3,6 +3,9 @@ import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtures';
 
+const CAPTURE = process.env['ATK_CAPTURE'] === '1';
+const CAPTURE_DIR = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/swarms');
+
 /**
  * Kill the supervised `agent-toolkit serve` child. After ADR-034 the renderer
  * sees `backend.url` as the loopback static+proxy server, not serve — SIGKILL
@@ -284,6 +287,15 @@ test('Operations shows doctor, loops and swarms from live endpoints', async () =
 
 test('swarm start reviews canonical topology and keeps runner separate from adapter', async () => {
   const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'People' }).click();
+  await page.getByRole('button', { name: 'Create Person' }).click();
+  const personDialog = page.getByRole('dialog', { name: 'Create Person' });
+  await personDialog.getByRole('textbox', { name: 'Name' }).fill('Lina');
+  await personDialog.getByRole('textbox', { name: 'ID' }).fill('lina');
+  await personDialog.getByRole('textbox', { name: 'Role' }).fill('reviewer');
+  await personDialog.getByRole('textbox', { name: 'Goal' }).fill('Review work assigned to my swarm role');
+  await personDialog.getByRole('button', { name: 'Create Person' }).click();
+  await expect(personDialog).toBeHidden();
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
   await page.getByRole('button', { name: 'Start swarm' }).click();
   const dialog = page.getByRole('dialog', { name: 'Start a swarm' });
@@ -294,15 +306,22 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
     'Direct base merge: Not allowed',
   );
   await dialog.getByLabel('Task').fill('Inspect the existing Desktop architecture');
+  await dialog.getByLabel('Person for reviewer').selectOption('lina');
+  await expect(dialog.getByText(/Runner and model remain swarm-wide settings/)).toBeVisible();
   await setViewport(desktop.app, 1024, 768);
   await page.screenshot({ path: 'test-results/review/swarms-start-compact.png', fullPage: true });
-  await dialog.getByText('Runtime options').click();
-  await expect(dialog.getByText(/Person assignment is not available/)).toBeVisible();
-  await dialog.getByLabel('Session adapter').selectOption('headless');
-  await dialog.getByLabel('Dry run').check();
-  await expect(dialog.getByText('Automatic runner · headless adapter')).toBeVisible();
+  if (CAPTURE) {
+    fs.mkdirSync(CAPTURE_DIR, { recursive: true });
+    await page.screenshot({ path: path.join(CAPTURE_DIR, 'swarm-start-compact.png'), fullPage: true });
+  }
   await setViewport(desktop.app, 1600, 1000);
   await page.screenshot({ path: 'test-results/review/swarms-start-large.png', fullPage: true });
+  if (CAPTURE) await page.screenshot({ path: path.join(CAPTURE_DIR, 'swarm-start-large.png'), fullPage: true });
+  await dialog.getByText('Runtime options').click();
+  await dialog.getByLabel('Session adapter').selectOption('headless');
+  await expect(dialog.getByText(/Headless records the run without launching agents/)).toBeVisible();
+  await dialog.getByLabel('Dry run').check();
+  await expect(dialog.getByText('Automatic runner · headless adapter')).toBeVisible();
   await dialog.getByRole('button', { name: 'Start swarm' }).click();
   await expect(dialog).toBeHidden();
   await expect(page.getByRole('region', { name: 'Receipts' })).toContainText(/Swarm start posted/);

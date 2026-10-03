@@ -26,6 +26,31 @@ fn test_swarm_recipes() {
 	assert one.data['roles'].contains('implementer')
 }
 
+fn test_swarm_headless_start_refuses_requested_role_process_launch() {
+	base := os.join_path(os.temp_dir(), 'at-swarm-headless-${os.getpid()}')
+	os.mkdir_all(os.join_path(base, '.git')) or { panic(err) }
+	defer { os.rmdir_all(base) or {} }
+	report := run_swarm(SwarmOptions{
+		subcommand: 'start'
+		workspace_path: base
+		recipe: 'pair'
+		backend: 'headless'
+		launch_sessions: true
+		task: 'check adapter guard'
+	})
+	assert !report.ok
+	assert report.message.contains('cannot launch role sessions')
+	assert !os.is_dir(os.join_path(base, '.agent-toolkit', 'swarm', 'runs'))
+}
+
+fn test_swarm_person_environment_hint_is_role_specific_and_shell_quoted() {
+	bindings := {
+		'reviewer': "lina's-review"
+	}
+	assert swarm_person_env('reviewer', bindings) == " && export AGENT_TOOLKIT_PERSON_ID='lina'\\''s-review'"
+	assert swarm_person_env('implementer', bindings) == ''
+}
+
 fn test_swarm_recipe_catalog_exposes_canonical_topology_and_backends() {
 	catalog := list_swarm_recipes_typed()
 	assert catalog.ok
@@ -64,6 +89,7 @@ fn test_swarm_start_status_approve_cancel() {
 		}
 		os.rmdir_all(base) or {}
 	}
+	save_person(base, '{"spec":"agent-toolkit/person@1","id":"lina","name":"Lina","role":"reviewer","goal":"Review changes","archived":false}', true) or { panic(err) }
 
 	dry := run_swarm(SwarmOptions{
 		subcommand: 'start'
@@ -72,6 +98,9 @@ fn test_swarm_start_status_approve_cancel() {
 		backend: 'headless'
 		dry_run: true
 		task: 'demo'
+		person_bindings: {
+			'planner': 'lina'
+		}
 	})
 	assert dry.ok, dry.message
 	assert dry.data['mode'] == 'dry-run'
@@ -83,12 +112,17 @@ fn test_swarm_start_status_approve_cancel() {
 		recipe: 'team'
 		backend: 'headless'
 		task: 'demo'
+		person_bindings: {
+			'planner': 'lina'
+		}
 	})
 	assert start.ok, start.message
 	assert start.data['run_state'] == 'awaiting_plan_approval'
 	rid := start.data['run_id']
 	assert swarm_valid_run_id(rid)
 	assert os.is_file(os.join_path(base, '.agent-toolkit', 'swarm', 'runs', rid, 'state.json'))
+	detail := get_swarm_run_typed(base, rid) or { panic(err) }
+	assert detail.run.person_bindings['planner'] == 'lina'
 
 	st := run_swarm(SwarmOptions{
 		subcommand: 'status'

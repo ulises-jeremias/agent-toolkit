@@ -1,8 +1,10 @@
 import { useMemo, useState, type ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useModels, useProviders } from '../../data/catalog';
 import { useLiveStatus } from '../../data/live';
 import { useSwarmCommand, useSwarmRecipes, useSwarmRun, useSwarmRunAction, useSwarms } from '../../data/swarms';
 import type { CommandEnvelope, SubBody, SwarmRunInfo, SwarmRunResponse } from '../../lib/api';
+import { requireClient, useBackend } from '../../data/backend';
 import { useSessionContext } from '../../shell/useSessionContext';
 import {
   Button,
@@ -28,10 +30,11 @@ import {
 import styles from './operations.module.css';
 
 function compactBody(body: SubBody<'swarms'>): SubBody<'swarms'> {
-  const next: Record<string, string | boolean | number> = {};
+  const next: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(body)) {
     if (value === undefined || value === '' || value === false) continue;
-    next[key] = value as string | boolean | number;
+    if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) continue;
+    next[key] = value;
   }
   return next as SubBody<'swarms'>;
 }
@@ -344,6 +347,7 @@ function SwarmInspector({
 
 function SwarmRunBody({ data }: { data: SwarmRunResponse }) {
   const { run, budget } = data;
+  const bindings = Object.entries(run.person_bindings ?? {});
   const cost =
     budget.cost_status === 'accounted'
       ? `${budget.total_cost} / ${budget.max_cost_usd}`
@@ -360,6 +364,31 @@ function SwarmRunBody({ data }: { data: SwarmRunResponse }) {
           { label: 'Cost', value: cost },
         ]}
       />
+      {bindings.length > 0 ? (
+        <SwarmSection
+          title="People bound to roles"
+          empty="No People are explicitly bound; recipe roles use automatic ephemeral sessions."
+        >
+          <Table>
+            <thead>
+              <tr>
+                <th scope="col">Role</th>
+                <th scope="col">Person ID</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bindings.map(([role, id]) => (
+                <tr key={role}>
+                  <th scope="row">{role}</th>
+                  <td>
+                    <Mono>{id}</Mono>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </SwarmSection>
+      ) : null}
       <SwarmSection title="Approvals" empty="No gates on this run.">
         {data.approvals.length > 0 ? (
           <Table>
@@ -455,6 +484,7 @@ function SwarmSection({ title, empty, children }: { title: string; empty: string
 }
 
 function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { client } = useBackend();
   const { context } = useSessionContext();
   const providers = useProviders();
   const models = useModels();
@@ -467,6 +497,13 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   const [model, setModel] = useState('');
   const [backend, setBackend] = useState('auto');
   const [dryRun, setDryRun] = useState(false);
+  const [launchSessions, setLaunchSessions] = useState(true);
+  const [personBindings, setPersonBindings] = useState<Record<string, string>>({});
+  const peopleQuery = useQuery({
+    queryKey: ['people', context.workspace],
+    queryFn: () => requireClient(client).people(context.workspace),
+    enabled: open && Boolean(context.workspace) && client !== null,
+  });
 
   const selectedRecipe = catalog.data?.recipes.find((item) => item.name === recipe);
   const workspaceName =
@@ -478,6 +515,20 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   const runnerModels = (models.data?.models ?? []).filter((item) => !runner || item.runner === runner);
   const modelProfiles = [...new Map(runnerModels.map((item) => [item.profile, item])).values()];
   const availableBackends = catalog.data?.backends.filter((item) => item.available) ?? [];
+  const hasProcessBackend =
+    catalog.data?.backends.some((item) => ['herdr', 'tmux'].includes(item.name) && item.available) ?? false;
+  const willLaunchSessions = launchSessions && backend !== 'headless' && hasProcessBackend;
+  const people = (peopleQuery.data?.people ?? []).filter((person) => !person.archived);
+  const activePersonBindings = useMemo(
+    () =>
+      (selectedRecipe?.roles ?? []).reduce<Record<string, string>>((bindings, role) => {
+        const personId = personBindings[role.name];
+        if (personId) bindings[role.name] = personId;
+        return bindings;
+      }, {}),
+    [personBindings, selectedRecipe],
+  );
+  const boundPeople = Object.values(activePersonBindings);
 
   const body = useMemo(() => {
     const payload: SubBody<'swarms'> = {
@@ -487,10 +538,12 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
       runner: runner || undefined,
       backend,
       model_profile: model || undefined,
+      person_bindings: activePersonBindings,
+      launch_sessions: willLaunchSessions,
       dry_run: dryRun || undefined,
     };
     return compactBody(payload);
-  }, [backend, context.workspace, dryRun, model, recipe, runner, task]);
+  }, [activePersonBindings, backend, context.workspace, dryRun, model, recipe, runner, task, willLaunchSessions]);
 
   const close = () => {
     setRecipe('pair');
@@ -499,6 +552,8 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
     setModel('');
     setBackend('auto');
     setDryRun(false);
+    setLaunchSessions(true);
+    setPersonBindings({});
     onClose();
   };
 
@@ -520,7 +575,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
       open={open}
       onClose={close}
       title="Start a swarm"
-      description="Choose a canonical recipe, review its real role topology, then start the run in this workspace."
+      description="Choose a canonical recipe, review its role topology and People, then start real role sessions in this workspace."
       footer={
         <>
           <Button variant="ghost" onClick={close}>
@@ -564,16 +619,57 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
           <section className={styles.recipeCard} aria-label={`${selectedRecipe.name} recipe topology`}>
             <p className={styles.previewLabel}>{selectedRecipe.description}</p>
             <div className={styles.recipeRoles}>
-              {selectedRecipe.roles.map((item) => (
-                <div className={styles.recipeRole} key={item.name}>
-                  <strong>{item.name}</strong>
-                  <span>{item.persona}</span>
-                  <small>
-                    {item.model_profile} · {item.policy}
-                  </small>
-                </div>
-              ))}
+              {selectedRecipe.roles.map((item) => {
+                const assigned = personBindings[item.name] ?? '';
+                return (
+                  <div className={styles.recipeRole} key={item.name}>
+                    <strong>{item.name}</strong>
+                    <span>{item.persona}</span>
+                    <small>
+                      {item.model_profile} · {item.policy}
+                    </small>
+                    <Field label={`Person for ${item.name}`}>
+                      {(control) => (
+                        <Select
+                          value={assigned}
+                          onChange={(event) =>
+                            setPersonBindings((current) => {
+                              const next = { ...current };
+                              if (event.target.value) next[item.name] = event.target.value;
+                              else delete next[item.name];
+                              return next;
+                            })
+                          }
+                          {...control}
+                        >
+                          <option value="">Auto · ephemeral</option>
+                          {people.map((candidate) => (
+                            <option
+                              key={candidate.id}
+                              value={candidate.id}
+                              disabled={boundPeople.includes(candidate.id) && candidate.id !== assigned}
+                            >
+                              {candidate.name} · {candidate.role}
+                            </option>
+                          ))}
+                        </Select>
+                      )}
+                    </Field>
+                  </div>
+                );
+              })}
             </div>
+            {peopleQuery.isPending ? <p>Loading People…</p> : null}
+            {peopleQuery.isError ? <ErrorState title="Could not load People" error={peopleQuery.error} /> : null}
+            {people.length === 0 && peopleQuery.isSuccess ? (
+              <p>No active People are configured. Auto keeps every recipe role available.</p>
+            ) : null}
+            {Object.keys(activePersonBindings).length > 0 ? (
+              <p className={styles.bindingNote}>
+                A selected Person is recorded on the run and passed to the role adapter as an environment hint; it is
+                not yet linked to a Toolkit session or terminal. Runner and model remain swarm-wide settings.
+              </p>
+            ) : null}
             <div className={styles.recipeSummary}>
               <span>
                 Workspace <strong>{selectedRecipe.workspace_strategy}</strong>
@@ -664,7 +760,14 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
             </FormRow>
             <Field label="Session adapter" hint="Where role sessions run; this is not the LLM runner.">
               {(control) => (
-                <Select value={backend} onChange={(event) => setBackend(event.target.value)} {...control}>
+                <Select
+                  value={backend}
+                  onChange={(event) => {
+                    setBackend(event.target.value);
+                    if (event.target.value === 'headless') setLaunchSessions(false);
+                  }}
+                  {...control}
+                >
                   {availableBackends.map((item) => (
                     <option key={item.name} value={item.name}>
                       {item.name}
@@ -674,10 +777,23 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
                 </Select>
               )}
             </Field>
-            <p className={styles.bindingNote}>
-              Person assignment is not available because the swarm runtime has no canonical Person binding. Recipe roles
-              remain temporary responsibilities.
-            </p>
+            <label className={styles.check}>
+              <input
+                type="checkbox"
+                checked={willLaunchSessions}
+                disabled={backend === 'headless' || !hasProcessBackend}
+                onChange={(event) => setLaunchSessions(event.target.checked)}
+              />
+              Launch real role sessions
+            </label>
+            {!hasProcessBackend || backend === 'headless' ? (
+              <p className={styles.bindingNote}>
+                {backend === 'headless'
+                  ? 'Headless records the run without launching agents. Choose Herdr or tmux to start real role sessions.'
+                  : 'No Herdr or tmux session adapter is available. This run can be recorded headlessly, but no role processes will start.'}
+              </p>
+            ) : null}
+
             <label className={styles.check}>
               <input type="checkbox" checked={dryRun} onChange={(event) => setDryRun(event.target.checked)} />
               Dry run · validate without creating a run
@@ -693,6 +809,23 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
           <p>
             {runner || 'Automatic runner'} · {backend}
           </p>
+          <p>
+            {willLaunchSessions
+              ? 'Real role processes will start in the selected session adapter.'
+              : 'No role processes will start; only the run record will be created.'}
+          </p>
+          {Object.keys(activePersonBindings).length > 0 ? (
+            <p>
+              People:{' '}
+              {(selectedRecipe?.roles ?? [])
+                .filter((role) => activePersonBindings[role.name])
+                .map(
+                  (role) =>
+                    `${role.name} → ${people.find((item) => item.id === activePersonBindings[role.name])?.name ?? activePersonBindings[role.name]}`,
+                )
+                .join(' · ')}
+            </p>
+          ) : null}
           {dryRun ? <StatusBadge tone="warn" label="Dry run · no run will be created" /> : null}
         </div>
         {mutate.error ? <ErrorState title="The swarm did not start" error={mutate.error} /> : null}
