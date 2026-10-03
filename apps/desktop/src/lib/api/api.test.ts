@@ -123,6 +123,18 @@ describe('ApiClient', () => {
     expect(calls[0]?.init?.body).toBeUndefined();
   });
 
+  it('loads MCP provider catalogue state from its typed endpoint', async () => {
+    const response = await client({
+      ok: true,
+      message: '',
+      config_path: '/home/test/.config/agent-toolkit/mcp-config.json',
+      providers: [],
+    }).mcpProviders();
+    expect(response.config_path).toContain('mcp-config.json');
+    expect(calls[0]?.url).toBe('http://127.0.0.1:9/api/v1/mcp/providers');
+    expect(calls[0]?.init?.method).toBe('GET');
+  });
+
   it('deletes with ?force=true only when forced', async () => {
     const api = client({ ok: true, message: 'deleted' });
     await api.deleteJob('job_x');

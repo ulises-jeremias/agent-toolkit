@@ -343,6 +343,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mcp/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List MCP providers and secret-free local configuration state */
+        get: operations["mcp_providers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/install/preview": {
         parameters: {
             query?: never;
@@ -1102,6 +1119,26 @@ export interface components {
             data: {
                 [key: string]: string;
             };
+        };
+        /** @description Secret-free MCP provider catalogue and local setup state. */
+        McpProviderInfo: {
+            id: string;
+            display_name: string;
+            package: string;
+            required_env: string[];
+            missing_env: string[];
+            configured: boolean;
+            enabled: boolean;
+            template_available: boolean;
+            template_sha: string;
+            template_is_pinned: boolean;
+            template_matches_pin: boolean;
+        };
+        McpProvidersResponse: {
+            ok: boolean;
+            message: string;
+            config_path: string;
+            providers: components["schemas"]["McpProviderInfo"][];
         };
         VersionResponse: {
             ok: boolean;
@@ -2381,6 +2418,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    mcp_providers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["McpProvidersResponse"];
+                };
             };
         };
     };

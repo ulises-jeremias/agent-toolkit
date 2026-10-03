@@ -13,6 +13,7 @@ import type {
   MemoryReadResponse,
   MemorySearchResponse,
   MemoryWriteResponse,
+  McpProvidersResponse,
   MessageResponse,
   ModelsResponse,
   PeopleResponse,
@@ -168,6 +169,10 @@ export class ApiClient {
 
   async installPreview(): Promise<InstallPreviewResponse> {
     return this.json<InstallPreviewResponse>('GET', '/api/v1/install/preview' satisfies PathWith<'get'>);
+  }
+
+  mcpProviders(): Promise<ResponseOf<OperationOf<'/api/v1/mcp/providers', 'get'>, McpProvidersResponse>> {
+    return this.json('GET', '/api/v1/mcp/providers' satisfies PathWith<'get'>);
   }
 
   /**

@@ -4,7 +4,7 @@ import { useAgents, useProviders, useTools } from '../../data/catalog';
 import { useOperation, useReport, useSubQuery } from '../../data/commands';
 import { requireClient, useBackend } from '../../data/backend';
 import { envelopeText, errorMessage, type CommandEnvelope, type ToolEnabled, type ToolInfo } from '../../lib/api';
-import { mcpStatusTone, parseMcpProviders, parsePluginBundles, parseSkillCatalog } from '../../lib/reports';
+import { parsePluginBundles, parseSkillCatalog } from '../../lib/reports';
 import {
   Button,
   ButtonRow,
@@ -22,6 +22,7 @@ import {
   type Tone,
 } from '../../ui';
 import styles from './library.module.css';
+import { McpProvidersPanel } from './McpProvidersPanel';
 
 function yesNo(value: boolean): { tone: Tone; label: string } {
   return value ? { tone: 'ok', label: 'yes' } : { tone: 'idle', label: 'no' };
@@ -61,9 +62,6 @@ export default function Library() {
   const providers = useProviders();
   const skills = useSubQuery('skills', 'list');
   const plugins = useSubQuery('plugin', 'check', undefined, { failureIsData: true });
-  const mcp = useSubQuery('mcp', 'list');
-  const [probeMcp, setProbeMcp] = useState(false);
-  const mcpHealth = useSubQuery('mcp', 'health', undefined, { enabled: probeMcp, failureIsData: true });
   const install = useOperation('install');
   const [installPreview, setInstallPreview] = useState<CommandEnvelope | null>(null);
   const previewInstall = useMutation({
@@ -74,7 +72,6 @@ export default function Library() {
 
   const drift = plugins.data?.ok ? plugins.data.data['drift'] : undefined;
   const skillRows = skills.data ? parseSkillCatalog(envelopeText(skills.data)) : [];
-  const mcpRows = mcp.data ? parseMcpProviders(envelopeText(mcp.data)) : [];
   const pluginRows = plugins.data ? parsePluginBundles(envelopeText(plugins.data)) : [];
 
   return (
@@ -344,70 +341,7 @@ export default function Library() {
                 }
               </QueryView>
             </Panel>
-            <Panel
-              title="MCP servers"
-              meta="Catalog vs configured. Running is unknown until a probe."
-              actions={
-                <Button
-                  size="sm"
-                  onClick={() => (probeMcp ? void mcpHealth.refetch() : setProbeMcp(true))}
-                  busy={mcpHealth.isFetching}
-                  busyLabel="Probing…"
-                >
-                  Check health
-                </Button>
-              }
-            >
-              <QueryView query={mcp} loading="Listing MCP servers" errorTitle="Could not list MCP servers">
-                {(envelope) =>
-                  mcpRows.length === 0 ? (
-                    <EmptyState title="No MCP providers as a table.">
-                      {envelope.data['count']
-                        ? `${envelope.data['count']} in catalog; rows unknown.`
-                        : envelope.message}
-                    </EmptyState>
-                  ) : (
-                    <Table>
-                      <thead>
-                        <tr>
-                          <th scope="col">Provider</th>
-                          <th scope="col">Status</th>
-                          <th scope="col">Required env</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {mcpRows.map((row) => (
-                          <tr key={row.provider}>
-                            <th scope="row">
-                              <Mono>{row.provider}</Mono>
-                            </th>
-                            <td>
-                              <StatusBadge tone={mcpStatusTone(row.status)} label={row.status} />
-                            </td>
-                            <td>
-                              <Mono>{row.env || '—'}</Mono>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </Table>
-                  )
-                }
-              </QueryView>
-              {probeMcp ? (
-                <QueryView query={mcpHealth} loading="Probing MCP servers" errorTitle="Health check failed">
-                  {(envelope) => (
-                    <p>
-                      {envelope.ok
-                        ? 'Health probe finished. Running is still unknown unless the probe named a live process.'
-                        : envelope.message || 'Health probe failed.'}
-                    </p>
-                  )}
-                </QueryView>
-              ) : (
-                <p>Running is unknown until a health probe reports a live process.</p>
-              )}
-            </Panel>
+            <McpProvidersPanel />
           </Grid>
 
           <Panel

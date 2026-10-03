@@ -23,6 +23,8 @@ export type LoopHistoryResponse = components['schemas']['LoopHistoryResponse'];
 export type LoopAuditResponse = components['schemas']['LoopAuditResponse'];
 export type LoopCostResponse = components['schemas']['LoopCostResponse'];
 export type InstallPreviewResponse = components['schemas']['InstallPreviewResponse'];
+export type McpProvidersResponse = components['schemas']['McpProvidersResponse'];
+export type McpProviderInfo = components['schemas']['McpProviderInfo'];
 
 export interface SelfcheckCheck {
   name: string;
