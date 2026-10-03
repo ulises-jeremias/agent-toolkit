@@ -148,7 +148,7 @@ function rasterLine(p: Painter, x0: number, y0: number, x1: number, y1: number) 
 function curvedPath(p: Painter, x0: number, y0: number, x1: number, y1: number, salt: number, amplitude = 1.25) {
   const distance = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
   const steps = Math.max(1, distance * 4);
-  const bend = Math.min(amplitude, distance * 0.07);
+  const bend = Math.min(amplitude, distance < 3 ? distance * 0.07 : Math.max(1.15, distance * 0.07));
   const phase = ((h2(x0 + x1, y0 + y1, salt) % 1000) / 1000) * Math.PI * 2;
   let previousX = x0;
   let previousY = y0;
@@ -232,7 +232,7 @@ function creek(p: Painter, preferredX: number, bridgeRows: ReadonlySet<number>, 
     const along = y - bridgeY;
     // Two slow waves create natural reaches and gentle bends while preserving
     // the bridge crossing as a fixed, navigable landmark.
-    x = baseX + Math.round(Math.sin(along * 0.15) * 4 + Math.sin(along * 0.05) * 1.5);
+    x = baseX + Math.round(Math.sin(along * 0.15) * 5.5 + Math.sin(along * 0.05) * 2.25);
     x = Math.max(6, Math.min(maxCenterX, x));
     if (bridgeRows.has(y)) crossingX = x;
     const width = 3;
@@ -252,6 +252,10 @@ function creek(p: Painter, preferredX: number, bridgeRows: ReadonlySet<number>, 
       if (east.startsWith('grass') || east.startsWith('flowers')) p.set(x + width, y, 'water-edge-w');
       if (y % 9 === 4 && h2(x, y, 37) % 2 === 0) {
         p.sprite(`lily:${x},${y}`, x + 1, y, 'lily', 16, 16, 0, 0, true);
+      }
+      const reedsSide = h2(x, y, 41) % 2 === 0 ? x - 1 : x + width;
+      if (y % 7 === 3 && h2(x, y, 43) % 3 === 0) {
+        p.sprite(`reeds:${reedsSide},${y}`, reedsSide, y, 'reeds', 16, 16, 0, 0, true);
       }
     }
   }
@@ -337,7 +341,7 @@ function forest(p: Painter) {
     for (let x = 0; x < p.cols; x++) {
       if (p.isBlocked(x, y)) continue;
       if (!p.get(x, y).startsWith('grass')) continue;
-      const edge = x < 4 || x >= p.cols - 4 || y < 2 || y >= p.rows - 3;
+      const edge = x < 6 || x >= p.cols - 6 || y < 3 || y >= p.rows - 4;
       const nearCreek = [-4, -3, -2, -1, 0, 1, 2, 3, 4].some((dx) => p.get(x + dx, y) === 'water');
       const roll = h2(x, y, 3) % 31;
       const nearBuilding = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => p.blocked.has(key(x + dx, y + dy))));
@@ -345,22 +349,22 @@ function forest(p: Painter) {
       const nearTrail = [-2, -1, 0, 1, 2].some((dy) =>
         [-2, -1, 0, 1, 2].some((dx) => p.paths.has(key(x + dx, y + dy))),
       );
-      const grove = h2(x >> 2, y >> 2, 23) % 3 === 0;
+      const grove = h2(x >> 2, y >> 2, 23) % 2 === 0;
       const wantTree =
         !nearBuilding &&
         !nearTree &&
         !nearTrail &&
-        (edge ? roll < 13 : nearCreek ? grove && roll < 9 : grove && roll < 16);
+        (edge ? roll < 18 : nearCreek ? grove && roll < 12 : grove && roll < 17);
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
         const tree =
           nearCreek && kind < 4
             ? 'tree-willow'
-            : kind < 6
+            : kind < 4
               ? 'tree-pine'
-              : kind === 6
+              : kind < 6
                 ? 'tree-blossom'
-                : kind === 7
+                : kind < 8
                   ? 'tree-amber'
                   : 'tree-round';
         p.sprite(`tree:${x},${y}`, x, y, tree, 32, 40, -8, -26, true);
@@ -501,20 +505,16 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   for (const project of projects) {
     const doorX = project.x + Math.floor(project.w / 2);
     const doorY = project.y + project.h;
-    const rightGutter = project.x + project.w;
-    const gutterX = rightGutter < cols - 3 ? rightGutter : project.x - 1;
-    const spurY = doorY;
-    lane(p, gutterX, roadRows.get(gutterX) ?? roadY, spurY, h2(project.x, project.y, 27));
-    curvedPath(p, doorX, spurY, gutterX, spurY, h2(project.x, project.y, 29), 0.7);
+    // Give each house one direct, legible approach to the shared street.
+    // Side-gutter spurs created square loops around close-set project lots.
+    lane(p, doorX, doorY, roadRows.get(doorX) ?? roadY, h2(project.x, project.y, 27));
   }
   projectGardens(p, projects);
   if (projects.length === 0) {
     if (marker) {
       const doorX = marker.x + Math.floor(marker.w / 2);
-      const gutterX = marker.x + marker.w;
       const doorY = marker.y + marker.h;
-      lane(p, gutterX, roadRows.get(gutterX) ?? roadY, doorY, 31);
-      curvedPath(p, doorX, doorY, gutterX, doorY, 32, 0.7);
+      lane(p, doorX, doorY, roadRows.get(doorX) ?? roadY, 31);
     }
   }
   renderPaths(p);

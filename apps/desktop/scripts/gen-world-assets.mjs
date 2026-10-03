@@ -168,6 +168,10 @@ const P = {
   // Fern, olive and spring-light form a softer valley base. This keeps
   // landmarks vivid without letting the lawn compete with their silhouettes.
   g: [0x68, 0xa8, 0x5f],
+  gm: [0x70, 0xad, 0x64],
+  gs: [0x61, 0x9e, 0x59],
+  gw: [0x76, 0xb4, 0x6c],
+  gd2: [0x5d, 0x98, 0x56],
   gd: [0x4f, 0x8b, 0x4b],
   gl: [0x83, 0xbd, 0x70],
   gt: [0xb2, 0xd3, 0x87],
@@ -829,10 +833,12 @@ function objLamp() {
  * ------------------------------------------------------------------ */
 
 function grassTile(seed) {
-  const img = new Img(16, 16).rect(0, 0, 15, 15, 'g');
-  // Small hand-authored clover and blade clusters make the broad valley feel
-  // grassy at normal zoom. Their varied spacing avoids a repeating stripe
-  // pattern while preserving enough calm ground around semantic buildings.
+  const bases = ['g', 'gm', 'gs', 'gw', 'g', 'gd2'];
+  const base = bases[(seed - 1 + bases.length) % bases.length];
+  const img = new Img(16, 16).rect(0, 0, 15, 15, base);
+  // Gentle base-color shifts and hand-authored clover patches break up the
+  // broad lawn into readable meadow clearings at the displayed 3x scale.
+  // Keep the variation tile-local and deterministic so it never looks noisy.
   const s = seed * 19 + 7;
   const patches = [
     [[1, 2, 'gl'], [2, 2, 'gl'], [2, 3, 'fl'], [3, 3, 'gd']],

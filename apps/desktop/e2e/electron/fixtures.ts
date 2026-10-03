@@ -129,7 +129,23 @@ export async function setViewport(app: ElectronApplication, width: number, heigh
   await app.evaluate(
     ({ BrowserWindow }, size) => {
       const [win] = BrowserWindow.getAllWindows();
-      win?.setContentSize(size.width, size.height);
+      if (!win) throw new Error('Desktop window is unavailable while resizing.');
+      win.setContentSize(size.width, size.height);
+      return win.webContents.executeJavaScript(
+        `new Promise((resolve, reject) => {
+          const started = performance.now();
+          const check = () => {
+            if (window.innerWidth === ${size.width} && window.innerHeight === ${size.height}) {
+              resolve(true);
+            } else if (performance.now() - started > 3000) {
+              reject(new Error('Desktop viewport did not reach ${size.width}x${size.height}.'));
+            } else {
+              requestAnimationFrame(check);
+            }
+          };
+          check();
+        })`,
+      );
     },
     { width, height },
   );
