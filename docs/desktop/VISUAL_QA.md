@@ -15,6 +15,19 @@ Review fresh empty/one/many-project worlds, project selection and interior, Peop
 
 The world is the dominant `/world` surface. Projects are actual buildings and shared capabilities have distinct places. A configured offline Person is shown in the roster, never as a world worker. Runtime characters require a real session/job/run and disappear when it ends. Furniture, signs, labels, and ambient animation must not imply nonexistent activity.
 
+## Meadow grove density review — 2026-10-03
+
+Linux Electron screenshots were recaptured after increasing seeded flower,
+creek-bank tree, and grove-edge undergrowth density. I opened all six empty,
+one-project, and several-project captures at compact and large sizes. Buildings,
+project selection, and path corridors stay clear; color and flora variety improve
+slightly around the creek and eastern tree clusters. The multi-project valley
+still has long open grass fields, the ground texture repeats, and several
+landmarks read as prototype sprites at full size. This iteration is deliberately
+recorded as incremental terrain work, not as the completion of the world-art
+pass. The prior, lower density capture was also opened before deciding the
+increase was subtle but useful rather than cluttered.
+
 ## Compact valley composition review — 2026-10-03
 
 After tightening the civic streets and moving project houses beside the creek

@@ -143,7 +143,7 @@ function baseGround(p: Painter) {
       const moisture = meadowField(x, y, 7, 11) * 0.65 + meadowField(x, y, 15, 17) * 0.35;
       const bloom = meadowField(x, y, 4, 19);
       const roll = h2(x, y, 1) % 23;
-      if (bloom > 0.82 && roll < 14) {
+      if (bloom > 0.77 && roll < 17) {
         p.set(x, y, ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'][h2(x, y, 12) % 4]!);
       } else {
         const grass =
@@ -411,7 +411,7 @@ function forest(p: Painter) {
         !nearBuilding &&
         !nearTree &&
         !nearTrail &&
-        (edge ? roll < 18 : nearCreek ? grove && roll < 12 : grove && roll < 17);
+        (edge ? roll < 29 : nearCreek ? grove && roll < 26 : grove && roll < 25);
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
         const canopyOffsetX = (h2(x, y, 47) % 5) - 2;
@@ -428,10 +428,10 @@ function forest(p: Painter) {
                   : 'tree-round';
         p.sprite(`tree:${x},${y}`, x, y, tree, 32, 40, -8 + canopyOffsetX, -26 + canopyOffsetY, true);
         planted.add(key(x, y));
-      } else if (roll === 6) p.sprite(`bush:${x},${y}`, x, y, 'bush', 16, 12, 0, 4);
-      else if (roll === 7) p.sprite(`rock:${x},${y}`, x, y, 'rock', 16, 12, 0, 5);
-      else if (roll === 8) p.sprite(`grass-tuft:${x},${y}`, x, y, 'tall-grass', 16, 8, 0, 8);
-      else if (roll === 9 && edge) p.sprite(`shroom:${x},${y}`, x, y, 'mushroom', 16, 12, 0, 5);
+      } else if (roll === 5 || roll === 6) p.sprite(`bush:${x},${y}`, x, y, 'bush', 16, 12, 0, 4);
+      else if (roll === 7 || roll === 8) p.sprite(`rock:${x},${y}`, x, y, 'rock', 16, 12, 0, 5);
+      else if (roll === 9 || roll === 10) p.sprite(`grass-tuft:${x},${y}`, x, y, 'tall-grass', 16, 8, 0, 8);
+      else if (roll === 11 && edge) p.sprite(`shroom:${x},${y}`, x, y, 'mushroom', 16, 12, 0, 5);
     }
   }
 }

@@ -57,6 +57,15 @@ journeys:
           - assets/electron/world/world-one-project-large.png
           - assets/electron/world/world-several-projects-compact.png
           - assets/electron/world/world-several-projects-large.png
+      - note: Meadow flowers, creek-bank trees, and edge undergrowth use stable coordinate seeds; captures were reviewed after two density iterations. The added foliage stays clear of semantic footprints and paths, but several-project maps still have broad lawn areas, so this is incremental terrain tuning rather than final art acceptance.
+        build: "39fa40bc3b587c205cb5fd4dca0784a25e6f7dcb base + Linux Electron E2E (project-link.spec.ts)"
+        screenshots:
+          - assets/electron/world/world-empty-compact.png
+          - assets/electron/world/world-empty-large.png
+          - assets/electron/world/world-one-project-compact.png
+          - assets/electron/world/world-one-project-large.png
+          - assets/electron/world/world-several-projects-compact.png
+          - assets/electron/world/world-several-projects-large.png
       - note: apps/desktop/e2e/electron/project-link.spec.ts; modules/agent_toolkit_core/file_catalog_test.v covers project symlink containment and unsafe paths
     blockers: []
   - id: capability-discovery
