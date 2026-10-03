@@ -3,21 +3,27 @@
   "sprites": {
     "house-cottage": {
       "file": "house-cottage.png",
-      "w": 48,
-      "h": 48,
-      "frames": 1
+      "w": 60,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art/house-cottage.png",
+      "sha256": "018b49f342411d922aa520831d6a88eb800a595ce39e922a70decfe2833de99f"
     },
     "house-studio": {
       "file": "house-studio.png",
-      "w": 48,
-      "h": 48,
-      "frames": 1
+      "w": 56,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art/house-studio.png",
+      "sha256": "711d2b0389ad09645125912e97eab070f960ca5faf268227c5a46dded19acb8e"
     },
     "house-workshop": {
       "file": "house-workshop.png",
-      "w": 48,
-      "h": 48,
-      "frames": 1
+      "w": 56,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art/house-workshop.png",
+      "sha256": "7698d7f0e2154a7c903d0665611ee3746a3633b8884986cbd6964ed9bc049a63"
     },
     "house-tower": {
       "file": "house-tower.png",
@@ -39,21 +45,27 @@
     },
     "landmark-workspace": {
       "file": "landmark-workspace.png",
-      "w": 80,
-      "h": 64,
-      "frames": 1
+      "w": 54,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art/landmark-workspace.png",
+      "sha256": "874b041b92a3562121200532d980a4b63497c8bf94380bba5ef0909883aaf287"
     },
     "landmark-archive": {
       "file": "landmark-archive.png",
-      "w": 64,
-      "h": 64,
-      "frames": 1
+      "w": 62,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art/landmark-archive.png",
+      "sha256": "8b0b1b612d2b5ecacf6db5b9451de33545b1964bd596f339a6be17616e5b8f77"
     },
     "landmark-library": {
       "file": "landmark-library.png",
-      "w": 64,
-      "h": 64,
-      "frames": 1
+      "w": 61,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art/landmark-library.png",
+      "sha256": "806e2b4e47dcc3ea2f22c39c97261b2e52b1a9ea5e29373b54fb40993fc4bc56"
     },
     "landmark-workshop": {
       "file": "landmark-workshop.png",
@@ -64,14 +76,18 @@
     "landmark-operations": {
       "file": "landmark-operations.png",
       "w": 64,
-      "h": 64,
-      "frames": 1
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art/landmark-operations.png",
+      "sha256": "113ebd714cf52b1a64efbe23a08f16bd800bbb7de1f475b35ee63e34d0503848"
     },
     "landmark-terminal": {
       "file": "landmark-terminal.png",
-      "w": 64,
-      "h": 64,
-      "frames": 1
+      "w": 60,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art/landmark-terminal.png",
+      "sha256": "a1d2a797bcc50523d39c2be8d9239aa83c72c4974d890d76eeead76045bcb769"
     },
     "landmark-files": {
       "file": "landmark-files.png",

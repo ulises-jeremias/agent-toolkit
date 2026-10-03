@@ -3,8 +3,8 @@
  * gen-world-assets.mjs — Cozy Pixel World asset generator (ADR-035).
  *
  * Generates the original pixel-art PNG set in ../public/world/ from the
- * palette + sprite definitions below. Everything here is original art
- * authored as code: no third-party assets, no tracing, no copied sprites.
+ * palette + sprite definitions below plus the selected original facades in
+ * ./world-art. No third-party assets, tracing, or copied sprites are used.
  *
  * Craft rules (docs/desktop/DESIGN.md §7): 16px source tile grid, integer
  * multiples, one light direction (top-left), 1px darker silhouette outline,
@@ -18,10 +18,27 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(here, '..', 'public', 'world');
+const WORLD_ART = path.resolve(here, 'world-art');
+
+// Carefully selected original pixel-art facades are kept as checked-in source
+// PNGs. The script copies them into the public asset tree and locks dimensions
+// and hashes in manifest.json; --check therefore proves the shipped files are
+// byte-for-byte fresh without requiring an image editor in CI.
+const ORIGINAL_PIXEL_FACADES = new Set([
+  'house-cottage',
+  'house-studio',
+  'house-workshop',
+  'landmark-workspace',
+  'landmark-library',
+  'landmark-operations',
+  'landmark-archive',
+  'landmark-terminal',
+]);
 
 /* ------------------------------------------------------------------ *
  * 1. Minimal PNG encoder (8-bit RGBA, no filters) — zero dependencies.
@@ -1657,6 +1674,14 @@ function render(sprite) {
   return encodePng(w, h, out);
 }
 
+function dimensions(png, name) {
+  const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  if (png.length < 24 || !png.subarray(0, 8).equals(signature) || png.toString('ascii', 12, 16) !== 'IHDR') {
+    throw new Error(`invalid PNG source for ${name}`);
+  }
+  return { w: png.readUInt32BE(16), h: png.readUInt32BE(20) };
+}
+
 function main() {
   const check = process.argv.includes('--check');
   const sprites = collect();
@@ -1664,12 +1689,21 @@ function main() {
   const written = [];
   const diffs = [];
   for (const [name, sprite] of sprites) {
-    const png = render(sprite);
+    const originalPath = path.join(WORLD_ART, `${name}.png`);
+    const originalPng = ORIGINAL_PIXEL_FACADES.has(name) ? fs.readFileSync(originalPath) : null;
+    const png = originalPng ?? render(sprite);
+    const size = originalPng ? dimensions(originalPng, name) : { w: sprite.img.w, h: sprite.img.h };
     manifest[name] = {
       file: `${name}.png`,
-      w: sprite.img.w,
-      h: sprite.img.h,
-      frames: sprite.frames.length,
+      w: size.w,
+      h: size.h,
+      frames: originalPng ? 1 : sprite.frames.length,
+      ...(originalPng
+        ? {
+            source: `scripts/world-art/${name}.png`,
+            sha256: createHash('sha256').update(originalPng).digest('hex'),
+          }
+        : {}),
     };
     const dest = path.join(OUT, `${name}.png`);
     if (check) {
