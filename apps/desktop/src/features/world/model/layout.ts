@@ -47,10 +47,10 @@ function sizeFor(entity: SemanticEntity): { w: number; h: number } {
   return footprintFor(entity);
 }
 
-/** Project district columns adapt to roster size (1 → 3 → 5 lanes). */
+/** Project district columns adapt to roster size (1 → 2 → 5 → 7 lanes). */
 export function projectDistrictCols(count: number): number {
   if (count <= 1) return 1;
-  if (count <= 3) return 3;
+  if (count <= 3) return 2;
   if (count <= 10) return 5;
   return 7;
 }
@@ -189,7 +189,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // Put project homes across a visible creek crossing from the shared
   // services. Keep the bank gap compact enough that the project district
   // still reads as part of the same settlement at small window sizes.
-  const projectDistrictX = 23;
+  const projectDistrictX = 19;
   const emptyMarkerX = projectDistrictX;
   const mapW = Math.max(28, projectDistrictX + (projects.length ? districtW : 3) + 1);
 
@@ -226,18 +226,16 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // Houses begin just beyond the creek crossing. Keeping the project lane
   // beside the civic commons gives compact windows a landscape-shaped valley
   // that can fit at 32px tiles instead of shrinking the whole world to 16px.
-  const districtY = 7;
+  const districtY = 6;
   const districtX = projectDistrictX;
   if (emptyProject) place(emptyProject, emptyMarkerX, districtY);
   const projectSlots = new Map<string, { x: number; y: number }>();
   projects.forEach((project, index) => {
     const col = index % districtCols;
     const row = Math.floor(index / districtCols);
-    const rowInset = row % 2 === 1 ? 2 : 0;
     // Keep existing lots fixed as a roster grows; only new lots are appended.
-    const rowStart = districtX + rowInset;
-    const x = rowStart + col * 5;
-    const y = districtY + row * 5 + (col % 2 === 1 ? 1 : 0);
+    const x = districtX + col * 5;
+    const y = districtY + row * 4;
     place(project, x, y);
     if (project.projectId) projectSlots.set(project.projectId, { x, y });
   });
@@ -265,11 +263,12 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   }
 
   const districtRows = Math.ceil(projects.length / Math.max(1, districtCols));
-  const mapRows = districtY + Math.max(0, districtRows - 1) * 5 + (projects.length ? 3 : 2);
+  const mapRows = districtY + Math.max(0, districtRows - 1) * 4 + 4;
   return {
-    // Reserve a complete creek + bank margin beyond the last project lot so
-    // the river never cuts through a real building when the roster grows.
-    cols: Math.max(mapW, maxX + 3),
+    // The creek is composed between civic and project districts; keep one
+    // clear edge tile beyond the final lot without scaling the whole valley
+    // down for unused land.
+    cols: Math.max(mapW, maxX + 1),
     rows: Math.max(maxY, mapRows),
     entities: laid,
   };
