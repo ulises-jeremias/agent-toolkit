@@ -158,8 +158,9 @@ function baseGround(p: Painter) {
   }
 }
 
-/** Raster a short segment so curved footpaths never leave diagonal gaps. */
-function rasterLine(p: Painter, x0: number, y0: number, x1: number, y1: number) {
+/** Raster a segment into four-way-connected tile steps. */
+function rasterPoints(x0: number, y0: number, x1: number, y1: number) {
+  const points = [{ x: x0, y: y0 }];
   let x = x0;
   let y = y0;
   const dx = Math.abs(x1 - x0);
@@ -168,20 +169,25 @@ function rasterLine(p: Painter, x0: number, y0: number, x1: number, y1: number) 
   const sy = y0 < y1 ? 1 : -1;
   let error = dx + dy;
   for (;;) {
-    p.path(x, y);
     if (x === x1 && y === y1) break;
     const twice = error * 2;
     if (twice >= dy) {
       error += dy;
       x += sx;
-      p.path(x, y);
+      points.push({ x, y });
     }
     if (twice <= dx) {
       error += dx;
       y += sy;
-      p.path(x, y);
+      points.push({ x, y });
     }
   }
+  return points;
+}
+
+/** Raster a short segment so curved footpaths never leave diagonal gaps. */
+function rasterLine(p: Painter, x0: number, y0: number, x1: number, y1: number) {
+  for (const point of rasterPoints(x0, y0, x1, y1)) p.path(point.x, point.y);
 }
 
 /** Main commons route meanders, but meets the bridge at its exact level. */
@@ -244,7 +250,19 @@ function connectEntrance(p: Painter, startX: number, startY: number) {
   }
 
   if (!target) return;
-  let cursor: string | null = parent.get(target)!;
+  const [targetX = 0, targetY = 0] = target.split(',').map(Number);
+  const direct = rasterPoints(startX, startY, targetX, targetY);
+  const directRouteIsClear = direct.every(
+    ({ x, y }) => !p.isBlocked(x, y) && (p.paths.has(key(x, y)) || p.get(x, y) !== 'water'),
+  );
+  if (directRouteIsClear) {
+    for (const point of direct) p.path(point.x, point.y);
+    return;
+  }
+
+  // If a building or water blocks the graceful line, use the safe shortest
+  // route found above instead of cutting across a real footprint.
+  let cursor: string | null = target;
   while (cursor) {
     const [x = 0, y = 0] = cursor.split(',').map(Number);
     p.path(x, y);
