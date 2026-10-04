@@ -768,6 +768,11 @@ describe('layoutWorld', () => {
       waterRows.set(cell.y, [...(waterRows.get(cell.y) ?? []), cell.x]);
     }
     expect(new Set([...waterRows.values()].map((xs) => Math.min(...xs))).size).toBeGreaterThan(1);
+    const bridgeRoadY = bridge!.y + 1;
+    const upstreamStarts = [...waterRows.entries()].filter(([y]) => y < bridgeRoadY).map(([, xs]) => Math.min(...xs));
+    const downstreamStarts = [...waterRows.entries()].filter(([y]) => y > bridgeRoadY).map(([, xs]) => Math.min(...xs));
+    expect(Math.min(...upstreamStarts)).toBeLessThan(bridge!.x);
+    expect(Math.max(...downstreamStarts)).toBeGreaterThan(bridge!.x);
     expect([...waterRows.values()].every((xs) => xs.length === 2 || xs.length === 3)).toBe(true);
     expect([...waterRows.values()].some((xs) => xs.length === 3)).toBe(true);
     expect(new Set(first.cells.filter(({ tile }) => tile.startsWith('trail')).map(({ y }) => y)).size).toBeGreaterThan(
@@ -795,7 +800,6 @@ describe('layoutWorld', () => {
       }
     }
     expect(reached).toEqual(trails);
-    const bridgeRoadY = bridge!.y + 1;
     for (let dx = 0; dx < 3; dx++) {
       expect(trails.has(`${bridge!.x + dx},${bridgeRoadY}`)).toBe(true);
     }

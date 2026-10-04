@@ -290,7 +290,7 @@ function renderPaths(p: Painter) {
   }
 }
 
-/** A narrow east-valley stream with a slow, bridge-anchored meander. */
+/** A winding east-valley stream with a slow, bridge-anchored meander. */
 function creek(
   p: Painter,
   preferredX: number,
@@ -301,14 +301,17 @@ function creek(
   const bridgeY = [...bridgeRows][0] ?? Math.floor(p.rows / 2);
   const maxCenterX = Math.max(7, Math.min(p.cols - 6, eastLimit));
   const minCenterX = Math.max(6, Math.min(maxCenterX, workshopBankX));
-  const baseX = Math.max(7, Math.min(maxCenterX, preferredX));
+  const preferredFitsBank = preferredX >= minCenterX && preferredX <= maxCenterX;
+  const bankCenter = Math.round((minCenterX + maxCenterX) / 2);
+  const baseX = preferredFitsBank ? preferredX : bankCenter;
   let x = baseX;
   let crossingX = x;
   for (let y = 0; y < p.rows; y++) {
     const along = y - bridgeY;
-    // Two slow waves create natural reaches and gentle bends while preserving
-    // the bridge crossing as a fixed, navigable landmark.
-    x = baseX + Math.round(Math.sin(along * 0.38) * 3.2 + Math.sin(along * 0.17) * 1.2);
+    // Anchor the crossing, but let the banks turn both ways on either side.
+    // Centering the stream in its safe corridor avoids long clipped runs when
+    // a project lot pulls the requested river position past one bank.
+    x = baseX + Math.round(Math.sin(along * 0.3) * 1.6 + Math.sin(along * 0.13) * 0.35);
     x = Math.max(minCenterX, Math.min(maxCenterX, x));
     if (bridgeRows.has(y)) crossingX = x;
     const pool = Math.sin(along * 0.25 + 0.9);
