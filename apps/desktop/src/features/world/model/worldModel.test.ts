@@ -995,8 +995,24 @@ describe('layoutWorld', () => {
       trees.slice(index + 1).some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
     );
 
-    expect(trees.length).toBeGreaterThan(6);
+    expect(trees.length).toBeGreaterThan(10);
     expect(neighboringPairs.length).toBeGreaterThan(0);
+  });
+
+  it('forms broad, varied flower glades in open meadow clearings', () => {
+    const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
+    const cells = paintTerrain(layout.entities, layout.cols, layout.rows).cells;
+    const flowers = cells.filter((cell) => cell.tile.startsWith('flowers-'));
+    const species = new Set(flowers.map((cell) => cell.tile));
+    const denseWindows = flowers.filter((cell) => {
+      const neighboringFlowers = flowers.filter(
+        (other) => Math.abs(other.x - cell.x) <= 2 && Math.abs(other.y - cell.y) <= 2,
+      );
+      return neighboringFlowers.length >= 10;
+    });
+
+    expect(species.size).toBeGreaterThanOrEqual(3);
+    expect(denseWindows.length).toBeGreaterThan(0);
   });
 
   it('lays out a project interior without shared Library or Workshop fixtures', () => {

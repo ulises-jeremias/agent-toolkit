@@ -487,7 +487,7 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
 
 /** Broad irregular flower beds give open lawns a visible meadow rhythm. */
 function flowerGlades(p: Painter) {
-  const target = Math.min(10, Math.max(3, Math.floor((p.cols * p.rows) / 120)));
+  const target = Math.min(14, Math.max(4, Math.floor((p.cols * p.rows) / 82)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 2; y++) {
     for (let x = 2; x < p.cols - 2; x++) {
@@ -500,24 +500,27 @@ function flowerGlades(p: Painter) {
   const centers: { x: number; y: number }[] = [];
   for (const candidate of candidates) {
     if (centers.length >= target) break;
-    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 7)) continue;
+    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 6)) continue;
     centers.push(candidate);
 
-    const radiusX = 2 + (h2(candidate.x, candidate.y, 137) % 2);
+    const radiusX = 3 + (h2(candidate.x, candidate.y, 137) % 2);
     const radiusY = 2 + (h2(candidate.x, candidate.y, 139) % 2);
-    const bloom = `flowers-${['poppy', 'daisy', 'lavender', 'gold'][h2(candidate.x, candidate.y, 149) % 4]}`;
+    const blooms = ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'] as const;
+    const primary = h2(candidate.x, candidate.y, 149) % blooms.length;
+    const secondary = (primary + 1 + (h2(candidate.x, candidate.y, 157) % 3)) % blooms.length;
     for (let dy = -radiusY; dy <= radiusY; dy++) {
       for (let dx = -radiusX; dx <= radiusX; dx++) {
-        const shape = (dx * dx) / (radiusX * radiusX) + (dy * dy) / (radiusY * radiusY);
+        const distance = (dx * dx) / (radiusX * radiusX) + (dy * dy) / (radiusY * radiusY);
         const x = candidate.x + dx;
         const y = candidate.y + dy;
         if (
-          shape <= 1.35 &&
-          h2(x, y, 151) % 7 !== 0 &&
+          distance <= 1.25 &&
+          h2(x, y, 151) % 9 !== 0 &&
           p.get(x, y).startsWith('grass') &&
           !nearStructureOrPath(p, x, y, 0)
         ) {
-          p.set(x, y, bloom);
+          const accent = h2(x, y, 163) % 5 === 0;
+          p.set(x, y, blooms[accent ? secondary : primary]!);
         }
       }
     }
@@ -553,7 +556,7 @@ function forest(p: Painter) {
         // Keep the deeper settlement readable: creek banks get the strongest
         // interior grove, while project and civic clearings retain breathing
         // room. Deterministic gaps matter more than maximizing tree count.
-        (edge ? roll < 29 : nearCreek ? roll < 11 : grove && roll < 9);
+        (edge ? roll < 29 : nearCreek ? roll < 11 : grove && roll < 15);
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
         const canopyOffsetX = (h2(x, y, 47) % 5) - 2;
