@@ -535,7 +535,7 @@ function flowerPatchSprites(p: Painter) {
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 2; y++) {
     for (let x = 2; x < p.cols - 2; x++) {
-      if (!p.get(x, y).startsWith('flowers') || nearStructureOrPath(p, x, y, 1)) continue;
+      if (!p.get(x, y).startsWith('flowers') || nearStructureOrPath(p, x, y, 2)) continue;
       candidates.push({ x, y, rank: h2(x, y, 181) });
     }
   }

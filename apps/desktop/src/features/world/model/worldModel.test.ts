@@ -1030,6 +1030,23 @@ describe('layoutWorld', () => {
     const featuredPatches = terrain.decor.filter((sprite) => sprite.sprite.startsWith('wildflower-patch-'));
     expect(featuredPatches.length).toBeGreaterThan(0);
     expect(featuredPatches.every((sprite) => sprite.w === 32 && sprite.h === 24)).toBe(true);
+    const paths = cells.filter(
+      ({ tile }) =>
+        ['dirt', 'plaza', 'plaza-b'].includes(tile) || tile.startsWith('dirt-') || tile.startsWith('trail'),
+    );
+    for (const patch of featuredPatches) {
+      const bounds = {
+        left: patch.x + patch.dx / 16,
+        top: patch.y + patch.dy / 16,
+        right: patch.x + patch.dx / 16 + patch.w / 16,
+        bottom: patch.y + patch.dy / 16 + patch.h / 16,
+      };
+      const overlapsPath = paths.some(
+        (path) =>
+          bounds.left < path.x + 1 && bounds.right > path.x && bounds.top < path.y + 1 && bounds.bottom > path.y,
+      );
+      expect(overlapsPath).toBe(false);
+    }
   });
 
   it('lays out a project interior without shared Library or Workshop fixtures', () => {
