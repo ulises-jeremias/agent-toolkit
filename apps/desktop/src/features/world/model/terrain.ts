@@ -527,8 +527,44 @@ function flowerGlades(p: Painter) {
   }
 }
 
+/** Pick a few stable grove hearts inside the settlement, away from its paths. */
+function groveAnchors(p: Painter): Set<string> {
+  const target = Math.min(5, Math.max(1, Math.floor((p.cols * p.rows) / 240)));
+  const candidates: { x: number; y: number; rank: number }[] = [];
+  for (let y = 4; y < p.rows - 3; y++) {
+    for (let x = 4; x < p.cols - 4; x++) {
+      if (!p.get(x, y).startsWith('grass') && !p.get(x, y).startsWith('flowers')) continue;
+      if (nearStructureOrPath(p, x, y, 2)) continue;
+      candidates.push({ x, y, rank: h2(x, y, 173) });
+    }
+  }
+  candidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
+
+  const centers: { x: number; y: number }[] = [];
+  const anchors = new Set<string>();
+  const offsets = [
+    [0, 0],
+    [-2, 0],
+    [2, 0],
+    [-1, 2],
+    [1, 2],
+  ] as const;
+  for (const candidate of candidates) {
+    if (centers.length >= target) break;
+    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 9)) continue;
+    centers.push(candidate);
+    for (const [dx, dy] of offsets) {
+      const x = candidate.x + dx;
+      const y = candidate.y + dy;
+      if (p.get(x, y).startsWith('grass') || p.get(x, y).startsWith('flowers')) anchors.add(key(x, y));
+    }
+  }
+  return anchors;
+}
+
 /** Framing groves with natural gaps around buildings and paths. */
 function forest(p: Painter) {
+  const plantedGroves = groveAnchors(p);
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
       if (p.isBlocked(x, y)) continue;
@@ -552,14 +588,12 @@ function forest(p: Painter) {
       // Keep tall canopies fully inside the framed world; low grass and
       // flowers can still reach the edge without looking accidentally cut.
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
-      const wantTree =
-        treeInsideFrame &&
-        !canopyOverBuilding &&
-        !nearTrail &&
-        // Keep the deeper settlement readable: creek banks get the strongest
-        // interior grove, while project and civic clearings retain breathing
-        // room. Deterministic gaps matter more than maximizing tree count.
-        (edge ? roll < 29 : nearCreek ? roll < 11 : grove && roll < 15);
+      const woodlandCell = edge
+        ? roll < (x >= p.cols - 6 ? 14 : 23)
+        : nearCreek
+          ? roll < 11
+          : plantedGroves.has(key(x, y)) || (grove && roll < 12);
+      const wantTree = treeInsideFrame && !canopyOverBuilding && !nearTrail && woodlandCell;
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
         const canopyOffsetX = (h2(x, y, 47) % 5) - 2;

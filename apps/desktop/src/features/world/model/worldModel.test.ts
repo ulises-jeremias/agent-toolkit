@@ -994,9 +994,11 @@ describe('layoutWorld', () => {
     const neighboringPairs = trees.filter((tree, index) =>
       trees.slice(index + 1).some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
     );
+    const interiorTrees = trees.filter((tree) => tree.x >= 6 && tree.x < layout.cols - 6);
 
     expect(trees.length).toBeGreaterThan(10);
     expect(neighboringPairs.length).toBeGreaterThan(0);
+    expect(interiorTrees.length).toBeGreaterThan(3);
   });
 
   it('forms broad, varied flower glades in open meadow clearings', () => {
