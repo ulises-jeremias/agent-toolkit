@@ -12,12 +12,17 @@ export interface Point {
   y: number;
 }
 
-/** Largest integer zoom step that fits the viewport inside a 24px gutter. */
+/** Largest crisp zoom with a 24px gutter, or edge-to-edge when that avoids halving scale. */
 export function fitCamera(viewport: Point, tiles: Point, minimumZoom = 16): { zoom: number; pan: Point } {
-  const fittingZoom =
-    [...WORLD_ZOOMS].reverse().find((step) => tiles.x * step <= viewport.x - 24 && tiles.y * step <= viewport.y - 24) ??
-    WORLD_ZOOMS[0];
-  const zoom = Math.max(fittingZoom, minimumZoom);
+  const largestFirst = [...WORLD_ZOOMS].reverse();
+  const fittingZoom = largestFirst.find(
+    (step) => tiles.x * step <= viewport.x - 24 && tiles.y * step <= viewport.y - 24,
+  );
+  // The world is already full-bleed. When it fits exactly inside the map
+  // region, keep crisp pixels at the larger step instead of unexpectedly
+  // halving the whole valley to preserve an empty gutter.
+  const edgeToEdgeZoom = largestFirst.find((step) => tiles.x * step <= viewport.x && tiles.y * step <= viewport.y);
+  const zoom = Math.max(fittingZoom ?? 0, edgeToEdgeZoom ?? WORLD_ZOOMS[0], minimumZoom);
   return {
     zoom,
     pan: {

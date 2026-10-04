@@ -62,6 +62,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   every semantic place in frame.
 - Shared civic landmarks now gather around a staggered commons with clear
   front-door approaches from the Workspace Hall and a walkable southern lane.
+- Fit-to-world keeps crisp 32px tiles when the entire compact valley fits
+  edge-to-edge, instead of shrinking one full tile row to preserve empty margin.
 - Desktop is packaged exclusively from the Electron app with a matching bundled V backend on Linux, macOS, and Windows. Release CI packages platform installers and verifies source, backend, and app version coherence.
 - Clean-machine acceptance launches the packaged Electron app with isolated user state. CLI `gui` now launches an installed Desktop or reports an actionable error instead of claiming an install or launch that did not happen.
 
