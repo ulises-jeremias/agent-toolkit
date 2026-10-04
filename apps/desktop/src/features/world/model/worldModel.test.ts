@@ -852,7 +852,10 @@ describe('layoutWorld', () => {
     for (const sparkle of sparkles) expect(water.has(`${sparkle.x},${sparkle.y}`)).toBe(true);
     const bridgeLanterns = first.decor.filter((sprite) => sprite.id.startsWith('bridge-lantern:'));
     expect(bridgeLanterns.length).toBe(2);
-    for (const lantern of bridgeLanterns) expect(water.has(`${lantern.x},${lantern.y}`)).toBe(false);
+    for (const lantern of bridgeLanterns) {
+      expect(water.has(`${lantern.x},${lantern.y}`)).toBe(false);
+      expect(first.decor.some((sprite) => sprite.id === `lamp-glow:${lantern.id}`)).toBe(true);
+    }
     expect(first.decor.filter((sprite) => sprite.sprite === 'mote').length).toBeLessThanOrEqual(4);
     const reached = new Set<string>();
     const queue = [trails.values().next().value as string];
@@ -936,8 +939,19 @@ describe('layoutWorld', () => {
       if (tiles.get(`${x},${y + 1}`) === tile) matchingNeighbors += 1;
     }
 
-    expect(flowers.length).toBeGreaterThan(20);
+    expect(flowers.length).toBeGreaterThan(60);
     expect(matchingNeighbors).toBeGreaterThan(8);
+  });
+
+  it('keeps a small, stable firefly presence along the creek in the idle world', () => {
+    const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
+    const decor = paintTerrain(layout.entities, layout.cols, layout.rows).decor;
+    const fireflies = decor.filter((sprite) => sprite.sprite === 'firefly');
+
+    expect(fireflies.length).toBeGreaterThanOrEqual(2);
+    expect(fireflies.length).toBeLessThanOrEqual(4);
+    expect(new Set(fireflies.map((sprite) => sprite.id)).size).toBe(fireflies.length);
+    expect(fireflies.every((sprite) => sprite.ambient)).toBe(true);
   });
 
   it('keeps tall tree canopies inside the framed world edge', () => {
@@ -1003,7 +1017,8 @@ describe('layoutWorld', () => {
 
   it('forms broad, varied flower glades in open meadow clearings', () => {
     const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
-    const cells = paintTerrain(layout.entities, layout.cols, layout.rows).cells;
+    const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);
+    const cells = terrain.cells;
     const flowers = cells.filter((cell) => cell.tile.startsWith('flowers-'));
     const species = new Set(flowers.map((cell) => cell.tile));
     const denseWindows = flowers.filter((cell) => {
@@ -1015,6 +1030,25 @@ describe('layoutWorld', () => {
 
     expect(species.size).toBeGreaterThanOrEqual(3);
     expect(denseWindows.length).toBeGreaterThan(0);
+    const featuredPatches = terrain.decor.filter((sprite) => sprite.sprite.startsWith('wildflower-patch-'));
+    expect(featuredPatches.length).toBeGreaterThan(0);
+    expect(featuredPatches.every((sprite) => sprite.w === 40 && sprite.h === 28)).toBe(true);
+    const isPathTile = (tile: string) =>
+      ['dirt', 'plaza', 'plaza-b'].includes(tile) || tile.startsWith('dirt-') || tile.startsWith('trail');
+    const paths = cells.filter(({ tile }) => isPathTile(tile));
+    for (const patch of featuredPatches) {
+      const bounds = {
+        left: patch.x + patch.dx / 16,
+        top: patch.y + patch.dy / 16,
+        right: patch.x + patch.dx / 16 + patch.w / 16,
+        bottom: patch.y + patch.dy / 16 + patch.h / 16,
+      };
+      const overlapsPath = paths.some(
+        (path) =>
+          bounds.left < path.x + 1 && bounds.right > path.x && bounds.top < path.y + 1 && bounds.bottom > path.y,
+      );
+      expect(overlapsPath).toBe(false);
+    }
   });
 
   it('lays out a project interior without shared Library or Workshop fixtures', () => {

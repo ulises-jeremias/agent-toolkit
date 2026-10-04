@@ -690,3 +690,86 @@ Opened files:
   and [large](assets/electron/library/mcp-configure-large.png).
 - [Private credentials, compact](assets/electron/library/mcp-credentials-compact.png)
   and [large](assets/electron/library/mcp-credentials-large.png).
+
+## Readable wildflower beds — 2026-10-04
+
+Captured from source `7fed5eac` by the Linux Electron visual-review workflow
+with the packaged backend and a disposable HOME. I opened empty, one-project,
+and several-project worlds at compact and large sizes, plus both project Files
+room captures. The first 48×32 flower bed was rejected by the world-model test:
+its collision footprint left no valid placement in the empty-world fixture. I
+reduced the bed to 40×28, rebuilt its leafy silhouette, and retained exact
+terrain/path and canopy collision checks. The new screenshots show the flower
+beds clearly beside open meadow edges while keeping routes and the creek bridge
+readable. Asset generation is deterministic and `gen-world-assets.mjs --check`
+passes for all 133 sprites, including the lantern aura and regenerated meadow
+palette.
+
+This is a local improvement, not completion of the requested visual direction.
+The meadow still has too much uniform green, the creek and paths remain
+geometric, the project room is mostly empty floor, and the interface chrome is
+still visually separate from the world. These captures make the current state
+reviewable; they do not imply that the enchanted-valley art pass is finished.
+
+Opened files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+
+## Sun and shade meadow palette — 2026-10-04
+
+Captured from source `6a629a55` with the Linux Electron visual-review workflow
+and disposable HOME. I opened the empty, one-project, and several-project
+worlds at compact and large sizes, along with the two project Files room
+captures. The new grass tiles add darker damp/shaded greens while retaining
+the warm sunlit base, and reducing background flower speckles lets the larger
+meadow beds read more clearly. The effect is visible in the several-project
+ground, but the empty map still reads as a broad green field and some color
+transitions follow tile-shaped edges. This is a small palette pass, not the
+required terrain composition redesign. The project room remains sparse and
+the creek/path layout remains geometric.
+
+Opened files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+
+## Pixel-step lantern auras — 2026-10-04
+
+Captured from source `59eb9de9` with the Linux Electron visual-review workflow,
+packaged backend, and disposable HOME. I opened empty, one-project, and
+several-project worlds at compact and large sizes, plus the project Files room
+at both sizes. The first halo pass read as a filled yellow patch beside the
+bridge posts. I redrew it as a sparse, stepped ring with a transparent center;
+the recapture shows warm light at the bridge and civic path lamps without
+soft-focus filtering or covering the crisp lamp sprite. Bridge tests confirm
+each real post has exactly one paired halo, and screenshots show that routes,
+water, flowers, and project doors remain readable.
+
+The world still needs a broader art pass: terrain is too uniformly green,
+water and routes are geometric, civic buildings sit in a rigid cluster, and
+the project room has a large empty floor. The lantern change adds one ambient
+detail and does not close those larger gaps.
+
+Opened files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).

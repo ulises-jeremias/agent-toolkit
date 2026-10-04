@@ -167,6 +167,12 @@
       "h": 32,
       "frames": 1
     },
+    "lamp-glow": {
+      "file": "lamp-glow.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
     "lamp": {
       "file": "lamp.png",
       "w": 16,
@@ -565,6 +571,24 @@
       "file": "flowers-gold.png",
       "w": 16,
       "h": 16,
+      "frames": 1
+    },
+    "wildflower-patch-rose": {
+      "file": "wildflower-patch-rose.png",
+      "w": 40,
+      "h": 28,
+      "frames": 1
+    },
+    "wildflower-patch-lilac": {
+      "file": "wildflower-patch-lilac.png",
+      "w": 40,
+      "h": 28,
+      "frames": 1
+    },
+    "wildflower-patch-gold": {
+      "file": "wildflower-patch-gold.png",
+      "w": 40,
+      "h": 28,
       "frames": 1
     },
     "dirt": {

@@ -195,6 +195,11 @@ const P = {
   gs: [0x61, 0x9e, 0x59],
   gw: [0x76, 0xb4, 0x6c],
   gd2: [0x5d, 0x98, 0x56],
+  meadowBase: [0x70, 0xa8, 0x59],
+  meadowSoft: [0x7e, 0xb5, 0x64],
+  meadowShade: [0x56, 0x8a, 0x4b],
+  meadowSun: [0x91, 0xbd, 0x6b],
+  meadowDeep: [0x46, 0x75, 0x44],
   gd: [0x4f, 0x8b, 0x4b],
   gl: [0x83, 0xbd, 0x70],
   gt: [0xb2, 0xd3, 0x87],
@@ -242,6 +247,8 @@ const P = {
   cy: [0x5f, 0xe3, 0xd0],
   cyd: [0x3f, 0xb5, 0xa6],
   gg: [0xff, 0xd9, 0x7a],
+  glowOuter: [0xff, 0xd9, 0x7a, 32],
+  glowMiddle: [0xff, 0xd9, 0x7a, 66],
   go: [0xf0, 0xbd, 0x5e],
   god: [0xc9, 0x9a, 0x3f],
   lv: [0xb7, 0xa6, 0xf0],
@@ -875,12 +882,28 @@ function objLamp() {
   return [{ name: 'lamp', img: f0, frames: [f0, f1] }];
 }
 
+/** Crisp stepped lantern aura; transparency adds warmth without blur filters. */
+function objLampGlow() {
+  const img = new Img(32, 32);
+  for (let y = 0; y < img.h; y++) {
+    for (let x = 0; x < img.w; x++) {
+      const distance = ((x - 15.5) / 15) ** 2 + ((y - 15.5) / 13) ** 2;
+      // Keep the center transparent for a crisp lamp post. A broken outer
+      // ring reads as reflected warmth on the ground instead of a yellow blob.
+      if (distance > 0.22 && distance <= 1 && ((x + y) % 4 !== 0 || distance < 0.56)) {
+        img.set(x, y, distance < 0.56 ? 'glowMiddle' : 'glowOuter');
+      }
+    }
+  }
+  return [{ name: 'lamp-glow', img }];
+}
+
 /* ------------------------------------------------------------------ *
  * 6. Terrain tiles (16x16). Layout composes; edges feathered in code.
  * ------------------------------------------------------------------ */
 
 function grassTile(seed) {
-  const bases = ['g', 'gm', 'gs', 'gw', 'g', 'gd2'];
+  const bases = ['meadowBase', 'meadowSoft', 'meadowShade', 'meadowSun', 'meadowBase', 'meadowDeep'];
   const base = bases[(seed - 1 + bases.length) % bases.length];
   const img = new Img(16, 16).rect(0, 0, 15, 15, base);
   // Meadow cover is painted as small, irregular clumps instead of six
@@ -939,6 +962,73 @@ function flowerTile(kind) {
     img.set(x, y + 1, 'fo');
     img.set(x, y, i % 2 ? kc : heads[(kind + 1) % 4]);
   });
+  return img;
+}
+
+/** Broad wildflower beds make authored meadow clearings read at map zoom. */
+function wildflowerPatch(kind) {
+  const img = new Img(40, 28);
+  const blooms = {
+    rose: ['pop', 'rtl', 'rtd', 'gg'],
+    lilac: ['lv', 'iv', 'lv', 'gg'],
+    gold: ['go', 'gg', 'god', 'iv'],
+  };
+  const [petal, highlight, shadow, center] = blooms[kind];
+  img.ellipse(20, 25, 12, 2, 'sh');
+
+  // A scalloped leaf bed gives the tall flower heads a readable silhouette
+  // against the lighter meadow without turning the patch into a solid blob.
+  img.ellipse(20, 23, 16, 4, 'fd');
+  img.ellipse(20, 22, 14, 3, 'fl');
+  img.ellipse(20, 21, 10, 2, 'fo');
+  for (const [x, y] of [
+    [4, 22], [7, 20], [10, 23], [13, 21], [16, 22], [19, 20],
+    [22, 22], [25, 20], [28, 23], [31, 21], [34, 22], [37, 20],
+  ]) img.set(x, y, x % 2 ? 'gd' : 'gt');
+
+  // A leafy base makes the stems read as one planted clump at small zoom.
+  for (const [x, y, color] of [
+    [3, 27, 'fd'],
+    [6, 25, 'fl'],
+    [9, 28, 'fo'],
+    [12, 26, 'fl'],
+    [15, 29, 'fd'],
+    [18, 26, 'fl'],
+    [21, 28, 'fo'],
+    [24, 25, 'fl'],
+    [27, 28, 'fd'],
+    [30, 26, 'fl'],
+    [33, 29, 'fo'],
+    [36, 26, 'fl'],
+    [39, 28, 'fd'],
+    [42, 25, 'fl'],
+    [45, 27, 'fo'],
+  ]) img.set(x, y, color);
+
+  const stems = [
+    [4, 14],
+    [10, 8],
+    [15, 13],
+    [21, 5],
+    [27, 10],
+    [33, 6],
+    [37, 14],
+  ];
+  for (const [x, headY] of stems) {
+    img.vline(x, headY + 2, 25, 'fo').set(x, headY + 3, 'fl');
+    img.set(x - 3, headY + 6, 'fd').set(x - 2, headY + 5, 'fl').set(x - 1, headY + 6, 'gd');
+    img.set(x + 1, headY + 7, 'fd').set(x + 2, headY + 6, 'fl').set(x, headY + 9, 'gd');
+
+    // Five-pixel petals sit inside a dark diamond outline with a golden heart.
+    // The asymmetrical highlights follow the same top-left light as the valley.
+    img.set(x, headY - 2, 'k');
+    img.hline(x - 2, x + 2, headY - 1, 'k').hline(x - 2, x + 2, headY + 1, 'k');
+    img.set(x - 1, headY + 2, 'k').set(x, headY + 2, 'k').set(x + 1, headY + 2, 'k');
+    img.set(x, headY - 1, highlight);
+    img.set(x - 1, headY, highlight).set(x, headY, petal).set(x + 1, headY, shadow);
+    img.set(x - 1, headY + 1, petal).set(x, headY + 1, center).set(x + 1, headY + 1, shadow);
+    if (x % 2 === 0) img.set(x + 4, headY - 1, 'gg');
+  }
   return img;
 }
 
@@ -1686,6 +1776,7 @@ function collect() {
     objLoopClock(),
     objCrate(),
     objInbox(),
+    objLampGlow(),
     objLamp(),
     bridge(),
     treeRound(),
@@ -1725,6 +1816,7 @@ function collect() {
     for (const s of group) put(s.name, s.img, s.frames);
   for (let i = 0; i < 24; i++) put(`grass-${'abcdefghijklmnopqrstuvwx'[i]}`, grassTile(i + 1));
   for (let i = 0; i < 4; i++) put(`flowers-${['poppy', 'daisy', 'lavender', 'gold'][i]}`, flowerTile(i));
+  for (const kind of ['rose', 'lilac', 'gold']) put(`wildflower-patch-${kind}`, wildflowerPatch(kind));
   for (const t of dirtTiles()) put(t.name, t.img);
   for (const t of plazaTiles()) put(t.name, t.img);
   for (const t of waterTiles()) put(t.name, t.img, t.frames);

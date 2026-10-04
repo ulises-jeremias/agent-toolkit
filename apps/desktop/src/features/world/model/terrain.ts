@@ -135,7 +135,7 @@ class Painter {
 
 /* ------------------------------------------------------------------ */
 
-/** Grass base everywhere; small flower beds only in a few calm pockets. */
+/** Grass base everywhere; broad color shifts keep the lawn calm, not flat. */
 function baseGround(p: Painter) {
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
@@ -143,7 +143,7 @@ function baseGround(p: Painter) {
       const moisture = meadowField(x, y, 7, 11) * 0.65 + meadowField(x, y, 15, 17) * 0.35;
       const bloom = meadowField(x, y, 4, 19);
       const roll = h2(x, y, 1) % 23;
-      if (bloom > 0.77 && roll < 17) {
+      if (bloom > 0.8 && roll < 12) {
         p.set(x, y, ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'][h2(x, y, 12) % 4]!);
       } else {
         const grass =
@@ -487,11 +487,13 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
 
 /** Broad irregular flower beds give open lawns a visible meadow rhythm. */
 function flowerGlades(p: Painter) {
-  const target = Math.min(14, Math.max(4, Math.floor((p.cols * p.rows) / 82)));
+  // Give the quiet spaces a visible meadow rhythm at overview scale. Glades
+  // stay grouped and seed-stable so additional color does not become speckle.
+  const target = Math.min(18, Math.max(5, Math.floor((p.cols * p.rows) / 54)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 2; y++) {
     for (let x = 2; x < p.cols - 2; x++) {
-      if (!p.get(x, y).startsWith('grass') || nearStructureOrPath(p, x, y, 1)) continue;
+      if (!p.get(x, y).startsWith('grass') || nearStructureOrPath(p, x, y, 0)) continue;
       candidates.push({ x, y, rank: h2(x, y, 131) });
     }
   }
@@ -524,6 +526,63 @@ function flowerGlades(p: Painter) {
         }
       }
     }
+  }
+}
+
+/** Larger blossoms punctuate open pockets; their rendered footprints avoid paths, trees and buildings. */
+function flowerPatchSprites(p: Painter) {
+  const patchNames = ['wildflower-patch-rose', 'wildflower-patch-lilac', 'wildflower-patch-gold'] as const;
+  const candidates: { x: number; y: number; rank: number }[] = [];
+  for (let y = 3; y < p.rows - 2; y++) {
+    for (let x = 2; x < p.cols - 2; x++) {
+      if (!p.get(x, y).startsWith('flowers')) continue;
+      candidates.push({ x, y, rank: h2(x, y, 181) });
+    }
+  }
+  candidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
+
+  const placed: { x: number; y: number }[] = [];
+  const target = Math.min(4, Math.max(2, Math.floor((p.cols * p.rows) / 250)));
+  for (const candidate of candidates) {
+    const tooClose = placed.some((patch) => Math.hypot(patch.x - candidate.x, patch.y - candidate.y) < 7);
+    if (placed.length >= target || tooClose) {
+      continue;
+    }
+    const patch = {
+      left: candidate.x - 1,
+      top: candidate.y + 0.25,
+      right: candidate.x + 1.5,
+      bottom: candidate.y + 2,
+    };
+    const overlapsGrid = (grid: ReadonlySet<string>) => {
+      for (let y = Math.floor(patch.top); y < Math.ceil(patch.bottom); y++) {
+        for (let x = Math.floor(patch.left); x < Math.ceil(patch.right); x++) {
+          if (grid.has(key(x, y))) return true;
+        }
+      }
+      return false;
+    };
+    if (overlapsGrid(p.paths) || overlapsGrid(p.blocked)) continue;
+    const overlapsTreeOrBridge = p.decor.some((decor) => {
+      if (!decor.sprite.startsWith('tree-') && decor.sprite !== 'bridge') return false;
+      const left = decor.x + decor.dx / 16;
+      const top = decor.y + decor.dy / 16;
+      const right = left + decor.w / 16;
+      const bottom = top + decor.h / 16;
+      return patch.left < right && patch.right > left && patch.top < bottom && patch.bottom > top;
+    });
+    if (overlapsTreeOrBridge) continue;
+    p.sprite(
+      `flower-patch:${candidate.x},${candidate.y}`,
+      candidate.x,
+      candidate.y + 1,
+      patchNames[h2(candidate.x, candidate.y, 149) % patchNames.length]!,
+      40,
+      28,
+      -16,
+      -12,
+    );
+    placed.push(candidate);
   }
 }
 
@@ -619,6 +678,12 @@ function forest(p: Painter, projectlessMeadow = false) {
   }
 }
 
+/** A warm pixel-step aura sits beneath each physical lantern sprite. */
+function placeLantern(p: Painter, id: string, x: number, y: number) {
+  p.sprite(`lamp-glow:${id}`, x, y, 'lamp-glow', 32, 32, -8, -16);
+  p.sprite(id, x, y, 'lamp', 16, 24, 0, -10);
+}
+
 /** Plaza stones behind the hall; sign + lamps on the commons edge. */
 function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonly LaidOutEntity[]) {
   if (hall) {
@@ -645,7 +710,7 @@ function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonl
     const ly = c.y + c.h;
     if (ly < p.rows && !p.isBlocked(c.x - 1, ly) && p.get(c.x - 1, ly).startsWith('grass')) {
       if (h2(c.x, ly, 5) % 2 === 0) {
-        p.sprite(`lamp:${c.x},${ly}`, c.x - 1, ly, 'lamp', 16, 24, 0, -10);
+        placeLantern(p, `lamp:commons:${c.x},${ly}`, c.x - 1, ly);
         lampYs.add(ly);
       }
     }
@@ -696,11 +761,20 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
     p.sprite(`butterfly:${at}`, x, y, 'butterfly', 8, 8, 4, 2, true, true);
     if (++seen >= 6) break;
   }
-  // two fireflies hover near the creek's north end (subtle dusk sparkle)
-  for (const y of [1, 3]) {
-    const t = p.get(creekSafe(p) - 2, y);
-    if (t.startsWith('grass')) {
-      p.sprite(`firefly:${y}`, creekSafe(p) - 2, y, 'firefly', 6, 6, 5, 5, true, true);
+  // Fireflies trace quiet stretches of the real creek, not runtime activity.
+  const fireflyRows = new Set([
+    2,
+    Math.floor(p.rows * 0.28),
+    Math.floor(p.rows * 0.52),
+    Math.floor(p.rows * 0.76),
+    p.rows - 3,
+  ]);
+  let fireflyCount = 0;
+  for (const y of fireflyRows) {
+    const x = creekSafe(p) - 2;
+    if (p.get(x, y).startsWith('grass')) {
+      p.sprite(`firefly:${y}`, x, y, 'firefly', 6, 6, 5, 5, true, true);
+      if (++fireflyCount >= 4) break;
     }
   }
   // A few sharp glints sit directly on real water tiles; they are ambient
@@ -742,7 +816,7 @@ function bridgeLanterns(p: Painter, creekX: number, roadY: number) {
     const y = roadY;
     const x = bankTiles.find((candidate) => !p.isBlocked(candidate, y) && p.get(candidate, y) !== 'water');
     if (x === undefined) continue;
-    p.sprite(`bridge-lantern:${side}`, x, y, 'lamp', 16, 24, 0, -10, false);
+    placeLantern(p, `bridge-lantern:${side}`, x, y);
   }
 }
 
@@ -817,6 +891,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   plazaCore(p, hall, commons);
   flowerGlades(p);
   forest(p, projects.length === 0);
+  flowerPatchSprites(p);
   wildlife(p, hall);
 
   return { cells: cellsToArray(p), decor: p.decor };
