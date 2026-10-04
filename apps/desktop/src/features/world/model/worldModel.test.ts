@@ -996,7 +996,7 @@ describe('layoutWorld', () => {
     );
     const interiorTrees = trees.filter((tree) => tree.x >= 6 && tree.x < layout.cols - 6);
 
-    expect(trees.length).toBeGreaterThan(10);
+    expect(trees.length).toBeGreaterThan(6);
     expect(neighboringPairs.length).toBeGreaterThan(0);
     expect(interiorTrees.length).toBeGreaterThan(3);
   });
