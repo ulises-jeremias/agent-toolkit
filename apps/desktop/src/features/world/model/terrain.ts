@@ -190,6 +190,34 @@ function rasterLine(p: Painter, x0: number, y0: number, x1: number, y1: number) 
   for (const point of rasterPoints(x0, y0, x1, y1)) p.path(point.x, point.y);
 }
 
+/** A shallow quadratic bend gives a doorway spur a footworn, non-grid approach. */
+function curvedPoints(x0: number, y0: number, x1: number, y1: number, side: number) {
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const length = Math.hypot(dx, dy);
+  if (length < 2) return rasterPoints(x0, y0, x1, y1);
+
+  const bend = Math.min(3, Math.max(1, length * 0.18)) * side;
+  const controlX = (x0 + x1) / 2 - (dy / length) * bend;
+  const controlY = (y0 + y1) / 2 + (dx / length) * bend;
+  const samples = Math.max(4, Math.ceil(length * 2));
+  const points = [{ x: x0, y: y0 }];
+  let previous = points[0]!;
+  for (let index = 1; index <= samples; index += 1) {
+    const t = index / samples;
+    const inverse = 1 - t;
+    const current = {
+      x: Math.round(inverse * inverse * x0 + 2 * inverse * t * controlX + t * t * x1),
+      y: Math.round(inverse * inverse * y0 + 2 * inverse * t * controlY + t * t * y1),
+    };
+    for (const point of rasterPoints(previous.x, previous.y, current.x, current.y).slice(1)) {
+      points.push(point);
+    }
+    previous = current;
+  }
+  return points;
+}
+
 /** Main commons route meanders, but meets the bridge at its exact level. */
 function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX: number) {
   let previous = { x: startX, y };
@@ -251,11 +279,18 @@ function connectEntrance(p: Painter, startX: number, startY: number) {
 
   if (!target) return;
   const [targetX = 0, targetY = 0] = target.split(',').map(Number);
+  const isClear = (points: readonly { x: number; y: number }[]) =>
+    points.every(({ x, y }) => !p.isBlocked(x, y) && (p.paths.has(key(x, y)) || p.get(x, y) !== 'water'));
+  const preferredSide = h2(startX, startY, 41) % 2 === 0 ? 1 : -1;
+  for (const side of [preferredSide, -preferredSide]) {
+    const curve = curvedPoints(startX, startY, targetX, targetY, side);
+    if (!isClear(curve)) continue;
+    for (const point of curve) p.path(point.x, point.y);
+    return;
+  }
+
   const direct = rasterPoints(startX, startY, targetX, targetY);
-  const directRouteIsClear = direct.every(
-    ({ x, y }) => !p.isBlocked(x, y) && (p.paths.has(key(x, y)) || p.get(x, y) !== 'water'),
-  );
-  if (directRouteIsClear) {
+  if (isClear(direct)) {
     for (const point of direct) p.path(point.x, point.y);
     return;
   }
