@@ -226,8 +226,6 @@ function connectEntrance(p: Painter, startX: number, startY: number) {
   const queue = [start];
   const parent = new Map<string, string | null>([[start, null]]);
   let target: string | undefined;
-  let targetX = startX;
-  let targetY = startY;
   const steps = [
     [0, -1],
     [-1, 0],
@@ -246,8 +244,6 @@ function connectEntrance(p: Painter, startX: number, startY: number) {
       if (p.paths.has(next)) {
         parent.set(next, at);
         target = next;
-        targetX = nx;
-        targetY = ny;
         break;
       }
       if (p.get(nx, ny) === 'water') continue;
