@@ -1030,10 +1030,9 @@ describe('layoutWorld', () => {
     const featuredPatches = terrain.decor.filter((sprite) => sprite.sprite.startsWith('wildflower-patch-'));
     expect(featuredPatches.length).toBeGreaterThan(0);
     expect(featuredPatches.every((sprite) => sprite.w === 32 && sprite.h === 24)).toBe(true);
-    const paths = cells.filter(
-      ({ tile }) =>
-        ['dirt', 'plaza', 'plaza-b'].includes(tile) || tile.startsWith('dirt-') || tile.startsWith('trail'),
-    );
+    const isPathTile = (tile: string) =>
+      ['dirt', 'plaza', 'plaza-b'].includes(tile) || tile.startsWith('dirt-') || tile.startsWith('trail');
+    const paths = cells.filter(({ tile }) => isPathTile(tile));
     for (const patch of featuredPatches) {
       const bounds = {
         left: patch.x + patch.dx / 16,
