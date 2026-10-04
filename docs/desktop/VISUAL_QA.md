@@ -108,19 +108,20 @@ Opened files:
 
 ## Creek bends around the settlement — 2026-10-04
 
-Captured at source cdac3eb2 by the Linux Electron visual-review workflow
+Captured at source 07febccf by the Linux Electron visual-review workflow
 against its bundled backend and disposable HOME. I opened empty-world compact
 and large, one-project compact, and several-project compact and large captures.
-The creek now makes a visible north-bank turn before reaching the civic
-crossing, while its row-by-row route checks actual place footprints so water
-cannot overwrite a building.
+The first capture revealed a sharp bend where the creek reached the Terminal;
+I changed the route selection to plan the whole stream around building
+footprints, with each successive row limited to a one-tile turn. Water cannot
+overwrite a building, and the civic bridge stays joined to the path network.
 
-The compact capture keeps the world legible and the east-bank project lot dry;
-the large capture shows the wider S-bend most clearly. The critique still
+The compact captures keep the project lot dry and the settlement legible; the
+large empty capture shows the wider S-bend most clearly. The critique still
 finds broad unframed grass, civic buildings in small ranks, and squared path
 loops around the bridge approach. The opened project room has clear semantic
-stations but a broad bare floor. These are follow-up composition gaps; this is
-a safer, more natural creek course, not completion of the world art pass.
+stations but a broad bare floor. These remain follow-up composition gaps; the
+safer, more natural creek course does not complete the world art pass.
 
 Opened files:
 
