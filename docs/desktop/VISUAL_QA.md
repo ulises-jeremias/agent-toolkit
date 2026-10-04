@@ -128,6 +128,27 @@ Opened files:
   and [large](assets/electron/world/world-several-projects-large.png).
 - [Project Files room, large](assets/electron/world/project-files-room-large.png).
 
+## Project room scale and floor review — 2026-10-04
+
+Source `d97edf59`, Linux Electron captures against the disposable E2E
+workspace. I opened the project interior at compact and large sizes. The real
+overview board, memory records, Files, Terminal, and exit now sit in separate
+stations around a clear center aisle, and the enlarged room uses substantially
+more of the world viewport. The offline room contains no invented workers or
+workstation activity. After the first capture exposed a repetitive vertical
+stripe floor, the source generator was changed to make horizontally laid,
+stagger-jointed boards; the second capture confirms a calmer, more readable
+floor texture at both scales.
+
+The floor still reads as a simple authored plank tile, and the open center is
+deliberately kept clear until a real session needs space. This interior pass
+does not add unsupported project Knowledge or arbitrary furniture.
+
+Opened files:
+
+- [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+
 ## Latest opened review — 2026-10-03
 
 ### Workspace switch and project isolation — 2026-10-03

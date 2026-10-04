@@ -1348,14 +1348,14 @@ function floorPlank() {
     const img = new Img(16, 16);
     const woods = ['o', 'ol', 'o', 'hb'];
     for (let plank = 0; plank < 4; plank++) {
-      const x = plank * 4;
-      img.rect(x, 0, x + 3, 15, woods[(plank + shift) % woods.length]);
-      img.vline(x, 0, 15, 'ol');
-      img.vline(x + 3, 0, 15, 'od');
+      const y = plank * 4;
+      img.rect(0, y, 15, y + 3, woods[(plank + shift) % woods.length]);
+      img.hline(0, 15, y, 'ol');
+      img.hline(0, 15, y + 3, 'od');
       const joint = ((plank + shift) % 2 ? 10 : 4) + shift;
-      img.hline(x + 1, x + 2, joint, 'od');
-      img.set(x + 1, (plank * 3 + shift + 2) % 15, 'hb');
-      img.set(x + 2, (plank * 5 + shift + 7) % 15, 'ol');
+      img.vline(joint, y + 1, y + 2, 'od');
+      img.set((plank * 3 + shift + 2) % 15, y + 1, 'hb');
+      img.set((plank * 5 + shift + 7) % 15, y + 2, 'ol');
     }
     return img;
   };
