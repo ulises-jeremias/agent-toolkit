@@ -661,8 +661,7 @@ function forest(p: Painter, projectlessMeadow = false) {
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
       const naturallyWooded = edge ? roll < (x >= p.cols - 6 ? 14 : 23) : nearCreek ? roll < 11 : grove && roll < 12;
       const woodlandCell = plantedGroves.has(key(x, y)) || naturallyWooded;
-      const wantTree =
-        treeInsideFrame && !canopyOverBuilding && !canopyOverFlowerPatch && !nearTrail && woodlandCell;
+      const wantTree = treeInsideFrame && !canopyOverBuilding && !canopyOverFlowerPatch && !nearTrail && woodlandCell;
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
         const canopyOffsetX = (h2(x, y, 47) % 5) - 2;
