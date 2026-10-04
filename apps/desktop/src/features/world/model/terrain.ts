@@ -582,7 +582,7 @@ function flowerPatchSprites(p: Painter) {
 
 /** Pick a few stable grove hearts inside the settlement, away from its paths. */
 function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<string> {
-  const target = Math.min(5, Math.max(2, Math.floor((p.cols * p.rows) / 240)));
+  const target = Math.min(6, Math.max(3, Math.floor((p.cols * p.rows) / 190)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {
@@ -661,7 +661,7 @@ function forest(p: Painter, projectlessMeadow = false) {
       // Keep tall canopies fully inside the framed world; low grass and
       // flowers can still reach the edge without looking accidentally cut.
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
-      const naturallyWooded = edge ? roll < (x >= p.cols - 6 ? 14 : 23) : nearCreek ? roll < 11 : grove && roll < 12;
+      const naturallyWooded = edge ? roll < (x >= p.cols - 6 ? 18 : 23) : nearCreek ? roll < 15 : grove && roll < 17;
       const woodlandCell = plantedGroves.has(key(x, y)) || naturallyWooded;
       const wantTree = treeInsideFrame && !canopyOverBuilding && !canopyOverFlowerPatch && !nearTrail && woodlandCell;
       if (wantTree) {
