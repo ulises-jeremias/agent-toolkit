@@ -628,7 +628,7 @@ function flowerPatchSprites(p: Painter) {
 
 /** Pick a few stable grove hearts inside the settlement, away from its paths. */
 function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<string> {
-  const target = Math.min(5, Math.max(1, Math.floor((p.cols * p.rows) / 240)));
+  const target = Math.min(5, Math.max(2, Math.floor((p.cols * p.rows) / 240)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {
@@ -819,11 +819,11 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
   ]);
   let fireflyCount = 0;
   for (const y of fireflyRows) {
-    const x = creekSafe(p) - 2;
-    if (p.get(x, y).startsWith('grass')) {
-      p.sprite(`firefly:${y}`, x, y, 'firefly', 6, 6, 5, 5, true, true);
-      if (++fireflyCount >= 4) break;
-    }
+    const offsets = h2(creekSafe(p), y, 103) % 2 === 0 ? [-4, -3, 3, 4] : [4, 3, -3, -4];
+    const x = offsets.map((offset) => creekSafe(p) + offset).find((candidate) => p.get(candidate, y).startsWith('grass'));
+    if (x === undefined) continue;
+    p.sprite(`firefly:${y}`, x, y, 'firefly', 6, 6, 5, 5, true, true);
+    if (++fireflyCount >= 4) break;
   }
   // A few sharp glints sit directly on real water tiles; they are ambient
   // scenery, and never encode a job, session, or other runtime state.
