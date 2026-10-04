@@ -710,7 +710,7 @@ test('Library configures MCP providers with secret-free previews and explicit ch
     fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
     for (const size of [
       { width: 1024, height: 768, key: 'mcp-configure-compact' },
-      { width: 1440, height: 900, key: 'mcp-configure-large' },
+      { width: 1920, height: 1080, key: 'mcp-configure-large' },
     ]) {
       await setViewport(desktop.app, size.width, size.height);
       await page.setViewportSize({ width: size.width, height: size.height });
@@ -752,7 +752,7 @@ test('Library configures MCP providers with secret-free previews and explicit ch
     fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
     for (const size of [
       { width: 1024, height: 768, key: 'mcp-credentials-compact' },
-      { width: 1440, height: 900, key: 'mcp-credentials-large' },
+      { width: 1920, height: 1080, key: 'mcp-credentials-large' },
     ]) {
       await setViewport(desktop.app, size.width, size.height);
       await page.setViewportSize({ width: size.width, height: size.height });
