@@ -375,11 +375,6 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 		}
 		return render(agent_toolkit_core.swarm_result(report), mode)
 	}
-	if cmd_name == 'tui' {
-		eprintln('agent-toolkit tui was removed in 1.23.0 (ADR-030: binary-first consolidation).')
-		eprintln('Use the CLI commands directly or the programmatic API: agent-toolkit serve')
-		return 1
-	}
 	if cmd_name == 'serve' {
 		opts := parse_serve_options(rest) or {
 			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
@@ -628,19 +623,6 @@ If the matrix file is missing, prints where it is expected (research pipeline).
 	}
 	if name == 'prune' || name == 'cleanup' {
 		return agent_toolkit_core.swarm_prune_help_text()
-	}
-	if name == 'tui' {
-		return 'Usage: agent-toolkit tui
-
-REMOVED in 1.23.0 (ADR-030 — binary-first consolidation).
-
-The interactive TUI is no longer a supported product surface.
-Capabilities remain available via:
-  - CLI commands (agent-toolkit --help)
-  - Programmatic API (agent-toolkit serve -> http://127.0.0.1:3847/api/v1)
-
-See docs/adrs/ADR-030-capability-contract-binary-first.md
-'
 	}
 	if name == 'serve' {
 		return 'Usage: agent-toolkit serve [--host HOST] [--port PORT] [--allow-remote] [--auth-token TOKEN] [--no-browser] [--json]

@@ -47,7 +47,7 @@ git show --stat 9163c93 | head -n 40
 
 `.v-version` pin is `0.5.2` per `docs/HOW_TO_DEVELOP_V.md` (`import json` not `json2` for `v 0.5.2`, `time`, etc).
 
-CLI contract lives in `docs/compatibility/cli-contract.yaml` (not stale `parity.yml`); CI validates via `AGENTS.md` `validate-loops` and `docs/CLI_SURFACES.md` now lists `serve` (PORT, #833 `vlib/veb`) and `tui` REMOVED in 1.23.0 (ADR-030) as V-extra surfaces.
+CLI contract lives in `docs/compatibility/cli-contract.yaml` (not stale `parity.yml`); CI validates via `AGENTS.md` `validate-loops` and `docs/CLI_SURFACES.md` lists the current `serve` surface (`vlib/veb`, #833).
 
 Archived narrative: [archive/cutover.md](archive/cutover.md). Rollback: [rollback.md](rollback.md).
 

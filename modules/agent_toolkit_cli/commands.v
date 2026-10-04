@@ -71,7 +71,6 @@ pub fn build_root_command() cli.Command {
 		matrix_command(),
 		release_command(),
 		swarm_command(),
-		tui_command(),
 		serve_command(),
 		gui_command(),
 	])
@@ -1362,15 +1361,6 @@ fn serve_command() cli.Command {
 				description: "Don't open browser on start"
 			},
 		]
-	}
-}
-
-fn tui_command() cli.Command {
-	return cli.Command{
-		name: 'tui'
-		description: 'REMOVED in 1.23.0 (ADR-030) — use CLI commands or agent-toolkit serve API'
-		execute: atk_exec
-		group: 'Advanced commands'
 	}
 }
 
