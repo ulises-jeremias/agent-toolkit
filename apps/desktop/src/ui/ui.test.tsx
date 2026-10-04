@@ -168,6 +168,24 @@ describe('receipts', () => {
     );
   }
 
+  function SequencePusher() {
+    const { push, history } = useReceipts();
+    return (
+      <>
+        <button type="button" onClick={() => push({ tone: 'err', title: 'Persistent failure' })}>
+          fail
+        </button>
+        <button type="button" onClick={() => push({ tone: 'info', title: 'First update' })}>
+          first update
+        </button>
+        <button type="button" onClick={() => push({ tone: 'ok', title: 'Latest update' })}>
+          latest update
+        </button>
+        <output>{history.length}</output>
+      </>
+    );
+  }
+
   it('auto-dismisses successes but keeps them in the session history', () => {
     vi.useFakeTimers();
     render(
@@ -208,5 +226,23 @@ describe('receipts', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('2');
     expect(screen.getByText('Project link')).toBeInTheDocument();
+  });
+
+  it('replaces stacked transient notices while preserving visible failures and session history', () => {
+    render(
+      <ReceiptsProvider>
+        <SequencePusher />
+      </ReceiptsProvider>,
+    );
+    act(() => {
+      screen.getByRole('button', { name: 'fail' }).click();
+      screen.getByRole('button', { name: 'first update' }).click();
+      screen.getByRole('button', { name: 'latest update' }).click();
+    });
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Persistent failure');
+    expect(screen.getByText('Latest update')).toBeInTheDocument();
+    expect(screen.queryByText('First update')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('3');
   });
 });

@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Consecutive successful desktop actions now replace their transient receipt instead of stacking over inspectors; persistent failures and warnings remain visible until dismissed, and the full receipt history is retained.
 - Desktop now completes workspace switching through Settings: the backend
   restarts against the selected workspace, and the World reflects that
   workspace's own project buildings after the service is live.

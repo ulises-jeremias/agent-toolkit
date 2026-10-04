@@ -191,7 +191,7 @@ journeys:
     status: partial
     evidence:
       - note: People can review project, discovered runner and model, then open a real Electron PTY tagged with Person/project identity; a live PTY plus its saved Person and matching project is projected as a character, including while that real session is stopping
-        build: '0af40865e7c0064bcf07efb6322b51652e897b52 (#1368)'
+        build: "0af40865e7c0064bcf07efb6322b51652e897b52 (#1368)"
         screenshots:
           - assets/electron/people/people-roster-compact.png
           - assets/electron/people/person-start-compact.png
@@ -309,6 +309,15 @@ journeys:
           - assets/electron/swarms/swarm-run-watch-large.png
         tests:
           - apps/desktop/e2e/electron/desktop.spec.ts
+      - note: >-
+          Final compact and large Electron captures were reopened after fixing
+          notification pileup: successive transient receipts now replace one
+          another while the run inspector remains unobscured. The screenshots
+          are from the passing Linux Electron gate for this implementation.
+        build: "96848791 (Linux Electron E2E; screenshots opened)"
+        screenshots:
+          - assets/electron/swarms/swarm-run-watch-compact.png
+          - assets/electron/swarms/swarm-run-watch-large.png
     blockers:
       - adapter-backed worker starts, handoff progress, and failure recovery are not yet verified in an end-to-end Desktop run
   - id: universal-search-actions
