@@ -305,53 +305,75 @@ function creek(
   const preferredFitsBank = preferredX >= minCenterX && preferredX <= maxCenterX;
   const bankCenter = Math.round((minCenterX + maxCenterX) / 2);
   const baseX = preferredFitsBank ? preferredX : bankCenter;
-  let x = baseX;
-  let crossingX = x;
-  let previousX: number | undefined;
-  for (let y = 0; y < p.rows; y++) {
+  const corridorRadius = (maxCenterX - runMinX) / 2;
+  const broadBend = Math.min(3.4, corridorRadius * 1.25);
+  const softBend = Math.min(0.9, corridorRadius * 0.32);
+  const creekRows = Array.from({ length: p.rows }, (_, y) => {
     const along = y - bridgeY;
     // The bridge remains the fixed crossing while the stream swings through a
     // wide, low-frequency S-curve. A shorter bend keeps its banks irregular
     // without creating per-row jitter.
-    const corridorRadius = (maxCenterX - runMinX) / 2;
-    const broadBend = Math.min(3.4, corridorRadius * 1.25);
-    const softBend = Math.min(0.9, corridorRadius * 0.32);
     const anchoredSoftBend = Math.sin(along * 0.31 + 0.7) - Math.sin(0.7);
     const desiredX = baseX + Math.sin(along * 0.22) * broadBend + anchoredSoftBend * softBend;
     const pool = Math.sin(along * 0.25 + 0.9);
     const width = pool > 0.45 ? 3 : 2;
-    const safeCenters: number[] = [];
-    for (let candidate = runMinX; candidate <= maxCenterX; candidate += 1) {
-      const clear = Array.from({ length: width }, (_, offset) => candidate + offset).every(
-        (column) => !p.isBlocked(column, y),
-      );
-      if (!clear) continue;
-      if (previousX === undefined || Math.abs(candidate - previousX) <= 1) safeCenters.push(candidate);
-    }
-    // A building corner can pinch the bank, but if that leaves no one-tile
-    // continuation, choose the nearest clear row and let the stream bend
-    // around the obstruction instead of drawing water through a façade.
-    if (safeCenters.length === 0) {
-      for (let candidate = runMinX; candidate <= maxCenterX; candidate += 1) {
-        if (
-          Array.from({ length: width }, (_, offset) => candidate + offset).every((column) => !p.isBlocked(column, y))
-        ) {
-          safeCenters.push(candidate);
-        }
+    const safeCenters = Array.from({ length: maxCenterX - runMinX + 1 }, (_, offset) => runMinX + offset).filter(
+      (candidate) =>
+        Array.from({ length: width }, (_, offset) => candidate + offset).every((column) => !p.isBlocked(column, y)),
+    );
+    return { y, width, desiredX, safeCenters };
+  });
+
+  // Plan the whole stream before painting it. A row-by-row greedy choice can
+  // push the creek sharply against a façade at the last moment; this tiny
+  // dynamic program keeps it within one tile of the next row while finding a
+  // clear course around each occupied lot.
+  const candidateRows = creekRows.map((row) => (row.safeCenters.length > 0 ? row.safeCenters : [baseX]));
+  const costs: number[][] = [];
+  const parents: number[][] = [];
+  creekRows.forEach((row, rowIndex) => {
+    const candidates = candidateRows[rowIndex]!;
+    costs[rowIndex] = candidates.map((candidate, candidateIndex) => {
+      if (rowIndex === 0) return Math.abs(candidate - row.desiredX);
+      const previousCandidates = candidateRows[rowIndex - 1]!;
+      const previousCosts = costs[rowIndex - 1]!;
+      const transitions = previousCandidates
+        .map((previous, previousIndex) => ({
+          previous,
+          previousIndex,
+          cost: previousCosts[previousIndex]!,
+        }))
+        .filter(({ previous, cost }) => Number.isFinite(cost) && Math.abs(candidate - previous) <= 1);
+      if (transitions.length === 0) {
+        const fallback = previousCandidates
+          .map((previous, previousIndex) => ({
+            previousIndex,
+            cost: previousCosts[previousIndex]! + Math.abs(candidate - previous) * 8,
+          }))
+          .sort((left, right) => left.cost - right.cost)[0];
+        parents[rowIndex] ??= [];
+        parents[rowIndex]![candidateIndex] = fallback?.previousIndex ?? 0;
+        return Math.abs(candidate - row.desiredX) + (fallback?.cost ?? 0);
       }
-    }
-    x =
-      safeCenters.reduce(
-        (best, candidate) => {
-          if (best === undefined) return candidate;
-          const candidateScore = Math.abs(candidate - desiredX) + Math.abs(candidate - (previousX ?? desiredX)) * 0.45;
-          const bestScore = Math.abs(best - desiredX) + Math.abs(best - (previousX ?? desiredX)) * 0.45;
-          return candidateScore < bestScore ? candidate : best;
-        },
-        undefined as number | undefined,
-      ) ?? Math.max(runMinX, Math.min(maxCenterX, Math.round(desiredX)));
-    previousX = x;
-    if (bridgeRows.has(y)) crossingX = x;
+      const best = transitions.reduce((left, right) => (right.cost < left.cost ? right : left));
+      parents[rowIndex] ??= [];
+      parents[rowIndex]![candidateIndex] = best.previousIndex;
+      return Math.abs(candidate - row.desiredX) + best.cost;
+    });
+  });
+  const creekCenters = new Array<number>(p.rows);
+  let routeIndex = costs
+    .at(-1)!
+    .reduce((bestIndex, cost, index, all) => (cost < all[bestIndex]! ? index : bestIndex), 0);
+  for (let rowIndex = creekRows.length - 1; rowIndex >= 0; rowIndex -= 1) {
+    const row = creekRows[rowIndex]!;
+    creekCenters[row.y] = candidateRows[rowIndex]![routeIndex]!;
+    routeIndex = parents[rowIndex]?.[routeIndex] ?? 0;
+  }
+  const crossingX = creekCenters[bridgeY] ?? baseX;
+  for (let y = 0; y < p.rows; y++) {
+    const x = creekCenters[y] ?? baseX;
+    const { width } = creekRows[y]!;
     for (let cx = x; cx < x + width; cx++) {
       if (bridgeRows.has(y)) {
         p.set(cx, y, 'dirt', true);

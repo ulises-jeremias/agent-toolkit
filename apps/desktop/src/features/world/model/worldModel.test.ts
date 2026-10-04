@@ -821,6 +821,17 @@ describe('layoutWorld', () => {
     const creekBanks = [...waterRows.values()].map((xs) => Math.min(...xs));
     expect(new Set(creekBanks).size).toBeGreaterThan(1);
     expect(Math.max(...creekBanks) - Math.min(...creekBanks)).toBeGreaterThanOrEqual(3);
+    const creekRowIndexes = [...waterRows.keys()].sort((a, b) => a - b);
+    for (let index = 1; index < creekRowIndexes.length; index += 1) {
+      const previousRow = waterRows.get(creekRowIndexes[index - 1]!)!;
+      const currentRow = waterRows.get(creekRowIndexes[index]!)!;
+      if (creekRowIndexes[index]! - creekRowIndexes[index - 1]! === 1) {
+        expect(
+          Math.abs(Math.min(...currentRow) - Math.min(...previousRow)),
+          'creek should turn gradually between adjacent rows',
+        ).toBeLessThanOrEqual(1);
+      }
+    }
     const bridgeRoadY = bridge!.y + 1;
     const upstreamStarts = [...waterRows.entries()].filter(([y]) => y < bridgeRoadY).map(([, xs]) => Math.min(...xs));
     const downstreamStarts = [...waterRows.entries()].filter(([y]) => y > bridgeRoadY).map(([, xs]) => Math.min(...xs));
