@@ -834,6 +834,24 @@ describe('layoutWorld', () => {
     expect(paletteChanges / adjacentPairs).toBeLessThan(0.65);
   });
 
+  it('adds readable flower glades without covering the connected footpaths', () => {
+    const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
+    const cells = paintTerrain(layout.entities, layout.cols, layout.rows).cells;
+    const tiles = new Map(cells.map(({ x, y, tile }) => [`${x},${y}`, tile]));
+    const trails = new Set(cells.filter(({ tile }) => tile.startsWith('trail')).map(({ x, y }) => `${x},${y}`));
+    const flowers = cells.filter(({ tile }) => tile.startsWith('flowers-'));
+    let matchingNeighbors = 0;
+
+    for (const { x, y, tile } of flowers) {
+      expect(trails.has(`${x},${y}`)).toBe(false);
+      if (tiles.get(`${x + 1},${y}`) === tile) matchingNeighbors += 1;
+      if (tiles.get(`${x},${y + 1}`) === tile) matchingNeighbors += 1;
+    }
+
+    expect(flowers.length).toBeGreaterThan(20);
+    expect(matchingNeighbors).toBeGreaterThan(8);
+  });
+
   it('keeps tall tree canopies inside the framed world edge', () => {
     const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
     const decor = paintTerrain(layout.entities, layout.cols, layout.rows).decor;

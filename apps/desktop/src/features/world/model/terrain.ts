@@ -411,6 +411,54 @@ function projectGardens(p: Painter, projects: readonly LaidOutEntity[]) {
   }
 }
 
+function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): boolean {
+  for (let dy = -radius; dy <= radius; dy++) {
+    for (let dx = -radius; dx <= radius; dx++) {
+      if (p.isBlocked(x + dx, y + dy) || p.paths.has(key(x + dx, y + dy))) return true;
+    }
+  }
+  return false;
+}
+
+/** Broad irregular flower beds give open lawns a visible meadow rhythm. */
+function flowerGlades(p: Painter) {
+  const target = Math.min(8, Math.max(2, Math.floor((p.cols * p.rows) / 180)));
+  const candidates: { x: number; y: number; rank: number }[] = [];
+  for (let y = 3; y < p.rows - 2; y++) {
+    for (let x = 2; x < p.cols - 2; x++) {
+      if (!p.get(x, y).startsWith('grass') || nearStructureOrPath(p, x, y, 1)) continue;
+      candidates.push({ x, y, rank: h2(x, y, 131) });
+    }
+  }
+  candidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
+
+  const centers: { x: number; y: number }[] = [];
+  for (const candidate of candidates) {
+    if (centers.length >= target) break;
+    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 7)) continue;
+    centers.push(candidate);
+
+    const radiusX = 2 + (h2(candidate.x, candidate.y, 137) % 2);
+    const radiusY = 2 + (h2(candidate.x, candidate.y, 139) % 2);
+    const bloom = `flowers-${['poppy', 'daisy', 'lavender', 'gold'][h2(candidate.x, candidate.y, 149) % 4]}`;
+    for (let dy = -radiusY; dy <= radiusY; dy++) {
+      for (let dx = -radiusX; dx <= radiusX; dx++) {
+        const shape = (dx * dx) / (radiusX * radiusX) + (dy * dy) / (radiusY * radiusY);
+        const x = candidate.x + dx;
+        const y = candidate.y + dy;
+        if (
+          shape <= 1.35 &&
+          h2(x, y, 151) % 7 !== 0 &&
+          p.get(x, y).startsWith('grass') &&
+          !nearStructureOrPath(p, x, y, 0)
+        ) {
+          p.set(x, y, bloom);
+        }
+      }
+    }
+  }
+}
+
 /** Framing groves with natural gaps around buildings and paths. */
 function forest(p: Painter) {
   const planted = new Set<string>();
@@ -648,6 +696,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   bridgeLanterns(p, creekX, roadY);
   feather(p);
   plazaCore(p, hall, commons);
+  flowerGlades(p);
   forest(p);
   wildlife(p, hall);
 

@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   changing palette tile by tile, and empty-workspace bridges align with the
   project's real linking path.
 - Seeded meadow flowers, creek-bank trees, and edge undergrowth now appear more often while remaining excluded from building footprints and path corridors.
+- Deterministic flower glades now form broader, readable beds in open ground while preserving connected trails and project entrances.
 - The settlement now uses a tighter three-row composition so empty and
   one-project valleys fill compact windows at crisp 32px tiles while keeping
   every semantic place in frame.
