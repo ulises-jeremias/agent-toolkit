@@ -460,6 +460,7 @@ describe('buildWorldModel', () => {
     expect(layout.entities.find((entity) => entity.id === 'object:files')?.x).toBeGreaterThan(
       layout.entities.find((entity) => entity.id === 'object:attention')?.x ?? 0,
     );
+    expect(new Set(landmarks.slice(0, 3).map((entity) => entity.y)).size).toBe(3);
 
     for (let left = 0; left < landmarks.length; left += 1) {
       for (let right = left + 1; right < landmarks.length; right += 1) {
@@ -844,7 +845,11 @@ describe('layoutWorld', () => {
     expect(new Set(first.cells.filter(({ tile }) => tile.startsWith('trail')).map(({ y }) => y)).size).toBeGreaterThan(
       1,
     );
-    const trails = new Set(first.cells.filter((cell) => cell.tile.startsWith('trail')).map(({ x, y }) => `${x},${y}`));
+    const trails = new Set(
+      first.cells
+        .filter((cell) => cell.tile.startsWith('trail') || cell.tile === 'plaza' || cell.tile === 'plaza-b')
+        .map(({ x, y }) => `${x},${y}`),
+    );
     const water = new Set(first.cells.filter(({ tile }) => tile === 'water').map(({ x, y }) => `${x},${y}`));
     const sparkles = first.decor.filter((sprite) => sprite.sprite === 'water-sparkle');
     expect(sparkles.length).toBeGreaterThan(0);
@@ -963,6 +968,23 @@ describe('layoutWorld', () => {
     expect(fireflies.length).toBeLessThanOrEqual(4);
     expect(new Set(fireflies.map((sprite) => sprite.id)).size).toBe(fireflies.length);
     expect(fireflies.every((sprite) => sprite.ambient)).toBe(true);
+  });
+
+  it('places a few ambient butterflies across flower clearings, not in a row', () => {
+    const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
+    const first = paintTerrain(layout.entities, layout.cols, layout.rows).decor;
+    const second = paintTerrain(layout.entities, layout.cols, layout.rows).decor;
+    const butterflies = first.filter((sprite) => sprite.sprite === 'butterfly');
+
+    expect(butterflies.length).toBeGreaterThan(0);
+    expect(butterflies.length).toBeLessThanOrEqual(4);
+    expect(butterflies.every((sprite) => sprite.ambient)).toBe(true);
+    expect(butterflies).toEqual(second.filter((sprite) => sprite.sprite === 'butterfly'));
+    for (let index = 0; index < butterflies.length; index += 1) {
+      for (const other of butterflies.slice(index + 1)) {
+        expect(Math.hypot(butterflies[index]!.x - other.x, butterflies[index]!.y - other.y)).toBeGreaterThanOrEqual(6);
+      }
+    }
   });
 
   it('keeps tall tree canopies inside the framed world edge', () => {

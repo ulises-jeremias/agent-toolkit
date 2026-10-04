@@ -217,8 +217,8 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // smaller service places form its southern garden lane.
   const civicSlots: Record<string, { x: number; y: number }> = {
     'object:library': { x: 1, y: 5 },
-    'object:workshop': { x: 11, y: 8 },
-    'object:operations': { x: 5, y: 5 },
+    'object:workshop': { x: 12, y: 8 },
+    'object:operations': { x: 6, y: 4 },
     'object:terminal': { x: 11, y: 3 },
     'object:attention': { x: 0, y: 9 },
     'object:files': { x: 4, y: 9 },

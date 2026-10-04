@@ -933,7 +933,11 @@ function grassTile(seed) {
     [[0, 1, 'gm'], [1, 0, 'gl'], [1, 1, 'gt'], [2, 2, 'gd']],
     [[0, 2, 'gd'], [1, 1, 'gt'], [1, 2, 'gl'], [2, 0, 'gm']],
   ];
-  const count = 1 + random(2);
+  // Ground should stay readable beneath buildings and characters, but the
+  // old one-or-two tiny clovers left overview maps looking like a flat lawn.
+  // Three loose motifs make each tile feel lush at integer-scaled zoom while
+  // their seeded positions still leave quiet paths through the meadow.
+  const count = 3 + random(2);
   for (let i = 0; i < count; i++) {
     const motif = random(3) === 0 ? tufts[random(tufts.length)] : clovers[random(clovers.length)];
     const left = 1 + random(12);
