@@ -845,7 +845,11 @@ describe('layoutWorld', () => {
     expect(new Set(first.cells.filter(({ tile }) => tile.startsWith('trail')).map(({ y }) => y)).size).toBeGreaterThan(
       1,
     );
-    const trails = new Set(first.cells.filter((cell) => cell.tile.startsWith('trail')).map(({ x, y }) => `${x},${y}`));
+    const trails = new Set(
+      first.cells
+        .filter((cell) => cell.tile.startsWith('trail') || cell.tile === 'plaza' || cell.tile === 'plaza-b')
+        .map(({ x, y }) => `${x},${y}`),
+    );
     const water = new Set(first.cells.filter(({ tile }) => tile === 'water').map(({ x, y }) => `${x},${y}`));
     const sparkles = first.decor.filter((sprite) => sprite.sprite === 'water-sparkle');
     expect(sparkles.length).toBeGreaterThan(0);

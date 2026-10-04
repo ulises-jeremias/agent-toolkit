@@ -650,7 +650,9 @@ function forest(p: Painter, projectlessMeadow = false) {
         const top = decor.y + decor.dy / 16;
         const right = left + decor.w / 16;
         const bottom = top + decor.h / 16;
-        return x - 2 < right && x + 3 > left && y - 2 < bottom && y + 2 > top;
+        const canopyLeft = x - 1 + ((h2(x, y, 47) % 5) - 2) / 16;
+        const canopyTop = y - 2 + ((h2(x, y, 53) % 3) - 1) / 16;
+        return canopyLeft < right && canopyLeft + 3 > left && canopyTop < bottom && canopyTop + 3 > top;
       });
       const nearTrail = [-2, -1, 0, 1, 2].some((dy) =>
         [-2, -1, 0, 1, 2].some((dx) => p.paths.has(key(x + dx, y + dy))),
@@ -922,8 +924,8 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   feather(p);
   plazaCore(p, hall, commons);
   flowerGlades(p);
-  forest(p, projects.length === 0);
   flowerPatchSprites(p);
+  forest(p, projects.length === 0);
   wildlife(p, hall);
 
   return { cells: cellsToArray(p), decor: p.decor };
