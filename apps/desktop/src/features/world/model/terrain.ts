@@ -562,7 +562,11 @@ function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonl
         const inside = (dx * dx) / 30 + (dy * dy) / 4 <= 1;
         const x = centerX + dx;
         const y = frontY + dy;
-        if (inside && !p.isBlocked(x, y)) p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b', true);
+        // Stone belongs on the real connected approach, not as a decorative
+        // patch on otherwise empty grass beside a building.
+        if (inside && p.paths.has(key(x, y)) && !p.isBlocked(x, y)) {
+          p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b', true);
+        }
       }
     }
   }
