@@ -59,7 +59,7 @@ const args = process.argv.slice(2);
 if (args[0] === '--version') { console.log('agent-toolkit ${version}'); process.exit(0); }
 if (args[0] !== 'serve' || ${!serve}) { console.error('Unknown command: ' + args[0]); process.exit(1); }
 if (args.includes('--help')) { console.log('Usage: agent-toolkit serve [--host HOST] [--port PORT]'); process.exit(0); }
-if (${exitOnServe}) { console.error('boom: fixture refuses to serve'); process.exit(3); }
+if (${exitOnServe}) { console.error('boom: fixture refuses to serve ' + (process.env.MCP_TEST_SECRET ?? '')); process.exit(3); }
 const port = Number(args[args.indexOf('--port') + 1]);
 const server = http.createServer((req, res) => {
   if (req.url === '/api/v1/health') {
@@ -71,6 +71,9 @@ const server = http.createServer((req, res) => {
   } else if (req.url === '/__fixture/pid') {
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ pid: process.pid }));
+  } else if (req.url === '/__fixture/secret') {
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ value: process.env.MCP_TEST_SECRET ?? null }));
   } else if (req.url === '/api/v1/jobs' && req.method === 'POST') {
     const crossSite = req.headers['sec-fetch-site'] === 'cross-site';
     const allowed = !crossSite || (${gate} && req.headers['x-atk-desktop'] === '1');
@@ -144,6 +147,29 @@ describe('BackendSupervisor', () => {
 
     await supervisor.stop();
     expect(supervisor.snapshot().status).toBe('stopped');
+  }, 90_000);
+
+  it('injects stored secrets only into the supervised backend environment', async () => {
+    supervisor = newSupervisor({
+      resolveHarness: fallbackHarness,
+      resolveEnvironmentSecrets: () => ({ MCP_TEST_SECRET: 'secret-value-for-child' }),
+    });
+    expect(await supervisor.start()).toBe(true);
+    const url = supervisor.snapshot().url;
+    expect(url).not.toBeNull();
+    expect(await (await fetch(`${url}/__fixture/secret`)).json()).toEqual({ value: 'secret-value-for-child' });
+    expect(JSON.stringify(supervisor.snapshot())).not.toContain('secret-value-for-child');
+  }, 90_000);
+
+  it('redacts a stored credential if the backend prints it to stderr during startup', async () => {
+    writeFixture(path.join(fixtureDir, 'good'), { exitOnServe: true });
+    supervisor = newSupervisor({
+      resolveHarness: fallbackHarness,
+      resolveEnvironmentSecrets: () => ({ MCP_TEST_SECRET: 'do-not-leak-this' }),
+    });
+    expect(await supervisor.start()).toBe(false);
+    expect(supervisor.snapshot().detail).toContain('[credential redacted]');
+    expect(supervisor.snapshot().detail).not.toContain('do-not-leak-this');
   }, 90_000);
 
   it('restarts into a new harness: stop, spawn in the new cwd, health gate', async () => {

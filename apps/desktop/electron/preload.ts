@@ -4,6 +4,9 @@ import type { AtkBridge, PtyCreateOptions, PtyExitEvent, PtyDataEvent } from '..
 const bridge: AtkBridge = {
   backendStatus: () => ipcRenderer.invoke('atk:backend-status'),
   backendRestart: () => ipcRenderer.invoke('atk:backend-restart'),
+  mcpSecretStatus: () => ipcRenderer.invoke('atk:mcp-secret-status'),
+  mcpSecretSet: (name: string, value: string) => ipcRenderer.invoke('atk:mcp-secret-set', { name, value }),
+  mcpSecretRemove: (name: string) => ipcRenderer.invoke('atk:mcp-secret-remove', name),
   onBackendState: (listener) => {
     const wrapped = (_event: unknown, state: unknown): void => {
       listener(state as Parameters<Parameters<AtkBridge['onBackendState']>[0]>[0]);

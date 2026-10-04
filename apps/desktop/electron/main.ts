@@ -1,9 +1,10 @@
-import { app, BrowserWindow, dialog, shell } from 'electron';
+import { app, BrowserWindow, dialog, safeStorage, shell } from 'electron';
 import path from 'node:path';
 import { BackendSupervisor, type BackendState } from './backend';
 import { HarnessController } from './harness-controller';
 import { HARNESS_STORE_FILE, HarnessStore } from './harness-store';
 import { registerIpc } from './ipc';
+import { electronStorageName, McpSecretStore, mcpSecretStorePath } from './mcp-secrets';
 import { startRendererServer, type RendererServer } from './renderer-server';
 import { TerminalService } from './terminal';
 
@@ -11,6 +12,7 @@ let mainWindow: BrowserWindow | null = null;
 let backend: BackendSupervisor | null = null;
 let terminals: TerminalService | null = null;
 let harness: HarnessController | null = null;
+let mcpSecrets: McpSecretStore | null = null;
 let rendererServer: RendererServer | null = null;
 let ipcRegistered = false;
 
@@ -61,7 +63,18 @@ async function createWindow(): Promise<void> {
     });
   }
   const harnessController = harness;
-  if (!backend) backend = new BackendSupervisor({ resolveHarness: () => harnessController.resolve() });
+  if (!mcpSecrets) {
+    mcpSecrets = new McpSecretStore(mcpSecretStorePath(app.getPath('userData')), safeStorage, () =>
+      electronStorageName(process.platform, safeStorage.getSelectedStorageBackend()),
+    );
+  }
+  const secretStore = mcpSecrets;
+  if (!backend) {
+    backend = new BackendSupervisor({
+      resolveHarness: () => harnessController.resolve(),
+      resolveEnvironmentSecrets: () => secretStore.environment(),
+    });
+  }
   const supervisor = backend;
   if (!terminals) {
     // New shells open where serve runs; before the first start, where it will run.
@@ -99,6 +112,7 @@ async function createWindow(): Promise<void> {
       getTerminals: () => terminals,
       getWindow: () => mainWindow,
       getHarness: () => harness,
+      getMcpSecrets: () => mcpSecrets,
       getPublicBackendUrl: () => rendererServer?.url ?? null,
       chooseProjectDirectory,
     });

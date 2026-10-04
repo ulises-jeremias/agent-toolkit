@@ -79,6 +79,16 @@ jobs:
         run: >-
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
           pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/project-link.spec.ts
+      - name: Capture MCP credential review
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
+        env:
+          ATK_E2E_BACKEND_BIN: ${{ github.workspace }}/dist/agent-toolkit
+          ATK_CAPTURE: '1'
+          ATK_CAPTURE_DIR: test-results/review
+        run: >-
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
+          pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/desktop.spec.ts
+          --grep "Library configures MCP providers"
       - name: E2E (Electron + real backend)
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.capture_visual_review != 'true'
         env:

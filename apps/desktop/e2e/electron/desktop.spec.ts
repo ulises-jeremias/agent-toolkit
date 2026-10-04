@@ -718,6 +718,43 @@ test('Library configures MCP providers with secret-free previews and explicit ch
   await expect(row.getByText('enabled')).toBeVisible();
   expect(setupRequests).toBe(1);
 
+  const credentials = page.getByRole('region', { name: 'MCP credentials' });
+  await expect(credentials).toBeVisible();
+  const secretInput = credentials.getByLabel('Credential value for GITHUB_PERSONAL_ACCESS_TOKEN');
+  const secretStatus = await page.evaluate(() => window.atk?.mcpSecretStatus());
+  expect(secretStatus).toBeDefined();
+  if (secretStatus?.available) {
+    await secretInput.fill('e2e-never-display-this-token');
+    await credentials.getByRole('button', { name: 'Save securely' }).click();
+    await expect(credentials).toContainText('was encrypted');
+    await expect(secretInput).toHaveValue('');
+    await expect(page.locator('body')).not.toContainText('e2e-never-display-this-token');
+    await credentials.getByRole('button', { name: 'Restart backend to apply' }).click();
+    const restartReview = page.getByRole('dialog', { name: 'Restart the Desktop backend?' });
+    await expect(restartReview).toContainText('Requests in progress may fail');
+    await expect(restartReview).toContainText('terminal sessions remain separate');
+    await restartReview.getByRole('button', { name: 'Cancel' }).click();
+    await credentials.getByRole('button', { name: 'Remove' }).click();
+    await expect(credentials).toContainText('was removed');
+    await expect(credentials.getByRole('button', { name: 'Restart backend to apply' })).toBeVisible();
+  } else {
+    await expect(secretInput).toBeDisabled();
+    await expect(credentials).toContainText('No value was saved');
+  }
+  if (CAPTURE) {
+    fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
+    for (const size of [
+      { width: 1024, height: 768, key: 'mcp-credentials-compact' },
+      { width: 1600, height: 1000, key: 'mcp-credentials-large' },
+    ]) {
+      await setViewport(desktop.app, size.width, size.height);
+      await page.setViewportSize({ width: size.width, height: size.height });
+      await page.screenshot({ path: path.join(LIBRARY_CAPTURE_DIR, `${size.key}.png`), fullPage: true });
+    }
+    await setViewport(desktop.app, 1280, 800);
+    await page.setViewportSize({ width: 1280, height: 800 });
+  }
+
   await row.getByRole('button', { name: 'Validate' }).click();
   const validate = page.getByRole('dialog', { name: 'Validate GitHub' });
   await validate.getByRole('button', { name: 'Validate' }).click();

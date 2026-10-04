@@ -21,13 +21,7 @@ import { harnessSpawnContext, resolveHarnessFromProcess, type HarnessResolution 
 export type { HarnessResolution, HarnessSource } from './harness';
 export type { BackendBinaryInfo, BackendBinarySource, RejectedBackendBinary } from './backend-binary';
 
-export type BackendStatus =
-  | 'starting'
-  | 'ready'
-  | 'version-mismatch'
-  | 'crashed'
-  | 'stopped'
-  | 'failed';
+export type BackendStatus = 'starting' | 'ready' | 'version-mismatch' | 'crashed' | 'stopped' | 'failed';
 
 /**
  * Machine-readable cause behind a non-ready status, so UI can offer the right
@@ -76,6 +70,8 @@ export interface BackendSupervisorOptions {
   resolvePin?: () => BackendPin | null;
   probeGate?: (url: string) => Promise<DesktopGateProbe>;
   spawnProcess?: typeof spawn;
+  /** Decrypted MCP credentials are passed only to the supervised backend child. */
+  resolveEnvironmentSecrets?: () => Record<string, string>;
   startTimeoutMs?: number;
 }
 
@@ -90,6 +86,13 @@ const START_TIMEOUT_MS = 30_000;
 const POLL_INTERVAL_MS = 250;
 const STOP_GRACE_MS = 5_000;
 const MAX_STDERR_TAIL = 8_192;
+
+function redactSecrets(text: string, secrets: string[]): string {
+  return secrets
+    .filter(Boolean)
+    .sort((left, right) => right.length - left.length)
+    .reduce((redacted, secret) => redacted.split(secret).join('[credential redacted]'), text);
+}
 
 /** Major from the staged pin or ATK_EXPECTED_BACKEND_MAJOR; null when unpinned. */
 export function resolveExpectedBackendMajor(): string | null {
@@ -159,6 +162,7 @@ export class BackendSupervisor {
   private readonly resolvePin: () => BackendPin | null;
   private readonly probeGate: (url: string) => Promise<DesktopGateProbe>;
   private readonly spawnProcess: typeof spawn;
+  private readonly resolveEnvironmentSecrets: () => Record<string, string>;
   private readonly startTimeoutMs: number;
 
   constructor(options: BackendSupervisorOptions = {}) {
@@ -167,6 +171,7 @@ export class BackendSupervisor {
     this.resolvePin = options.resolvePin ?? resolveBackendPin;
     this.probeGate = options.probeGate ?? ((url) => probeDesktopGate(url));
     this.spawnProcess = options.spawnProcess ?? spawn;
+    this.resolveEnvironmentSecrets = options.resolveEnvironmentSecrets ?? (() => ({}));
     this.startTimeoutMs = options.startTimeoutMs ?? START_TIMEOUT_MS;
   }
 
@@ -222,7 +227,12 @@ export class BackendSupervisor {
     const selection = await this.selectBinary(spawnContext.cwd);
     if (stale()) return false;
     if (!selection.ok) {
-      this.emit({ status: 'failed', detail: selection.message, rejected: selection.rejected, problem: selection.problem });
+      this.emit({
+        status: 'failed',
+        detail: selection.message,
+        rejected: selection.rejected,
+        problem: selection.problem,
+      });
       return false;
     }
     const { binary, rejected } = selection;
@@ -232,7 +242,13 @@ export class BackendSupervisor {
     try {
       port = await pickFreePort();
     } catch (error) {
-      this.emit({ status: 'failed', detail: `no free localhost port: ${String(error)}`, binary, rejected, problem: 'port' });
+      this.emit({
+        status: 'failed',
+        detail: `no free localhost port: ${String(error)}`,
+        binary,
+        rejected,
+        problem: 'port',
+      });
       return false;
     }
     if (stale()) return false;
@@ -243,10 +259,12 @@ export class BackendSupervisor {
     // The child inherits AGENT_TOOLKIT_TOKEN through env, which serve reads.
     // serve roots its jobs dir and containment at cwd, so cwd is the harness.
     const args = ['serve', '--host', '127.0.0.1', '--port', String(port), '--no-browser'];
+    const environmentSecrets = this.resolveEnvironmentSecrets();
+    const secretValues = Object.values(environmentSecrets);
     const child = this.spawnProcess(binary.path, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
       cwd: spawnContext.cwd,
-      env: { ...spawnContext.env, NO_COLOR: '1', TERM: 'dumb' },
+      env: { ...spawnContext.env, ...environmentSecrets, NO_COLOR: '1', TERM: 'dumb' },
       windowsHide: true,
     });
     this.proc = child;
@@ -271,7 +289,7 @@ export class BackendSupervisor {
       this.proc = null;
       if (stale()) return;
       exitedEarly = !ready;
-      const tail = stderrTail.trim().slice(-200);
+      const tail = redactSecrets(stderrTail, secretValues).trim().slice(-200);
       const how = `code=${code ?? 'null'} signal=${signal ?? 'null'}`;
       this.emit(
         ready
