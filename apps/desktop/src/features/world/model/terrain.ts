@@ -931,7 +931,8 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   // Keep a little meadow between house fronts and the shared avenue. That
   // gives each real entrance room for a curved footpath instead of making
   // every door sit directly on the same ruler-straight road tile.
-  const roadY = Math.min(rows - 3, (firstStreetDoorY ?? Math.floor(rows / 2)) + 2);
+  const roadOffset = projects.length > 0 ? 2 : 0;
+  const roadY = Math.min(rows - 3, (firstStreetDoorY ?? Math.floor(rows / 2)) + roadOffset);
 
   // creek first so roads bridge it
   const workshop = entities.find((e) => e.id === 'object:workshop');
