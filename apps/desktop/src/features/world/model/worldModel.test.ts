@@ -854,7 +854,7 @@ describe('layoutWorld', () => {
     expect(bridgeLanterns.length).toBe(2);
     for (const lantern of bridgeLanterns) {
       expect(water.has(`${lantern.x},${lantern.y}`)).toBe(false);
-      expect(first.decor.some((sprite) => sprite.id === `${lantern.id}:glow`)).toBe(true);
+      expect(first.decor.some((sprite) => sprite.id === `lamp-glow:${lantern.id}`)).toBe(true);
     }
     expect(first.decor.filter((sprite) => sprite.sprite === 'mote').length).toBeLessThanOrEqual(4);
     const reached = new Set<string>();

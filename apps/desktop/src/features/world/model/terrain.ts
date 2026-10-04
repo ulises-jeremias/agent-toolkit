@@ -680,7 +680,7 @@ function forest(p: Painter, projectlessMeadow = false) {
 
 /** A warm pixel-step aura sits beneath each physical lantern sprite. */
 function placeLantern(p: Painter, id: string, x: number, y: number) {
-  p.sprite(`${id}:glow`, x, y, 'lamp-glow', 32, 32, -8, -16);
+  p.sprite(`lamp-glow:${id}`, x, y, 'lamp-glow', 32, 32, -8, -16);
   p.sprite(id, x, y, 'lamp', 16, 24, 0, -10);
 }
 
