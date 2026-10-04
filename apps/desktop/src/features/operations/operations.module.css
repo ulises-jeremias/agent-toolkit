@@ -9,9 +9,23 @@
   grid-column: 1 / -1;
 }
 
+.focused {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.runList {
+  max-height: min(18rem, 28vh);
+  overflow: auto;
+}
+
 @media (max-width: 1280px) {
   .split {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .runList {
+    max-height: none;
+    overflow: visible;
   }
 }
 
@@ -120,7 +134,6 @@
   color: var(--text-muted);
   font-size: var(--text-xs);
 }
-
 
 .runtimeOptions {
   border-block: 1px solid var(--border-subtle);

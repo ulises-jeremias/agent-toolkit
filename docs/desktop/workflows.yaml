@@ -318,6 +318,15 @@ journeys:
         screenshots:
           - assets/electron/swarms/swarm-run-watch-compact.png
           - assets/electron/swarms/swarm-run-watch-large.png
+      - note: >-
+          On wide windows the selected inspector moves beneath the bounded run
+          list and uses the full reading width; compact windows retain the
+          existing one-column flow. Electron E2E asserts the wide inspector
+          exceeds 1000px, and both screenshots were opened after the change.
+        build: "c8d81a87 (Linux Electron E2E; screenshots opened)"
+        screenshots:
+          - assets/electron/swarms/swarm-run-watch-compact.png
+          - assets/electron/swarms/swarm-run-watch-large.png
     blockers:
       - adapter-backed worker starts, handoff progress, and failure recovery are not yet verified in an end-to-end Desktop run
   - id: universal-search-actions
