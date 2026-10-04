@@ -965,6 +965,23 @@ describe('layoutWorld', () => {
     expect(fireflies.every((sprite) => sprite.ambient)).toBe(true);
   });
 
+  it('places a few ambient butterflies across flower clearings, not in a row', () => {
+    const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
+    const first = paintTerrain(layout.entities, layout.cols, layout.rows).decor;
+    const second = paintTerrain(layout.entities, layout.cols, layout.rows).decor;
+    const butterflies = first.filter((sprite) => sprite.sprite === 'butterfly');
+
+    expect(butterflies.length).toBeGreaterThan(0);
+    expect(butterflies.length).toBeLessThanOrEqual(4);
+    expect(butterflies.every((sprite) => sprite.ambient)).toBe(true);
+    expect(butterflies).toEqual(second.filter((sprite) => sprite.sprite === 'butterfly'));
+    for (let index = 0; index < butterflies.length; index += 1) {
+      for (const other of butterflies.slice(index + 1)) {
+        expect(Math.hypot(butterflies[index]!.x - other.x, butterflies[index]!.y - other.y)).toBeGreaterThanOrEqual(6);
+      }
+    }
+  });
+
   it('keeps tall tree canopies inside the framed world edge', () => {
     const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
     const decor = paintTerrain(layout.entities, layout.cols, layout.rows).decor;

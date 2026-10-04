@@ -795,16 +795,19 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
   if (hall) {
     p.sprite('hornero:hall', hall.x + hall.w, hall.y + 1, 'hornero', 16, 12, 4, 6, true, true);
   }
-  let seen = 0;
-  for (const [at, tile] of p.cells) {
-    if (!tile.startsWith('flowers')) continue;
-    const [xs, ys] = at.split(',');
-    const x = Number(xs);
-    const y = Number(ys);
-    if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
-    if (h2(x, y, 6) % 3 !== 0) continue;
-    p.sprite(`butterfly:${at}`, x, y, 'butterfly', 8, 8, 4, 2, true, true);
-    if (++seen >= 6) break;
+  const flowerCells = [...p.cells]
+    .filter(([, tile]) => tile.startsWith('flowers'))
+    .map(([at]) => {
+      const [x = 0, y = 0] = at.split(',').map(Number);
+      return { at, x, y, rank: h2(x, y, 6) };
+    })
+    .sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
+  const butterflyStops: { x: number; y: number }[] = [];
+  for (const flower of flowerCells) {
+    if (butterflyStops.length >= 4) break;
+    if (butterflyStops.some((stop) => Math.hypot(stop.x - flower.x, stop.y - flower.y) < 6)) continue;
+    p.sprite(`butterfly:${flower.at}`, flower.x, flower.y, 'butterfly', 8, 8, 4, 2, true, true);
+    butterflyStops.push(flower);
   }
   // Fireflies trace quiet stretches of the real creek, not runtime activity.
   const fireflyRows = new Set([
