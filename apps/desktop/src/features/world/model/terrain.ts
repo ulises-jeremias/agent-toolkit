@@ -147,15 +147,15 @@ function baseGround(p: Painter) {
         p.set(x, y, ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'][h2(x, y, 12) % 4]!);
       } else {
         const grass =
-          moisture < 0.16
+          moisture < 0.2
             ? 4
-            : moisture < 0.36
+            : moisture < 0.32
               ? 2
-              : moisture < 0.68
+              : moisture < 0.58
                 ? 0
-                : moisture < 0.84
+                : moisture < 0.72
                   ? 1
-                  : moisture < 0.94
+                  : moisture < 0.86
                     ? 3
                     : 5;
         // Each moisture band has four authored tile patterns. Spatially
@@ -189,32 +189,6 @@ function rasterLine(p: Painter, x0: number, y0: number, x1: number, y1: number) 
       error += dx;
       y += sy;
       p.path(x, y);
-    }
-  }
-}
-
-/** Check the same integer raster path before replacing a grid-shaped approach. */
-function clearRasterLine(p: Painter, x0: number, y0: number, x1: number, y1: number): boolean {
-  let x = x0;
-  let y = y0;
-  const dx = Math.abs(x1 - x0);
-  const sx = x0 < x1 ? 1 : -1;
-  const dy = -Math.abs(y1 - y0);
-  const sy = y0 < y1 ? 1 : -1;
-  let error = dx + dy;
-  for (;;) {
-    if (p.isBlocked(x, y) || p.get(x, y) === 'water') return false;
-    if (x === x1 && y === y1) return true;
-    const twice = error * 2;
-    if (twice >= dy) {
-      error += dy;
-      x += sx;
-      if (p.isBlocked(x, y) || p.get(x, y) === 'water') return false;
-    }
-    if (twice <= dx) {
-      error += dx;
-      y += sy;
-      if (p.isBlocked(x, y) || p.get(x, y) === 'water') return false;
     }
   }
 }
@@ -283,13 +257,6 @@ function connectEntrance(p: Painter, startX: number, startY: number) {
   }
 
   if (!target) return;
-  // Most doors have a direct meadow approach. Use a crisp diagonal where its
-  // full raster is open; preserve the obstacle-aware route around real lots
-  // and water whenever the direct course would cut through something.
-  if (clearRasterLine(p, startX, startY, targetX, targetY)) {
-    rasterLine(p, startX, startY, targetX, targetY);
-    return;
-  }
   let cursor: string | null = parent.get(target)!;
   while (cursor) {
     const [x = 0, y = 0] = cursor.split(',').map(Number);
@@ -344,7 +311,7 @@ function creek(
   const minCenterX = Math.max(6, Math.min(maxCenterX, workshopBankX));
   const runMinX = Math.max(6, minCenterX - 5);
   const preferredFitsBank = preferredX >= minCenterX && preferredX <= maxCenterX;
-  const bankCenter = Math.round((minCenterX + maxCenterX) / 2);
+  const bankCenter = Math.floor((minCenterX + maxCenterX) / 2);
   const baseX = preferredFitsBank ? preferredX : bankCenter;
   const corridorRadius = (maxCenterX - runMinX) / 2;
   const broadBend = Math.min(3.4, corridorRadius * 1.25);
@@ -529,7 +496,7 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
 function flowerGlades(p: Painter) {
   // Give the quiet spaces a visible meadow rhythm at overview scale. Glades
   // stay grouped and seed-stable so additional color does not become speckle.
-  const target = Math.min(18, Math.max(5, Math.floor((p.cols * p.rows) / 54)));
+  const target = Math.min(20, Math.max(6, Math.floor((p.cols * p.rows) / 45)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 2; y++) {
     for (let x = 2; x < p.cols - 2; x++) {
@@ -901,7 +868,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const riverX = riverAnchorX - (projects.length ? 2 : 8);
   // Start the street on the actual west bank so the crossing is always joined
   // to the path network, even when a civic building sits farther east.
-  const plannedCreekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 1, workshop ? workshop.x + workshop.w : 6);
+  const plannedCreekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
   const creekX = plannedCreekX ?? Math.max(4, Math.min(cols - 5, riverX));
   (p as unknown as { creekX: number }).creekX = creekX;
   const routeEndX = projects.length
