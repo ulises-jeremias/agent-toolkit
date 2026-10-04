@@ -438,6 +438,57 @@ describe('buildWorldModel', () => {
     expect(waterColumns.some((x) => x >= workshop.x + workshop.w && x < house.x)).toBe(true);
   });
 
+  it('gathers shared landmarks around a staggered commons without overlapping entrances', () => {
+    const layout = layoutWorld(buildWorldModel(baseInput()));
+    const landmarkIds = [
+      'object:library',
+      'object:operations',
+      'object:terminal',
+      'object:attention',
+      'object:files',
+      'object:settings',
+      'object:workshop',
+    ];
+    const landmarks = landmarkIds.map((id) => layout.entities.find((entity) => entity.id === id)!);
+    expect(landmarks.every(Boolean)).toBe(true);
+
+    // The public buildings form a slight arc, and the south lane is offset
+    // from it so the settlement reads as a place rather than a tile grid.
+    expect(layout.entities.find((entity) => entity.id === 'object:terminal')?.y).toBeLessThan(
+      layout.entities.find((entity) => entity.id === 'object:library')?.y ?? Number.POSITIVE_INFINITY,
+    );
+    expect(layout.entities.find((entity) => entity.id === 'object:files')?.x).toBeGreaterThan(
+      layout.entities.find((entity) => entity.id === 'object:attention')?.x ?? 0,
+    );
+
+    for (let left = 0; left < landmarks.length; left += 1) {
+      for (let right = left + 1; right < landmarks.length; right += 1) {
+        const a = landmarks[left]!;
+        const b = landmarks[right]!;
+        const overlaps = a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+        expect(overlaps, `${a.id} overlaps ${b.id}`).toBe(false);
+      }
+    }
+
+    const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);
+    const paths = new Set(
+      terrain.cells
+        .filter((cell) => cell.tile.startsWith('trail-') || cell.tile.startsWith('plaza'))
+        .map((cell) => `${cell.x},${cell.y}`),
+    );
+    for (const landmark of landmarks) {
+      const door = `${landmark.x + Math.floor(landmark.w / 2)},${landmark.y + landmark.h}`;
+      const tile = terrain.cells.find((cell) => `${cell.x},${cell.y}` === door)?.tile ?? 'no ground tile';
+      expect(paths.has(door), `${landmark.id} door ${door} connects to the commons (terrain: ${tile})`).toBe(true);
+    }
+    expect(terrain.cells.some((cell) => cell.tile.startsWith('plaza'))).toBe(true);
+    const operations = landmarks.find((landmark) => landmark.id === 'object:operations')!;
+    const operationsDoor = terrain.cells.find(
+      (cell) => cell.x === operations.x + Math.floor(operations.w / 2) && cell.y === operations.y + operations.h,
+    );
+    expect(operationsDoor?.tile.startsWith('plaza')).toBe(true);
+  });
+
   it('keeps project interiors free of shared workshop fixtures and fake characters', () => {
     const model = buildWorldModel(
       baseInput({

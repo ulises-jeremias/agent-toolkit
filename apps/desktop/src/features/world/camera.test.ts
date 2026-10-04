@@ -24,6 +24,12 @@ describe('fitCamera', () => {
     expect(camera.zoom).toBe(16);
   });
 
+  it('keeps a compact valley at 32px when the whole map fits edge-to-edge', () => {
+    const camera = fitCamera({ x: 896, y: 416 }, { x: 28, y: 13 });
+    expect(camera.zoom).toBe(32);
+    expect(camera.pan).toEqual({ x: 0, y: 0 });
+  });
+
   it('centers a world smaller than the viewport', () => {
     // 10x8 tiles at 64px/tile = 640x512, the largest step that fits 776x576.
     const camera = fitCamera({ x: 800, y: 600 }, { x: 10, y: 8 });

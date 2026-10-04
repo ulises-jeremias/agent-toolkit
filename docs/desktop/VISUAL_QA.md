@@ -106,6 +106,34 @@ Opened files:
 - [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
   and [large](assets/electron/world/project-files-room-large.png).
 
+## Civic commons and doorway review — 2026-10-04
+
+Captured at source `85f08c88` by the Linux Electron visual-review workflow
+against its bundled backend and disposable HOME. I opened empty, one-project,
+and several-project worlds at compact and large sizes, plus the project Files
+room at both sizes. The first layout capture exposed a fit-camera regression at
+compact size; I kept the 32px tile floor when the map fits edge-to-edge. The
+first plaza capture then showed an isolated patch of paving. I changed paving
+to follow existing connected path cells only and recaptured the full set.
+
+The final review shows the Operations entrance connected to the path network,
+shared landmarks with walkable approaches, no paved island, and no offline
+worker sprites. The world and room still have clear composition debt: the civic
+area reads in ranks, grass lawns are broad and repetitive, the creek is mostly
+straight, and the room's stations feel sparse. This is a focused navigation and
+map-readability improvement, not the completed art direction.
+
+Opened files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+
 ## Winding creek banks — 2026-10-04
 
 Captured at source `9f410815` by the Linux Electron visual-review workflow
