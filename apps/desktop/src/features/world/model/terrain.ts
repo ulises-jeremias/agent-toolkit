@@ -848,7 +848,6 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
   // A few sharp glints sit directly on real water tiles; they are ambient
   // scenery, and never encode a job, session, or other runtime state.
   let sparkleCount = 0;
-  let moteCount = 0;
   for (const [at, tile] of p.cells) {
     const [xs, ys] = at.split(',');
     const x = Number(xs);
@@ -858,16 +857,29 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
       p.sprite(`water-sparkle:${at}`, x, y, 'water-sparkle', 8, 8, 4, 4, true, true);
       sparkleCount += 1;
     }
+  }
+
+  const moteCandidates = [...p.cells].flatMap(([at, tile]) => {
+    const [xs, ys] = at.split(',');
+    const x = Number(xs);
+    const y = Number(ys);
     if (
-      tile.startsWith('grass') &&
-      Math.abs(x - creekSafe(p)) <= 5 &&
-      y > 4 &&
-      h2(x, y, 97) % 37 === 0 &&
-      moteCount < 6
+      !tile.startsWith('grass') ||
+      Math.abs(x - creekSafe(p)) > 5 ||
+      y <= 4 ||
+      nearStructureOrPath(p, x, y, 2)
     ) {
-      p.sprite(`mote:${at}`, x, y, 'mote', 7, 7, 4, 4, true, true);
-      moteCount += 1;
+      return [];
     }
+    return [{ at, x, y, rank: h2(x, y, 97) }];
+  });
+  moteCandidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
+  const motePositions: { x: number; y: number }[] = [];
+  for (const { at, x, y } of moteCandidates) {
+    if (motePositions.some((position) => Math.hypot(position.x - x, position.y - y) < 5)) continue;
+    p.sprite(`mote:${at}`, x, y, 'mote', 7, 7, 4, 4, true, true);
+    motePositions.push({ x, y });
+    if (motePositions.length >= 6) break;
   }
 }
 
