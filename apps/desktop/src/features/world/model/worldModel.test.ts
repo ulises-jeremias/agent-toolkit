@@ -482,6 +482,11 @@ describe('buildWorldModel', () => {
       expect(paths.has(door), `${landmark.id} door ${door} connects to the commons (terrain: ${tile})`).toBe(true);
     }
     expect(terrain.cells.some((cell) => cell.tile.startsWith('plaza'))).toBe(true);
+    const operations = landmarks.find((landmark) => landmark.id === 'object:operations')!;
+    const operationsDoor = terrain.cells.find(
+      (cell) => cell.x === operations.x + Math.floor(operations.w / 2) && cell.y === operations.y + operations.h,
+    );
+    expect(operationsDoor?.tile.startsWith('plaza')).toBe(true);
   });
 
   it('keeps project interiors free of shared workshop fixtures and fake characters', () => {

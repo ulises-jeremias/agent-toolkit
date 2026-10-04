@@ -557,7 +557,7 @@ function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonl
     const right = Math.max(...publicPlaces.map((place) => place.x + place.w - 1));
     const centerX = Math.round((left + right) / 2);
     const frontY = Math.max(...publicPlaces.map((place) => place.y + place.h));
-    for (let dy = 0; dy <= 2; dy++) {
+    for (let dy = -1; dy <= 2; dy++) {
       for (let dx = -5; dx <= 5; dx++) {
         const inside = (dx * dx) / 30 + (dy * dy) / 4 <= 1;
         const x = centerX + dx;
