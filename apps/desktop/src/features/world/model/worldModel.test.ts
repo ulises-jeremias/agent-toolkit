@@ -759,6 +759,7 @@ describe('layoutWorld', () => {
     const first = paintTerrain(layout.entities, layout.cols, layout.rows);
     const second = paintTerrain(layout.entities, layout.cols, layout.rows);
     expect(first.cells).toEqual(second.cells);
+    expect(first.decor).toEqual(second.decor);
     expect(first.cells.some((cell) => cell.tile.startsWith('trail'))).toBe(true);
     const bridge = first.decor.find((sprite) => sprite.sprite === 'bridge');
     expect(bridge).toBeTruthy();
@@ -774,6 +775,12 @@ describe('layoutWorld', () => {
     );
     const trails = new Set(first.cells.filter((cell) => cell.tile.startsWith('trail')).map(({ x, y }) => `${x},${y}`));
     const water = new Set(first.cells.filter(({ tile }) => tile === 'water').map(({ x, y }) => `${x},${y}`));
+    const sparkles = first.decor.filter((sprite) => sprite.sprite === 'water-sparkle');
+    expect(sparkles.length).toBeGreaterThan(0);
+    expect(sparkles.length).toBeLessThanOrEqual(5);
+    for (const sparkle of sparkles) expect(water.has(`${sparkle.x},${sparkle.y}`)).toBe(true);
+    expect(first.decor.filter((sprite) => sprite.id.startsWith('bridge-lantern:')).length).toBe(2);
+    expect(first.decor.filter((sprite) => sprite.sprite === 'mote').length).toBeLessThanOrEqual(4);
     const reached = new Set<string>();
     const queue = [trails.values().next().value as string];
     while (queue.length) {

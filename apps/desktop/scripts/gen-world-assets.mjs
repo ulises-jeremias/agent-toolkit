@@ -1605,6 +1605,27 @@ function firefly() {
   return [{ name: 'firefly', img: f0, frames: [f0, f1] }];
 }
 
+/** Tiny warm motes: crisp environmental light, never a worker-state cue. */
+function mote() {
+  const f0 = new Img(5, 5);
+  f0.set(2, 0, 'god').set(1, 1, 'go').set(2, 1, 'gg').set(3, 1, 'go');
+  f0.set(1, 2, 'go').set(2, 2, 'gg').set(3, 2, 'go').set(2, 3, 'god');
+  const f1 = new Img(5, 5);
+  f1.set(2, 1, 'god').set(1, 2, 'go').set(2, 2, 'gg').set(3, 2, 'go').set(2, 3, 'god');
+  return [{ name: 'mote', img: f0, frames: [f0, f1] }];
+}
+
+/** A brief star glint over water, alternating with a quieter ripple. */
+function waterSparkle() {
+  const star = new Img(8, 8);
+  star.set(3, 1, 'wl').set(3, 2, 'wf').set(1, 3, 'wl').set(2, 3, 'wf');
+  star.set(3, 3, 'wf').set(4, 3, 'wf').set(5, 3, 'wl').set(3, 4, 'wf').set(3, 5, 'wl');
+  const ripple = new Img(8, 8);
+  ripple.hline(1, 3, 3, 'wl').hline(4, 6, 3, 'wf');
+  ripple.set(2, 2, 'wl').set(5, 4, 'wl');
+  return [{ name: 'water-sparkle', img: star, frames: [star, ripple] }];
+}
+
 function hornero() {
   const f0 = new Img(16, 12);
   const draw = (img, tail) => {
@@ -1687,6 +1708,8 @@ function collect() {
     bubbleAlert(),
     butterfly(),
     firefly(),
+    mote(),
+    waterSparkle(),
     hornero(),
   ])
     for (const s of group) put(s.name, s.img, s.frames);

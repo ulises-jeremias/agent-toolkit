@@ -128,6 +128,8 @@ export const cozyValleyTheme: WorldThemePack = {
     hornero: sprite('hornero', 'Hornero', 2),
     butterfly: sprite('butterfly', 'Butterfly', 2),
     firefly: sprite('firefly', 'Firefly', 2),
+    mote: sprite('mote', 'Floating mote', 2),
+    'water-sparkle': sprite('water-sparkle', 'Water sparkle', 2),
     'ops-crate': sprite('ops-crate', 'Crates'),
     'memory-index-object': sprite('memory-index', 'Card catalog'),
     'tool-terminal-desk': sprite('tool-terminal-desk', 'Terminal desk'),
