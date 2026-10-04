@@ -888,35 +888,86 @@ function grassTile(seed) {
   // Keep the variation tile-local and deterministic so it never looks noisy.
   const s = seed * 19 + 7;
   const patches = [
-    [[1, 2, 'gl'], [2, 2, 'gl'], [2, 3, 'fl'], [3, 3, 'gd']],
-    [[7, 1, 'gd'], [8, 2, 'fl'], [9, 2, 'gl'], [8, 3, 'gl']],
-    [[12, 4, 'gl'], [13, 4, 'fl'], [13, 5, 'gd']],
-    [[3, 8, 'gd'], [4, 8, 'fl'], [5, 9, 'gl'], [4, 10, 'gl']],
-    [[10, 10, 'gd'], [11, 9, 'fl'], [12, 9, 'gl'], [12, 10, 'gl']],
-    [[7, 13, 'gl'], [8, 12, 'fl'], [9, 12, 'gd'], [9, 13, 'gl']],
+    [
+      [2, 2, 'gl'],
+      [3, 2, 'gl'],
+      [4, 2, 'gm'],
+      [2, 3, 'fl'],
+      [3, 3, 'gt'],
+      [4, 3, 'gl'],
+      [3, 4, 'gd'],
+    ],
+    [
+      [7, 1, 'gd'],
+      [8, 1, 'gl'],
+      [9, 1, 'gl'],
+      [7, 2, 'gl'],
+      [8, 2, 'gt'],
+      [9, 2, 'gm'],
+      [8, 3, 'gl'],
+    ],
+    [
+      [12, 4, 'gl'],
+      [13, 4, 'fl'],
+      [12, 5, 'gl'],
+      [13, 5, 'gt'],
+      [14, 5, 'gm'],
+      [13, 6, 'gd'],
+    ],
+    [
+      [3, 8, 'gd'],
+      [4, 8, 'gl'],
+      [5, 8, 'gm'],
+      [3, 9, 'fl'],
+      [4, 9, 'gt'],
+      [5, 9, 'gl'],
+      [4, 10, 'gd'],
+    ],
+    [
+      [10, 10, 'gd'],
+      [11, 9, 'fl'],
+      [12, 9, 'gl'],
+      [13, 9, 'gm'],
+      [11, 10, 'gt'],
+      [12, 10, 'gl'],
+      [12, 11, 'gd'],
+    ],
+    [
+      [6, 13, 'gl'],
+      [7, 12, 'fl'],
+      [8, 12, 'gd'],
+      [9, 12, 'gl'],
+      [7, 13, 'gt'],
+      [8, 13, 'gm'],
+      [9, 13, 'gl'],
+    ],
   ];
   const rotation = s % patches.length;
   for (let i = 0; i < patches.length; i++) {
-    // Each tile gets three or four clusters in a different order; the fixed
-    // motifs keep pixels crisp and readable instead of relying on noise.
+    // Each tile gets a few broad clover/fern patches in a different order.
+    // The motifs read as ground cover at 3× zoom without noisy single-pixel
+    // speckling or an obvious repeated checkerboard.
     if ((i + seed) % 2 === 0 || (i + rotation) % 3 === 0) {
       for (const [x, y, color] of patches[(i + rotation) % patches.length]) img.set(x, y, color);
     }
   }
-  // A legible four-pixel clover mark gives each source tile a hand-painted
-  // landmark at 3× zoom; the position shifts by variant so the meadow does
-  // not read as repeated stamps. Keep it clear of the tile edge for seams.
-  const cloverX = 1 + (s % 10);
-  const cloverY = 1 + ((s * 3) % 11);
-  img
-    .set(cloverX, cloverY + 1, 'fl')
-    .set(cloverX + 1, cloverY, 'gl')
-    .set(cloverX + 1, cloverY + 1, 'gt')
-    .set(cloverX + 2, cloverY + 1, 'gd')
-    .set(cloverX + 1, cloverY + 2, 'fl');
-  const glintX = ((s * 7) % 13) + 1;
-  const glintY = ((s * 11) % 13) + 1;
-  img.set(glintX, glintY, 'gt');
+  // Occasional clover glints add hand-painted life without stamping a
+  // regular sparkle onto every single ground tile.
+  if (seed % 4 === 0) {
+    const cloverX = 2 + (s % 9);
+    const cloverY = 2 + ((s * 3) % 9);
+    img
+      .set(cloverX, cloverY + 1, 'fl')
+      .set(cloverX + 1, cloverY, 'gl')
+      .set(cloverX + 1, cloverY + 1, 'gt')
+      .set(cloverX + 2, cloverY + 1, 'gd')
+      .set(cloverX + 1, cloverY + 2, 'fl');
+  }
+  if (seed % 3 === 0) {
+    const glintX = ((s * 7) % 13) + 1;
+    const glintY = ((s * 11) % 13) + 1;
+    img.set(glintX, glintY, 'gt');
+  }
   return img;
 }
 
@@ -1092,7 +1143,12 @@ function waterTiles() {
       if (y % 4 === 1) img.set(boundary + (dir === 'e' ? 1 : -1), y, 'wf');
     }
     // A few low grass flecks keep the bank tied visually to its meadow.
-    for (const [x, y, color] of [[2, 3, 'gl'], [4, 11, 'gd'], [12, 5, 'gl'], [5, 14, 'gt']]) {
+    for (const [x, y, color] of [
+      [2, 3, 'gl'],
+      [4, 11, 'gd'],
+      [12, 5, 'gl'],
+      [5, 14, 'gt'],
+    ]) {
       if ((dir === 'e' && x < 6) || (dir === 'w' && x > 9)) img.set(x, y, color);
     }
     return img;
@@ -1713,7 +1769,7 @@ function collect() {
     hornero(),
   ])
     for (const s of group) put(s.name, s.img, s.frames);
-  for (let i = 0; i < 12; i++) put(`grass-${'abcdefghijkl'[i]}`, grassTile(i + 1));
+  for (let i = 0; i < 24; i++) put(`grass-${'abcdefghijklmnopqrstuvwx'[i]}`, grassTile(i + 1));
   for (let i = 0; i < 4; i++) put(`flowers-${['poppy', 'daisy', 'lavender', 'gold'][i]}`, flowerTile(i));
   for (const t of dirtTiles()) put(t.name, t.img);
   for (const t of plazaTiles()) put(t.name, t.img);

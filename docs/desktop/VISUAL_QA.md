@@ -564,3 +564,40 @@ Opened files:
   and [large](assets/electron/world/world-several-projects-large.png).
 - [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
   and [large](assets/electron/world/project-files-room-large.png).
+
+## Connected groves and open clearings — 2026-10-04
+
+Captured from source `cd933b8a` by the Linux Electron visual-review workflow
+against the packaged backend and disposable HOME. I opened all six empty,
+one-project, and several-project world captures at compact and large sizes, both
+project Files room captures, and the MCP provider and credential reviews. The
+first grove-density screenshot had broad overlapping canopies between civic
+landmarks and around the Terminal; I reduced interior creek-bank and meadow
+grove placement, then recaptured the same cases. The new several-project view
+has more breathing space around the Terminal and creek crossing while keeping
+the connected outer grove framing. The empty and one-project layouts remain
+stable, and the MCP warning still clearly states that no secret was saved when
+secure storage is unavailable.
+
+This review still shows substantial work before the target art direction is
+met: the meadow is broad and repetitive, paths remain angular, the central
+watercourse reads as a regular channel, and the project room is sparse with a
+large unoccupied floor. The civic cluster beside Memory still looks crowded at
+large size. Keep improving terrain composition, semantic interior art, and
+district hierarchy; the screenshots record current reality rather than a claim
+that the world is finished.
+
+Opened files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+- [MCP provider review, compact](assets/electron/library/mcp-configure-compact.png)
+  and [large](assets/electron/library/mcp-configure-large.png).
+- [Private credentials, compact](assets/electron/library/mcp-credentials-compact.png)
+  and [large](assets/electron/library/mcp-credentials-large.png).

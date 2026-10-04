@@ -188,7 +188,9 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // previous reservation made one house inherit the width of a five-lot
   // district, which turned a small workspace into a mostly empty panorama.
   // Lot coordinates remain stable as projects are added.
-  const projectLaneGap = 4;
+  // Leave one clear garden tile between neighboring façades so projects read
+  // as separate lots rather than touching storefronts.
+  const projectLaneGap = 5;
   const districtW = projects.length ? (Math.min(projects.length, districtCols) - 1) * projectLaneGap + 3 : 0;
   // Put project homes across a visible creek crossing from the shared
   // services. Keep the bank gap compact enough that the project district

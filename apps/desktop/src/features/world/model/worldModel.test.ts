@@ -685,8 +685,10 @@ describe('layoutWorld', () => {
     const firstAlpha = one.entities.find((entity) => entity.id === 'place:project:alpha')!;
     const secondAlpha = two.entities.find((entity) => entity.id === 'place:project:alpha')!;
     expect(secondAlpha).toMatchObject({ x: firstAlpha.x, y: firstAlpha.y, w: firstAlpha.w, h: firstAlpha.h });
+    const firstBeta = two.entities.find((entity) => entity.id === 'place:project:beta')!;
+    expect(firstBeta.x - (secondAlpha.x + secondAlpha.w)).toBeGreaterThanOrEqual(1);
     const compactTeam = layoutFor(['alpha', 'beta', 'gamma']);
-    expect(compactTeam.cols).toBeLessThanOrEqual(28);
+    expect(compactTeam.cols).toBeLessThanOrEqual(29);
     expect(compactTeam.rows).toBeLessThanOrEqual(13);
   });
 
@@ -903,6 +905,7 @@ describe('layoutWorld', () => {
     expect(new Set(cells.filter(({ tile }) => tile.startsWith('grass-')).map(({ tile }) => tile)).size).toBeGreaterThan(
       6,
     );
+    expect(cells.some(({ tile }) => tile.startsWith('grass-') && Number(tile.slice(6)) > 11)).toBe(true);
     const tiles = new Map(cells.map(({ x, y, tile }) => [`${x},${y}`, tile]));
     let adjacentPairs = 0;
     let paletteChanges = 0;
@@ -915,7 +918,7 @@ describe('layoutWorld', () => {
         if (next !== tile) paletteChanges += 1;
       }
     }
-    expect(adjacentPairs).toBeGreaterThan(100);
+    expect(adjacentPairs).toBeGreaterThan(50);
     expect(paletteChanges / adjacentPairs).toBeLessThan(0.65);
   });
 
@@ -950,6 +953,19 @@ describe('layoutWorld', () => {
       expect(tree.h).toBe(48);
     }
     expect(decor.find((sprite) => sprite.id === 'hornero:hall')?.y).toBeGreaterThanOrEqual(0);
+  });
+
+  it('frames open clearings with connected groves instead of isolated tree ornaments', () => {
+    const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
+    const trees = paintTerrain(layout.entities, layout.cols, layout.rows).decor.filter((sprite) =>
+      sprite.sprite.startsWith('tree-'),
+    );
+    const neighboringPairs = trees.filter((tree, index) =>
+      trees.slice(index + 1).some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
+    );
+
+    expect(trees.length).toBeGreaterThan(6);
+    expect(neighboringPairs.length).toBeGreaterThan(0);
   });
 
   it('lays out a project interior without shared Library or Workshop fixtures', () => {

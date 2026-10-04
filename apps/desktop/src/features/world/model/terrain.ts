@@ -158,10 +158,10 @@ function baseGround(p: Painter) {
                   : moisture < 0.94
                     ? 3
                     : 5;
-        // Each moisture band has two authored tile patterns. Stable per-cell
-        // choice breaks up repeated 16px stamps without adding visual noise.
-        const texture = h2(x, y, 59) % 2;
-        p.set(x, y, `grass-${grass * 2 + texture}`);
+        // Each moisture band has four authored tile patterns. Spatially
+        // seeded choice breaks up repeated 16px stamps without adding noise.
+        const texture = Math.min(3, Math.floor(meadowField(x, y, 5, 59) * 4));
+        p.set(x, y, `grass-${grass * 4 + texture}`);
       }
     }
   }
@@ -486,7 +486,7 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
 
 /** Broad irregular flower beds give open lawns a visible meadow rhythm. */
 function flowerGlades(p: Painter) {
-  const target = Math.min(8, Math.max(2, Math.floor((p.cols * p.rows) / 180)));
+  const target = Math.min(10, Math.max(3, Math.floor((p.cols * p.rows) / 120)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 2; y++) {
     for (let x = 2; x < p.cols - 2; x++) {
@@ -525,7 +525,6 @@ function flowerGlades(p: Painter) {
 
 /** Framing groves with natural gaps around buildings and paths. */
 function forest(p: Painter) {
-  const planted = new Set<string>();
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
       if (p.isBlocked(x, y)) continue;
@@ -533,8 +532,10 @@ function forest(p: Painter) {
       const edge = x < 6 || x >= p.cols - 6 || y < 3 || y >= p.rows - 4;
       const nearCreek = [-4, -3, -2, -1, 0, 1, 2, 3, 4].some((dx) => p.get(x + dx, y) === 'water');
       const roll = h2(x, y, 3) % 31;
-      const nearBuilding = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => p.blocked.has(key(x + dx, y + dy))));
-      const nearTree = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => planted.has(key(x + dx, y + dy))));
+      // Keep tree trunks clear of structures and paths. Canopies are painted
+      // behind semantic buildings, so the woods can grow close to a village
+      // without obscuring a façade, door, or its label.
+      const nearBuilding = p.blocked.has(key(x, y));
       const nearTrail = [-2, -1, 0, 1, 2].some((dy) =>
         [-2, -1, 0, 1, 2].some((dx) => p.paths.has(key(x + dx, y + dy))),
       );
@@ -545,9 +546,11 @@ function forest(p: Painter) {
       const wantTree =
         treeInsideFrame &&
         !nearBuilding &&
-        !nearTree &&
         !nearTrail &&
-        (edge ? roll < 29 : nearCreek ? grove && roll < 26 : grove && roll < 25);
+        // Keep the deeper settlement readable: creek banks get the strongest
+        // interior grove, while project and civic clearings retain breathing
+        // room. Deterministic gaps matter more than maximizing tree count.
+        (edge ? roll < 29 : nearCreek ? roll < 11 : grove && roll < 9);
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
         const canopyOffsetX = (h2(x, y, 47) % 5) - 2;
@@ -562,8 +565,7 @@ function forest(p: Painter) {
                 : kind < 8
                   ? 'tree-amber'
                   : 'tree-round';
-        p.sprite(`tree:${x},${y}`, x, y, tree, 48, 48, -16 + canopyOffsetX, -32 + canopyOffsetY, true);
-        planted.add(key(x, y));
+        p.sprite(`tree:${x},${y}`, x, y, tree, 48, 48, -16 + canopyOffsetX, -32 + canopyOffsetY, false);
       } else if (roll === 5 || roll === 6) p.sprite(`bush:${x},${y}`, x, y, 'bush', 16, 12, 0, 4);
       else if (roll === 7 || roll === 8) p.sprite(`rock:${x},${y}`, x, y, 'rock', 16, 12, 0, 5);
       else if (roll === 9 || roll === 10) p.sprite(`grass-tuft:${x},${y}`, x, y, 'tall-grass', 16, 8, 0, 8);
