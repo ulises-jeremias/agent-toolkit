@@ -535,7 +535,7 @@ function forest(p: Painter) {
       // Keep tree trunks clear of structures and paths. Canopies are painted
       // behind semantic buildings, so the woods can grow close to a village
       // without obscuring a façade, door, or its label.
-      const nearBuilding = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => p.blocked.has(key(x + dx, y + dy))));
+      const nearBuilding = p.blocked.has(key(x, y));
       const nearTrail = [-2, -1, 0, 1, 2].some((dy) =>
         [-2, -1, 0, 1, 2].some((dx) => p.paths.has(key(x + dx, y + dy))),
       );
@@ -547,7 +547,7 @@ function forest(p: Painter) {
         treeInsideFrame &&
         !nearBuilding &&
         !nearTrail &&
-        (edge ? roll < 29 : nearCreek ? grove && roll < 26 : grove && roll < 25);
+        (edge ? roll < 29 : nearCreek ? roll < 26 : grove && roll < 25);
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
         const canopyOffsetX = (h2(x, y, 47) % 5) - 2;

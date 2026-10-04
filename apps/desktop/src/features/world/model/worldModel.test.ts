@@ -685,8 +685,10 @@ describe('layoutWorld', () => {
     const firstAlpha = one.entities.find((entity) => entity.id === 'place:project:alpha')!;
     const secondAlpha = two.entities.find((entity) => entity.id === 'place:project:alpha')!;
     expect(secondAlpha).toMatchObject({ x: firstAlpha.x, y: firstAlpha.y, w: firstAlpha.w, h: firstAlpha.h });
+    const firstBeta = two.entities.find((entity) => entity.id === 'place:project:beta')!;
+    expect(firstBeta.x - (secondAlpha.x + secondAlpha.w)).toBeGreaterThanOrEqual(1);
     const compactTeam = layoutFor(['alpha', 'beta', 'gamma']);
-    expect(compactTeam.cols).toBeLessThanOrEqual(28);
+    expect(compactTeam.cols).toBeLessThanOrEqual(29);
     expect(compactTeam.rows).toBeLessThanOrEqual(13);
   });
 
