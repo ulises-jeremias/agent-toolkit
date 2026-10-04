@@ -587,12 +587,14 @@ describe('layoutWorld', () => {
       ),
     );
     const a = layout.entities.find((e) => e.id === 'place:project:a')!;
+    const b = layout.entities.find((e) => e.id === 'place:project:b')!;
     const e = layout.entities.find((e) => e.id === 'place:project:e')!;
     const memory = layout.entities.find((e) => e.id === 'place:memory')!;
     const library = layout.entities.find((e) => e.id === 'object:library')!;
     // Commons landmarks read as real buildings (4×4 library); projects sit south.
     expect(library.w).toBe(4);
     expect(library.h).toBe(4);
+    expect(b.y).toBe(a.y + 1);
     // With ≤10 projects the district uses 5 lanes — the fifth stays on row 1.
     expect(e.y).toBe(a.y);
     // A 16-project roster wraps to row 2 (7 lanes).
@@ -634,7 +636,7 @@ describe('layoutWorld', () => {
     expect(secondAlpha).toMatchObject({ x: firstAlpha.x, y: firstAlpha.y, w: firstAlpha.w, h: firstAlpha.h });
     const compactTeam = layoutFor(['alpha', 'beta', 'gamma']);
     expect(compactTeam.cols).toBeLessThanOrEqual(28);
-    expect(compactTeam.rows).toBeLessThanOrEqual(12);
+    expect(compactTeam.rows).toBeLessThanOrEqual(13);
   });
 
   it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {

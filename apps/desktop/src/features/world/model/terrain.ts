@@ -555,7 +555,14 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     (e) => e.kind === 'place' && e.id !== 'place:workspace' && !e.id.startsWith('place:project:'),
   );
   const marker = entities.find((e) => e.id === 'place:projects-empty');
-  const firstStreetDoorY = projects[0] ? projects[0].y + projects[0].h : marker ? marker.y + marker.h : undefined;
+  const firstProjectY = projects.length ? Math.min(...projects.map((project) => project.y)) : undefined;
+  const firstStreetProjects =
+    firstProjectY === undefined ? [] : projects.filter((project) => project.y <= firstProjectY + 1);
+  const firstStreetDoorY = firstStreetProjects.length
+    ? Math.max(...firstStreetProjects.map((project) => project.y + project.h))
+    : marker
+      ? marker.y + marker.h
+      : undefined;
   const roadY = firstStreetDoorY ?? Math.floor(rows / 2);
 
   // creek first so roads bridge it
