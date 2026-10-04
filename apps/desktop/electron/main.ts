@@ -65,7 +65,10 @@ async function createWindow(): Promise<void> {
   const harnessController = harness;
   if (!mcpSecrets) {
     mcpSecrets = new McpSecretStore(mcpSecretStorePath(app.getPath('userData')), safeStorage, () =>
-      electronStorageName(process.platform, safeStorage.getSelectedStorageBackend()),
+      electronStorageName(
+        process.platform,
+        process.platform === 'linux' ? safeStorage.getSelectedStorageBackend() : 'unknown',
+      ),
     );
   }
   const secretStore = mcpSecrets;
