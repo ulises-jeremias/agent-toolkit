@@ -828,9 +828,10 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
   }
   // Fireflies trace quiet stretches of the real creek, not runtime activity.
   const fireflyRows = new Set([
-    2,
+    Math.floor(p.rows * 0.12),
     Math.floor(p.rows * 0.28),
-    Math.floor(p.rows * 0.52),
+    Math.floor(p.rows * 0.44),
+    Math.floor(p.rows * 0.60),
     Math.floor(p.rows * 0.76),
     p.rows - 3,
   ]);
@@ -841,8 +842,8 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
       .map((offset) => creekSafe(p) + offset)
       .find((candidate) => p.get(candidate, y).startsWith('grass'));
     if (x === undefined) continue;
-    p.sprite(`firefly:${y}`, x, y, 'firefly', 6, 6, 5, 5, true, true);
-    if (++fireflyCount >= 4) break;
+    p.sprite(`firefly:${y}`, x, y, 'firefly', 8, 8, 4, 4, true, true);
+    if (++fireflyCount >= 6) break;
   }
   // A few sharp glints sit directly on real water tiles; they are ambient
   // scenery, and never encode a job, session, or other runtime state.
@@ -861,10 +862,10 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
       tile.startsWith('grass') &&
       Math.abs(x - creekSafe(p)) <= 5 &&
       y > 4 &&
-      h2(x, y, 97) % 43 === 0 &&
-      moteCount < 4
+      h2(x, y, 97) % 37 === 0 &&
+      moteCount < 6
     ) {
-      p.sprite(`mote:${at}`, x, y, 'mote', 5, 5, 5, 5, true, true);
+      p.sprite(`mote:${at}`, x, y, 'mote', 7, 7, 4, 4, true, true);
       moteCount += 1;
     }
   }
