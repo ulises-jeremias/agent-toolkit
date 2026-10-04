@@ -412,7 +412,7 @@ export function McpProvidersPanel() {
               </p>
             </div>
             {secretStatus?.available && pendingRestart ? (
-              <Button size="sm" onClick={() => setRestartReview(true)}>
+              <Button size="sm" busy={restartBusy} busyLabel="Restarting…" onClick={() => setRestartReview(true)}>
                 Restart backend to apply
               </Button>
             ) : null}
