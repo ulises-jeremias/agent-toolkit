@@ -99,6 +99,16 @@
   }
 }
 
+@media (max-width: 1100px) {
+  .credentialRow label {
+    grid-column: 1 / -1;
+  }
+
+  .credentialRow input {
+    grid-column: 1 / -1;
+  }
+}
+
 .review {
   padding: var(--space-3);
   border: 2px solid var(--border-default);

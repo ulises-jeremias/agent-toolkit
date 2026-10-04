@@ -749,13 +749,19 @@ test('Library configures MCP providers with secret-free previews and explicit ch
   }
   if (CAPTURE) {
     fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
+    const toastDismiss = page.getByRole('button', { name: 'Dismiss' });
+    if (await toastDismiss.isVisible().catch(() => false)) await toastDismiss.click();
+    await credentials.scrollIntoViewIfNeeded();
+    await expect(credentials).toBeInViewport();
     for (const size of [
       { width: 1024, height: 768, key: 'mcp-credentials-compact' },
       { width: 1440, height: 900, key: 'mcp-credentials-large' },
     ]) {
       await page.setViewportSize({ width: size.width, height: size.height });
       await expect.poll(() => page.evaluate(() => [innerWidth, innerHeight])).toEqual([size.width, size.height]);
-      await page.screenshot({ path: path.join(LIBRARY_CAPTURE_DIR, `${size.key}.png`), fullPage: true });
+      await credentials.scrollIntoViewIfNeeded();
+      await expect(credentials).toBeInViewport();
+      await credentials.screenshot({ path: path.join(LIBRARY_CAPTURE_DIR, `${size.key}.png`) });
     }
     await page.setViewportSize({ width: 1280, height: 800 });
   }
