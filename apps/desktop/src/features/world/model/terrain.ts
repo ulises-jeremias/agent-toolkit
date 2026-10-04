@@ -487,7 +487,7 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
 
 /** Broad irregular flower beds give open lawns a visible meadow rhythm. */
 function flowerGlades(p: Painter) {
-  const target = Math.min(10, Math.max(3, Math.floor((p.cols * p.rows) / 120)));
+  const target = Math.min(14, Math.max(4, Math.floor((p.cols * p.rows) / 82)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 2; y++) {
     for (let x = 2; x < p.cols - 2; x++) {
@@ -500,36 +500,83 @@ function flowerGlades(p: Painter) {
   const centers: { x: number; y: number }[] = [];
   for (const candidate of candidates) {
     if (centers.length >= target) break;
-    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 7)) continue;
+    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 6)) continue;
     centers.push(candidate);
 
-    const radiusX = 2 + (h2(candidate.x, candidate.y, 137) % 2);
+    const radiusX = 3 + (h2(candidate.x, candidate.y, 137) % 2);
     const radiusY = 2 + (h2(candidate.x, candidate.y, 139) % 2);
-    const bloom = `flowers-${['poppy', 'daisy', 'lavender', 'gold'][h2(candidate.x, candidate.y, 149) % 4]}`;
+    const blooms = ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'] as const;
+    const primary = h2(candidate.x, candidate.y, 149) % blooms.length;
+    const secondary = (primary + 1 + (h2(candidate.x, candidate.y, 157) % 3)) % blooms.length;
     for (let dy = -radiusY; dy <= radiusY; dy++) {
       for (let dx = -radiusX; dx <= radiusX; dx++) {
-        const shape = (dx * dx) / (radiusX * radiusX) + (dy * dy) / (radiusY * radiusY);
+        const distance = (dx * dx) / (radiusX * radiusX) + (dy * dy) / (radiusY * radiusY);
         const x = candidate.x + dx;
         const y = candidate.y + dy;
         if (
-          shape <= 1.35 &&
-          h2(x, y, 151) % 7 !== 0 &&
+          distance <= 1.25 &&
+          h2(x, y, 151) % 9 !== 0 &&
           p.get(x, y).startsWith('grass') &&
           !nearStructureOrPath(p, x, y, 0)
         ) {
-          p.set(x, y, bloom);
+          const accent = h2(x, y, 163) % 5 === 0;
+          p.set(x, y, blooms[accent ? secondary : primary]!);
         }
       }
     }
   }
 }
 
+/** Pick a few stable grove hearts inside the settlement, away from its paths. */
+function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<string> {
+  const target = Math.min(5, Math.max(1, Math.floor((p.cols * p.rows) / 240)));
+  const candidates: { x: number; y: number; rank: number }[] = [];
+  for (let y = 3; y < p.rows - 3; y++) {
+    for (let x = 4; x < p.cols - 4; x++) {
+      if (!p.get(x, y).startsWith('grass') && !p.get(x, y).startsWith('flowers')) continue;
+      if (nearStructureOrPath(p, x, y, 2)) continue;
+      candidates.push({ x, y, rank: h2(x, y, 173) });
+    }
+  }
+  if (meadowHeart) {
+    const heart = candidates.find((candidate) => candidate.x === meadowHeart.x && candidate.y === meadowHeart.y);
+    if (heart) heart.rank = -1;
+  }
+  candidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
+
+  const centers: { x: number; y: number }[] = [];
+  const anchors = new Set<string>();
+  const offsets = [
+    [0, 0],
+    [-2, 0],
+    [2, 0],
+    [-1, 1],
+    [1, 1],
+  ] as const;
+  for (const candidate of candidates) {
+    if (centers.length >= target) break;
+    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 9)) continue;
+    centers.push(candidate);
+    for (const [dx, dy] of offsets) {
+      const x = candidate.x + dx;
+      const y = candidate.y + dy;
+      if (p.get(x, y).startsWith('grass') || p.get(x, y).startsWith('flowers')) anchors.add(key(x, y));
+    }
+  }
+  return anchors;
+}
+
 /** Framing groves with natural gaps around buildings and paths. */
-function forest(p: Painter) {
+function forest(p: Painter, projectlessMeadow = false) {
+  const creeksideHeart = projectlessMeadow ? { x: creekSafe(p) + 4, y: 3 } : undefined;
+  const plantedGroves = groveAnchors(p, creeksideHeart);
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
       if (p.isBlocked(x, y)) continue;
-      if (!p.get(x, y).startsWith('grass')) continue;
+      const ground = p.get(x, y);
+      // A tree may root among flowers; the crown and shaded trunk naturally
+      // interrupt a meadow patch without turning the blossom cells into noise.
+      if (!ground.startsWith('grass') && !ground.startsWith('flowers')) continue;
       const edge = x < 6 || x >= p.cols - 6 || y < 3 || y >= p.rows - 4;
       const nearCreek = [-4, -3, -2, -1, 0, 1, 2, 3, 4].some((dx) => p.get(x + dx, y) === 'water');
       const roll = h2(x, y, 3) % 31;
@@ -537,7 +584,7 @@ function forest(p: Painter) {
       // Checking only the tree anchor lets a bright crown crowd a nearby
       // façade even though its trunk is technically on free ground.
       const canopyOverBuilding = [-2, -1, 0, 1].some((dy) =>
-        [-1, 0, 1, 2].some((dx) => p.blocked.has(key(x + dx, y + dy))),
+        [-2, -1, 0, 1, 2].some((dx) => p.blocked.has(key(x + dx, y + dy))),
       );
       const nearTrail = [-2, -1, 0, 1, 2].some((dy) =>
         [-2, -1, 0, 1, 2].some((dx) => p.paths.has(key(x + dx, y + dy))),
@@ -546,14 +593,9 @@ function forest(p: Painter) {
       // Keep tall canopies fully inside the framed world; low grass and
       // flowers can still reach the edge without looking accidentally cut.
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
-      const wantTree =
-        treeInsideFrame &&
-        !canopyOverBuilding &&
-        !nearTrail &&
-        // Keep the deeper settlement readable: creek banks get the strongest
-        // interior grove, while project and civic clearings retain breathing
-        // room. Deterministic gaps matter more than maximizing tree count.
-        (edge ? roll < 29 : nearCreek ? roll < 11 : grove && roll < 9);
+      const naturallyWooded = edge ? roll < (x >= p.cols - 6 ? 14 : 23) : nearCreek ? roll < 11 : grove && roll < 12;
+      const woodlandCell = plantedGroves.has(key(x, y)) || naturallyWooded;
+      const wantTree = treeInsideFrame && !canopyOverBuilding && !nearTrail && woodlandCell;
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
         const canopyOffsetX = (h2(x, y, 47) % 5) - 2;
@@ -774,7 +816,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   feather(p);
   plazaCore(p, hall, commons);
   flowerGlades(p);
-  forest(p);
+  forest(p, projects.length === 0);
   wildlife(p, hall);
 
   return { cells: cellsToArray(p), decor: p.decor };
