@@ -877,6 +877,12 @@ describe('layoutWorld', () => {
     for (let dx = 0; dx < 3; dx++) {
       expect(trails.has(`${bridge!.x + dx},${bridgeRoadY}`)).toBe(true);
     }
+    const projectDoors = layout.entities
+      .filter((entity) => entity.id.startsWith('place:project:'))
+      .map((project) => ({
+        x: project.x + Math.floor(project.w / 2),
+        y: project.y + project.h,
+      }));
     for (const project of layout.entities.filter((entity) => entity.id.startsWith('place:project:'))) {
       const doorX = project.x + Math.floor(project.w / 2);
       const doorFrontY = project.y + project.h;
@@ -888,6 +894,15 @@ describe('layoutWorld', () => {
         }
       }
     }
+    expect(
+      projectDoors.some(({ x: doorX, y: doorY }) =>
+        [...trails].some((at) => {
+          const [x = 0, y = 0] = at.split(',').map(Number);
+          return x !== doorX && Math.abs(x - doorX) <= 3 && y > doorY && y < bridgeRoadY;
+        }),
+      ),
+      'at least one project doorway has a curved approach to the shared avenue',
+    ).toBe(true);
     for (const place of layout.entities.filter((entity) => entity.kind === 'place')) {
       for (let y = place.y; y < place.y + place.h; y += 1) {
         for (let x = place.x; x < place.x + place.w; x += 1) {

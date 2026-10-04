@@ -197,7 +197,7 @@ function curvedPoints(x0: number, y0: number, x1: number, y1: number, side: numb
   const length = Math.hypot(dx, dy);
   if (length < 2) return rasterPoints(x0, y0, x1, y1);
 
-  const bend = Math.min(3, Math.max(1, length * 0.18)) * side;
+  const bend = Math.min(4, Math.max(2, length * 0.35)) * side;
   const controlX = (x0 + x1) / 2 - (dy / length) * bend;
   const controlY = (y0 + y1) / 2 + (dx / length) * bend;
   const samples = Math.max(4, Math.ceil(length * 2));
@@ -928,7 +928,10 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     : marker
       ? marker.y + marker.h
       : undefined;
-  const roadY = firstStreetDoorY ?? Math.floor(rows / 2);
+  // Keep a little meadow between house fronts and the shared avenue. That
+  // gives each real entrance room for a curved footpath instead of making
+  // every door sit directly on the same ruler-straight road tile.
+  const roadY = Math.min(rows - 3, (firstStreetDoorY ?? Math.floor(rows / 2)) + 2);
 
   // creek first so roads bridge it
   const workshop = entities.find((e) => e.id === 'object:workshop');
