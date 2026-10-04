@@ -106,6 +106,34 @@ Opened files:
 - [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
   and [large](assets/electron/world/project-files-room-large.png).
 
+## Winding creek banks — 2026-10-04
+
+Captured at source `9f410815` by the Linux Electron visual-review workflow
+against its bundled backend and disposable HOME. Opened empty and one-project
+worlds at 1024×640 and 1920×1080, the several-project world at both sizes, and
+the project Files room at both sizes. The previous channel stayed pinned to
+the west bank whenever the preferred creek coordinate was outside the clear
+corridor. The new layout centers that fallback in the safe space, letting the
+water bend to both sides of the bridge. The bridge still lands on the
+connected path; project doors and shared places stay dry.
+
+The bend is more visible in the compact capture and the stream occupies both
+banks around the crossing in the large capture. There are still sizeable flat
+grass areas, and the east-bank route can make a sharp rectangular turn around
+the empty-project marker. That interaction path is functional, but it is not a
+finished natural composition; terrain and routing need a broader pass.
+
+Opened files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+
 ## Creek shape review — 2026-10-04
 
 Source `7c754130`, Linux Electron captures against the disposable E2E
