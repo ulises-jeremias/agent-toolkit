@@ -690,3 +690,33 @@ Opened files:
   and [large](assets/electron/library/mcp-configure-large.png).
 - [Private credentials, compact](assets/electron/library/mcp-credentials-compact.png)
   and [large](assets/electron/library/mcp-credentials-large.png).
+
+## Readable wildflower beds — 2026-10-04
+
+Captured from source `7fed5eac` by the Linux Electron visual-review workflow
+with the packaged backend and a disposable HOME. I opened empty, one-project,
+and several-project worlds at compact and large sizes, plus both project Files
+room captures. The first 48×32 flower bed was rejected by the world-model test:
+its collision footprint left no valid placement in the empty-world fixture. I
+reduced the bed to 40×28, rebuilt its leafy silhouette, and retained exact
+terrain/path and canopy collision checks. The new screenshots show the flower
+beds clearly beside open meadow edges while keeping routes and the creek bridge
+readable. Asset generation is deterministic and `gen-world-assets.mjs --check`
+passes for all 132 sprites.
+
+This is a local improvement, not completion of the requested visual direction.
+The meadow still has too much uniform green, the creek and paths remain
+geometric, the project room is mostly empty floor, and the interface chrome is
+still visually separate from the world. These captures make the current state
+reviewable; they do not imply that the enchanted-valley art pass is finished.
+
+Opened files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
