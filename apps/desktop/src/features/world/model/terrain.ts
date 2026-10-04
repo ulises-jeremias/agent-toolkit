@@ -593,11 +593,12 @@ function forest(p: Painter, projectlessMeadow = false) {
       // Keep tall canopies fully inside the framed world; low grass and
       // flowers can still reach the edge without looking accidentally cut.
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
-      const woodlandCell = edge
+      const naturallyWooded = edge
         ? roll < (x >= p.cols - 6 ? 14 : 23)
         : nearCreek
           ? roll < 11
-          : plantedGroves.has(key(x, y)) || (grove && roll < 12);
+          : grove && roll < 12;
+      const woodlandCell = plantedGroves.has(key(x, y)) || naturallyWooded;
       const wantTree = treeInsideFrame && !canopyOverBuilding && !nearTrail && woodlandCell;
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
