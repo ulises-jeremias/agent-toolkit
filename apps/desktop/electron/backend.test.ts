@@ -107,7 +107,15 @@ describe('BackendSupervisor', () => {
 
   beforeEach(() => {
     fixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-fixture-'));
-    for (const name of ['PATH', 'ATK_EXPECTED_BACKEND_MAJOR', 'ATK_BACKEND_BIN']) saved[name] = process.env[name];
+    for (const name of [
+      'PATH',
+      'ATK_EXPECTED_BACKEND_MAJOR',
+      'ATK_BACKEND_BIN',
+      'MCP_TEST_SECRET',
+      'MCP_TEST_LOG_PREFIX',
+      'MCP_TEST_LOG_SUFFIX',
+    ])
+      saved[name] = process.env[name];
     writeFixture(path.join(fixtureDir, 'good'));
     process.env.PATH = `${path.join(fixtureDir, 'good')}${path.delimiter}${saved.PATH ?? ''}`;
     process.env.ATK_EXPECTED_BACKEND_MAJOR = '9';
@@ -159,6 +167,18 @@ describe('BackendSupervisor', () => {
     expect(url).not.toBeNull();
     expect(await (await fetch(`${url}/__fixture/secret`)).json()).toEqual({ value: 'secret-value-for-child' });
     expect(JSON.stringify(supervisor.snapshot())).not.toContain('secret-value-for-child');
+  }, 90_000);
+
+  it('does not inherit a launch-environment value after Desktop explicitly removes that credential', async () => {
+    process.env.MCP_TEST_SECRET = 'stale-launch-value';
+    supervisor = newSupervisor({
+      resolveHarness: fallbackHarness,
+      resolveClearedEnvironmentSecretNames: () => ['MCP_TEST_SECRET'],
+    });
+    expect(await supervisor.start()).toBe(true);
+    const url = supervisor.snapshot().url;
+    expect(url).not.toBeNull();
+    expect(await (await fetch(`${url}/__fixture/secret`)).json()).toEqual({ value: null });
   }, 90_000);
 
   it('redacts a stored credential if the backend prints it to stderr during startup', async () => {

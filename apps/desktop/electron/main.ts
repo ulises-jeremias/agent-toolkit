@@ -76,6 +76,7 @@ async function createWindow(): Promise<void> {
     backend = new BackendSupervisor({
       resolveHarness: () => harnessController.resolve(),
       resolveEnvironmentSecrets: () => secretStore.environment(),
+      resolveClearedEnvironmentSecretNames: () => secretStore.managedNames(),
     });
   }
   const supervisor = backend;

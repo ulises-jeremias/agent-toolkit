@@ -22,6 +22,8 @@ export interface McpSecretStatus {
 interface EncryptedSecretStore {
   version: 1;
   values: Record<string, string>;
+  /** Names intentionally removed from Desktop storage; values are never recorded. */
+  removed?: string[];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -36,7 +38,7 @@ function readStore(file: string): EncryptedSecretStore {
   try {
     const parsed: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
     if (!isRecord(parsed) || parsed.version !== 1 || !isRecord(parsed.values)) {
-      return { version: 1, values: {} };
+      return { version: 1, values: {}, removed: [] };
     }
     const values: Record<string, string> = {};
     for (const [name, encoded] of Object.entries(parsed.values)) {
@@ -44,9 +46,10 @@ function readStore(file: string): EncryptedSecretStore {
         values[name] = encoded;
       }
     }
-    return { version: 1, values };
+    const removed = Array.isArray(parsed.removed) ? [...new Set(parsed.removed.filter(validName))] : [];
+    return { version: 1, values, removed };
   } catch {
-    return { version: 1, values: {} };
+    return { version: 1, values: {}, removed: [] };
   }
 }
 
@@ -80,6 +83,7 @@ export class McpSecretStore {
     try {
       const store = readStore(this.file);
       store.values[name] = this.cipher.encryptString(value).toString('base64');
+      store.removed = (store.removed ?? []).filter((entry) => entry !== name);
       writeFileAtomic(this.file, `${JSON.stringify(store, null, 2)}\n`);
       return { ok: true };
     } catch {
@@ -92,6 +96,7 @@ export class McpSecretStore {
     const store = readStore(this.file);
     if (!(name in store.values)) return { ok: true };
     delete store.values[name];
+    store.removed = [...new Set([...(store.removed ?? []), name])].sort();
     try {
       writeFileAtomic(this.file, `${JSON.stringify(store, null, 2)}\n`);
       return { ok: true };
@@ -111,6 +116,11 @@ export class McpSecretStore {
       }
     }
     return result;
+  }
+
+  managedNames(): string[] {
+    const store = readStore(this.file);
+    return [...new Set([...Object.keys(store.values), ...(store.removed ?? [])])].sort();
   }
 }
 

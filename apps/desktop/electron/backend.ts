@@ -72,6 +72,8 @@ export interface BackendSupervisorOptions {
   spawnProcess?: typeof spawn;
   /** Decrypted MCP credentials are passed only to the supervised backend child. */
   resolveEnvironmentSecrets?: () => Record<string, string>;
+  /** Remove explicitly deleted Desktop credentials from the inherited launch environment. */
+  resolveClearedEnvironmentSecretNames?: () => string[];
   startTimeoutMs?: number;
 }
 
@@ -182,6 +184,7 @@ export class BackendSupervisor {
   private readonly probeGate: (url: string) => Promise<DesktopGateProbe>;
   private readonly spawnProcess: typeof spawn;
   private readonly resolveEnvironmentSecrets: () => Record<string, string>;
+  private readonly resolveClearedEnvironmentSecretNames: () => string[];
   private readonly startTimeoutMs: number;
 
   constructor(options: BackendSupervisorOptions = {}) {
@@ -191,6 +194,7 @@ export class BackendSupervisor {
     this.probeGate = options.probeGate ?? ((url) => probeDesktopGate(url));
     this.spawnProcess = options.spawnProcess ?? spawn;
     this.resolveEnvironmentSecrets = options.resolveEnvironmentSecrets ?? (() => ({}));
+    this.resolveClearedEnvironmentSecretNames = options.resolveClearedEnvironmentSecretNames ?? (() => []);
     this.startTimeoutMs = options.startTimeoutMs ?? START_TIMEOUT_MS;
   }
 
@@ -280,10 +284,12 @@ export class BackendSupervisor {
     const args = ['serve', '--host', '127.0.0.1', '--port', String(port), '--no-browser'];
     const environmentSecrets = this.resolveEnvironmentSecrets();
     const secretValues = Object.values(environmentSecrets);
+    const environment = { ...spawnContext.env };
+    for (const name of this.resolveClearedEnvironmentSecretNames()) delete environment[name];
     const child = this.spawnProcess(binary.path, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
       cwd: spawnContext.cwd,
-      env: { ...spawnContext.env, ...environmentSecrets, NO_COLOR: '1', TERM: 'dumb' },
+      env: { ...environment, ...environmentSecrets, NO_COLOR: '1', TERM: 'dumb' },
       windowsHide: true,
     });
     this.proc = child;

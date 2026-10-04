@@ -56,5 +56,6 @@ describe('McpSecretStore', () => {
     expect(store.remove('MCP_API_TOKEN')).toEqual({ ok: true });
     expect(store.status().names).toEqual([]);
     expect(store.environment()).toEqual({});
+    expect(new McpSecretStore(file, cipher(), () => 'gnome_libsecret').managedNames()).toEqual(['MCP_API_TOKEN']);
   });
 });
