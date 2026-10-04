@@ -955,6 +955,37 @@ describe('layoutWorld', () => {
     expect(decor.find((sprite) => sprite.id === 'hornero:hall')?.y).toBeGreaterThanOrEqual(0);
   });
 
+  it('keeps oversized tree canopies outside shared and project building footprints', () => {
+    const layout = layoutWorld(
+      buildWorldModel(
+        baseInput({
+          projects: ['north', 'east', 'south'].map((name) => ({
+            name,
+            target: `/${name}`,
+            status: 'ok' as const,
+          })),
+        }),
+      ),
+    );
+    const trees = paintTerrain(layout.entities, layout.cols, layout.rows).decor.filter((sprite) =>
+      sprite.sprite.startsWith('tree-'),
+    );
+    const buildings = layout.entities.filter((entity) => entity.kind === 'place' && entity.id.startsWith('place:'));
+
+    expect(trees.length).toBeGreaterThan(0);
+    for (const tree of trees) {
+      const left = tree.x + tree.dx / 16;
+      const right = left + tree.w / 16;
+      const top = tree.y + tree.dy / 16;
+      const bottom = top + tree.h / 16;
+      for (const building of buildings) {
+        const overlaps =
+          left < building.x + building.w && right > building.x && top < building.y + building.h && bottom > building.y;
+        expect(overlaps, `${tree.id} canopy overlaps ${building.id}`).toBe(false);
+      }
+    }
+  });
+
   it('frames open clearings with connected groves instead of isolated tree ornaments', () => {
     const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
     const trees = paintTerrain(layout.entities, layout.cols, layout.rows).decor.filter((sprite) =>

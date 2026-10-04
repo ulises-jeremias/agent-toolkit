@@ -46,6 +46,34 @@ Opened and refreshed files:
 - [Project room, compact](assets/electron/world/project-files-room-compact.png)
   and [large](assets/electron/world/project-files-room-large.png).
 
+## Clear project-house silhouettes — 2026-10-04
+
+Source `543ccbbb`, captured by the Linux Electron visual-review workflow with
+the packaged backend and disposable HOME (run `37203274477`). I opened fresh
+empty, one-project, and several-project views at compact and large sizes, plus
+the project room at both sizes. Tree placement now checks each oversized
+canopy's full bounds against building footprints, so a clear anchor cannot put
+foliage across a building silhouette. The multi-project captures show cleaner
+separation around the civic and project houses.
+
+This resolves one concrete readability issue. It does not finish the requested
+world direction: large areas remain open lawn, paths retain long right-angle
+segments, and the project room is a spacious prototype floor with little
+material or furniture variation. The next composition pass should shape the
+commons and tighten the interior around its real stations, then capture and
+critique the results before claiming improvement.
+
+Opened and refreshed files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+
 ## Civic bridge connection review — 2026-10-03
 
 Source `fcb211b7`, Linux Electron capture with the real backend and disposable
