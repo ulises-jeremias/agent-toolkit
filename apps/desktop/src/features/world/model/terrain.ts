@@ -831,7 +831,7 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
     Math.floor(p.rows * 0.12),
     Math.floor(p.rows * 0.28),
     Math.floor(p.rows * 0.44),
-    Math.floor(p.rows * 0.60),
+    Math.floor(p.rows * 0.6),
     Math.floor(p.rows * 0.76),
     p.rows - 3,
   ]);
