@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { errorMessage, recoveryHint, type CommandEnvelope } from '../lib/api';
 import { Button, type Tone } from './primitives';
 import styles from './ui.module.css';
@@ -70,37 +70,36 @@ let counter = 0;
 
 export function ReceiptsProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<Receipt[]>([]);
+  const historyRef = useRef<Receipt[]>([]);
   const [visible, setVisible] = useState<string[]>([]);
 
   const dismiss = useCallback((id: string) => {
     setVisible((ids) => ids.filter((candidate) => candidate !== id));
   }, []);
 
-  const push = useCallback(
-    (input: ReceiptInput) => {
-      counter += 1;
-      const receipt: Receipt = { ...input, id: `receipt-${counter}`, at: Date.now() };
-      const recoveredFailureIds =
-        input.tone === 'ok'
-          ? new Set(
-              history
-                .filter((item) => item.tone === 'err' && item.title === `${input.title} failed`)
-                .map((item) => item.id),
-            )
-          : new Set<string>();
-      setHistory((items) => [receipt, ...items].slice(0, HISTORY_LIMIT));
-      setVisible((ids) => {
-        const active = ids.filter((id) => !recoveredFailureIds.has(id));
-        const persistent = active.filter((id) => {
-          const previous = history.find((item) => item.id === id);
-          return previous?.tone === 'err' || previous?.tone === 'warn';
-        });
-        return [receipt.id, ...persistent].slice(0, VISIBLE_LIMIT);
+  const push = useCallback((input: ReceiptInput) => {
+    counter += 1;
+    const receipt: Receipt = { ...input, id: `receipt-${counter}`, at: Date.now() };
+    historyRef.current = [receipt, ...historyRef.current].slice(0, HISTORY_LIMIT);
+    const recoveredFailureIds =
+      input.tone === 'ok'
+        ? new Set(
+            historyRef.current
+              .filter((item) => item.tone === 'err' && item.title === `${input.title} failed`)
+              .map((item) => item.id),
+          )
+        : new Set<string>();
+    setHistory(historyRef.current);
+    setVisible((ids) => {
+      const active = ids.filter((id) => !recoveredFailureIds.has(id));
+      const persistent = active.filter((id) => {
+        const previous = historyRef.current.find((item) => item.id === id);
+        return previous?.tone === 'err' || previous?.tone === 'warn';
       });
-      return receipt.id;
-    },
-    [history],
-  );
+      return [receipt.id, ...persistent].slice(0, VISIBLE_LIMIT);
+    });
+    return receipt.id;
+  }, []);
 
   const value = useMemo(() => ({ history, push, dismiss }), [history, push, dismiss]);
   const byId = new Map(history.map((receipt) => [receipt.id, receipt]));

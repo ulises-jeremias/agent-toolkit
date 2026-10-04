@@ -234,9 +234,11 @@ describe('receipts', () => {
         <SequencePusher />
       </ReceiptsProvider>,
     );
-    act(() => screen.getByRole('button', { name: 'fail' }).click());
-    act(() => screen.getByRole('button', { name: 'first update' }).click());
-    act(() => screen.getByRole('button', { name: 'latest update' }).click());
+    act(() => {
+      screen.getByRole('button', { name: 'fail' }).click();
+      screen.getByRole('button', { name: 'first update' }).click();
+      screen.getByRole('button', { name: 'latest update' }).click();
+    });
 
     expect(screen.getByRole('alert')).toHaveTextContent('Persistent failure');
     expect(screen.getByText('Latest update')).toBeInTheDocument();
