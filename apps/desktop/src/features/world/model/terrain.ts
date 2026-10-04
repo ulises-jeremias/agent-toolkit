@@ -533,10 +533,12 @@ function forest(p: Painter) {
       const edge = x < 6 || x >= p.cols - 6 || y < 3 || y >= p.rows - 4;
       const nearCreek = [-4, -3, -2, -1, 0, 1, 2, 3, 4].some((dx) => p.get(x + dx, y) === 'water');
       const roll = h2(x, y, 3) % 31;
-      // Keep tree trunks clear of structures and paths. Canopies are painted
-      // behind semantic buildings, so the woods can grow close to a village
-      // without obscuring a façade, door, or its label.
-      const nearBuilding = p.blocked.has(key(x, y));
+      // Reserve the whole oversized canopy footprint around real buildings.
+      // Checking only the tree anchor lets a bright crown crowd a nearby
+      // façade even though its trunk is technically on free ground.
+      const canopyOverBuilding = [-2, -1, 0, 1].some((dy) =>
+        [-1, 0, 1, 2].some((dx) => p.blocked.has(key(x + dx, y + dy))),
+      );
       const nearTrail = [-2, -1, 0, 1, 2].some((dy) =>
         [-2, -1, 0, 1, 2].some((dx) => p.paths.has(key(x + dx, y + dy))),
       );
@@ -546,7 +548,7 @@ function forest(p: Painter) {
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
       const wantTree =
         treeInsideFrame &&
-        !nearBuilding &&
+        !canopyOverBuilding &&
         !nearTrail &&
         // Keep the deeper settlement readable: creek banks get the strongest
         // interior grove, while project and civic clearings retain breathing
