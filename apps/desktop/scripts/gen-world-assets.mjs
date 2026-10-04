@@ -195,6 +195,11 @@ const P = {
   gs: [0x61, 0x9e, 0x59],
   gw: [0x76, 0xb4, 0x6c],
   gd2: [0x5d, 0x98, 0x56],
+  meadowBase: [0x70, 0xa8, 0x59],
+  meadowSoft: [0x7e, 0xb5, 0x64],
+  meadowShade: [0x56, 0x8a, 0x4b],
+  meadowSun: [0x91, 0xbd, 0x6b],
+  meadowDeep: [0x46, 0x75, 0x44],
   gd: [0x4f, 0x8b, 0x4b],
   gl: [0x83, 0xbd, 0x70],
   gt: [0xb2, 0xd3, 0x87],
@@ -898,7 +903,7 @@ function objLampGlow() {
  * ------------------------------------------------------------------ */
 
 function grassTile(seed) {
-  const bases = ['g', 'gm', 'gs', 'gw', 'g', 'gd2'];
+  const bases = ['meadowBase', 'meadowSoft', 'meadowShade', 'meadowSun', 'meadowBase', 'meadowDeep'];
   const base = bases[(seed - 1 + bases.length) % bases.length];
   const img = new Img(16, 16).rect(0, 0, 15, 15, base);
   // Meadow cover is painted as small, irregular clumps instead of six

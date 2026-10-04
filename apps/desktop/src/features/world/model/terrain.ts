@@ -143,7 +143,7 @@ function baseGround(p: Painter) {
       const moisture = meadowField(x, y, 7, 11) * 0.65 + meadowField(x, y, 15, 17) * 0.35;
       const bloom = meadowField(x, y, 4, 19);
       const roll = h2(x, y, 1) % 23;
-      if (bloom > 0.77 && roll < 17) {
+      if (bloom > 0.8 && roll < 12) {
         p.set(x, y, ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'][h2(x, y, 12) % 4]!);
       } else {
         const grass =
