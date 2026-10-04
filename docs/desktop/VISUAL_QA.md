@@ -313,3 +313,24 @@ Opened files:
 
 - [Copilot project review, compact](assets/electron/library/copilot-project-review-compact.png)
   and [large](assets/electron/library/copilot-project-review-large.png).
+
+## MCP credential setup — 2026-10-04
+
+Captured from the Linux Electron workflow against the real packaged backend in
+a disposable HOME. The secure-storage-unavailable state fails closed: the input
+and save action are disabled, the panel explains that no value was saved, and
+the screenshot contains no credential value. Opening the first captures exposed
+two visual defects: the credential panel was below the visible viewport, and
+its wide grid could overlap the variable name and saved-state badge inside the
+Library content column. I changed the capture to target the actual panel, made
+the row layout adapt to the available content width, and corrected the copy so
+an unavailable keyring is never described as an encryption provider. The final
+compact and large captures show the complete panel with the warning and fields
+readable, no overlaps, and the secret-free state clear.
+
+Opened files:
+
+- [MCP provider review, compact](assets/electron/library/mcp-configure-compact.png)
+  and [large](assets/electron/library/mcp-configure-large.png).
+- [Private credentials, compact](assets/electron/library/mcp-credentials-compact.png)
+  and [large](assets/electron/library/mcp-credentials-large.png).

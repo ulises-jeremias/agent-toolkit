@@ -121,7 +121,7 @@ journeys:
     destinations: [library]
     status: ok
     evidence:
-      - note: Library uses a typed secret-free provider catalog and offers OS-encrypted credential entry. Saved names are visible but values are never returned; credentials are injected only into the supervised backend process on restart and are redacted from backend startup diagnostics. Configure and remove preview the exact local registry file; validation checks environment names/template provenance; probe explains that it checks the local executable, not a live model connection. Headless Linux without a secure keyring fails closed and explains that no value was saved.
+      - note: Library uses a typed secret-free provider catalog and offers OS-encrypted credential entry. Saved names are visible but values are never returned; credentials are injected only into the supervised backend process on restart and are redacted from backend startup diagnostics. Configure and remove preview the exact local registry file; validation checks environment names/template provenance; probe explains that it checks the local executable, not a live model connection. Headless Linux without a secure keyring fails closed, disables credential entry, and explains that no value was saved.
         tests:
           - apps/desktop/electron/mcp-secrets.test.ts
           - apps/desktop/electron/backend.test.ts
@@ -130,8 +130,9 @@ journeys:
         screenshots:
           - assets/electron/library/mcp-configure-compact.png
           - assets/electron/library/mcp-configure-large.png
-    blockers:
-      - Fresh compact and large credential-panel captures need visual review before acceptance is recorded
+          - assets/electron/library/mcp-credentials-compact.png
+          - assets/electron/library/mcp-credentials-large.png
+    blockers: []
   - id: jobs-run-observe
     title: Start a job, watch it work, see the outcome
     destinations: [operations, world]
