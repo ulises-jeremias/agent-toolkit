@@ -75,10 +75,21 @@ jobs:
         env:
           ATK_E2E_BACKEND_BIN: ${{ github.workspace }}/dist/agent-toolkit
           ATK_CAPTURE: '1'
-          ATK_CAPTURE_DIR: test-results/review
+          ATK_CAPTURE_DIR: ${{ runner.temp }}/atk-world-review
         run: >-
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
           pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/project-link.spec.ts
+      - name: Verify world review screenshots
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
+        run: |
+          set -euo pipefail
+          for screenshot in \
+            world-empty-compact.png world-empty-large.png \
+            world-one-project-compact.png world-one-project-large.png \
+            world-several-projects-compact.png world-several-projects-large.png \
+            project-files-room-compact.png project-files-room-large.png; do
+            test -s "${{ runner.temp }}/atk-world-review/$screenshot"
+          done
       - name: Capture MCP credential review
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
         env:
@@ -89,10 +100,11 @@ jobs:
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
           pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/desktop.spec.ts
           --grep "Library configures MCP providers"
-      - name: Stage MCP screenshots for visual review
+      - name: Stage screenshots for visual review
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
         run: |
           mkdir -p apps/desktop/test-results/review
+          cp "${{ runner.temp }}/atk-world-review/"*.png apps/desktop/test-results/review/
           cp docs/desktop/assets/electron/library/mcp-configure-compact.png apps/desktop/test-results/review/
           cp docs/desktop/assets/electron/library/mcp-configure-large.png apps/desktop/test-results/review/
           cp docs/desktop/assets/electron/library/mcp-credentials-compact.png apps/desktop/test-results/review/

@@ -181,33 +181,43 @@
     },
     "tree-round": {
       "file": "tree-round.png",
-      "w": 32,
-      "h": 40,
-      "frames": 1
+      "w": 48,
+      "h": 48,
+      "frames": 1,
+      "source": "scripts/world-art/tree-round.png",
+      "sha256": "d787e44252756c2e1200b93894ce7499d2cb468154f5b768b92b39bbf59f488c"
     },
     "tree-blossom": {
       "file": "tree-blossom.png",
-      "w": 32,
-      "h": 40,
-      "frames": 1
+      "w": 48,
+      "h": 48,
+      "frames": 1,
+      "source": "scripts/world-art/tree-blossom.png",
+      "sha256": "709b7a0ed0daa077097ac6b375e8b4230ad72330e460eedc8f4a58fe3e43d8a8"
     },
     "tree-amber": {
       "file": "tree-amber.png",
-      "w": 32,
-      "h": 40,
-      "frames": 1
+      "w": 48,
+      "h": 48,
+      "frames": 1,
+      "source": "scripts/world-art/tree-amber.png",
+      "sha256": "575f9a7054aeea7d309f1de038046ed1c8f7ce2ccc6b732a552a5410cbc21f1d"
     },
     "tree-pine": {
       "file": "tree-pine.png",
-      "w": 32,
-      "h": 40,
-      "frames": 1
+      "w": 48,
+      "h": 48,
+      "frames": 1,
+      "source": "scripts/world-art/tree-pine.png",
+      "sha256": "aec4432f9a566ff5f05b9497577f737cd0c7ae7fe354d94bd21db4f7890166f2"
     },
     "tree-willow": {
       "file": "tree-willow.png",
-      "w": 32,
-      "h": 40,
-      "frames": 1
+      "w": 48,
+      "h": 48,
+      "frames": 1,
+      "source": "scripts/world-art/tree-willow.png",
+      "sha256": "cdfcb01881df58d73d1fc9ebbf5cebfb4c6afd3a63b9cc8122bd9284f1065024"
     },
     "bush": {
       "file": "bush.png",
