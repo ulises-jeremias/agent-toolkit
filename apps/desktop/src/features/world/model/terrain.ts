@@ -193,6 +193,32 @@ function rasterLine(p: Painter, x0: number, y0: number, x1: number, y1: number) 
   }
 }
 
+/** Check the same integer raster path before replacing a grid-shaped approach. */
+function clearRasterLine(p: Painter, x0: number, y0: number, x1: number, y1: number): boolean {
+  let x = x0;
+  let y = y0;
+  const dx = Math.abs(x1 - x0);
+  const sx = x0 < x1 ? 1 : -1;
+  const dy = -Math.abs(y1 - y0);
+  const sy = y0 < y1 ? 1 : -1;
+  let error = dx + dy;
+  for (;;) {
+    if (p.isBlocked(x, y) || p.get(x, y) === 'water') return false;
+    if (x === x1 && y === y1) return true;
+    const twice = error * 2;
+    if (twice >= dy) {
+      error += dy;
+      x += sx;
+      if (p.isBlocked(x, y) || p.get(x, y) === 'water') return false;
+    }
+    if (twice <= dx) {
+      error += dx;
+      y += sy;
+      if (p.isBlocked(x, y) || p.get(x, y) === 'water') return false;
+    }
+  }
+}
+
 /** Main commons route meanders, but meets the bridge at its exact level. */
 function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX: number) {
   let previous = { x: startX, y };
@@ -226,6 +252,8 @@ function connectEntrance(p: Painter, startX: number, startY: number) {
   const queue = [start];
   const parent = new Map<string, string | null>([[start, null]]);
   let target: string | undefined;
+  let targetX = startX;
+  let targetY = startY;
   const steps = [
     [0, -1],
     [-1, 0],
@@ -244,6 +272,8 @@ function connectEntrance(p: Painter, startX: number, startY: number) {
       if (p.paths.has(next)) {
         parent.set(next, at);
         target = next;
+        targetX = nx;
+        targetY = ny;
         break;
       }
       if (p.get(nx, ny) === 'water') continue;
@@ -253,6 +283,13 @@ function connectEntrance(p: Painter, startX: number, startY: number) {
   }
 
   if (!target) return;
+  // Most doors have a direct meadow approach. Use a crisp diagonal where its
+  // full raster is open; preserve the obstacle-aware route around real lots
+  // and water whenever the direct course would cut through something.
+  if (clearRasterLine(p, startX, startY, targetX, targetY)) {
+    rasterLine(p, startX, startY, targetX, targetY);
+    return;
+  }
   let cursor: string | null = parent.get(target)!;
   while (cursor) {
     const [x = 0, y = 0] = cursor.split(',').map(Number);
