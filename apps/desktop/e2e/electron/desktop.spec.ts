@@ -710,13 +710,12 @@ test('Library configures MCP providers with secret-free previews and explicit ch
     fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
     for (const size of [
       { width: 1024, height: 768, key: 'mcp-configure-compact' },
-      { width: 1920, height: 1080, key: 'mcp-configure-large' },
+      { width: 1440, height: 900, key: 'mcp-configure-large' },
     ]) {
-      await setViewport(desktop.app, size.width, size.height);
       await page.setViewportSize({ width: size.width, height: size.height });
+      await expect.poll(() => page.evaluate(() => [innerWidth, innerHeight])).toEqual([size.width, size.height]);
       await page.screenshot({ path: path.join(LIBRARY_CAPTURE_DIR, `${size.key}.png`), fullPage: true });
     }
-    await setViewport(desktop.app, 1280, 800);
     await page.setViewportSize({ width: 1280, height: 800 });
   }
   await configure.getByRole('button', { name: 'Save provider' }).click();
@@ -752,13 +751,12 @@ test('Library configures MCP providers with secret-free previews and explicit ch
     fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
     for (const size of [
       { width: 1024, height: 768, key: 'mcp-credentials-compact' },
-      { width: 1920, height: 1080, key: 'mcp-credentials-large' },
+      { width: 1440, height: 900, key: 'mcp-credentials-large' },
     ]) {
-      await setViewport(desktop.app, size.width, size.height);
       await page.setViewportSize({ width: size.width, height: size.height });
+      await expect.poll(() => page.evaluate(() => [innerWidth, innerHeight])).toEqual([size.width, size.height]);
       await page.screenshot({ path: path.join(LIBRARY_CAPTURE_DIR, `${size.key}.png`), fullPage: true });
     }
-    await setViewport(desktop.app, 1280, 800);
     await page.setViewportSize({ width: 1280, height: 800 });
   }
 
