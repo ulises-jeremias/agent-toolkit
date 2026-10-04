@@ -56,4 +56,4 @@ uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit --v
 - [pypi-launcher.md](pypi-launcher.md) — `uv tool install 'agent-toolkit-cli>=1.11.0'` + `AGENT_TOOLKIT_ROOT=$PWD` + `VMODULES=$(pwd)/modules` vs `embedded_data`
 - [cutover.md](cutover.md) — `9163c93` drop narrative
 - [rollback.md](rollback.md) — rollback point `fbb2280`
-- `docs/compatibility/cli-contract.yaml` vs `docs/CLI_SURFACES.md` — `serve`/`tui` V-extra (no `parity.yml`)
+- `docs/compatibility/cli-contract.yaml` vs `docs/CLI_SURFACES.md` — `serve` V-extra (no `parity.yml`)
