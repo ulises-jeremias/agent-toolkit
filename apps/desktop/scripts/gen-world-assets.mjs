@@ -242,6 +242,9 @@ const P = {
   cy: [0x5f, 0xe3, 0xd0],
   cyd: [0x3f, 0xb5, 0xa6],
   gg: [0xff, 0xd9, 0x7a],
+  glowOuter: [0xff, 0xd9, 0x7a, 28],
+  glowMiddle: [0xff, 0xd9, 0x7a, 55],
+  glowInner: [0xff, 0xd9, 0x7a, 95],
   go: [0xf0, 0xbd, 0x5e],
   god: [0xc9, 0x9a, 0x3f],
   lv: [0xb7, 0xa6, 0xf0],
@@ -873,6 +876,16 @@ function objLamp() {
   const f1 = new Img(16, 24);
   draw(f1, 'go');
   return [{ name: 'lamp', img: f0, frames: [f0, f1] }];
+}
+
+/** Crisp stepped lantern aura; transparency adds warmth without blur filters. */
+function objLampGlow() {
+  const img = new Img(32, 32);
+  img.ellipse(16, 16, 15, 13, 'glowOuter');
+  img.ellipse(16, 16, 10, 9, 'glowMiddle');
+  img.ellipse(16, 16, 5, 5, 'glowInner');
+  img.rect(14, 14, 17, 17, 'gg').set(15, 13, 'wy').set(16, 18, 'go');
+  return [{ name: 'lamp-glow', img }];
 }
 
 /* ------------------------------------------------------------------ *
@@ -1753,6 +1766,7 @@ function collect() {
     objLoopClock(),
     objCrate(),
     objInbox(),
+    objLampGlow(),
     objLamp(),
     bridge(),
     treeRound(),

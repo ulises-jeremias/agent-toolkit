@@ -678,6 +678,12 @@ function forest(p: Painter, projectlessMeadow = false) {
   }
 }
 
+/** A warm pixel-step aura sits beneath each physical lantern sprite. */
+function placeLantern(p: Painter, id: string, x: number, y: number) {
+  p.sprite(`${id}:glow`, x, y, 'lamp-glow', 32, 32, -8, -16);
+  p.sprite(id, x, y, 'lamp', 16, 24, 0, -10);
+}
+
 /** Plaza stones behind the hall; sign + lamps on the commons edge. */
 function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonly LaidOutEntity[]) {
   if (hall) {
@@ -704,7 +710,7 @@ function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonl
     const ly = c.y + c.h;
     if (ly < p.rows && !p.isBlocked(c.x - 1, ly) && p.get(c.x - 1, ly).startsWith('grass')) {
       if (h2(c.x, ly, 5) % 2 === 0) {
-        p.sprite(`lamp:${c.x},${ly}`, c.x - 1, ly, 'lamp', 16, 24, 0, -10);
+        placeLantern(p, `lamp:commons:${c.x},${ly}`, c.x - 1, ly);
         lampYs.add(ly);
       }
     }
@@ -810,7 +816,7 @@ function bridgeLanterns(p: Painter, creekX: number, roadY: number) {
     const y = roadY;
     const x = bankTiles.find((candidate) => !p.isBlocked(candidate, y) && p.get(candidate, y) !== 'water');
     if (x === undefined) continue;
-    p.sprite(`bridge-lantern:${side}`, x, y, 'lamp', 16, 24, 0, -10, false);
+    placeLantern(p, `bridge-lantern:${side}`, x, y);
   }
 }
 

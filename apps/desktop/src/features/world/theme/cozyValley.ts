@@ -139,6 +139,7 @@ export const cozyValleyTheme: WorldThemePack = {
     'fence-h': sprite('fence-h', 'Fence'),
     'fence-v': sprite('fence-v', 'Fence'),
     sign: sprite('sign', 'Sign'),
+    'lamp-glow': sprite('lamp-glow', 'Lantern glow'),
     lamp: sprite('lamp', 'Lamp', 2),
     hornero: sprite('hornero', 'Hornero', 2),
     butterfly: sprite('butterfly', 'Butterfly', 2),
