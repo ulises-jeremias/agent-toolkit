@@ -529,7 +529,7 @@ function flowerPatchSprites(p: Painter) {
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 2; y++) {
     for (let x = 2; x < p.cols - 2; x++) {
-      if (!p.get(x, y).startsWith('flowers')) continue;
+      if (!p.get(x, y).startsWith('flowers') && !p.get(x, y).startsWith('grass')) continue;
       candidates.push({ x, y, rank: h2(x, y, 181) });
     }
   }
@@ -817,27 +817,38 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
 
 /** Paired lanterns mark the shared bridge as a welcoming route at dusk. */
 function bridgeLanterns(p: Painter, creekX: number, roadY: number) {
-  const placed: number[] = [];
-  for (const [side, bankTiles] of [
-    ['west', [creekX - 2, creekX - 3, creekX - 1, creekX - 4, creekX - 5]],
-    ['east', [creekX + 3, creekX + 4, creekX + 2, creekX + 5, creekX + 6]],
+  const placed = new Set<string>();
+  for (const [side, direction] of [
+    ['west', -1],
+    ['east', 1],
   ] as const) {
     // The crossing row is paved across the water, so both posts stand on a
     // real bank-side ground cell instead of appearing to float in the stream.
     // A nearby project porch may claim the preferred post tile; slide one
     // tile along the same bank so the bridge still reads as a paired welcome.
-    const y = roadY;
-    const x = bankTiles.find(
-      (candidate) =>
-        candidate >= 0 &&
-        candidate < p.cols &&
-        !placed.includes(candidate) &&
-        !p.isBlocked(candidate, y) &&
-        p.get(candidate, y) !== 'water',
-    );
-    if (x === undefined) continue;
-    placeLantern(p, `bridge-lantern:${side}`, x, y);
-    placed.push(x);
+    const bankX = creekX + (direction < 0 ? -1 : 3);
+    const candidates: { x: number; y: number }[] = [];
+    for (const dy of [0, -1, 1, -2, 2]) {
+      for (const dx of [0, 1, -1, 2, -2]) {
+        candidates.push({ x: bankX + direction * dx, y: roadY + dy });
+      }
+    }
+    const position = candidates.find(({ x, y }) => {
+      const at = key(x, y);
+      return (
+        x >= 0 &&
+        x < p.cols &&
+        y >= 0 &&
+        y < p.rows &&
+        !placed.has(at) &&
+        !p.isBlocked(x, y) &&
+        p.get(x, y) !== 'water' &&
+        (direction < 0 ? x < creekX : x > creekX + 2)
+      );
+    });
+    if (!position) continue;
+    placeLantern(p, `bridge-lantern:${side}`, position.x, position.y);
+    placed.add(key(position.x, position.y));
   }
 }
 
@@ -911,8 +922,8 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   feather(p);
   plazaCore(p, hall, commons);
   flowerGlades(p);
-  flowerPatchSprites(p);
   forest(p, projects.length === 0);
+  flowerPatchSprites(p);
   wildlife(p, hall);
 
   return { cells: cellsToArray(p), decor: p.decor };
