@@ -15,6 +15,37 @@ Review fresh empty/one/many-project worlds, project selection and interior, Peop
 
 The world is the dominant `/world` surface. Projects are actual buildings and shared capabilities have distinct places. A configured offline Person is shown in the roster, never as a world worker. Runtime characters require a real session/job/run and disappear when it ends. Furniture, signs, labels, and ambient animation must not imply nonexistent activity.
 
+## Meadow and commons path iteration — 2026-10-04
+
+Source `640dc775`, captured by the Linux Electron workflow against its built
+backend and disposable HOME (run `37201065893`). I opened all six empty,
+one-project, and several-project views at compact and large sizes, plus both
+project-room sizes. The original grass source produced many repeated clover
+stamps; a deterministic set of smaller, varied clumps with fewer bright flecks
+calms the lawn at normal zoom. The shared commons route also gains a shallow
+deterministic sway before it reaches the fixed bridge crossing. Asset freshness,
+Desktop lint, type-check, unit tests, build, renderer/Electron E2E, and packaged
+directory build passed in the same remote workflow.
+
+The updated captures confirm crisp sprites, readable house silhouettes, a clear
+bridge, and no offline People represented as workers. The change to the path is
+subtle at normal scale, however, and the route network still has obvious
+right-angle runs. The multi-project valley continues to have wide uninterrupted
+lawns, while the project room still uses a broad, bare plank floor and light
+wall bands. These are visible remaining art/composition issues; this iteration
+is not a claim that the requested magical world direction is complete.
+
+Opened and refreshed files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+
 ## Civic bridge connection review — 2026-10-03
 
 Source `fcb211b7`, Linux Electron capture with the real backend and disposable

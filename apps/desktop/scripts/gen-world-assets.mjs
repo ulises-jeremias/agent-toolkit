@@ -883,90 +883,44 @@ function grassTile(seed) {
   const bases = ['g', 'gm', 'gs', 'gw', 'g', 'gd2'];
   const base = bases[(seed - 1 + bases.length) % bases.length];
   const img = new Img(16, 16).rect(0, 0, 15, 15, base);
-  // Gentle base-color shifts and hand-authored clover patches break up the
-  // broad lawn into readable meadow clearings at the displayed 3x scale.
-  // Keep the variation tile-local and deterministic so it never looks noisy.
-  const s = seed * 19 + 7;
-  const patches = [
-    [
-      [2, 2, 'gl'],
-      [3, 2, 'gl'],
-      [4, 2, 'gm'],
-      [2, 3, 'fl'],
-      [3, 3, 'gt'],
-      [4, 3, 'gl'],
-      [3, 4, 'gd'],
-    ],
-    [
-      [7, 1, 'gd'],
-      [8, 1, 'gl'],
-      [9, 1, 'gl'],
-      [7, 2, 'gl'],
-      [8, 2, 'gt'],
-      [9, 2, 'gm'],
-      [8, 3, 'gl'],
-    ],
-    [
-      [12, 4, 'gl'],
-      [13, 4, 'fl'],
-      [12, 5, 'gl'],
-      [13, 5, 'gt'],
-      [14, 5, 'gm'],
-      [13, 6, 'gd'],
-    ],
-    [
-      [3, 8, 'gd'],
-      [4, 8, 'gl'],
-      [5, 8, 'gm'],
-      [3, 9, 'fl'],
-      [4, 9, 'gt'],
-      [5, 9, 'gl'],
-      [4, 10, 'gd'],
-    ],
-    [
-      [10, 10, 'gd'],
-      [11, 9, 'fl'],
-      [12, 9, 'gl'],
-      [13, 9, 'gm'],
-      [11, 10, 'gt'],
-      [12, 10, 'gl'],
-      [12, 11, 'gd'],
-    ],
-    [
-      [6, 13, 'gl'],
-      [7, 12, 'fl'],
-      [8, 12, 'gd'],
-      [9, 12, 'gl'],
-      [7, 13, 'gt'],
-      [8, 13, 'gm'],
-      [9, 13, 'gl'],
-    ],
+  // Meadow cover is painted as small, irregular clumps instead of six
+  // repeated stamps. The seed shapes where broad leaf and grass motifs land,
+  // while the palette stays restrained enough to read as ground at 3× scale.
+  let state = (seed * 0x45d9f3b + 0x27100001) >>> 0;
+  const random = (max) => {
+    state = (Math.imul(state ^ (state >>> 16), 0x45d9f3b) + 0x27100001) >>> 0;
+    return state % max;
+  };
+  const clovers = [
+    [[0, 1, 'fl'], [1, 0, 'gl'], [1, 1, 'gt'], [2, 1, 'gl'], [1, 2, 'gd']],
+    [[1, 0, 'gl'], [0, 1, 'fl'], [1, 1, 'gt'], [2, 1, 'gd'], [1, 2, 'gl']],
+    [[0, 0, 'gl'], [1, 0, 'gd'], [1, 1, 'gt'], [2, 1, 'gl'], [2, 2, 'fl']],
+    [[1, 0, 'gd'], [0, 1, 'gl'], [1, 1, 'gt'], [2, 1, 'fl'], [1, 2, 'gl']],
   ];
-  const rotation = s % patches.length;
-  for (let i = 0; i < patches.length; i++) {
-    // Each tile gets a few broad clover/fern patches in a different order.
-    // The motifs read as ground cover at 3× zoom without noisy single-pixel
-    // speckling or an obvious repeated checkerboard.
-    if ((i + seed) % 2 === 0 || (i + rotation) % 3 === 0) {
-      for (const [x, y, color] of patches[(i + rotation) % patches.length]) img.set(x, y, color);
+  const tufts = [
+    [[0, 2, 'gd'], [1, 1, 'gl'], [2, 0, 'gm'], [2, 1, 'gt']],
+    [[0, 1, 'gm'], [1, 0, 'gl'], [1, 1, 'gt'], [2, 2, 'gd']],
+    [[0, 2, 'gd'], [1, 1, 'gt'], [1, 2, 'gl'], [2, 0, 'gm']],
+  ];
+  const count = 1 + random(2);
+  for (let i = 0; i < count; i++) {
+    const motif = random(3) === 0 ? tufts[random(tufts.length)] : clovers[random(clovers.length)];
+    const left = 1 + random(12);
+    const top = 1 + random(12);
+    const flip = random(2) === 0 ? -1 : 1;
+    for (const [dx, dy, color] of motif) {
+      const x = flip > 0 ? left + dx : left + 2 - dx;
+      img.set(x, top + dy, color);
     }
+    // One shadow fleck grounds each clump and keeps the forms leafy, not
+    // glittery. Its position is tied to the motif rather than random speckle.
+    img.set(left + (flip > 0 ? 2 : 0), top + 3, 'gd');
   }
-  // Occasional clover glints add hand-painted life without stamping a
-  // regular sparkle onto every single ground tile.
-  if (seed % 4 === 0) {
-    const cloverX = 2 + (s % 9);
-    const cloverY = 2 + ((s * 3) % 9);
-    img
-      .set(cloverX, cloverY + 1, 'fl')
-      .set(cloverX + 1, cloverY, 'gl')
-      .set(cloverX + 1, cloverY + 1, 'gt')
-      .set(cloverX + 2, cloverY + 1, 'gd')
-      .set(cloverX + 1, cloverY + 2, 'fl');
-  }
-  if (seed % 3 === 0) {
-    const glintX = ((s * 7) % 13) + 1;
-    const glintY = ((s * 11) % 13) + 1;
-    img.set(glintX, glintY, 'gt');
+  // A few grass blades add vertical rhythm to otherwise flat clearings.
+  if (seed % 3 !== 1) {
+    const x = 2 + random(12);
+    const y = 2 + random(11);
+    img.set(x, y + 1, 'gm').set(x + (seed % 2 ? 1 : -1), y, 'gl');
   }
   return img;
 }
