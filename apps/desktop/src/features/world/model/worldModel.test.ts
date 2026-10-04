@@ -818,7 +818,9 @@ describe('layoutWorld', () => {
     for (const cell of first.cells.filter(({ tile }) => tile === 'water')) {
       waterRows.set(cell.y, [...(waterRows.get(cell.y) ?? []), cell.x]);
     }
-    expect(new Set([...waterRows.values()].map((xs) => Math.min(...xs))).size).toBeGreaterThan(1);
+    const creekBanks = [...waterRows.values()].map((xs) => Math.min(...xs));
+    expect(new Set(creekBanks).size).toBeGreaterThan(1);
+    expect(Math.max(...creekBanks) - Math.min(...creekBanks)).toBeGreaterThanOrEqual(3);
     const bridgeRoadY = bridge!.y + 1;
     const upstreamStarts = [...waterRows.entries()].filter(([y]) => y < bridgeRoadY).map(([, xs]) => Math.min(...xs));
     const downstreamStarts = [...waterRows.entries()].filter(([y]) => y > bridgeRoadY).map(([, xs]) => Math.min(...xs));
@@ -862,6 +864,13 @@ describe('layoutWorld', () => {
       for (let y = project.y; y < project.y + project.h; y++) {
         for (let x = project.x; x < project.x + project.w; x++) {
           expect(water.has(`${x},${y}`)).toBe(false);
+        }
+      }
+    }
+    for (const place of layout.entities.filter((entity) => entity.kind === 'place')) {
+      for (let y = place.y; y < place.y + place.h; y += 1) {
+        for (let x = place.x; x < place.x + place.w; x += 1) {
+          expect(water.has([x, y].join(','))).toBe(false);
         }
       }
     }

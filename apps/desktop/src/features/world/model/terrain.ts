@@ -290,7 +290,7 @@ function renderPaths(p: Painter) {
   }
 }
 
-/** A winding east-valley stream with a slow, bridge-anchored meander. */
+/** A winding east-valley stream that bends around real building footprints. */
 function creek(
   p: Painter,
   preferredX: number,
@@ -301,21 +301,57 @@ function creek(
   const bridgeY = [...bridgeRows][0] ?? Math.floor(p.rows / 2);
   const maxCenterX = Math.max(7, Math.min(p.cols - 6, eastLimit));
   const minCenterX = Math.max(6, Math.min(maxCenterX, workshopBankX));
+  const runMinX = Math.max(6, minCenterX - 5);
   const preferredFitsBank = preferredX >= minCenterX && preferredX <= maxCenterX;
   const bankCenter = Math.round((minCenterX + maxCenterX) / 2);
   const baseX = preferredFitsBank ? preferredX : bankCenter;
   let x = baseX;
   let crossingX = x;
+  let previousX: number | undefined;
   for (let y = 0; y < p.rows; y++) {
     const along = y - bridgeY;
-    // Anchor the crossing, but let the banks turn both ways on either side.
-    // Centering the stream in its safe corridor avoids long clipped runs when
-    // a project lot pulls the requested river position past one bank.
-    x = baseX + Math.round(Math.sin(along * 0.3) * 1.6 + Math.sin(along * 0.13) * 0.35);
-    x = Math.max(minCenterX, Math.min(maxCenterX, x));
-    if (bridgeRows.has(y)) crossingX = x;
+    // The bridge remains the fixed crossing while the stream swings through a
+    // wide, low-frequency S-curve. A shorter bend keeps its banks irregular
+    // without creating per-row jitter.
+    const corridorRadius = (maxCenterX - runMinX) / 2;
+    const broadBend = Math.min(3.4, corridorRadius * 1.25);
+    const softBend = Math.min(0.9, corridorRadius * 0.32);
+    const anchoredSoftBend = Math.sin(along * 0.31 + 0.7) - Math.sin(0.7);
+    const desiredX = baseX + Math.sin(along * 0.22) * broadBend + anchoredSoftBend * softBend;
     const pool = Math.sin(along * 0.25 + 0.9);
     const width = pool > 0.45 ? 3 : 2;
+    const safeCenters: number[] = [];
+    for (let candidate = runMinX; candidate <= maxCenterX; candidate += 1) {
+      const clear = Array.from({ length: width }, (_, offset) => candidate + offset).every(
+        (column) => !p.isBlocked(column, y),
+      );
+      if (!clear) continue;
+      if (previousX === undefined || Math.abs(candidate - previousX) <= 1) safeCenters.push(candidate);
+    }
+    // A building corner can pinch the bank, but if that leaves no one-tile
+    // continuation, choose the nearest clear row and let the stream bend
+    // around the obstruction instead of drawing water through a façade.
+    if (safeCenters.length === 0) {
+      for (let candidate = runMinX; candidate <= maxCenterX; candidate += 1) {
+        if (
+          Array.from({ length: width }, (_, offset) => candidate + offset).every((column) => !p.isBlocked(column, y))
+        ) {
+          safeCenters.push(candidate);
+        }
+      }
+    }
+    x =
+      safeCenters.reduce(
+        (best, candidate) => {
+          if (best === undefined) return candidate;
+          const candidateScore = Math.abs(candidate - desiredX) + Math.abs(candidate - (previousX ?? desiredX)) * 0.45;
+          const bestScore = Math.abs(best - desiredX) + Math.abs(best - (previousX ?? desiredX)) * 0.45;
+          return candidateScore < bestScore ? candidate : best;
+        },
+        undefined as number | undefined,
+      ) ?? Math.max(runMinX, Math.min(maxCenterX, Math.round(desiredX)));
+    previousX = x;
+    if (bridgeRows.has(y)) crossingX = x;
     for (let cx = x; cx < x + width; cx++) {
       if (bridgeRows.has(y)) {
         p.set(cx, y, 'dirt', true);
@@ -667,10 +703,8 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     ? Math.min(...projects.map((project) => project.x))
     : (marker?.x ?? Math.floor(cols / 2));
   const riverX = riverAnchorX - (projects.length ? 2 : 8);
-  // Leave a walkable west bank between the civic quarter and the creek. The
-  // bridge should connect the shared places to project homes, not begin at
-  // the creek edge as a detached road segment.
-  const civicEastEdge = Math.max(0, ...commons.map((place) => place.x + place.w));
+  // Start the street on the actual west bank so the crossing is always joined
+  // to the path network, even when a civic building sits farther east.
   const creekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
   (p as unknown as { creekX: number }).creekX = creekX;
   const routeEndX = projects.length
@@ -678,7 +712,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     : marker
       ? marker.x + Math.floor(marker.w / 2)
       : cols - 4;
-  road(p, roadY, creekX, routeEndX, Math.max(creekX - 1, civicEastEdge));
+  road(p, roadY, creekX, routeEndX, creekX - 1);
   // Join each real front door to the street. A grid search avoids routing
   // through another building when project lanes share a column.
   if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h);
