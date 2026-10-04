@@ -543,7 +543,7 @@ function forest(p: Painter) {
       // Checking only the tree anchor lets a bright crown crowd a nearby
       // façade even though its trunk is technically on free ground.
       const canopyOverBuilding = [-2, -1, 0, 1].some((dy) =>
-        [-1, 0, 1, 2].some((dx) => p.blocked.has(key(x + dx, y + dy))),
+        [-2, -1, 0, 1, 2].some((dx) => p.blocked.has(key(x + dx, y + dy))),
       );
       const nearTrail = [-2, -1, 0, 1, 2].some((dy) =>
         [-2, -1, 0, 1, 2].some((dx) => p.paths.has(key(x + dx, y + dy))),
