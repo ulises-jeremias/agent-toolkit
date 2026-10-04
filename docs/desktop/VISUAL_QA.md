@@ -106,6 +106,28 @@ Opened files:
 - [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
   and [large](assets/electron/world/project-files-room-large.png).
 
+## Creek shape review — 2026-10-04
+
+Source `7c754130`, Linux Electron captures against the disposable E2E
+workspace. I opened the empty large capture, the several-project large and
+compact captures, and the project room at large size. The creek now bends
+noticeably across the valley and widens for a few reaches; its fixed crossing
+still meets the shared footpath, and the project plots remain dry. The varied
+water footprint makes the river read less like a straight canal at both
+reviewed scales.
+
+The terrain beyond the banks remains sparse and too uniformly grassy, and the
+two-project district still reads as a short row across an angular path. This
+capture validates the water adjustment only; continue with settlement
+composition and more authored ground detail.
+
+Opened files:
+
+- [Empty world, large](assets/electron/world/world-empty-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project Files room, large](assets/electron/world/project-files-room-large.png).
+
 ## Latest opened review — 2026-10-03
 
 ### Workspace switch and project isolation — 2026-10-03

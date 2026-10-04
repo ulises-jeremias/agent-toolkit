@@ -202,8 +202,10 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
     const sideStart = x <= bridgeX ? 4 : bridgeX;
     const sideEnd = x <= bridgeX ? bridgeX : endX;
     const t = (x - sideStart) / Math.max(1, sideEnd - sideStart);
-    const bend = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 2 + phase) * 1;
-    const crossing = x >= bridgeX && x < bridgeX + 3;
+    const bend = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 2 + phase);
+    // Keep the immediate approach and all three bridge tiles level so the
+    // meandering footpath visibly meets the crossing without a one-tile step.
+    const crossing = x >= bridgeX - 1 && x < bridgeX + 3;
     // The project-facing road can bow south into open ground, never north
     // through the front walls of houses that sit directly behind it.
     const current = { x, y: crossing ? y : y + Math.max(0, Math.round(bend)) };
@@ -306,10 +308,11 @@ function creek(
     const along = y - bridgeY;
     // Two slow waves create natural reaches and gentle bends while preserving
     // the bridge crossing as a fixed, navigable landmark.
-    x = baseX + Math.round(Math.sin(along * 0.15) * 5.5 + Math.sin(along * 0.05) * 2.25);
+    x = baseX + Math.round(Math.sin(along * 0.38) * 3.2 + Math.sin(along * 0.17) * 1.2);
     x = Math.max(minCenterX, Math.min(maxCenterX, x));
     if (bridgeRows.has(y)) crossingX = x;
-    const width = 2;
+    const pool = Math.sin(along * 0.25 + 0.9);
+    const width = pool > 0.45 ? 3 : 2;
     for (let cx = x; cx < x + width; cx++) {
       if (bridgeRows.has(y)) {
         p.set(cx, y, 'dirt', true);
@@ -565,14 +568,14 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   // bridge should connect the shared places to project homes, not begin at
   // the creek edge as a detached road segment.
   const civicEastEdge = Math.max(0, ...commons.map((place) => place.x + place.w));
-  const creekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, (workshop ? workshop.x + workshop.w : 6) + 2);
+  const creekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w + 1 : 6);
   (p as unknown as { creekX: number }).creekX = creekX;
   const routeEndX = projects.length
     ? Math.max(...projects.map((project) => project.x + Math.floor(project.w / 2)))
     : marker
       ? marker.x + Math.floor(marker.w / 2)
       : cols - 4;
-  road(p, roadY, creekX, routeEndX, Math.min(creekX - 1, civicEastEdge));
+  road(p, roadY, creekX, routeEndX, Math.max(creekX - 1, civicEastEdge));
   // Join each real front door to the street. A grid search avoids routing
   // through another building when project lanes share a column.
   if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h);
