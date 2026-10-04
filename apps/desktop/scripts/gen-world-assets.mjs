@@ -3,8 +3,9 @@
  * gen-world-assets.mjs — Cozy Pixel World asset generator (ADR-035).
  *
  * Generates the original pixel-art PNG set in ../public/world/ from the
- * palette + sprite definitions below plus the selected original facades in
- * ./world-art. No third-party assets, tracing, or copied sprites are used.
+ * palette + sprite definitions below plus selected original facades and
+ * vegetation in ./world-art. No third-party assets, tracing, or copied sprites
+ * are used.
  *
  * Craft rules (docs/desktop/DESIGN.md §7): 16px source tile grid, integer
  * multiples, one light direction (top-left), 1px darker silhouette outline,
@@ -25,11 +26,11 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(here, '..', 'public', 'world');
 const WORLD_ART = path.resolve(here, 'world-art');
 
-// Carefully selected original pixel-art facades are kept as checked-in source
-// PNGs. The script copies them into the public asset tree and locks dimensions
-// and hashes in manifest.json; --check therefore proves the shipped files are
-// byte-for-byte fresh without requiring an image editor in CI.
-const ORIGINAL_PIXEL_FACADES = new Set([
+// Original facades and pixel-quantized vegetation are kept as checked-in
+// source PNGs. The script copies them into the public asset tree and locks
+// dimensions and hashes in manifest.json; --check therefore proves the shipped
+// files are byte-for-byte fresh without requiring an image editor in CI.
+const ORIGINAL_PIXEL_ASSETS = new Set([
   'house-cottage',
   'house-studio',
   'house-workshop',
@@ -38,6 +39,11 @@ const ORIGINAL_PIXEL_FACADES = new Set([
   'landmark-operations',
   'landmark-archive',
   'landmark-terminal',
+  'tree-round',
+  'tree-pine',
+  'tree-blossom',
+  'tree-amber',
+  'tree-willow',
 ]);
 
 /* ------------------------------------------------------------------ *
@@ -1732,7 +1738,7 @@ function main() {
   const diffs = [];
   for (const [name, sprite] of sprites) {
     const originalPath = path.join(WORLD_ART, `${name}.png`);
-    const originalPng = ORIGINAL_PIXEL_FACADES.has(name) ? fs.readFileSync(originalPath) : null;
+    const originalPng = ORIGINAL_PIXEL_ASSETS.has(name) ? fs.readFileSync(originalPath) : null;
     const png = originalPng ?? render(sprite);
     const size = originalPng ? dimensions(originalPng, name) : { w: sprite.img.w, h: sprite.img.h };
     manifest[name] = {

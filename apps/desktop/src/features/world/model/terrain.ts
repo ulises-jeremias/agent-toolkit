@@ -426,7 +426,7 @@ function forest(p: Painter) {
       const grove = insideGrove(x, y);
       // Keep tall canopies fully inside the framed world; low grass and
       // flowers can still reach the edge without looking accidentally cut.
-      const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 2;
+      const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
       const wantTree =
         treeInsideFrame &&
         !nearBuilding &&
@@ -447,7 +447,7 @@ function forest(p: Painter) {
                 : kind < 8
                   ? 'tree-amber'
                   : 'tree-round';
-        p.sprite(`tree:${x},${y}`, x, y, tree, 32, 40, -8 + canopyOffsetX, -26 + canopyOffsetY, true);
+        p.sprite(`tree:${x},${y}`, x, y, tree, 48, 48, -16 + canopyOffsetX, -32 + canopyOffsetY, true);
         planted.add(key(x, y));
       } else if (roll === 5 || roll === 6) p.sprite(`bush:${x},${y}`, x, y, 'bush', 16, 12, 0, 4);
       else if (roll === 7 || roll === 8) p.sprite(`rock:${x},${y}`, x, y, 'rock', 16, 12, 0, 5);

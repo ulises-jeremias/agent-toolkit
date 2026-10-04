@@ -830,7 +830,9 @@ describe('layoutWorld', () => {
     for (const tree of trees) {
       expect(tree.x).toBeGreaterThanOrEqual(1);
       expect(tree.x).toBeLessThan(layout.cols - 1);
-      expect(tree.y).toBeGreaterThanOrEqual(2);
+      expect(tree.y).toBeGreaterThanOrEqual(3);
+      expect(tree.w).toBe(48);
+      expect(tree.h).toBe(48);
     }
     expect(decor.find((sprite) => sprite.id === 'hornero:hall')?.y).toBeGreaterThanOrEqual(0);
   });
