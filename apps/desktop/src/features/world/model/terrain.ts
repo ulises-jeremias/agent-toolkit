@@ -208,7 +208,10 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
     const crossing = x >= bridgeX - 1 && x < bridgeX + 3;
     // The commons road can sway gently on either bank. Keep the approach to
     // the project lane bowed south: its houses sit immediately beyond it.
-    const bank = x < bridgeX - 1 ? Math.round(bend * 1.35) : Math.max(0, Math.round(bend * 1.35));
+    // Let the trail visibly drift through the meadow. A one-tile sway read as
+    // a ruler-straight street at overview zoom, so use a broader but still
+    // gentle bend; the bridge approach remains level and deterministic.
+    const bank = x < bridgeX - 1 ? Math.round(bend * 2.25) : Math.max(0, Math.round(bend * 2.25));
     const current = { x, y: crossing ? y : y + bank };
     rasterLine(p, previous.x, previous.y, current.x, current.y);
     previous = current;
@@ -605,12 +608,17 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
 
   const centers: { x: number; y: number }[] = [];
   const anchors = new Set<string>();
+  // Small irregular clumps read as woodland, while their anchors remain well
+  // clear of doors and footpaths. Avoid a uniform row of tree ornaments.
   const offsets = [
     [0, 0],
     [-2, 0],
     [2, 0],
     [-1, 1],
     [1, 1],
+    [-2, 2],
+    [0, 2],
+    [2, 2],
   ] as const;
   for (const candidate of candidates) {
     if (centers.length >= target) break;
