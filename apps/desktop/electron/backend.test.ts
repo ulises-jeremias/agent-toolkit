@@ -59,7 +59,7 @@ const args = process.argv.slice(2);
 if (args[0] === '--version') { console.log('agent-toolkit ${version}'); process.exit(0); }
 if (args[0] !== 'serve' || ${!serve}) { console.error('Unknown command: ' + args[0]); process.exit(1); }
 if (args.includes('--help')) { console.log('Usage: agent-toolkit serve [--host HOST] [--port PORT]'); process.exit(0); }
-if (${exitOnServe}) { console.error('boom: fixture refuses to serve ' + (process.env.MCP_TEST_SECRET ?? '')); process.exit(3); }
+if (${exitOnServe}) { console.error('boom: fixture refuses to serve ' + (process.env.MCP_TEST_LOG_PREFIX ?? '') + (process.env.MCP_TEST_SECRET ?? '') + (process.env.MCP_TEST_LOG_SUFFIX ?? '')); process.exit(3); }
 const port = Number(args[args.indexOf('--port') + 1]);
 const server = http.createServer((req, res) => {
   if (req.url === '/api/v1/health') {
@@ -170,6 +170,22 @@ describe('BackendSupervisor', () => {
     expect(await supervisor.start()).toBe(false);
     expect(supervisor.snapshot().detail).toContain('[credential redacted]');
     expect(supervisor.snapshot().detail).not.toContain('do-not-leak-this');
+  }, 90_000);
+
+  it('redacts credential fragments when the bounded stderr tail truncates the value', async () => {
+    writeFixture(path.join(fixtureDir, 'good'), { exitOnServe: true });
+    const secret = 's'.repeat(8_192);
+    supervisor = newSupervisor({
+      resolveHarness: fallbackHarness,
+      resolveEnvironmentSecrets: () => ({
+        MCP_TEST_SECRET: secret,
+        MCP_TEST_LOG_PREFIX: 'p'.repeat(2_000),
+        MCP_TEST_LOG_SUFFIX: 'done',
+      }),
+    });
+    expect(await supervisor.start()).toBe(false);
+    expect(supervisor.snapshot().detail).toContain('[credential redacted]');
+    expect(supervisor.snapshot().detail).not.toContain(secret.slice(-200));
   }, 90_000);
 
   it('restarts into a new harness: stop, spawn in the new cwd, health gate', async () => {

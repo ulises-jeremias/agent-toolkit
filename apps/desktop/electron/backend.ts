@@ -88,10 +88,29 @@ const STOP_GRACE_MS = 5_000;
 const MAX_STDERR_TAIL = 8_192;
 
 function redactSecrets(text: string, secrets: string[]): string {
-  return secrets
-    .filter(Boolean)
-    .sort((left, right) => right.length - left.length)
-    .reduce((redacted, secret) => redacted.split(secret).join('[credential redacted]'), text);
+  let redacted = text;
+  for (const secret of secrets.filter(Boolean).sort((left, right) => right.length - left.length)) {
+    if (redacted.includes(secret)) {
+      redacted = redacted.split(secret).join('[credential redacted]');
+      continue;
+    }
+    // stderr is capped to its tail. If that truncation cuts through a long
+    // credential, redact the matching edge fragment before exposing a slice.
+    const leftOverlap = edgeOverlap(redacted, secret, 'left');
+    if (leftOverlap > 0) redacted = `[credential redacted]${redacted.slice(leftOverlap)}`;
+    const rightOverlap = edgeOverlap(redacted, secret, 'right');
+    if (rightOverlap > 0) redacted = `${redacted.slice(0, -rightOverlap)}[credential redacted]`;
+  }
+  return redacted;
+}
+
+function edgeOverlap(text: string, secret: string, edge: 'left' | 'right'): number {
+  const max = Math.min(text.length, secret.length - 1);
+  for (let length = max; length >= 1; length -= 1) {
+    const fragment = edge === 'left' ? secret.slice(-length) : secret.slice(0, length);
+    if (edge === 'left' ? text.startsWith(fragment) : text.endsWith(fragment)) return length;
+  }
+  return 0;
 }
 
 /** Major from the staged pin or ATK_EXPECTED_BACKEND_MAJOR; null when unpinned. */
