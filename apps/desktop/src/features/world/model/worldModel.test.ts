@@ -460,6 +460,7 @@ describe('buildWorldModel', () => {
     expect(layout.entities.find((entity) => entity.id === 'object:files')?.x).toBeGreaterThan(
       layout.entities.find((entity) => entity.id === 'object:attention')?.x ?? 0,
     );
+    expect(new Set(landmarks.slice(0, 3).map((entity) => entity.y)).size).toBe(3);
 
     for (let left = 0; left < landmarks.length; left += 1) {
       for (let right = left + 1; right < landmarks.length; right += 1) {
