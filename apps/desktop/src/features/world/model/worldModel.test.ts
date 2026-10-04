@@ -818,7 +818,20 @@ describe('layoutWorld', () => {
     for (const cell of first.cells.filter(({ tile }) => tile === 'water')) {
       waterRows.set(cell.y, [...(waterRows.get(cell.y) ?? []), cell.x]);
     }
-    expect(new Set([...waterRows.values()].map((xs) => Math.min(...xs))).size).toBeGreaterThan(1);
+    const creekBanks = [...waterRows.values()].map((xs) => Math.min(...xs));
+    expect(new Set(creekBanks).size).toBeGreaterThan(1);
+    expect(Math.max(...creekBanks) - Math.min(...creekBanks)).toBeGreaterThanOrEqual(3);
+    const creekRowIndexes = [...waterRows.keys()].sort((a, b) => a - b);
+    for (let index = 1; index < creekRowIndexes.length; index += 1) {
+      const previousRow = waterRows.get(creekRowIndexes[index - 1]!)!;
+      const currentRow = waterRows.get(creekRowIndexes[index]!)!;
+      if (creekRowIndexes[index]! - creekRowIndexes[index - 1]! === 1) {
+        expect(
+          Math.abs(Math.min(...currentRow) - Math.min(...previousRow)),
+          'creek should turn gradually between adjacent rows',
+        ).toBeLessThanOrEqual(1);
+      }
+    }
     const bridgeRoadY = bridge!.y + 1;
     const upstreamStarts = [...waterRows.entries()].filter(([y]) => y < bridgeRoadY).map(([, xs]) => Math.min(...xs));
     const downstreamStarts = [...waterRows.entries()].filter(([y]) => y > bridgeRoadY).map(([, xs]) => Math.min(...xs));
@@ -865,6 +878,23 @@ describe('layoutWorld', () => {
         }
       }
     }
+    for (const place of layout.entities.filter((entity) => entity.kind === 'place')) {
+      for (let y = place.y; y < place.y + place.h; y += 1) {
+        for (let x = place.x; x < place.x + place.w; x += 1) {
+          expect(water.has([x, y].join(','))).toBe(false);
+        }
+      }
+    }
+  });
+
+  it('omits the creek instead of crossing a fully blocked row', () => {
+    const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
+    const obstructionRow = Math.floor(layout.rows / 2);
+    const barrier = { ...layout.entities[0]!, id: 'place:test-barrier', x: 0, y: obstructionRow, w: layout.cols, h: 1 };
+    const terrain = paintTerrain([...layout.entities, barrier], layout.cols, layout.rows);
+
+    expect(terrain.cells.some(({ tile }) => tile === 'water')).toBe(false);
+    expect(terrain.decor.some(({ sprite }) => sprite === 'bridge')).toBe(false);
   });
 
   it('clusters meadow color patches instead of changing grass palette every tile', () => {
