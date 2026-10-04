@@ -532,7 +532,10 @@ function forest(p: Painter) {
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
       if (p.isBlocked(x, y)) continue;
-      if (!p.get(x, y).startsWith('grass')) continue;
+      const ground = p.get(x, y);
+      // A tree may root among flowers; the crown and shaded trunk naturally
+      // interrupt a meadow patch without turning the blossom cells into noise.
+      if (!ground.startsWith('grass') && !ground.startsWith('flowers')) continue;
       const edge = x < 6 || x >= p.cols - 6 || y < 3 || y >= p.rows - 4;
       const nearCreek = [-4, -3, -2, -1, 0, 1, 2, 3, 4].some((dx) => p.get(x + dx, y) === 'water');
       const roll = h2(x, y, 3) % 31;
