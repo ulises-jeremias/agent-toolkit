@@ -169,7 +169,6 @@ function rasterPoints(x0: number, y0: number, x1: number, y1: number) {
   const sy = y0 < y1 ? 1 : -1;
   let error = dx + dy;
   for (;;) {
-    p.path(x, y);
     if (x === x1 && y === y1) break;
     const twice = error * 2;
     if (twice >= dy) {
