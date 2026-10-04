@@ -547,7 +547,10 @@ function forest(p: Painter) {
         treeInsideFrame &&
         !nearBuilding &&
         !nearTrail &&
-        (edge ? roll < 29 : nearCreek ? roll < 26 : grove && roll < 25);
+        // Keep the deeper settlement readable: creek banks get the strongest
+        // interior grove, while project and civic clearings retain breathing
+        // room. Deterministic gaps matter more than maximizing tree count.
+        (edge ? roll < 29 : nearCreek ? roll < 18 : grove && roll < 16);
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
         const canopyOffsetX = (h2(x, y, 47) % 5) - 2;
