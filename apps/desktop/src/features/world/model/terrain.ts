@@ -557,7 +557,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const marker = entities.find((e) => e.id === 'place:projects-empty');
   const firstProjectY = projects.length ? Math.min(...projects.map((project) => project.y)) : undefined;
   const firstStreetProjects =
-    firstProjectY === undefined ? [] : projects.filter((project) => project.y <= firstProjectY + 1);
+    firstProjectY === undefined ? [] : projects.filter((project) => project.y <= firstProjectY + 2);
   const firstStreetDoorY = firstStreetProjects.length
     ? Math.max(...firstStreetProjects.map((project) => project.y + project.h))
     : marker

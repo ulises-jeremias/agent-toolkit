@@ -241,9 +241,9 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     // Stagger alternate streets so a rear house never shares its front-door
     // path with a house directly in front of it.
     const x = districtX + col * projectLaneGap + (row % 2 === 1 ? 2 : 0);
-    // Alternate houses by one tile along the bank so the project district
-    // feels like a settled lane instead of a row of identical storefronts.
-    const y = districtY + row * 5 + (col % 2);
+    // Alternate houses by two tiles along the bank so neighboring porches
+    // read as a small lane instead of one storefront row.
+    const y = districtY + row * 5 + (col % 2) * 2;
     place(project, x, y);
     if (project.projectId) projectSlots.set(project.projectId, { x, y });
   });

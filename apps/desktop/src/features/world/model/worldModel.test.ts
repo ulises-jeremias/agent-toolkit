@@ -594,7 +594,7 @@ describe('layoutWorld', () => {
     // Commons landmarks read as real buildings (4×4 library); projects sit south.
     expect(library.w).toBe(4);
     expect(library.h).toBe(4);
-    expect(b.y).toBe(a.y + 1);
+    expect(b.y).toBe(a.y + 2);
     // With ≤10 projects the district uses 5 lanes — the fifth stays on row 1.
     expect(e.y).toBe(a.y);
     // A 16-project roster wraps to row 2 (7 lanes).
