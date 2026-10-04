@@ -820,7 +820,9 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
   let fireflyCount = 0;
   for (const y of fireflyRows) {
     const offsets = h2(creekSafe(p), y, 103) % 2 === 0 ? [-4, -3, 3, 4] : [4, 3, -3, -4];
-    const x = offsets.map((offset) => creekSafe(p) + offset).find((candidate) => p.get(candidate, y).startsWith('grass'));
+    const x = offsets
+      .map((offset) => creekSafe(p) + offset)
+      .find((candidate) => p.get(candidate, y).startsWith('grass'));
     if (x === undefined) continue;
     p.sprite(`firefly:${y}`, x, y, 'firefly', 6, 6, 5, 5, true, true);
     if (++fireflyCount >= 4) break;
