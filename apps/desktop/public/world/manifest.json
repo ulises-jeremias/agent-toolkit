@@ -569,20 +569,20 @@
     },
     "wildflower-patch-rose": {
       "file": "wildflower-patch-rose.png",
-      "w": 32,
-      "h": 24,
+      "w": 48,
+      "h": 32,
       "frames": 1
     },
     "wildflower-patch-lilac": {
       "file": "wildflower-patch-lilac.png",
-      "w": 32,
-      "h": 24,
+      "w": 48,
+      "h": 32,
       "frames": 1
     },
     "wildflower-patch-gold": {
       "file": "wildflower-patch-gold.png",
-      "w": 32,
-      "h": 24,
+      "w": 48,
+      "h": 32,
       "frames": 1
     },
     "dirt": {

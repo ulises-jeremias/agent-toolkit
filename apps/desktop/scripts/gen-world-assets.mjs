@@ -942,41 +942,57 @@ function flowerTile(kind) {
   return img;
 }
 
-/** Oversized wildflower clumps make authored meadow clearings read at map zoom. */
+/** Broad wildflower beds make authored meadow clearings read at map zoom. */
 function wildflowerPatch(kind) {
-  const img = new Img(32, 24);
+  const img = new Img(48, 32);
   const blooms = {
     rose: ['pop', 'rtl', 'rtd', 'gg'],
     lilac: ['lv', 'iv', 'lv', 'gg'],
     gold: ['go', 'gg', 'god', 'iv'],
   };
   const [petal, highlight, shadow, center] = blooms[kind];
-  img.ellipse(16, 22, 8, 1, 'sh');
+  img.ellipse(24, 29, 14, 2, 'sh');
+
+  // A scalloped leaf bed gives the tall flower heads a readable silhouette
+  // against the lighter meadow without turning the patch into a solid blob.
+  img.ellipse(24, 26, 18, 4, 'fd');
+  img.ellipse(24, 25, 16, 3, 'fl');
+  img.ellipse(24, 24, 12, 2, 'fo');
+  for (const [x, y] of [
+    [5, 25], [8, 23], [12, 26], [15, 24], [19, 25], [23, 23],
+    [27, 25], [31, 23], [35, 26], [39, 24], [43, 25],
+  ]) img.set(x, y, x % 2 ? 'gd' : 'gt');
 
   // A leafy base makes the stems read as one planted clump at small zoom.
   for (const [x, y, color] of [
-    [4, 19, 'fd'],
-    [6, 18, 'fl'],
-    [8, 20, 'fo'],
-    [10, 19, 'fl'],
-    [13, 20, 'fd'],
-    [16, 18, 'fl'],
-    [18, 20, 'fo'],
-    [21, 19, 'fl'],
-    [24, 20, 'fd'],
-    [27, 18, 'fl'],
-    [29, 20, 'fo'],
+    [3, 27, 'fd'],
+    [6, 25, 'fl'],
+    [9, 28, 'fo'],
+    [12, 26, 'fl'],
+    [15, 29, 'fd'],
+    [18, 26, 'fl'],
+    [21, 28, 'fo'],
+    [24, 25, 'fl'],
+    [27, 28, 'fd'],
+    [30, 26, 'fl'],
+    [33, 29, 'fo'],
+    [36, 26, 'fl'],
+    [39, 28, 'fd'],
+    [42, 25, 'fl'],
+    [45, 27, 'fo'],
   ]) img.set(x, y, color);
 
   const stems = [
-    [5, 13],
-    [11, 8],
-    [17, 12],
-    [23, 7],
-    [27, 14],
+    [5, 18],
+    [11, 10],
+    [18, 16],
+    [25, 8],
+    [32, 13],
+    [39, 7],
+    [44, 17],
   ];
   for (const [x, headY] of stems) {
-    img.vline(x, headY + 2, 20, 'fo').set(x, headY + 3, 'fl');
+    img.vline(x, headY + 2, 28, 'fo').set(x, headY + 3, 'fl');
     img.set(x - 3, headY + 6, 'fd').set(x - 2, headY + 5, 'fl').set(x - 1, headY + 6, 'gd');
     img.set(x + 1, headY + 7, 'fd').set(x + 2, headY + 6, 'fl').set(x, headY + 9, 'gd');
 
@@ -988,6 +1004,7 @@ function wildflowerPatch(kind) {
     img.set(x, headY - 1, highlight);
     img.set(x - 1, headY, highlight).set(x, headY, petal).set(x + 1, headY, shadow);
     img.set(x - 1, headY + 1, petal).set(x, headY + 1, center).set(x + 1, headY + 1, shadow);
+    if (x % 2 === 0) img.set(x + 4, headY - 1, 'gg');
   }
   return img;
 }

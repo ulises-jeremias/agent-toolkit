@@ -549,10 +549,10 @@ function flowerPatchSprites(p: Painter) {
       continue;
     }
     const patch = {
-      left: candidate.x - 0.5,
-      top: candidate.y + 0.5,
-      right: candidate.x + 1.5,
-      bottom: candidate.y + 2,
+      left: candidate.x - 1,
+      top: candidate.y + 0.25,
+      right: candidate.x + 2,
+      bottom: candidate.y + 2.25,
     };
     const overlapsGrid = (grid: ReadonlySet<string>) => {
       for (let y = Math.floor(patch.top); y < Math.ceil(patch.bottom); y++) {
@@ -577,10 +577,10 @@ function flowerPatchSprites(p: Painter) {
       candidate.x,
       candidate.y + 1,
       patchNames[h2(candidate.x, candidate.y, 149) % patchNames.length]!,
+      48,
       32,
-      24,
-      -8,
-      -8,
+      -16,
+      -12,
     );
     placed.push(candidate);
   }

@@ -1029,7 +1029,7 @@ describe('layoutWorld', () => {
     expect(denseWindows.length).toBeGreaterThan(0);
     const featuredPatches = terrain.decor.filter((sprite) => sprite.sprite.startsWith('wildflower-patch-'));
     expect(featuredPatches.length).toBeGreaterThan(0);
-    expect(featuredPatches.every((sprite) => sprite.w === 32 && sprite.h === 24)).toBe(true);
+    expect(featuredPatches.every((sprite) => sprite.w === 48 && sprite.h === 32)).toBe(true);
     const isPathTile = (tile: string) =>
       ['dirt', 'plaza', 'plaza-b'].includes(tile) || tile.startsWith('dirt-') || tile.startsWith('trail');
     const paths = cells.filter(({ tile }) => isPathTile(tile));
