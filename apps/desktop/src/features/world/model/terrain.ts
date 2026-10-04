@@ -420,9 +420,9 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
   return false;
 }
 
-/** A few irregular meadow beds add color without narrowing real walkways. */
+/** Broad irregular flower beds give open lawns a visible meadow rhythm. */
 function flowerGlades(p: Painter) {
-  const target = Math.min(10, Math.max(2, Math.floor((p.cols * p.rows) / 150)));
+  const target = Math.min(8, Math.max(2, Math.floor((p.cols * p.rows) / 180)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 2; y++) {
     for (let x = 2; x < p.cols - 2; x++) {
@@ -435,11 +435,11 @@ function flowerGlades(p: Painter) {
   const centers: { x: number; y: number }[] = [];
   for (const candidate of candidates) {
     if (centers.length >= target) break;
-    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 6)) continue;
+    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 7)) continue;
     centers.push(candidate);
 
-    const radiusX = 1 + (h2(candidate.x, candidate.y, 137) % 2);
-    const radiusY = 1 + (h2(candidate.x, candidate.y, 139) % 2);
+    const radiusX = 2 + (h2(candidate.x, candidate.y, 137) % 2);
+    const radiusY = 2 + (h2(candidate.x, candidate.y, 139) % 2);
     const bloom = `flowers-${['poppy', 'daisy', 'lavender', 'gold'][h2(candidate.x, candidate.y, 149) % 4]}`;
     for (let dy = -radiusY; dy <= radiusY; dy++) {
       for (let dx = -radiusX; dx <= radiusX; dx++) {
@@ -448,7 +448,7 @@ function flowerGlades(p: Painter) {
         const y = candidate.y + dy;
         if (
           shape <= 1.35 &&
-          h2(x, y, 151) % 5 !== 0 &&
+          h2(x, y, 151) % 7 !== 0 &&
           p.get(x, y).startsWith('grass') &&
           !nearStructureOrPath(p, x, y, 0)
         ) {
