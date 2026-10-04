@@ -89,6 +89,14 @@ jobs:
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
           pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/desktop.spec.ts
           --grep "Library configures MCP providers"
+      - name: Stage MCP screenshots for visual review
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
+        run: |
+          mkdir -p apps/desktop/test-results/review
+          cp docs/desktop/assets/electron/library/mcp-configure-compact.png apps/desktop/test-results/review/
+          cp docs/desktop/assets/electron/library/mcp-configure-large.png apps/desktop/test-results/review/
+          cp docs/desktop/assets/electron/library/mcp-credentials-compact.png apps/desktop/test-results/review/
+          cp docs/desktop/assets/electron/library/mcp-credentials-large.png apps/desktop/test-results/review/
       - name: E2E (Electron + real backend)
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.capture_visual_review != 'true'
         env:
