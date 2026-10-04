@@ -1,6 +1,6 @@
 import { isTerminalJobStatus } from '../../../lib/api';
 import { memoryFilePath, memoryInspectExtra } from '../inspectors';
-import { projectFacade } from './facades';
+import { projectFacades } from './facades';
 import { jobStandAtId, projectScopedMemory, workspaceLevelMemory } from './memoryScope';
 import type {
   MemoryEntryRecord,
@@ -325,6 +325,7 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
       detail: 'Add or open a project — the world stays quiet until then',
     });
   } else {
+    const facades = projectFacades(input.projects.map((project) => project.name));
     for (const project of input.projects) {
       const projectJobs = input.jobs.filter((job) => jobBelongsToProject(job, project));
       const projectSessions = (input.personSessions ?? []).filter(
@@ -346,7 +347,7 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
         projectId: project.name,
         detail: `${project.status} → ${project.target}${liveCount ? ` · ${liveCount} job(s)` : ''}${projectSessions.length ? ` · ${projectSessions.length} Person session(s)` : ''}`,
         activity,
-        facade: projectFacade(project.name),
+        facade: facades.get(project.name),
       });
 
       // Real project sessions belong at their project house. Coding tools are

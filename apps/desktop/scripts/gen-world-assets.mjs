@@ -3,8 +3,8 @@
  * gen-world-assets.mjs — Cozy Pixel World asset generator (ADR-035).
  *
  * Generates the original pixel-art PNG set in ../public/world/ from the
- * palette + sprite definitions below. Everything here is original art
- * authored as code: no third-party assets, no tracing, no copied sprites.
+ * palette + sprite definitions below plus the selected original facades in
+ * ./world-art. No third-party assets, tracing, or copied sprites are used.
  *
  * Craft rules (docs/desktop/DESIGN.md §7): 16px source tile grid, integer
  * multiples, one light direction (top-left), 1px darker silhouette outline,
@@ -18,10 +18,27 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(here, '..', 'public', 'world');
+const WORLD_ART = path.resolve(here, 'world-art');
+
+// Carefully selected original pixel-art facades are kept as checked-in source
+// PNGs. The script copies them into the public asset tree and locks dimensions
+// and hashes in manifest.json; --check therefore proves the shipped files are
+// byte-for-byte fresh without requiring an image editor in CI.
+const ORIGINAL_PIXEL_FACADES = new Set([
+  'house-cottage',
+  'house-studio',
+  'house-workshop',
+  'landmark-workspace',
+  'landmark-library',
+  'landmark-operations',
+  'landmark-archive',
+  'landmark-terminal',
+]);
 
 /* ------------------------------------------------------------------ *
  * 1. Minimal PNG encoder (8-bit RGBA, no filters) — zero dependencies.
@@ -880,6 +897,17 @@ function grassTile(seed) {
       for (const [x, y, color] of patches[(i + rotation) % patches.length]) img.set(x, y, color);
     }
   }
+  // A legible four-pixel clover mark gives each source tile a hand-painted
+  // landmark at 3× zoom; the position shifts by variant so the meadow does
+  // not read as repeated stamps. Keep it clear of the tile edge for seams.
+  const cloverX = 1 + (s % 10);
+  const cloverY = 1 + ((s * 3) % 11);
+  img
+    .set(cloverX, cloverY + 1, 'fl')
+    .set(cloverX + 1, cloverY, 'gl')
+    .set(cloverX + 1, cloverY + 1, 'gt')
+    .set(cloverX + 2, cloverY + 1, 'gd')
+    .set(cloverX + 1, cloverY + 2, 'fl');
   const glintX = ((s * 7) % 13) + 1;
   const glintY = ((s * 11) % 13) + 1;
   img.set(glintX, glintY, 'gt');
@@ -1017,19 +1045,50 @@ function plazaTiles() {
 function waterTiles() {
   const mk = (off) => {
     const img = new Img(16, 16).rect(0, 0, 15, 15, 'w');
-    const y = ((3 + off) % 11) + 2;
-    const x = ((2 + off * 2) % 11) + 2;
-    img.hline(x, Math.min(x + 3, 14), y, 'wl').set(x + 1, y - 1, 'wf');
-    img.hline(((10 + off) % 12) + 1, ((13 + off) % 13) + 2, ((9 + off) % 12) + 2, 'wd');
-    img.set(((6 + off) % 14) + 1, ((12 + off) % 13) + 1, 'wl');
+    // Broken, offset ripple pairs give the animated stream direction and
+    // depth without making the 16px base tile look like a flat blue block.
+    const ripples = [
+      { x: 1 + ((off * 3) % 4), y: 2 + (off % 2), len: 4 },
+      { x: 8 + ((off * 2) % 3), y: 5 + (off % 3), len: 5 },
+      { x: 2 + ((off * 5) % 5), y: 9 + (off % 2), len: 3 },
+      { x: 9 + (off % 2), y: 12 + (off % 2), len: 4 },
+    ];
+    for (const [index, ripple] of ripples.entries()) {
+      const end = Math.min(14, ripple.x + ripple.len);
+      img.hline(ripple.x, end, ripple.y + 1, 'wd');
+      img.hline(ripple.x + (index % 2), end - 1, ripple.y, 'wl');
+      if (index === 0 || index === 3) img.set(Math.min(14, ripple.x + 2), ripple.y, 'wf');
+    }
+    img
+      .set(6 + (off % 3), 3 + (off % 2), 'wf')
+      .set(13 - (off % 3), 8 + (off % 2), 'wl')
+      .set(6 + (off % 2), 14, 'wd');
     return img;
   };
   const shore = (dir) => {
-    const img = mk(1);
-    if (dir === 'n') img.hline(0, 15, 0, 'wf').hline(0, 15, 1, 'wl');
-    if (dir === 's') img.hline(0, 15, 15, 'wf').hline(0, 15, 14, 'wl');
-    if (dir === 'w') img.vline(0, 0, 15, 'wf').vline(1, 0, 15, 'wl');
-    if (dir === 'e') img.vline(15, 0, 15, 'wf').vline(14, 0, 15, 'wl');
+    if (dir === 'n' || dir === 's') {
+      const img = mk(1);
+      if (dir === 'n') img.hline(0, 15, 0, 'wf').hline(0, 15, 1, 'wl');
+      else img.hline(0, 15, 15, 'wf').hline(0, 15, 14, 'wl');
+      return img;
+    }
+    const img = new Img(16, 16).rect(0, 0, 15, 15, 'g');
+    const water = mk(1);
+    const edgeWave = [0, 1, 2, 1, 0, -1, -2, -1, 0, 1, 2, 1, 0, -1, -2, -1];
+    for (let y = 0; y < 16; y++) {
+      const boundary = 8 + edgeWave[y];
+      for (let x = 0; x < 16; x++) {
+        const isWater = dir === 'e' ? x >= boundary : dir === 'w' ? x <= boundary : false;
+        if (isWater) img.set(x, y, water.g[y][x]);
+        else if (Math.abs(x - boundary) <= 2) img.set(x, y, x === boundary + (dir === 'w' ? 1 : -1) ? 'sa' : 'gd');
+      }
+      img.set(boundary, y, y % 3 === 0 ? 'wf' : 'wl');
+      if (y % 4 === 1) img.set(boundary + (dir === 'e' ? 1 : -1), y, 'wf');
+    }
+    // A few low grass flecks keep the bank tied visually to its meadow.
+    for (const [x, y, color] of [[2, 3, 'gl'], [4, 11, 'gd'], [12, 5, 'gl'], [5, 14, 'gt']]) {
+      if ((dir === 'e' && x < 6) || (dir === 'w' && x > 9)) img.set(x, y, color);
+    }
     return img;
   };
   return [
@@ -1625,7 +1684,7 @@ function collect() {
     hornero(),
   ])
     for (const s of group) put(s.name, s.img, s.frames);
-  for (let i = 0; i < 6; i++) put(`grass-${'abcdef'[i]}`, grassTile(i + 1));
+  for (let i = 0; i < 12; i++) put(`grass-${'abcdefghijkl'[i]}`, grassTile(i + 1));
   for (let i = 0; i < 4; i++) put(`flowers-${['poppy', 'daisy', 'lavender', 'gold'][i]}`, flowerTile(i));
   for (const t of dirtTiles()) put(t.name, t.img);
   for (const t of plazaTiles()) put(t.name, t.img);
@@ -1657,6 +1716,14 @@ function render(sprite) {
   return encodePng(w, h, out);
 }
 
+function dimensions(png, name) {
+  const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  if (png.length < 24 || !png.subarray(0, 8).equals(signature) || png.toString('ascii', 12, 16) !== 'IHDR') {
+    throw new Error(`invalid PNG source for ${name}`);
+  }
+  return { w: png.readUInt32BE(16), h: png.readUInt32BE(20) };
+}
+
 function main() {
   const check = process.argv.includes('--check');
   const sprites = collect();
@@ -1664,12 +1731,21 @@ function main() {
   const written = [];
   const diffs = [];
   for (const [name, sprite] of sprites) {
-    const png = render(sprite);
+    const originalPath = path.join(WORLD_ART, `${name}.png`);
+    const originalPng = ORIGINAL_PIXEL_FACADES.has(name) ? fs.readFileSync(originalPath) : null;
+    const png = originalPng ?? render(sprite);
+    const size = originalPng ? dimensions(originalPng, name) : { w: sprite.img.w, h: sprite.img.h };
     manifest[name] = {
       file: `${name}.png`,
-      w: sprite.img.w,
-      h: sprite.img.h,
-      frames: sprite.frames.length,
+      w: size.w,
+      h: size.h,
+      frames: originalPng ? 1 : sprite.frames.length,
+      ...(originalPng
+        ? {
+            source: `scripts/world-art/${name}.png`,
+            sha256: createHash('sha256').update(originalPng).digest('hex'),
+          }
+        : {}),
     };
     const dest = path.join(OUT, `${name}.png`);
     if (check) {

@@ -85,11 +85,11 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   // Room: exit door at the west wall; furniture along walls; floor stays open.
   if (exit) place(exit, 0, 2);
   if (room) place(room, 2, 0);
-  if (memory) place(memory, 9, 0);
-  if (terminal) place(terminal, 1, 4);
-  if (files) place(files, 4, 4);
+  if (memory) place(memory, 7, 0);
+  if (terminal) place(terminal, 1, 3);
+  if (files) place(files, 4, 3);
 
-  let entryX = 13;
+  let entryX = 10;
   const entryY = 1;
   for (const entry of memoryEntries) {
     place(entry, entryX, entryY);
@@ -114,8 +114,10 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   }
 
   return {
-    cols: Math.max(maxX + 1, 12),
-    rows: Math.max(maxY + 1, 12),
+    // Keep a small comfortable room at minimum size; let real furniture,
+    // records, or active sessions expand it instead of drawing empty floor.
+    cols: Math.max(maxX, 10),
+    rows: Math.max(maxY, 9),
     entities: laid,
   };
 }
@@ -185,13 +187,14 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // previous reservation made one house inherit the width of a five-lot
   // district, which turned a small workspace into a mostly empty panorama.
   // Lot coordinates remain stable as projects are added.
-  const districtW = projects.length ? (Math.min(projects.length, districtCols) - 1) * 5 + 3 : 0;
+  const projectLaneGap = 4;
+  const districtW = projects.length ? (Math.min(projects.length, districtCols) - 1) * projectLaneGap + 3 : 0;
   // Put project homes across a visible creek crossing from the shared
   // services. Keep the bank gap compact enough that the project district
   // still reads as part of the same settlement at small window sizes.
-  const projectDistrictX = 19;
+  const projectDistrictX = 21;
   const emptyMarkerX = projectDistrictX;
-  const mapW = Math.max(28, projectDistrictX + (projects.length ? districtW : 3) + 1);
+  const mapW = Math.max(28, projectDistrictX + (projects.length ? districtW : 3));
 
   // North core: hall west, memory archive beside it, ledgers on the commons edge.
   const coreX = 1;
@@ -208,12 +211,12 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   const civicX = 0;
   const civicSlots: Record<string, { x: number; y: number }> = {
     'object:library': { x: civicX + 1, y: 4 },
-    'object:workshop': { x: civicX + 11, y: 8 },
+    'object:workshop': { x: civicX + 10, y: 8 },
     'object:operations': { x: civicX + 6, y: 4 },
     'object:terminal': { x: civicX + 11, y: 4 },
     'object:attention': { x: civicX + 1, y: 8 },
-    'object:files': { x: civicX + 5, y: 9 },
-    'object:settings': { x: civicX + 8, y: 8 },
+    'object:files': { x: civicX + 4, y: 9 },
+    'object:settings': { x: civicX + 7, y: 8 },
   };
   for (const landmark of sharedObjects) {
     const slot = civicSlots[landmark.id]!;
@@ -234,8 +237,10 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     const col = index % districtCols;
     const row = Math.floor(index / districtCols);
     // Keep existing lots fixed as a roster grows; only new lots are appended.
-    const x = districtX + col * 5;
-    const y = districtY + row * 4;
+    // Stagger alternate streets so a rear house never shares its front-door
+    // path with a house directly in front of it.
+    const x = districtX + col * projectLaneGap + (row % 2 === 1 ? 2 : 0);
+    const y = districtY + row * 5;
     place(project, x, y);
     if (project.projectId) projectSlots.set(project.projectId, { x, y });
   });
@@ -263,12 +268,11 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   }
 
   const districtRows = Math.ceil(projects.length / Math.max(1, districtCols));
-  const mapRows = districtY + Math.max(0, districtRows - 1) * 4 + 4;
+  const mapRows = districtY + Math.max(0, districtRows - 1) * 5 + 3;
   return {
-    // The creek is composed between civic and project districts; keep one
-    // clear edge tile beyond the final lot without scaling the whole valley
-    // down for unused land.
-    cols: Math.max(mapW, maxX + 1),
+    // maxX is already an exclusive tile bound; do not add a second padding
+    // tile beyond it, which made short project rosters look needlessly wide.
+    cols: Math.max(mapW, maxX),
     rows: Math.max(maxY, mapRows),
     entities: laid,
   };

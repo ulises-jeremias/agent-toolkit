@@ -611,6 +611,7 @@ describe('layoutWorld', () => {
     const first = wide.entities.find((row) => row.id === 'place:project:p00')!;
     const eighth = wide.entities.find((row) => row.id === 'place:project:p07')!;
     expect(eighth.y).toBeGreaterThan(first.y);
+    expect(eighth.x).toBe(first.x + 2);
     expect(a.y).toBeGreaterThan(memory.y);
     expect(a.x).toBeGreaterThan(library.x + library.w);
   });
@@ -677,10 +678,19 @@ describe('layoutWorld', () => {
     const pathFront = `${laidMarker.x + Math.floor(laidMarker.w / 2)},${laidMarker.y + laidMarker.h}`;
     expect(plan.cells.some(({ tile }) => tile.startsWith('trail'))).toBe(true);
     expect(plan.cells.some(({ x, y, tile }) => `${x},${y}` === pathFront && tile.startsWith('trail'))).toBe(true);
+    const trailCells = plan.cells.filter(({ tile }) => tile.startsWith('trail'));
+    expect(Math.max(...trailCells.map(({ x }) => x))).toBeLessThanOrEqual(
+      laidMarker.x + Math.floor(laidMarker.w / 2) + 1,
+    );
     const bridge = plan.decor.find((sprite) => sprite.sprite === 'bridge');
     expect(bridge).toBeTruthy();
-    expect(bridge!.y + 1).toBe(laidMarker.y - 1);
+    expect(bridge!.y + 1).toBe(laidMarker.y + laidMarker.h);
     expect(bridge!.y + 1).toBeLessThan(layout.rows);
+    // The crossing must join the civic quarter as well as the empty project
+    // lot; a bridge with only an east-bank road is decorative, not navigation.
+    expect(
+      plan.cells.some(({ x, y, tile }) => x === bridge!.x - 1 && y === bridge!.y + 1 && tile.startsWith('trail')),
+    ).toBe(true);
   });
 
   it('makes shared and project memory archives focus their real world index', () => {
@@ -750,12 +760,29 @@ describe('layoutWorld', () => {
     expect(first.cells.some((cell) => cell.tile.startsWith('trail'))).toBe(true);
     const bridge = first.decor.find((sprite) => sprite.sprite === 'bridge');
     expect(bridge).toBeTruthy();
-    expect(new Set(first.cells.filter(({ tile }) => tile === 'water').map(({ x }) => x)).size).toBeGreaterThan(2);
+    const waterRows = new Map<number, number[]>();
+    for (const cell of first.cells.filter(({ tile }) => tile === 'water')) {
+      waterRows.set(cell.y, [...(waterRows.get(cell.y) ?? []), cell.x]);
+    }
+    expect(new Set([...waterRows.values()].map((xs) => Math.min(...xs))).size).toBeGreaterThan(1);
+    expect([...waterRows.values()].every((xs) => xs.length === 2)).toBe(true);
     expect(new Set(first.cells.filter(({ tile }) => tile.startsWith('trail')).map(({ y }) => y)).size).toBeGreaterThan(
-      4,
+      1,
     );
     const trails = new Set(first.cells.filter((cell) => cell.tile.startsWith('trail')).map(({ x, y }) => `${x},${y}`));
     const water = new Set(first.cells.filter(({ tile }) => tile === 'water').map(({ x, y }) => `${x},${y}`));
+    const reached = new Set<string>();
+    const queue = [trails.values().next().value as string];
+    while (queue.length) {
+      const at = queue.shift()!;
+      if (reached.has(at)) continue;
+      reached.add(at);
+      const [x = 0, y = 0] = at.split(',').map(Number);
+      for (const next of [`${x},${y - 1}`, `${x - 1},${y}`, `${x + 1},${y}`, `${x},${y + 1}`]) {
+        if (trails.has(next) && !reached.has(next)) queue.push(next);
+      }
+    }
+    expect(reached).toEqual(trails);
     const bridgeRoadY = bridge!.y + 1;
     for (let dx = 0; dx < 3; dx++) {
       expect(trails.has(`${bridge!.x + dx},${bridgeRoadY}`)).toBe(true);
@@ -776,6 +803,9 @@ describe('layoutWorld', () => {
   it('clusters meadow color patches instead of changing grass palette every tile', () => {
     const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
     const cells = paintTerrain(layout.entities, layout.cols, layout.rows).cells;
+    expect(new Set(cells.filter(({ tile }) => tile.startsWith('grass-')).map(({ tile }) => tile)).size).toBeGreaterThan(
+      6,
+    );
     const tiles = new Map(cells.map(({ x, y, tile }) => [`${x},${y}`, tile]));
     let adjacentPairs = 0;
     let paletteChanges = 0;
@@ -834,8 +864,16 @@ describe('layoutWorld', () => {
     expect(ids).not.toContain('object:library');
     const exit = layout.entities.find((e) => e.id === 'object:exit-grounds');
     const room = layout.entities.find((e) => e.id === 'place:project:alpha');
+    const records = layout.entities.find((e) => e.id === 'place:memory-project:alpha');
+    const terminal = layout.entities.find((e) => e.id === 'object:terminal-project:alpha');
+    const files = layout.entities.find((e) => e.id === 'object:files-project:alpha');
     expect(exit && room).toBeTruthy();
     expect(exit!.x).toBe(1);
     expect(room!.x).toBeGreaterThan(exit!.x);
+    expect(records?.x).toBe(8);
+    expect(terminal?.y).toBe(4);
+    expect(files?.y).toBe(4);
+    expect(layout.cols).toBe(12);
+    expect(layout.rows).toBe(9);
   });
 });

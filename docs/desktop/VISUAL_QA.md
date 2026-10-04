@@ -15,6 +15,33 @@ Review fresh empty/one/many-project worlds, project selection and interior, Peop
 
 The world is the dominant `/world` surface. Projects are actual buildings and shared capabilities have distinct places. A configured offline Person is shown in the roster, never as a world worker. Runtime characters require a real session/job/run and disappear when it ends. Furniture, signs, labels, and ambient animation must not imply nonexistent activity.
 
+## Civic bridge connection review — 2026-10-03
+
+Source `fcb211b7`, Linux Electron capture with the real backend and disposable
+workspace. I opened the refreshed empty, one-project and several-project worlds
+at compact and large sizes, plus both project-room captures. The road now reaches
+the west bank of the creek and connects to the bridge in empty and populated
+worlds; the bridge no longer starts as an east-bank-only path fragment. The
+project houses remain distinct, the camera stays crisp at compact size, and the
+raised Terminal and Files fixtures have clear space above the room trim.
+
+This is an incremental navigation correction, not the finished art direction.
+The large views still show broad repeated grass, a river that reads mostly
+straight at this zoom, and sparse trees between the civic quarter and project
+lots. The short west-bank approach also needs more convincing integration with
+the commons. Continue composition work before treating the valley as complete.
+
+Opened files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+
 ## Meadow grove density review — 2026-10-03
 
 Linux Electron screenshots were recaptured after increasing seeded flower,
@@ -120,7 +147,7 @@ Opened files:
 - [Project interior, compact](assets/electron/world/project-files-room-compact.png).
 - [Live Person session, compact](assets/electron/people/world-person-compact.png),
   [live Person session, large](assets/electron/people/world-person-large.png),
-and [offline Person after stop](assets/electron/people/people-offline-after-stop.png).
+  and [offline Person after stop](assets/electron/people/people-offline-after-stop.png).
 
 ## Semantic world interaction review — 2026-10-02
 

@@ -3,21 +3,27 @@
   "sprites": {
     "house-cottage": {
       "file": "house-cottage.png",
-      "w": 48,
-      "h": 48,
-      "frames": 1
+      "w": 47,
+      "h": 56,
+      "frames": 1,
+      "source": "scripts/world-art/house-cottage.png",
+      "sha256": "73ea716554436531c4b3101b51b8552fe7679bb761e07dc886ac3c208b109037"
     },
     "house-studio": {
       "file": "house-studio.png",
-      "w": 48,
-      "h": 48,
-      "frames": 1
+      "w": 44,
+      "h": 56,
+      "frames": 1,
+      "source": "scripts/world-art/house-studio.png",
+      "sha256": "a70d72bd64aa8066e4bcfc95a47ed5e611d24f692182d844368337dabb917de0"
     },
     "house-workshop": {
       "file": "house-workshop.png",
-      "w": 48,
-      "h": 48,
-      "frames": 1
+      "w": 44,
+      "h": 56,
+      "frames": 1,
+      "source": "scripts/world-art/house-workshop.png",
+      "sha256": "056ecaa5e53657795644fc6c41cee2b753731a1ac8a43cce5505e91099b7b07c"
     },
     "house-tower": {
       "file": "house-tower.png",
@@ -39,21 +45,27 @@
     },
     "landmark-workspace": {
       "file": "landmark-workspace.png",
-      "w": 80,
+      "w": 48,
       "h": 64,
-      "frames": 1
+      "frames": 1,
+      "source": "scripts/world-art/landmark-workspace.png",
+      "sha256": "42b870d498f7a067f7a2aa1f825a6b1807d8402181aaf018f6645fe8e36b1787"
     },
     "landmark-archive": {
       "file": "landmark-archive.png",
-      "w": 64,
+      "w": 55,
       "h": 64,
-      "frames": 1
+      "frames": 1,
+      "source": "scripts/world-art/landmark-archive.png",
+      "sha256": "e572707aef96d9ee1c7e1fec09224e5bcc2a30b1ac91c4b516baf8ed0f2c13fb"
     },
     "landmark-library": {
       "file": "landmark-library.png",
-      "w": 64,
+      "w": 54,
       "h": 64,
-      "frames": 1
+      "frames": 1,
+      "source": "scripts/world-art/landmark-library.png",
+      "sha256": "e31ff297b02ef6f8c92343784f8c75bf4d4140f7871efe4ba1a958d4fbce9647"
     },
     "landmark-workshop": {
       "file": "landmark-workshop.png",
@@ -63,15 +75,19 @@
     },
     "landmark-operations": {
       "file": "landmark-operations.png",
-      "w": 64,
+      "w": 57,
       "h": 64,
-      "frames": 1
+      "frames": 1,
+      "source": "scripts/world-art/landmark-operations.png",
+      "sha256": "443c6afb76207f2cd78d3ced43578f2ede370031ab99021cd9c86fbb7ac13d0c"
     },
     "landmark-terminal": {
       "file": "landmark-terminal.png",
-      "w": 64,
+      "w": 53,
       "h": 64,
-      "frames": 1
+      "frames": 1,
+      "source": "scripts/world-art/landmark-terminal.png",
+      "sha256": "2bb5e503bb45d6bf0726a9ca691538ec4495af30bc7bba7036355ee45b540de5"
     },
     "landmark-files": {
       "file": "landmark-files.png",
@@ -393,6 +409,42 @@
     },
     "grass-f": {
       "file": "grass-f.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-g": {
+      "file": "grass-g.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-h": {
+      "file": "grass-h.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-i": {
+      "file": "grass-i.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-j": {
+      "file": "grass-j.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-k": {
+      "file": "grass-k.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-l": {
+      "file": "grass-l.png",
       "w": 16,
       "h": 16,
       "frames": 1

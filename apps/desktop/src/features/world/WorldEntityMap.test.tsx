@@ -207,6 +207,15 @@ describe('WorldEntityMap activation', () => {
     expect(terminalInspect?.getAttribute('href')).toContain('/terminal');
   });
 
+  it('keeps semantic plaques above the depth layer and out of duplicate screen-reader content', () => {
+    renderMap();
+    const plaques = [...document.querySelectorAll<HTMLElement>('[data-label-kind]')];
+
+    expect(plaques.length).toBeGreaterThan(0);
+    expect(plaques.every((plaque) => !plaque.closest('button'))).toBe(true);
+    expect(plaques.every((plaque) => plaque.getAttribute('aria-hidden') === 'true')).toBe(true);
+  });
+
   it('activates project memory records via click and keyboard on /world', async () => {
     const { onActivate, user } = renderMap(baseInput({ focusProjectId: 'alpha' }));
 
@@ -292,8 +301,8 @@ describe('WorldEntityMap activation', () => {
 
   it('renders entity sprites at manifest dimensions inside the semantic footprint', () => {
     renderMap();
-    // The workspace hall sprite is 80x64 source px (5x4 tiles); the hit box
-    // keeps the same footprint. Sprite size follows the live camera zoom.
+    // Sprite size follows its generator-owned source dimensions and live zoom;
+    // the semantic hit box remains independent from façade art size.
     const hall = document.querySelector('[data-entity-id="place:workspace"]') as HTMLElement;
     expect(hall).not.toBeNull();
     const sprite = hall.querySelector('span[style*="background-image"]') as HTMLElement | null;
@@ -304,8 +313,8 @@ describe('WorldEntityMap activation', () => {
       10,
     );
     expect(zoom).toBeGreaterThan(0);
-    // 80x64 source px scaled by zoom/16, bottom-center anchored.
-    expect(parseInt(sprite!.style.width, 10)).toBe((80 * zoom) / 16);
+    // Current original Workspace Hall art is 48x64 source px.
+    expect(parseInt(sprite!.style.width, 10)).toBe((48 * zoom) / 16);
     expect(parseInt(sprite!.style.height, 10)).toBe((64 * zoom) / 16);
     // Hit box keeps the footprint size (5x4 tiles), independent of sprite anchoring.
     expect(parseInt(hall.style.width, 10)).toBe(5 * zoom);

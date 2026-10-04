@@ -158,7 +158,10 @@ function baseGround(p: Painter) {
                   : moisture < 0.94
                     ? 3
                     : 5;
-        p.set(x, y, `grass-${grass}`);
+        // Each moisture band has two authored tile patterns. Stable per-cell
+        // choice breaks up repeated 16px stamps without adding visual noise.
+        const texture = h2(x, y, 59) % 2;
+        p.set(x, y, `grass-${grass * 2 + texture}`);
       }
     }
   }
@@ -190,48 +193,66 @@ function rasterLine(p: Painter, x0: number, y0: number, x1: number, y1: number) 
   }
 }
 
-/** A soft, deterministic curve between two meaningful door/road anchors. */
-function curvedPath(p: Painter, x0: number, y0: number, x1: number, y1: number, salt: number, amplitude = 1.25) {
-  const distance = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
-  const steps = Math.max(1, distance * 4);
-  const bend = Math.min(amplitude, distance < 3 ? distance * 0.07 : Math.max(1.15, distance * 0.07));
-  const phase = ((h2(x0 + x1, y0 + y1, salt) % 1000) / 1000) * Math.PI * 2;
-  let previousX = x0;
-  let previousY = y0;
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    const wave = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 2 + phase) * bend;
-    const x = Math.round(x0 + (x1 - x0) * t + (Math.abs(y1 - y0) > Math.abs(x1 - x0) ? wave : 0));
-    const y = Math.round(y0 + (y1 - y0) * t + (Math.abs(x1 - x0) >= Math.abs(y1 - y0) ? wave : 0));
-    rasterLine(p, previousX, previousY, x, y);
-    previousX = x;
-    previousY = y;
-  }
-}
-
 /** Main commons route meanders, but meets the bridge at its exact level. */
-function road(p: Painter, y: number, bridgeX: number, routeEndX: number): Map<number, number> {
-  const rows = new Map<number, number>();
-  let previous = { x: 4, y };
+function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX: number) {
+  let previous = { x: startX, y };
   const phase = ((h2(0, y, 31) % 1000) / 1000) * Math.PI * 2;
-  const endX = Math.max(bridgeX + 1, Math.min(p.cols - 4, routeEndX));
-  for (let x = 4; x <= endX; x++) {
+  const endX = Math.max(bridgeX + 1, Math.min(p.cols - 1, routeEndX));
+  for (let x = startX; x <= endX; x++) {
     const sideStart = x <= bridgeX ? 4 : bridgeX;
     const sideEnd = x <= bridgeX ? bridgeX : endX;
     const t = (x - sideStart) / Math.max(1, sideEnd - sideStart);
-    const bend = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 2 + phase) * 1.4;
+    const bend = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 2 + phase) * 1;
     const crossing = x >= bridgeX && x < bridgeX + 3;
-    const current = { x, y: crossing ? y : y + Math.round(bend) };
+    // The project-facing road can bow south into open ground, never north
+    // through the front walls of houses that sit directly behind it.
+    const current = { x, y: crossing ? y : y + Math.max(0, Math.round(bend)) };
     rasterLine(p, previous.x, previous.y, current.x, current.y);
-    rows.set(x, current.y);
     previous = current;
   }
-  return rows;
 }
 
-/** Path from a building threshold to the closest street or common. */
-function lane(p: Painter, x: number, y0: number, y1: number, salt = 0) {
-  curvedPath(p, x, y0, x, y1, salt);
+/** Connect a real entrance to the existing street without crossing buildings or water. */
+function connectEntrance(p: Painter, startX: number, startY: number) {
+  const start = key(startX, startY);
+  if (p.paths.has(start)) return;
+
+  const queue = [start];
+  const parent = new Map<string, string | null>([[start, null]]);
+  let target: string | undefined;
+  const steps = [
+    [0, -1],
+    [-1, 0],
+    [1, 0],
+    [0, 1],
+  ] as const;
+
+  for (let head = 0; head < queue.length && !target; head++) {
+    const at = queue[head]!;
+    const [x = 0, y = 0] = at.split(',').map(Number);
+    for (const [dx, dy] of steps) {
+      const nx = x + dx;
+      const ny = y + dy;
+      const next = key(nx, ny);
+      if (parent.has(next) || p.isBlocked(nx, ny)) continue;
+      if (p.paths.has(next)) {
+        parent.set(next, at);
+        target = next;
+        break;
+      }
+      if (p.get(nx, ny) === 'water') continue;
+      parent.set(next, at);
+      queue.push(next);
+    }
+  }
+
+  if (!target) return;
+  let cursor: string | null = parent.get(target)!;
+  while (cursor) {
+    const [x = 0, y = 0] = cursor.split(',').map(Number);
+    p.path(x, y);
+    cursor = parent.get(cursor) ?? null;
+  }
 }
 
 /** Resolve the actual path network into connected, correctly shaped tiles. */
@@ -267,7 +288,7 @@ function renderPaths(p: Painter) {
   }
 }
 
-/** A broad east-valley creek with a slow, bridge-anchored meander. */
+/** A narrow east-valley stream with a slow, bridge-anchored meander. */
 function creek(
   p: Painter,
   preferredX: number,
@@ -288,7 +309,7 @@ function creek(
     x = baseX + Math.round(Math.sin(along * 0.15) * 5.5 + Math.sin(along * 0.05) * 2.25);
     x = Math.max(minCenterX, Math.min(maxCenterX, x));
     if (bridgeRows.has(y)) crossingX = x;
-    const width = 3;
+    const width = 2;
     for (let cx = x; cx < x + width; cx++) {
       if (bridgeRows.has(y)) {
         p.set(cx, y, 'dirt', true);
@@ -530,9 +551,9 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const commons = entities.filter(
     (e) => e.kind === 'place' && e.id !== 'place:workspace' && !e.id.startsWith('place:project:'),
   );
-  const projectYs = projects.map((e) => e.y);
   const marker = entities.find((e) => e.id === 'place:projects-empty');
-  const roadY = projectYs.length ? Math.min(...projectYs) - 1 : marker ? marker.y - 1 : Math.floor(rows / 2);
+  const firstStreetDoorY = projects[0] ? projects[0].y + projects[0].h : marker ? marker.y + marker.h : undefined;
+  const roadY = firstStreetDoorY ?? Math.floor(rows / 2);
 
   // creek first so roads bridge it
   const workshop = entities.find((e) => e.id === 'object:workshop');
@@ -540,41 +561,38 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     ? Math.min(...projects.map((project) => project.x))
     : (marker?.x ?? Math.floor(cols / 2));
   const riverX = riverAnchorX - (projects.length ? 2 : 8);
-  const creekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
+  // Leave a walkable west bank between the civic quarter and the creek. The
+  // bridge should connect the shared places to project homes, not begin at
+  // the creek edge as a detached road segment.
+  const civicEastEdge = Math.max(0, ...commons.map((place) => place.x + place.w));
+  const creekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, (workshop ? workshop.x + workshop.w : 6) + 2);
   (p as unknown as { creekX: number }).creekX = creekX;
   const routeEndX = projects.length
-    ? Math.max(...projects.map((project) => project.x + project.w)) + 2
+    ? Math.max(...projects.map((project) => project.x + Math.floor(project.w / 2)))
     : marker
-      ? marker.x + marker.w + 2
+      ? marker.x + Math.floor(marker.w / 2)
       : cols - 4;
-  const roadRows = road(p, roadY, creekX, routeEndX);
-  // A continuous north-south path links the hall, civic square and projects.
-  const hallCx = hall ? hall.x + Math.floor(hall.w / 2) : 3;
-  lane(p, hallCx, hall ? hall.y + hall.h : 2, roadRows.get(hallCx) ?? roadY, 7);
-  // Each landmark has a short approach from its front door to the civic path.
+  road(p, roadY, creekX, routeEndX, Math.min(creekX - 1, civicEastEdge));
+  // Join each real front door to the street. A grid search avoids routing
+  // through another building when project lanes share a column.
+  if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h);
   for (const place of commons) {
     if (place.id === 'place:memory') continue;
     const doorX = place.x + Math.floor(place.w / 2);
     const doorY = place.y + place.h;
-    const targetY = doorY <= 11 ? 10 : (roadRows.get(doorX) ?? roadY);
-    lane(p, doorX, doorY, targetY, h2(place.x, place.y, 19));
-    if (targetY === 10) {
-      curvedPath(p, doorX, targetY, hallCx, targetY, h2(place.x, place.y, 21), 0.8);
-    }
+    connectEntrance(p, doorX, doorY);
   }
   for (const project of projects) {
     const doorX = project.x + Math.floor(project.w / 2);
     const doorY = project.y + project.h;
-    // Give each house one direct, legible approach to the shared street.
-    // Side-gutter spurs created square loops around close-set project lots.
-    lane(p, doorX, doorY, roadRows.get(doorX) ?? roadY, h2(project.x, project.y, 27));
+    connectEntrance(p, doorX, doorY);
   }
   projectGardens(p, projects);
   if (projects.length === 0) {
     if (marker) {
       const doorX = marker.x + Math.floor(marker.w / 2);
       const doorY = marker.y + marker.h;
-      lane(p, doorX, doorY, roadRows.get(doorX) ?? roadY, 31);
+      connectEntrance(p, doorX, doorY);
     }
   }
   renderPaths(p);
