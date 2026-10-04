@@ -16,6 +16,7 @@ import {
   useActionReceipt,
 } from '../../ui';
 import styles from './mcpProviders.module.css';
+import type { McpSecretStatus } from '../../types/electron';
 
 type ReviewAction = 'configure' | 'validate' | 'probe' | 'remove';
 interface ReviewState {
@@ -69,6 +70,13 @@ export function McpProvidersPanel() {
   const [review, setReview] = useState<ReviewState | null>(null);
   const [resultText, setResultText] = useState('');
   const [routeError, setRouteError] = useState('');
+  const [secretStatus, setSecretStatus] = useState<McpSecretStatus | null>(null);
+  const [secretValues, setSecretValues] = useState<Record<string, string>>({});
+  const [secretMessage, setSecretMessage] = useState('');
+  const [secretBusy, setSecretBusy] = useState(false);
+  const [restartBusy, setRestartBusy] = useState(false);
+  const [pendingRestart, setPendingRestart] = useState(false);
+  const [restartReview, setRestartReview] = useState(false);
   const setup = useSubMutation('mcp', 'setup');
   const doctor = useSubMutation('mcp', 'doctor');
   const health = useSubMutation('mcp', 'health');
@@ -81,6 +89,99 @@ export function McpProvidersPanel() {
   const resetUninstall = uninstall.reset;
   const pending = setup.isPending || doctor.isPending || health.isPending || uninstall.isPending;
   const configPath = providers.data?.config_path || '~/.config/agent-toolkit/mcp-config.json';
+
+  const refreshSecretStatus = useCallback(async () => {
+    if (!window.atk) {
+      setSecretStatus({
+        available: false,
+        storage: 'Desktop only',
+        names: [],
+        error: 'Private credential storage is available only in the installed Desktop app.',
+      });
+      return;
+    }
+    try {
+      setSecretStatus(await window.atk.mcpSecretStatus());
+    } catch {
+      setSecretStatus({
+        available: false,
+        storage: 'Unavailable',
+        names: [],
+        error: 'Credential storage could not be read.',
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshSecretStatus();
+  }, [refreshSecretStatus]);
+
+  async function saveSecret(name: string) {
+    const value = secretValues[name] ?? '';
+    if (!window.atk) {
+      setSecretMessage('Secure credential storage is available only in the Desktop app.');
+      return;
+    }
+    setSecretBusy(true);
+    setSecretMessage('');
+    try {
+      const result = await window.atk.mcpSecretSet(name, value);
+      if (!result.ok) {
+        setSecretMessage(result.message);
+        return;
+      }
+      setSecretValues((current) => ({ ...current, [name]: '' }));
+      setPendingRestart(true);
+      setSecretMessage(
+        `${name} was encrypted in ${secretStatus?.storage ?? 'the system credential store'}. Restart the backend to apply it.`,
+      );
+      await refreshSecretStatus();
+    } catch {
+      setSecretMessage('Could not save this credential. The value was not added to Toolkit configuration.');
+    } finally {
+      setSecretBusy(false);
+    }
+  }
+
+  async function removeSecret(name: string) {
+    if (!window.atk) return;
+    setSecretBusy(true);
+    setSecretMessage('');
+    try {
+      const result = await window.atk.mcpSecretRemove(name);
+      if (result.ok) setPendingRestart(true);
+      setSecretMessage(result.ok ? `${name} was removed. Restart the backend to apply the change.` : result.message);
+      await refreshSecretStatus();
+    } catch {
+      setSecretMessage('Could not update the encrypted credential store.');
+    } finally {
+      setSecretBusy(false);
+    }
+  }
+
+  async function restartBackend() {
+    if (!window.atk) return;
+    setRestartBusy(true);
+    setSecretMessage('');
+    try {
+      const ready = await window.atk.backendRestart();
+      if (ready) {
+        setPendingRestart(false);
+        await providers.refetch();
+      }
+      setSecretMessage(
+        ready
+          ? 'Backend restarted. MCP provider validation now uses the saved credentials.'
+          : 'The backend did not become ready. Check Operations → Diagnostics, then retry the restart.',
+      );
+    } catch {
+      setSecretMessage(
+        'Backend restart failed. Your encrypted credential remains saved; inspect Diagnostics before retrying.',
+      );
+    } finally {
+      setRestartBusy(false);
+    }
+  }
 
   function runReviewedAction() {
     if (!review) return;
@@ -298,10 +399,77 @@ export function McpProvidersPanel() {
         </QueryView>
         {routeError ? <p role="status">{routeError}</p> : null}
         <p className={styles.guidance}>
-          Secret values are never returned by the backend. Missing variables must be made available to the Desktop
-          backend&apos;s launch environment; saving a provider does not create or store credentials. Configured means
-          enabled in Agent Toolkit&apos;s registry, not connected to a coding tool or active session.
+          Secret values are never returned by the backend. Configured means enabled in Agent Toolkit&apos;s registry,
+          not connected to a coding tool or active session.
         </p>
+        <section className={styles.credentials} aria-label="MCP credentials">
+          <div className={styles.credentialsHeading}>
+            <div>
+              <h3>Private credentials</h3>
+              <p>
+                Values are encrypted with {secretStatus?.storage ?? 'the operating-system credential store'} and exposed
+                only to the supervised Agent Toolkit backend after restart. They are never written to MCP configuration.
+              </p>
+            </div>
+            {secretStatus?.available && pendingRestart ? (
+              <Button size="sm" busy={restartBusy} busyLabel="Restarting…" onClick={() => setRestartReview(true)}>
+                Restart backend to apply
+              </Button>
+            ) : null}
+          </div>
+          {!secretStatus ? <p role="status">Checking secure credential storage…</p> : null}
+          {secretStatus && !secretStatus.available ? <p role="alert">{secretStatus.error}</p> : null}
+          {Array.from(
+            (providers.data?.ok ? providers.data.providers : [])
+              .reduce((variables, provider) => {
+                for (const name of provider.required_env) {
+                  const providerNames = variables.get(name) ?? [];
+                  providerNames.push(provider.display_name || provider.id);
+                  variables.set(name, providerNames);
+                }
+                return variables;
+              }, new Map<string, string[]>())
+              .entries(),
+          ).map(([name, providerNames]) => {
+            const saved = secretStatus?.names.includes(name) ?? false;
+            return (
+              <div className={styles.credentialRow} key={name}>
+                <label htmlFor={`mcp-secret-${name}`}>
+                  <Mono>{name}</Mono>
+                  <span className={styles.package}>Used by {providerNames.join(', ')}</span>
+                </label>
+                {saved ? (
+                  <StatusBadge tone="ok" label="saved securely" />
+                ) : (
+                  <StatusBadge tone="idle" label="not saved" />
+                )}
+                <input
+                  id={`mcp-secret-${name}`}
+                  type="password"
+                  autoComplete="new-password"
+                  value={secretValues[name] ?? ''}
+                  onChange={(event) => setSecretValues((current) => ({ ...current, [name]: event.target.value }))}
+                  placeholder={saved ? 'Enter a new value to replace' : 'Enter credential'}
+                  disabled={!secretStatus?.available || secretBusy}
+                  aria-label={`Credential value for ${name}`}
+                />
+                <Button
+                  size="sm"
+                  disabled={!secretStatus?.available || secretBusy || !(secretValues[name] ?? '')}
+                  onClick={() => void saveSecret(name)}
+                >
+                  Save securely
+                </Button>
+                {saved ? (
+                  <Button size="sm" variant="danger" disabled={secretBusy} onClick={() => void removeSecret(name)}>
+                    Remove
+                  </Button>
+                ) : null}
+              </div>
+            );
+          })}
+          {secretMessage ? <p role="status">{secretMessage}</p> : null}
+        </section>
       </Panel>
 
       <Dialog
@@ -402,6 +570,39 @@ export function McpProvidersPanel() {
         {setup.isError || doctor.isError || health.isError || uninstall.isError ? (
           <p role="alert">{errorMessage(setup.error || doctor.error || health.error || uninstall.error)}</p>
         ) : null}
+      </Dialog>
+
+      <Dialog
+        open={restartReview}
+        onClose={() => (restartBusy ? undefined : setRestartReview(false))}
+        title="Restart the Desktop backend?"
+        description="Saved MCP credentials are read only when the supervised backend starts."
+        footer={
+          <ButtonRow>
+            <Button disabled={restartBusy} onClick={() => setRestartReview(false)}>
+              Cancel
+            </Button>
+            <Button
+              busy={restartBusy}
+              onClick={() => {
+                setRestartReview(false);
+                void restartBackend();
+              }}
+            >
+              Restart backend
+            </Button>
+          </ButtonRow>
+        }
+      >
+        <section className={styles.review} aria-label="Backend restart impact">
+          <h3>What will happen</h3>
+          <p>The local API process will stop and start with the encrypted credentials available to it.</p>
+          <p>
+            Requests in progress may fail while it restarts. Desktop terminal sessions remain separate and are not
+            stopped.
+          </p>
+          <p>No credentials are shown or written into MCP configuration.</p>
+        </section>
       </Dialog>
     </>
   );

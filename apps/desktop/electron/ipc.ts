@@ -2,6 +2,7 @@ import { ipcMain, type BrowserWindow } from 'electron';
 import type { BackendSupervisor } from './backend';
 import { createDefaultHarnessFromProcess, isDefaultHarnessPath } from './harness';
 import type { HarnessController, HarnessSwitchResult } from './harness-controller';
+import type { McpSecretStore } from './mcp-secrets';
 import { TerminalCwdError, type TerminalService } from './terminal';
 
 export interface IpcDeps {
@@ -9,6 +10,7 @@ export interface IpcDeps {
   getTerminals: () => TerminalService | null;
   getWindow: () => BrowserWindow | null;
   getHarness: () => HarnessController | null;
+  getMcpSecrets?: () => McpSecretStore | null;
   chooseProjectDirectory?: (defaultPath: string) => Promise<string | null>;
   /** When set, rewrite backend.url to the same-origin renderer proxy. */
   getPublicBackendUrl?: () => string | null;
@@ -35,6 +37,31 @@ export function registerIpc(deps: IpcDeps): void {
     return publicUrl && snapshot.url ? { ...snapshot, url: publicUrl } : snapshot;
   });
   ipcMain.handle('atk:backend-restart', async () => deps.getBackend()?.restart() ?? false);
+
+  ipcMain.handle(
+    'atk:mcp-secret-status',
+    () =>
+      deps.getMcpSecrets?.()?.status() ?? {
+        available: false,
+        storage: 'Unavailable',
+        names: [],
+        error: 'Credential storage is not ready.',
+      },
+  );
+  ipcMain.handle('atk:mcp-secret-set', (_event, request: unknown) => {
+    if (!isRecord(request)) return { ok: false, message: 'Invalid credential request.' };
+    return (
+      deps.getMcpSecrets?.()?.set(request.name, request.value) ?? {
+        ok: false,
+        message: 'Credential storage is not ready.',
+      }
+    );
+  });
+  ipcMain.handle('atk:mcp-secret-remove', (_event, name: unknown) =>
+    typeof name === 'string'
+      ? (deps.getMcpSecrets?.()?.remove(name) ?? { ok: false, message: 'Credential storage is not ready.' })
+      : { ok: false, message: 'Invalid environment variable name.' },
+  );
 
   ipcMain.handle('atk:harness-status', () => deps.getHarness()?.status() ?? null);
   ipcMain.handle('atk:harness-recent', () => deps.getHarness()?.recent() ?? []);

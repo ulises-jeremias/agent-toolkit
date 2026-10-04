@@ -127,6 +127,9 @@ export type Unsubscribe = () => void;
 export interface AtkBridge {
   backendStatus: () => Promise<BackendState | null>;
   backendRestart: () => Promise<boolean>;
+  mcpSecretStatus: () => Promise<McpSecretStatus>;
+  mcpSecretSet: (name: string, value: string) => Promise<McpSecretMutationResult>;
+  mcpSecretRemove: (name: string) => Promise<McpSecretMutationResult>;
   onBackendState: (listener: (state: BackendState) => void) => Unsubscribe;
   harnessStatus: () => Promise<HarnessStatus | null>;
   harnessRecent: () => Promise<HarnessRecentEntry[]>;
@@ -152,6 +155,15 @@ export interface AtkBridge {
   onPtyData: (listener: (event: PtyDataEvent) => void) => Unsubscribe;
   onPtyExit: (listener: (event: PtyExitEvent) => void) => Unsubscribe;
 }
+
+export interface McpSecretStatus {
+  available: boolean;
+  storage: string;
+  names: string[];
+  error: string | null;
+}
+
+export type McpSecretMutationResult = { ok: true } | { ok: false; message: string };
 
 declare global {
   interface Window {
