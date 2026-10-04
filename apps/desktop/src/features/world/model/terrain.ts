@@ -539,8 +539,7 @@ function flowerPatchSprites(p: Painter, glades: readonly { x: number; y: number;
     if (index % 2 !== 0 || nearStructureOrPath(p, glade.x, glade.y, 2)) continue;
     const hasTreeCanopy = p.decor.some(
       (decor) =>
-        decor.sprite.startsWith('tree-') && Math.abs(decor.x - glade.x) <= 2 &&
-        Math.abs(decor.y - glade.y) <= 2,
+        decor.sprite.startsWith('tree-') && Math.abs(decor.x - glade.x) <= 2 && Math.abs(decor.y - glade.y) <= 2,
     );
     if (hasTreeCanopy) continue;
     p.sprite(
