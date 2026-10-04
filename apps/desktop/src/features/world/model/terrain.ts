@@ -206,9 +206,10 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
     // Keep the immediate approach and all three bridge tiles level so the
     // meandering footpath visibly meets the crossing without a one-tile step.
     const crossing = x >= bridgeX - 1 && x < bridgeX + 3;
-    // The project-facing road can bow south into open ground, never north
-    // through the front walls of houses that sit directly behind it.
-    const current = { x, y: crossing ? y : y + Math.max(0, Math.round(bend)) };
+    // The commons road can sway gently on either bank. Keep the approach to
+    // the project lane bowed south: its houses sit immediately beyond it.
+    const bank = x < bridgeX - 1 ? Math.round(bend * 1.35) : Math.max(0, Math.round(bend * 1.35));
+    const current = { x, y: crossing ? y : y + bank };
     rasterLine(p, previous.x, previous.y, current.x, current.y);
     previous = current;
   }
