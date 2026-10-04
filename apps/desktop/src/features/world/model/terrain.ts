@@ -158,10 +158,10 @@ function baseGround(p: Painter) {
                   : moisture < 0.94
                     ? 3
                     : 5;
-        // Each moisture band has two authored tile patterns. Stable per-cell
-        // choice breaks up repeated 16px stamps without adding visual noise.
-        const texture = h2(x, y, 59) % 2;
-        p.set(x, y, `grass-${grass * 2 + texture}`);
+        // Each moisture band has four authored tile patterns. Spatially
+        // seeded choice breaks up repeated 16px stamps without adding noise.
+        const texture = Math.min(3, Math.floor(meadowField(x, y, 5, 59) * 4));
+        p.set(x, y, `grass-${grass * 4 + texture}`);
       }
     }
   }

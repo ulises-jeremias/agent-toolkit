@@ -471,6 +471,78 @@
       "h": 16,
       "frames": 1
     },
+    "grass-m": {
+      "file": "grass-m.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-n": {
+      "file": "grass-n.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-o": {
+      "file": "grass-o.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-p": {
+      "file": "grass-p.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-q": {
+      "file": "grass-q.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-r": {
+      "file": "grass-r.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-s": {
+      "file": "grass-s.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-t": {
+      "file": "grass-t.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-u": {
+      "file": "grass-u.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-v": {
+      "file": "grass-v.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-w": {
+      "file": "grass-w.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-x": {
+      "file": "grass-x.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
     "flowers-poppy": {
       "file": "flowers-poppy.png",
       "w": 16,

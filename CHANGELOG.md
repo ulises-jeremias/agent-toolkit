@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - World groves now form deterministic overlapping tree clusters behind buildings and clear paths; flower glades are more frequent in open terrain.
+- Meadow ground now selects among 24 authored tile motifs, with broader clustered cover and occasional clover glints instead of a sparkle on every tile.
 - Selecting a swarm run now moves its inspector below a compact run list and gives it the full reading width on large windows; run history remains scrollable without leaving half the screen empty.
 - Consecutive successful desktop actions now replace their transient receipt instead of stacking over inspectors; persistent failures and warnings remain visible until dismissed, and the full receipt history is retained.
 - Desktop now completes workspace switching through Settings: the backend

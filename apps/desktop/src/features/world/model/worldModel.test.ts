@@ -903,6 +903,7 @@ describe('layoutWorld', () => {
     expect(new Set(cells.filter(({ tile }) => tile.startsWith('grass-')).map(({ tile }) => tile)).size).toBeGreaterThan(
       6,
     );
+    expect(cells.some(({ tile }) => tile.startsWith('grass-') && Number(tile.slice(6)) > 11)).toBe(true);
     const tiles = new Map(cells.map(({ x, y, tile }) => [`${x},${y}`, tile]));
     let adjacentPairs = 0;
     let paletteChanges = 0;
