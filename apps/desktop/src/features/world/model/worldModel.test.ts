@@ -970,9 +970,7 @@ describe('layoutWorld', () => {
     const trees = paintTerrain(layout.entities, layout.cols, layout.rows).decor.filter((sprite) =>
       sprite.sprite.startsWith('tree-'),
     );
-    const buildings = layout.entities.filter(
-      (entity) => entity.kind === 'place' && entity.id.startsWith('place:'),
-    );
+    const buildings = layout.entities.filter((entity) => entity.kind === 'place' && entity.id.startsWith('place:'));
 
     expect(trees.length).toBeGreaterThan(0);
     for (const tree of trees) {
@@ -982,10 +980,7 @@ describe('layoutWorld', () => {
       const bottom = top + tree.h / 16;
       for (const building of buildings) {
         const overlaps =
-          left < building.x + building.w &&
-          right > building.x &&
-          top < building.y + building.h &&
-          bottom > building.y;
+          left < building.x + building.w && right > building.x && top < building.y + building.h && bottom > building.y;
         expect(overlaps, `${tree.id} canopy overlaps ${building.id}`).toBe(false);
       }
     }
