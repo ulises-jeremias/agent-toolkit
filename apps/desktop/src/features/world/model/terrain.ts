@@ -535,7 +535,7 @@ function flowerPatchSprites(p: Painter) {
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 2; y++) {
     for (let x = 2; x < p.cols - 2; x++) {
-      if (!p.get(x, y).startsWith('flowers') || nearStructureOrPath(p, x, y, 2)) continue;
+      if (!p.get(x, y).startsWith('flowers')) continue;
       candidates.push({ x, y, rank: h2(x, y, 181) });
     }
   }
@@ -554,15 +554,24 @@ function flowerPatchSprites(p: Painter) {
       right: candidate.x + 1.5,
       bottom: candidate.y + 2,
     };
-    const overlapsTree = p.decor.some((decor) => {
-      if (!decor.sprite.startsWith('tree-')) return false;
+    const overlapsGrid = (grid: ReadonlySet<string>) => {
+      for (let y = Math.floor(patch.top); y < Math.ceil(patch.bottom); y++) {
+        for (let x = Math.floor(patch.left); x < Math.ceil(patch.right); x++) {
+          if (grid.has(key(x, y))) return true;
+        }
+      }
+      return false;
+    };
+    if (overlapsGrid(p.paths) || overlapsGrid(p.blocked)) continue;
+    const overlapsTreeOrBridge = p.decor.some((decor) => {
+      if (!decor.sprite.startsWith('tree-') && decor.sprite !== 'bridge') return false;
       const left = decor.x + decor.dx / 16;
       const top = decor.y + decor.dy / 16;
       const right = left + decor.w / 16;
       const bottom = top + decor.h / 16;
       return patch.left < right && patch.right > left && patch.top < bottom && patch.bottom > top;
     });
-    if (overlapsTree) continue;
+    if (overlapsTreeOrBridge) continue;
     p.sprite(
       `flower-patch:${candidate.x},${candidate.y}`,
       candidate.x,
