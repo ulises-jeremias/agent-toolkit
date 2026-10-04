@@ -7,7 +7,7 @@
       "h": 56,
       "frames": 1,
       "source": "scripts/world-art/house-cottage.png",
-      "sha256": "73ea716554436531c4b3101b51b8552fe7679bb761e07dc886ac3c208b109037"
+      "sha256": "8c2832421622a4e23bf0c9c24801c48b241db65b46ab4c837c2c123f92f5bf25"
     },
     "house-studio": {
       "file": "house-studio.png",
@@ -15,7 +15,7 @@
       "h": 56,
       "frames": 1,
       "source": "scripts/world-art/house-studio.png",
-      "sha256": "a70d72bd64aa8066e4bcfc95a47ed5e611d24f692182d844368337dabb917de0"
+      "sha256": "527e8ee080cf00a4f99b0c5dd33f726ae1cc0853eada5f34a91def4baca2a3b8"
     },
     "house-workshop": {
       "file": "house-workshop.png",
@@ -23,7 +23,7 @@
       "h": 56,
       "frames": 1,
       "source": "scripts/world-art/house-workshop.png",
-      "sha256": "056ecaa5e53657795644fc6c41cee2b753731a1ac8a43cce5505e91099b7b07c"
+      "sha256": "bc5fb321f82fa12053ed3d9fb8e504c4b85c503894748f53b45c6999b3784a7b"
     },
     "house-tower": {
       "file": "house-tower.png",
@@ -49,7 +49,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art/landmark-workspace.png",
-      "sha256": "42b870d498f7a067f7a2aa1f825a6b1807d8402181aaf018f6645fe8e36b1787"
+      "sha256": "143da591da14ec078a76768175badd29c70aaae415e9deef078e7ee278de57c8"
     },
     "landmark-archive": {
       "file": "landmark-archive.png",
@@ -57,7 +57,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art/landmark-archive.png",
-      "sha256": "e572707aef96d9ee1c7e1fec09224e5bcc2a30b1ac91c4b516baf8ed0f2c13fb"
+      "sha256": "e87caf7af99d36459b8bb88677964920c3d3c7cf496ba5349b1336ea0f7bda36"
     },
     "landmark-library": {
       "file": "landmark-library.png",
@@ -65,7 +65,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art/landmark-library.png",
-      "sha256": "e31ff297b02ef6f8c92343784f8c75bf4d4140f7871efe4ba1a958d4fbce9647"
+      "sha256": "f979a3727fed3c37212c62c8aeda84d54eab1c040d5d447f70420e315e21f038"
     },
     "landmark-workshop": {
       "file": "landmark-workshop.png",
@@ -79,7 +79,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art/landmark-operations.png",
-      "sha256": "443c6afb76207f2cd78d3ced43578f2ede370031ab99021cd9c86fbb7ac13d0c"
+      "sha256": "5c72024ec16d5e5f8ebd52d736daaf4af371957cc76f5123d2621876b1fb0fcf"
     },
     "landmark-terminal": {
       "file": "landmark-terminal.png",
@@ -87,7 +87,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art/landmark-terminal.png",
-      "sha256": "2bb5e503bb45d6bf0726a9ca691538ec4495af30bc7bba7036355ee45b540de5"
+      "sha256": "a6c0678e78dbf0eea24b55c1bcac12943083f38f47fabefc6780d710f089706f"
     },
     "landmark-files": {
       "file": "landmark-files.png",
@@ -191,7 +191,7 @@
       "h": 48,
       "frames": 1,
       "source": "scripts/world-art/tree-round.png",
-      "sha256": "d787e44252756c2e1200b93894ce7499d2cb468154f5b768b92b39bbf59f488c"
+      "sha256": "5d0b2c5f6d6353e5ca57a824d097f521b4a0e3e3cec5a2ed4d9b3f9aa89e5784"
     },
     "tree-blossom": {
       "file": "tree-blossom.png",
@@ -199,7 +199,7 @@
       "h": 48,
       "frames": 1,
       "source": "scripts/world-art/tree-blossom.png",
-      "sha256": "709b7a0ed0daa077097ac6b375e8b4230ad72330e460eedc8f4a58fe3e43d8a8"
+      "sha256": "a1497afa853f5f744e5005ffaf4b0eacc1f96b793dfcd16ec096d499ba04645a"
     },
     "tree-amber": {
       "file": "tree-amber.png",
@@ -207,7 +207,7 @@
       "h": 48,
       "frames": 1,
       "source": "scripts/world-art/tree-amber.png",
-      "sha256": "575f9a7054aeea7d309f1de038046ed1c8f7ce2ccc6b732a552a5410cbc21f1d"
+      "sha256": "43d3d23cbfbf9972ba3ec6ab8eaca036d80dfba0124d0371ed53febd8cc1d208"
     },
     "tree-pine": {
       "file": "tree-pine.png",
@@ -215,7 +215,7 @@
       "h": 48,
       "frames": 1,
       "source": "scripts/world-art/tree-pine.png",
-      "sha256": "aec4432f9a566ff5f05b9497577f737cd0c7ae7fe354d94bd21db4f7890166f2"
+      "sha256": "8b1d7455a27237e4b82de83d97dd91883d410ac67f141cd587d41e043f1c0ef4"
     },
     "tree-willow": {
       "file": "tree-willow.png",
@@ -223,7 +223,7 @@
       "h": 48,
       "frames": 1,
       "source": "scripts/world-art/tree-willow.png",
-      "sha256": "cdfcb01881df58d73d1fc9ebbf5cebfb4c6afd3a63b9cc8122bd9284f1065024"
+      "sha256": "5cac8f92597d3cf1f0212451a8661ba28b2127dae5456bfffdb3787bdd450a30"
     },
     "bush": {
       "file": "bush.png",
