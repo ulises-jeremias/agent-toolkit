@@ -901,7 +901,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const riverX = riverAnchorX - (projects.length ? 2 : 8);
   // Start the street on the actual west bank so the crossing is always joined
   // to the path network, even when a civic building sits farther east.
-  const plannedCreekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
+  const plannedCreekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 2, workshop ? workshop.x + workshop.w : 6);
   const creekX = plannedCreekX ?? Math.max(4, Math.min(cols - 5, riverX));
   (p as unknown as { creekX: number }).creekX = creekX;
   const routeEndX = projects.length
