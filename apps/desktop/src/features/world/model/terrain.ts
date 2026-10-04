@@ -317,10 +317,18 @@ function creek(
     const desiredX = baseX + Math.sin(along * 0.22) * broadBend + anchoredSoftBend * softBend;
     const pool = Math.sin(along * 0.25 + 0.9);
     const width = pool > 0.45 ? 3 : 2;
-    const safeCenters = Array.from({ length: maxCenterX - runMinX + 1 }, (_, offset) => runMinX + offset).filter(
-      (candidate) =>
-        Array.from({ length: width }, (_, offset) => candidate + offset).every((column) => !p.isBlocked(column, y)),
+    // Prefer the east-valley corridor and search the full map only when a real
+    // footprint closes it. Never invent a fallback coordinate through a lot.
+    const preferredCenters = Array.from({ length: maxCenterX - runMinX + 1 }, (_, offset) => runMinX + offset);
+    const safeInCorridor = preferredCenters.filter((candidate) =>
+      Array.from({ length: width }, (_, offset) => candidate + offset).every((column) => !p.isBlocked(column, y)),
     );
+    const safeCenters =
+      safeInCorridor.length > 0
+        ? safeInCorridor
+        : Array.from({ length: p.cols - width - 2 }, (_, offset) => offset + 1).filter((candidate) =>
+            Array.from({ length: width }, (_, offset) => candidate + offset).every((column) => !p.isBlocked(column, y)),
+          );
     return { y, width, desiredX, safeCenters };
   });
 
@@ -328,7 +336,10 @@ function creek(
   // push the creek sharply against a façade at the last moment; this tiny
   // dynamic program keeps it within one tile of the next row while finding a
   // clear course around each occupied lot.
-  const candidateRows = creekRows.map((row) => (row.safeCenters.length > 0 ? row.safeCenters : [baseX]));
+  const candidateRows = creekRows.map((row) => row.safeCenters);
+  // An exceptional full-width obstruction has no valid continuous route.
+  // Omit the creek instead of drawing through a project or landmark.
+  if (candidateRows.some((candidates) => candidates.length === 0)) return null;
   const costs: number[][] = [];
   const parents: number[][] = [];
   creekRows.forEach((row, rowIndex) => {
@@ -344,23 +355,14 @@ function creek(
           cost: previousCosts[previousIndex]!,
         }))
         .filter(({ previous, cost }) => Number.isFinite(cost) && Math.abs(candidate - previous) <= 1);
-      if (transitions.length === 0) {
-        const fallback = previousCandidates
-          .map((previous, previousIndex) => ({
-            previousIndex,
-            cost: previousCosts[previousIndex]! + Math.abs(candidate - previous) * 8,
-          }))
-          .sort((left, right) => left.cost - right.cost)[0];
-        parents[rowIndex] ??= [];
-        parents[rowIndex]![candidateIndex] = fallback?.previousIndex ?? 0;
-        return Math.abs(candidate - row.desiredX) + (fallback?.cost ?? 0);
-      }
+      if (transitions.length === 0) return Number.POSITIVE_INFINITY;
       const best = transitions.reduce((left, right) => (right.cost < left.cost ? right : left));
       parents[rowIndex] ??= [];
       parents[rowIndex]![candidateIndex] = best.previousIndex;
       return Math.abs(candidate - row.desiredX) + best.cost;
     });
   });
+  if (!costs.at(-1)!.some(Number.isFinite)) return null;
   const creekCenters = new Array<number>(p.rows);
   let routeIndex = costs
     .at(-1)!
@@ -375,6 +377,7 @@ function creek(
     const x = creekCenters[y] ?? baseX;
     const { width } = creekRows[y]!;
     for (let cx = x; cx < x + width; cx++) {
+      if (p.isBlocked(cx, y)) continue;
       if (bridgeRows.has(y)) {
         p.set(cx, y, 'dirt', true);
         continue;
@@ -727,7 +730,8 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const riverX = riverAnchorX - (projects.length ? 2 : 8);
   // Start the street on the actual west bank so the crossing is always joined
   // to the path network, even when a civic building sits farther east.
-  const creekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
+  const plannedCreekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
+  const creekX = plannedCreekX ?? Math.max(4, Math.min(cols - 5, riverX));
   (p as unknown as { creekX: number }).creekX = creekX;
   const routeEndX = projects.length
     ? Math.max(...projects.map((project) => project.x + Math.floor(project.w / 2)))
@@ -758,8 +762,10 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     }
   }
   renderPaths(p);
-  bridgeAt(p, creekX, roadY);
-  bridgeLanterns(p, creekX, roadY);
+  if (plannedCreekX !== null) {
+    bridgeAt(p, creekX, roadY);
+    bridgeLanterns(p, creekX, roadY);
+  }
   feather(p);
   plazaCore(p, hall, commons);
   flowerGlades(p);

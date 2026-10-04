@@ -887,6 +887,16 @@ describe('layoutWorld', () => {
     }
   });
 
+  it('omits the creek instead of crossing a fully blocked row', () => {
+    const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
+    const obstructionRow = Math.floor(layout.rows / 2);
+    const barrier = { ...layout.entities[0]!, id: 'place:test-barrier', x: 0, y: obstructionRow, w: layout.cols, h: 1 };
+    const terrain = paintTerrain([...layout.entities, barrier], layout.cols, layout.rows);
+
+    expect(terrain.cells.some(({ tile }) => tile === 'water')).toBe(false);
+    expect(terrain.decor.some(({ sprite }) => sprite === 'bridge')).toBe(false);
+  });
+
   it('clusters meadow color patches instead of changing grass palette every tile', () => {
     const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
     const cells = paintTerrain(layout.entities, layout.cols, layout.rows).cells;
