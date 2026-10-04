@@ -207,17 +207,17 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     entryX += 2;
   }
 
-  // The Library and Operations face the northern commons. Smaller service
-  // buildings face its southern side; the east edge leads to the creek.
-  const civicX = 0;
+  // Public landmarks gather around a shared clearing in a loose crescent.
+  // The staggered fronts leave a readable plaza instead of two rigid rows;
+  // smaller service places form its southern garden lane.
   const civicSlots: Record<string, { x: number; y: number }> = {
-    'object:library': { x: civicX + 1, y: 4 },
-    'object:workshop': { x: civicX + 10, y: 8 },
-    'object:operations': { x: civicX + 6, y: 4 },
-    'object:terminal': { x: civicX + 11, y: 4 },
-    'object:attention': { x: civicX + 1, y: 8 },
-    'object:files': { x: civicX + 4, y: 9 },
-    'object:settings': { x: civicX + 7, y: 8 },
+    'object:library': { x: 1, y: 5 },
+    'object:workshop': { x: 11, y: 8 },
+    'object:operations': { x: 5, y: 5 },
+    'object:terminal': { x: 11, y: 3 },
+    'object:attention': { x: 0, y: 9 },
+    'object:files': { x: 4, y: 9 },
+    'object:settings': { x: 8, y: 9 },
   };
   for (const landmark of sharedObjects) {
     const slot = civicSlots[landmark.id]!;
@@ -271,7 +271,14 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   }
 
   const districtRows = Math.ceil(projects.length / Math.max(1, districtCols));
-  const mapRows = districtY + Math.max(0, districtRows - 1) * 5 + 3;
+  const projectRows = districtY + Math.max(0, districtRows - 1) * 5 + 3;
+  // Give every civic front door at least one walkable tile inside the camera
+  // bounds, including the southern workshop lane on empty workspaces.
+  const landmarkRows = Math.max(
+    0,
+    ...sharedObjects.map((landmark) => civicSlots[landmark.id]!.y + sizeFor(landmark).h + 1),
+  );
+  const mapRows = Math.max(projectRows, landmarkRows);
   return {
     // maxX is already an exclusive tile bound; do not add a second padding
     // tile beyond it, which made short project rosters look needlessly wide.

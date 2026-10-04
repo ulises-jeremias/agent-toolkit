@@ -619,14 +619,17 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
 
 /** Paired lanterns mark the shared bridge as a welcoming route at dusk. */
 function bridgeLanterns(p: Painter, creekX: number, roadY: number) {
-  for (const [side, x] of [
-    ['west', creekX - 2],
-    ['east', creekX + 3],
+  for (const [side, bankTiles] of [
+    ['west', [creekX - 2, creekX - 1, creekX - 3]],
+    ['east', [creekX + 3, creekX + 4, creekX + 2]],
   ] as const) {
     // The crossing row is paved across the water, so both posts stand on a
     // real bank-side ground cell instead of appearing to float in the stream.
+    // A nearby project porch may claim the preferred post tile; slide one
+    // tile along the same bank so the bridge still reads as a paired welcome.
     const y = roadY;
-    if (p.isBlocked(x, y) || p.get(x, y) === 'water') continue;
+    const x = bankTiles.find((candidate) => !p.isBlocked(candidate, y) && p.get(candidate, y) !== 'water');
+    if (x === undefined) continue;
     p.sprite(`bridge-lantern:${side}`, x, y, 'lamp', 16, 24, 0, -10, false);
   }
 }
@@ -664,7 +667,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   // bridge should connect the shared places to project homes, not begin at
   // the creek edge as a detached road segment.
   const civicEastEdge = Math.max(0, ...commons.map((place) => place.x + place.w));
-  const creekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w + 1 : 6);
+  const creekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
   (p as unknown as { creekX: number }).creekX = creekX;
   const routeEndX = projects.length
     ? Math.max(...projects.map((project) => project.x + Math.floor(project.w / 2)))
