@@ -859,15 +859,20 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
     }
   }
 
-  const moteCandidates = [...p.cells].flatMap(([at, tile]) => {
+  const creeksideGrass = [...p.cells].flatMap(([at, tile]) => {
     const [xs, ys] = at.split(',');
     const x = Number(xs);
     const y = Number(ys);
-    if (!tile.startsWith('grass') || Math.abs(x - creekSafe(p)) > 5 || y <= 4 || nearStructureOrPath(p, x, y, 2)) {
-      return [];
-    }
+    if (!tile.startsWith('grass') || Math.abs(x - creekSafe(p)) > 5 || y <= 4) return [];
     return [{ at, x, y, rank: h2(x, y, 97) }];
   });
+  // Prefer an open glade. Narrow, projectless layouts may have no grass two
+  // tiles clear of every path or building, so progressively relax the visual
+  // buffer while still keeping each sprite off paths and blocked cells.
+  let moteCandidates = creeksideGrass.filter(({ x, y }) => !nearStructureOrPath(p, x, y, 2));
+  if (moteCandidates.length === 0) {
+    moteCandidates = creeksideGrass.filter(({ x, y }) => !nearStructureOrPath(p, x, y, 0));
+  }
   moteCandidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
   const motePositions: { x: number; y: number }[] = [];
   for (const { at, x, y } of moteCandidates) {
