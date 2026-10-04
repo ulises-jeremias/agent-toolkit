@@ -572,9 +572,11 @@ function bridgeLanterns(p: Painter, creekX: number, roadY: number) {
     ['west', creekX - 2],
     ['east', creekX + 3],
   ] as const) {
-    const y = roadY - 1;
+    // The crossing row is paved across the water, so both posts stand on a
+    // real bank-side ground cell instead of appearing to float in the stream.
+    const y = roadY;
     if (p.isBlocked(x, y) || p.get(x, y) === 'water') continue;
-    p.sprite(`bridge-lantern:${side}`, x, y, 'lamp', 16, 24, 0, -14, false);
+    p.sprite(`bridge-lantern:${side}`, x, y, 'lamp', 16, 24, 0, -10, false);
   }
 }
 

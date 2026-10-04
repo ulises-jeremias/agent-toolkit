@@ -779,7 +779,9 @@ describe('layoutWorld', () => {
     expect(sparkles.length).toBeGreaterThan(0);
     expect(sparkles.length).toBeLessThanOrEqual(5);
     for (const sparkle of sparkles) expect(water.has(`${sparkle.x},${sparkle.y}`)).toBe(true);
-    expect(first.decor.filter((sprite) => sprite.id.startsWith('bridge-lantern:')).length).toBe(2);
+    const bridgeLanterns = first.decor.filter((sprite) => sprite.id.startsWith('bridge-lantern:'));
+    expect(bridgeLanterns.length).toBe(2);
+    for (const lantern of bridgeLanterns) expect(water.has(`${lantern.x},${lantern.y}`)).toBe(false);
     expect(first.decor.filter((sprite) => sprite.sprite === 'mote').length).toBeLessThanOrEqual(4);
     const reached = new Set<string>();
     const queue = [trails.values().next().value as string];
