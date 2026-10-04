@@ -1014,7 +1014,8 @@ describe('layoutWorld', () => {
 
   it('forms broad, varied flower glades in open meadow clearings', () => {
     const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
-    const cells = paintTerrain(layout.entities, layout.cols, layout.rows).cells;
+    const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);
+    const cells = terrain.cells;
     const flowers = cells.filter((cell) => cell.tile.startsWith('flowers-'));
     const species = new Set(flowers.map((cell) => cell.tile));
     const denseWindows = flowers.filter((cell) => {
@@ -1026,6 +1027,9 @@ describe('layoutWorld', () => {
 
     expect(species.size).toBeGreaterThanOrEqual(3);
     expect(denseWindows.length).toBeGreaterThan(0);
+    const featuredPatches = terrain.decor.filter((sprite) => sprite.sprite.startsWith('wildflower-patch-'));
+    expect(featuredPatches.length).toBeGreaterThan(0);
+    expect(featuredPatches.every((sprite) => sprite.w === 32 && sprite.h === 24)).toBe(true);
   });
 
   it('lays out a project interior without shared Library or Workshop fixtures', () => {

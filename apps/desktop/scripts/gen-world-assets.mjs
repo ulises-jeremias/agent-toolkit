@@ -942,6 +942,56 @@ function flowerTile(kind) {
   return img;
 }
 
+/** Oversized wildflower clumps make authored meadow clearings read at map zoom. */
+function wildflowerPatch(kind) {
+  const img = new Img(32, 24);
+  const blooms = {
+    rose: ['pop', 'rtl', 'rtd', 'gg'],
+    lilac: ['lv', 'iv', 'lv', 'gg'],
+    gold: ['go', 'gg', 'god', 'iv'],
+  };
+  const [petal, highlight, shadow, center] = blooms[kind];
+  img.ellipse(16, 22, 8, 1, 'sh');
+
+  // A leafy base makes the stems read as one planted clump at small zoom.
+  for (const [x, y, color] of [
+    [4, 19, 'fd'],
+    [6, 18, 'fl'],
+    [8, 20, 'fo'],
+    [10, 19, 'fl'],
+    [13, 20, 'fd'],
+    [16, 18, 'fl'],
+    [18, 20, 'fo'],
+    [21, 19, 'fl'],
+    [24, 20, 'fd'],
+    [27, 18, 'fl'],
+    [29, 20, 'fo'],
+  ]) img.set(x, y, color);
+
+  const stems = [
+    [5, 13],
+    [11, 8],
+    [17, 12],
+    [23, 7],
+    [27, 14],
+  ];
+  for (const [x, headY] of stems) {
+    img.vline(x, headY + 2, 20, 'fo').set(x, headY + 3, 'fl');
+    img.set(x - 3, headY + 6, 'fd').set(x - 2, headY + 5, 'fl').set(x - 1, headY + 6, 'gd');
+    img.set(x + 1, headY + 7, 'fd').set(x + 2, headY + 6, 'fl').set(x, headY + 9, 'gd');
+
+    // Five-pixel petals sit inside a dark diamond outline with a golden heart.
+    // The asymmetrical highlights follow the same top-left light as the valley.
+    img.set(x, headY - 2, 'k');
+    img.hline(x - 2, x + 2, headY - 1, 'k').hline(x - 2, x + 2, headY + 1, 'k');
+    img.set(x - 1, headY + 2, 'k').set(x, headY + 2, 'k').set(x + 1, headY + 2, 'k');
+    img.set(x, headY - 1, highlight);
+    img.set(x - 1, headY, highlight).set(x, headY, petal).set(x + 1, headY, shadow);
+    img.set(x - 1, headY + 1, petal).set(x, headY + 1, center).set(x + 1, headY + 1, shadow);
+  }
+  return img;
+}
+
 function dirtTiles() {
   const out = [];
   const base = () => {
@@ -1725,6 +1775,7 @@ function collect() {
     for (const s of group) put(s.name, s.img, s.frames);
   for (let i = 0; i < 24; i++) put(`grass-${'abcdefghijklmnopqrstuvwx'[i]}`, grassTile(i + 1));
   for (let i = 0; i < 4; i++) put(`flowers-${['poppy', 'daisy', 'lavender', 'gold'][i]}`, flowerTile(i));
+  for (const kind of ['rose', 'lilac', 'gold']) put(`wildflower-patch-${kind}`, wildflowerPatch(kind));
   for (const t of dirtTiles()) put(t.name, t.img);
   for (const t of plazaTiles()) put(t.name, t.img);
   for (const t of waterTiles()) put(t.name, t.img, t.frames);

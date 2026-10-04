@@ -486,7 +486,7 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
 }
 
 /** Broad irregular flower beds give open lawns a visible meadow rhythm. */
-function flowerGlades(p: Painter) {
+function flowerGlades(p: Painter): { x: number; y: number; kind: number }[] {
   // Give the quiet spaces a visible meadow rhythm at overview scale. Glades
   // stay grouped and seed-stable so additional color does not become speckle.
   const target = Math.min(18, Math.max(5, Math.floor((p.cols * p.rows) / 54)));
@@ -500,6 +500,7 @@ function flowerGlades(p: Painter) {
   candidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
 
   const centers: { x: number; y: number }[] = [];
+  const glades: { x: number; y: number; kind: number }[] = [];
   for (const candidate of candidates) {
     if (centers.length >= target) break;
     if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 6)) continue;
@@ -510,6 +511,7 @@ function flowerGlades(p: Painter) {
     const blooms = ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'] as const;
     const primary = h2(candidate.x, candidate.y, 149) % blooms.length;
     const secondary = (primary + 1 + (h2(candidate.x, candidate.y, 157) % 3)) % blooms.length;
+    glades.push({ x: candidate.x, y: candidate.y, kind: primary });
     for (let dy = -radiusY; dy <= radiusY; dy++) {
       for (let dx = -radiusX; dx <= radiusX; dx++) {
         const distance = (dx * dx) / (radiusX * radiusX) + (dy * dy) / (radiusY * radiusY);
@@ -526,6 +528,32 @@ function flowerGlades(p: Painter) {
         }
       }
     }
+  }
+  return glades;
+}
+
+/** Larger blossoms punctuate a few clearings; their footprints avoid paths and buildings. */
+function flowerPatchSprites(p: Painter, glades: readonly { x: number; y: number; kind: number }[]) {
+  const patchNames = ['wildflower-patch-rose', 'wildflower-patch-lilac', 'wildflower-patch-gold'] as const;
+  for (const [index, glade] of glades.entries()) {
+    if (index % 2 !== 0 || nearStructureOrPath(p, glade.x, glade.y, 2)) continue;
+    const hasTreeCanopy = p.decor.some(
+      (decor) =>
+        decor.sprite.startsWith('tree-') &&
+        Math.abs(decor.x - glade.x) <= 2 &&
+        Math.abs(decor.y - glade.y) <= 2,
+    );
+    if (hasTreeCanopy) continue;
+    p.sprite(
+      `flower-patch:${glade.x},${glade.y}`,
+      glade.x,
+      glade.y + 1,
+      patchNames[glade.kind % patchNames.length]!,
+      32,
+      24,
+      -8,
+      -8,
+    );
   }
 }
 
@@ -826,8 +854,9 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   }
   feather(p);
   plazaCore(p, hall, commons);
-  flowerGlades(p);
+  const glades = flowerGlades(p);
   forest(p, projects.length === 0);
+  flowerPatchSprites(p, glades);
   wildlife(p, hall);
 
   return { cells: cellsToArray(p), decor: p.decor };
