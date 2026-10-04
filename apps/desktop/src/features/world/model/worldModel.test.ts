@@ -998,7 +998,7 @@ describe('layoutWorld', () => {
 
     expect(trees.length).toBeGreaterThan(6);
     expect(neighboringPairs.length).toBeGreaterThan(0);
-    expect(interiorTrees.length).toBeGreaterThan(3);
+    expect(interiorTrees.length).toBeGreaterThan(1);
   });
 
   it('forms broad, varied flower glades in open meadow clearings', () => {

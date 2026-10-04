@@ -568,7 +568,7 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
 
 /** Framing groves with natural gaps around buildings and paths. */
 function forest(p: Painter, projectlessMeadow = false) {
-  const creeksideHeart = projectlessMeadow ? { x: creekSafe(p) + 3, y: 3 } : undefined;
+  const creeksideHeart = projectlessMeadow ? { x: creekSafe(p) + 4, y: 3 } : undefined;
   const plantedGroves = groveAnchors(p, creeksideHeart);
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
