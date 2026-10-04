@@ -74,6 +74,10 @@ fn has_toolkit_tool_data(path string) bool {
 	return false
 }
 
+fn is_valid_cwd_fallback(path string) bool {
+	return is_valid_toolkit_root(path) && !(is_harness_workspace(path) && !has_toolkit_tool_data(path))
+}
+
 // find_toolkit_root_with is the injectable variant for tests.
 pub fn find_toolkit_root_with(fs FsService) !ToolkitRoot {
 	// 1. Explicit override — but do not let a harness workspace masquerade as toolkit data.
@@ -165,7 +169,7 @@ pub fn find_toolkit_root_with(fs FsService) !ToolkitRoot {
 	}
 
 	// 5. CWD fallback
-	if is_valid_toolkit_root(cwd) {
+	if is_valid_cwd_fallback(cwd) {
 		return ToolkitRoot{
 			path: cwd
 			tier: 'cwd'
