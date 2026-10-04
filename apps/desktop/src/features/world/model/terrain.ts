@@ -486,7 +486,7 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
 
 /** Broad irregular flower beds give open lawns a visible meadow rhythm. */
 function flowerGlades(p: Painter) {
-  const target = Math.min(8, Math.max(2, Math.floor((p.cols * p.rows) / 180)));
+  const target = Math.min(10, Math.max(3, Math.floor((p.cols * p.rows) / 120)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 2; y++) {
     for (let x = 2; x < p.cols - 2; x++) {
@@ -525,7 +525,6 @@ function flowerGlades(p: Painter) {
 
 /** Framing groves with natural gaps around buildings and paths. */
 function forest(p: Painter) {
-  const planted = new Set<string>();
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
       if (p.isBlocked(x, y)) continue;
@@ -533,8 +532,13 @@ function forest(p: Painter) {
       const edge = x < 6 || x >= p.cols - 6 || y < 3 || y >= p.rows - 4;
       const nearCreek = [-4, -3, -2, -1, 0, 1, 2, 3, 4].some((dx) => p.get(x + dx, y) === 'water');
       const roll = h2(x, y, 3) % 31;
-      const nearBuilding = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => p.blocked.has(key(x + dx, y + dy))));
-      const nearTree = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => planted.has(key(x + dx, y + dy))));
+      // Tree art spans three ground tiles and is painted above the buildings.
+      // Keep a generous clearing around façades, while allowing canopies to
+      // overlap one another inside a grove. The old one-tile spacing made the
+      // woods read as isolated ornaments instead of a place with a tree line.
+      const nearBuilding = [-3, -2, -1, 0, 1, 2, 3].some((dy) =>
+        [-3, -2, -1, 0, 1, 2, 3].some((dx) => p.blocked.has(key(x + dx, y + dy))),
+      );
       const nearTrail = [-2, -1, 0, 1, 2].some((dy) =>
         [-2, -1, 0, 1, 2].some((dx) => p.paths.has(key(x + dx, y + dy))),
       );
@@ -545,7 +549,6 @@ function forest(p: Painter) {
       const wantTree =
         treeInsideFrame &&
         !nearBuilding &&
-        !nearTree &&
         !nearTrail &&
         (edge ? roll < 29 : nearCreek ? grove && roll < 26 : grove && roll < 25);
       if (wantTree) {
@@ -563,7 +566,6 @@ function forest(p: Painter) {
                   ? 'tree-amber'
                   : 'tree-round';
         p.sprite(`tree:${x},${y}`, x, y, tree, 48, 48, -16 + canopyOffsetX, -32 + canopyOffsetY, true);
-        planted.add(key(x, y));
       } else if (roll === 5 || roll === 6) p.sprite(`bush:${x},${y}`, x, y, 'bush', 16, 12, 0, 4);
       else if (roll === 7 || roll === 8) p.sprite(`rock:${x},${y}`, x, y, 'rock', 16, 12, 0, 5);
       else if (roll === 9 || roll === 10) p.sprite(`grass-tuft:${x},${y}`, x, y, 'tall-grass', 16, 8, 0, 8);
