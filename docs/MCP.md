@@ -9,6 +9,25 @@ Templates live in `mcp/templates/<provider>/`. Each template directory contains:
 - `README.md` — provider-specific setup notes
 - `config.local.template.json` — optional PAT/stdio fallback (Notion only)
 
+## Agent Toolkit Desktop credentials
+
+In the Electron Desktop, open **Library → MCP providers → Private credentials**
+to enter values for the environment names declared by provider templates. The
+Desktop encrypts them with the operating system's credential store and exposes
+them only to its supervised `agent-toolkit serve` process when it starts. The
+renderer never receives a saved value, and the MCP registry stores only
+provider configuration and variable names. On Linux, credential entry is
+disabled when a secure keyring is unavailable; Desktop does not fall back to
+plain-text storage.
+
+After adding or removing a value, review and confirm **Restart backend to
+apply**. Requests in progress may fail while the API restarts; Desktop-owned
+terminal sessions remain open. Restarting applies additions and also removes
+deleted values from the backend environment. This manages credentials for the
+Toolkit MCP registry; it does not install a provider, start an MCP session, or
+configure a separate coding tool. The Library's probe checks local executable
+availability only.
+
 ---
 
 ## Why Env Var Placeholders?
@@ -332,4 +351,3 @@ The `validate-skills.vsh` script scans for common secret patterns. It will warn 
 **Setup:** See `skills/tooling/chrome-devtools/SKILL.md` for Playwright vs DevTools decision table and `mcp/templates/chrome-devtools/README.md` for host-specific wiring. `mcp/registry/chrome-devtools.yaml` documents provenance (official Google ChromeDevTools, npm `chrome-devtools-mcp`, Apache-2.0). Chrome DevTools MCP exposes all browser content — avoid sensitive pages. Usage stats enabled by default — opt out with `CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS=1` or `--no-usage-statistics`. Update checks ping npm — disable with `CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS=1`.
 
 **When to use:** `design-assessment` / `design-improvement` request `browser.performance / browser.network / browser.console / browser.runtime-debug` → Chrome DevTools; `browser.interact / browser.assert` → Playwright. Either alone is valid degraded mode.
-
