@@ -684,6 +684,13 @@ test('Library configures MCP providers with secret-free previews and explicit ch
     });
   });
 
+  if (CAPTURE) {
+    await page.keyboard.press('Control+k');
+    const appearancePalette = page.getByRole('dialog', { name: 'Commands' });
+    await appearancePalette.getByLabel('Filter commands').fill('Use Meadow theme');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'meadow');
+  }
   await page.keyboard.press('Control+k');
   const palette = page.getByRole('dialog', { name: 'Commands' });
   await palette.getByLabel('Filter commands').fill('Configure GitHub MCP');
