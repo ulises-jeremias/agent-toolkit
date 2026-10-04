@@ -532,13 +532,10 @@ function forest(p: Painter) {
       const edge = x < 6 || x >= p.cols - 6 || y < 3 || y >= p.rows - 4;
       const nearCreek = [-4, -3, -2, -1, 0, 1, 2, 3, 4].some((dx) => p.get(x + dx, y) === 'water');
       const roll = h2(x, y, 3) % 31;
-      // Tree art spans three ground tiles and is painted above the buildings.
-      // Keep a generous clearing around façades, while allowing canopies to
-      // overlap one another inside a grove. The old one-tile spacing made the
-      // woods read as isolated ornaments instead of a place with a tree line.
-      const nearBuilding = [-3, -2, -1, 0, 1, 2, 3].some((dy) =>
-        [-3, -2, -1, 0, 1, 2, 3].some((dx) => p.blocked.has(key(x + dx, y + dy))),
-      );
+      // Keep tree trunks clear of structures and paths. Canopies are painted
+      // behind semantic buildings, so the woods can grow close to a village
+      // without obscuring a façade, door, or its label.
+      const nearBuilding = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => p.blocked.has(key(x + dx, y + dy))));
       const nearTrail = [-2, -1, 0, 1, 2].some((dy) =>
         [-2, -1, 0, 1, 2].some((dx) => p.paths.has(key(x + dx, y + dy))),
       );
@@ -565,7 +562,7 @@ function forest(p: Painter) {
                 : kind < 8
                   ? 'tree-amber'
                   : 'tree-round';
-        p.sprite(`tree:${x},${y}`, x, y, tree, 48, 48, -16 + canopyOffsetX, -32 + canopyOffsetY, true);
+        p.sprite(`tree:${x},${y}`, x, y, tree, 48, 48, -16 + canopyOffsetX, -32 + canopyOffsetY, false);
       } else if (roll === 5 || roll === 6) p.sprite(`bush:${x},${y}`, x, y, 'bush', 16, 12, 0, 4);
       else if (roll === 7 || roll === 8) p.sprite(`rock:${x},${y}`, x, y, 'rock', 16, 12, 0, 5);
       else if (roll === 9 || roll === 10) p.sprite(`grass-tuft:${x},${y}`, x, y, 'tall-grass', 16, 8, 0, 8);
