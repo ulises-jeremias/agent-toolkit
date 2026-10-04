@@ -56,19 +56,22 @@ export function SwarmsPanel({
 
   return (
     <>
-      <div className={`${styles.split} ${styles.board}`}>
+      <div className={`${styles.split} ${styles.board} ${selectedId ? styles.focused : ''}`}>
         <Panel title="Swarms" meta={list.isSuccess ? `${runs.length} on the backend` : 'GET /api/v1/swarms'}>
-          <QueryView query={list} loading="Listing swarm runs" errorTitle="Could not list swarm runs">
-            {() =>
-              runs.length === 0 ? (
-                <EmptyState title="No swarm runs on the backend.">
-                  The world links here with swarm=. Start one only when you have a recipe; this list is not a dashboard.
-                </EmptyState>
-              ) : (
-                <SwarmTable runs={runs} selectedId={selectedId} onSelect={onSelect} />
-              )
-            }
-          </QueryView>
+          <div className={selectedId ? styles.runList : undefined}>
+            <QueryView query={list} loading="Listing swarm runs" errorTitle="Could not list swarm runs">
+              {() =>
+                runs.length === 0 ? (
+                  <EmptyState title="No swarm runs on the backend.">
+                    The world links here with swarm=. Start one only when you have a recipe; this list is not a
+                    dashboard.
+                  </EmptyState>
+                ) : (
+                  <SwarmTable runs={runs} selectedId={selectedId} onSelect={onSelect} />
+                )
+              }
+            </QueryView>
+          </div>
         </Panel>
         {selectedId ? (
           selected || list.isPending ? (

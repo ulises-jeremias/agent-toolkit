@@ -874,6 +874,7 @@ test('Operations refreshes a live swarm when its state changes outside Desktop',
   }
   await setViewport(desktop.app, 1600, 1000);
   await inspector.evaluate((element) => element.scrollIntoView({ block: 'start' }));
+  await expect.poll(() => inspector.evaluate((element) => element.getBoundingClientRect().width)).toBeGreaterThan(1000);
   await page.screenshot({ path: 'test-results/review/swarm-run-watch-large.png', fullPage: true });
   if (CAPTURE) await page.screenshot({ path: path.join(CAPTURE_DIR, 'swarm-run-watch-large.png'), fullPage: true });
 
