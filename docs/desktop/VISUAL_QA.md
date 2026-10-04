@@ -77,6 +77,35 @@ too uniform across long distances, the path is angular, and several landmark
 sprites still look like simple prototypes; those are still open art-direction
 work, not quality claims closed by this framing change.
 
+## Original valley tree sprite review — 2026-10-04
+
+Source `e23ed2d8`, Linux Electron captures with a disposable workspace. The
+five seasonal tree sources were replaced with original, deterministic,
+nearest-neighbor pixel art. I opened the empty, one-project, and several-project
+large captures, the project room at large size, and the empty compact capture.
+The trees now have distinct silhouettes, layered foliage, warm highlights, and
+consistent pixel edges; they frame the creek more clearly without obscuring
+project buildings or the selection outline. At compact size the canopy shapes
+remain distinguishable.
+
+This is a focused asset improvement. The captures also confirm the larger art
+gap remains: the valley ground is still an expansive repeated lawn, the creek
+reads as a straight channel, civic and project lots remain aligned in rows, and
+several landmark assets look like prototypes. The interior is legible but sparse
+and surrounded by unused floor area. Continue with terrain composition and
+semantic environmental detail before calling the world polished.
+
+Opened files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+
 ## Latest opened review — 2026-10-03
 
 ### Workspace switch and project isolation — 2026-10-03
