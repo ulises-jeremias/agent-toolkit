@@ -270,6 +270,7 @@ const P = {
   floorWoodLight: [0x6a, 0x4e, 0x69],
   floorWoodShade: [0x36, 0x2b, 0x43],
   floorWoodEdge: [0x8b, 0x5e, 0x67],
+  floorTileBlue: [0x4a, 0x55, 0x73],
   floorMoon: [0x78, 0xb8, 0xb0],
   floorMoonShade: [0x4f, 0x8f, 0x91],
 };
@@ -1455,20 +1456,21 @@ function floorPlank() {
   const board = (shift) => {
     const img = new Img(16, 16);
     img.rect(0, 0, 15, 15, 'floorWoodShade');
-    for (let course = 0; course < 2; course++) {
-      const y = course * 8;
-      const joint = course === 0 ? 5 + shift * 5 : 10 - shift * 5;
-      const tone = course === 0 ? 'floorWood' : 'floorWoodLight';
-      img.rect(0, y + 1, 15, y + 6, tone);
-      img.vline(joint, y + 1, y + 6, 'floorWoodShade');
-      img.vline(joint + (joint < 8 ? 1 : -1), y + 2, y + 5, 'floorWoodEdge');
-      img.hline(0, 15, y + 1, 'floorWoodEdge');
-      img.hline(0, 15, y + 6, 'floorWoodShade');
-      // Short, offset grain flecks keep the boards hand-cut, not striped.
-      img.hline(2 + shift, 5 + shift, y + 3, 'floorWood');
-      img.hline(10 - shift, 12 - shift, y + 5, 'floorWoodEdge');
+    const panels = [
+      [0, 0, shift === 0 ? 'floorWoodLight' : 'floorWood'],
+      [8, 0, 'floorTileBlue'],
+      [0, 8, 'floorWood'],
+      [8, 8, shift === 0 ? 'floorWood' : 'floorWoodLight'],
+    ];
+    for (const [x, y, tone] of panels) {
+      img.rect(x + 1, y + 1, x + 6, y + 6, tone);
+      img.hline(x + 1, x + 6, y + 1, 'floorWoodEdge');
+      img.vline(x + 1, y + 2, y + 5, 'floorWoodEdge');
+      img.hline(x + 1, x + 6, y + 6, 'floorWoodShade');
+      img.vline(x + 6, y + 2, y + 5, 'floorWoodShade');
+      // A tiny grain nick keeps each inset panel from reading as flat tile.
+      img.set(x + 3 + shift, y + 3, 'floorWoodEdge');
     }
-    img.hline(0, 15, 7, 'floorWoodShade');
     return img;
   };
   const a = board(0);
@@ -1498,15 +1500,13 @@ function floorRune() {
 
 function wallBand() {
   const img = new Img(16, 16);
-  // Cool carved wainscot and a thin moonlit rail make a room edge, not a
-  // cream paper border. The same material works beneath both light themes.
+  // Continuous cool timber framing avoids a repeated stud at every tile.
   img.rect(0, 0, 15, 15, 'ink');
   img.rect(0, 0, 15, 2, 'inkd');
   img.hline(0, 15, 3, 'rsd').hline(0, 15, 4, 'rsl');
-  img.rect(2, 6, 13, 13, 'rsd');
-  img.vline(3, 7, 12, 'rsl').vline(12, 7, 12, 'rs');
-  img.hline(4, 11, 13, 'inkd');
-  img.set(5, 8, 'ink').set(10, 10, 'ink');
+  img.hline(0, 15, 13, 'rsd').hline(0, 15, 14, 'inkd');
+  img.set(2, 8, 'rsd').set(9, 10, 'rsd').set(14, 6, 'rsd');
+  img.set(6, 7, 'inkd').set(12, 11, 'inkd');
   return [{ name: 'wall-top', img }];
 }
 
