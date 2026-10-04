@@ -944,23 +944,23 @@ function flowerTile(kind) {
 
 /** Broad wildflower beds make authored meadow clearings read at map zoom. */
 function wildflowerPatch(kind) {
-  const img = new Img(48, 32);
+  const img = new Img(40, 28);
   const blooms = {
     rose: ['pop', 'rtl', 'rtd', 'gg'],
     lilac: ['lv', 'iv', 'lv', 'gg'],
     gold: ['go', 'gg', 'god', 'iv'],
   };
   const [petal, highlight, shadow, center] = blooms[kind];
-  img.ellipse(24, 29, 14, 2, 'sh');
+  img.ellipse(20, 25, 12, 2, 'sh');
 
   // A scalloped leaf bed gives the tall flower heads a readable silhouette
   // against the lighter meadow without turning the patch into a solid blob.
-  img.ellipse(24, 26, 18, 4, 'fd');
-  img.ellipse(24, 25, 16, 3, 'fl');
-  img.ellipse(24, 24, 12, 2, 'fo');
+  img.ellipse(20, 23, 16, 4, 'fd');
+  img.ellipse(20, 22, 14, 3, 'fl');
+  img.ellipse(20, 21, 10, 2, 'fo');
   for (const [x, y] of [
-    [5, 25], [8, 23], [12, 26], [15, 24], [19, 25], [23, 23],
-    [27, 25], [31, 23], [35, 26], [39, 24], [43, 25],
+    [4, 22], [7, 20], [10, 23], [13, 21], [16, 22], [19, 20],
+    [22, 22], [25, 20], [28, 23], [31, 21], [34, 22], [37, 20],
   ]) img.set(x, y, x % 2 ? 'gd' : 'gt');
 
   // A leafy base makes the stems read as one planted clump at small zoom.
@@ -983,16 +983,16 @@ function wildflowerPatch(kind) {
   ]) img.set(x, y, color);
 
   const stems = [
-    [5, 18],
-    [11, 10],
-    [18, 16],
-    [25, 8],
-    [32, 13],
-    [39, 7],
-    [44, 17],
+    [4, 14],
+    [10, 8],
+    [15, 13],
+    [21, 5],
+    [27, 10],
+    [33, 6],
+    [37, 14],
   ];
   for (const [x, headY] of stems) {
-    img.vline(x, headY + 2, 28, 'fo').set(x, headY + 3, 'fl');
+    img.vline(x, headY + 2, 25, 'fo').set(x, headY + 3, 'fl');
     img.set(x - 3, headY + 6, 'fd').set(x - 2, headY + 5, 'fl').set(x - 1, headY + 6, 'gd');
     img.set(x + 1, headY + 7, 'fd').set(x + 2, headY + 6, 'fl').set(x, headY + 9, 'gd');
 
