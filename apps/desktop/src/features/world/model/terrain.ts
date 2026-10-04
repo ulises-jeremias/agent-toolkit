@@ -486,7 +486,7 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
 }
 
 /** Broad irregular flower beds give open lawns a visible meadow rhythm. */
-function flowerGlades(p: Painter): { x: number; y: number; kind: number }[] {
+function flowerGlades(p: Painter) {
   // Give the quiet spaces a visible meadow rhythm at overview scale. Glades
   // stay grouped and seed-stable so additional color does not become speckle.
   const target = Math.min(18, Math.max(5, Math.floor((p.cols * p.rows) / 54)));
@@ -500,7 +500,6 @@ function flowerGlades(p: Painter): { x: number; y: number; kind: number }[] {
   candidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
 
   const centers: { x: number; y: number }[] = [];
-  const glades: { x: number; y: number; kind: number }[] = [];
   for (const candidate of candidates) {
     if (centers.length >= target) break;
     if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 6)) continue;
@@ -511,7 +510,6 @@ function flowerGlades(p: Painter): { x: number; y: number; kind: number }[] {
     const blooms = ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'] as const;
     const primary = h2(candidate.x, candidate.y, 149) % blooms.length;
     const secondary = (primary + 1 + (h2(candidate.x, candidate.y, 157) % 3)) % blooms.length;
-    glades.push({ x: candidate.x, y: candidate.y, kind: primary });
     for (let dy = -radiusY; dy <= radiusY; dy++) {
       for (let dx = -radiusX; dx <= radiusX; dx++) {
         const distance = (dx * dx) / (radiusX * radiusX) + (dy * dy) / (radiusY * radiusY);
@@ -529,29 +527,53 @@ function flowerGlades(p: Painter): { x: number; y: number; kind: number }[] {
       }
     }
   }
-  return glades;
 }
 
-/** Larger blossoms punctuate a few clearings; their footprints avoid paths and buildings. */
-function flowerPatchSprites(p: Painter, glades: readonly { x: number; y: number; kind: number }[]) {
+/** Larger blossoms punctuate open pockets; their rendered footprints avoid paths, trees and buildings. */
+function flowerPatchSprites(p: Painter) {
   const patchNames = ['wildflower-patch-rose', 'wildflower-patch-lilac', 'wildflower-patch-gold'] as const;
-  for (const [index, glade] of glades.entries()) {
-    if (index % 2 !== 0 || nearStructureOrPath(p, glade.x, glade.y, 2)) continue;
-    const hasTreeCanopy = p.decor.some(
-      (decor) =>
-        decor.sprite.startsWith('tree-') && Math.abs(decor.x - glade.x) <= 2 && Math.abs(decor.y - glade.y) <= 2,
-    );
-    if (hasTreeCanopy) continue;
+  const candidates: { x: number; y: number; rank: number }[] = [];
+  for (let y = 3; y < p.rows - 2; y++) {
+    for (let x = 2; x < p.cols - 2; x++) {
+      if (!p.get(x, y).startsWith('flowers') || nearStructureOrPath(p, x, y, 1)) continue;
+      candidates.push({ x, y, rank: h2(x, y, 181) });
+    }
+  }
+  candidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
+
+  const placed: { x: number; y: number }[] = [];
+  const target = Math.min(4, Math.max(2, Math.floor((p.cols * p.rows) / 250)));
+  for (const candidate of candidates) {
+    const tooClose = placed.some((patch) => Math.hypot(patch.x - candidate.x, patch.y - candidate.y) < 7);
+    if (placed.length >= target || tooClose) {
+      continue;
+    }
+    const patch = {
+      left: candidate.x - 0.5,
+      top: candidate.y + 0.5,
+      right: candidate.x + 1.5,
+      bottom: candidate.y + 2,
+    };
+    const overlapsTree = p.decor.some((decor) => {
+      if (!decor.sprite.startsWith('tree-')) return false;
+      const left = decor.x + decor.dx / 16;
+      const top = decor.y + decor.dy / 16;
+      const right = left + decor.w / 16;
+      const bottom = top + decor.h / 16;
+      return patch.left < right && patch.right > left && patch.top < bottom && patch.bottom > top;
+    });
+    if (overlapsTree) continue;
     p.sprite(
-      `flower-patch:${glade.x},${glade.y}`,
-      glade.x,
-      glade.y + 1,
-      patchNames[glade.kind % patchNames.length]!,
+      `flower-patch:${candidate.x},${candidate.y}`,
+      candidate.x,
+      candidate.y + 1,
+      patchNames[h2(candidate.x, candidate.y, 149) % patchNames.length]!,
       32,
       24,
       -8,
       -8,
     );
+    placed.push(candidate);
   }
 }
 
@@ -852,9 +874,9 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   }
   feather(p);
   plazaCore(p, hall, commons);
-  const glades = flowerGlades(p);
+  flowerGlades(p);
   forest(p, projects.length === 0);
-  flowerPatchSprites(p, glades);
+  flowerPatchSprites(p);
   wildlife(p, hall);
 
   return { cells: cellsToArray(p), decor: p.decor };
