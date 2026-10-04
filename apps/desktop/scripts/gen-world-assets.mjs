@@ -1733,33 +1733,45 @@ function butterfly() {
 }
 
 function firefly() {
-  const f0 = new Img(8, 8);
-  f0.set(4, 4, 'go').set(4, 3, 'gg');
-  const f1 = new Img(8, 8);
-  f1.set(4, 4, 'gg').set(4, 3, 'gg').set(3, 4, 'go').set(5, 4, 'go');
-  f1.set(4, 2, 'god').set(2, 4, 'god').set(6, 4, 'god').set(4, 6, 'god');
+  const f0 = new Img(12, 12);
+  f0.set(5, 2, 'glowOuter').set(6, 2, 'glowOuter').hline(4, 7, 3, 'glowOuter');
+  f0.set(3, 4, 'glowOuter').set(8, 4, 'glowOuter').set(2, 5, 'glowOuter').set(9, 5, 'glowOuter');
+  f0.set(3, 6, 'glowOuter').set(8, 6, 'glowOuter').hline(4, 7, 7, 'glowOuter');
+  f0.set(5, 4, 'glowMiddle').set(6, 4, 'glowMiddle').hline(4, 7, 5, 'glowMiddle');
+  f0.set(5, 6, 'glowMiddle').set(6, 6, 'glowMiddle').set(5, 5, 'god').set(6, 5, 'gg');
+  const f1 = new Img(12, 12);
+  f1.set(5, 2, 'glowOuter').set(6, 2, 'glowOuter').hline(4, 7, 3, 'glowOuter');
+  f1.set(3, 4, 'glowOuter').set(8, 4, 'glowOuter').set(2, 5, 'glowOuter').set(9, 5, 'glowOuter');
+  f1.set(3, 6, 'glowOuter').set(8, 6, 'glowOuter').hline(4, 7, 7, 'glowOuter');
+  f1.set(5, 4, 'glowMiddle').set(6, 4, 'glowMiddle').hline(4, 7, 5, 'glowMiddle');
+  f1.set(5, 6, 'glowMiddle').set(6, 6, 'glowMiddle').set(5, 5, 'gg').set(6, 5, 'wy');
   return [{ name: 'firefly', img: f0, frames: [f0, f1] }];
 }
 
-/** Tiny warm motes: crisp environmental light, never a worker-state cue. */
+/** Warm stepped motes read as environmental light, never a worker-state cue. */
 function mote() {
-  const f0 = new Img(7, 7);
-  f0.set(3, 1, 'god').set(2, 2, 'go').set(3, 2, 'gg').set(4, 2, 'go');
-  f0.set(2, 3, 'go').set(3, 3, 'gg').set(4, 3, 'go').set(3, 4, 'god');
-  const f1 = new Img(7, 7);
-  f1.set(3, 1, 'god').set(2, 2, 'go').set(3, 2, 'gg').set(4, 2, 'go');
-  f1.set(2, 3, 'god').set(3, 3, 'gg').set(4, 3, 'god').set(3, 4, 'go');
+  const draw = (img, bright) => {
+    img.set(4, 2, 'glowOuter').set(5, 2, 'glowOuter').hline(3, 6, 3, 'glowOuter');
+    img.set(2, 4, 'glowOuter').set(7, 4, 'glowOuter').set(2, 5, 'glowOuter').set(7, 5, 'glowOuter');
+    img.set(3, 6, 'glowOuter').set(6, 6, 'glowOuter').hline(4, 5, 7, 'glowOuter');
+    img.set(4, 4, 'glowMiddle').set(5, 4, 'glowMiddle').set(3, 5, 'glowMiddle').set(6, 5, 'glowMiddle');
+    img.set(4, 5, bright ? 'wy' : 'gg').set(5, 5, 'go').set(4, 6, 'god');
+  };
+  const f0 = new Img(10, 10);
+  const f1 = new Img(10, 10);
+  draw(f0, false);
+  draw(f1, true);
   return [{ name: 'mote', img: f0, frames: [f0, f1] }];
 }
 
 /** A brief star glint over water, alternating with a quieter ripple. */
 function waterSparkle() {
-  const star = new Img(8, 8);
-  star.set(3, 1, 'wl').set(3, 2, 'wf').set(1, 3, 'wl').set(2, 3, 'wf');
-  star.set(3, 3, 'wf').set(4, 3, 'wf').set(5, 3, 'wl').set(3, 4, 'wf').set(3, 5, 'wl');
-  const ripple = new Img(8, 8);
-  ripple.hline(1, 3, 3, 'wl').hline(4, 6, 3, 'wf');
-  ripple.set(2, 2, 'wl').set(5, 4, 'wl');
+  const star = new Img(10, 10);
+  star.set(4, 1, 'wl').set(4, 2, 'wf').set(2, 4, 'wl').set(3, 4, 'wf');
+  star.set(4, 4, 'wf').set(5, 4, 'wf').set(6, 4, 'wl').set(4, 5, 'wf').set(4, 6, 'wl');
+  const ripple = new Img(10, 10);
+  ripple.hline(1, 3, 4, 'wl').hline(5, 8, 4, 'wf');
+  ripple.set(2, 3, 'wf').set(7, 5, 'wl');
   return [{ name: 'water-sparkle', img: star, frames: [star, ripple] }];
 }
 

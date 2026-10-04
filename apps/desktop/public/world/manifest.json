@@ -389,20 +389,20 @@
     },
     "firefly": {
       "file": "firefly.png",
-      "w": 8,
-      "h": 8,
+      "w": 12,
+      "h": 12,
       "frames": 2
     },
     "mote": {
       "file": "mote.png",
-      "w": 7,
-      "h": 7,
+      "w": 10,
+      "h": 10,
       "frames": 2
     },
     "water-sparkle": {
       "file": "water-sparkle.png",
-      "w": 8,
-      "h": 8,
+      "w": 10,
+      "h": 10,
       "frames": 2
     },
     "hornero": {

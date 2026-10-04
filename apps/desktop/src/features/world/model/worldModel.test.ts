@@ -863,7 +863,7 @@ describe('layoutWorld', () => {
     }
     const motes = first.decor.filter((sprite) => sprite.sprite === 'mote');
     expect(motes.length).toBeLessThanOrEqual(6);
-    expect(motes.every((sprite) => sprite.ambient && sprite.w === 7 && sprite.h === 7)).toBe(true);
+    expect(motes.every((sprite) => sprite.ambient && sprite.w === 10 && sprite.h === 10)).toBe(true);
     const reached = new Set<string>();
     const queue = [trails.values().next().value as string];
     while (queue.length) {
@@ -986,10 +986,10 @@ describe('layoutWorld', () => {
     expect(fireflies.length).toBeLessThanOrEqual(6);
     expect(new Set(fireflies.map((sprite) => sprite.id)).size).toBe(fireflies.length);
     expect(fireflies.every((sprite) => sprite.ambient)).toBe(true);
-    expect(fireflies.every((sprite) => sprite.w === 8 && sprite.h === 8)).toBe(true);
+    expect(fireflies.every((sprite) => sprite.w === 12 && sprite.h === 12)).toBe(true);
     expect(motes.length).toBeGreaterThan(0);
     expect(motes.length).toBeLessThanOrEqual(6);
-    expect(motes.every((sprite) => sprite.ambient && sprite.w === 7 && sprite.h === 7)).toBe(true);
+    expect(motes.every((sprite) => sprite.ambient && sprite.w === 10 && sprite.h === 10)).toBe(true);
   });
 
   it('places a few ambient butterflies across flower clearings, not in a row', () => {
