@@ -862,7 +862,6 @@ describe('layoutWorld', () => {
       expect(first.decor.some((sprite) => sprite.id === `lamp-glow:${lantern.id}`)).toBe(true);
     }
     const motes = first.decor.filter((sprite) => sprite.sprite === 'mote');
-    expect(motes.length).toBeGreaterThan(0);
     expect(motes.length).toBeLessThanOrEqual(6);
     expect(motes.every((sprite) => sprite.ambient && sprite.w === 7 && sprite.h === 7)).toBe(true);
     const reached = new Set<string>();
@@ -981,12 +980,16 @@ describe('layoutWorld', () => {
     const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
     const decor = paintTerrain(layout.entities, layout.cols, layout.rows).decor;
     const fireflies = decor.filter((sprite) => sprite.sprite === 'firefly');
+    const motes = decor.filter((sprite) => sprite.sprite === 'mote');
 
     expect(fireflies.length).toBeGreaterThanOrEqual(2);
     expect(fireflies.length).toBeLessThanOrEqual(6);
     expect(new Set(fireflies.map((sprite) => sprite.id)).size).toBe(fireflies.length);
     expect(fireflies.every((sprite) => sprite.ambient)).toBe(true);
     expect(fireflies.every((sprite) => sprite.w === 8 && sprite.h === 8)).toBe(true);
+    expect(motes.length).toBeGreaterThan(0);
+    expect(motes.length).toBeLessThanOrEqual(6);
+    expect(motes.every((sprite) => sprite.ambient && sprite.w === 7 && sprite.h === 7)).toBe(true);
   });
 
   it('places a few ambient butterflies across flower clearings, not in a row', () => {
