@@ -63,6 +63,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shared civic landmarks now gather around a staggered commons with clear
   front-door approaches from the Workspace Hall, connected stone paving at
   Operations, and a walkable southern lane.
+- The creek now takes a wider deterministic bend around real building
+  footprints; its bridge stays joined to the shared route and water no longer
+  overwrites landmark or project tiles.
 - Fit-to-world keeps crisp 32px tiles when the entire compact valley fits
   edge-to-edge, instead of shrinking one full tile row to preserve empty margin.
 - Desktop is packaged exclusively from the Electron app with a matching bundled V backend on Linux, macOS, and Windows. Release CI packages platform installers and verifies source, backend, and app version coherence.

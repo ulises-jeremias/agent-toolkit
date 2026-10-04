@@ -106,6 +106,31 @@ Opened files:
 - [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
   and [large](assets/electron/world/project-files-room-large.png).
 
+## Creek bends around the settlement — 2026-10-04
+
+Captured at source cdac3eb2 by the Linux Electron visual-review workflow
+against its bundled backend and disposable HOME. I opened empty-world compact
+and large, one-project compact, and several-project compact and large captures.
+The creek now makes a visible north-bank turn before reaching the civic
+crossing, while its row-by-row route checks actual place footprints so water
+cannot overwrite a building.
+
+The compact capture keeps the world legible and the east-bank project lot dry;
+the large capture shows the wider S-bend most clearly. The critique still
+finds broad unframed grass, civic buildings in small ranks, and squared path
+loops around the bridge approach. The opened project room has clear semantic
+stations but a broad bare floor. These are follow-up composition gaps; this is
+a safer, more natural creek course, not completion of the world art pass.
+
+Opened files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project Files room, large](assets/electron/world/project-files-room-large.png).
+
 ## Civic commons and doorway review — 2026-10-04
 
 Captured at source `85f08c88` by the Linux Electron visual-review workflow
