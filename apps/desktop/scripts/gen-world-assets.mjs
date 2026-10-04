@@ -264,6 +264,14 @@ const P = {
   ink: [0x3a, 0x32, 0x47],
   inkd: [0x22, 0x1e, 0x30],
   sh: [0x26, 0x20, 0x33, 0x55],
+  // Interior timber is a deep plum heartwood with moonlit teal grain. It
+  // keeps rooms warm without turning the floor into parchment or a ledger.
+  floorWood: [0x4c, 0x3a, 0x52],
+  floorWoodLight: [0x6a, 0x4e, 0x69],
+  floorWoodShade: [0x36, 0x2b, 0x43],
+  floorWoodEdge: [0x8b, 0x5e, 0x67],
+  floorMoon: [0x78, 0xb8, 0xb0],
+  floorMoonShade: [0x4f, 0x8f, 0x91],
 };
 
 /* ------------------------------------------------------------------ *
@@ -1446,17 +1454,21 @@ function signPost() {
 function floorPlank() {
   const board = (shift) => {
     const img = new Img(16, 16);
-    const woods = ['o', 'ol', 'o', 'hb'];
-    for (let plank = 0; plank < 4; plank++) {
-      const y = plank * 4;
-      img.rect(0, y, 15, y + 3, woods[(plank + shift) % woods.length]);
-      img.hline(0, 15, y, 'ol');
-      img.hline(0, 15, y + 3, 'od');
-      const joint = ((plank + shift) % 2 ? 10 : 4) + shift;
-      img.vline(joint, y + 1, y + 2, 'od');
-      img.set((plank * 3 + shift + 2) % 15, y + 1, 'hb');
-      img.set((plank * 5 + shift + 7) % 15, y + 2, 'ol');
+    img.rect(0, 0, 15, 15, 'floorWoodShade');
+    for (let course = 0; course < 2; course++) {
+      const y = course * 8;
+      const joint = course === 0 ? 5 + shift * 5 : 10 - shift * 5;
+      const tone = course === 0 ? 'floorWood' : 'floorWoodLight';
+      img.rect(0, y + 1, 15, y + 6, tone);
+      img.vline(joint, y + 1, y + 6, 'floorWoodShade');
+      img.vline(joint + (joint < 8 ? 1 : -1), y + 2, y + 5, 'floorWoodEdge');
+      img.hline(0, 15, y + 1, 'floorWoodEdge');
+      img.hline(0, 15, y + 6, 'floorWoodShade');
+      // Short, offset grain flecks keep the boards hand-cut, not striped.
+      img.hline(2 + shift, 5 + shift, y + 3, 'floorWood');
+      img.hline(10 - shift, 12 - shift, y + 5, 'floorWoodEdge');
     }
+    img.hline(0, 15, 7, 'floorWoodShade');
     return img;
   };
   const a = board(0);
@@ -1467,12 +1479,34 @@ function floorPlank() {
   ];
 }
 
+/** A quiet carved wayfinding sigil, repeated rarely in the room floor. */
+function floorRune() {
+  const img = new Img(16, 16);
+  const base = floorPlank()[0].img;
+  img.g = base.g.map((row) => [...row]);
+  // Four broken arcs around a small center stone: a crafted inlay, not an
+  // activity/status light. The subdued palette keeps it secondary to objects.
+  img.set(7, 4, 'floorMoonShade').set(8, 4, 'floorMoon');
+  img.set(5, 6, 'floorMoonShade').set(6, 5, 'floorMoon');
+  img.set(10, 6, 'floorMoonShade').set(9, 5, 'floorMoon');
+  img.set(5, 9, 'floorMoonShade').set(6, 10, 'floorMoon');
+  img.set(10, 9, 'floorMoonShade').set(9, 10, 'floorMoon');
+  img.set(7, 11, 'floorMoonShade').set(8, 11, 'floorMoon');
+  img.set(7, 7, 'go').set(8, 8, 'god');
+  return [{ name: 'floor-rune', img }];
+}
+
 function wallBand() {
   const img = new Img(16, 16);
-  img.rect(0, 0, 15, 3, 'od');
-  img.rect(0, 4, 15, 15, 'p');
-  img.hline(0, 15, 4, 'ol').hline(0, 15, 12, 'pd');
-  img.set(3, 7, 'pd').set(11, 9, 'pd');
+  // Cool carved wainscot and a thin moonlit rail make a room edge, not a
+  // cream paper border. The same material works beneath both light themes.
+  img.rect(0, 0, 15, 15, 'ink');
+  img.rect(0, 0, 15, 2, 'inkd');
+  img.hline(0, 15, 3, 'rsd').hline(0, 15, 4, 'rsl');
+  img.rect(2, 6, 13, 13, 'rsd');
+  img.vline(3, 7, 12, 'rsl').vline(12, 7, 12, 'rs');
+  img.hline(4, 11, 13, 'inkd');
+  img.set(5, 8, 'ink').set(10, 10, 'ink');
   return [{ name: 'wall-top', img }];
 }
 
@@ -1794,6 +1828,7 @@ function collect() {
     fence(),
     signPost(),
     floorPlank(),
+    floorRune(),
     wallBand(),
     doorExit(),
     rug(),

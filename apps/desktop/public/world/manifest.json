@@ -297,6 +297,12 @@
       "h": 16,
       "frames": 1
     },
+    "floor-rune": {
+      "file": "floor-rune.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
     "wall-top": {
       "file": "wall-top.png",
       "w": 16,
