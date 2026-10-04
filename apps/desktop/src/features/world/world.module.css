@@ -112,6 +112,8 @@
 }
 
 .decorSprite[data-sprite='water'],
+.decorSprite[data-sprite='water-sparkle'],
+.decorSprite[data-sprite='mote'],
 .decorSprite[data-sprite='lamp'],
 .decorSprite[data-sprite='firefly'],
 .decorSprite[data-sprite='hornero'],
@@ -121,6 +123,14 @@
 
 .decorSprite[data-sprite='water'] {
   animation-duration: 1.8s;
+}
+.decorSprite[data-sprite='water-sparkle'] {
+  animation-duration: 2.8s;
+}
+.decorSprite[data-sprite='mote'] {
+  animation:
+    decor-frame 3.4s steps(2) infinite,
+    mote-drift 4.8s steps(2) infinite;
 }
 .decorSprite[data-sprite='firefly'] {
   animation-duration: 2.2s;
@@ -160,6 +170,16 @@
   }
   50% {
     transform: translate(2px, -2px);
+  }
+}
+
+@keyframes mote-drift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
   }
 }
 

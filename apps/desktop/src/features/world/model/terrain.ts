@@ -540,6 +540,44 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
       p.sprite(`firefly:${y}`, creekSafe(p) - 2, y, 'firefly', 6, 6, 5, 5, true, true);
     }
   }
+  // A few sharp glints sit directly on real water tiles; they are ambient
+  // scenery, and never encode a job, session, or other runtime state.
+  let sparkleCount = 0;
+  let moteCount = 0;
+  for (const [at, tile] of p.cells) {
+    const [xs, ys] = at.split(',');
+    const x = Number(xs);
+    const y = Number(ys);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+    if (tile === 'water' && h2(x, y, 83) % 6 === 0 && sparkleCount < 5) {
+      p.sprite(`water-sparkle:${at}`, x, y, 'water-sparkle', 8, 8, 4, 4, true, true);
+      sparkleCount += 1;
+    }
+    if (
+      tile.startsWith('grass') &&
+      Math.abs(x - creekSafe(p)) <= 5 &&
+      y > 4 &&
+      h2(x, y, 97) % 43 === 0 &&
+      moteCount < 4
+    ) {
+      p.sprite(`mote:${at}`, x, y, 'mote', 5, 5, 5, 5, true, true);
+      moteCount += 1;
+    }
+  }
+}
+
+/** Paired lanterns mark the shared bridge as a welcoming route at dusk. */
+function bridgeLanterns(p: Painter, creekX: number, roadY: number) {
+  for (const [side, x] of [
+    ['west', creekX - 2],
+    ['east', creekX + 3],
+  ] as const) {
+    // The crossing row is paved across the water, so both posts stand on a
+    // real bank-side ground cell instead of appearing to float in the stream.
+    const y = roadY;
+    if (p.isBlocked(x, y) || p.get(x, y) === 'water') continue;
+    p.sprite(`bridge-lantern:${side}`, x, y, 'lamp', 16, 24, 0, -10, false);
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -607,6 +645,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   }
   renderPaths(p);
   bridgeAt(p, creekX, roadY);
+  bridgeLanterns(p, creekX, roadY);
   feather(p);
   plazaCore(p, hall, commons);
   forest(p);

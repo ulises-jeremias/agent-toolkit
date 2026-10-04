@@ -427,3 +427,29 @@ Opened files:
 
 - [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
   and [large](assets/electron/world/world-several-projects-large.png).
+
+## Gentle valley magic — 2026-10-04
+
+Captured at source `2d9f09e6` by the Linux Electron visual-review workflow
+against its bundled backend and disposable HOME. Opened empty, one-project, and
+several-project worlds at large and compact sizes, plus the large project room.
+The new water glints remain anchored to water, while two warm lantern posts
+frame the bridge approach. An initial capture put a lantern over the stream;
+after reviewing it, I moved the posts to the crossing row and added a model
+assertion that rejects lantern anchors on water. The final captures show both
+posts standing on the banks. The room retains its semantic stations and warm
+plank floor; the ambient additions do not create worker silhouettes.
+
+This is a first ambience layer, not the requested final atmosphere: the bright
+water glints read at both scales, while motes are intentionally subtle. Broad
+meadow areas remain quiet, and the civic quarter still needs a less rigid
+composition and richer natural framing.
+
+Opened files:
+
+- [Empty world, large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project Files room, large](assets/electron/world/project-files-room-large.png).

@@ -381,6 +381,18 @@
       "h": 6,
       "frames": 2
     },
+    "mote": {
+      "file": "mote.png",
+      "w": 5,
+      "h": 5,
+      "frames": 2
+    },
+    "water-sparkle": {
+      "file": "water-sparkle.png",
+      "w": 8,
+      "h": 8,
+      "frames": 2
+    },
     "hornero": {
       "file": "hornero.png",
       "w": 16,
