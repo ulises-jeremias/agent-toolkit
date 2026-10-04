@@ -242,9 +242,8 @@ const P = {
   cy: [0x5f, 0xe3, 0xd0],
   cyd: [0x3f, 0xb5, 0xa6],
   gg: [0xff, 0xd9, 0x7a],
-  glowOuter: [0xff, 0xd9, 0x7a, 28],
-  glowMiddle: [0xff, 0xd9, 0x7a, 55],
-  glowInner: [0xff, 0xd9, 0x7a, 95],
+  glowOuter: [0xff, 0xd9, 0x7a, 32],
+  glowMiddle: [0xff, 0xd9, 0x7a, 66],
   go: [0xf0, 0xbd, 0x5e],
   god: [0xc9, 0x9a, 0x3f],
   lv: [0xb7, 0xa6, 0xf0],
@@ -881,10 +880,16 @@ function objLamp() {
 /** Crisp stepped lantern aura; transparency adds warmth without blur filters. */
 function objLampGlow() {
   const img = new Img(32, 32);
-  img.ellipse(16, 16, 15, 13, 'glowOuter');
-  img.ellipse(16, 16, 10, 9, 'glowMiddle');
-  img.ellipse(16, 16, 5, 5, 'glowInner');
-  img.rect(14, 14, 17, 17, 'gg').set(15, 13, 'wy').set(16, 18, 'go');
+  for (let y = 0; y < img.h; y++) {
+    for (let x = 0; x < img.w; x++) {
+      const distance = ((x - 15.5) / 15) ** 2 + ((y - 15.5) / 13) ** 2;
+      // Keep the center transparent for a crisp lamp post. A broken outer
+      // ring reads as reflected warmth on the ground instead of a yellow blob.
+      if (distance > 0.22 && distance <= 1 && ((x + y) % 4 !== 0 || distance < 0.56)) {
+        img.set(x, y, distance < 0.56 ? 'glowMiddle' : 'glowOuter');
+      }
+    }
+  }
   return [{ name: 'lamp-glow', img }];
 }
 
