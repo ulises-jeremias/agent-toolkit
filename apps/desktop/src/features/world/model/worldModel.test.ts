@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildWorldModel, jobBelongsToProject } from './buildWorld';
 import { layoutWorld } from './layout';
 import { parseProjectListMessage } from './parseProjects';
-import { paintTerrain } from './terrain';
+import { paintInterior, paintTerrain } from './terrain';
 import type { MemoryEntryRecord, MemorySummary, ToolRecord, WorldDomainInput } from './types';
 
 function emptyMemory(available: boolean, entries: MemoryEntryRecord[] = []): MemorySummary {
@@ -941,6 +941,17 @@ describe('layoutWorld', () => {
 
     expect(flowers.length).toBeGreaterThan(60);
     expect(matchingNeighbors).toBeGreaterThan(8);
+  });
+
+  it('uses a few deterministic inlays in project rooms without making them status signals', () => {
+    const first = paintInterior([], 18, 12);
+    const second = paintInterior([], 18, 12);
+    const inlays = first.cells.filter((cell) => cell.tile === 'floor-rune');
+
+    expect(inlays.length).toBeGreaterThan(0);
+    expect(inlays.length).toBeLessThanOrEqual(6);
+    expect(inlays).toEqual(second.cells.filter((cell) => cell.tile === 'floor-rune'));
+    expect(first.cells.filter((cell) => cell.tile === 'wall')).toHaveLength(56);
   });
 
   it('keeps a small, stable firefly presence along the creek in the idle world', () => {

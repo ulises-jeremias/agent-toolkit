@@ -80,7 +80,7 @@
 }
 
 .mapRegion[data-mode='interior'] {
-  background: var(--world-outside-interior, #4a3826);
+  background: var(--world-outside-interior, #30253f);
 }
 
 .mapWorld {
