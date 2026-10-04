@@ -861,7 +861,9 @@ describe('layoutWorld', () => {
       expect(water.has(`${lantern.x},${lantern.y}`)).toBe(false);
       expect(first.decor.some((sprite) => sprite.id === `lamp-glow:${lantern.id}`)).toBe(true);
     }
-    expect(first.decor.filter((sprite) => sprite.sprite === 'mote').length).toBeLessThanOrEqual(4);
+    const motes = first.decor.filter((sprite) => sprite.sprite === 'mote');
+    expect(motes.length).toBeLessThanOrEqual(6);
+    expect(motes.every((sprite) => sprite.ambient && sprite.w === 7 && sprite.h === 7)).toBe(true);
     const reached = new Set<string>();
     const queue = [trails.values().next().value as string];
     while (queue.length) {
@@ -877,6 +879,12 @@ describe('layoutWorld', () => {
     for (let dx = 0; dx < 3; dx++) {
       expect(trails.has(`${bridge!.x + dx},${bridgeRoadY}`)).toBe(true);
     }
+    const projectDoors = layout.entities
+      .filter((entity) => entity.id.startsWith('place:project:'))
+      .map((project) => ({
+        x: project.x + Math.floor(project.w / 2),
+        y: project.y + project.h,
+      }));
     for (const project of layout.entities.filter((entity) => entity.id.startsWith('place:project:'))) {
       const doorX = project.x + Math.floor(project.w / 2);
       const doorFrontY = project.y + project.h;
@@ -888,6 +896,15 @@ describe('layoutWorld', () => {
         }
       }
     }
+    expect(
+      projectDoors.some(({ x: doorX, y: doorY }) =>
+        [...trails].some((at) => {
+          const [x = 0, y = 0] = at.split(',').map(Number);
+          return x !== doorX && Math.abs(x - doorX) <= 3 && y > doorY && y < bridgeRoadY;
+        }),
+      ),
+      'at least one project doorway has a curved approach to the shared avenue',
+    ).toBe(true);
     for (const place of layout.entities.filter((entity) => entity.kind === 'place')) {
       for (let y = place.y; y < place.y + place.h; y += 1) {
         for (let x = place.x; x < place.x + place.w; x += 1) {
@@ -963,11 +980,16 @@ describe('layoutWorld', () => {
     const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
     const decor = paintTerrain(layout.entities, layout.cols, layout.rows).decor;
     const fireflies = decor.filter((sprite) => sprite.sprite === 'firefly');
+    const motes = decor.filter((sprite) => sprite.sprite === 'mote');
 
     expect(fireflies.length).toBeGreaterThanOrEqual(2);
-    expect(fireflies.length).toBeLessThanOrEqual(4);
+    expect(fireflies.length).toBeLessThanOrEqual(6);
     expect(new Set(fireflies.map((sprite) => sprite.id)).size).toBe(fireflies.length);
     expect(fireflies.every((sprite) => sprite.ambient)).toBe(true);
+    expect(fireflies.every((sprite) => sprite.w === 8 && sprite.h === 8)).toBe(true);
+    expect(motes.length).toBeGreaterThan(0);
+    expect(motes.length).toBeLessThanOrEqual(6);
+    expect(motes.every((sprite) => sprite.ambient && sprite.w === 7 && sprite.h === 7)).toBe(true);
   });
 
   it('places a few ambient butterflies across flower clearings, not in a row', () => {

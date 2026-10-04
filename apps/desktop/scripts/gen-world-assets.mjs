@@ -1733,21 +1733,22 @@ function butterfly() {
 }
 
 function firefly() {
-  const f0 = new Img(6, 6);
-  f0.set(3, 3, 'god');
-  const f1 = new Img(6, 6);
-  f1.set(2, 2, 'go').set(4, 2, 'go').set(2, 4, 'go').set(4, 4, 'go');
-  f1.set(3, 3, 'gg').set(3, 2, 'gg').set(2, 3, 'gg').set(4, 3, 'gg').set(3, 4, 'gg');
+  const f0 = new Img(8, 8);
+  f0.set(4, 4, 'go').set(4, 3, 'gg');
+  const f1 = new Img(8, 8);
+  f1.set(4, 4, 'gg').set(4, 3, 'gg').set(3, 4, 'go').set(5, 4, 'go');
+  f1.set(4, 2, 'god').set(2, 4, 'god').set(6, 4, 'god').set(4, 6, 'god');
   return [{ name: 'firefly', img: f0, frames: [f0, f1] }];
 }
 
 /** Tiny warm motes: crisp environmental light, never a worker-state cue. */
 function mote() {
-  const f0 = new Img(5, 5);
-  f0.set(2, 0, 'god').set(1, 1, 'go').set(2, 1, 'gg').set(3, 1, 'go');
-  f0.set(1, 2, 'go').set(2, 2, 'gg').set(3, 2, 'go').set(2, 3, 'god');
-  const f1 = new Img(5, 5);
-  f1.set(2, 1, 'god').set(1, 2, 'go').set(2, 2, 'gg').set(3, 2, 'go').set(2, 3, 'god');
+  const f0 = new Img(7, 7);
+  f0.set(3, 1, 'god').set(2, 2, 'go').set(3, 2, 'gg').set(4, 2, 'go');
+  f0.set(2, 3, 'go').set(3, 3, 'gg').set(4, 3, 'go').set(3, 4, 'god');
+  const f1 = new Img(7, 7);
+  f1.set(3, 1, 'god').set(2, 2, 'go').set(3, 2, 'gg').set(4, 2, 'go');
+  f1.set(2, 3, 'god').set(3, 3, 'gg').set(4, 3, 'god').set(3, 4, 'go');
   return [{ name: 'mote', img: f0, frames: [f0, f1] }];
 }
 

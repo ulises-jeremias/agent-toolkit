@@ -190,6 +190,34 @@ function rasterLine(p: Painter, x0: number, y0: number, x1: number, y1: number) 
   for (const point of rasterPoints(x0, y0, x1, y1)) p.path(point.x, point.y);
 }
 
+/** A shallow quadratic bend gives a doorway spur a footworn, non-grid approach. */
+function curvedPoints(x0: number, y0: number, x1: number, y1: number, side: number) {
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const length = Math.hypot(dx, dy);
+  if (length < 2) return rasterPoints(x0, y0, x1, y1);
+
+  const bend = Math.min(4, Math.max(2, length * 0.35)) * side;
+  const controlX = (x0 + x1) / 2 - (dy / length) * bend;
+  const controlY = (y0 + y1) / 2 + (dx / length) * bend;
+  const samples = Math.max(4, Math.ceil(length * 2));
+  const points = [{ x: x0, y: y0 }];
+  let previous = points[0]!;
+  for (let index = 1; index <= samples; index += 1) {
+    const t = index / samples;
+    const inverse = 1 - t;
+    const current = {
+      x: Math.round(inverse * inverse * x0 + 2 * inverse * t * controlX + t * t * x1),
+      y: Math.round(inverse * inverse * y0 + 2 * inverse * t * controlY + t * t * y1),
+    };
+    for (const point of rasterPoints(previous.x, previous.y, current.x, current.y).slice(1)) {
+      points.push(point);
+    }
+    previous = current;
+  }
+  return points;
+}
+
 /** Main commons route meanders, but meets the bridge at its exact level. */
 function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX: number) {
   let previous = { x: startX, y };
@@ -251,11 +279,18 @@ function connectEntrance(p: Painter, startX: number, startY: number) {
 
   if (!target) return;
   const [targetX = 0, targetY = 0] = target.split(',').map(Number);
+  const isClear = (points: readonly { x: number; y: number }[]) =>
+    points.every(({ x, y }) => !p.isBlocked(x, y) && (p.paths.has(key(x, y)) || p.get(x, y) !== 'water'));
+  const preferredSide = h2(startX, startY, 41) % 2 === 0 ? 1 : -1;
+  for (const side of [preferredSide, -preferredSide]) {
+    const curve = curvedPoints(startX, startY, targetX, targetY, side);
+    if (!isClear(curve)) continue;
+    for (const point of curve) p.path(point.x, point.y);
+    return;
+  }
+
   const direct = rasterPoints(startX, startY, targetX, targetY);
-  const directRouteIsClear = direct.every(
-    ({ x, y }) => !p.isBlocked(x, y) && (p.paths.has(key(x, y)) || p.get(x, y) !== 'water'),
-  );
-  if (directRouteIsClear) {
+  if (isClear(direct)) {
     for (const point of direct) p.path(point.x, point.y);
     return;
   }
@@ -793,9 +828,10 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
   }
   // Fireflies trace quiet stretches of the real creek, not runtime activity.
   const fireflyRows = new Set([
-    2,
+    Math.floor(p.rows * 0.12),
     Math.floor(p.rows * 0.28),
-    Math.floor(p.rows * 0.52),
+    Math.floor(p.rows * 0.44),
+    Math.floor(p.rows * 0.6),
     Math.floor(p.rows * 0.76),
     p.rows - 3,
   ]);
@@ -806,13 +842,12 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
       .map((offset) => creekSafe(p) + offset)
       .find((candidate) => p.get(candidate, y).startsWith('grass'));
     if (x === undefined) continue;
-    p.sprite(`firefly:${y}`, x, y, 'firefly', 6, 6, 5, 5, true, true);
-    if (++fireflyCount >= 4) break;
+    p.sprite(`firefly:${y}`, x, y, 'firefly', 8, 8, 4, 4, true, true);
+    if (++fireflyCount >= 6) break;
   }
   // A few sharp glints sit directly on real water tiles; they are ambient
   // scenery, and never encode a job, session, or other runtime state.
   let sparkleCount = 0;
-  let moteCount = 0;
   for (const [at, tile] of p.cells) {
     const [xs, ys] = at.split(',');
     const x = Number(xs);
@@ -822,16 +857,29 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
       p.sprite(`water-sparkle:${at}`, x, y, 'water-sparkle', 8, 8, 4, 4, true, true);
       sparkleCount += 1;
     }
-    if (
-      tile.startsWith('grass') &&
-      Math.abs(x - creekSafe(p)) <= 5 &&
-      y > 4 &&
-      h2(x, y, 97) % 43 === 0 &&
-      moteCount < 4
-    ) {
-      p.sprite(`mote:${at}`, x, y, 'mote', 5, 5, 5, 5, true, true);
-      moteCount += 1;
-    }
+  }
+
+  const creeksideGrass = [...p.cells].flatMap(([at, tile]) => {
+    const [xs, ys] = at.split(',');
+    const x = Number(xs);
+    const y = Number(ys);
+    if (!tile.startsWith('grass') || Math.abs(x - creekSafe(p)) > 5 || y <= 4) return [];
+    return [{ at, x, y, rank: h2(x, y, 97) }];
+  });
+  // Prefer an open glade. Narrow, projectless layouts may have no grass two
+  // tiles clear of every path or building, so progressively relax the visual
+  // buffer while still keeping each sprite off paths and blocked cells.
+  let moteCandidates = creeksideGrass.filter(({ x, y }) => !nearStructureOrPath(p, x, y, 2));
+  if (moteCandidates.length === 0) {
+    moteCandidates = creeksideGrass.filter(({ x, y }) => !nearStructureOrPath(p, x, y, 0));
+  }
+  moteCandidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
+  const motePositions: { x: number; y: number }[] = [];
+  for (const { at, x, y } of moteCandidates) {
+    if (motePositions.some((position) => Math.hypot(position.x - x, position.y - y) < 5)) continue;
+    p.sprite(`mote:${at}`, x, y, 'mote', 7, 7, 4, 4, true, true);
+    motePositions.push({ x, y });
+    if (motePositions.length >= 6) break;
   }
 }
 
@@ -893,7 +941,11 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     : marker
       ? marker.y + marker.h
       : undefined;
-  const roadY = firstStreetDoorY ?? Math.floor(rows / 2);
+  // Keep a little meadow between house fronts and the shared avenue. That
+  // gives each real entrance room for a curved footpath instead of making
+  // every door sit directly on the same ruler-straight road tile.
+  const roadOffset = projects.length > 0 ? 2 : 0;
+  const roadY = Math.min(rows - 3, (firstStreetDoorY ?? Math.floor(rows / 2)) + roadOffset);
 
   // creek first so roads bridge it
   const workshop = entities.find((e) => e.id === 'object:workshop');
