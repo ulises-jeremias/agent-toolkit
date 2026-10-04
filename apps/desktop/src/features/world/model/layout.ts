@@ -196,7 +196,10 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // services. Keep the bank gap compact enough that the project district
   // still reads as part of the same settlement at small window sizes.
   const projectDistrictX = 21;
-  const emptyMarkerX = projectDistrictX;
+  // With no houses yet, leave a small bank-side meadow between the bridge and
+  // the create-project place. That gives the valley a real clearing instead
+  // of putting its only destination directly against the crossing.
+  const emptyMarkerX = projectDistrictX + 3;
   const mapW = Math.max(28, projectDistrictX + (projects.length ? districtW : 3));
 
   // North core: hall west, memory archive beside it, ledgers on the commons edge.
