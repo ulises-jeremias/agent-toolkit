@@ -89,7 +89,14 @@ export function ReceiptsProvider({ children }: { children: ReactNode }) {
             )
           : new Set<string>();
       setHistory((items) => [receipt, ...items].slice(0, HISTORY_LIMIT));
-      setVisible((ids) => [receipt.id, ...ids.filter((id) => !recoveredFailureIds.has(id))].slice(0, VISIBLE_LIMIT));
+      setVisible((ids) => {
+        const active = ids.filter((id) => !recoveredFailureIds.has(id));
+        const persistent = active.filter((id) => {
+          const previous = history.find((item) => item.id === id);
+          return previous?.tone === 'err' || previous?.tone === 'warn';
+        });
+        return [receipt.id, ...persistent].slice(0, VISIBLE_LIMIT);
+      });
       return receipt.id;
     },
     [history],
