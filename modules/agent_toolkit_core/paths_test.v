@@ -25,6 +25,23 @@ fn test_is_valid_toolkit_root_profiles() {
 	assert is_valid_toolkit_root(dir)
 }
 
+fn test_cwd_fallback_rejects_harness_workspace_without_toolkit_data() {
+	dir := os.join_path(os.temp_dir(), 'at-paths-harness-${os.getpid()}')
+	os.mkdir_all(os.join_path(dir, 'loops')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(dir, 'profiles')) or { assert false, err.msg() }
+	os.write_file(os.join_path(dir, 'AGENTS.md'), '# Workspace') or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(dir) or {}
+	}
+
+	assert is_valid_toolkit_root(dir)
+	assert !has_toolkit_tool_data(dir)
+	assert !is_valid_cwd_fallback(dir)
+
+	os.mkdir_all(os.join_path(dir, 'skills')) or { assert false, err.msg() }
+	assert is_valid_cwd_fallback(dir)
+}
+
 fn test_override_env_wins() {
 	dir := os.join_path(os.temp_dir(), 'at-paths-override-${os.getpid()}')
 	os.mkdir_all(os.join_path(dir, 'skills')) or { assert false, err.msg() }
