@@ -407,8 +407,10 @@ export function McpProvidersPanel() {
             <div>
               <h3>Private credentials</h3>
               <p>
-                Values are encrypted with {secretStatus?.storage ?? 'the operating-system credential store'} and exposed
-                only to the supervised Agent Toolkit backend after restart. They are never written to MCP configuration.
+                {secretStatus?.available
+                  ? `Values are encrypted with ${secretStatus.storage} and exposed only to the supervised Agent Toolkit backend after restart.`
+                  : 'Credential entry requires secure operating-system storage. Saved values are exposed only to the supervised Agent Toolkit backend after restart.'}{' '}
+                Values are never written to MCP configuration.
               </p>
             </div>
             {secretStatus?.available && pendingRestart ? (

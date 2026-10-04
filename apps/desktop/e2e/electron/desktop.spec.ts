@@ -745,6 +745,7 @@ test('Library configures MCP providers with secret-free previews and explicit ch
     await expect(credentials.getByRole('button', { name: 'Restart backend to apply' })).toBeVisible();
   } else {
     await expect(secretInput).toBeDisabled();
+    await expect(credentials).toContainText('Credential entry requires secure operating-system storage');
     await expect(credentials).toContainText('No value was saved');
   }
   if (CAPTURE) {

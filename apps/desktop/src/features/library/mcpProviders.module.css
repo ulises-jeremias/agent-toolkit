@@ -62,14 +62,22 @@
 
 .credentialRow {
   display: grid;
-  grid-template-columns: minmax(8rem, 1.1fr) auto minmax(12rem, 2fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) 0;
   border-top: 1px solid var(--border-default);
 }
 
+.credentialRow label {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
 .credentialRow input {
+  grid-column: 1 / -1;
   min-width: 0;
   width: 100%;
   padding: 0.45rem 0.6rem;
@@ -92,16 +100,6 @@
 
   .credentialRow {
     grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  .credentialRow input {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 1100px) {
-  .credentialRow label {
-    grid-column: 1 / -1;
   }
 
   .credentialRow input {
