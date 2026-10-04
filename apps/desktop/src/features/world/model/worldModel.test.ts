@@ -765,7 +765,8 @@ describe('layoutWorld', () => {
       waterRows.set(cell.y, [...(waterRows.get(cell.y) ?? []), cell.x]);
     }
     expect(new Set([...waterRows.values()].map((xs) => Math.min(...xs))).size).toBeGreaterThan(1);
-    expect([...waterRows.values()].every((xs) => xs.length === 2)).toBe(true);
+    expect([...waterRows.values()].every((xs) => xs.length === 2 || xs.length === 3)).toBe(true);
+    expect([...waterRows.values()].some((xs) => xs.length === 3)).toBe(true);
     expect(new Set(first.cells.filter(({ tile }) => tile.startsWith('trail')).map(({ y }) => y)).size).toBeGreaterThan(
       1,
     );
