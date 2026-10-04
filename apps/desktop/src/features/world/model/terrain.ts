@@ -863,12 +863,7 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
     const [xs, ys] = at.split(',');
     const x = Number(xs);
     const y = Number(ys);
-    if (
-      !tile.startsWith('grass') ||
-      Math.abs(x - creekSafe(p)) > 5 ||
-      y <= 4 ||
-      nearStructureOrPath(p, x, y, 2)
-    ) {
+    if (!tile.startsWith('grass') || Math.abs(x - creekSafe(p)) > 5 || y <= 4 || nearStructureOrPath(p, x, y, 2)) {
       return [];
     }
     return [{ at, x, y, rank: h2(x, y, 97) }];
