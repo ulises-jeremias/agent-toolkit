@@ -267,10 +267,9 @@ const P = {
   // Interior timber is a deep plum heartwood with moonlit teal grain. It
   // keeps rooms warm without turning the floor into parchment or a ledger.
   floorWood: [0x4c, 0x3a, 0x52],
-  floorWoodLight: [0x6a, 0x4e, 0x69],
+  floorWoodLight: [0x5c, 0x45, 0x62],
   floorWoodShade: [0x36, 0x2b, 0x43],
-  floorWoodEdge: [0x8b, 0x5e, 0x67],
-  floorTileBlue: [0x4a, 0x55, 0x73],
+  floorWoodEdge: [0x78, 0x58, 0x68],
   floorMoon: [0x78, 0xb8, 0xb0],
   floorMoonShade: [0x4f, 0x8f, 0x91],
 };
@@ -1453,28 +1452,28 @@ function signPost() {
  * ------------------------------------------------------------------ */
 
 function floorPlank() {
-  const board = (shift) => {
+  const horizontalBoards = () => {
     const img = new Img(16, 16);
     img.rect(0, 0, 15, 15, 'floorWoodShade');
-    const panels = [
-      [0, 0, shift === 0 ? 'floorWoodLight' : 'floorWood'],
-      [8, 0, 'floorTileBlue'],
-      [0, 8, 'floorWood'],
-      [8, 8, shift === 0 ? 'floorWood' : 'floorWoodLight'],
-    ];
-    for (const [x, y, tone] of panels) {
-      img.rect(x + 1, y + 1, x + 6, y + 6, tone);
-      img.hline(x + 1, x + 6, y + 1, 'floorWoodEdge');
-      img.vline(x + 1, y + 2, y + 5, 'floorWoodEdge');
-      img.hline(x + 1, x + 6, y + 6, 'floorWoodShade');
-      img.vline(x + 6, y + 2, y + 5, 'floorWoodShade');
-      // A tiny grain nick keeps each inset panel from reading as flat tile.
-      img.set(x + 3 + shift, y + 3, 'floorWoodEdge');
+    for (let course = 0; course < 4; course++) {
+      const y = course * 4;
+      const tone = course % 2 === 0 ? 'floorWood' : 'floorWoodLight';
+      const joint = course % 2 === 0 ? 5 : 11;
+      img.rect(0, y, 15, y + 2, tone);
+      img.hline(0, 15, y, 'floorWoodEdge');
+      img.hline(0, 15, y + 3, 'floorWoodShade');
+      img.vline(joint, y + 1, y + 2, 'floorWoodShade');
+      // Short grain strokes break the long board into hand-cut timber.
+      img.hline(2 + (course % 2), 4 + (course % 2), y + 1, 'floorWoodLight');
+      img.set(13 - (course % 2), y + 2, 'floorWoodEdge');
     }
     return img;
   };
-  const a = board(0);
-  const b = board(1);
+  const a = horizontalBoards();
+  const b = new Img(16, 16);
+  for (let y = 0; y < 16; y++) {
+    for (let x = 0; x < 16; x++) b.set(15 - y, x, a.get(x, y));
+  }
   return [
     { name: 'floor-wood', img: a },
     { name: 'floor-wood-b', img: b },
