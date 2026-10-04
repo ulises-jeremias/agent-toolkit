@@ -135,7 +135,7 @@ class Painter {
 
 /* ------------------------------------------------------------------ */
 
-/** Grass base everywhere; small flower beds only in a few calm pockets. */
+/** Grass base everywhere; broad color shifts keep the lawn calm, not flat. */
 function baseGround(p: Painter) {
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
@@ -487,11 +487,13 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
 
 /** Broad irregular flower beds give open lawns a visible meadow rhythm. */
 function flowerGlades(p: Painter) {
-  const target = Math.min(14, Math.max(4, Math.floor((p.cols * p.rows) / 82)));
+  // Give the quiet spaces a visible meadow rhythm at overview scale. Glades
+  // stay grouped and seed-stable so additional color does not become speckle.
+  const target = Math.min(18, Math.max(5, Math.floor((p.cols * p.rows) / 54)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 2; y++) {
     for (let x = 2; x < p.cols - 2; x++) {
-      if (!p.get(x, y).startsWith('grass') || nearStructureOrPath(p, x, y, 1)) continue;
+      if (!p.get(x, y).startsWith('grass') || nearStructureOrPath(p, x, y, 0)) continue;
       candidates.push({ x, y, rank: h2(x, y, 131) });
     }
   }
@@ -696,11 +698,20 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
     p.sprite(`butterfly:${at}`, x, y, 'butterfly', 8, 8, 4, 2, true, true);
     if (++seen >= 6) break;
   }
-  // two fireflies hover near the creek's north end (subtle dusk sparkle)
-  for (const y of [1, 3]) {
-    const t = p.get(creekSafe(p) - 2, y);
-    if (t.startsWith('grass')) {
-      p.sprite(`firefly:${y}`, creekSafe(p) - 2, y, 'firefly', 6, 6, 5, 5, true, true);
+  // Fireflies trace quiet stretches of the real creek, not runtime activity.
+  const fireflyRows = new Set([
+    2,
+    Math.floor(p.rows * 0.28),
+    Math.floor(p.rows * 0.52),
+    Math.floor(p.rows * 0.76),
+    p.rows - 3,
+  ]);
+  let fireflyCount = 0;
+  for (const y of fireflyRows) {
+    const x = creekSafe(p) - 2;
+    if (p.get(x, y).startsWith('grass')) {
+      p.sprite(`firefly:${y}`, x, y, 'firefly', 6, 6, 5, 5, true, true);
+      if (++fireflyCount >= 4) break;
     }
   }
   // A few sharp glints sit directly on real water tiles; they are ambient

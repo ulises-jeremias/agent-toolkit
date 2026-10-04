@@ -936,8 +936,19 @@ describe('layoutWorld', () => {
       if (tiles.get(`${x},${y + 1}`) === tile) matchingNeighbors += 1;
     }
 
-    expect(flowers.length).toBeGreaterThan(20);
+    expect(flowers.length).toBeGreaterThan(60);
     expect(matchingNeighbors).toBeGreaterThan(8);
+  });
+
+  it('keeps a small, stable firefly presence along the creek in the idle world', () => {
+    const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
+    const decor = paintTerrain(layout.entities, layout.cols, layout.rows).decor;
+    const fireflies = decor.filter((sprite) => sprite.sprite === 'firefly');
+
+    expect(fireflies.length).toBeGreaterThanOrEqual(2);
+    expect(fireflies.length).toBeLessThanOrEqual(4);
+    expect(new Set(fireflies.map((sprite) => sprite.id)).size).toBe(fireflies.length);
+    expect(fireflies.every((sprite) => sprite.ambient)).toBe(true);
   });
 
   it('keeps tall tree canopies inside the framed world edge', () => {
