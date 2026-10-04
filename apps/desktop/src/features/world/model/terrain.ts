@@ -140,24 +140,15 @@ function baseGround(p: Painter) {
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
       if (p.isBlocked(x, y)) continue;
-      const moisture = meadowField(x, y, 7, 11) * 0.65 + meadowField(x, y, 15, 17) * 0.35;
+      // Let the low-frequency fields span enough of the palette to produce
+      // visibly different meadow biomes even on a compact empty workspace.
+      const moisture = meadowField(x, y, 6, 11) * 0.72 + meadowField(x, y, 13, 17) * 0.28;
       const bloom = meadowField(x, y, 4, 19);
       const roll = h2(x, y, 1) % 23;
       if (bloom > 0.8 && roll < 12) {
         p.set(x, y, ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'][h2(x, y, 12) % 4]!);
       } else {
-        const grass =
-          moisture < 0.2
-            ? 4
-            : moisture < 0.32
-              ? 2
-              : moisture < 0.58
-                ? 0
-                : moisture < 0.72
-                  ? 1
-                  : moisture < 0.86
-                    ? 3
-                    : 5;
+        const grass = Math.max(0, Math.min(5, Math.floor((moisture - 0.22) * 9)));
         // Each moisture band has four authored tile patterns. Spatially
         // seeded choice breaks up repeated 16px stamps without adding noise.
         const texture = Math.min(3, Math.floor(meadowField(x, y, 5, 59) * 4));
@@ -653,6 +644,14 @@ function forest(p: Painter, projectlessMeadow = false) {
       const canopyOverBuilding = [-2, -1, 0, 1].some((dy) =>
         [-2, -1, 0, 1, 2].some((dx) => p.blocked.has(key(x + dx, y + dy))),
       );
+      const canopyOverFlowerPatch = p.decor.some((decor) => {
+        if (!decor.sprite.startsWith('wildflower-patch-')) return false;
+        const left = decor.x + decor.dx / 16;
+        const top = decor.y + decor.dy / 16;
+        const right = left + decor.w / 16;
+        const bottom = top + decor.h / 16;
+        return x - 2 < right && x + 3 > left && y - 2 < bottom && y + 2 > top;
+      });
       const nearTrail = [-2, -1, 0, 1, 2].some((dy) =>
         [-2, -1, 0, 1, 2].some((dx) => p.paths.has(key(x + dx, y + dy))),
       );
@@ -662,7 +661,8 @@ function forest(p: Painter, projectlessMeadow = false) {
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
       const naturallyWooded = edge ? roll < (x >= p.cols - 6 ? 14 : 23) : nearCreek ? roll < 11 : grove && roll < 12;
       const woodlandCell = plantedGroves.has(key(x, y)) || naturallyWooded;
-      const wantTree = treeInsideFrame && !canopyOverBuilding && !nearTrail && woodlandCell;
+      const wantTree =
+        treeInsideFrame && !canopyOverBuilding && !canopyOverFlowerPatch && !nearTrail && woodlandCell;
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
         const canopyOffsetX = (h2(x, y, 47) % 5) - 2;
@@ -818,18 +818,27 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
 
 /** Paired lanterns mark the shared bridge as a welcoming route at dusk. */
 function bridgeLanterns(p: Painter, creekX: number, roadY: number) {
+  const placed: number[] = [];
   for (const [side, bankTiles] of [
-    ['west', [creekX - 2, creekX - 1, creekX - 3]],
-    ['east', [creekX + 3, creekX + 4, creekX + 2]],
+    ['west', [creekX - 2, creekX - 3, creekX - 1, creekX - 4, creekX - 5]],
+    ['east', [creekX + 3, creekX + 4, creekX + 2, creekX + 5, creekX + 6]],
   ] as const) {
     // The crossing row is paved across the water, so both posts stand on a
     // real bank-side ground cell instead of appearing to float in the stream.
     // A nearby project porch may claim the preferred post tile; slide one
     // tile along the same bank so the bridge still reads as a paired welcome.
     const y = roadY;
-    const x = bankTiles.find((candidate) => !p.isBlocked(candidate, y) && p.get(candidate, y) !== 'water');
+    const x = bankTiles.find(
+      (candidate) =>
+        candidate >= 0 &&
+        candidate < p.cols &&
+        !placed.includes(candidate) &&
+        !p.isBlocked(candidate, y) &&
+        p.get(candidate, y) !== 'water',
+    );
     if (x === undefined) continue;
     placeLantern(p, `bridge-lantern:${side}`, x, y);
+    placed.push(x);
   }
 }
 
@@ -903,8 +912,8 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   feather(p);
   plazaCore(p, hall, commons);
   flowerGlades(p);
-  forest(p, projects.length === 0);
   flowerPatchSprites(p);
+  forest(p, projects.length === 0);
   wildlife(p, hall);
 
   return { cells: cellsToArray(p), decor: p.decor };
