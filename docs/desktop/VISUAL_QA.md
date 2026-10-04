@@ -406,3 +406,24 @@ Opened files:
   and [large](assets/electron/library/mcp-configure-large.png).
 - [Private credentials, compact](assets/electron/library/mcp-credentials-compact.png)
   and [large](assets/electron/library/mcp-credentials-large.png).
+
+## Staggered project neighborhood — 2026-10-04
+
+Captured at source `3db18f79` by the Linux Electron visual-review workflow
+against its bundled backend and disposable HOME. Opened the large and compact
+several-project captures after increasing the alternating project-lot offset
+from one to two tiles. The second house now sits clearly lower along the creek
+bank at both scales, while the shared footpath bends from the bridge toward the
+project porches. Empty-world, one-project, and project-room captures were also
+refreshed from the same build; those layouts remain stable because the change
+only affects multi-house neighborhoods.
+
+The stronger stagger reads better than the first one-tile attempt, especially
+in the compact capture. The review still finds broad meadow areas visually
+quiet and civic buildings arranged too rigidly; this is a local composition
+improvement, not a claim that the valley has reached the final art direction.
+
+Opened files:
+
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
