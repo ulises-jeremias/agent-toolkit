@@ -82,15 +82,16 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   );
   const rest = sorted.filter((e) => !used.has(e.id));
 
-  // Room: exit door at the west wall; furniture along walls; floor stays open.
-  if (exit) place(exit, 0, 2);
-  if (room) place(room, 2, 0);
-  if (memory) place(memory, 7, 0);
-  if (terminal) place(terminal, 1, 3);
-  if (files) place(files, 4, 3);
+  // Project room: real resources occupy distinct wall stations and leave a
+  // broad central aisle for navigation and any genuinely live sessions.
+  if (exit) place(exit, 0, 5);
+  if (room) place(room, 4, 0);
+  if (memory) place(memory, 12, 0);
+  if (terminal) place(terminal, 3, 7);
+  if (files) place(files, 9, 7);
 
-  let entryX = 10;
-  const entryY = 1;
+  let entryX = 14;
+  const entryY = 3;
   for (const entry of memoryEntries) {
     place(entry, entryX, entryY);
     entryX += 2;
@@ -98,7 +99,7 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
 
   // Characters at named interior objects when job.cmd matches; else by the door.
   let porchX = 2;
-  const porchY = Math.max(11, maxY + 1);
+  const porchY = Math.max(10, maxY + 1);
   for (const character of characters) {
     const anchor = character.standAtId ? laid.find((row) => row.id === character.standAtId) : undefined;
     if (anchor) {
@@ -116,8 +117,8 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   return {
     // Keep a small comfortable room at minimum size; let real furniture,
     // records, or active sessions expand it instead of drawing empty floor.
-    cols: Math.max(maxX, 10),
-    rows: Math.max(maxY, 9),
+    cols: Math.max(maxX, 18),
+    rows: Math.max(maxY, 12),
     entities: laid,
   };
 }
