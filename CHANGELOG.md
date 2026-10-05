@@ -41,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Shared Files now has a readable sorting-depot landmark, while project Files
+  stays a small filing desk inside the house; Settings now has its own rune-dial
+  tower silhouette in the valley.
 - Valley woodland now reaches closer to walkable paths, while loose stones stay
   beside the creek instead of appearing as scattered meadow noise.
 - World groves now form deterministic overlapping tree clusters behind buildings and clear paths; flower glades are more frequent in open terrain.

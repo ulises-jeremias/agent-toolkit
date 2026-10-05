@@ -91,14 +91,14 @@
     },
     "landmark-files": {
       "file": "landmark-files.png",
-      "w": 48,
-      "h": 48,
+      "w": 64,
+      "h": 64,
       "frames": 1
     },
     "landmark-settings": {
       "file": "landmark-settings.png",
-      "w": 48,
-      "h": 48,
+      "w": 64,
+      "h": 64,
       "frames": 1
     },
     "landmark-attention": {

@@ -493,7 +493,7 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
     hrefExtra: { panel: 'files', project: project.name },
     projectId: project.name,
     detail: `Project files · ${project.target}`,
-    facade: 'landmark-files',
+    facade: 'desk-files',
   });
 
   pushJobCharacters(entities, projectJobs, {

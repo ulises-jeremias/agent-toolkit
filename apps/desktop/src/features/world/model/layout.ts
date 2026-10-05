@@ -22,8 +22,8 @@ export const FOOTPRINTS: Record<string, { w: number; h: number }> = {
   'landmark-workshop': { w: 5, h: 4 },
   'landmark-operations': { w: 4, h: 4 },
   'landmark-terminal': { w: 4, h: 4 },
-  'landmark-files': { w: 3, h: 3 },
-  'landmark-settings': { w: 3, h: 3 },
+  'landmark-files': { w: 4, h: 4 },
+  'landmark-settings': { w: 4, h: 4 },
   'landmark-attention': { w: 3, h: 3 },
   'memory-index-object': { w: 2, h: 2 },
   'attention-inbox': { w: 2, h: 2 },
@@ -217,11 +217,11 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // smaller service places form its southern garden lane.
   const civicSlots: Record<string, { x: number; y: number }> = {
     'object:library': { x: 1, y: 5 },
-    'object:workshop': { x: 12, y: 8 },
+    'object:workshop': { x: 13, y: 8 },
     'object:operations': { x: 6, y: 4 },
     'object:terminal': { x: 11, y: 3 },
     'object:attention': { x: 0, y: 9 },
-    'object:files': { x: 4, y: 9 },
+    'object:files': { x: 3, y: 9 },
     'object:settings': { x: 8, y: 9 },
   };
   for (const landmark of sharedObjects) {

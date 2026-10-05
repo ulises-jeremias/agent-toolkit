@@ -313,6 +313,7 @@ describe('buildWorldModel', () => {
     expect(model.entities.find((e) => e.id === 'object:files-project:alpha')).toMatchObject({
       concept: 'Project files',
       themeKey: 'files.project',
+      facade: 'desk-files',
       hrefPath: '/workspace',
       hrefExtra: { panel: 'files', project: 'alpha' },
     });
@@ -455,6 +456,16 @@ describe('buildWorldModel', () => {
     ];
     const landmarks = landmarkIds.map((id) => layout.entities.find((entity) => entity.id === id)!);
     expect(landmarks.every(Boolean)).toBe(true);
+    expect(landmarks.find((entity) => entity.id === 'object:files')).toMatchObject({
+      facade: 'landmark-files',
+      w: 4,
+      h: 4,
+    });
+    expect(landmarks.find((entity) => entity.id === 'object:settings')).toMatchObject({
+      facade: 'landmark-settings',
+      w: 4,
+      h: 4,
+    });
 
     // The public buildings form a slight arc, and the south lane is offset
     // from it so the settlement reads as a place rather than a tile grid.

@@ -692,31 +692,38 @@ function landmarkTerminal() {
 }
 
 function landmarkFiles() {
-  const img = new Img(48, 48);
-  shadow(img, 6, 44, 44);
-  wall(img, 10, 20, 39, 43, 'wood');
-  gableRoof(img, 25, 8, 21, 4, 19, 'rw', 'rwd', 'rw');
-  // open front with crates
-  img.rect(14, 30, 35, 43, 'k').rect(15, 31, 34, 42, 'inkd');
-  img.rect(17, 34, 23, 40, 'o').outlineRect(17, 34, 23, 40, 'od');
-  img.hline(17, 23, 37, 'od');
-  img.rect(26, 32, 32, 38, 'ol').outlineRect(26, 32, 32, 38, 'od');
-  img.rect(26, 40, 30, 42, 'o').outlineRect(26, 40, 30, 42, 'od');
+  const img = new Img(64, 64);
+  shadow(img, 5, 59, 60);
+  wall(img, 11, 28, 52, 58, 'wood');
+  gableRoof(img, 32, 7, 31, 7, 29, 'rs', 'rsd', 'rsl');
+  // Broad glazed sorting room, with readable shelves and labeled archive
+  // boxes. Files is a real shared depot, not a small unlabeled crate.
+  img.rect(16, 35, 47, 51, 'inkd').outlineRect(15, 34, 48, 52, 'k');
+  img.vline(26, 35, 51, 'od').vline(37, 35, 51, 'od');
+  img.hline(17, 46, 40, 'od').hline(17, 46, 46, 'od');
+  img.rect(18, 36, 24, 39, 'iv').rect(28, 36, 35, 39, 'cy');
+  img.rect(39, 36, 46, 39, 'wy').rect(18, 42, 24, 45, 'go');
+  img.rect(28, 42, 35, 45, 'iv').rect(39, 42, 46, 45, 'cy');
+  door(img, 27, 48, 10, 10);
+  img.hline(14, 49, 55, 'ol');
   return [{ name: 'landmark-files', img }];
 }
 
 function landmarkSettings() {
-  const img = new Img(48, 48);
-  shadow(img, 10, 40, 44);
-  // small pavilion: two posts + mini slate roof + hanging gear
-  img.rect(13, 22, 16, 43, 'k').rect(14, 23, 15, 42, 'st');
-  img.rect(33, 22, 36, 43, 'k').rect(34, 23, 35, 42, 'st');
-  gableRoof(img, 24, 12, 23, 3, 14, 'rs', 'rsd', 'rsl');
-  img.vline(24, 24, 27, 'k');
-  img.rect(20, 28, 28, 34, 'k').rect(21, 29, 27, 33, 'go');
-  img.set(24, 30, 'k').set(24, 27, 'go').set(20, 31, 'go').set(28, 31, 'go');
-  img.set(22, 31, 'god').set(26, 31, 'god'); // gear spokes hint
-  img.rect(20, 38, 28, 42, 'od').rect(21, 39, 27, 41, 'o'); // base crate
+  const img = new Img(64, 64);
+  shadow(img, 5, 59, 60);
+  wall(img, 15, 31, 48, 58, 'stone');
+  pointRoof(img, 32, 5, 31, 24, 're', 'red');
+  // The setting pavilion's clockwork dial makes this small tower distinct
+  // from the domed Memory archive and the broad Library roof.
+  img.rect(24, 21, 40, 36, 'inkd').outlineRect(23, 20, 41, 37, 'k');
+  img.ellipse(32, 28, 6, 6, 'cy');
+  img.ellipse(32, 28, 4, 4, 'inkd');
+  img.set(32, 22, 'wy').set(32, 23, 'go').set(32, 33, 'go');
+  img.set(26, 28, 'go').set(38, 28, 'go').set(32, 27, 'iv');
+  win(img, 17, 40, 7, 9, true);
+  win(img, 40, 40, 7, 9, true);
+  door(img, 28, 46, 9, 12);
   return [{ name: 'landmark-settings', img }];
 }
 
