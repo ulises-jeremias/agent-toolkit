@@ -965,7 +965,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   // quarter without a street, so every entrance detoured toward the southern
   // service lane and turned the settlement into a rectangular loop.
   const publicDoorY = Math.max(
-    10,
+    8,
     ...commons
       .filter((place) => ['object:library', 'object:operations', 'object:terminal'].includes(place.id))
       .map((place) => place.y + place.h),
@@ -983,11 +983,14 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const plannedCreekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
   const creekX = plannedCreekX ?? Math.max(4, Math.min(cols - 5, riverX));
   (p as unknown as { creekX: number }).creekX = creekX;
-  const routeEndX = projects.length
-    ? Math.max(...projects.map((project) => project.x + Math.floor(project.w / 2)))
-    : marker
-      ? marker.x + Math.floor(marker.w / 2)
-      : cols - 4;
+  const routeEndX = Math.min(
+    creekX + 3,
+    projects.length
+      ? Math.max(...projects.map((project) => project.x + Math.floor(project.w / 2)))
+      : marker
+        ? marker.x + Math.floor(marker.w / 2)
+        : cols - 4,
+  );
   road(p, roadY, creekX, routeEndX, 3);
   // Every doorway branches from the same street instead of attaching to a
   // previously added doorway path. Shared services take short branches;
