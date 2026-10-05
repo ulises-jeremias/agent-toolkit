@@ -185,8 +185,8 @@ Also read:
 - Keep the production application Electron + React over `agent-toolkit serve` (ADR-033); keep domain operations in canonical V core/server APIs.
 - Engine/shared typed domain APIs remain authoritative. Do not implement Agent Toolkit business logic by shelling out to the Agent Toolkit CLI and parsing output.
 - Keep catalog truth, user configuration, runtime state, and evidence/provenance distinct.
-- Never invent operational activity to make the Office look alive.
-- A catalog agent may exist and have a desk while idle; runtime absence does not imply catalog absence.
+- Never invent operational activity to make the World look alive.
+- An offline Person remains in the People roster and is absent from the World; only a real live session, job, or run can create runtime character presence.
 - Keep workspace, runtime, bundled-data, cache/config, and project path authorities distinct.
 - Preserve workspace containment and secret masking before values reach rendering/logging/export.
 - Drawing and hit-testing must share geometry; revalidate integer selections after filtering, refresh, and workspace switch before indexing.
