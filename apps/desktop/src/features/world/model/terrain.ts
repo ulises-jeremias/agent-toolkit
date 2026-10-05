@@ -231,12 +231,11 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
     // Keep the immediate approach and all three bridge tiles level so the
     // meandering footpath visibly meets the crossing without a one-tile step.
     const crossing = x >= bridgeX - 1 && x < bridgeX + 3;
-    // The commons road can sway gently on either bank. Keep the approach to
-    // the project lane bowed south: its houses sit immediately beyond it.
-    // Let the trail visibly drift through the meadow. A one-tile sway read as
-    // a ruler-straight street at overview zoom, so use a broader but still
-    // gentle bend; the bridge approach remains level and deterministic.
-    const bank = x < bridgeX - 1 ? Math.round(bend * 3.5) : Math.max(0, Math.round(bend * 3.5));
+    // A two-tile sway gives the commons a footworn curve at overview scale.
+    // Larger bends fell into the lower service street and made the settlement
+    // read as a rigid rectangular loop instead of a main route with branches.
+    // Keep the project-side approach bowed south; the bridge remains level.
+    const bank = x < bridgeX - 1 ? Math.round(bend * 1.8) : Math.max(0, Math.round(bend * 1.8));
     const current = { x, y: crossing ? y : y + bank };
     rasterLine(p, previous.x, previous.y, current.x, current.y);
     previous = current;
