@@ -156,11 +156,13 @@ file authoring as the user interface:
 - Runtime enforcement of token/cost limits and non-inherited isolation for the
   local PTY Start flow. `max_seconds` is enforced by Desktop and stops the PTY
   when its time budget expires.
-- Preferred-Person resolution from `people/bindings.yaml`, per-role runner/model
+- Desktop editing/review of `people/bindings.yaml`, per-role runner/model
   preference enforcement, an Agent Toolkit consumer for the swarm Person
   environment hint, swarm-process terminal reopen/stop from Desktop, and
   truthful swarm-session projection into the World.
 
-Explicit assignment, automatic matching by saved `role` or `definition_id`, and
-the unbound ephemeral fallback are supported. Preferences from
-`people/bindings.yaml` remain separate work and are not read by the resolver.
+Explicit assignment wins. The backend then applies ordered preferences from
+`people/bindings.yaml`, followed by automatic matching by saved `role` or
+`definition_id`; any unmatched role remains ephemeral. The preference file is
+still an interoperability/configuration surface, not the Desktop interface,
+and per-role runner/model preferences are not applied yet.
