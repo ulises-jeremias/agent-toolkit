@@ -144,8 +144,10 @@ Executable tokens (`apps/desktop/src/design/tokens.css`) are the value
 authority; this section defines intent. Two appearances, one world.
 
 - **Meadow** (`data-theme='meadow'`, default) — bright valley daylight:
-  lush greens, warm dirt, clear water, colorful roofs. Menus are deep
-  indigo-spruce with ivory text and gold/teal accents.
+  lush greens, warm dirt, clear water, colorful roofs. Inspectors use a deep
+  evergreen canvas with indigo-spruce menu frames, ivory text and gold/teal
+  accents so the bright world remains the focal point without pale SaaS-like
+  pages behind dense controls.
 - **Dusk** (`data-theme='dusk'`) — deliberate dark evening: deeper grass,
   navy creek, glowing windows and lanterns. Not a mechanical inversion.
 - **System** — resolves to Meadow or Dusk from `prefers-color-scheme`.

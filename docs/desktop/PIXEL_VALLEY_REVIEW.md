@@ -24,11 +24,11 @@ semantic footprint, drag threshold + capture release + click suppression,
 center-anchored zoom, animation suspension under hidden inspectors and
 hidden tabs. All verified by unit tests and opened captures.
 
-**Meadow contrast (commit `fix(desktop): Meadow canvas text contrast…`).**
-Opened captures showed page headings (title/lede/eyebrow) unreadable in
-Meadow: ivory text on the bright valley canvas. A canvas text ramp
-(`text-canvas-primary/secondary/muted`, `accent-canvas`) measured ≥ 4.5:1 on
-`#dcecd0` (11.2 / 8.3 / 4.9 / 5.1) replaced them; Dusk keeps the menu ramp.
+**Meadow contrast (historical).** Opened captures at that stage showed page
+headings unreadable in Meadow, so a dark text ramp was introduced for the
+then-bright canvas. The later Meadow inspector treatment is recorded in
+`VISUAL_QA.md`; current token values in `apps/desktop/src/design/tokens.css`
+are authoritative.
 `files.module.css` dropped the last Paper-era fallbacks
 (`--ink-muted`/`--paper`/`--manila`/`--rule`/`--paper-raised`/`--ink-wash`)
 onto the game-menu system. Evidence: opened PNGs below.
