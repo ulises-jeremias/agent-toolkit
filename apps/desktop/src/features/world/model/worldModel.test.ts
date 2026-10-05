@@ -1105,7 +1105,10 @@ describe('layoutWorld', () => {
     expect(rocks.length).toBeGreaterThan(0);
     for (const rock of rocks) {
       const bank = waterRows.get(rock.y) ?? [];
-      expect(bank.some((x) => Math.abs(x - rock.x) <= 4), `${rock.id} belongs beside the creek`).toBe(true);
+      expect(
+        bank.some((x) => Math.abs(x - rock.x) <= 4),
+        `${rock.id} belongs beside the creek`,
+      ).toBe(true);
     }
   });
 

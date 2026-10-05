@@ -710,9 +710,7 @@ function forest(p: Painter, projectlessMeadow = false) {
       // Tree crowns may lean over a path; only keep trunks off the walking
       // surface itself and its immediate edge. The old 5×5 exclusion created
       // a broad empty moat around every route in compact worlds.
-      const nearTrail = [-1, 0, 1].some((dy) =>
-        [-1, 0, 1].some((dx) => p.paths.has(key(x + dx, y + dy))),
-      );
+      const nearTrail = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => p.paths.has(key(x + dx, y + dy))));
       const grove = insideGrove(x, y);
       // Keep tall canopies fully inside the framed world; low grass and
       // flowers can still reach the edge without looking accidentally cut.
@@ -743,8 +741,7 @@ function forest(p: Painter, projectlessMeadow = false) {
         p.sprite(`rock:${x},${y}`, x, y, 'rock', 16, 12, 0, 5);
       } else if ((edge || nearCreek || grove) && (roll === 9 || roll === 10)) {
         p.sprite(`grass-tuft:${x},${y}`, x, y, 'tall-grass', 16, 8, 0, 8);
-      }
-      else if (roll === 11 && edge) p.sprite(`shroom:${x},${y}`, x, y, 'mushroom', 16, 12, 0, 5);
+      } else if (roll === 11 && edge) p.sprite(`shroom:${x},${y}`, x, y, 'mushroom', 16, 12, 0, 5);
     }
   }
 }
