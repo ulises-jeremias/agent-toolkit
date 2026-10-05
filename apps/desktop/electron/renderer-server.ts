@@ -69,6 +69,11 @@ function proxyApi(
     if (!res.headersSent) res.writeHead(502, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ ok: false, error: `backend proxy failed: ${error.message}` }));
   });
+  res.once('close', () => {
+    // EventSource keeps proxied requests open. If Desktop closes, abort the
+    // upstream request too instead of leaving a backend socket orphaned.
+    if (!upstream.destroyed) upstream.destroy();
+  });
   req.pipe(upstream);
 }
 
@@ -139,6 +144,9 @@ export async function startRendererServer(distDir: string): Promise<RendererServ
     close: () =>
       new Promise((resolve, reject) => {
         server.close((error) => (error ? reject(error) : resolve()));
+        // Stop accepting first, then force active EventSource/API connections
+        // closed so the callback cannot wait forever during app shutdown.
+        server.closeAllConnections();
       }),
   };
 }

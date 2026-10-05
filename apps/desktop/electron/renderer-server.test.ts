@@ -115,4 +115,36 @@ describe('startRendererServer', () => {
       await server.close();
     }
   });
+
+  it('closes active proxied streams during shutdown', async () => {
+    let markStreamOpen: () => void = () => undefined;
+    let markStreamClosed: () => void = () => undefined;
+    const streamOpen = new Promise<void>((resolve) => {
+      markStreamOpen = resolve;
+    });
+    const streamClosed = new Promise<void>((resolve) => {
+      markStreamClosed = resolve;
+    });
+    const backend = http.createServer((_req, res) => {
+      res.writeHead(200, { 'content-type': 'text/event-stream' });
+      res.write('data: connected\n\n');
+      markStreamOpen();
+      res.once('close', markStreamClosed);
+    });
+    backends.push(backend);
+    await new Promise<void>((resolve) => backend.listen(0, '127.0.0.1', resolve));
+    const backendPort = (backend.address() as AddressInfo).port;
+
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-renderer-'));
+    dirs.push(dir);
+    fs.writeFileSync(path.join(dir, 'index.html'), 'ok');
+    const server = await startRendererServer(dir);
+    server.setBackendTarget(`http://127.0.0.1:${backendPort}`);
+    const request = http.get(`${server.url}/api/v1/events`);
+    request.on('error', () => undefined);
+
+    await streamOpen;
+    await server.close();
+    await expect(streamClosed).resolves.toBeUndefined();
+  });
 });
