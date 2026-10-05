@@ -313,6 +313,69 @@ function connectEntrance(
   }
 }
 
+/** Join any remaining path islands without crossing a building or open water. */
+function connectPathIslands(p: Painter) {
+  const neighbors = [
+    [0, -1],
+    [-1, 0],
+    [1, 0],
+    [0, 1],
+  ] as const;
+  const components = () => {
+    const remaining = new Set(p.paths);
+    const result: Set<string>[] = [];
+    while (remaining.size > 0) {
+      const component = new Set<string>();
+      const queue = [remaining.values().next().value as string];
+      for (let head = 0; head < queue.length; head += 1) {
+        const at = queue[head]!;
+        if (component.has(at)) continue;
+        component.add(at);
+        remaining.delete(at);
+        const [x = 0, y = 0] = at.split(',').map(Number);
+        for (const [dx, dy] of neighbors) {
+          const next = key(x + dx, y + dy);
+          if (remaining.has(next) && !component.has(next)) queue.push(next);
+        }
+      }
+      result.push(component);
+    }
+    return result;
+  };
+
+  let islands = components();
+  while (islands.length > 1) {
+    const source = islands[0]!;
+    const queue = [...source];
+    const parent = new Map<string, string | null>(queue.map((at) => [at, null]));
+    let target: string | undefined;
+    for (let head = 0; head < queue.length && !target; head += 1) {
+      const at = queue[head]!;
+      const [x = 0, y = 0] = at.split(',').map(Number);
+      for (const [dx, dy] of neighbors) {
+        const nx = x + dx;
+        const ny = y + dy;
+        const next = key(nx, ny);
+        if (parent.has(next) || p.isBlocked(nx, ny) || p.get(nx, ny) === 'water') continue;
+        parent.set(next, at);
+        if (p.paths.has(next) && !source.has(next)) {
+          target = next;
+          break;
+        }
+        queue.push(next);
+      }
+    }
+    if (!target) return;
+    let cursor: string | null = target;
+    while (cursor) {
+      const [x = 0, y = 0] = cursor.split(',').map(Number);
+      p.path(x, y);
+      cursor = parent.get(cursor) ?? null;
+    }
+    islands = components();
+  }
+}
+
 /** Resolve the actual path network into connected, correctly shaped tiles. */
 function renderPaths(p: Painter) {
   const names = [
@@ -1059,6 +1122,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
       connectEntrance(p, doorX, doorY, street);
     }
   }
+  connectPathIslands(p);
   renderPaths(p);
   plazaCore(p, hall, commons);
   if (plannedCreekX !== null) {
