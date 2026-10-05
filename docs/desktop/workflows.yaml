@@ -85,6 +85,16 @@ journeys:
           - assets/electron/world/world-several-projects-large.png
           - assets/electron/world/project-files-room-compact.png
           - assets/electron/world/project-files-room-large.png
+      - note: >-
+          Follow-up capture at source 1b148c967b88f2cb4f5962e5f882424fb94ef661
+          (workflow 37307216771) brought project resources into tighter wall
+          stations and reduced the base room width to 18 tiles. The two room
+          screenshots were opened at compact and large sizes; the new arrangement
+          is easier to scan, though open plank floor remains a visible art gap.
+        build: "1b148c967b88f2cb4f5962e5f882424fb94ef661 (Linux Electron capture; 37307216771)"
+        screenshots:
+          - assets/electron/world/project-files-room-compact.png
+          - assets/electron/world/project-files-room-large.png
       - note: apps/desktop/e2e/electron/project-link.spec.ts; modules/agent_toolkit_core/file_catalog_test.v covers project symlink containment and unsafe paths
     blockers: []
   - id: capability-discovery

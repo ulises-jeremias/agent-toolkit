@@ -1,5 +1,26 @@
 # Desktop visual QA
 
+## Project room station composition — 2026-10-05
+
+Source `1b148c967b88f2cb4f5962e5f882424fb94ef661`, capture workflow
+`37307216771`. I opened both fresh Project Files room captures after moving the
+overview/Records pair and Terminal/Files pair into closer wall stations. The
+work area now has a tighter 18-tile base width instead of reserving 22 tiles;
+the doorway, station labels, and real resource destinations stay visible at
+compact and large sizes.
+
+The room reads more like one project workspace, but the screenshot still shows
+unused plank floor between stations and the wall. The next pass needs stronger
+semantic room composition and original interior art. This is a measured layout
+improvement, not a final visual sign-off.
+
+Opened files:
+
+- [Project room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+- [Compact empty world](assets/electron/world/world-empty-compact.png) to check
+  that the world camera and grounds were unchanged.
+
 ## Organic meadow and ground-only dusk review — 2026-10-05
 
 Source `9eff43e91c46cfba6024943ab9122c03b0c73762`, capture workflow
