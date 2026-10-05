@@ -1090,6 +1090,25 @@ describe('layoutWorld', () => {
     expect(interiorTrees.length).toBeGreaterThan(1);
   });
 
+  it('keeps loose stones on the creek bank instead of scattering them across meadow paths', () => {
+    const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
+    const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);
+    const waterRows = new Map<number, number[]>();
+    for (const cell of terrain.cells) {
+      if (cell.tile !== 'water') continue;
+      const row = waterRows.get(cell.y) ?? [];
+      row.push(cell.x);
+      waterRows.set(cell.y, row);
+    }
+
+    const rocks = terrain.decor.filter(({ sprite }) => sprite === 'rock');
+    expect(rocks.length).toBeGreaterThan(0);
+    for (const rock of rocks) {
+      const bank = waterRows.get(rock.y) ?? [];
+      expect(bank.some((x) => Math.abs(x - rock.x) <= 4), `${rock.id} belongs beside the creek`).toBe(true);
+    }
+  });
+
   it('forms broad, varied flower glades in open meadow clearings', () => {
     const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
     const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);

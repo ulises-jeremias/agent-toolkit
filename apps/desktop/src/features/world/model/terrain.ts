@@ -707,8 +707,11 @@ function forest(p: Painter, projectlessMeadow = false) {
         const canopyTop = y - 2 + ((h2(x, y, 53) % 3) - 1) / 16;
         return canopyLeft < right && canopyLeft + 3 > left && canopyTop < bottom && canopyTop + 3 > top;
       });
-      const nearTrail = [-2, -1, 0, 1, 2].some((dy) =>
-        [-2, -1, 0, 1, 2].some((dx) => p.paths.has(key(x + dx, y + dy))),
+      // Tree crowns may lean over a path; only keep trunks off the walking
+      // surface itself and its immediate edge. The old 5×5 exclusion created
+      // a broad empty moat around every route in compact worlds.
+      const nearTrail = [-1, 0, 1].some((dy) =>
+        [-1, 0, 1].some((dx) => p.paths.has(key(x + dx, y + dy))),
       );
       const grove = insideGrove(x, y);
       // Keep tall canopies fully inside the framed world; low grass and
@@ -732,9 +735,15 @@ function forest(p: Painter, projectlessMeadow = false) {
                   ? 'tree-amber'
                   : 'tree-round';
         p.sprite(`tree:${x},${y}`, x, y, tree, 48, 48, -16 + canopyOffsetX, -32 + canopyOffsetY, false);
-      } else if (roll === 5 || roll === 6) p.sprite(`bush:${x},${y}`, x, y, 'bush', 16, 12, 0, 4);
-      else if (roll === 7 || roll === 8) p.sprite(`rock:${x},${y}`, x, y, 'rock', 16, 12, 0, 5);
-      else if (roll === 9 || roll === 10) p.sprite(`grass-tuft:${x},${y}`, x, y, 'tall-grass', 16, 8, 0, 8);
+      } else if ((edge || nearCreek || grove) && (roll === 5 || roll === 6)) {
+        p.sprite(`bush:${x},${y}`, x, y, 'bush', 16, 12, 0, 4);
+      } else if (nearCreek && (roll === 7 || roll === 8)) {
+        // Stones belong to the stream bank, where they read as a natural
+        // detail. Scattered mid-meadow rocks looked like unfinished map data.
+        p.sprite(`rock:${x},${y}`, x, y, 'rock', 16, 12, 0, 5);
+      } else if ((edge || nearCreek || grove) && (roll === 9 || roll === 10)) {
+        p.sprite(`grass-tuft:${x},${y}`, x, y, 'tall-grass', 16, 8, 0, 8);
+      }
       else if (roll === 11 && edge) p.sprite(`shroom:${x},${y}`, x, y, 'mushroom', 16, 12, 0, 5);
     }
   }
