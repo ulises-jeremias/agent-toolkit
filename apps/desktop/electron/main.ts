@@ -15,6 +15,8 @@ let harness: HarnessController | null = null;
 let mcpSecrets: McpSecretStore | null = null;
 let rendererServer: RendererServer | null = null;
 let ipcRegistered = false;
+let shutdownTask: Promise<void> | null = null;
+let shutdownComplete = false;
 
 async function chooseHarnessDirectory(defaultPath: string): Promise<string | null> {
   const options: Electron.OpenDialogOptions = {
@@ -160,7 +162,7 @@ void app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    void shutdown().then(() => app.quit());
+    app.quit();
   }
 });
 
@@ -170,19 +172,33 @@ app.on('activate', () => {
   }
 });
 
-app.on('before-quit', () => {
-  void shutdown();
+app.on('before-quit', (event) => {
+  if (shutdownComplete) return;
+  event.preventDefault();
+  void shutdown().then(
+    () => {
+      shutdownComplete = true;
+      app.quit();
+    },
+    (error: unknown) => {
+      console.error('Agent Toolkit Desktop shutdown failed:', error);
+      shutdownComplete = true;
+      app.exit(1);
+    },
+  );
 });
 
 async function shutdown(): Promise<void> {
-  terminals?.dispose();
-  terminals = null;
-  if (backend) {
-    await backend.stop();
+  if (shutdownTask) return shutdownTask;
+  shutdownTask = (async () => {
+    terminals?.dispose();
+    terminals = null;
+    const activeBackend = backend;
     backend = null;
-  }
-  if (rendererServer) {
-    await rendererServer.close().catch(() => undefined);
+    if (activeBackend) await activeBackend.stop();
+    const activeRendererServer = rendererServer;
     rendererServer = null;
-  }
+    if (activeRendererServer) await activeRendererServer.close().catch(() => undefined);
+  })();
+  return shutdownTask;
 }
