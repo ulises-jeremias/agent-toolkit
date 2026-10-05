@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The Desktop workflow ledger now records the People-by-role default editor and refreshed, reviewed compact/large swarm-start screenshots; remaining runtime-identity and World-projection gaps stay explicit.
 - Shared Files now has a readable sorting-depot landmark, while project Files
   stays a small filing desk inside the house; Settings now has its own rune-dial
   tower silhouette in the valley.

@@ -271,15 +271,17 @@ journeys:
           AGENT_TOOLKIT_PERSON_ID adapter hints. The hint is not yet consumed
           as an AgentSession identity, terminal action, or World character.
           Workspace preferences from people/bindings.yaml are considered
-          between explicit choices and role/definition matching. Desktop still
-          has no purpose-built editor or review for those workspace defaults;
-          runner/model remain swarm-wide settings.
-        build: "feat/swarm-person-preferences (V core + Electron E2E)"
+          between explicit choices and role/definition matching. Desktop now
+          provides a purpose-built per-role editor: pin/clear a workspace
+          default Person, inspect ordered fallback names, and use Auto with the
+          same backend resolver. The compact and large Electron captures show
+          the saved Lina default; the compact dialog keeps Cancel/Start visible
+          while its role review scrolls. Runner/model remain swarm-wide settings.
+        build: "6ee3ac89 (Linux Electron + real V backend; desktop.spec.ts; capture run 37329725206; screenshots opened)"
         screenshots:
           - assets/electron/swarms/swarm-start-compact.png
           - assets/electron/swarms/swarm-start-large.png
     blockers:
-      - Desktop cannot inspect or edit the role defaults in people/bindings.yaml
       - per-Person provider/model preference and Person-specific terminal actions are not implemented
       - Agent Toolkit does not consume the role-process Person hint as a session identity
       - swarm role sessions are not yet projected into truthful World characters
