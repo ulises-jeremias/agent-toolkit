@@ -281,17 +281,20 @@ function connectEntrance(p: Painter, startX: number, startY: number, trunk: Read
   const [targetX = 0, targetY = 0] = target.split(',').map(Number);
   const isClear = (points: readonly { x: number; y: number }[]) =>
     points.every(({ x, y }) => !p.isBlocked(x, y) && (p.paths.has(key(x, y)) || p.get(x, y) !== 'water'));
+  // Prefer the short direct trail to the common street. A broad decorative
+  // curve for every doorway sprawled into rings when several service doors
+  // shared one district; save a curve for a real blocked direct approach.
+  const direct = rasterPoints(startX, startY, targetX, targetY);
+  if (isClear(direct)) {
+    for (const point of direct) p.path(point.x, point.y);
+    return;
+  }
+
   const preferredSide = h2(startX, startY, 41) % 2 === 0 ? 1 : -1;
   for (const side of [preferredSide, -preferredSide]) {
     const curve = curvedPoints(startX, startY, targetX, targetY, side);
     if (!isClear(curve)) continue;
     for (const point of curve) p.path(point.x, point.y);
-    return;
-  }
-
-  const direct = rasterPoints(startX, startY, targetX, targetY);
-  if (isClear(direct)) {
-    for (const point of direct) p.path(point.x, point.y);
     return;
   }
 
