@@ -270,13 +270,16 @@ journeys:
           resolved IDs are stored with the run and exported as
           AGENT_TOOLKIT_PERSON_ID adapter hints. The hint is not yet consumed
           as an AgentSession identity, terminal action, or World character.
-          Runner/model remain swarm-wide settings.
+          Workspace preferences from people/bindings.yaml are considered
+          between explicit choices and role/definition matching. Desktop still
+          has no purpose-built editor or review for those workspace defaults;
+          runner/model remain swarm-wide settings.
         build: "feat/swarm-person-preferences (V core + Electron E2E)"
         screenshots:
           - assets/electron/swarms/swarm-start-compact.png
           - assets/electron/swarms/swarm-start-large.png
     blockers:
-      - role preferences from people/bindings.yaml are not read; automatic matching uses saved Person role/AgentDefinition
+      - Desktop cannot inspect or edit the role defaults in people/bindings.yaml
       - per-Person provider/model preference and Person-specific terminal actions are not implemented
       - Agent Toolkit does not consume the role-process Person hint as a session identity
       - swarm role sessions are not yet projected into truthful World characters

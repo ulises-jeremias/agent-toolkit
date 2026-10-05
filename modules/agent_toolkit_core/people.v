@@ -1,9 +1,22 @@
 module agent_toolkit_core
 
 import os
+import yaml
 import x.json2
 
 const person_limit = 65536
+
+struct PersonRolePreference {
+pub:
+	person_id        string
+	preferred_people []string
+}
+
+struct PersonBindingsDocument {
+pub:
+	spec  string
+	roles map[string]PersonRolePreference
+}
 
 pub struct PeopleResponse {
 pub:
@@ -173,6 +186,92 @@ fn person_path(workspace string, id string) !string {
 	return path
 }
 
+// read_person_bindings loads optional workspace-local swarm role preferences.
+// They are hints only: explicit start-dialog choices win and unresolved roles
+// continue to use the recipe's ephemeral AgentDefinition.
+fn read_person_bindings(workspace string) !map[string]PersonRolePreference {
+	dir := person_dir(workspace)!
+	path := os.join_path(dir, 'bindings.yaml')
+	if os.is_link(path) { return error('people bindings file is a symlink') }
+	if !os.is_file(path) { return map[string]PersonRolePreference{} }
+	text := os.read_file(path) or { return error('people bindings file cannot be read') }
+	if text.len == 0 || text.len > person_limit { return error('people bindings file has invalid size') }
+	parsed := yaml.parse_text(text) or { return error('people bindings file is invalid YAML: ${err}') }
+	root := parsed.root
+	if root is map[string]yaml.Any {
+		if root.len != 2 { return error('people bindings file contains unsupported fields') }
+		spec := root['spec'] or { return error('people bindings spec is required') }
+		if spec is string {
+			if spec != 'agent-toolkit/people-bindings@1' { return error('unsupported people bindings spec') }
+		} else {
+			return error('people bindings spec must be text')
+		}
+		roles := root['roles'] or { return error('people bindings roles are required') }
+		if roles is map[string]yaml.Any {
+			if roles.len > 64 { return error('people bindings has too many role entries') }
+			for role, value in roles {
+				if !person_slug(role) { return error('people bindings contains an invalid role id') }
+				if value is map[string]yaml.Any {
+					if value.len > 2 { return error('people bindings contains unsupported role fields') }
+					if person_id := value['person_id'] {
+						if person_id is string {
+							if !person_slug(person_id) { return error('people bindings contains an invalid person id') }
+						} else {
+							return error('people bindings person_id must be text')
+						}
+					}
+					if preferred := value['preferred_people'] {
+						if preferred is []yaml.Any {
+							if preferred.len > 32 {
+								return error('people bindings has too many preferred People for ${role}')
+							}
+							mut seen := []string{}
+							for entry in preferred {
+								if entry is string {
+									if !person_slug(entry) || entry in seen {
+										return error('people bindings has an invalid or duplicate preferred Person for ${role}')
+									}
+									seen << entry
+								} else {
+									return error('people bindings preferred_people must contain ids')
+								}
+							}
+						} else {
+							return error('people bindings preferred_people must be a list')
+						}
+					}
+					for field, _ in value {
+						if field !in ['person_id', 'preferred_people'] {
+							return error('people bindings contains unsupported role fields')
+						}
+					}
+				} else {
+					return error('people bindings role preferences must be objects')
+				}
+			}
+		} else {
+			return error('people bindings roles must be an object')
+		}
+		for field, _ in root {
+			if field !in ['spec', 'roles'] { return error('people bindings file contains unsupported fields') }
+		}
+	} else {
+		return error('people bindings file must be an object')
+	}
+	doc := yaml.decode[PersonBindingsDocument](text) or {
+		return error('people bindings file is invalid YAML: ${err}')
+	}
+	return doc.roles
+}
+
+fn find_person_by_id(people []map[string]json2.Any, id string) ?map[string]json2.Any {
+	for person in people {
+		person_id := person['id'] or { continue }
+		if person_id is string && person_id == id { return person.clone() }
+	}
+	return none
+}
+
 pub fn list_people(workspace string) !PeopleResponse {
 	dir := person_dir(workspace)!
 	mut people := []map[string]json2.Any{}
@@ -249,10 +348,9 @@ pub fn validate_swarm_person_bindings(workspace string, recipe string, bindings 
 	}
 }
 
-// resolve_swarm_person_bindings preserves explicit assignments, then assigns
-// one active Person whose durable role or AgentDefinition matches each
-// remaining recipe role. Unmatched roles stay absent and use the ephemeral
-// recipe role.
+// resolve_swarm_person_bindings preserves explicit assignments, then applies
+// ordered compatible workspace preferences, then matches an active Person by
+// durable role or AgentDefinition. Unmatched roles remain ephemeral.
 pub fn resolve_swarm_person_bindings(workspace string, recipe string, explicit map[string]string) !map[string]string {
 	validate_swarm_person_bindings(workspace, recipe, explicit)!
 	mut resolved := explicit.clone()
@@ -261,10 +359,30 @@ pub fn resolve_swarm_person_bindings(workspace string, recipe string, explicit m
 		used << person_id
 	}
 	people := list_people(workspace)!
+	preferences := read_person_bindings(workspace)!
 	config := resolve_swarm_config(workspace, recipe, '', '', '')!
 	for role_name in swarm_recipe_roles(recipe) {
 		if role_name in resolved { continue }
 		role := config.spec.roles[role_name] or { continue }
+		preference := preferences[role_name] or { PersonRolePreference{} }
+		mut preferred_ids := []string{}
+		if preference.person_id.len > 0 { preferred_ids << preference.person_id }
+		for preferred_id in preference.preferred_people { preferred_ids << preferred_id }
+		for id in preferred_ids {
+			if id in used { continue }
+			person := find_person_by_id(people.people, id) or { continue }
+			archived := person['archived'] or { continue }
+			if archived is bool {
+				if archived { continue }
+			} else { continue }
+			person_role := person_string(person, 'role', true, 64, 'id')!
+			definition_id := person_string(person, 'definition_id', false, 128, 'ref')!
+			if person_role != role_name && (role.persona.len == 0 || definition_id != role.persona) { continue }
+			resolved[role_name] = id
+			used << id
+			break
+		}
+		if role_name in resolved { continue }
 		for person in people.people {
 			id := person_string(person, 'id', true, 64, 'id')!
 			if id in used { continue }
