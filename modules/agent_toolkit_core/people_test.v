@@ -109,7 +109,11 @@ fn test_swarm_person_binding_preferences_fail_closed_on_invalid_documents_and_sy
 	os.mkdir_all(os.dir(bindings)) or { panic(err) }
 	for invalid in [
 		'spec: unknown\nroles: {}\n',
+		'spec: agent-toolkit/people-bindings@1\n',
+		'spec: agent-toolkit/people-bindings@1\nroles: {}\ncommands: true\n',
 		'spec: agent-toolkit/people-bindings@1\nroles:\n  ../planner:\n    person_id: lina\n',
+		'spec: agent-toolkit/people-bindings@1\nroles:\n  planner:\n    person_id: 12\n',
+		'spec: agent-toolkit/people-bindings@1\nroles:\n  planner:\n    command: spawn\n',
 		'spec: agent-toolkit/people-bindings@1\nroles:\n  planner:\n    preferred_people: [lina, lina]\n',
 	] {
 		os.write_file(bindings, invalid) or { panic(err) }

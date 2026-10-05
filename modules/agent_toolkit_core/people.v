@@ -196,26 +196,70 @@ fn read_person_bindings(workspace string) !map[string]PersonRolePreference {
 	if !os.is_file(path) { return map[string]PersonRolePreference{} }
 	text := os.read_file(path) or { return error('people bindings file cannot be read') }
 	if text.len == 0 || text.len > person_limit { return error('people bindings file has invalid size') }
+	parsed := yaml.parse_text(text) or { return error('people bindings file is invalid YAML: ${err}') }
+	root := parsed.root
+	if root is map[string]yaml.Any {
+		if root.len != 2 { return error('people bindings file contains unsupported fields') }
+		spec := root['spec'] or { return error('people bindings spec is required') }
+		if spec is string {
+			if spec != 'agent-toolkit/people-bindings@1' { return error('unsupported people bindings spec') }
+		} else {
+			return error('people bindings spec must be text')
+		}
+		roles := root['roles'] or { return error('people bindings roles are required') }
+		if roles is map[string]yaml.Any {
+			if roles.len > 64 { return error('people bindings has too many role entries') }
+			for role, value in roles {
+				if !person_slug(role) { return error('people bindings contains an invalid role id') }
+				if value is map[string]yaml.Any {
+					if value.len > 2 { return error('people bindings contains unsupported role fields') }
+					if person_id := value['person_id'] {
+						if person_id is string {
+							if !person_slug(person_id) { return error('people bindings contains an invalid person id') }
+						} else {
+							return error('people bindings person_id must be text')
+						}
+					}
+					if preferred := value['preferred_people'] {
+						if preferred is []yaml.Any {
+							if preferred.len > 32 {
+								return error('people bindings has too many preferred People for ${role}')
+							}
+							mut seen := []string{}
+							for entry in preferred {
+								if entry is string {
+									if !person_slug(entry) || entry in seen {
+										return error('people bindings has an invalid or duplicate preferred Person for ${role}')
+									}
+									seen << entry
+								} else {
+									return error('people bindings preferred_people must contain ids')
+								}
+							}
+						} else {
+							return error('people bindings preferred_people must be a list')
+						}
+					}
+					for field, _ in value {
+						if field !in ['person_id', 'preferred_people'] {
+							return error('people bindings contains unsupported role fields')
+						}
+					}
+				} else {
+					return error('people bindings role preferences must be objects')
+				}
+			}
+		} else {
+			return error('people bindings roles must be an object')
+		}
+		for field, _ in root {
+			if field !in ['spec', 'roles'] { return error('people bindings file contains unsupported fields') }
+		}
+	} else {
+		return error('people bindings file must be an object')
+	}
 	doc := yaml.decode[PersonBindingsDocument](text) or {
 		return error('people bindings file is invalid YAML: ${err}')
-	}
-	if doc.spec != 'agent-toolkit/people-bindings@1' { return error('unsupported people bindings spec') }
-	if doc.roles.len > 64 { return error('people bindings has too many role entries') }
-	for role, preference in doc.roles {
-		if !person_slug(role) { return error('people bindings contains an invalid role id') }
-		if preference.person_id.len > 0 && !person_slug(preference.person_id) {
-			return error('people bindings contains an invalid person id')
-		}
-		if preference.preferred_people.len > 32 {
-			return error('people bindings has too many preferred People for ${role}')
-		}
-		mut seen := []string{}
-		for id in preference.preferred_people {
-			if !person_slug(id) || id in seen {
-				return error('people bindings has an invalid or duplicate preferred Person for ${role}')
-			}
-			seen << id
-		}
 	}
 	return doc.roles
 }
