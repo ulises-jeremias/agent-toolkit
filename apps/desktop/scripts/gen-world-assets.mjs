@@ -1512,6 +1512,38 @@ function wallBand() {
   return [{ name: 'wall-top', img }];
 }
 
+/** A moonlit window with a tiny valley silhouette and warm timber frame. */
+function interiorWindow() {
+  const img = new Img(32, 24);
+  img.ellipse(16, 12, 15, 11, 'glowOuter');
+  img.rect(3, 0, 28, 20, 'inkd').rect(4, 1, 27, 19, 'od');
+  img.rect(6, 3, 25, 16, 'ink');
+  img.rect(7, 4, 24, 15, 'rsd');
+  img.set(10, 6, 'lv').set(20, 5, 'wy').set(22, 8, 'lv').set(13, 8, 'cy');
+  img.ellipse(20, 5, 1, 1, 'gg');
+  img.hline(7, 24, 12, 'fd');
+  img.rect(7, 14, 24, 16, 'fo');
+  img.set(9, 13, 'gd').set(11, 12, 'fl').set(18, 13, 'gd').set(22, 12, 'fl');
+  img.vline(15, 4, 15, 'od').hline(7, 24, 10, 'od');
+  img.rect(2, 19, 29, 21, 'od').hline(1, 30, 22, 'floorWoodLight');
+  img.hline(4, 27, 23, 'floorWoodShade');
+  return [{ name: 'window-valley', img }];
+}
+
+/** A small amber wall lantern; its pixel halo is environmental, not status. */
+function interiorSconce() {
+  const img = new Img(16, 24);
+  img.ellipse(8, 9, 7, 8, 'glowOuter');
+  img.ellipse(8, 9, 4, 6, 'glowMiddle');
+  img.rect(6, 12, 10, 15, 'inkd').rect(7, 13, 9, 14, 'od');
+  img.vline(7, 6, 12, 'ol').vline(9, 6, 12, 'od');
+  img.rect(6, 5, 10, 9, 'inkd').rect(7, 6, 9, 8, 'go');
+  img.set(7, 6, 'wy').set(8, 7, 'gg');
+  img.hline(5, 11, 5, 'floorWoodLight').set(8, 3, 'gg');
+  img.rect(6, 15, 10, 16, 'floorWoodShade');
+  return [{ name: 'wall-sconce', img }];
+}
+
 function doorExit() {
   const img = new Img(16, 24);
   img.rect(2, 0, 13, 21, 'k').rect(3, 1, 12, 20, 'od');
@@ -1523,24 +1555,33 @@ function doorExit() {
 
 function rug() {
   const img = new Img(32, 16);
-  img.rect(0, 0, 31, 15, 'k');
-  img.rect(1, 1, 30, 14, 'rt');
-  img.rect(3, 3, 28, 12, 'p');
-  img.rect(5, 5, 26, 10, 're');
-  for (let x = 7; x < 26; x += 4) img.set(x, 6, 'go').set(x + 1, 9, 'go');
-  for (let x = 2; x < 30; x += 3) {
-    img.set(x, 0, 'gg');
-    img.set(x + 1, 15, 'gg');
+  img.rect(0, 0, 31, 15, 'inkd');
+  img.rect(1, 1, 30, 14, 'rtd');
+  img.rect(3, 2, 28, 13, 'rt');
+  img.hline(4, 27, 3, 'go').hline(4, 27, 12, 'god');
+  img.vline(4, 4, 11, 'god').vline(27, 4, 11, 'go');
+  img.rect(12, 5, 19, 10, 'rtd');
+  img.set(14, 5, 'floorMoonShade').set(15, 6, 'floorMoon').set(16, 7, 'floorMoonShade');
+  img.set(17, 6, 'floorMoon').set(18, 5, 'floorMoonShade');
+  img.set(13, 8, 'go').set(18, 8, 'go');
+  for (let x = 2; x < 30; x += 4) {
+    img.set(x, 0, 'floorWoodLight');
+    img.set(x + 2, 15, 'floorWoodLight');
   }
   return [{ name: 'rug', img }];
 }
 
 function plantPot() {
-  const img = new Img(16, 16);
-  img.rect(5, 9, 10, 13, 'k').rect(6, 10, 9, 12, 'rt');
-  img.hline(5, 10, 9, 'rtd');
-  img.vline(7, 4, 8, 'fo').vline(8, 3, 8, 'fl');
-  img.set(6, 3, 'fo').set(9, 4, 'fo').set(8, 2, 'gt');
+  const img = new Img(24, 24);
+  img.ellipse(12, 22, 10, 1, 'sh');
+  img.vline(7, 8, 16, 'fo').vline(11, 5, 16, 'fl').vline(15, 7, 16, 'fo').vline(18, 10, 16, 'fl');
+  img.set(6, 9, 'fl').set(8, 6, 'gl').set(9, 8, 'gt').set(12, 3, 'gt');
+  img.set(13, 5, 'gl').set(16, 6, 'fl').set(17, 9, 'gl').set(20, 11, 'gt');
+  img.set(8, 12, 'gt').set(11, 10, 'gl').set(14, 11, 'gt').set(18, 13, 'gl');
+  img.set(10, 7, 'go').set(15, 9, 'gg');
+  img.rect(6, 15, 17, 21, 'od').rect(7, 16, 16, 20, 'rt');
+  img.hline(7, 16, 15, 'floorWoodLight').hline(8, 15, 18, 'rtd');
+  img.hline(8, 15, 22, 'inkd');
   return [{ name: 'plant', img }];
 }
 
@@ -1845,6 +1886,8 @@ function collect() {
     floorPlank(),
     floorRune(),
     wallBand(),
+    interiorWindow(),
+    interiorSconce(),
     doorExit(),
     rug(),
     plantPot(),

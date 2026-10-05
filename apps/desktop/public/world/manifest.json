@@ -309,6 +309,18 @@
       "h": 16,
       "frames": 1
     },
+    "window-valley": {
+      "file": "window-valley.png",
+      "w": 32,
+      "h": 24,
+      "frames": 1
+    },
+    "wall-sconce": {
+      "file": "wall-sconce.png",
+      "w": 16,
+      "h": 24,
+      "frames": 1
+    },
     "door-exit": {
       "file": "door-exit.png",
       "w": 16,
@@ -323,8 +335,8 @@
     },
     "plant": {
       "file": "plant.png",
-      "w": 16,
-      "h": 16,
+      "w": 24,
+      "h": 24,
       "frames": 1
     },
     "desk-terminal": {
