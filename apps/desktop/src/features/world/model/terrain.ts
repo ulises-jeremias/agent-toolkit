@@ -1108,52 +1108,11 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
         : cols - 4,
   );
   road(p, roadY, creekX, routeEndX, 3);
-  // Every doorway branches from the same street instead of attaching to a
-  // previously added doorway path. Shared services take short branches;
-  // project houses keep a gentle curved approach into their neighborhood.
+  // Each real doorway finds its own safe, short approach to the public street.
+  // This keeps the village from acquiring a second ruler-straight service lane.
   const street = new Set(p.paths);
   if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h, street);
-  const servicePlaces = commons.filter((place) =>
-    ['object:attention', 'object:files', 'object:settings', 'object:workshop'].includes(place.id),
-  );
-  const serviceDoors = servicePlaces.map((place) => ({
-    x: place.x + Math.floor(place.w / 2),
-    y: place.y + place.h,
-  }));
-  const serviceY = Math.max(...serviceDoors.map(({ y }) => y));
-  const sharesFrontage = serviceDoors.length > 1 && serviceDoors.every(({ y }) => serviceY - y <= 1);
-  const serviceLeft = Math.min(...serviceDoors.map(({ x }) => x));
-  const serviceRight = Math.max(...serviceDoors.map(({ x }) => x));
-  // A shallow, deterministic bow softens the frontage while keeping each
-  // service entrance on one continuous route. Door-to-lane spurs stay short;
-  // the service street no longer reads as a ruler-straight grid edge.
-  const serviceLane = Array.from({ length: serviceRight - serviceLeft + 1 }, (_, offset) => {
-    const x = serviceLeft + offset;
-    const progress = offset / Math.max(1, serviceRight - serviceLeft);
-    const y = serviceY + Math.round((1 - Math.cos(progress * Math.PI * 2)) / 2);
-    return { x, y };
-  });
-  const serviceLaneClear =
-    sharesFrontage && serviceLane.every(({ x, y }) => !p.isBlocked(x, y) && p.get(x, y) !== 'water');
-  if (serviceLaneClear) {
-    // Files, Settings, Workshop and Attention share a small service lane.
-    // Give their real front doors one legible street, then join it to the
-    // commons once; independent detours around neighboring façades created
-    // rectangular loops in the open meadow.
-    let previousY = serviceY;
-    for (const { x, y } of serviceLane) {
-      if (Math.abs(y - previousY) > 0) p.path(x, previousY);
-      p.path(x, y);
-      previousY = y;
-    }
-    for (const { x, y } of serviceDoors) {
-      const laneY = serviceLane.find((point) => point.x === x)?.y ?? serviceY;
-      for (const point of rasterPoints(x, y, x, laneY)) p.path(point.x, point.y);
-    }
-    connectEntrance(p, serviceRight + 1, serviceLane.at(-1)?.y ?? serviceY, street);
-  }
   for (const place of commons) {
-    if (serviceLaneClear && servicePlaces.includes(place)) continue;
     const doorX = place.x + Math.floor(place.w / 2);
     const doorY = place.y + place.h;
     connectEntrance(p, doorX, doorY, street);
