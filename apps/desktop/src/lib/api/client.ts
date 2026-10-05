@@ -419,8 +419,14 @@ export class ApiClient {
     return this.json('GET', '/api/v1/people/bindings' satisfies PathWith<'get'>, { query: { workspace } });
   }
 
-  savePersonBindings(workspace: string, recipe: string, roles: Record<string, string>): Promise<PersonBindingsResponse> {
-    return this.json('PUT', '/api/v1/people/bindings' satisfies PathWith<'put'>, { body: { workspace, recipe, roles } });
+  savePersonBindings(
+    workspace: string,
+    recipe: string,
+    roles: Record<string, string>,
+  ): Promise<PersonBindingsResponse> {
+    return this.json('PUT', '/api/v1/people/bindings' satisfies PathWith<'put'>, {
+      body: { workspace, recipe, roles },
+    });
   }
 
   person(workspace: string, id: string): Promise<PersonResponse> {

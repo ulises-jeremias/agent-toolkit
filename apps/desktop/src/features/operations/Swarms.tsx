@@ -765,8 +765,12 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
             </div>
             {peopleQuery.isPending ? <p>Loading People…</p> : null}
             {peopleQuery.isError ? <ErrorState title="Could not load People" error={peopleQuery.error} /> : null}
-            {defaultsQuery.isError ? <ErrorState title="Could not load workspace People defaults" error={defaultsQuery.error} /> : null}
-            {saveDefaults.error ? <ErrorState title="Could not save this role default" error={saveDefaults.error} /> : null}
+            {defaultsQuery.isError ? (
+              <ErrorState title="Could not load workspace People defaults" error={defaultsQuery.error} />
+            ) : null}
+            {saveDefaults.error ? (
+              <ErrorState title="Could not save this role default" error={saveDefaults.error} />
+            ) : null}
             {people.length === 0 && peopleQuery.isSuccess ? (
               <p>
                 No active People are configured. Auto keeps every recipe role available with ephemeral role sessions.
@@ -941,7 +945,9 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
                   return (
                     <span key={role.name}>
                       {role.name} → <strong>{person?.name ?? (personId ? personId : 'Ephemeral role session')}</strong>
-                      {person ? ` · ${explicit ? 'selected' : workspaceDefault ? 'workspace default' : 'matched role'}` : ''}
+                      {person
+                        ? ` · ${explicit ? 'selected' : workspaceDefault ? 'workspace default' : 'matched role'}`
+                        : ''}
                     </span>
                   );
                 })}
