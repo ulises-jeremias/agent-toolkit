@@ -770,7 +770,7 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
   // the map. More small clusters create sheltered clearings without placing a
   // uniform tree grid across the walkable meadow.
   const target = Math.min(16, Math.max(12, Math.floor((p.cols * p.rows) / 90)));
-  const candidates: { x: number; y: number; rank: number }[] = [];
+  const candidates: { x: number; y: number; rank: number; projectClearing: boolean }[] = [];
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {
       if (!p.get(x, y).startsWith('grass') && !p.get(x, y).startsWith('flowers')) continue;
@@ -787,7 +787,7 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
       // canopy pass below still rejects crowns that reach a real façade, and
       // the root check above keeps actual routes open.
       const projectClearing = nearestLot >= 2 && nearestLot <= 8;
-      candidates.push({ x, y, rank: h2(x, y, 173) - (projectClearing ? 0x1_0000_0000 : 0) });
+      candidates.push({ x, y, rank: h2(x, y, 173), projectClearing });
     }
   }
   if (meadowHeart) {
@@ -804,34 +804,40 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
   const offsets = [
     [0, 0],
     [-2, 0],
-    [2, 0],
-    [-4, 0],
-    [4, 0],
+    [1, 0],
     [-1, 1],
-    [1, 1],
-    [-2, 2],
-    [0, 2],
-    [2, 2],
-    [-4, 2],
-    [4, 2],
-    [-3, 3],
-    [0, 3],
-    [3, 3],
-    [-3, 1],
-    [3, 1],
+    [2, 1],
     [-3, 2],
+    [0, 2],
     [3, 2],
+    [-1, 3],
+    [2, 3],
   ] as const;
-  for (const candidate of candidates) {
-    if (centers.length >= target) break;
-    const minSpacing = 6;
-    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < minSpacing)) continue;
+  const addGrove = (candidate: (typeof candidates)[number]) => {
+    const minSpacing = 8;
+    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < minSpacing)) return false;
     centers.push(candidate);
     for (const [dx, dy] of offsets) {
       const x = candidate.x + dx;
       const y = candidate.y + dy;
       if (p.get(x, y).startsWith('grass') || p.get(x, y).startsWith('flowers')) anchors.add(key(x, y));
     }
+    return true;
+  };
+
+  // A couple of sheltered groups connect neighboring project gardens without
+  // merging into a hedge. The remaining anchors are chosen across open meadow
+  // so populated districts keep clearings and project-free valleys still feel
+  // naturally wooded.
+  const projectGroveLimit = Math.min(4, Math.max(2, Math.ceil(p.projectLots.length / 2)));
+  let projectGroves = 0;
+  for (const candidate of candidates.filter((entry) => entry.projectClearing)) {
+    if (centers.length >= target || projectGroves >= projectGroveLimit) break;
+    if (addGrove(candidate)) projectGroves += 1;
+  }
+  for (const candidate of candidates) {
+    if (centers.length >= target) break;
+    addGrove(candidate);
   }
   return anchors;
 }
