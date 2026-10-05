@@ -419,18 +419,15 @@ function softenPathVerge(p: Painter) {
     // legible and walkable while breaking the ruler-straight edges at game zoom.
     if (h2(x, y, 211) % 37 !== 0) continue;
     const side = h2(x, y, 223) % 2 === 0 ? -1 : 1;
-    for (const [dx, dy] of [[side, 0], [side, -1], [side, 1]] as const) {
+    for (const [dx, dy] of [
+      [side, 0],
+      [side, -1],
+      [side, 1],
+    ] as const) {
       const nx = x + dx;
       const ny = y + dy;
       const at = key(nx, ny);
-      if (
-        planted.has(at) ||
-        p.isBlocked(nx, ny) ||
-        p.paths.has(at) ||
-        !p.get(nx, ny).startsWith('grass')
-      ) {
-        continue;
-      }
+      if (planted.has(at) || p.isBlocked(nx, ny) || p.paths.has(at) || !p.get(nx, ny).startsWith('grass')) continue;
       if (h2(nx, ny, 227) % 4 === 0) continue;
       p.set(nx, ny, blooms[h2(nx, ny, 229) % blooms.length]!);
       planted.add(at);

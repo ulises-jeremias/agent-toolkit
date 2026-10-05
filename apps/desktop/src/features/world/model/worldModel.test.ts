@@ -900,8 +900,7 @@ describe('layoutWorld', () => {
     );
     expect(pathsideFlowers.length).toBeGreaterThan(0);
     expect(
-      first.cells
-        .filter(({ tile }) => tile.startsWith('flowers'))
+      first.cells.filter(({ tile }) => tile.startsWith('flowers'))
         .every(({ x, y }) => !trails.has(`${x},${y}`)),
     ).toBe(true);
     const water = new Set(first.cells.filter(({ tile }) => tile === 'water').map(({ x, y }) => `${x},${y}`));
