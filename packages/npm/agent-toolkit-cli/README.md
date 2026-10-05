@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/banner.svg?raw=true" width="100%" alt="agent-toolkit banner">
+  <img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/world.png" width="100%" alt="Agent Toolkit Desktop workspace valley, captured from the running app" />
 </p>
 
 <div align="center">
@@ -54,10 +54,6 @@ npm install -g agent-toolkit-cli
 agent-toolkit install
 agent-toolkit doctor
 ```
-
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/architecture.svg?raw=true" width="88%" alt="agent-toolkit architecture">
-</div>
 
 ---
 
@@ -163,10 +159,6 @@ Agent Toolkit Desktop is a standalone Electron app over the same V backend. It o
 
 ## Supported tools
 
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/tools-grid.svg?raw=true" width="96%" alt="Supported AI tools grid">
-</div>
-
 | Tool | What `install` deploys |
 |------|------------------------|
 | **Claude Code** | Plugin manifest, skill references, settings |
@@ -225,10 +217,6 @@ Still on the same binary — start here when running an [agentic-harness](https:
 | `inventory` | List skills, agents, and products |
 | `matrix` | Platform capability matrix |
 | `build` / `release` | Compile / release artifacts (maintainer) |
-
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/loop-tiers.svg?raw=true" width="88%" alt="Loop autonomy tiers">
-</div>
 
 ---
 

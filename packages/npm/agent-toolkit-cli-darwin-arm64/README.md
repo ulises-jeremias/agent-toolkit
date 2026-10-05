@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/banner.svg?raw=true" width="100%" alt="agent-toolkit banner">
-</p>
-
 <div align="center">
 
 # agent-toolkit-cli-darwin-arm64

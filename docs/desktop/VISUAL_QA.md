@@ -795,3 +795,47 @@ Opened artifact files:
 - `project-files-room-large.png`
 - `world-several-projects-compact.png`
 - `world-several-projects-large.png`
+
+## Forest-menu and refreshed README captures — 2026-10-05
+
+Captured Electron from source `a9ede9dd` on the remote Linux runner in [workflow
+37283342028](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37283342028),
+using its packaged V backend and disposable HOME. I opened every linked PNG
+below at its native resolution. The Meadows' inspector canvas is now deep
+evergreen, so content panels read as framed game menus instead of sitting on a
+large pale SaaS surface. The Dusk wash is lighter than the prior capture; the
+world keeps its warm windows and readable creek while the daytime and evening
+palettes remain distinct. The README's old static infographic SVGs are removed;
+its gallery and package front pages now use captured Electron screenshots.
+
+The world is legible and the project buildings remain distinct, and the
+multi-project layout places projects across the creek. The capture also shows
+unfinished art work: broad lawn regions remain visually uniform, the central
+watercourse and many paths are geometric, and the project room still has a
+large unused plank floor. People, Library, Operations and Settings use
+readable compact information layouts; the People screen has substantial unused
+vertical space at large size. The real PTY capture contains command output at
+1024×640, but the 1920×1080 capture's terminal canvas is blank despite the same
+session being live, so only the compact terminal image is used in the README.
+These are remaining polish issues, not reasons to claim the desired magical
+world art pass is finished.
+
+Opened and preserved review images:
+
+- [Empty world, compact](assets/electron/review-2026-10-05/world-empty-compact.png)
+  and [large](assets/electron/review-2026-10-05/world-empty-large.png).
+- [One project, compact](assets/electron/review-2026-10-05/world-one-project-compact.png)
+  and [large](assets/electron/review-2026-10-05/world-one-project-large.png).
+- [Several projects, compact](assets/electron/review-2026-10-05/world-several-projects-compact.png)
+  and [large](assets/electron/review-2026-10-05/world-several-projects-large.png).
+- [Project room, compact](assets/electron/review-2026-10-05/project-files-room-compact.png)
+  and [large](assets/electron/review-2026-10-05/project-files-room-large.png).
+- [Dusk world](assets/electron/review-2026-10-05/dusk-1920x1080-world.png),
+  [People](assets/electron/review-2026-10-05/meadow-1920x1080-people.png),
+  [Library](assets/electron/review-2026-10-05/meadow-1920x1080-library.png),
+  [Operations](assets/electron/review-2026-10-05/meadow-1920x1080-operations.png),
+  and [Settings](assets/electron/review-2026-10-05/meadow-1920x1080-settings.png).
+- [Person create, compact](assets/electron/review-2026-10-05/meadow-1024x640-person-create.png),
+  [Munder import review, compact](assets/electron/review-2026-10-05/meadow-1024x640-munder-import-review.png),
+  [PTY with output, compact](assets/electron/review-2026-10-05/meadow-1024x640-terminal.png),
+  and [PTY, large](assets/electron/review-2026-10-05/meadow-1920x1080-terminal.png).
