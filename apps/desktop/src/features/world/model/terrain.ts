@@ -236,7 +236,7 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
     // Let the trail visibly drift through the meadow. A one-tile sway read as
     // a ruler-straight street at overview zoom, so use a broader but still
     // gentle bend; the bridge approach remains level and deterministic.
-    const bank = x < bridgeX - 1 ? Math.round(bend * 2.25) : Math.max(0, Math.round(bend * 2.25));
+    const bank = x < bridgeX - 1 ? Math.round(bend * 3.5) : Math.max(0, Math.round(bend * 3.5));
     const current = { x, y: crossing ? y : y + bank };
     rasterLine(p, previous.x, previous.y, current.x, current.y);
     previous = current;
@@ -635,7 +635,7 @@ function flowerPatchSprites(p: Painter) {
 
 /** Pick a few stable grove hearts inside the settlement, away from its paths. */
 function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<string> {
-  const target = Math.min(6, Math.max(3, Math.floor((p.cols * p.rows) / 190)));
+  const target = Math.min(7, Math.max(4, Math.floor((p.cols * p.rows) / 160)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {
@@ -714,7 +714,7 @@ function forest(p: Painter, projectlessMeadow = false) {
       // Keep tall canopies fully inside the framed world; low grass and
       // flowers can still reach the edge without looking accidentally cut.
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
-      const naturallyWooded = edge ? roll < (x >= p.cols - 6 ? 18 : 23) : nearCreek ? roll < 15 : grove && roll < 17;
+      const naturallyWooded = edge ? roll < (x >= p.cols - 6 ? 27 : 29) : nearCreek ? roll < 20 : grove && roll < 20;
       const woodlandCell = plantedGroves.has(key(x, y)) || naturallyWooded;
       const wantTree = treeInsideFrame && !canopyOverBuilding && !canopyOverFlowerPatch && !nearTrail && woodlandCell;
       if (wantTree) {
@@ -842,7 +842,7 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
       .map((offset) => creekSafe(p) + offset)
       .find((candidate) => p.get(candidate, y).startsWith('grass'));
     if (x === undefined) continue;
-    p.sprite(`firefly:${y}`, x, y, 'firefly', 8, 8, 4, 4, true, true);
+    p.sprite(`firefly:${y}`, x, y, 'firefly', 12, 12, 2, 2, true, true);
     if (++fireflyCount >= 6) break;
   }
   // A few sharp glints sit directly on real water tiles; they are ambient
@@ -854,7 +854,7 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
     const y = Number(ys);
     if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
     if (tile === 'water' && h2(x, y, 83) % 6 === 0 && sparkleCount < 5) {
-      p.sprite(`water-sparkle:${at}`, x, y, 'water-sparkle', 8, 8, 4, 4, true, true);
+      p.sprite(`water-sparkle:${at}`, x, y, 'water-sparkle', 10, 10, 3, 3, true, true);
       sparkleCount += 1;
     }
   }
@@ -877,7 +877,7 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
   const motePositions: { x: number; y: number }[] = [];
   for (const { at, x, y } of moteCandidates) {
     if (motePositions.some((position) => Math.hypot(position.x - x, position.y - y) < 5)) continue;
-    p.sprite(`mote:${at}`, x, y, 'mote', 7, 7, 4, 4, true, true);
+    p.sprite(`mote:${at}`, x, y, 'mote', 10, 10, 3, 3, true, true);
     motePositions.push({ x, y });
     if (motePositions.length >= 6) break;
   }
