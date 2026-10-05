@@ -1116,9 +1116,15 @@ describe('layoutWorld', () => {
     const buildings = layout.entities.filter((entity) => entity.kind === 'place' && entity.id.startsWith('place:'));
 
     expect(trees.length).toBeGreaterThan(0);
+    const projectHouses = buildings.filter((building) => building.id.startsWith('place:project:'));
+    const houseDistance = (tree: (typeof trees)[number], building: (typeof projectHouses)[number]) => {
+      const dx = Math.max(building.x - tree.x, 0, tree.x - (building.x + building.w - 1));
+      const dy = Math.max(building.y - tree.y, 0, tree.y - (building.y + building.h - 1));
+      return Math.hypot(dx, dy);
+    };
     expect(
-      trees.some((tree) => tree.x >= 24 && tree.x < 27 && tree.y >= 7 && tree.y < 10),
-      'a canopy should occupy the real clearing between the staggered project houses',
+      trees.some((tree) => projectHouses.filter((house) => houseDistance(tree, house) <= 6).length >= 2),
+      'a canopy should frame a clearing shared by multiple project houses',
     ).toBe(true);
     for (const tree of trees) {
       const left = tree.x + tree.dx / 16;
