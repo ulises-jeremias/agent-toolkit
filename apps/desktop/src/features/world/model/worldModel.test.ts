@@ -899,10 +899,10 @@ describe('layoutWorld', () => {
         ].some(([nx, ny]) => trails.has(`${nx},${ny}`)),
     );
     expect(pathsideFlowers.length).toBeGreaterThan(0);
-    expect(
-      first.cells.filter(({ tile }) => tile.startsWith('flowers'))
-        .every(({ x, y }) => !trails.has(`${x},${y}`)),
-    ).toBe(true);
+    const allFlowersStayOffTrails = first.cells
+      .filter(({ tile }) => tile.startsWith('flowers'))
+      .every(({ x, y }) => !trails.has(`${x},${y}`));
+    expect(allFlowersStayOffTrails).toBe(true);
     const water = new Set(first.cells.filter(({ tile }) => tile === 'water').map(({ x, y }) => `${x},${y}`));
     const sparkles = first.decor.filter((sprite) => sprite.sprite === 'water-sparkle');
     expect(sparkles.length).toBeGreaterThan(0);
