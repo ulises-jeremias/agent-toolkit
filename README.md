@@ -10,34 +10,10 @@
 
 **Composable AI agent capabilities for every major coding assistant**
 
-[![Validate](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=validate&style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
-[![MegaLinter](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/mega-linter.yml?branch=main&label=MegaLinter&style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/mega-linter.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=CI)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
+[![Desktop](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/desktop.yml?branch=main&label=Desktop)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/desktop.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c3aed?style=flat&labelColor=1f2937)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
-[![Discord](https://img.shields.io/discord/1527933660764831825?style=flat&label=Discord&labelColor=1f2937&logo=discord&logoColor=white&color=5865F2)](https://discord.gg/bR5VyATgka)
-[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-16a34a?style=flat&labelColor=1f2937)](https://github.com/vercel-labs/skills)
-[![Agent Plugins](https://img.shields.io/badge/Agent%20Plugins-1.0-7c3aed?style=flat&labelColor=1f2937)](https://agent-plugins.org)
-[![Mentioned in Awesome Agent Skills](https://awesome.re/mentioned-badge.svg)](https://github.com/junminhong/awesome-agent-skills)
-
-[![npm](https://img.shields.io/npm/v/agent-toolkit-cli?style=flat&label=npm&labelColor=1f2937&color=7c3aed&logo=npm&logoColor=white)](https://www.npmjs.com/package/agent-toolkit-cli)
-[![npm downloads](https://img.shields.io/npm/dm/agent-toolkit-cli?style=flat&label=npm%20downloads&labelColor=1f2937&color=0891b2)](https://www.npmjs.com/package/agent-toolkit-cli)
-[![PyPI](https://img.shields.io/pypi/v/agent-toolkit-cli?style=flat&label=PyPI&labelColor=1f2937&color=7c3aed&logo=pypi&logoColor=white)](https://pypi.org/project/agent-toolkit-cli/)
-[![PyPI downloads](https://img.shields.io/pypi/dm/agent-toolkit-cli?style=flat&label=PyPI%20downloads&labelColor=1f2937&color=0891b2)](https://pypi.org/project/agent-toolkit-cli/)
-[![AUR](https://img.shields.io/aur/version/agent-toolkit-bin?style=flat&label=AUR&labelColor=1f2937&logo=archlinux&logoColor=white)](https://aur.archlinux.org/packages/agent-toolkit-bin)
-[![Homebrew](https://img.shields.io/badge/Homebrew-ulises--jeremias%2Ftap-ea580c?style=flat&labelColor=1f2937&logo=homebrew&logoColor=white)](https://github.com/ulises-jeremias/homebrew-tap)
-[![GHCR](https://img.shields.io/badge/GHCR-agent--toolkit-2563eb?style=flat&labelColor=1f2937&logo=docker&logoColor=white)](https://github.com/ulises-jeremias/agent-toolkit/pkgs/container/agent-toolkit)
-
-[![GitHub stars](https://img.shields.io/github/stars/ulises-jeremias/agent-toolkit?style=flat&label=stars&labelColor=1f2937&color=facc15&logo=github)](https://github.com/ulises-jeremias/agent-toolkit/stargazers)
-[![commits since latest release](https://img.shields.io/github/commits-since/ulises-jeremias/agent-toolkit/latest?style=flat&label=commits&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/commits/main)
-[![contributors](https://img.shields.io/github/contributors/ulises-jeremias/agent-toolkit?style=flat&label=contributors&labelColor=1f2937&color=0891b2)](https://github.com/ulises-jeremias/agent-toolkit/graphs/contributors)
-
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-7c3aed?style=flat&labelColor=1f2937&logo=anthropic&logoColor=white)](profiles/claude-code/)
-[![Cursor](https://img.shields.io/badge/Cursor-rules-0891b2?style=flat&labelColor=1f2937)](profiles/cursor/)
-[![OpenCode](https://img.shields.io/badge/OpenCode-agents-ea580c?style=flat&labelColor=1f2937)](profiles/opencode/)
-[![Copilot](https://img.shields.io/badge/GitHub%20Copilot-instructions-16a34a?style=flat&labelColor=1f2937&logo=github&logoColor=white)](profiles/copilot/)
-[![Windsurf](https://img.shields.io/badge/Windsurf-rules-2563eb?style=flat&labelColor=1f2937)](profiles/windsurf/)
-[![Pi](https://img.shields.io/badge/Pi%20Agent-skills-db2777?style=flat&labelColor=1f2937)](profiles/pi/)
-[![Muse Code](https://img.shields.io/badge/Muse%20Code-skills-ff6b35?style=flat&labelColor=1f2937)](https://developer.meta.com/ai/products/muse-code/)
 
 [Documentation](docs/) ·
 [Quick Install](#-quick-install) ·
@@ -88,7 +64,7 @@ flowchart LR
       <h3>🛠️ Skills</h3>
       <sub>Reusable capability units (<code>SKILL.md</code>) that teach an agent how to do a job — delivery workflows, forge CLIs, design, data, ops.</sub>
       <br><br>
-      <sub>Skills across 14 domains — live count via <code>agent-toolkit inventory</code> · Browse <code>skills/</code>.</sub>
+      <sub>Browse the live catalog with <code>agent-toolkit inventory</code> or inspect <code>skills/</code>.</sub>
     </td>
     <td width="50%" valign="top">
       <h3>🤖 Agents</h3>
@@ -122,7 +98,7 @@ flowchart LR
       <h3>🔗 MCP</h3>
       <sub>Provider registry + ready templates (GitHub, Slack, Notion, Linear, Figma, ClickUp, Chrome DevTools) emitted into target-native MCP configs.</sub>
       <br><br>
-      <sub>7 providers · <code>mcp/registry/</code> · <code>mcp/templates/</code> · <code>agent-toolkit mcp</code></sub>
+      <sub>Provider definitions and templates live under <code>mcp/</code>; inspect or configure them with <code>agent-toolkit mcp</code>.</sub>
     </td>
   </tr>
 </table>
@@ -134,7 +110,7 @@ flowchart LR
 **Recommended:** the product CLI is the **native V binary**. PyPI/`uv` is a thin launcher over that binary ([ADR-021](docs/adrs/ADR-021-pypi-binary.md)).
 
 ```bash
-# GitHub Release — native V binary + SHA256SUMS (v1.30.1+)
+# GitHub Release — current native V binary + SHA256SUMS
 # https://github.com/ulises-jeremias/agent-toolkit/releases/latest
 
 # Homebrew
@@ -144,8 +120,8 @@ brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
 yay -S agent-toolkit-bin
 
 # PyPI launcher (execs bundled V; ADR-021)
-uv tool install 'agent-toolkit-cli>=1.30.1'
-uvx --from 'agent-toolkit-cli>=1.30.1' agent-toolkit install
+uv tool install agent-toolkit-cli
+uvx --from agent-toolkit-cli agent-toolkit install
 
 # npm
 npm i -g agent-toolkit-cli
@@ -314,7 +290,7 @@ All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully c
 | 📊 `data` | dbt-validation, snowflake-validation |
 | 🔧 `tooling` | jupyter-notebook, playwright-cli, herdr, inventory |
 | 🛡️ `ops` | triage, docs-generator, llm-cost-advisor, swarm |
-| 🔄 `loops` | loop-runner (see [Loop Engineering](#-loop-engineering) for 10 templates) |
+| 🔄 `loops` | loop-runner (see [Loop Engineering](#-loop-engineering) for available templates) |
 | 🔐 `agentic-security` | threat-modeling, owasp-agentic-review, mcp-audit |
 | ☁️ `cloud` | cloud-design-patterns, aws-well-architected-review |
 | 🏛️ `architecture` | architecture-diagram, c4-model |
@@ -439,7 +415,7 @@ Ready-to-use Model Context Protocol configuration templates. Drop into your MCP 
 | `clickup` | Tasks, lists, spaces, docs, comments |
 | `chrome-devtools` | Browser automation and page inspection |
 
-Templates live in [`mcp/templates/`](mcp/templates/) (7 providers). Each file is a `.json` with clearly marked placeholder values.
+Templates live in [`mcp/templates/`](mcp/templates/) and use clearly marked placeholder values.
 
 ---
 

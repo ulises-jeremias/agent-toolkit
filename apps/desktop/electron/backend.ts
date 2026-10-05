@@ -87,6 +87,7 @@ export interface HealthPayload {
 const START_TIMEOUT_MS = 30_000;
 const POLL_INTERVAL_MS = 250;
 const STOP_GRACE_MS = 5_000;
+const KILL_GRACE_MS = 1_000;
 const MAX_STDERR_TAIL = 8_192;
 
 function redactSecrets(text: string, secrets: string[]): string {
@@ -421,22 +422,46 @@ export class BackendSupervisor {
     this.proc = null;
     if (!child || child.exitCode !== null || child.signalCode !== null) return;
     await new Promise<void>((resolve) => {
-      const timer = setTimeout(() => {
+      let settled = false;
+      let killTimer: ReturnType<typeof setTimeout> | undefined;
+      let graceTimer: ReturnType<typeof setTimeout> | undefined;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        if (graceTimer) clearTimeout(graceTimer);
+        if (killTimer) clearTimeout(killTimer);
+        child.removeListener('exit', onExit);
+        child.removeListener('error', onError);
+        resolve();
+      };
+      const onExit = () => finish();
+      const onError = () => finish();
+      // Subscribe before signaling: a fast child can exit between a state
+      // check and listener registration, leaving shutdown waiting forever.
+      child.once('exit', onExit);
+      child.once('error', onError);
+      if (child.exitCode !== null || child.signalCode !== null) {
+        finish();
+        return;
+      }
+      killTimer = setTimeout(() => {
         try {
           child.kill('SIGKILL');
         } catch {
           // already gone
         }
+        // SIGKILL is not catchable. Keep shutdown bounded even if Node misses
+        // the final event while the OS reaps the child.
+        graceTimer = setTimeout(finish, KILL_GRACE_MS);
       }, STOP_GRACE_MS);
-      child.once('exit', () => {
-        clearTimeout(timer);
-        resolve();
-      });
       try {
-        child.kill('SIGTERM');
+        if (!child.kill('SIGTERM')) {
+          clearTimeout(killTimer);
+          finish();
+        }
       } catch {
-        clearTimeout(timer);
-        resolve();
+        clearTimeout(killTimer);
+        finish();
       }
     });
   }
