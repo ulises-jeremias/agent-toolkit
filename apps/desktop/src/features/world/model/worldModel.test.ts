@@ -1146,6 +1146,6 @@ describe('layoutWorld', () => {
     expect(files?.y).toBe(7);
     expect(files!.x - terminal!.x).toBeGreaterThanOrEqual(4);
     expect(layout.cols).toBe(14);
-    expect(layout.rows).toBe(10);
+    expect(layout.rows).toBe(11);
   });
 });

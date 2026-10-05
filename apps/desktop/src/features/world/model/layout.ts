@@ -118,7 +118,7 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
     // Keep the real project stations close enough to read as one room. Only
     // actual records or active sessions expand the space beyond this footprint.
     cols: Math.max(maxX, 14),
-    rows: Math.max(maxY, 10),
+    rows: Math.max(maxY, 11),
     entities: laid,
   };
 }
