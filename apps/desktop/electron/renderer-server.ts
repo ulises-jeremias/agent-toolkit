@@ -61,6 +61,18 @@ function proxyApi(
       headers,
     },
     (upstreamRes) => {
+      upstreamRes.on('error', () => {
+        // A downstream close can destroy the upstream request while its
+        // response stream is still active. Consume that stream error so it
+        // cannot become an uncaught exception in the Desktop main process.
+        if (res.destroyed || res.writableEnded) return;
+        if (!res.headersSent) {
+          res.writeHead(502, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ ok: false, error: 'backend response stream failed' }));
+        } else {
+          res.destroy();
+        }
+      });
       res.writeHead(upstreamRes.statusCode ?? 502, upstreamRes.headers);
       upstreamRes.pipe(res);
     },

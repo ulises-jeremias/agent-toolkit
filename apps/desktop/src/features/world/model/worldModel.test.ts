@@ -768,13 +768,23 @@ describe('layoutWorld', () => {
     );
     const bridge = plan.decor.find((sprite) => sprite.sprite === 'bridge');
     expect(bridge).toBeTruthy();
-    expect(bridge!.y + 1).toBe(laidMarker.y + laidMarker.h);
     expect(bridge!.y + 1).toBeLessThan(layout.rows);
-    // The crossing must join the civic quarter as well as the empty project
-    // lot; a bridge with only an east-bank road is decorative, not navigation.
-    expect(
-      plan.cells.some(({ x, y, tile }) => x === bridge!.x - 1 && y === bridge!.y + 1 && tile.startsWith('trail')),
-    ).toBe(true);
+    // The marker's real doorway approach must reach the bridge landing. The
+    // marker's front tile can sit beside (not on) the bridge road row.
+    const trails = new Set(plan.cells.filter(({ tile }) => tile.startsWith('trail')).map(({ x, y }) => `${x},${y}`));
+    const bridgeLanding = `${bridge!.x - 1},${bridge!.y + 1}`;
+    const reached = new Set<string>();
+    const queue = [pathFront];
+    while (queue.length > 0) {
+      const at = queue.shift()!;
+      if (reached.has(at) || !trails.has(at)) continue;
+      reached.add(at);
+      const [x = 0, y = 0] = at.split(',').map(Number);
+      for (const neighbor of [`${x},${y - 1}`, `${x - 1},${y}`, `${x + 1},${y}`, `${x},${y + 1}`]) {
+        if (trails.has(neighbor) && !reached.has(neighbor)) queue.push(neighbor);
+      }
+    }
+    expect(reached.has(bridgeLanding)).toBe(true);
   });
 
   it('makes shared and project memory archives focus their real world index', () => {

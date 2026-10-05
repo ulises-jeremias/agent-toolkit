@@ -163,7 +163,9 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
         if (destination === 'Terminal') {
           const marker = `capture-${theme}-${size.width}`;
           await terminal.click();
-          await page.keyboard.type(`echo ${marker}`);
+          // Split the visible marker with adjacent shell strings so the PTY's
+          // input echo cannot satisfy the output assertion by itself.
+          await page.keyboard.type(`printf '%s\\n' 'cap''${marker.slice(3)}'`);
           await page.keyboard.press('Enter');
           await expect(terminal.locator('.xterm-rows')).toContainText(marker);
         }

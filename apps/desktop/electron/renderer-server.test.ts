@@ -147,4 +147,41 @@ describe('startRendererServer', () => {
     await server.close();
     await expect(streamClosed).resolves.toBeUndefined();
   });
+
+  it('handles an upstream response stream error without taking down the renderer server', async () => {
+    const backend = http.createServer((_req, res) => {
+      res.on('error', () => undefined);
+      res.writeHead(200, { 'content-type': 'text/event-stream' });
+      res.write('data: partial\n\n');
+      setImmediate(() => res.destroy(new Error('upstream stream ended unexpectedly')));
+    });
+    backends.push(backend);
+    await new Promise<void>((resolve) => backend.listen(0, '127.0.0.1', resolve));
+    const backendPort = (backend.address() as AddressInfo).port;
+
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-renderer-'));
+    dirs.push(dir);
+    fs.writeFileSync(path.join(dir, 'index.html'), 'ok');
+    const server = await startRendererServer(dir);
+    server.setBackendTarget(`http://127.0.0.1:${backendPort}`);
+    try {
+      const responseClosed = new Promise<boolean>((resolve) => {
+        const timer = setTimeout(() => resolve(false), 5_000);
+        const finish = () => {
+          clearTimeout(timer);
+          resolve(true);
+        };
+        const request = http.get(`${server.url}/api/v1/events`);
+        request.on('error', finish);
+        request.on('response', (response) => {
+          response.once('close', finish);
+          response.resume();
+        });
+      });
+      await expect(responseClosed).resolves.toBe(true);
+      expect((await get(`${server.url}/`)).status).toBe(200);
+    } finally {
+      await server.close();
+    }
+  });
 });
