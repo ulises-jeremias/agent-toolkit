@@ -719,7 +719,7 @@ describe('layoutWorld', () => {
     const thirdProject = compactTeam.entities.find((entity) => entity.id === 'place:project:gamma')!;
     expect(thirdProject.y - (secondAlpha.y + secondAlpha.h)).toBeGreaterThanOrEqual(3);
     expect(compactTeam.cols).toBeLessThanOrEqual(30);
-    expect(compactTeam.rows).toBeLessThanOrEqual(15);
+    expect(compactTeam.rows).toBeLessThanOrEqual(13);
   });
 
   it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {
