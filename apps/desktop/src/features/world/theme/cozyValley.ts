@@ -43,6 +43,7 @@ export const cozyValleyTheme: WorldThemePack = {
   facades: {
     'project-board': sprite('project-board', 'Project overview board'),
     'door-exit': sprite('door-exit', 'Exit door'),
+    'desk-files': sprite('desk-files', 'Project filing cabinet'),
     'house-cottage': sprite('house-cottage', 'Cottage'),
     'house-studio': sprite('house-studio', 'Studio'),
     'house-workshop': sprite('house-workshop', 'Workshop'),

@@ -244,7 +244,13 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
 }
 
 /** Connect a real entrance to the existing street without crossing buildings or water. */
-function connectEntrance(p: Painter, startX: number, startY: number) {
+function connectEntrance(
+  p: Painter,
+  startX: number,
+  startY: number,
+  trunk: ReadonlySet<string> = p.paths,
+  preferDirect = true,
+) {
   const start = key(startX, startY);
   if (p.paths.has(start)) return;
 
@@ -266,7 +272,7 @@ function connectEntrance(p: Painter, startX: number, startY: number) {
       const ny = y + dy;
       const next = key(nx, ny);
       if (parent.has(next) || p.isBlocked(nx, ny)) continue;
-      if (p.paths.has(next)) {
+      if (trunk.has(next)) {
         parent.set(next, at);
         target = next;
         break;
@@ -281,17 +287,20 @@ function connectEntrance(p: Painter, startX: number, startY: number) {
   const [targetX = 0, targetY = 0] = target.split(',').map(Number);
   const isClear = (points: readonly { x: number; y: number }[]) =>
     points.every(({ x, y }) => !p.isBlocked(x, y) && (p.paths.has(key(x, y)) || p.get(x, y) !== 'water'));
+  // Prefer the short direct trail to the common street. A broad decorative
+  // curve for every doorway sprawled into rings when several service doors
+  // shared one district; save a curve for a real blocked direct approach.
+  const direct = rasterPoints(startX, startY, targetX, targetY);
+  if (preferDirect && isClear(direct)) {
+    for (const point of direct) p.path(point.x, point.y);
+    return;
+  }
+
   const preferredSide = h2(startX, startY, 41) % 2 === 0 ? 1 : -1;
   for (const side of [preferredSide, -preferredSide]) {
     const curve = curvedPoints(startX, startY, targetX, targetY, side);
     if (!isClear(curve)) continue;
     for (const point of curve) p.path(point.x, point.y);
-    return;
-  }
-
-  const direct = rasterPoints(startX, startY, targetX, targetY);
-  if (isClear(direct)) {
-    for (const point of direct) p.path(point.x, point.y);
     return;
   }
 
@@ -536,7 +545,7 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
 function flowerGlades(p: Painter) {
   // Give the quiet spaces a visible meadow rhythm at overview scale. Glades
   // stay grouped and seed-stable so additional color does not become speckle.
-  const target = Math.min(20, Math.max(6, Math.floor((p.cols * p.rows) / 45)));
+  const target = Math.min(20, Math.max(6, Math.floor((p.cols * p.rows) / 40)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 2; y++) {
     for (let x = 2; x < p.cols - 2; x++) {
@@ -694,7 +703,7 @@ function forest(p: Painter, projectlessMeadow = false) {
       // Reserve the whole oversized canopy footprint around real buildings.
       // Checking only the tree anchor lets a bright crown crowd a nearby
       // façade even though its trunk is technically on free ground.
-      const canopyOverBuilding = [-2, -1, 0, 1].some((dy) =>
+      const canopyOverBuilding = [-3, -2, -1, 0, 1].some((dy) =>
         [-2, -1, 0, 1, 2].some((dx) => p.blocked.has(key(x + dx, y + dy))),
       );
       const canopyOverFlowerPatch = p.decor.some((decor) => {
@@ -970,26 +979,28 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
       ? marker.x + Math.floor(marker.w / 2)
       : cols - 4;
   road(p, roadY, creekX, routeEndX, creekX - 1);
-  // Join each real front door to the street. A grid search avoids routing
-  // through another building when project lanes share a column.
-  if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h);
+  // Every doorway branches from the same street instead of attaching to a
+  // previously added doorway path. Shared services take short branches;
+  // project houses keep a gentle curved approach into their neighborhood.
+  const street = new Set(p.paths);
+  if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h, street);
   for (const place of commons) {
     if (place.id === 'place:memory') continue;
     const doorX = place.x + Math.floor(place.w / 2);
     const doorY = place.y + place.h;
-    connectEntrance(p, doorX, doorY);
+    connectEntrance(p, doorX, doorY, street);
   }
   for (const project of projects) {
     const doorX = project.x + Math.floor(project.w / 2);
     const doorY = project.y + project.h;
-    connectEntrance(p, doorX, doorY);
+    connectEntrance(p, doorX, doorY, street, false);
   }
   projectGardens(p, projects);
   if (projects.length === 0) {
     if (marker) {
       const doorX = marker.x + Math.floor(marker.w / 2);
       const doorY = marker.y + marker.h;
-      connectEntrance(p, doorX, doorY);
+      connectEntrance(p, doorX, doorY, street);
     }
   }
   renderPaths(p);
