@@ -694,7 +694,7 @@ function forest(p: Painter, projectlessMeadow = false) {
       // Reserve the whole oversized canopy footprint around real buildings.
       // Checking only the tree anchor lets a bright crown crowd a nearby
       // façade even though its trunk is technically on free ground.
-      const canopyOverBuilding = [-2, -1, 0, 1].some((dy) =>
+      const canopyOverBuilding = [-3, -2, -1, 0, 1].some((dy) =>
         [-2, -1, 0, 1, 2].some((dx) => p.blocked.has(key(x + dx, y + dy))),
       );
       const canopyOverFlowerPatch = p.decor.some((decor) => {
