@@ -878,7 +878,10 @@ function forest(p: Painter, projectlessMeadow = false) {
       // Grove anchors provide the settlement's large silhouettes; the seeded
       // fill below closes small gaps while preserving open routes and façades.
       const creekDensity = 12;
-      const groveDensity = projectlessMeadow ? 24 : 22;
+      // Intentionally planted grove cells should remain dense enough to read
+      // as small forest groups; sparse probabilities apply to open shore and
+      // boundary fill, which previously formed continuous tree walls.
+      const groveDensity = projectlessMeadow ? 31 : 28;
       const naturallyWooded = edge
         ? roll < (x >= p.cols - 6 ? 11 : 8)
         : nearCreek
