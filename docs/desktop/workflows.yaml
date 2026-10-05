@@ -67,6 +67,24 @@ journeys:
           - assets/electron/world/world-several-projects-compact.png
           - assets/electron/world/world-several-projects-large.png
       - note: >-
+          Current capture at source 16e3264dcf21c3f1281f68b9bf9417a061947297
+          (workflow 37310981958) reviewed the several-project map, empty dusk
+          world, both project-room sizes, Attention, Library, People, Operations,
+          Terminal, and Munder import review. The visible Attention label keeps
+          the existing /office destination route and office palette alias. The
+          map still has broad lawns and straight path runs; the tighter room
+          still has substantial bare plank floor. These are active visual gaps.
+        build: "16e3264dcf21c3f1281f68b9bf9417a061947297 (Linux Electron capture; 37310981958)"
+        screenshots:
+          - assets/electron/world/world-empty-large.png
+          - assets/electron/world/world-several-projects-large.png
+          - assets/electron/world/project-files-room-compact.png
+          - assets/electron/world/project-files-room-large.png
+          - assets/electron/cozy-pixel-world/attention.png
+          - assets/electron/cozy-pixel-world/library.png
+          - assets/electron/cozy-pixel-world/operations.png
+          - assets/electron/cozy-pixel-world/terminal.png
+      - note: >-
           Linux Electron capture at source 9eff43e91c46cfba6024943ab9122c03b0c73762
           (workflow 37305618460) reviewed empty, one-project, and several-project
           worlds at compact and large viewports plus both project-room sizes.

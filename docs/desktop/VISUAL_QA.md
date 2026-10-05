@@ -1,5 +1,51 @@
 # Desktop visual QA
 
+## Attention navigation and current screenshot gallery — 2026-10-05
+
+Source `16e3264dcf21c3f1281f68b9bf9417a061947297`, Linux Electron capture
+workflow `37310981958`. I opened the refreshed large world with several real
+projects, the empty valley at dusk, the Attention, Library, and People screens,
+compact Operations and Terminal, the Munder import review, and the project room
+at compact and large sizes. The user-facing recovery destination is now named
+Attention while preserving the established `/office` route and `office` palette
+alias. The retired Paper-era CSS aliases were removed without changing their
+current color values.
+
+The map still reads as a recognizable settlement with a bridge and distinct
+shared landmarks, but the multi-project view has broad lawns and the path network
+still turns in conspicuous straight segments. The project room is tighter and
+its real stations read as a group, but the plank floor remains broad and bare.
+People is a real roster view yet its canvas is spacious after the roster cards;
+this is still a surface-design opportunity. These captures document progress,
+not completion of the requested world and inspector art direction.
+
+After reviewing the captures, the README and current visual evidence were
+refreshed from this same source. The old `office-attention.png` evidence image
+was replaced by `attention.png`, so documentation uses the visible product
+language. Current assets show real backend data and a real PTY; offline People
+remain absent from the world.
+
+Opened files:
+
+- [Several projects, large](assets/electron/world/world-several-projects-large.png),
+  [empty world, large](assets/electron/world/world-empty-large.png), and
+  [empty world at dusk](assets/electron/cozy-pixel-world/world-dusk.png).
+- [Project room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+- [Attention](assets/electron/cozy-pixel-world/attention.png),
+  [Library](assets/electron/cozy-pixel-world/library.png),
+  [People](../../static/screenshots/people.png),
+  [Operations](assets/electron/cozy-pixel-world/operations.png),
+  [Terminal](assets/electron/cozy-pixel-world/terminal.png), and
+  [Munder import review](../../static/screenshots/people-import.png).
+
+The capture workflow passed on this source, including the Desktop visual tour.
+PR checks on this source also passed the packaged-Electron fresh-HOME job,
+desktop gates, Ubuntu/Windows integration, and Ubuntu V modules. macOS and
+release packaging were still running when this evidence was written; consult
+the PR checks for their final result rather than inferring success from the
+capture.
+
 ## Project room station composition — 2026-10-05
 
 Source `1b148c967b88f2cb4f5962e5f882424fb94ef661`, capture workflow
