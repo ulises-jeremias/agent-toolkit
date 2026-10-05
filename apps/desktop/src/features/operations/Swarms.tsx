@@ -776,12 +776,10 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
                 No active People are configured. Auto keeps every recipe role available with ephemeral role sessions.
               </p>
             ) : null}
-            {Object.keys(activePersonBindings).length > 0 ? (
-              <p className={styles.bindingNote}>
-                Explicit choices win. Auto assigns a unique active Person with a matching saved role or Agent
-                Definition, then falls back to an ephemeral role. Runner and model remain swarm-wide settings.
-              </p>
-            ) : null}
+            <p className={styles.bindingNote}>
+              Explicit choices win. Auto assigns a unique active Person with a matching saved role or Agent
+              Definition, then falls back to an ephemeral role. Runner and model remain swarm-wide settings.
+            </p>
             <div className={styles.recipeSummary}>
               <span>
                 Workspace <strong>{selectedRecipe.workspace_strategy}</strong>
