@@ -992,8 +992,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     y: place.y + place.h,
   }));
   const serviceY = Math.max(...serviceDoors.map(({ y }) => y));
-  const sharesFrontage =
-    serviceDoors.length > 1 && serviceDoors.every(({ y }) => y === serviceY);
+  const sharesFrontage = serviceDoors.length > 1 && serviceDoors.every(({ y }) => y === serviceY);
   const serviceLeft = Math.min(...serviceDoors.map(({ x }) => x));
   const serviceRight = Math.max(...serviceDoors.map(({ x }) => x));
   const serviceLaneClear =
