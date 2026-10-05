@@ -264,6 +264,14 @@ fn read_person_bindings(workspace string) !map[string]PersonRolePreference {
 	return doc.roles
 }
 
+fn find_person_by_id(people []map[string]json2.Any, id string) ?map[string]json2.Any {
+	for person in people {
+		person_id := person['id'] or { continue }
+		if person_id is string && person_id == id { return person.clone() }
+	}
+	return none
+}
+
 pub fn list_people(workspace string) !PeopleResponse {
 	dir := person_dir(workspace)!
 	mut people := []map[string]json2.Any{}
@@ -352,24 +360,17 @@ pub fn resolve_swarm_person_bindings(workspace string, recipe string, explicit m
 	}
 	people := list_people(workspace)!
 	preferences := read_person_bindings(workspace)!
-	mut people_by_id := map[string]map[string]json2.Any{}
-	for person in people.people {
-		id := person_string(person, 'id', true, 64, 'id')!
-		people_by_id[id] = person
-	}
 	config := resolve_swarm_config(workspace, recipe, '', '', '')!
 	for role_name in swarm_recipe_roles(recipe) {
 		if role_name in resolved { continue }
 		role := config.spec.roles[role_name] or { continue }
 		preference := preferences[role_name] or { PersonRolePreference{} }
-		preferred_ids := if preference.person_id.len > 0 {
-			[preference.person_id] ++ preference.preferred_people
-		} else {
-			preference.preferred_people
-		}
+		mut preferred_ids := []string{}
+		if preference.person_id.len > 0 { preferred_ids << preference.person_id }
+		for preferred_id in preference.preferred_people { preferred_ids << preferred_id }
 		for id in preferred_ids {
 			if id in used { continue }
-			person := people_by_id[id] or { continue }
+			person := find_person_by_id(people.people, id) or { continue }
 			archived := person['archived'] or { continue }
 			if archived is bool {
 				if archived { continue }
