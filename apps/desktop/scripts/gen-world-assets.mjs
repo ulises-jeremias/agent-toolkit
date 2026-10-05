@@ -195,11 +195,11 @@ const P = {
   gs: [0x61, 0x9e, 0x59],
   gw: [0x76, 0xb4, 0x6c],
   gd2: [0x5d, 0x98, 0x56],
-  meadowBase: [0x70, 0xa8, 0x59],
-  meadowSoft: [0x7e, 0xb5, 0x64],
-  meadowShade: [0x56, 0x8a, 0x4b],
-  meadowSun: [0x91, 0xbd, 0x6b],
-  meadowDeep: [0x46, 0x75, 0x44],
+  meadowBase: [0x70, 0x9f, 0x55],
+  meadowSoft: [0x97, 0xbf, 0x68],
+  meadowShade: [0x55, 0x82, 0x49],
+  meadowSun: [0xb6, 0xc8, 0x6f],
+  meadowDeep: [0x38, 0x6d, 0x5a],
   gd: [0x4f, 0x8b, 0x4b],
   gl: [0x83, 0xbd, 0x70],
   gt: [0xb2, 0xd3, 0x87],
@@ -941,9 +941,9 @@ function grassTile(seed) {
     [[0, 2, 'gd'], [1, 1, 'gt'], [1, 2, 'gl'], [2, 0, 'gm']],
   ];
   // Ground should stay readable beneath buildings and characters, but sparse
-  // clovers disappear at overview scale. Five or six loose leaf clusters give
-  // the meadow a soft hand-painted texture without turning the tile into noise.
-  const count = 5 + random(2);
+  // clovers disappear at overview scale. Six to eight loose leaf clusters give
+  // the meadow a hand-painted texture that survives map zoom without noise.
+  const count = 6 + random(3);
   for (let i = 0; i < count; i++) {
     const motif = random(3) === 0 ? tufts[random(tufts.length)] : clovers[random(clovers.length)];
     const left = 1 + random(12);
