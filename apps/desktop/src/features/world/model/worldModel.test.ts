@@ -1159,8 +1159,7 @@ describe('layoutWorld', () => {
     );
     const projectSideTrees = trees.filter(({ x }) => x >= 17);
     const clusteredPairs = trees.filter((tree, index) =>
-      trees
-        .slice(index + 1)
+      trees.slice(index + 1)
         .some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
     );
 
