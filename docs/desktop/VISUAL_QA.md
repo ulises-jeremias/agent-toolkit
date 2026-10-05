@@ -784,9 +784,10 @@ artifact `electron-review-screenshots`. The wider room gives the project overvie
 archive, terminal, exit, and files stations more space. Windows, sconces, plants,
 and rug add environmental detail without covering station labels or implying
 live work. In the several-project captures the existing building labels, paths,
-and creek remain readable. At large size the room still has a broad central
-wood floor; this pass adds atmosphere and does not complete the wider composition
-work.
+and creek remain readable. At the 1024×640 compact capture the project room
+fits without clipping its stations; at 1920×1080 the larger canvas still has a
+broad central wood floor. This pass adds atmosphere and does not complete the
+wider composition work.
 
 Opened artifact files:
 
