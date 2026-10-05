@@ -636,6 +636,20 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
   return false;
 }
 
+/** Test a 48px tree crown against occupied tiles using its actual footprint. */
+function canopyOverBuilding(p: Painter, x: number, y: number, offsetX: number, offsetY: number): boolean {
+  const left = x - 1 + offsetX / 16;
+  const top = y - 2 + offsetY / 16;
+  const right = left + 3;
+  const bottom = top + 3;
+  for (let tileY = Math.floor(top); tileY < bottom; tileY += 1) {
+    for (let tileX = Math.floor(left); tileX < right; tileX += 1) {
+      if (p.blocked.has(key(tileX, tileY))) return true;
+    }
+  }
+  return false;
+}
+
 /** Broad irregular flower beds give open lawns a visible meadow rhythm. */
 function flowerGlades(p: Painter) {
   // Give the quiet spaces a visible meadow rhythm at overview scale. Glades
@@ -823,20 +837,25 @@ function forest(p: Painter, projectlessMeadow = false) {
       const edge = x < 6 || x >= p.cols - 6 || y < 3 || y >= p.rows - 4;
       const nearCreek = [-4, -3, -2, -1, 0, 1, 2, 3, 4].some((dx) => p.get(x + dx, y) === 'water');
       const roll = h2(x, y, 3) % 31;
-      // Reserve the whole oversized canopy footprint around real buildings.
-      // Checking only the tree anchor lets a bright crown crowd a nearby
-      // façade even though its trunk is technically on free ground.
-      const canopyOverBuilding = [-3, -2, -1, 0, 1].some((dy) =>
-        [-2, -1, 0, 1, 2].some((dx) => p.blocked.has(key(x + dx, y + dy))),
-      );
+      const nearestLot = p.projectLots.reduce((distance, lot) => {
+        const dx = Math.max(lot.x - x, 0, x - (lot.x + lot.w - 1));
+        const dy = Math.max(lot.y - y, 0, y - (lot.y + lot.h - 1));
+        return Math.min(distance, Math.hypot(dx, dy));
+      }, Number.POSITIVE_INFINITY);
+      // Keep trees beside a house aligned to the tile grid. Meadow crowns can
+      // sway by a couple of pixels, but that tiny offset would clip a roof
+      // when a full three-tile grove clearing exists between two lots.
+      const canopyOffsetX = nearestLot <= 3 ? 0 : (h2(x, y, 47) % 5) - 2;
+      const canopyOffsetY = nearestLot <= 3 ? 0 : (h2(x, y, 53) % 3) - 1;
+      const overlapsBuilding = canopyOverBuilding(p, x, y, canopyOffsetX, canopyOffsetY);
       const canopyOverFlowerPatch = p.decor.some((decor) => {
         if (!decor.sprite.startsWith('wildflower-patch-')) return false;
         const left = decor.x + decor.dx / 16;
         const top = decor.y + decor.dy / 16;
         const right = left + decor.w / 16;
         const bottom = top + decor.h / 16;
-        const canopyLeft = x - 1 + ((h2(x, y, 47) % 5) - 2) / 16;
-        const canopyTop = y - 2 + ((h2(x, y, 53) % 3) - 1) / 16;
+        const canopyLeft = x - 1 + canopyOffsetX / 16;
+        const canopyTop = y - 2 + canopyOffsetY / 16;
         return canopyLeft < right && canopyLeft + 3 > left && canopyTop < bottom && canopyTop + 3 > top;
       });
       // Tree crowns may lean over a path. Keep trunks off the walking tiles,
@@ -855,11 +874,9 @@ function forest(p: Painter, projectlessMeadow = false) {
           ? roll < groveDensity
           : grove && roll < groveDensity;
       const woodlandCell = plantedGroves.has(key(x, y)) || naturallyWooded;
-      const wantTree = treeInsideFrame && !canopyOverBuilding && !canopyOverFlowerPatch && !nearTrail && woodlandCell;
+      const wantTree = treeInsideFrame && !overlapsBuilding && !canopyOverFlowerPatch && !nearTrail && woodlandCell;
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
-        const canopyOffsetX = (h2(x, y, 47) % 5) - 2;
-        const canopyOffsetY = (h2(x, y, 53) % 3) - 1;
         const tree =
           nearCreek && kind < 4
             ? 'tree-willow'

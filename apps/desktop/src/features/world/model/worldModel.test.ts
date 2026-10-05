@@ -1116,6 +1116,10 @@ describe('layoutWorld', () => {
     const buildings = layout.entities.filter((entity) => entity.kind === 'place' && entity.id.startsWith('place:'));
 
     expect(trees.length).toBeGreaterThan(0);
+    expect(
+      trees.some((tree) => tree.x >= 24 && tree.x < 27 && tree.y >= 7 && tree.y < 10),
+      'a canopy should occupy the real clearing between the staggered project houses',
+    ).toBe(true);
     for (const tree of trees) {
       const left = tree.x + tree.dx / 16;
       const right = left + tree.w / 16;
