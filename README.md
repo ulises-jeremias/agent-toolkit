@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/banner.svg?raw=true" width="100%">
+  <img src="static/screenshots/world.png" width="100%" alt="Agent Toolkit Desktop workspace valley" />
 </p>
 
 <div align="center">
@@ -63,15 +63,20 @@ agent-toolkit install
 agent-toolkit doctor
 ```
 
-<div align="center">
-<img src="static/screenshots/world.png" width="92%" alt="Agent Toolkit Desktop — workspace valley with semantic buildings and Lina present only while her real project session is running" />
-<br />
-<em>Agent Toolkit Desktop: a semantic pixel world for projects and real work, with precise inspectors and a real terminal.</em>
-</div>
+Agent Toolkit has two faces over one canonical runtime: the V engine and CLI
+provide automation and typed operations; Electron Desktop makes the workspace
+visible as a semantic pixel valley. Projects are places, shared capabilities
+live in the Library, and precise work happens in readable game-menu inspectors.
+Only observed jobs and live sessions appear as active characters.
 
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/architecture.svg?raw=true" width="88%">
-</div>
+```mermaid
+flowchart LR
+  A[Skills · Agent Definitions · MCP · Loops] --> B[Agent Toolkit V engine]
+  B --> C[CLI and automation]
+  B --> D[agent-toolkit serve API]
+  D --> E[Electron + React Desktop]
+  E --> F[World · People · Library · Operations · Terminal]
+```
 
 ---
 
@@ -87,9 +92,9 @@ agent-toolkit doctor
     </td>
     <td width="50%" valign="top">
       <h3>🤖 Agents</h3>
-      <sub>Personas that constrain <em>how</em> the AI works in a session — review, plan, architect, fix CI — without rewriting your prompts each time.</sub>
+      <sub>Reusable Agent Definitions describe how a runner should work. Durable People are configured collaborators; a live session is a separate process.</sub>
       <br><br>
-      <sub>Personas under <code>agents/</code>, compiled into each target's native format — see <code>agent-toolkit inventory</code>.</sub>
+      <sub>Definitions under <code>agents/</code>; People and their state model are documented in <a href="docs/PEOPLE.md">People</a>.</sub>
     </td>
   </tr>
   <tr>
@@ -151,21 +156,17 @@ agent-toolkit doctor     # verify everything is set up
 
 > **Support matrix:** see [`docs/TRUST.md#Installation channels`](docs/TRUST.md#installation-channels) for the single channel table (GitHub Releases canonical artifact, PyPI, npm, Homebrew, AUR, GHCR container, Claude/Cursor marketplaces, Agent Plugins artifacts) with trust anchor, support level, and verification command. The product CLI is the **native V binary**; Python is a thin launcher — see `docs/RELEASING.md` (canonical artifact) and `docs/TRUST.md`.
 
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/quickstart.svg?raw=true" width="86%" alt="agent-toolkit quickstart: install, doctor, swarm" />
-</div>
-
 → Full walkthrough: [docs/INSTALLATION.md](docs/INSTALLATION.md) · Full channel matrix: [docs/TRUST.md#Installation channels](docs/TRUST.md#installation-channels)
 
 ### Desktop app (GUI)
 
 Agent Toolkit Desktop is the flagship Electron application over the canonical V backend: a cozy pixel world of real project houses, a capability Library, Operations, People, terminals, and guided onboarding. Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installer on Windows from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest). The app bundles its backend; a CLI install or source checkout is not required. Details: [product vision](docs/desktop/PRODUCT_VISION.md) · [packaging](docs/desktop/PACKAGING.md).
 
-| World | Library | Operations |
+| The valley | Library | People |
 |---|---|---|
-| <img src="static/screenshots/world.png" width="100%" alt="Semantic workspace valley with shared places, project houses, and a real active Person session" /> | <img src="static/screenshots/library.png" width="100%" alt="Library: real catalog of reusable capabilities" /> | <img src="static/screenshots/operations.png" width="100%" alt="Operations: observed jobs and orchestration controls" /> |
-| People | Import review | Terminal |
-| <img src="static/screenshots/people.png" width="100%" alt="People roster showing saved offline collaborators" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder import review displaying mapped and ignored fields before saving" /> | <img src="static/screenshots/terminal.png" width="100%" alt="Integrated terminal backed by a real PTY" /> |
+| <img src="static/screenshots/world.png" width="100%" alt="Agent Toolkit Desktop semantic workspace valley" /> | <img src="static/screenshots/library.png" width="100%" alt="Library of reusable capabilities" /> | <img src="static/screenshots/people.png" width="100%" alt="Roster of durable configured collaborators" /> |
+| Operations | Import review | Terminal |
+| <img src="static/screenshots/operations.png" width="100%" alt="Operations for observed jobs and orchestration" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Reviewed Munder hire import with unsupported fields visible before save" /> | <img src="static/screenshots/terminal.png" width="100%" alt="Integrated terminal backed by a real PTY" /> |
 
 These screenshots come from the Electron app's E2E capture tour at large and compact viewports. Offline People do not create world characters; runtime activity is shown only when observed.
 
@@ -287,10 +288,6 @@ Per-tool steps: [docs/INSTALLATION.md#manual-install](docs/INSTALLATION.md#manua
 
 ## 🖥️ Supported Tools
 
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/tools-grid.svg?raw=true" width="96%">
-</div>
-
 | Tool | Type | What's deployed |
 |------|------|-----------------|
 | **Claude Code** | Plugin + CLI | Plugin manifest, skill references, settings |
@@ -375,10 +372,6 @@ Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · ta
 
 Loops are recurring agentic workflows that run on a schedule or cadence. They follow a three-tier **mutation-safety** model enforced by `loop-gh-gate` (cadence is independent of tier):
 
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/loop-tiers.svg?raw=true" width="88%">
-</div>
-
 | Tier | Mutation posture | Purpose |
 |------|------------------|---------|
 | **L1** | Observe / propose | Read-only or proposal-only — no repository mutations |
@@ -410,10 +403,6 @@ Each loop template lives in `loops/<name>/` (see `agent-toolkit inventory` for l
 
 One command turns a task into a coordinated multi-agent run — git worktree per writer,
 filesystem state-of-truth, budgets, and human approval gates.
-
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/swarm.svg?raw=true" width="88%" alt="agent-toolkit swarm: task → recipes → backends → worktrees → handoffs → promote" />
-</div>
 
 ```bash
 agent-toolkit swarm recipes                   # pair / team / full — personas + policy + budget per recipe

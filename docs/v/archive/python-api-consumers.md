@@ -2,7 +2,7 @@
 
 **Issue:** [#561](https://github.com/ulises-jeremias/agent-toolkit/issues/561)  
 **Required by:** [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540)  
-**Status:** Closed by v1.13.0 — Python CLI modules removed; PyPI is launcher-only ([python-fallback.md](python-fallback.md)).
+**Status:** Closed by v1.13.0 — Python CLI modules removed; PyPI is launcher-only ([python-fallback.md](../python-fallback.md)).
 
 The published PyPI/npm **product** is the CLI (V binary via trampoline). `import agent_toolkit` is **not** a supported library API beyond `__version__` and `launcher`.
 

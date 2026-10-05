@@ -1,9 +1,9 @@
 # V-default cutover
 
 **Issue:** [#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555)  
-**ADR:** [ADR-012](../adrs/ADR-012-python-v-coexistence.md)
+**ADR:** [ADR-012](../../adrs/ADR-012-python-v-coexistence.md)
 
-V is the **canonical implementation** of `agent-toolkit`. PyPI/`uvx` runs a **thin launcher** over the bundled V binary ([ADR-021](../adrs/ADR-021-pypi-binary.md) / [#535](https://github.com/ulises-jeremias/agent-toolkit/issues/535)). There is no Python CLI fallback ([python-fallback.md](python-fallback.md)).
+V is the **canonical implementation** of `agent-toolkit`. PyPI/`uvx` runs a **thin launcher** over the bundled V binary ([ADR-021](../../adrs/ADR-021-pypi-binary.md) / [#535](https://github.com/ulises-jeremias/agent-toolkit/issues/535)). There is no Python CLI fallback ([python-fallback.md](../python-fallback.md)).
 
 ## What changed
 
@@ -18,7 +18,7 @@ V is the **canonical implementation** of `agent-toolkit`. PyPI/`uvx` runs a **th
 
 ## Python CLI quarantine
 
-Removed — see [python-fallback.md](python-fallback.md).
+Removed — see [python-fallback.md](../python-fallback.md).
 
 [#560](https://github.com/ulises-jeremias/agent-toolkit/issues/560) left `insights` as **DEPRECATE** and `release` as **REMOVE** — not ported to V. Product command:
 

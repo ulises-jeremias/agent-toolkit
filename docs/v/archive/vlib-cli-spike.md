@@ -5,7 +5,7 @@
 **Issue:** [#554](https://github.com/ulises-jeremias/agent-toolkit/issues/554)  
 **Program:** [#456](https://github.com/ulises-jeremias/agent-toolkit/issues/456)  
 **Docs baseline:** [vlib/cli](https://modules.vlang.io/cli.html) — V **0.5.2** (Verified: 2026-08-12)  
-**Contract:** [`docs/compatibility/cli-contract.yaml`](../compatibility/cli-contract.yaml)
+**Contract:** [`docs/compatibility/cli-contract.yaml`](../../compatibility/cli-contract.yaml)
 
 ## Recommendation (go / no-go)
 

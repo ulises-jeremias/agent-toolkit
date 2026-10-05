@@ -2,7 +2,7 @@
 
 **Issue:** [#477](https://github.com/ulises-jeremias/agent-toolkit/issues/477)  
 **Parent:** [#457](https://github.com/ulises-jeremias/agent-toolkit/issues/457) (EPIC 0)  
-**Product runtime:** native V binary is canonical ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555)). Python on PyPI is an **npm-style trampoline only** ([python-fallback.md](python-fallback.md) / [ADR-021](../adrs/ADR-021-pypi-binary.md)). The quarantined Python CLI (`agent-toolkit-py`, `cli/` / `compiler/` / …) was **removed** in v1.13.0.
+**Product runtime:** native V binary is canonical ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555)). Python on PyPI is an **npm-style trampoline only** ([python-fallback.md](../python-fallback.md) / [ADR-021](../../adrs/ADR-021-pypi-binary.md)). The quarantined Python CLI (`agent-toolkit-py`, `cli/` / `compiler/` / …) was **removed** in v1.13.0.
 
 Tree today: `packages/pypi/agent-toolkit-cli/src/agent_toolkit/`.
 
