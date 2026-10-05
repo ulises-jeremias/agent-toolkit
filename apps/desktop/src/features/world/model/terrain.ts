@@ -1048,7 +1048,9 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
       .filter((place) => ['object:library', 'object:operations', 'object:terminal'].includes(place.id))
       .map((place) => place.y + place.h),
   );
-  const roadY = Math.min(rows - 3, Math.max(9, publicDoorY));
+  // Empty worlds align the bridge with the project-linking landmark; once
+  // houses exist, lift the avenue enough to leave a visible curved porch spur.
+  const roadY = Math.min(rows - 3, projects.length > 0 ? Math.max(9, publicDoorY) : publicDoorY);
 
   // creek first so roads bridge it
   const workshop = entities.find((e) => e.id === 'object:workshop');
