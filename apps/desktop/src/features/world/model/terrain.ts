@@ -244,7 +244,12 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
 }
 
 /** Connect a real entrance to the existing street without crossing buildings or water. */
-function connectEntrance(p: Painter, startX: number, startY: number) {
+function connectEntrance(
+  p: Painter,
+  startX: number,
+  startY: number,
+  trunk: ReadonlySet<string> = p.paths,
+) {
   const start = key(startX, startY);
   if (p.paths.has(start)) return;
 
@@ -266,7 +271,7 @@ function connectEntrance(p: Painter, startX: number, startY: number) {
       const ny = y + dy;
       const next = key(nx, ny);
       if (parent.has(next) || p.isBlocked(nx, ny)) continue;
-      if (p.paths.has(next)) {
+      if (trunk.has(next)) {
         parent.set(next, at);
         target = next;
         break;
@@ -970,26 +975,28 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
       ? marker.x + Math.floor(marker.w / 2)
       : cols - 4;
   road(p, roadY, creekX, routeEndX, creekX - 1);
-  // Join each real front door to the street. A grid search avoids routing
-  // through another building when project lanes share a column.
-  if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h);
+  // Every doorway branches from the same street instead of attaching to a
+  // previously added doorway path. Letting entrances target one another made
+  // later shortest paths trace boxy loops around the civic quarter.
+  const street = new Set(p.paths);
+  if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h, street);
   for (const place of commons) {
     if (place.id === 'place:memory') continue;
     const doorX = place.x + Math.floor(place.w / 2);
     const doorY = place.y + place.h;
-    connectEntrance(p, doorX, doorY);
+    connectEntrance(p, doorX, doorY, street);
   }
   for (const project of projects) {
     const doorX = project.x + Math.floor(project.w / 2);
     const doorY = project.y + project.h;
-    connectEntrance(p, doorX, doorY);
+    connectEntrance(p, doorX, doorY, street);
   }
   projectGardens(p, projects);
   if (projects.length === 0) {
     if (marker) {
       const doorX = marker.x + Math.floor(marker.w / 2);
       const doorY = marker.y + marker.h;
-      connectEntrance(p, doorX, doorY);
+      connectEntrance(p, doorX, doorY, street);
     }
   }
   renderPaths(p);
