@@ -991,6 +991,7 @@ describe('layoutWorld', () => {
     expect(first.decor.filter(({ sprite }) => sprite === 'window-valley')).toHaveLength(2);
     expect(first.decor.filter(({ sprite }) => sprite === 'wall-sconce')).toHaveLength(2);
     expect(first.decor.filter(({ sprite }) => sprite === 'plant')).toHaveLength(2);
+    expect(first.decor.filter(({ sprite }) => sprite === 'plant').every(({ w, h }) => w === 24 && h === 24)).toBe(true);
     expect(ambient).toHaveLength(2);
     expect(ambient.every(({ sprite }) => sprite === 'mote')).toBe(true);
   });
@@ -1160,11 +1161,11 @@ describe('layoutWorld', () => {
     expect(exit && room).toBeTruthy();
     expect(exit!.x).toBe(1);
     expect(room!.x).toBeGreaterThan(exit!.x);
-    expect(records?.x).toBe(14);
+    expect(records?.x).toBe(18);
     expect(terminal?.y).toBe(7);
     expect(files?.y).toBe(7);
     expect(files!.x - terminal!.x).toBeGreaterThanOrEqual(4);
-    expect(layout.cols).toBe(18);
+    expect(layout.cols).toBe(22);
     expect(layout.rows).toBe(11);
   });
 });
