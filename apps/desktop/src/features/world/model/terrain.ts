@@ -561,7 +561,7 @@ function flowerGlades(p: Painter) {
     if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 6)) continue;
     centers.push(candidate);
 
-    const radiusX = 3 + (h2(candidate.x, candidate.y, 137) % 2);
+    const radiusX = 4 + (h2(candidate.x, candidate.y, 137) % 2);
     const radiusY = 2 + (h2(candidate.x, candidate.y, 139) % 2);
     const blooms = ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'] as const;
     const primary = h2(candidate.x, candidate.y, 149) % blooms.length;
@@ -644,7 +644,7 @@ function flowerPatchSprites(p: Painter) {
 
 /** Pick a few stable grove hearts inside the settlement, away from its paths. */
 function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<string> {
-  const target = Math.min(7, Math.max(5, Math.floor((p.cols * p.rows) / 160)));
+  const target = Math.min(7, Math.max(6, Math.floor((p.cols * p.rows) / 160)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {
