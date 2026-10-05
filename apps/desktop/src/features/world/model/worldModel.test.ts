@@ -512,7 +512,7 @@ describe('buildWorldModel', () => {
     }
     expect(
       [...paths].some((at) => {
-        const [x, y] = at.split(',').map(Number);
+        const [x, y] = at.split(',').map(Number) as [number, number];
         return x >= serviceLeftX && x <= serviceRightX && y === serviceFrontY + 1;
       }),
     ).toBe(true);
