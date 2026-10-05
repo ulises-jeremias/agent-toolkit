@@ -1103,9 +1103,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     return { x, y };
   });
   const serviceLaneClear =
-    sharesFrontage && serviceLane.every(({ x, y }) =>
-      !p.isBlocked(x, y) && p.get(x, y) !== 'water',
-    );
+    sharesFrontage && serviceLane.every(({ x, y }) => !p.isBlocked(x, y) && p.get(x, y) !== 'water');
   if (serviceLaneClear) {
     // Files, Settings, Workshop and Attention share a small service lane.
     // Give their real front doors one legible street, then join it to the
