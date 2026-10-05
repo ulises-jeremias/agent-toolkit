@@ -827,6 +827,18 @@ function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonl
         }
       }
     }
+    // Keep a visible stone landing on each canonical public entrance even
+    // when a compact map's curved approach falls outside the shared ellipse.
+    for (const place of publicPlaces) {
+      const doorX = place.x + Math.floor(place.w / 2);
+      const doorY = place.y + place.h;
+      for (let dx = -1; dx <= 1; dx += 1) {
+        const x = doorX + dx;
+        if (p.paths.has(key(x, doorY)) && !p.isBlocked(x, doorY)) {
+          p.set(x, doorY, (x + doorY) % 2 ? 'plaza' : 'plaza-b', true);
+        }
+      }
+    }
   }
 }
 
