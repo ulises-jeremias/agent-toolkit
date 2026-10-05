@@ -219,12 +219,12 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     'object:library': { x: 1, y: 4 },
     // Keep the quieter service lane close enough to fit a complete 32px map
     // in compact windows while leaving the civic front doors unobstructed.
-    'object:workshop': { x: 12, y: 9 },
+    'object:workshop': { x: 12, y: 8 },
     'object:operations': { x: 6, y: 3 },
     'object:terminal': { x: 11, y: 2 },
     'object:attention': { x: 0, y: 9 },
-    'object:files': { x: 4, y: 9 },
-    'object:settings': { x: 8, y: 9 },
+    'object:files': { x: 4, y: 8 },
+    'object:settings': { x: 8, y: 8 },
   };
   for (const landmark of sharedObjects) {
     const slot = civicSlots[landmark.id]!;

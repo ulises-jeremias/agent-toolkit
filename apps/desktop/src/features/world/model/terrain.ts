@@ -706,7 +706,9 @@ function flowerPatchSprites(p: Painter) {
 
 /** Pick a few stable grove hearts inside the settlement, away from its paths. */
 function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<string> {
-  const target = Math.min(10, Math.max(8, Math.floor((p.cols * p.rows) / 130)));
+  const target = meadowHeart
+    ? Math.min(14, Math.max(12, Math.floor((p.cols * p.rows) / 100)))
+    : Math.min(10, Math.max(8, Math.floor((p.cols * p.rows) / 130)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {
@@ -730,20 +732,27 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
     [0, 0],
     [-2, 0],
     [2, 0],
+    [-4, 0],
+    [4, 0],
     [-1, 1],
     [1, 1],
     [-2, 2],
     [0, 2],
     [2, 2],
+    [-4, 2],
+    [4, 2],
+    [-3, 3],
+    [0, 3],
+    [3, 3],
     [-3, 1],
     [3, 1],
     [-3, 2],
     [3, 2],
-    [0, 3],
   ] as const;
   for (const candidate of candidates) {
     if (centers.length >= target) break;
-    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 8)) continue;
+    const minSpacing = meadowHeart ? 6 : 8;
+    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < minSpacing)) continue;
     centers.push(candidate);
     for (const [dx, dy] of offsets) {
       const x = candidate.x + dx;
@@ -756,7 +765,7 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
 
 /** Framing groves with natural gaps around buildings and paths. */
 function forest(p: Painter, projectlessMeadow = false) {
-  const creeksideHeart = projectlessMeadow ? { x: creekSafe(p) + 4, y: 3 } : undefined;
+  const creeksideHeart = projectlessMeadow ? { x: creekSafe(p) + 4, y: 6 } : undefined;
   const plantedGroves = groveAnchors(p, creeksideHeart);
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
@@ -1039,7 +1048,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
       .filter((place) => ['object:library', 'object:operations', 'object:terminal'].includes(place.id))
       .map((place) => place.y + place.h),
   );
-  const roadY = Math.min(rows - 3, publicDoorY);
+  const roadY = Math.min(rows - 3, Math.max(9, publicDoorY));
 
   // creek first so roads bridge it
   const workshop = entities.find((e) => e.id === 'object:workshop');
