@@ -108,7 +108,7 @@ wizard or "add a repo" yet.
 | `git_service.v` is a git backend | native engine | `backend_available` is **hard-false**; `git_changes`/`git_history`/`git_diff` return empty. Checkout is omitted with a reason string. Worktree *visibility* in native GUI ≠ a write lifecycle and ≠ a `serve` git API. |
 | PTY durability exists | #1073 / #1227 OPEN-future | Electron terminals are node-pty in main; they die with the window. 8 KiB tail replay only. |
 | ADR-033 is still proposed | this 2026-09-30 research snapshot | Accepted and current; see [ADR-033](../adrs/ADR-033-electron-desktop.md). |
-| #1118 "production is gg/sokol-direct" | #1118 2026-09-13 body | True of the native binary at that SHA. Electron is now the active Desktop implementation track. Visual lock (Paper Co.) is unchanged. |
+| #1118 "production is gg/sokol-direct" | #1118 2026-09-13 body | True of the native binary at that SHA. Electron is now the active Desktop implementation track. Paper Co. is retired by ADR-035; Cozy Pixel World is the current visual authority. |
 
 ### Domain entities that exist in V today
 
