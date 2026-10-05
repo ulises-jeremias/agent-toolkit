@@ -69,7 +69,7 @@ function insideGrove(x: number, y: number): boolean {
     for (let gx = cellX - 1; gx <= cellX + 1; gx++) {
       const seedX = gx * cellSize + 2 + (h2(gx, gy, 23) % 5);
       const seedY = gy * cellSize + 2 + (h2(gx, gy, 29) % 5);
-      const radius = 3 + (h2(gx, gy, 31) % 4);
+      const radius = 4 + (h2(gx, gy, 31) % 4);
       const dx = x - seedX;
       const dy = (y - seedY) * 1.15;
       if (dx * dx + dy * dy <= radius * radius) return true;
@@ -228,15 +228,14 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
     const sideEnd = x <= bridgeX ? bridgeX : endX;
     const t = (x - sideStart) / Math.max(1, sideEnd - sideStart);
     const bend = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 2 + phase);
-    // Keep the immediate approach and all three bridge tiles level so the
-    // meandering footpath visibly meets the crossing without a one-tile step.
-    const crossing = x >= bridgeX - 1 && x < bridgeX + 3;
-    // The commons road can sway gently on either bank. Keep the approach to
-    // the project lane bowed south: its houses sit immediately beyond it.
-    // Let the trail visibly drift through the meadow. A one-tile sway read as
-    // a ruler-straight street at overview zoom, so use a broader but still
-    // gentle bend; the bridge approach remains level and deterministic.
-    const bank = x < bridgeX - 1 ? Math.round(bend * 3.5) : Math.max(0, Math.round(bend * 3.5));
+    // Keep a short bank approach and the three bridge tiles level. The road's
+    // wider meadow bend must not overwrite water on neighboring stream rows.
+    const crossing = x >= bridgeX - 4 && x < bridgeX + 4;
+    // A two-tile sway gives the commons a footworn curve at overview scale.
+    // Larger bends fell into the lower service street and made the settlement
+    // read as a rigid rectangular loop instead of a main route with branches.
+    // Keep the project-side approach bowed south; the bridge remains level.
+    const bank = x < bridgeX - 1 ? Math.round(bend * 1.8) : Math.max(0, Math.round(bend * 1.8));
     const current = { x, y: crossing ? y : y + bank };
     rasterLine(p, previous.x, previous.y, current.x, current.y);
     previous = current;
@@ -311,6 +310,69 @@ function connectEntrance(
     const [x = 0, y = 0] = cursor.split(',').map(Number);
     p.path(x, y);
     cursor = parent.get(cursor) ?? null;
+  }
+}
+
+/** Join any remaining path islands without crossing a building or open water. */
+function connectPathIslands(p: Painter) {
+  const neighbors = [
+    [0, -1],
+    [-1, 0],
+    [1, 0],
+    [0, 1],
+  ] as const;
+  const components = () => {
+    const remaining = new Set(p.paths);
+    const result: Set<string>[] = [];
+    while (remaining.size > 0) {
+      const component = new Set<string>();
+      const queue = [remaining.values().next().value as string];
+      for (let head = 0; head < queue.length; head += 1) {
+        const at = queue[head]!;
+        if (component.has(at)) continue;
+        component.add(at);
+        remaining.delete(at);
+        const [x = 0, y = 0] = at.split(',').map(Number);
+        for (const [dx, dy] of neighbors) {
+          const next = key(x + dx, y + dy);
+          if (remaining.has(next) && !component.has(next)) queue.push(next);
+        }
+      }
+      result.push(component);
+    }
+    return result;
+  };
+
+  let islands = components();
+  while (islands.length > 1) {
+    const source = islands[0]!;
+    const queue = [...source];
+    const parent = new Map<string, string | null>(queue.map((at) => [at, null]));
+    let target: string | undefined;
+    for (let head = 0; head < queue.length && !target; head += 1) {
+      const at = queue[head]!;
+      const [x = 0, y = 0] = at.split(',').map(Number);
+      for (const [dx, dy] of neighbors) {
+        const nx = x + dx;
+        const ny = y + dy;
+        const next = key(nx, ny);
+        if (parent.has(next) || p.isBlocked(nx, ny) || p.get(nx, ny) === 'water') continue;
+        parent.set(next, at);
+        if (p.paths.has(next) && !source.has(next)) {
+          target = next;
+          break;
+        }
+        queue.push(next);
+      }
+    }
+    if (!target) return;
+    let cursor: string | null = target;
+    while (cursor) {
+      const [x = 0, y = 0] = cursor.split(',').map(Number);
+      p.path(x, y);
+      cursor = parent.get(cursor) ?? null;
+    }
+    islands = components();
   }
 }
 
@@ -545,7 +607,7 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
 function flowerGlades(p: Painter) {
   // Give the quiet spaces a visible meadow rhythm at overview scale. Glades
   // stay grouped and seed-stable so additional color does not become speckle.
-  const target = Math.min(20, Math.max(6, Math.floor((p.cols * p.rows) / 40)));
+  const target = Math.min(20, Math.max(6, Math.floor((p.cols * p.rows) / 36)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 2; y++) {
     for (let x = 2; x < p.cols - 2; x++) {
@@ -561,7 +623,7 @@ function flowerGlades(p: Painter) {
     if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 6)) continue;
     centers.push(candidate);
 
-    const radiusX = 3 + (h2(candidate.x, candidate.y, 137) % 2);
+    const radiusX = 4 + (h2(candidate.x, candidate.y, 137) % 2);
     const radiusY = 2 + (h2(candidate.x, candidate.y, 139) % 2);
     const blooms = ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'] as const;
     const primary = h2(candidate.x, candidate.y, 149) % blooms.length;
@@ -644,12 +706,14 @@ function flowerPatchSprites(p: Painter) {
 
 /** Pick a few stable grove hearts inside the settlement, away from its paths. */
 function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<string> {
-  const target = Math.min(7, Math.max(4, Math.floor((p.cols * p.rows) / 160)));
+  const target = meadowHeart
+    ? Math.min(14, Math.max(12, Math.floor((p.cols * p.rows) / 100)))
+    : Math.min(10, Math.max(8, Math.floor((p.cols * p.rows) / 130)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {
       if (!p.get(x, y).startsWith('grass') && !p.get(x, y).startsWith('flowers')) continue;
-      if (nearStructureOrPath(p, x, y, 2)) continue;
+      if (nearStructureOrPath(p, x, y, 1)) continue;
       candidates.push({ x, y, rank: h2(x, y, 173) });
     }
   }
@@ -661,21 +725,34 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
 
   const centers: { x: number; y: number }[] = [];
   const anchors = new Set<string>();
-  // Small irregular clumps read as woodland, while their anchors remain well
-  // clear of doors and footpaths. Avoid a uniform row of tree ornaments.
+  // Broad irregular clumps make the meadow feel sheltered and lived in. Roots
+  // stay clear of doors and paths; the separate canopy pass keeps crowns from
+  // obscuring façades. Avoid a uniform row of tree ornaments.
   const offsets = [
     [0, 0],
     [-2, 0],
     [2, 0],
+    [-4, 0],
+    [4, 0],
     [-1, 1],
     [1, 1],
     [-2, 2],
     [0, 2],
     [2, 2],
+    [-4, 2],
+    [4, 2],
+    [-3, 3],
+    [0, 3],
+    [3, 3],
+    [-3, 1],
+    [3, 1],
+    [-3, 2],
+    [3, 2],
   ] as const;
   for (const candidate of candidates) {
     if (centers.length >= target) break;
-    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 9)) continue;
+    const minSpacing = meadowHeart ? 6 : 8;
+    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < minSpacing)) continue;
     centers.push(candidate);
     for (const [dx, dy] of offsets) {
       const x = candidate.x + dx;
@@ -688,7 +765,7 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
 
 /** Framing groves with natural gaps around buildings and paths. */
 function forest(p: Painter, projectlessMeadow = false) {
-  const creeksideHeart = projectlessMeadow ? { x: creekSafe(p) + 4, y: 3 } : undefined;
+  const creeksideHeart = projectlessMeadow ? { x: Math.min(p.cols - 8, creekSafe(p) + 1), y: 6 } : undefined;
   const plantedGroves = groveAnchors(p, creeksideHeart);
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
@@ -716,15 +793,19 @@ function forest(p: Painter, projectlessMeadow = false) {
         const canopyTop = y - 2 + ((h2(x, y, 53) % 3) - 1) / 16;
         return canopyLeft < right && canopyLeft + 3 > left && canopyTop < bottom && canopyTop + 3 > top;
       });
-      // Tree crowns may lean over a path; only keep trunks off the walking
-      // surface itself and its immediate edge. The old 5×5 exclusion created
-      // a broad empty moat around every route in compact worlds.
-      const nearTrail = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => p.paths.has(key(x + dx, y + dy))));
+      // Tree crowns may lean over a path. Keep trunks off the walking tiles,
+      // while allowing the canopy to frame the route instead of making a moat.
+      const nearTrail = p.paths.has(key(x, y));
       const grove = insideGrove(x, y);
       // Keep tall canopies fully inside the framed world; low grass and
       // flowers can still reach the edge without looking accidentally cut.
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
-      const naturallyWooded = edge ? roll < (x >= p.cols - 6 ? 27 : 29) : nearCreek ? roll < 20 : grove && roll < 20;
+      const groveDensity = projectlessMeadow ? 31 : 20;
+      const naturallyWooded = edge
+        ? roll < (x >= p.cols - 6 ? 27 : 29)
+        : nearCreek
+          ? roll < groveDensity
+          : grove && roll < groveDensity;
       const woodlandCell = plantedGroves.has(key(x, y)) || naturallyWooded;
       const wantTree = treeInsideFrame && !canopyOverBuilding && !canopyOverFlowerPatch && !nearTrail && woodlandCell;
       if (wantTree) {
@@ -768,7 +849,10 @@ function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonl
     if (y < p.rows) {
       const center = hall.x + Math.floor(hall.w / 2);
       for (let x = center - 1; x <= center + 1; x++) {
-        if (!p.isBlocked(x, y)) p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b', true);
+        if (!p.isBlocked(x, y)) {
+          p.path(x, y);
+          p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b', true);
+        }
       }
     }
     // A small paved commons gives the two civic streets a readable center.
@@ -776,6 +860,7 @@ function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonl
     for (let y = 9; y <= 10; y++) {
       for (let x = center - 1; x <= center + 1; x++) {
         if (!p.isBlocked(x, y) && p.get(x, y).startsWith('grass')) {
+          p.path(x, y);
           p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b');
         }
       }
@@ -816,6 +901,18 @@ function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonl
         // patch on otherwise empty grass beside a building.
         if (inside && p.paths.has(key(x, y)) && !p.isBlocked(x, y)) {
           p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b', true);
+        }
+      }
+    }
+    // Keep a visible stone landing on each canonical public entrance even
+    // when a compact map's curved approach falls outside the shared ellipse.
+    for (const place of publicPlaces) {
+      const doorX = place.x + Math.floor(place.w / 2);
+      const doorY = place.y + place.h;
+      for (let dx = -1; dx <= 1; dx += 1) {
+        const x = doorX + dx;
+        if (p.paths.has(key(x, doorY)) && !p.isBlocked(x, doorY)) {
+          p.set(x, doorY, (x + doorY) % 2 ? 'plaza' : 'plaza-b', true);
         }
       }
     }
@@ -948,19 +1045,17 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     (e) => e.kind === 'place' && e.id !== 'place:workspace' && !e.id.startsWith('place:project:'),
   );
   const marker = entities.find((e) => e.id === 'place:projects-empty');
-  const firstProjectY = projects.length ? Math.min(...projects.map((project) => project.y)) : undefined;
-  const firstStreetProjects =
-    firstProjectY === undefined ? [] : projects.filter((project) => project.y <= firstProjectY + 2);
-  const firstStreetDoorY = firstStreetProjects.length
-    ? Math.max(...firstStreetProjects.map((project) => project.y + project.h))
-    : marker
-      ? marker.y + marker.h
-      : undefined;
-  // Keep a little meadow between house fronts and the shared avenue. That
-  // gives each real entrance room for a curved footpath instead of making
-  // every door sit directly on the same ruler-straight road tile.
-  const roadOffset = projects.length > 0 ? 2 : 0;
-  const roadY = Math.min(rows - 3, (firstStreetDoorY ?? Math.floor(rows / 2)) + roadOffset);
+  // Keep the main avenue on the public-frontage row. Houses and the empty
+  // project marker join by paths on the far side of the shared bridge.
+  const publicDoorY = Math.max(
+    7,
+    ...commons
+      .filter((place) => ['object:library', 'object:operations', 'object:terminal'].includes(place.id))
+      .map((place) => place.y + place.h),
+  );
+  // Empty worlds align the bridge with the project-linking landmark; once
+  // houses exist, lift the avenue enough to leave a visible curved porch spur.
+  const roadY = Math.min(rows - 3, projects.length > 0 ? Math.max(9, publicDoorY) : publicDoorY);
 
   // creek first so roads bridge it
   const workshop = entities.find((e) => e.id === 'object:workshop');
@@ -968,24 +1063,66 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     ? Math.min(...projects.map((project) => project.x))
     : (marker?.x ?? Math.floor(cols / 2));
   const riverX = riverAnchorX - (projects.length ? 2 : 8);
-  // Start the street on the actual west bank so the crossing is always joined
-  // to the path network, even when a civic building sits farther east.
+  // Carry one shared street from the west edge, through the civic quarter,
+  // over the bridge, and up to the project district.
   const plannedCreekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
   const creekX = plannedCreekX ?? Math.max(4, Math.min(cols - 5, riverX));
   (p as unknown as { creekX: number }).creekX = creekX;
-  const routeEndX = projects.length
-    ? Math.max(...projects.map((project) => project.x + Math.floor(project.w / 2)))
-    : marker
-      ? marker.x + Math.floor(marker.w / 2)
-      : cols - 4;
-  road(p, roadY, creekX, routeEndX, creekX - 1);
+  const routeEndX = Math.min(
+    creekX + 3,
+    projects.length
+      ? Math.max(...projects.map((project) => project.x + Math.floor(project.w / 2)))
+      : marker
+        ? marker.x + Math.floor(marker.w / 2)
+        : cols - 4,
+  );
+  road(p, roadY, creekX, routeEndX, 3);
   // Every doorway branches from the same street instead of attaching to a
   // previously added doorway path. Shared services take short branches;
   // project houses keep a gentle curved approach into their neighborhood.
   const street = new Set(p.paths);
   if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h, street);
+  const servicePlaces = commons.filter((place) =>
+    ['object:attention', 'object:files', 'object:settings', 'object:workshop'].includes(place.id),
+  );
+  const serviceDoors = servicePlaces.map((place) => ({
+    x: place.x + Math.floor(place.w / 2),
+    y: place.y + place.h,
+  }));
+  const serviceY = Math.max(...serviceDoors.map(({ y }) => y));
+  const sharesFrontage = serviceDoors.length > 1 && serviceDoors.every(({ y }) => serviceY - y <= 1);
+  const serviceLeft = Math.min(...serviceDoors.map(({ x }) => x));
+  const serviceRight = Math.max(...serviceDoors.map(({ x }) => x));
+  // A shallow, deterministic bow softens the frontage while keeping each
+  // service entrance on one continuous route. Door-to-lane spurs stay short;
+  // the service street no longer reads as a ruler-straight grid edge.
+  const serviceLane = Array.from({ length: serviceRight - serviceLeft + 1 }, (_, offset) => {
+    const x = serviceLeft + offset;
+    const progress = offset / Math.max(1, serviceRight - serviceLeft);
+    const y = serviceY + Math.round((1 - Math.cos(progress * Math.PI * 2)) / 2);
+    return { x, y };
+  });
+  const serviceLaneClear =
+    sharesFrontage && serviceLane.every(({ x, y }) => !p.isBlocked(x, y) && p.get(x, y) !== 'water');
+  if (serviceLaneClear) {
+    // Files, Settings, Workshop and Attention share a small service lane.
+    // Give their real front doors one legible street, then join it to the
+    // commons once; independent detours around neighboring façades created
+    // rectangular loops in the open meadow.
+    let previousY = serviceY;
+    for (const { x, y } of serviceLane) {
+      if (Math.abs(y - previousY) > 0) p.path(x, previousY);
+      p.path(x, y);
+      previousY = y;
+    }
+    for (const { x, y } of serviceDoors) {
+      const laneY = serviceLane.find((point) => point.x === x)?.y ?? serviceY;
+      for (const point of rasterPoints(x, y, x, laneY)) p.path(point.x, point.y);
+    }
+    connectEntrance(p, serviceRight + 1, serviceLane.at(-1)?.y ?? serviceY, street);
+  }
   for (const place of commons) {
-    if (place.id === 'place:memory') continue;
+    if (serviceLaneClear && servicePlaces.includes(place)) continue;
     const doorX = place.x + Math.floor(place.w / 2);
     const doorY = place.y + place.h;
     connectEntrance(p, doorX, doorY, street);
@@ -1003,13 +1140,14 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
       connectEntrance(p, doorX, doorY, street);
     }
   }
+  connectPathIslands(p);
   renderPaths(p);
+  plazaCore(p, hall, commons);
   if (plannedCreekX !== null) {
     bridgeAt(p, creekX, roadY);
     bridgeLanterns(p, creekX, roadY);
   }
   feather(p);
-  plazaCore(p, hall, commons);
   flowerGlades(p);
   flowerPatchSprites(p);
   forest(p, projects.length === 0);

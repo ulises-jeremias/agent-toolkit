@@ -476,7 +476,7 @@ describe('buildWorldModel', () => {
       layout.entities.find((entity) => entity.id === 'object:attention')?.x ?? 0,
     );
     expect(new Set(landmarks.slice(0, 3).map((entity) => entity.y)).size).toBe(3);
-    expect(new Set(landmarks.slice(3).map((entity) => entity.y)).size).toBeGreaterThan(1);
+    expect(new Set(landmarks.slice(3).map((entity) => entity.y + entity.h)).size).toBe(1);
 
     for (let left = 0; left < landmarks.length; left += 1) {
       for (let right = left + 1; right < landmarks.length; right += 1) {
@@ -497,6 +497,18 @@ describe('buildWorldModel', () => {
       const door = `${landmark.x + Math.floor(landmark.w / 2)},${landmark.y + landmark.h}`;
       const tile = terrain.cells.find((cell) => `${cell.x},${cell.y}` === door)?.tile ?? 'no ground tile';
       expect(paths.has(door), `${landmark.id} door ${door} connects to the commons (terrain: ${tile})`).toBe(true);
+    }
+    const serviceDoors = landmarks.slice(3).map((landmark) => ({
+      x: landmark.x + Math.floor(landmark.w / 2),
+      y: landmark.y + landmark.h,
+    }));
+    const serviceFrontY = serviceDoors[0]!.y;
+    expect(serviceDoors.every(({ y }) => serviceFrontY - y <= 1)).toBe(true);
+    const serviceLeftX = Math.min(...serviceDoors.map(({ x }) => x));
+    const serviceRightX = Math.max(...serviceDoors.map(({ x }) => x));
+    for (let x = serviceLeftX; x <= serviceRightX; x += 1) {
+      const laneHasTile = [serviceFrontY, serviceFrontY + 1].some((y) => paths.has(`${x},${y}`));
+      expect(laneHasTile, `shared service lane has no gap beside ${x},${serviceFrontY}`).toBe(true);
     }
     expect(terrain.cells.some((cell) => cell.tile.startsWith('plaza'))).toBe(true);
     const operations = landmarks.find((landmark) => landmark.id === 'object:operations')!;
@@ -756,13 +768,23 @@ describe('layoutWorld', () => {
     );
     const bridge = plan.decor.find((sprite) => sprite.sprite === 'bridge');
     expect(bridge).toBeTruthy();
-    expect(bridge!.y + 1).toBe(laidMarker.y + laidMarker.h);
     expect(bridge!.y + 1).toBeLessThan(layout.rows);
-    // The crossing must join the civic quarter as well as the empty project
-    // lot; a bridge with only an east-bank road is decorative, not navigation.
-    expect(
-      plan.cells.some(({ x, y, tile }) => x === bridge!.x - 1 && y === bridge!.y + 1 && tile.startsWith('trail')),
-    ).toBe(true);
+    // The marker's real doorway approach must reach the bridge landing. The
+    // marker's front tile can sit beside (not on) the bridge road row.
+    const trails = new Set(plan.cells.filter(({ tile }) => tile.startsWith('trail')).map(({ x, y }) => `${x},${y}`));
+    const bridgeLanding = `${bridge!.x - 1},${bridge!.y + 1}`;
+    const reached = new Set<string>();
+    const queue = [pathFront];
+    while (queue.length > 0) {
+      const at = queue.shift()!;
+      if (reached.has(at) || !trails.has(at)) continue;
+      reached.add(at);
+      const [x = 0, y = 0] = at.split(',').map(Number);
+      for (const neighbor of [`${x},${y - 1}`, `${x - 1},${y}`, `${x + 1},${y}`, `${x},${y + 1}`]) {
+        if (trails.has(neighbor) && !reached.has(neighbor)) queue.push(neighbor);
+      }
+    }
+    expect(reached.has(bridgeLanding)).toBe(true);
   });
 
   it('makes shared and project memory archives focus their real world index', () => {
@@ -1097,9 +1119,9 @@ describe('layoutWorld', () => {
     );
     const interiorTrees = trees.filter((tree) => tree.x >= 6 && tree.x < layout.cols - 6);
 
-    expect(trees.length).toBeGreaterThan(6);
-    expect(neighboringPairs.length).toBeGreaterThan(0);
-    expect(interiorTrees.length).toBeGreaterThan(1);
+    expect(trees.length).toBeGreaterThan(8);
+    expect(neighboringPairs.length).toBeGreaterThan(3);
+    expect(interiorTrees.length).toBeGreaterThan(3);
   });
 
   it('keeps loose stones on the creek bank instead of scattering them across meadow paths', () => {

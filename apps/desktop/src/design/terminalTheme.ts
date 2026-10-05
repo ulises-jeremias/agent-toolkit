@@ -2,8 +2,8 @@ import type { ITerminalOptions } from '@xterm/xterm';
 
 /**
  * xterm takes literal colours, not CSS variables. These mirror the terminal
- * primitives in tokens.css (--pc-terminal-*, brass, sage, rust, teal); the
- * terminal keeps one dark palette in both Paper and Ink.
+ * primitives in tokens.css (Cozy World ink, brass, sage, rust, teal); the
+ * terminal keeps one dark palette in both Meadow and Dusk.
  */
 export const TERMINAL_OPTIONS: ITerminalOptions = {
   theme: {

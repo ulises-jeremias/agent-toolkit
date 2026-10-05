@@ -217,9 +217,9 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // smaller service places form its southern garden lane.
   const civicSlots: Record<string, { x: number; y: number }> = {
     'object:library': { x: 1, y: 4 },
-    // Stagger the service lane around its small meadow clearing. Keeping all
-    // three façades on one baseline made their footpaths read as a rigid grid.
-    'object:workshop': { x: 12, y: 7 },
+    // Keep the quieter service lane close enough to fit a complete 32px map
+    // in compact windows while leaving the civic front doors unobstructed.
+    'object:workshop': { x: 12, y: 8 },
     'object:operations': { x: 6, y: 3 },
     'object:terminal': { x: 11, y: 2 },
     'object:attention': { x: 0, y: 9 },
@@ -239,7 +239,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // that can fit at 32px tiles instead of shrinking the whole world to 16px.
   const districtY = 4;
   const districtX = projectDistrictX;
-  if (emptyProject) place(emptyProject, emptyMarkerX, districtY);
+  if (emptyProject) place(emptyProject, emptyMarkerX, districtY + 2);
   const projectSlots = new Map<string, { x: number; y: number }>();
   projects.forEach((project, index) => {
     const col = index % districtCols;

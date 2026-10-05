@@ -108,7 +108,7 @@ wizard or "add a repo" yet.
 | `git_service.v` is a git backend | native engine | `backend_available` is **hard-false**; `git_changes`/`git_history`/`git_diff` return empty. Checkout is omitted with a reason string. Worktree *visibility* in native GUI ≠ a write lifecycle and ≠ a `serve` git API. |
 | PTY durability exists | #1073 / #1227 OPEN-future | Electron terminals are node-pty in main; they die with the window. 8 KiB tail replay only. |
 | ADR-033 is still proposed | this 2026-09-30 research snapshot | Accepted and current; see [ADR-033](../adrs/ADR-033-electron-desktop.md). |
-| #1118 "production is gg/sokol-direct" | #1118 2026-09-13 body | True of the native binary at that SHA. Electron is now the active Desktop implementation track. Visual lock (Paper Co.) is unchanged. |
+| #1118 "production is gg/sokol-direct" | #1118 2026-09-13 body | True of the native binary at that SHA. Electron is now the active Desktop implementation track. Paper Co. is retired by ADR-035; Cozy Pixel World is the current visual authority. |
 
 ### Domain entities that exist in V today
 
@@ -179,7 +179,9 @@ model, effort, desk, worktree, optional extra repos, `sessionId`, PTY claim,
 | Fundamentally different | Always-on god orchestrator ("Michael"), Sims floor as primary, auto-mode defaults | Multiplayer 3D office, workers as the entity, MCP `office-workers`, detached PTY host |
 | Visual/brand | REJECT (parody cast, maroon/gold, Pixi floor) | REJECT (3D, walking, elevators, rooftop/arcade/sports/cars/dog/weather) |
 
-ATK keeps Paper Co., typed Engine/`serve` truth, gated permissions, no
+At the time of this historical comparison, the recommendation was to retain the
+then-current visual language. ADR-035 later replaced it with Cozy Pixel World.
+The enduring architecture constraints are typed Engine/`serve` truth, gated permissions, no
 telemetry-by-default, no god-agent as domain authority.
 
 ---
@@ -376,7 +378,8 @@ attention inspector the world opens — not the product home. It renders
 today's sources honestly and consumes #1320 events; it does not invent
 `AttentionItem` or NPCs. Render V attention/session facets when they exist.
 No derived "quiet". Compact destinations must work without Office decor.
-Visual system stays Paper Co.
+Visual authority is now [DESIGN.md](DESIGN.md) and ADR-035 (Cozy Pixel World);
+this research snapshot's earlier visual guidance is superseded.
 
 ### Testing (durability modes separately)
 
@@ -521,7 +524,7 @@ Agent Toolkit UI, docs, code identifiers or assets:
 
 Agent Office brand/game surfaces are equally off-limits (section 7).
 
-Agent Toolkit keeps its own Paper Co. language from [DESIGN.md](DESIGN.md):
+Agent Toolkit's current Cozy Pixel World language is defined in [DESIGN.md](DESIGN.md):
 workspace, agent, run, job, loop, swarm, task, approval, receipt.
 
 ---

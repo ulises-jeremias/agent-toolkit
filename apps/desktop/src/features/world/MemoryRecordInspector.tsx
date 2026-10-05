@@ -14,7 +14,7 @@ export interface MemoryRecordInspectorProps {
   onRetry?: () => void;
 }
 
-/** Paper Co. inspector for one memory file — real read payload only. */
+/** Cozy World inspector for one memory file — real read payload only. */
 export function MemoryRecordInspector({
   path,
   data,

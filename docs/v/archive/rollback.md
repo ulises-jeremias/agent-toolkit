@@ -4,7 +4,7 @@
 
 The product is a **native V** binary on every channel. Rollback means pin a previous **V** release on the same channel — not switch back to Python as `agent-toolkit`.
 
-There is no Python CLI fallback ([python-fallback.md](python-fallback.md)). Channel rollback means reinstalling a prior V binary / wheel.
+There is no Python CLI fallback ([python-fallback.md](../python-fallback.md)). Channel rollback means reinstalling a prior V binary / wheel.
 
 ## GitHub Release
 
@@ -20,11 +20,11 @@ git checkout v1.11.0
 ./make.vsh install-cli
 ```
 
-To undo `./make.vsh install-cli` only: `rm -f ~/.local/bin/agent-toolkit` (do not overwrite a brew/AUR/npm-managed binary — [ADR-017](../adrs/ADR-017-update-ownership.md)).
+To undo `./make.vsh install-cli` only: `rm -f ~/.local/bin/agent-toolkit` (do not overwrite a brew/AUR/npm-managed binary — [ADR-017](../../adrs/ADR-017-update-ownership.md)).
 
 ## PyPI
 
-Wheels since `1.11.0` bundle V and exec it via the thin launcher ([ADR-021](../adrs/ADR-021-pypi-binary.md)):
+Wheels since `1.11.0` bundle V and exec it via the thin launcher ([ADR-021](../../adrs/ADR-021-pypi-binary.md)):
 
 ```bash
 uv tool install 'agent-toolkit-cli==1.11.0'
@@ -36,7 +36,7 @@ The wheel only ships the thin V trampoline + embedded binary + data.
 
 ## Homebrew
 
-Formulae live in [`ulises-jeremias/homebrew-tap`](https://github.com/ulises-jeremias/homebrew-tap) and install GitHub Release V binaries ([ADR-023](../adrs/ADR-023-homebrew.md)).
+Formulae live in [`ulises-jeremias/homebrew-tap`](https://github.com/ulises-jeremias/homebrew-tap) and install GitHub Release V binaries ([ADR-023](../../adrs/ADR-023-homebrew.md)).
 
 ```bash
 brew reinstall agent-toolkit
@@ -45,7 +45,7 @@ brew reinstall agent-toolkit
 
 ## AUR
 
-Canonical package is **`agent-toolkit-bin`** ([ADR-024](../adrs/ADR-024-aur.md)):
+Canonical package is **`agent-toolkit-bin`** ([ADR-024](../../adrs/ADR-024-aur.md)):
 
 ```bash
 yay -S agent-toolkit-bin

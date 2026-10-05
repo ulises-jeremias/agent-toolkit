@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/banner.svg?raw=true" width="100%" alt="agent-toolkit banner">
+  <img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/world.png" width="100%" alt="Agent Toolkit Desktop workspace valley, captured from the running app" />
 </p>
 
 <div align="center">
@@ -54,10 +54,6 @@ npm install -g agent-toolkit-cli
 agent-toolkit install
 agent-toolkit doctor
 ```
-
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/architecture.svg?raw=true" width="88%" alt="agent-toolkit architecture">
-</div>
 
 ---
 
@@ -116,17 +112,12 @@ Full walkthrough: [docs/INSTALLATION.md](https://github.com/ulises-jeremias/agen
 
 ### Desktop GUI
 
-Prefer a graphical workspace? The native desktop app runs over the same Engine — Office, Library, Operations, and an embedded terminal:
-
-```bash
-agent-toolkit gui --install   # download the desktop binary from GitHub Releases
-agent-toolkit gui             # launch it (alias: agent-toolkit desktop)
-```
+Agent Toolkit Desktop is a standalone Electron app over the same V backend. It opens with a semantic pixel-art workspace and includes project interiors, People, Library, Operations, and real PTY terminals. Download the installer for your platform from [GitHub Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest); a CLI or source checkout is not required to use Desktop. See the [Desktop product guide](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/desktop/PRODUCT_VISION.md) and [packaging notes](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/desktop/PACKAGING.md).
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/office.png" width="92%" alt="Agent Toolkit Desktop — Office floor with agent desks, roster, and embedded terminal" />
+<img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/world.png" width="92%" alt="Agent Toolkit Desktop — workspace valley with semantic buildings, water and paths" />
 <br />
-<img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/library.png" width="92%" alt="Library: searchable skills catalog with detail inspector" />
+<img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/library.png" width="92%" alt="Agent Toolkit Library with coding tool detection and installation evidence" />
 </div>
 
 ---
@@ -167,10 +158,6 @@ agent-toolkit gui             # launch it (alias: agent-toolkit desktop)
 ---
 
 ## Supported tools
-
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/tools-grid.svg?raw=true" width="96%" alt="Supported AI tools grid">
-</div>
 
 | Tool | What `install` deploys |
 |------|------------------------|
@@ -230,10 +217,6 @@ Still on the same binary — start here when running an [agentic-harness](https:
 | `inventory` | List skills, agents, and products |
 | `matrix` | Platform capability matrix |
 | `build` / `release` | Compile / release artifacts (maintainer) |
-
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/loop-tiers.svg?raw=true" width="88%" alt="Loop autonomy tiers">
-</div>
 
 ---
 

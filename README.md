@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/banner.svg?raw=true" width="100%">
+  <img src="static/screenshots/world.png" width="100%" alt="Agent Toolkit Desktop workspace valley" />
 </p>
 
 <div align="center">
@@ -10,34 +10,10 @@
 
 **Composable AI agent capabilities for every major coding assistant**
 
-[![Validate](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=validate&style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
-[![MegaLinter](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/mega-linter.yml?branch=main&label=MegaLinter&style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/mega-linter.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=CI)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
+[![Desktop](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/desktop.yml?branch=main&label=Desktop)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/desktop.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c3aed?style=flat&labelColor=1f2937)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
-[![Discord](https://img.shields.io/discord/1527933660764831825?style=flat&label=Discord&labelColor=1f2937&logo=discord&logoColor=white&color=5865F2)](https://discord.gg/bR5VyATgka)
-[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-16a34a?style=flat&labelColor=1f2937)](https://github.com/vercel-labs/skills)
-[![Agent Plugins](https://img.shields.io/badge/Agent%20Plugins-1.0-7c3aed?style=flat&labelColor=1f2937)](https://agent-plugins.org)
-[![Mentioned in Awesome Agent Skills](https://awesome.re/mentioned-badge.svg)](https://github.com/junminhong/awesome-agent-skills)
-
-[![npm](https://img.shields.io/npm/v/agent-toolkit-cli?style=flat&label=npm&labelColor=1f2937&color=7c3aed&logo=npm&logoColor=white)](https://www.npmjs.com/package/agent-toolkit-cli)
-[![npm downloads](https://img.shields.io/npm/dm/agent-toolkit-cli?style=flat&label=npm%20downloads&labelColor=1f2937&color=0891b2)](https://www.npmjs.com/package/agent-toolkit-cli)
-[![PyPI](https://img.shields.io/pypi/v/agent-toolkit-cli?style=flat&label=PyPI&labelColor=1f2937&color=7c3aed&logo=pypi&logoColor=white)](https://pypi.org/project/agent-toolkit-cli/)
-[![PyPI downloads](https://img.shields.io/pypi/dm/agent-toolkit-cli?style=flat&label=PyPI%20downloads&labelColor=1f2937&color=0891b2)](https://pypi.org/project/agent-toolkit-cli/)
-[![AUR](https://img.shields.io/aur/version/agent-toolkit-bin?style=flat&label=AUR&labelColor=1f2937&logo=archlinux&logoColor=white)](https://aur.archlinux.org/packages/agent-toolkit-bin)
-[![Homebrew](https://img.shields.io/badge/Homebrew-ulises--jeremias%2Ftap-ea580c?style=flat&labelColor=1f2937&logo=homebrew&logoColor=white)](https://github.com/ulises-jeremias/homebrew-tap)
-[![GHCR](https://img.shields.io/badge/GHCR-agent--toolkit-2563eb?style=flat&labelColor=1f2937&logo=docker&logoColor=white)](https://github.com/ulises-jeremias/agent-toolkit/pkgs/container/agent-toolkit)
-
-[![GitHub stars](https://img.shields.io/github/stars/ulises-jeremias/agent-toolkit?style=flat&label=stars&labelColor=1f2937&color=facc15&logo=github)](https://github.com/ulises-jeremias/agent-toolkit/stargazers)
-[![commits since latest release](https://img.shields.io/github/commits-since/ulises-jeremias/agent-toolkit/latest?style=flat&label=commits&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/commits/main)
-[![contributors](https://img.shields.io/github/contributors/ulises-jeremias/agent-toolkit?style=flat&label=contributors&labelColor=1f2937&color=0891b2)](https://github.com/ulises-jeremias/agent-toolkit/graphs/contributors)
-
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-7c3aed?style=flat&labelColor=1f2937&logo=anthropic&logoColor=white)](profiles/claude-code/)
-[![Cursor](https://img.shields.io/badge/Cursor-rules-0891b2?style=flat&labelColor=1f2937)](profiles/cursor/)
-[![OpenCode](https://img.shields.io/badge/OpenCode-agents-ea580c?style=flat&labelColor=1f2937)](profiles/opencode/)
-[![Copilot](https://img.shields.io/badge/GitHub%20Copilot-instructions-16a34a?style=flat&labelColor=1f2937&logo=github&logoColor=white)](profiles/copilot/)
-[![Windsurf](https://img.shields.io/badge/Windsurf-rules-2563eb?style=flat&labelColor=1f2937)](profiles/windsurf/)
-[![Pi](https://img.shields.io/badge/Pi%20Agent-skills-db2777?style=flat&labelColor=1f2937)](profiles/pi/)
-[![Muse Code](https://img.shields.io/badge/Muse%20Code-skills-ff6b35?style=flat&labelColor=1f2937)](https://developer.meta.com/ai/products/muse-code/)
 
 [Documentation](docs/) ·
 [Quick Install](#-quick-install) ·
@@ -63,15 +39,20 @@ agent-toolkit install
 agent-toolkit doctor
 ```
 
-<div align="center">
-<img src="static/screenshots/world.png" width="92%" alt="Agent Toolkit Desktop — workspace valley with semantic buildings and Lina present only while her real project session is running" />
-<br />
-<em>Agent Toolkit Desktop: a semantic pixel world for projects and real work, with precise inspectors and a real terminal.</em>
-</div>
+Agent Toolkit has two faces over one canonical runtime: the V engine and CLI
+provide automation and typed operations; Electron Desktop makes the workspace
+visible as a semantic pixel valley. Projects are places, shared capabilities
+live in the Library, and precise work happens in readable game-menu inspectors.
+Only observed jobs and live sessions appear as active characters.
 
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/architecture.svg?raw=true" width="88%">
-</div>
+```mermaid
+flowchart LR
+  A[Skills · Agent Definitions · MCP · Loops] --> B[Agent Toolkit V engine]
+  B --> C[CLI and automation]
+  B --> D[agent-toolkit serve API]
+  D --> E[Electron + React Desktop]
+  E --> F[World · People · Library · Operations · Terminal]
+```
 
 ---
 
@@ -83,13 +64,13 @@ agent-toolkit doctor
       <h3>🛠️ Skills</h3>
       <sub>Reusable capability units (<code>SKILL.md</code>) that teach an agent how to do a job — delivery workflows, forge CLIs, design, data, ops.</sub>
       <br><br>
-      <sub>Skills across 14 domains — live count via <code>agent-toolkit inventory</code> · Browse <code>skills/</code>.</sub>
+      <sub>Browse the live catalog with <code>agent-toolkit inventory</code> or inspect <code>skills/</code>.</sub>
     </td>
     <td width="50%" valign="top">
       <h3>🤖 Agents</h3>
-      <sub>Personas that constrain <em>how</em> the AI works in a session — review, plan, architect, fix CI — without rewriting your prompts each time.</sub>
+      <sub>Reusable Agent Definitions describe how a runner should work. Durable People are configured collaborators; a live session is a separate process.</sub>
       <br><br>
-      <sub>Personas under <code>agents/</code>, compiled into each target's native format — see <code>agent-toolkit inventory</code>.</sub>
+      <sub>Definitions under <code>agents/</code>; People and their state model are documented in <a href="docs/PEOPLE.md">People</a>.</sub>
     </td>
   </tr>
   <tr>
@@ -117,7 +98,7 @@ agent-toolkit doctor
       <h3>🔗 MCP</h3>
       <sub>Provider registry + ready templates (GitHub, Slack, Notion, Linear, Figma, ClickUp, Chrome DevTools) emitted into target-native MCP configs.</sub>
       <br><br>
-      <sub>7 providers · <code>mcp/registry/</code> · <code>mcp/templates/</code> · <code>agent-toolkit mcp</code></sub>
+      <sub>Provider definitions and templates live under <code>mcp/</code>; inspect or configure them with <code>agent-toolkit mcp</code>.</sub>
     </td>
   </tr>
 </table>
@@ -129,7 +110,7 @@ agent-toolkit doctor
 **Recommended:** the product CLI is the **native V binary**. PyPI/`uv` is a thin launcher over that binary ([ADR-021](docs/adrs/ADR-021-pypi-binary.md)).
 
 ```bash
-# GitHub Release — native V binary + SHA256SUMS (v1.30.1+)
+# GitHub Release — current native V binary + SHA256SUMS
 # https://github.com/ulises-jeremias/agent-toolkit/releases/latest
 
 # Homebrew
@@ -139,8 +120,8 @@ brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
 yay -S agent-toolkit-bin
 
 # PyPI launcher (execs bundled V; ADR-021)
-uv tool install 'agent-toolkit-cli>=1.30.1'
-uvx --from 'agent-toolkit-cli>=1.30.1' agent-toolkit install
+uv tool install agent-toolkit-cli
+uvx --from agent-toolkit-cli agent-toolkit install
 
 # npm
 npm i -g agent-toolkit-cli
@@ -151,23 +132,23 @@ agent-toolkit doctor     # verify everything is set up
 
 > **Support matrix:** see [`docs/TRUST.md#Installation channels`](docs/TRUST.md#installation-channels) for the single channel table (GitHub Releases canonical artifact, PyPI, npm, Homebrew, AUR, GHCR container, Claude/Cursor marketplaces, Agent Plugins artifacts) with trust anchor, support level, and verification command. The product CLI is the **native V binary**; Python is a thin launcher — see `docs/RELEASING.md` (canonical artifact) and `docs/TRUST.md`.
 
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/quickstart.svg?raw=true" width="86%" alt="agent-toolkit quickstart: install, doctor, swarm" />
-</div>
-
 → Full walkthrough: [docs/INSTALLATION.md](docs/INSTALLATION.md) · Full channel matrix: [docs/TRUST.md#Installation channels](docs/TRUST.md#installation-channels)
 
 ### Desktop app (GUI)
 
 Agent Toolkit Desktop is the flagship Electron application over the canonical V backend: a cozy pixel world of real project houses, a capability Library, Operations, People, terminals, and guided onboarding. Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installer on Windows from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest). The app bundles its backend; a CLI install or source checkout is not required. Details: [product vision](docs/desktop/PRODUCT_VISION.md) · [packaging](docs/desktop/PACKAGING.md).
 
-| World | Library | Operations |
-|---|---|---|
-| <img src="static/screenshots/world.png" width="100%" alt="Semantic workspace valley with shared places, project houses, and a real active Person session" /> | <img src="static/screenshots/library.png" width="100%" alt="Library: real catalog of reusable capabilities" /> | <img src="static/screenshots/operations.png" width="100%" alt="Operations: observed jobs and orchestration controls" /> |
-| People | Import review | Terminal |
-| <img src="static/screenshots/people.png" width="100%" alt="People roster showing saved offline collaborators" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder import review displaying mapped and ignored fields before saving" /> | <img src="static/screenshots/terminal.png" width="100%" alt="Integrated terminal backed by a real PTY" /> |
+| Meadow valley | Dusk valley |
+|---|---|
+| <img src="static/screenshots/world.png" width="100%" alt="The workspace valley with semantic buildings, creek, paths and gardens" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The same workspace valley at dusk" /> |
+| Project interior | Capability Library |
+| <img src="static/screenshots/project-interior.png" width="100%" alt="A project house with real file, memory, terminal and project stations" /> | <img src="static/screenshots/library.png" width="100%" alt="Library showing reusable capabilities and installation evidence" /> |
+| People roster | Operations |
+| <img src="static/screenshots/people.png" width="100%" alt="Configured offline People in the durable collaborator roster" /> | <img src="static/screenshots/operations.png" width="100%" alt="Operations showing actual jobs, outcomes and loop templates" /> |
+| Real PTY terminal | Reviewed import |
+| <img src="static/screenshots/terminal.png" width="100%" alt="Live shell session with real command output in the integrated terminal" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder hire import review showing mapped and ignored fields before saving" /> |
 
-These screenshots come from the Electron app's E2E capture tour at large and compact viewports. Offline People do not create world characters; runtime activity is shown only when observed.
+These are captures of the shipping Electron app against a disposable workspace and real backend. The image dimensions reflect the viewports used for each state; the CI visual-review tour also captures compact and large layouts. Offline People do not create world characters, and runtime activity appears only when observed. The terminal image shows a real PTY, not a mockup.
 
 ### Advanced install methods
 
@@ -287,10 +268,6 @@ Per-tool steps: [docs/INSTALLATION.md#manual-install](docs/INSTALLATION.md#manua
 
 ## 🖥️ Supported Tools
 
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/tools-grid.svg?raw=true" width="96%">
-</div>
-
 | Tool | Type | What's deployed |
 |------|------|-----------------|
 | **Claude Code** | Plugin + CLI | Plugin manifest, skill references, settings |
@@ -317,14 +294,14 @@ All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully c
 | 📊 `data` | dbt-validation, snowflake-validation |
 | 🔧 `tooling` | jupyter-notebook, playwright-cli, herdr, inventory |
 | 🛡️ `ops` | triage, docs-generator, llm-cost-advisor, swarm |
-| 🔄 `loops` | loop-runner (see [Loop Engineering](#-loop-engineering) for 10 templates) |
+| 🔄 `loops` | loop-runner (see [Loop Engineering](#-loop-engineering) for available templates) |
 | 🔐 `agentic-security` | threat-modeling, owasp-agentic-review, mcp-audit |
 | ☁️ `cloud` | cloud-design-patterns, aws-well-architected-review |
 | 🏛️ `architecture` | architecture-diagram, c4-model |
 | ♿ `accessibility` | review |
 | ✅ `quality` | megalinter, megalinter-setup, megalinter-check, megalinter-fix, codeql, blast-radius |
 
-Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.yaml) · **membership matrix** [`docs/SKILL_PRODUCT_MATRIX.md`](docs/SKILL_PRODUCT_MATRIX.md) (`scripts/generate-skill-matrix.vsh --check` in CI) · regenerate with `./scripts/validate-skills.vsh` (CI) and inspect live inventory via `agent-toolkit inventory` (counts shown in badges above are generic — use inventory for accurate numbers)
+Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.yaml) · **membership matrix** [`docs/SKILL_PRODUCT_MATRIX.md`](docs/SKILL_PRODUCT_MATRIX.md) (`scripts/generate-skill-matrix.vsh --check` in CI) · regenerate with `./scripts/validate-skills.vsh` (CI) and inspect live inventory via `agent-toolkit inventory` for current counts.
 
 ### Loading skills in Claude Code
 
@@ -375,10 +352,6 @@ Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · ta
 
 Loops are recurring agentic workflows that run on a schedule or cadence. They follow a three-tier **mutation-safety** model enforced by `loop-gh-gate` (cadence is independent of tier):
 
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/loop-tiers.svg?raw=true" width="88%">
-</div>
-
 | Tier | Mutation posture | Purpose |
 |------|------------------|---------|
 | **L1** | Observe / propose | Read-only or proposal-only — no repository mutations |
@@ -410,10 +383,6 @@ Each loop template lives in `loops/<name>/` (see `agent-toolkit inventory` for l
 
 One command turns a task into a coordinated multi-agent run — git worktree per writer,
 filesystem state-of-truth, budgets, and human approval gates.
-
-<div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/swarm.svg?raw=true" width="88%" alt="agent-toolkit swarm: task → recipes → backends → worktrees → handoffs → promote" />
-</div>
 
 ```bash
 agent-toolkit swarm recipes                   # pair / team / full — personas + policy + budget per recipe
@@ -450,7 +419,7 @@ Ready-to-use Model Context Protocol configuration templates. Drop into your MCP 
 | `clickup` | Tasks, lists, spaces, docs, comments |
 | `chrome-devtools` | Browser automation and page inspection |
 
-Templates live in [`mcp/templates/`](mcp/templates/) (7 providers). Each file is a `.json` with clearly marked placeholder values.
+Templates live in [`mcp/templates/`](mcp/templates/) and use clearly marked placeholder values.
 
 ---
 
