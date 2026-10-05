@@ -617,6 +617,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   }, [startPreview.data]);
 
   const close = () => {
+    saveDefaults.reset();
     setRecipe('pair');
     setTask('');
     setRunner('');
