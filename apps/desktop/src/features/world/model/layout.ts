@@ -216,13 +216,13 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // The staggered fronts leave a readable plaza instead of two rigid rows;
   // smaller service places form its southern garden lane.
   const civicSlots: Record<string, { x: number; y: number }> = {
-    'object:library': { x: 1, y: 5 },
+    'object:library': { x: 1, y: 4 },
     'object:workshop': { x: 12, y: 8 },
-    'object:operations': { x: 6, y: 4 },
-    'object:terminal': { x: 11, y: 3 },
+    'object:operations': { x: 6, y: 3 },
+    'object:terminal': { x: 11, y: 2 },
     'object:attention': { x: 0, y: 9 },
-    'object:files': { x: 3, y: 10 },
-    'object:settings': { x: 8, y: 9 },
+    'object:files': { x: 4, y: 8 },
+    'object:settings': { x: 8, y: 8 },
   };
   for (const landmark of sharedObjects) {
     const slot = civicSlots[landmark.id]!;
