@@ -941,8 +941,8 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
                   const explicit = activePersonBindings[role.name] === personId;
                   const preference = defaultsQuery.data?.roles.find((item) => item.role === role.name);
                   const workspaceDefault =
-                    preference?.person_id === personId ||
-                    (personId !== undefined && preference?.preferred_people.includes(personId) === true);
+                    personId !== undefined &&
+                    (preference?.person_id === personId || preference?.preferred_people.includes(personId) === true);
                   return (
                     <span key={role.name}>
                       {role.name} → <strong>{person?.name ?? (personId ? personId : 'Ephemeral role session')}</strong>
