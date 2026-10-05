@@ -228,9 +228,9 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
     const sideEnd = x <= bridgeX ? bridgeX : endX;
     const t = (x - sideStart) / Math.max(1, sideEnd - sideStart);
     const bend = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 2 + phase);
-    // Keep the immediate approach and all three bridge tiles level so the
-    // meandering footpath visibly meets the crossing without a one-tile step.
-    const crossing = x >= bridgeX - 1 && x < bridgeX + 3;
+    // Keep a short bank approach and the three bridge tiles level. The road's
+    // wider meadow bend must not overwrite water on neighboring stream rows.
+    const crossing = x >= bridgeX - 4 && x < bridgeX + 4;
     // A two-tile sway gives the commons a footworn curve at overview scale.
     // Larger bends fell into the lower service street and made the settlement
     // read as a rigid rectangular loop instead of a main route with branches.

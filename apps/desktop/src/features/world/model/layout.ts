@@ -239,7 +239,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // that can fit at 32px tiles instead of shrinking the whole world to 16px.
   const districtY = 4;
   const districtX = projectDistrictX;
-  if (emptyProject) place(emptyProject, emptyMarkerX, districtY + 1);
+  if (emptyProject) place(emptyProject, emptyMarkerX, districtY + 2);
   const projectSlots = new Map<string, { x: number; y: number }>();
   projects.forEach((project, index) => {
     const col = index % districtCols;
