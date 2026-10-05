@@ -494,9 +494,19 @@ describe('buildWorldModel', () => {
         .map((cell) => `${cell.x},${cell.y}`),
     );
     for (const landmark of landmarks) {
-      const door = `${landmark.x + Math.floor(landmark.w / 2)},${landmark.y + landmark.h}`;
+      const doorX = landmark.x + Math.floor(landmark.w / 2);
+      const doorY = landmark.y + landmark.h;
+      const door = `${doorX},${doorY}`;
       const tile = terrain.cells.find((cell) => `${cell.x},${cell.y}` === door)?.tile ?? 'no ground tile';
       expect(paths.has(door), `${landmark.id} door ${door} connects to the commons (terrain: ${tile})`).toBe(true);
+      for (const other of landmarks.filter((candidate) => candidate.id !== landmark.id)) {
+        const covered =
+          doorX >= other.x &&
+          doorX < other.x + other.w &&
+          doorY >= other.y &&
+          doorY < other.y + other.h;
+        expect(covered, `${landmark.id} entrance is uncovered by ${other.id}`).toBe(false);
+      }
     }
     const serviceDoors = landmarks.slice(3).map((landmark) => ({
       x: landmark.x + Math.floor(landmark.w / 2),
