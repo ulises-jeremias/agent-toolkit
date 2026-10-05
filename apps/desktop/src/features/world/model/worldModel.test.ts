@@ -503,7 +503,7 @@ describe('buildWorldModel', () => {
       y: landmark.y + landmark.h,
     }));
     const serviceFrontY = serviceDoors[0]!.y;
-    expect(serviceDoors.every(({ y }) => y === serviceFrontY)).toBe(true);
+    expect(serviceDoors.every(({ y }) => serviceFrontY - y <= 1)).toBe(true);
     const serviceLeftX = Math.min(...serviceDoors.map(({ x }) => x));
     const serviceRightX = Math.max(...serviceDoors.map(({ x }) => x));
     for (let x = serviceLeftX; x <= serviceRightX; x += 1) {

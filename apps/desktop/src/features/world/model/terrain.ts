@@ -992,7 +992,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     y: place.y + place.h,
   }));
   const serviceY = Math.max(...serviceDoors.map(({ y }) => y));
-  const sharesFrontage = serviceDoors.length > 1 && serviceDoors.every(({ y }) => y === serviceY);
+  const sharesFrontage = serviceDoors.length > 1 && serviceDoors.every(({ y }) => serviceY - y <= 1);
   const serviceLeft = Math.min(...serviceDoors.map(({ x }) => x));
   const serviceRight = Math.max(...serviceDoors.map(({ x }) => x));
   const serviceLaneClear =
@@ -1006,6 +1006,9 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     // commons once; independent detours around neighboring façades created
     // rectangular loops in the open meadow.
     for (let x = serviceLeft; x <= serviceRight; x += 1) p.path(x, serviceY);
+    for (const { x, y } of serviceDoors) {
+      if (y < serviceY) p.path(x, y);
+    }
     connectEntrance(p, serviceRight + 1, serviceY, street);
   }
   for (const place of commons) {
