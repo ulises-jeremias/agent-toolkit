@@ -1,5 +1,55 @@
 # Desktop visual QA
 
+## Organic meadow and ground-only dusk review — 2026-10-05
+
+Source `9eff43e91c46cfba6024943ab9122c03b0c73762`, capture workflow
+`37305618460` (Linux Electron with the packaged backend and disposable
+workspace). I opened empty, one-project, and several-project worlds at compact
+and large sizes, the project room at both sizes, the large Library and People
+screens, compact Operations and Terminal, and the compact Munder import review.
+These reviewed captures also replace the README product gallery and current
+world evidence images.
+
+The latest dusk treatment now tints the ground beneath buildings and entities,
+so house silhouettes, warm windows, lamps, and water accents remain readable.
+The project map fits in both viewport sizes and landmarks remain distinct. The
+map still has long open lawns and angular, partly rectangular paths; this pass
+does not claim those composition issues are solved. The project interior still
+has a broad plank floor and sparse stations, so it remains an active art task.
+Library and Operations expose real, typed product actions; the compact terminal
+capture shows a live PTY, and the import review remains an explicit save step.
+
+After seeing the captures, the dusk overlay was moved below world decor and
+runtime entities, and capture teardown was changed to close its real shell PTY
+before Electron exits. The gallery is deliberately made from real captures;
+the design-board and deprecated Paper screenshot files were removed from the
+active repository, with history retained in Git.
+
+Opened files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+- [Library, large](assets/electron/cozy-pixel-world/library.png),
+  [People, large](../../static/screenshots/people.png),
+  [Operations, large](../../static/screenshots/operations.png),
+  [Terminal, compact](../../static/screenshots/terminal.png), and
+  [Munder import review, compact](../../static/screenshots/people-import.png).
+
+The implementation checks for this source were run in GitHub Actions rather
+than on the developer host. Capture `37305618460` passed the visual tour,
+`pnpm lint`, typecheck, unit tests, `build:all`, renderer E2E, capture
+verification, MCP capture, staging, and `dist:dir`. The pull-request workflow
+also passed Linux/Windows integration, Linux packaged Electron with fresh HOME,
+V modules on Ubuntu, and all listed Linux/Python validation jobs; macOS checks
+remain deferred until final-main verification under the repository's current
+release policy.
+
 Visual acceptance means running the Electron Desktop, capturing it, opening the PNG at its actual size, critiquing composition and legibility, changing the implementation, and capturing again. Generated assets and passing tests do not prove art quality.
 
 `apps/desktop/e2e/electron/capture.spec.ts` captures both compact and large windows with real backend state. Run it after `pnpm --filter agent-toolkit-desktop build:all` and a V backend build:

@@ -66,6 +66,25 @@ journeys:
           - assets/electron/world/world-one-project-large.png
           - assets/electron/world/world-several-projects-compact.png
           - assets/electron/world/world-several-projects-large.png
+      - note: >-
+          Linux Electron capture at source 9eff43e91c46cfba6024943ab9122c03b0c73762
+          (workflow 37305618460) reviewed empty, one-project, and several-project
+          worlds at compact and large viewports plus both project-room sizes.
+          Ground-only dusk tint preserves landmark and character contrast; stable
+          pathside flowers and staggered civic landmarks remain deterministic.
+          Screenshot review still finds broad open lawns, angular street runs, and
+          an interior with a sparse semantic station layout; those are open visual
+          work, not accepted as complete.
+        build: "9eff43e91c46cfba6024943ab9122c03b0c73762 (Linux Electron capture; 37305618460)"
+        screenshots:
+          - assets/electron/world/world-empty-compact.png
+          - assets/electron/world/world-empty-large.png
+          - assets/electron/world/world-one-project-compact.png
+          - assets/electron/world/world-one-project-large.png
+          - assets/electron/world/world-several-projects-compact.png
+          - assets/electron/world/world-several-projects-large.png
+          - assets/electron/world/project-files-room-compact.png
+          - assets/electron/world/project-files-room-large.png
       - note: apps/desktop/e2e/electron/project-link.spec.ts; modules/agent_toolkit_core/file_catalog_test.v covers project symlink containment and unsafe paths
     blockers: []
   - id: capability-discovery
