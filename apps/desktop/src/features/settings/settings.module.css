@@ -34,13 +34,13 @@
 }
 
 .option:has(input:checked) {
-  border-color: var(--accent-brass);
+  border-color: var(--accent-gold);
   background: var(--surface-selected);
 }
 
 .option input {
   margin: 0.2rem 0 0;
-  accent-color: var(--accent-brass-strong);
+  accent-color: var(--accent-gold-strong);
 }
 
 .optionLabel {

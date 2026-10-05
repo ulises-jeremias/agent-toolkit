@@ -271,11 +271,11 @@ Pixel art decorates and contextualizes the shell but never replaces standard
 affordances: buttons, tabs, fields, tables, scrollbars, selection, focus,
 resize handles.
 
-Primary destinations (unchanged; see
-[UX_ARCHITECTURE.md](UX_ARCHITECTURE.md)): World (home), Office (attention),
+Primary destinations (see
+[UX_ARCHITECTURE.md](UX_ARCHITECTURE.md)): World (home), Attention,
 Library, Operations, Workspace, Insights, Terminal, Settings.
 
-## 9. World and Office
+## 9. World and Attention
 
 **World** is the flagship spatial surface and the home
 ([ADR-034](../adrs/ADR-034-semantic-world.md)): it must answer at a glance,
@@ -284,8 +284,10 @@ whether shared memory/knowledge exists, which jobs have characters (proven
 only), and how to reach terminal, workspace, library, or operations in one
 click or via Ctrl/Cmd+K.
 
-**Office** is the attention inspector: failures, blocked work, self-check
-problems, backend down — a game-menu board, not a second home.
+**Attention** (`/office`, retained as a stable route) is the recovery inspector:
+failed jobs, blocked work, self-check problems, and backend failures. Its
+notice-board role is distinct from the World and People roster; it is not an
+office simulation or a second home.
 
 The composition contract for the world map:
 
@@ -311,7 +313,7 @@ in the world. No invented agents, no fake liveliness.
 The most expressive surface. Authored sprites, composed terrain, ambient
 life, semantic labels. The structured list remains one gesture away.
 
-### Office
+### Attention
 
 Attention board in the game-menu system: failures first, each with a link to
 the subject. Dense, calm, honest.
@@ -451,9 +453,8 @@ actions stay direct and precise.
 
 ## 18. Design references
 
-The historical concept boards in `assets/design/` (Paper Co. era) are
-**deprecated visual references** kept for provenance only; they hold no
-authority. The current references are:
+Old concept boards were removed from the active repository on 2026-10-05;
+their provenance remains in Git history. The current references are:
 
 - this document and [SEMANTIC_WORLD.md](SEMANTIC_WORLD.md);
 - the executable system: `src/design/tokens.css`,

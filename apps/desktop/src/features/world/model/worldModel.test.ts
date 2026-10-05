@@ -467,8 +467,8 @@ describe('buildWorldModel', () => {
       h: 4,
     });
 
-    // The public buildings form a slight arc, and the south lane is offset
-    // from it so the settlement reads as a place rather than a tile grid.
+    // Public services and the quieter work lots form separate districts,
+    // avoiding a single row of doors and its long rectangular path.
     expect(layout.entities.find((entity) => entity.id === 'object:terminal')?.y).toBeLessThan(
       layout.entities.find((entity) => entity.id === 'object:library')?.y ?? Number.POSITIVE_INFINITY,
     );
@@ -476,7 +476,7 @@ describe('buildWorldModel', () => {
       layout.entities.find((entity) => entity.id === 'object:attention')?.x ?? 0,
     );
     expect(new Set(landmarks.slice(0, 3).map((entity) => entity.y)).size).toBe(3);
-    expect(new Set(landmarks.slice(3).map((entity) => entity.y + entity.h)).size).toBe(1);
+    expect(new Set(landmarks.slice(3).map((entity) => entity.y + entity.h)).size).toBeGreaterThan(1);
 
     for (let left = 0; left < landmarks.length; left += 1) {
       for (let right = left + 1; right < landmarks.length; right += 1) {
@@ -494,22 +494,21 @@ describe('buildWorldModel', () => {
         .map((cell) => `${cell.x},${cell.y}`),
     );
     for (const landmark of landmarks) {
-      const door = `${landmark.x + Math.floor(landmark.w / 2)},${landmark.y + landmark.h}`;
+      const doorX = landmark.x + Math.floor(landmark.w / 2);
+      const doorY = landmark.y + landmark.h;
+      const door = `${doorX},${doorY}`;
       const tile = terrain.cells.find((cell) => `${cell.x},${cell.y}` === door)?.tile ?? 'no ground tile';
       expect(paths.has(door), `${landmark.id} door ${door} connects to the commons (terrain: ${tile})`).toBe(true);
+      for (const other of landmarks.filter((candidate) => candidate.id !== landmark.id)) {
+        const covered = doorX >= other.x && doorX < other.x + other.w && doorY >= other.y && doorY < other.y + other.h;
+        expect(covered, `${landmark.id} entrance is uncovered by ${other.id}`).toBe(false);
+      }
     }
     const serviceDoors = landmarks.slice(3).map((landmark) => ({
       x: landmark.x + Math.floor(landmark.w / 2),
       y: landmark.y + landmark.h,
     }));
-    const serviceFrontY = serviceDoors[0]!.y;
-    expect(serviceDoors.every(({ y }) => serviceFrontY - y <= 1)).toBe(true);
-    const serviceLeftX = Math.min(...serviceDoors.map(({ x }) => x));
-    const serviceRightX = Math.max(...serviceDoors.map(({ x }) => x));
-    for (let x = serviceLeftX; x <= serviceRightX; x += 1) {
-      const laneHasTile = [serviceFrontY, serviceFrontY + 1].some((y) => paths.has(`${x},${y}`));
-      expect(laneHasTile, `shared service lane has no gap beside ${x},${serviceFrontY}`).toBe(true);
-    }
+    expect(new Set(serviceDoors.map(({ y }) => y)).size).toBeGreaterThan(1);
     expect(terrain.cells.some((cell) => cell.tile.startsWith('plaza'))).toBe(true);
     const operations = landmarks.find((landmark) => landmark.id === 'object:operations')!;
     const operationsDoor = terrain.cells.find(
@@ -888,7 +887,26 @@ describe('layoutWorld', () => {
         .filter((cell) => cell.tile.startsWith('trail') || cell.tile === 'plaza' || cell.tile === 'plaza-b')
         .map(({ x, y }) => `${x},${y}`),
     );
+    const pathsideFlowers = first.cells.filter(
+      ({ x, y, tile }) =>
+        tile.startsWith('flowers') &&
+        [
+          [x, y - 1],
+          [x - 1, y],
+          [x + 1, y],
+          [x, y + 1],
+        ].some(([nx, ny]) => trails.has(`${nx},${ny}`)),
+    );
+    expect(pathsideFlowers.length).toBeGreaterThan(0);
+    const allFlowersStayOffTrails = first.cells
+      .filter(({ tile }) => tile.startsWith('flowers'))
+      .every(({ x, y }) => !trails.has(`${x},${y}`));
+    expect(allFlowersStayOffTrails).toBe(true);
     const water = new Set(first.cells.filter(({ tile }) => tile === 'water').map(({ x, y }) => `${x},${y}`));
+    for (const place of layout.entities.filter((entity) => entity.kind === 'place')) {
+      const door = `${place.x + Math.floor(place.w / 2)},${place.y + place.h}`;
+      expect(water.has(door), `${place.id} entrance remains on dry ground`).toBe(false);
+    }
     const sparkles = first.decor.filter((sprite) => sprite.sprite === 'water-sparkle');
     expect(sparkles.length).toBeGreaterThan(0);
     expect(sparkles.length).toBeLessThanOrEqual(5);
@@ -1217,11 +1235,11 @@ describe('layoutWorld', () => {
     expect(exit && room).toBeTruthy();
     expect(exit!.x).toBe(1);
     expect(room!.x).toBeGreaterThan(exit!.x);
-    expect(records?.x).toBe(18);
+    expect(records?.x).toBe(12);
     expect(terminal?.y).toBe(7);
     expect(files?.y).toBe(7);
     expect(files!.x - terminal!.x).toBeGreaterThanOrEqual(4);
-    expect(layout.cols).toBe(22);
+    expect(layout.cols).toBe(18);
     expect(layout.rows).toBe(11);
   });
 });

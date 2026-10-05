@@ -76,8 +76,8 @@ export function PageHeader({
 }
 
 /**
- * A titled section. `paper` is the default reading surface; `manila` is a
- * filed folder for the one area on a page that holds work to act on.
+ * A titled section. `menu` is the default framed panel; `notice` marks the
+ * one area on a page that needs the user's attention.
  */
 export function Panel({
   title,

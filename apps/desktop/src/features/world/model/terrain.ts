@@ -87,6 +87,7 @@ class Painter {
   paths = new Set<string>();
   decor: DecorSprite[] = [];
   blocked = new Set<string>();
+  waterReservations = new Set<string>();
   cols: number;
   rows: number;
 
@@ -95,6 +96,9 @@ class Painter {
     this.rows = rows;
     for (const e of entities) {
       for (let y = e.y; y < e.y + e.h; y++) for (let x = e.x; x < e.x + e.w; x++) this.blocked.add(key(x, y));
+      if (e.kind === 'place') {
+        this.waterReservations.add(key(e.x + Math.floor(e.w / 2), e.y + e.h));
+      }
     }
   }
 
@@ -409,6 +413,32 @@ function renderPaths(p: Painter) {
   }
 }
 
+/** Let footpaths meet the meadow with clustered blossoms, not a hard tile seam. */
+function softenPathVerge(p: Painter) {
+  const blooms = ['flowers-daisy', 'flowers-lavender', 'flowers-gold'] as const;
+  const pathCells = [...p.paths].map((at) => at.split(',').map(Number));
+  const planted = new Set<string>();
+  for (const [x = 0, y = 0] of pathCells) {
+    // Sparse seed points become little shoulder clusters. This keeps paths
+    // legible and walkable while breaking the ruler-straight edges at game zoom.
+    if (h2(x, y, 211) % 37 !== 0) continue;
+    const side = h2(x, y, 223) % 2 === 0 ? -1 : 1;
+    for (const [dx, dy] of [
+      [side, 0],
+      [side, -1],
+      [side, 1],
+    ] as const) {
+      const nx = x + dx;
+      const ny = y + dy;
+      const at = key(nx, ny);
+      if (planted.has(at) || p.isBlocked(nx, ny) || p.paths.has(at) || !p.get(nx, ny).startsWith('grass')) continue;
+      if (h2(nx, ny, 227) % 4 === 0) continue;
+      p.set(nx, ny, blooms[h2(nx, ny, 229) % blooms.length]!);
+      planted.add(at);
+    }
+  }
+}
+
 /** A winding east-valley stream that bends around real building footprints. */
 function creek(
   p: Painter,
@@ -436,18 +466,19 @@ function creek(
     const desiredX = baseX + Math.sin(along * 0.22) * broadBend + anchoredSoftBend * softBend;
     const pool = Math.sin(along * 0.25 + 0.9);
     const width = pool > 0.45 ? 3 : 2;
+    const safeBank = (candidate: number) =>
+      Array.from({ length: width }, (_, offset) => {
+        const x = candidate + offset;
+        return !p.isBlocked(x, y) && !p.waterReservations.has(key(x, y));
+      }).every(Boolean);
     // Prefer the east-valley corridor and search the full map only when a real
     // footprint closes it. Never invent a fallback coordinate through a lot.
     const preferredCenters = Array.from({ length: maxCenterX - runMinX + 1 }, (_, offset) => runMinX + offset);
-    const safeInCorridor = preferredCenters.filter((candidate) =>
-      Array.from({ length: width }, (_, offset) => candidate + offset).every((column) => !p.isBlocked(column, y)),
-    );
+    const safeInCorridor = preferredCenters.filter(safeBank);
     const safeCenters =
       safeInCorridor.length > 0
         ? safeInCorridor
-        : Array.from({ length: p.cols - width - 2 }, (_, offset) => offset + 1).filter((candidate) =>
-            Array.from({ length: width }, (_, offset) => candidate + offset).every((column) => !p.isBlocked(column, y)),
-          );
+        : Array.from({ length: p.cols - width - 2 }, (_, offset) => offset + 1).filter(safeBank);
     return { y, width, desiredX, safeCenters };
   });
 
@@ -1077,55 +1108,14 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
         : cols - 4,
   );
   road(p, roadY, creekX, routeEndX, 3);
-  // Every doorway branches from the same street instead of attaching to a
-  // previously added doorway path. Shared services take short branches;
-  // project houses keep a gentle curved approach into their neighborhood.
+  // Each real doorway finds its own safe, short approach to the public street.
+  // This keeps the village from acquiring a second ruler-straight service lane.
   const street = new Set(p.paths);
-  if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h, street);
-  const servicePlaces = commons.filter((place) =>
-    ['object:attention', 'object:files', 'object:settings', 'object:workshop'].includes(place.id),
-  );
-  const serviceDoors = servicePlaces.map((place) => ({
-    x: place.x + Math.floor(place.w / 2),
-    y: place.y + place.h,
-  }));
-  const serviceY = Math.max(...serviceDoors.map(({ y }) => y));
-  const sharesFrontage = serviceDoors.length > 1 && serviceDoors.every(({ y }) => serviceY - y <= 1);
-  const serviceLeft = Math.min(...serviceDoors.map(({ x }) => x));
-  const serviceRight = Math.max(...serviceDoors.map(({ x }) => x));
-  // A shallow, deterministic bow softens the frontage while keeping each
-  // service entrance on one continuous route. Door-to-lane spurs stay short;
-  // the service street no longer reads as a ruler-straight grid edge.
-  const serviceLane = Array.from({ length: serviceRight - serviceLeft + 1 }, (_, offset) => {
-    const x = serviceLeft + offset;
-    const progress = offset / Math.max(1, serviceRight - serviceLeft);
-    const y = serviceY + Math.round((1 - Math.cos(progress * Math.PI * 2)) / 2);
-    return { x, y };
-  });
-  const serviceLaneClear =
-    sharesFrontage && serviceLane.every(({ x, y }) => !p.isBlocked(x, y) && p.get(x, y) !== 'water');
-  if (serviceLaneClear) {
-    // Files, Settings, Workshop and Attention share a small service lane.
-    // Give their real front doors one legible street, then join it to the
-    // commons once; independent detours around neighboring façades created
-    // rectangular loops in the open meadow.
-    let previousY = serviceY;
-    for (const { x, y } of serviceLane) {
-      if (Math.abs(y - previousY) > 0) p.path(x, previousY);
-      p.path(x, y);
-      previousY = y;
-    }
-    for (const { x, y } of serviceDoors) {
-      const laneY = serviceLane.find((point) => point.x === x)?.y ?? serviceY;
-      for (const point of rasterPoints(x, y, x, laneY)) p.path(point.x, point.y);
-    }
-    connectEntrance(p, serviceRight + 1, serviceLane.at(-1)?.y ?? serviceY, street);
-  }
+  if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h, street, false);
   for (const place of commons) {
-    if (serviceLaneClear && servicePlaces.includes(place)) continue;
     const doorX = place.x + Math.floor(place.w / 2);
     const doorY = place.y + place.h;
-    connectEntrance(p, doorX, doorY, street);
+    connectEntrance(p, doorX, doorY, street, false);
   }
   for (const project of projects) {
     const doorX = project.x + Math.floor(project.w / 2);
@@ -1142,6 +1132,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   }
   connectPathIslands(p);
   renderPaths(p);
+  softenPathVerge(p);
   plazaCore(p, hall, commons);
   if (plannedCreekX !== null) {
     bridgeAt(p, creekX, roadY);
@@ -1188,9 +1179,9 @@ export function paintInterior(entities: readonly LaidOutEntity[], cols: number, 
   p.sprite('room-window:east', 14, 0, 'window-valley', 32, 24);
   p.sprite('room-sconce:west', 0, 3, 'wall-sconce', 16, 24);
   p.sprite('room-sconce:east', cols - 1, 3, 'wall-sconce', 16, 24);
-  p.sprite('room-rug:commons', 10, Math.max(4, rows - 6), 'rug', 32, 16);
+  p.sprite('room-rug:commons', Math.floor(cols / 2) - 1, Math.max(4, rows - 6), 'rug', 32, 16);
   p.sprite('room-plant:west', 1, rows - 2, 'plant', 24, 24);
-  p.sprite('room-plant:east', 12, rows - 2, 'plant', 24, 24);
+  p.sprite('room-plant:east', Math.max(2, cols - 3), rows - 2, 'plant', 24, 24);
   p.sprite('room-mote:west', 5, 5, 'mote', 10, 10, 4, 3, false, true);
   p.sprite('room-mote:east', 12, 5, 'mote', 10, 10, 4, 3, false, true);
   return { cells: cellsToArray(p), decor: p.decor };

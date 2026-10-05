@@ -375,18 +375,3 @@ samp {
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
 }
-
-/* --- Compatibility aliases (Cozy Pixel World) ---
-   Older feature CSS still references Paper-era token names; map them onto
-   the game-menu system so there is one visual language. New code uses the
-   --accent-gold-* / --surface-notice-* names directly. */
-:root,
-:root[data-theme='meadow'],
-:root[data-theme='dusk'] {
-  --accent-brass: var(--accent-gold);
-  --accent-brass-strong: var(--accent-gold-strong);
-  --accent-brass-fill: var(--accent-gold);
-  --accent-brass-on: var(--accent-gold-on);
-  --surface-manila: var(--surface-notice);
-  --surface-manila-strong: var(--surface-notice-strong);
-}

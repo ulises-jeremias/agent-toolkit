@@ -49,12 +49,12 @@
 
 .tab[aria-selected='true'] {
   background: var(--surface-terminal);
-  border-bottom-color: var(--accent-brass-fill);
+  border-bottom-color: var(--accent-gold);
   color: var(--text-terminal);
 }
 
 .tab:focus-visible {
-  outline: 2px solid var(--accent-brass-fill);
+  outline: 2px solid var(--accent-gold);
   outline-offset: 2px;
   box-shadow: 0 0 0 4px var(--surface-terminal);
 }
@@ -126,7 +126,7 @@
 }
 
 .chrome:focus-within {
-  box-shadow: var(--shadow-raised), 0 0 0 2px var(--accent-brass-fill);
+  box-shadow: var(--shadow-raised), 0 0 0 2px var(--accent-gold);
 }
 
 .chromeBar {

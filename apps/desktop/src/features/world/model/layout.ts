@@ -82,15 +82,15 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   );
   const rest = sorted.filter((e) => !used.has(e.id));
 
-  // Project room: real resources occupy distinct wall stations and leave a
-  // broad central aisle for navigation and any genuinely live sessions.
+  // Project room: real resources form two compact wall stations around a
+  // navigable central aisle. Keep the useful room filled at normal zoom.
   if (exit) place(exit, 0, 5);
-  if (room) place(room, 6, 0);
-  if (memory) place(memory, 17, 0);
-  if (terminal) place(terminal, 6, 6);
-  if (files) place(files, 17, 6);
+  if (room) place(room, 3, 0);
+  if (memory) place(memory, 11, 0);
+  if (terminal) place(terminal, 3, 6);
+  if (files) place(files, 11, 6);
 
-  let entryX = 17;
+  let entryX = 11;
   const entryY = 5;
   for (const entry of memoryEntries) {
     place(entry, entryX, entryY);
@@ -117,7 +117,7 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   return {
     // Keep the real project stations close enough to read as one room. Only
     // actual records or active sessions expand the space beyond this footprint.
-    cols: Math.max(maxX, 22),
+    cols: Math.max(maxX, 18),
     rows: Math.max(maxY, 11),
     entities: laid,
   };
@@ -217,14 +217,14 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // smaller service places form its southern garden lane.
   const civicSlots: Record<string, { x: number; y: number }> = {
     'object:library': { x: 1, y: 4 },
-    // Keep the quieter service lane close enough to fit a complete 32px map
-    // in compact windows while leaving the civic front doors unobstructed.
+    // Services sit on distinct garden lots around the commons rather than a
+    // single storefront row. Their separate door heights shape short paths.
     'object:workshop': { x: 12, y: 8 },
-    'object:operations': { x: 6, y: 3 },
+    'object:operations': { x: 5, y: 3 },
     'object:terminal': { x: 11, y: 2 },
-    'object:attention': { x: 0, y: 9 },
+    'object:attention': { x: 0, y: 8 },
     'object:files': { x: 4, y: 8 },
-    'object:settings': { x: 8, y: 8 },
+    'object:settings': { x: 8, y: 7 },
   };
   for (const landmark of sharedObjects) {
     const slot = civicSlots[landmark.id]!;

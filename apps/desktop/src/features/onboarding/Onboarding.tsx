@@ -274,7 +274,7 @@ function HarnessStep({
   );
 }
 
-/** Original 32×32 pixel tools: desk, sage plant, brass lamp, manila folder. No characters. */
+/** Original 32×32 pixel tools: desk, sage plant, lantern, workspace board. No characters. */
 function PixelDesk() {
   return (
     <svg className={styles.pixelDesk} viewBox="0 0 32 32" width="160" height="160" aria-hidden="true">
@@ -283,16 +283,16 @@ function PixelDesk() {
       <rect x="6" y="5" width="3" height="5" fill="var(--status-ok-fg)" />
       <rect x="5" y="10" width="5" height="2" fill="var(--status-ok-bg)" />
       <rect x="6" y="12" width="3" height="2" fill="var(--border-strong)" />
-      <rect x="22" y="4" width="2" height="6" fill="var(--accent-brass-strong)" />
-      <rect x="21" y="3" width="4" height="2" fill="var(--accent-brass-fill)" />
-      <rect x="20" y="10" width="6" height="2" fill="var(--accent-brass)" />
-      <rect x="10" y="11" width="10" height="6" fill="var(--surface-manila)" />
+      <rect x="22" y="4" width="2" height="6" fill="var(--accent-gold-strong)" />
+      <rect x="21" y="3" width="4" height="2" fill="var(--accent-gold)" />
+      <rect x="20" y="10" width="6" height="2" fill="var(--accent-gold)" />
+      <rect x="10" y="11" width="10" height="6" fill="var(--surface-notice)" />
       <rect x="10" y="10" width="4" height="2" fill="var(--status-warn-fg)" />
       <rect x="12" y="13" width="6" height="1" fill="var(--border-default)" />
-      <rect x="2" y="18" width="28" height="10" fill="var(--surface-manila-strong)" />
-      <rect x="4" y="19" width="24" height="6" fill="var(--surface-manila)" />
-      <rect x="23" y="20" width="4" height="1" fill="var(--accent-brass-fill)" />
-      <rect x="23" y="21" width="1" height="4" fill="var(--accent-brass-strong)" />
+      <rect x="2" y="18" width="28" height="10" fill="var(--surface-notice-strong)" />
+      <rect x="4" y="19" width="24" height="6" fill="var(--surface-notice)" />
+      <rect x="23" y="20" width="4" height="1" fill="var(--accent-gold)" />
+      <rect x="23" y="21" width="1" height="4" fill="var(--accent-gold-strong)" />
       <rect x="0" y="28" width="32" height="4" fill="var(--border-strong)" />
     </svg>
   );

@@ -474,20 +474,21 @@
   z-index: 4;
 }
 
-/* Dusk: the valley darkens; sprites keep their baked warm windows. */
-.mapRegion::after {
+/* Dusk tints terrain beneath the authored sprites. Keep this inside the
+   transformed camera layer, above the canvas and below décor/entities. */
+.mapWorld::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 7;
+  z-index: 2;
 }
 
-:root[data-theme='meadow'] .mapRegion::after {
+:root[data-theme='meadow'] .mapWorld::after {
   background: rgba(255, 244, 214, 0.03);
 }
 
-:root[data-theme='dusk'] .mapRegion::after {
-  background: rgba(18, 24, 56, 0.22);
+:root[data-theme='dusk'] .mapWorld::after {
+  background: rgba(18, 24, 56, 0.34);
   mix-blend-mode: multiply;
 }

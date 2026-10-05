@@ -18,7 +18,7 @@ const SIZES = [
 const THEMES = ['meadow', 'dusk'] as const;
 const DESTINATIONS = [
   'World',
-  'Office',
+  'Attention',
   'Operations',
   'Workspace',
   'Library',
@@ -176,4 +176,13 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
       }
     }
   }
+
+  // Capture opens a real PTY for the terminal screenshots. Close it through
+  // the same reviewed UI action as a user so the Electron process and backend
+  // can shut down promptly after the tour.
+  await nav(page).getByRole('link', { name: 'Terminal' }).click();
+  await page.getByRole('button', { name: 'Close' }).click();
+  const closeDialog = page.getByRole('dialog', { name: 'Close this session?' });
+  await closeDialog.getByRole('button', { name: 'Kill and close' }).click();
+  await expect(page.getByRole('tab', { name: /shell.*running/ })).toHaveCount(0);
 });

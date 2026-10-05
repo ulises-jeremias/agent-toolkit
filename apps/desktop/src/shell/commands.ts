@@ -87,7 +87,7 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     id: 'go:world-attention',
     group: 'Go',
     title: 'Open attention (Needs you)',
-    hint: 'Semantic stamp · focus Needs you, then Office',
+    hint: 'Attention board · open Needs you and current recovery items',
     keywords: ['world', 'office', 'attention', 'needs'],
     action: { type: 'world-jump', target: 'world-attention' },
   },

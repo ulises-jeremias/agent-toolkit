@@ -18,7 +18,7 @@ test.describe('desktop smoke', () => {
     await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
   });
 
-  test('Office is the Needs you inspector, not home', async ({ page }) => {
+  test('Attention is the Needs you inspector, not home', async ({ page }) => {
     await page.goto('/#/office');
     await expect(page.getByRole('heading', { level: 1, name: 'Attention' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Needs you' })).toBeVisible();
@@ -36,19 +36,20 @@ test.describe('desktop smoke', () => {
   test('destinations navigate without dead ends', async ({ page }) => {
     const nav = page.getByRole('navigation', { name: 'Destinations' });
     for (const destination of [
-      'World',
-      'Office',
-      'Operations',
-      'Workspace',
-      'Library',
-      'Insights',
-      'Terminal',
-      'Settings',
+      { label: 'World', path: 'world' },
+      { label: 'Attention', path: 'office' },
+      { label: 'Operations', path: 'operations' },
+      { label: 'Workspace', path: 'workspace' },
+      { label: 'Library', path: 'library' },
+      { label: 'People', path: 'people' },
+      { label: 'Insights', path: 'insights' },
+      { label: 'Terminal', path: 'terminal' },
+      { label: 'Settings', path: 'settings' },
     ]) {
       await page.goto('/#/world');
-      await nav.getByRole('link', { name: destination }).click();
-      await expect(page).toHaveURL(new RegExp(`#/${destination.toLowerCase()}`));
-      await expect(nav.getByRole('link', { name: destination })).toHaveAttribute('aria-current', 'page');
+      await nav.getByRole('link', { name: destination.label }).click();
+      await expect(page).toHaveURL(new RegExp(`#/${destination.path}`));
+      await expect(nav.getByRole('link', { name: destination.label })).toHaveAttribute('aria-current', 'page');
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     }
   });

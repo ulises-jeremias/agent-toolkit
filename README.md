@@ -148,7 +148,7 @@ Agent Toolkit Desktop is the flagship Electron application over the canonical V 
 | Real PTY terminal | Reviewed import |
 | <img src="static/screenshots/terminal.png" width="100%" alt="Live shell session with real command output in the integrated terminal" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder hire import review showing mapped and ignored fields before saving" /> |
 
-These are captures of the shipping Electron app against a disposable workspace and real backend. The image dimensions reflect the viewports used for each state; the CI visual-review tour also captures compact and large layouts. Offline People do not create world characters, and runtime activity appears only when observed. The terminal image shows a real PTY, not a mockup.
+These are captures of the shipping Electron app against a disposable workspace and real backend (Linux Electron capture `37310981958`, source `16e3264d`). The image dimensions reflect the viewports used for each state; the CI visual-review tour also captures compact and large layouts. Offline People do not create world characters, and runtime activity appears only when observed. The terminal image shows a real PTY, not a mockup. The latest visual review refreshed the gallery from one source revision and records the remaining broad lawns, angular paths, and sparse project interior instead of presenting them as finished.
 
 ### Advanced install methods
 

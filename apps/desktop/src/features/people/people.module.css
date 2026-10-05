@@ -22,13 +22,13 @@
   box-shadow: var(--shadow-chip);
 }
 .personCard[data-selected='true'] {
-  border-color: var(--accent-brass-fill);
+  border-color: var(--accent-gold);
   box-shadow:
-    inset 4px 0 0 var(--accent-brass-fill),
+    inset 4px 0 0 var(--accent-gold),
     var(--shadow-chip);
 }
 .personCard:focus-visible {
-  outline: 3px solid var(--accent-brass-fill);
+  outline: 3px solid var(--accent-gold);
   outline-offset: 2px;
 }
 .avatar {
