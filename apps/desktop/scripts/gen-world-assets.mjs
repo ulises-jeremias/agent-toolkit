@@ -1512,6 +1512,38 @@ function wallBand() {
   return [{ name: 'wall-top', img }];
 }
 
+/** A moonlit window with a tiny valley silhouette and warm timber frame. */
+function interiorWindow() {
+  const img = new Img(32, 24);
+  img.ellipse(16, 12, 15, 11, 'glowOuter');
+  img.rect(3, 0, 28, 20, 'inkd').rect(4, 1, 27, 19, 'od');
+  img.rect(6, 3, 25, 16, 'ink');
+  img.rect(7, 4, 24, 15, 'rsd');
+  img.set(10, 6, 'lv').set(20, 5, 'wy').set(22, 8, 'lv').set(13, 8, 'cy');
+  img.ellipse(20, 5, 1, 1, 'gg');
+  img.hline(7, 24, 12, 'fd');
+  img.rect(7, 14, 24, 16, 'fo');
+  img.set(9, 13, 'gd').set(11, 12, 'fl').set(18, 13, 'gd').set(22, 12, 'fl');
+  img.vline(15, 4, 15, 'od').hline(7, 24, 10, 'od');
+  img.rect(2, 19, 29, 21, 'od').hline(1, 30, 22, 'floorWoodLight');
+  img.hline(4, 27, 23, 'floorWoodShade');
+  return [{ name: 'window-valley', img }];
+}
+
+/** A small amber wall lantern; its pixel halo is environmental, not status. */
+function interiorSconce() {
+  const img = new Img(16, 24);
+  img.ellipse(8, 9, 7, 8, 'glowOuter');
+  img.ellipse(8, 9, 4, 6, 'glowMiddle');
+  img.rect(6, 12, 10, 15, 'inkd').rect(7, 13, 9, 14, 'od');
+  img.vline(7, 6, 12, 'ol').vline(9, 6, 12, 'od');
+  img.rect(6, 5, 10, 9, 'inkd').rect(7, 6, 9, 8, 'go');
+  img.set(7, 6, 'wy').set(8, 7, 'gg');
+  img.hline(5, 11, 5, 'floorWoodLight').set(8, 3, 'gg');
+  img.rect(6, 15, 10, 16, 'floorWoodShade');
+  return [{ name: 'wall-sconce', img }];
+}
+
 function doorExit() {
   const img = new Img(16, 24);
   img.rect(2, 0, 13, 21, 'k').rect(3, 1, 12, 20, 'od');
@@ -1845,6 +1877,8 @@ function collect() {
     floorPlank(),
     floorRune(),
     wallBand(),
+    interiorWindow(),
+    interiorSconce(),
     doorExit(),
     rug(),
     plantPot(),

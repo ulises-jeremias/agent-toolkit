@@ -325,6 +325,10 @@ describe('buildWorldModel', () => {
     expect(ids).not.toContain('place:knowledge-workspace');
     expect(ids).toContain('character:job:j1');
     expect(model.entities.find((e) => e.id === 'place:project:alpha')?.concept).toBe('Project overview board');
+    const interior = layoutWorld(model);
+    const projectArchive = interior.entities.find((entity) => entity.id === 'place:memory-project:alpha')!;
+    const projectRecord = interior.entities.find((entity) => entity.id === 'object:memory:p.md')!;
+    expect(projectRecord.y).toBeGreaterThanOrEqual(projectArchive.y + projectArchive.h);
   });
 
   it('places detected coding tools in one shared workshop, outside project houses', () => {
@@ -976,6 +980,21 @@ describe('layoutWorld', () => {
     expect(first.cells.filter((cell) => cell.tile === 'wall')).toHaveLength(56);
   });
 
+  it('makes quiet project rooms cozy without implying runtime activity', () => {
+    const first = paintInterior([], 18, 12);
+    const second = paintInterior([], 18, 12);
+    const sprites = new Set(first.decor.map(({ sprite }) => sprite));
+    const ambient = first.decor.filter(({ ambient }) => ambient);
+
+    expect(sprites).toEqual(new Set(['window-valley', 'wall-sconce', 'rug', 'plant', 'mote']));
+    expect(first.decor).toEqual(second.decor);
+    expect(first.decor.filter(({ sprite }) => sprite === 'window-valley')).toHaveLength(2);
+    expect(first.decor.filter(({ sprite }) => sprite === 'wall-sconce')).toHaveLength(2);
+    expect(first.decor.filter(({ sprite }) => sprite === 'plant')).toHaveLength(2);
+    expect(ambient).toHaveLength(2);
+    expect(ambient.every(({ sprite }) => sprite === 'mote')).toBe(true);
+  });
+
   it('keeps a small, stable firefly presence along the creek in the idle world', () => {
     const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
     const decor = paintTerrain(layout.entities, layout.cols, layout.rows).decor;
@@ -1141,11 +1160,11 @@ describe('layoutWorld', () => {
     expect(exit && room).toBeTruthy();
     expect(exit!.x).toBe(1);
     expect(room!.x).toBeGreaterThan(exit!.x);
-    expect(records?.x).toBe(9);
+    expect(records?.x).toBe(14);
     expect(terminal?.y).toBe(7);
     expect(files?.y).toBe(7);
     expect(files!.x - terminal!.x).toBeGreaterThanOrEqual(4);
-    expect(layout.cols).toBe(14);
+    expect(layout.cols).toBe(18);
     expect(layout.rows).toBe(11);
   });
 });
