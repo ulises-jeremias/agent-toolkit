@@ -960,11 +960,17 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     : marker
       ? marker.y + marker.h
       : undefined;
-  // Keep a little meadow between house fronts and the shared avenue. That
-  // gives each real entrance room for a curved footpath instead of making
-  // every door sit directly on the same ruler-straight road tile.
-  const roadOffset = projects.length > 0 ? 2 : 0;
-  const roadY = Math.min(rows - 3, (firstStreetDoorY ?? Math.floor(rows / 2)) + roadOffset);
+  // Put the main avenue along the civic front doors as well as the project
+  // lane. Starting the road at the creek's west bank left the whole civic
+  // quarter without a street, so every entrance detoured toward the southern
+  // service lane and turned the settlement into a rectangular loop.
+  const publicDoorY = Math.max(
+    8,
+    ...commons
+      .filter((place) => ['object:library', 'object:operations', 'object:terminal'].includes(place.id))
+      .map((place) => place.y + place.h),
+  );
+  const roadY = Math.min(rows - 3, Math.max(publicDoorY, firstStreetDoorY ?? publicDoorY));
 
   // creek first so roads bridge it
   const workshop = entities.find((e) => e.id === 'object:workshop');
@@ -972,8 +978,8 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     ? Math.min(...projects.map((project) => project.x))
     : (marker?.x ?? Math.floor(cols / 2));
   const riverX = riverAnchorX - (projects.length ? 2 : 8);
-  // Start the street on the actual west bank so the crossing is always joined
-  // to the path network, even when a civic building sits farther east.
+  // Carry one shared street from the west edge, through the civic quarter,
+  // over the bridge, and up to the project district.
   const plannedCreekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
   const creekX = plannedCreekX ?? Math.max(4, Math.min(cols - 5, riverX));
   (p as unknown as { creekX: number }).creekX = creekX;
@@ -982,7 +988,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     : marker
       ? marker.x + Math.floor(marker.w / 2)
       : cols - 4;
-  road(p, roadY, creekX, routeEndX, creekX - 1);
+  road(p, roadY, creekX, routeEndX, 1);
   // Every doorway branches from the same street instead of attaching to a
   // previously added doorway path. Shared services take short branches;
   // project houses keep a gentle curved approach into their neighborhood.
@@ -1016,7 +1022,6 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     connectEntrance(p, serviceRight + 1, serviceY, street);
   }
   for (const place of commons) {
-    if (place.id === 'place:memory') continue;
     if (serviceLaneClear && servicePlaces.includes(place)) continue;
     const doorX = place.x + Math.floor(place.w / 2);
     const doorY = place.y + place.h;
