@@ -773,3 +773,25 @@ Opened files:
   and [large](assets/electron/world/world-several-projects-large.png).
 - [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
   and [large](assets/electron/world/project-files-room-large.png).
+
+## Project interior ambience — 2026-10-05
+
+Captured from source `fbfa8944deaec762e9c9d6c409fa71202bcf44f2` by the Linux
+Electron visual-review workflow. I opened the compact and large project-room
+captures and the compact and large several-project world captures from [run
+37252088667](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37252088667),
+artifact `electron-review-screenshots`. The wider room gives the project overview,
+archive, terminal, exit, and files stations more space. Windows, sconces, plants,
+and rug add environmental detail without covering station labels or implying
+live work. In the several-project captures the existing building labels, paths,
+and creek remain readable. At the 1024×640 compact capture the project room
+fits without clipping its stations; at 1920×1080 the larger canvas still has a
+broad central wood floor. This pass adds atmosphere and does not complete the
+wider composition work.
+
+Opened artifact files:
+
+- `project-files-room-compact.png`
+- `project-files-room-large.png`
+- `world-several-projects-compact.png`
+- `world-several-projects-large.png`
