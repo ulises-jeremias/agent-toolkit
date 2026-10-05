@@ -467,8 +467,8 @@ describe('buildWorldModel', () => {
       h: 4,
     });
 
-    // The public buildings form a slight arc, and the south lane is offset
-    // from it so the settlement reads as a place rather than a tile grid.
+    // Public services and the quieter work lots form separate districts,
+    // avoiding a single row of doors and its long rectangular path.
     expect(layout.entities.find((entity) => entity.id === 'object:terminal')?.y).toBeLessThan(
       layout.entities.find((entity) => entity.id === 'object:library')?.y ?? Number.POSITIVE_INFINITY,
     );
@@ -476,7 +476,7 @@ describe('buildWorldModel', () => {
       layout.entities.find((entity) => entity.id === 'object:attention')?.x ?? 0,
     );
     expect(new Set(landmarks.slice(0, 3).map((entity) => entity.y)).size).toBe(3);
-    expect(new Set(landmarks.slice(3).map((entity) => entity.y + entity.h)).size).toBe(1);
+    expect(new Set(landmarks.slice(3).map((entity) => entity.y + entity.h)).size).toBeGreaterThan(1);
 
     for (let left = 0; left < landmarks.length; left += 1) {
       for (let right = left + 1; right < landmarks.length; right += 1) {
@@ -502,14 +502,7 @@ describe('buildWorldModel', () => {
       x: landmark.x + Math.floor(landmark.w / 2),
       y: landmark.y + landmark.h,
     }));
-    const serviceFrontY = serviceDoors[0]!.y;
-    expect(serviceDoors.every(({ y }) => serviceFrontY - y <= 1)).toBe(true);
-    const serviceLeftX = Math.min(...serviceDoors.map(({ x }) => x));
-    const serviceRightX = Math.max(...serviceDoors.map(({ x }) => x));
-    for (let x = serviceLeftX; x <= serviceRightX; x += 1) {
-      const laneHasTile = [serviceFrontY, serviceFrontY + 1].some((y) => paths.has(`${x},${y}`));
-      expect(laneHasTile, `shared service lane has no gap beside ${x},${serviceFrontY}`).toBe(true);
-    }
+    expect(new Set(serviceDoors.map(({ y }) => y)).size).toBeGreaterThan(1);
     expect(terrain.cells.some((cell) => cell.tile.startsWith('plaza'))).toBe(true);
     const operations = landmarks.find((landmark) => landmark.id === 'object:operations')!;
     const operationsDoor = terrain.cells.find(

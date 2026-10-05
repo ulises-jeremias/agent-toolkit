@@ -217,14 +217,14 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // smaller service places form its southern garden lane.
   const civicSlots: Record<string, { x: number; y: number }> = {
     'object:library': { x: 1, y: 4 },
-    // Keep the quieter service lane close enough to fit a complete 32px map
-    // in compact windows while leaving the civic front doors unobstructed.
-    'object:workshop': { x: 12, y: 8 },
+    // Services sit on distinct garden lots around the commons rather than a
+    // single storefront row. Their separate door heights shape short paths.
+    'object:workshop': { x: 14, y: 7 },
     'object:operations': { x: 6, y: 3 },
     'object:terminal': { x: 11, y: 2 },
     'object:attention': { x: 0, y: 9 },
     'object:files': { x: 4, y: 8 },
-    'object:settings': { x: 8, y: 8 },
+    'object:settings': { x: 9, y: 9 },
   };
   for (const landmark of sharedObjects) {
     const slot = civicSlots[landmark.id]!;
