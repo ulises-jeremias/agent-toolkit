@@ -21,6 +21,7 @@ describe('filterCommands', () => {
     expect(officeHits.map((command) => command.id)).toContain('go:/office');
     const office = PALETTE_COMMANDS.find((command) => command.id === 'go:/office');
     expect(office?.hint).toBe('What needs attention now?');
+    expect(office?.title).toBe('Go to Attention');
   });
 
   it('matches keywords for the terminal dock and world terminal place', () => {

@@ -6,7 +6,7 @@ outcomes, not claims that every step is implemented.
 
 | Journey | Required path and outcome |
 |---|---|
-| Clean first-time user | Open installed app → understand purpose → create workspace → detect tools → choose useful skills → review destinations → install → validate → useful Office. No terminal setup or sibling repo. |
+| Clean first-time user | Open installed app → understand purpose → create workspace → detect tools → choose useful skills → review destinations → install → validate → useful Attention view. No terminal setup or sibling repo. |
 | Existing Agent Toolkit user | Find existing setup → explain detected configuration and installed artifacts → use in place → validate. Preserve customization. |
 | Existing workspace/harness user | Classify environment → explain compatibility and proposed adapter changes → preview → explicitly use in place or copy/import → validate without overwriting user files. |
 | Capability discovery | Search by task/tool → filter actual catalog → inspect description, provenance, dependencies and verified compatibility → choose relevant action. |

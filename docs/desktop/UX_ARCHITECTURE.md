@@ -8,6 +8,10 @@ Agent Toolkit Desktop is Electron + React over `agent-toolkit serve`. The V core
 
 World click targets, navigation, contextual actions, and the command palette use the same routes and operations. No task requires walking an avatar. Inspectors open for precise control while the world retains context. Library, project knowledge, memory, and files remain separate concepts.
 
+The recovery inspector is labeled **Attention** in navigation. Its `/office`
+route remains stable for existing links and palette queries; the visible
+language describes the real function rather than an office metaphor.
+
 ## Identity and runtime
 
 AgentDefinition is reusable capability; Person is durable collaborator configuration; AgentSession is a live process; SwarmRole is an ephemeral responsibility. A configured Person appears in the roster even when offline. A character in the world requires actual runtime evidence and a project assignment. Runtime exit removes its presence without deleting the Person. Environmental animals and effects must never imply agent activity.

@@ -20,7 +20,7 @@ import styles from './shell.module.css';
 function NavCount({ path }: { path: string }) {
   const jobs = useJobs();
   if (path === '/office') {
-    return <OfficeNavCount />;
+    return <AttentionNavCount />;
   }
   if (path !== '/operations') return null;
   const active = activeJobIds(jobs.data).length;
@@ -32,7 +32,7 @@ function NavCount({ path }: { path: string }) {
   );
 }
 
-function OfficeNavCount() {
+function AttentionNavCount() {
   const { items } = useAttention();
   if (items.length === 0) return null;
   return (
