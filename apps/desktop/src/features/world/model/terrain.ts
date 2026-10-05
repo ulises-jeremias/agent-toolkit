@@ -244,12 +244,7 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
 }
 
 /** Connect a real entrance to the existing street without crossing buildings or water. */
-function connectEntrance(
-  p: Painter,
-  startX: number,
-  startY: number,
-  trunk: ReadonlySet<string> = p.paths,
-) {
+function connectEntrance(p: Painter, startX: number, startY: number, trunk: ReadonlySet<string> = p.paths) {
   const start = key(startX, startY);
   if (p.paths.has(start)) return;
 
