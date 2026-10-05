@@ -831,7 +831,10 @@ function forest(p: Painter, projectlessMeadow = false) {
       // Keep tall canopies fully inside the framed world; low grass and
       // flowers can still reach the edge without looking accidentally cut.
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
-      const groveDensity = projectlessMeadow ? 31 : 20;
+      // Project districts used to feel exposed beside the creek; carry more of
+      // the wooded frame into real settlements while keeping door approaches,
+      // clearings, and façades protected below.
+      const groveDensity = projectlessMeadow ? 31 : 25;
       const naturallyWooded = edge
         ? roll < (x >= p.cols - 6 ? 27 : 29)
         : nearCreek
