@@ -3,6 +3,7 @@
 **Getting Started**
 - [🏠 Home](Home)
 - [📦 Installation](Installation)
+- [🌿 Agent Toolkit Desktop](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/desktop/README.md)
 - [🤝 Contributing](Contributing)
 - [❓ FAQ](FAQ)
 
