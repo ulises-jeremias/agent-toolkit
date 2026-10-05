@@ -101,7 +101,7 @@ Agent Toolkit Desktop is a standalone Electron app over the same V backend. It o
 <div align="center">
 <img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/world.png" width="92%" alt="Agent Toolkit Desktop — workspace valley with semantic buildings, water and paths" />
 <br />
-<img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/library.png" width="92%" alt="Library: searchable skills catalog with detail inspector" />
+<img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/library.png" width="92%" alt="Agent Toolkit Library with coding tool detection and installation evidence" />
 </div>
 
 ---
