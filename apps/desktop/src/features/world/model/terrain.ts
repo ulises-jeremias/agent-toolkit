@@ -1059,8 +1059,8 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
       connectEntrance(p, doorX, doorY, street);
     }
   }
-  plazaCore(p, hall, commons);
   renderPaths(p);
+  plazaCore(p, hall, commons);
   if (plannedCreekX !== null) {
     bridgeAt(p, creekX, roadY);
     bridgeLanterns(p, creekX, roadY);
