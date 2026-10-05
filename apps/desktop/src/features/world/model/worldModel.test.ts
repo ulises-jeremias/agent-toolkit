@@ -717,7 +717,7 @@ describe('layoutWorld', () => {
     expect(firstBeta.x - (secondAlpha.x + secondAlpha.w)).toBeGreaterThanOrEqual(1);
     const compactTeam = layoutFor(['alpha', 'beta', 'gamma']);
     expect(compactTeam.cols).toBeLessThanOrEqual(29);
-    expect(compactTeam.rows).toBeLessThanOrEqual(15);
+    expect(compactTeam.rows).toBeLessThanOrEqual(13);
   });
 
   it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {

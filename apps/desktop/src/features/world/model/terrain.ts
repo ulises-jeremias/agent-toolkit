@@ -1031,25 +1031,15 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     (e) => e.kind === 'place' && e.id !== 'place:workspace' && !e.id.startsWith('place:project:'),
   );
   const marker = entities.find((e) => e.id === 'place:projects-empty');
-  const firstProjectY = projects.length ? Math.min(...projects.map((project) => project.y)) : undefined;
-  const firstStreetProjects =
-    firstProjectY === undefined ? [] : projects.filter((project) => project.y <= firstProjectY + 2);
-  const firstStreetDoorY = firstStreetProjects.length
-    ? Math.max(...firstStreetProjects.map((project) => project.y + project.h))
-    : marker
-      ? marker.y + marker.h
-      : undefined;
-  // Put the main avenue along the civic front doors as well as the project
-  // lane. Starting the road at the creek's west bank left the whole civic
-  // quarter without a street, so every entrance detoured toward the southern
-  // service lane and turned the settlement into a rectangular loop.
+  // Keep the main avenue on the public-frontage row. Houses and the empty
+  // project marker join by paths on the far side of the shared bridge.
   const publicDoorY = Math.max(
-    8,
+    7,
     ...commons
       .filter((place) => ['object:library', 'object:operations', 'object:terminal'].includes(place.id))
       .map((place) => place.y + place.h),
   );
-  const roadY = Math.min(rows - 3, Math.max(publicDoorY, firstStreetDoorY ?? publicDoorY));
+  const roadY = Math.min(rows - 3, publicDoorY);
 
   // creek first so roads bridge it
   const workshop = entities.find((e) => e.id === 'object:workshop');
