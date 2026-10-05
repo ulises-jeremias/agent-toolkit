@@ -41,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Valley woodland now reaches closer to walkable paths, while loose stones stay
+  beside the creek instead of appearing as scattered meadow noise.
 - World groves now form deterministic overlapping tree clusters behind buildings and clear paths; flower glades are more frequent in open terrain.
 - Meadow ground now selects among 24 authored tile motifs, with broader clustered cover and occasional clover glints instead of a sparkle on every tile.
 - Project houses now keep a planted-width gap between lots so creekside clearings have room to read as gardens and groves.
