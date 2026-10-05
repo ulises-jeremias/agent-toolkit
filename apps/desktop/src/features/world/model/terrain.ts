@@ -804,17 +804,26 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
   const offsets = [
     [0, 0],
     [-2, 0],
-    [1, 0],
+    [2, 0],
+    [-4, 0],
+    [4, 0],
     [-1, 1],
-    [2, 1],
-    [-3, 2],
+    [1, 1],
+    [-2, 2],
     [0, 2],
+    [2, 2],
+    [-4, 2],
+    [4, 2],
+    [-3, 3],
+    [0, 3],
+    [3, 3],
+    [-3, 1],
+    [3, 1],
+    [-3, 2],
     [3, 2],
-    [-1, 3],
-    [2, 3],
   ] as const;
   const addGrove = (candidate: (typeof candidates)[number]) => {
-    const minSpacing = 8;
+    const minSpacing = 6;
     if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < minSpacing)) return false;
     centers.push(candidate);
     for (const [dx, dy] of offsets) {
