@@ -1108,9 +1108,9 @@ describe('layoutWorld', () => {
     );
     const interiorTrees = trees.filter((tree) => tree.x >= 6 && tree.x < layout.cols - 6);
 
-    expect(trees.length).toBeGreaterThan(6);
-    expect(neighboringPairs.length).toBeGreaterThan(0);
-    expect(interiorTrees.length).toBeGreaterThan(1);
+    expect(trees.length).toBeGreaterThan(12);
+    expect(neighboringPairs.length).toBeGreaterThan(3);
+    expect(interiorTrees.length).toBeGreaterThan(3);
   });
 
   it('keeps loose stones on the creek bank instead of scattering them across meadow paths', () => {

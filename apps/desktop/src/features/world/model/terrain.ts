@@ -644,12 +644,12 @@ function flowerPatchSprites(p: Painter) {
 
 /** Pick a few stable grove hearts inside the settlement, away from its paths. */
 function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<string> {
-  const target = Math.min(7, Math.max(6, Math.floor((p.cols * p.rows) / 160)));
+  const target = Math.min(10, Math.max(8, Math.floor((p.cols * p.rows) / 130)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {
       if (!p.get(x, y).startsWith('grass') && !p.get(x, y).startsWith('flowers')) continue;
-      if (nearStructureOrPath(p, x, y, 2)) continue;
+      if (nearStructureOrPath(p, x, y, 1)) continue;
       candidates.push({ x, y, rank: h2(x, y, 173) });
     }
   }
@@ -661,8 +661,9 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
 
   const centers: { x: number; y: number }[] = [];
   const anchors = new Set<string>();
-  // Small irregular clumps read as woodland, while their anchors remain well
-  // clear of doors and footpaths. Avoid a uniform row of tree ornaments.
+  // Broad irregular clumps make the meadow feel sheltered and lived in. Roots
+  // stay clear of doors and paths; the separate canopy pass keeps crowns from
+  // obscuring façades. Avoid a uniform row of tree ornaments.
   const offsets = [
     [0, 0],
     [-2, 0],
@@ -672,10 +673,15 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
     [-2, 2],
     [0, 2],
     [2, 2],
+    [-3, 1],
+    [3, 1],
+    [-3, 2],
+    [3, 2],
+    [0, 3],
   ] as const;
   for (const candidate of candidates) {
     if (centers.length >= target) break;
-    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 9)) continue;
+    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 8)) continue;
     centers.push(candidate);
     for (const [dx, dy] of offsets) {
       const x = candidate.x + dx;
