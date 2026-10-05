@@ -244,7 +244,13 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
 }
 
 /** Connect a real entrance to the existing street without crossing buildings or water. */
-function connectEntrance(p: Painter, startX: number, startY: number, trunk: ReadonlySet<string> = p.paths) {
+function connectEntrance(
+  p: Painter,
+  startX: number,
+  startY: number,
+  trunk: ReadonlySet<string> = p.paths,
+  preferDirect = true,
+) {
   const start = key(startX, startY);
   if (p.paths.has(start)) return;
 
@@ -285,7 +291,7 @@ function connectEntrance(p: Painter, startX: number, startY: number, trunk: Read
   // curve for every doorway sprawled into rings when several service doors
   // shared one district; save a curve for a real blocked direct approach.
   const direct = rasterPoints(startX, startY, targetX, targetY);
-  if (isClear(direct)) {
+  if (preferDirect && isClear(direct)) {
     for (const point of direct) p.path(point.x, point.y);
     return;
   }
@@ -974,8 +980,8 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
       : cols - 4;
   road(p, roadY, creekX, routeEndX, creekX - 1);
   // Every doorway branches from the same street instead of attaching to a
-  // previously added doorway path. Letting entrances target one another made
-  // later shortest paths trace boxy loops around the civic quarter.
+  // previously added doorway path. Shared services take short branches;
+  // project houses keep a gentle curved approach into their neighborhood.
   const street = new Set(p.paths);
   if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h, street);
   for (const place of commons) {
@@ -987,7 +993,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   for (const project of projects) {
     const doorX = project.x + Math.floor(project.w / 2);
     const doorY = project.y + project.h;
-    connectEntrance(p, doorX, doorY, street);
+    connectEntrance(p, doorX, doorY, street, false);
   }
   projectGardens(p, projects);
   if (projects.length === 0) {
