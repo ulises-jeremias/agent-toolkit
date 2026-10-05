@@ -17,6 +17,7 @@ let rendererServer: RendererServer | null = null;
 let ipcRegistered = false;
 let shutdownTask: Promise<void> | null = null;
 let shutdownComplete = false;
+let shuttingDown = false;
 
 async function chooseHarnessDirectory(defaultPath: string): Promise<string | null> {
   const options: Electron.OpenDialogOptions = {
@@ -54,6 +55,7 @@ async function resolveRendererUrl(): Promise<string> {
 }
 
 async function createWindow(): Promise<void> {
+  if (shuttingDown) return;
   // Singleflight: macOS `activate` re-enters createWindow. Rebuilding the
   // services would orphan the running backend/PTYs and re-registering IPC
   // handlers throws. Reuse what exists.
@@ -90,8 +92,12 @@ async function createWindow(): Promise<void> {
   }
 
   const url = await resolveRendererUrl();
+  if (shuttingDown) {
+    await closeRendererServer();
+    return;
+  }
 
-  mainWindow = new BrowserWindow({
+  const window = new BrowserWindow({
     width: 1440,
     height: 900,
     minWidth: 1024,
@@ -105,10 +111,11 @@ async function createWindow(): Promise<void> {
       sandbox: true,
     },
   });
+  mainWindow = window;
 
   // Drop the reference as soon as the window closes so later sends and
   // backend-startup paths never touch a destroyed BrowserWindow.
-  mainWindow.on('closed', () => {
+  window.on('closed', () => {
     mainWindow = null;
   });
 
@@ -147,15 +154,18 @@ async function createWindow(): Promise<void> {
   };
   backend.onState(onBackendState);
 
-  await mainWindow.loadURL(`${url}/`);
+  try {
+    await window.loadURL(`${url}/`);
+  } catch (error) {
+    if (shuttingDown || window.isDestroyed()) return;
+    throw error;
+  }
+  if (shuttingDown || window.isDestroyed() || backend !== supervisor) return;
 
   // Start the bundled V backend after the window exists so failures are visible.
-  const started = await backend.start();
-  if (!started) {
-    onBackendState(backend.snapshot());
-  } else {
-    onBackendState(backend.snapshot());
-  }
+  await supervisor.start();
+  if (shuttingDown || window.isDestroyed() || backend !== supervisor) return;
+  onBackendState(supervisor.snapshot());
 }
 
 void app.whenReady().then(createWindow);
@@ -174,6 +184,7 @@ app.on('activate', () => {
 
 app.on('before-quit', (event) => {
   if (shutdownComplete) return;
+  shuttingDown = true;
   event.preventDefault();
   void shutdown().then(
     () => {
@@ -196,9 +207,13 @@ async function shutdown(): Promise<void> {
     const activeBackend = backend;
     backend = null;
     if (activeBackend) await activeBackend.stop();
-    const activeRendererServer = rendererServer;
-    rendererServer = null;
-    if (activeRendererServer) await activeRendererServer.close().catch(() => undefined);
+    await closeRendererServer();
   })();
   return shutdownTask;
+}
+
+async function closeRendererServer(): Promise<void> {
+  const activeRendererServer = rendererServer;
+  rendererServer = null;
+  if (activeRendererServer) await activeRendererServer.close().catch(() => undefined);
 }
