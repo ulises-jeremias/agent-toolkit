@@ -507,8 +507,15 @@ describe('buildWorldModel', () => {
     const serviceLeftX = Math.min(...serviceDoors.map(({ x }) => x));
     const serviceRightX = Math.max(...serviceDoors.map(({ x }) => x));
     for (let x = serviceLeftX; x <= serviceRightX; x += 1) {
-      expect(paths.has(`${x},${serviceFrontY}`), `shared service lane has no gaps at ${x},${serviceFrontY}`).toBe(true);
+      const laneHasTile = [serviceFrontY, serviceFrontY + 1].some((y) => paths.has(`${x},${y}`));
+      expect(laneHasTile, `shared service lane has no gap beside ${x},${serviceFrontY}`).toBe(true);
     }
+    expect(
+      [...paths].some((at) => {
+        const [x, y] = at.split(',').map(Number);
+        return x >= serviceLeftX && x <= serviceRightX && y === serviceFrontY + 1;
+      }),
+    ).toBe(true);
     expect(terrain.cells.some((cell) => cell.tile.startsWith('plaza'))).toBe(true);
     const operations = landmarks.find((landmark) => landmark.id === 'object:operations')!;
     const operationsDoor = terrain.cells.find(

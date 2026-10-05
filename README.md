@@ -138,13 +138,17 @@ agent-toolkit doctor     # verify everything is set up
 
 Agent Toolkit Desktop is the flagship Electron application over the canonical V backend: a cozy pixel world of real project houses, a capability Library, Operations, People, terminals, and guided onboarding. Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installer on Windows from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest). The app bundles its backend; a CLI install or source checkout is not required. Details: [product vision](docs/desktop/PRODUCT_VISION.md) · [packaging](docs/desktop/PACKAGING.md).
 
-| The valley | Library | People |
-|---|---|---|
-| <img src="static/screenshots/world.png" width="100%" alt="Agent Toolkit Desktop semantic workspace valley" /> | <img src="static/screenshots/library.png" width="100%" alt="Library of reusable capabilities" /> | <img src="static/screenshots/people.png" width="100%" alt="Roster of durable configured collaborators" /> |
-| Operations | Import review | Terminal |
-| <img src="static/screenshots/operations.png" width="100%" alt="Operations for observed jobs and orchestration" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Reviewed Munder hire import with unsupported fields visible before save" /> | <img src="static/screenshots/terminal.png" width="100%" alt="Integrated terminal backed by a real PTY" /> |
+| Meadow valley | Dusk valley |
+|---|---|
+| <img src="static/screenshots/world.png" width="100%" alt="The workspace valley with semantic buildings, creek, paths and gardens" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The same workspace valley at dusk" /> |
+| Project interior | Capability Library |
+| <img src="static/screenshots/project-interior.png" width="100%" alt="A project house with real file, memory, terminal and project stations" /> | <img src="static/screenshots/library.png" width="100%" alt="Library showing reusable capabilities and installation evidence" /> |
+| People roster | Operations |
+| <img src="static/screenshots/people.png" width="100%" alt="Configured offline People in the durable collaborator roster" /> | <img src="static/screenshots/operations.png" width="100%" alt="Operations showing actual jobs, outcomes and loop templates" /> |
+| Reviewed import | |
+| <img src="static/screenshots/people-import.png" width="100%" alt="Munder hire import review showing mapped and ignored fields before saving" /> | |
 
-These screenshots come from the Electron app's E2E capture tour at large and compact viewports. Offline People do not create world characters; runtime activity is shown only when observed.
+These are captures of the shipping Electron app against a disposable workspace and real backend. The image dimensions reflect the viewports used for each state; the CI visual-review tour also captures compact and large layouts. Offline People do not create world characters, and runtime activity appears only when observed.
 
 ### Advanced install methods
 

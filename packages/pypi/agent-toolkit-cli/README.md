@@ -96,15 +96,10 @@ Full walkthrough: [docs/INSTALLATION.md](https://github.com/ulises-jeremias/agen
 
 ### Desktop GUI
 
-Prefer a graphical workspace? The native desktop app runs over the same Engine — Office, Library, Operations, and an embedded terminal:
-
-```bash
-agent-toolkit gui --install   # download the desktop binary from GitHub Releases
-agent-toolkit gui             # launch it (alias: agent-toolkit desktop)
-```
+Agent Toolkit Desktop is a standalone Electron app over the same V backend. It opens with a semantic pixel-art workspace and includes project interiors, People, Library, Operations, and real PTY terminals. Download the installer for your platform from [GitHub Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest); a CLI or source checkout is not required to use Desktop. See the [Desktop product guide](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/desktop/PRODUCT_VISION.md) and [packaging notes](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/desktop/PACKAGING.md).
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/office.png" width="92%" alt="Agent Toolkit Desktop — Office floor with agent desks, roster, and embedded terminal" />
+<img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/world.png" width="92%" alt="Agent Toolkit Desktop — workspace valley with semantic buildings, water and paths" />
 <br />
 <img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/library.png" width="92%" alt="Library: searchable skills catalog with detail inspector" />
 </div>

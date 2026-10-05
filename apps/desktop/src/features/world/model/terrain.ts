@@ -1093,21 +1093,34 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const sharesFrontage = serviceDoors.length > 1 && serviceDoors.every(({ y }) => serviceY - y <= 1);
   const serviceLeft = Math.min(...serviceDoors.map(({ x }) => x));
   const serviceRight = Math.max(...serviceDoors.map(({ x }) => x));
+  // A shallow, deterministic bow softens the frontage while keeping each
+  // service entrance on one continuous route. Door-to-lane spurs stay short;
+  // the service street no longer reads as a ruler-straight grid edge.
+  const serviceLane = Array.from({ length: serviceRight - serviceLeft + 1 }, (_, offset) => {
+    const x = serviceLeft + offset;
+    const progress = offset / Math.max(1, serviceRight - serviceLeft);
+    const y = serviceY + Math.round((1 - Math.cos(progress * Math.PI * 2)) / 2);
+    return { x, y };
+  });
   const serviceLaneClear =
     sharesFrontage &&
-    Array.from({ length: serviceRight - serviceLeft + 1 }, (_, offset) => serviceLeft + offset).every(
-      (x) => !p.isBlocked(x, serviceY) && p.get(x, serviceY) !== 'water',
-    );
+    serviceLane.every(({ x, y }) => !p.isBlocked(x, y) && p.get(x, y) !== 'water');
   if (serviceLaneClear) {
     // Files, Settings, Workshop and Attention share a small service lane.
     // Give their real front doors one legible street, then join it to the
     // commons once; independent detours around neighboring façades created
     // rectangular loops in the open meadow.
-    for (let x = serviceLeft; x <= serviceRight; x += 1) p.path(x, serviceY);
-    for (const { x, y } of serviceDoors) {
-      if (y < serviceY) p.path(x, y);
+    let previousY = serviceY;
+    for (const { x, y } of serviceLane) {
+      if (Math.abs(y - previousY) > 0) p.path(x, previousY);
+      p.path(x, y);
+      previousY = y;
     }
-    connectEntrance(p, serviceRight + 1, serviceY, street);
+    for (const { x, y } of serviceDoors) {
+      const laneY = serviceLane.find((point) => point.x === x)?.y ?? serviceY;
+      for (const point of rasterPoints(x, y, x, laneY)) p.path(point.x, point.y);
+    }
+    connectEntrance(p, serviceRight + 1, serviceLane.at(-1)?.y ?? serviceY, street);
   }
   for (const place of commons) {
     if (serviceLaneClear && servicePlaces.includes(place)) continue;
