@@ -2,6 +2,12 @@
 
 The fastest path from install to your first successful skill use.
 
+Prefer a graphical setup? Install [Agent Toolkit Desktop from the latest
+GitHub Release](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+and follow its in-app workspace setup. Desktop bundles the backend; basic use
+does not require a separate CLI, a repository checkout, or manual config edits.
+See the [Desktop guide](desktop/README.md) for workflows and current limits.
+
 ## 1. Install (pick one channel — all end on the same V CLI)
 
 ```bash
@@ -11,7 +17,7 @@ brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
 # AUR
 yay -S agent-toolkit-bin
 # PyPI launcher (execs bundled V; ADR-021)
-uv tool install 'agent-toolkit-cli>=1.30.1'
+uv tool install agent-toolkit-cli
 # npm
 npm i -g agent-toolkit-cli
 

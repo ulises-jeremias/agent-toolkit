@@ -139,7 +139,7 @@ agent-toolkit doctor     # verify everything is set up
 Agent Toolkit Desktop is the flagship Electron application over the canonical V backend. The valley is the home screen: each registered project is a distinct building, while Library, Archive, Operations and Terminal are shared places. Clicking a place opens the same real resource as direct navigation or the command palette. Dense work stays in readable game-menu inspectors, and offline People never appear as workers. Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installer on Windows from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest). The app bundles its backend; a CLI install or source checkout is not required. Start with the [Desktop guide](docs/desktop/README.md) for product behavior, screenshots and known limits.
 
 | Meadow valley | Dusk valley |
-|---|---|
+| --- | --- |
 | <img src="static/screenshots/world.png" width="100%" alt="The workspace valley with semantic buildings, creek, paths and gardens" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The same workspace valley at dusk" /> |
 | Project interior | Capability Library |
 | <img src="static/screenshots/project-interior.png" width="100%" alt="A project house with real file, memory, terminal and project stations" /> | <img src="static/screenshots/library.png" width="100%" alt="Library showing reusable capabilities and installation evidence" /> |
@@ -269,7 +269,7 @@ Per-tool steps: [docs/INSTALLATION.md#manual-install](docs/INSTALLATION.md#manua
 ## 🖥️ Supported Tools
 
 | Tool | Type | What's deployed |
-|------|------|-----------------|
+| ------ | ------ | ----------------- |
 | **Claude Code** | Plugin + CLI | Plugin manifest, skill references, settings |
 | **Cursor** | Plugin + IDE + Agent CLI | Marketplace plugins (`.cursor-plugin/`), `.mdc` rules via profile |
 | **OpenCode** | TUI | System prompt overlays, agent configs |
@@ -285,7 +285,7 @@ Per-tool steps: [docs/INSTALLATION.md#manual-install](docs/INSTALLATION.md#manua
 All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully compliant with the [Agent Skills spec](https://github.com/vercel-labs/skills). Live counts: `agent-toolkit inventory` / `catalogs/skill-catalog.yaml` (source of truth, not README badges). Marketplace plugins ship a subset (core + forge); `agent-toolkit-complete` is the full catalog.
 
 | Domain | Key Skills |
-|--------|------------|
+| -------- | ------------ |
 | 🧠 `core` | assistant, dev-companion, workspace, project, onboarding |
 | 🚀 `delivery` | adr, bug, epic, development-workflow, planning, prd, user-story, work-item |
 | 🎨 `design` | figma-implement-design, figma-code-connect-components, frontend-design |
@@ -327,7 +327,7 @@ Tool-agnostic agent persona definitions in `agents/` (live count: `agent-toolkit
 Every skill's `holistic_owner` in `capabilities/skills/registry.yaml` is one of these. Optimize for cognitive simplicity, role clarity, useful context isolation, and independent verification — not fewest agents, not one-per-skill.
 
 | Persona | Responsibility | Main skill domains |
-|---------|---------------|--------------------|
+| --------- | --------------- | -------------------- |
 | 🤝 `assistant` | **Orchestrator** — intent → context → proportional delegation → synthesis | `core/*`, discovery, `output-handshake` |
 | 📋 `planner` | Decomposition, PRD/TRD, work items, estimation, capacity | `delivery` (11 inc. `planning`, `project-assessment`, `workflow-generic-project`) |
 | 🏗️ `architect` | System design, tradeoffs, C4, ADRs/TRDs, cloud patterns | `architecture` (2), `cloud` (2), `delivery` (adr/trd/decision-log/technical-assessment), `tooling/mermaid` |
@@ -353,7 +353,7 @@ Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · ta
 Loops are recurring agentic workflows that run on a schedule or cadence. They follow a three-tier **mutation-safety** model enforced by `loop-gh-gate` (cadence is independent of tier):
 
 | Tier | Mutation posture | Purpose |
-|------|------------------|---------|
+| ------ | ------------------ | --------- |
 | **L1** | Observe / propose | Read-only or proposal-only — no repository mutations |
 | **L2** | Controlled mutations | Allowlisted writes (label, comment, limited housekeeping) — merge/close denied |
 | **L3** | High-autonomy mutations | Mature allowlisted mutations including merge/close when explicitly permitted |
@@ -361,7 +361,7 @@ Loops are recurring agentic workflows that run on a schedule or cadence. They fo
 ### Loop Templates
 
 | Template | Tier (Stage) | Default Cadence | Description |
-|----------|--------------|-----------------|-------------|
+| ---------- | -------------- | ----------------- | ------------- |
 | `changelog-drafter` | L1 | 1d | Draft release notes from merged PRs (L1, report-only) |
 | `ci-sweeper` | L2 | 15m | Detect CI failures and propose fixes via draft PRs (L2, cautious) |
 | `daily-triage` | L1 | 1d | Triage new issues and propose labels (report-only) |
@@ -393,7 +393,7 @@ agent-toolkit swarm promote <run-id>          # integrator merges, run moves to 
 ```
 
 | | agent-toolkit swarm | classic tmux swarms ([swarm-forge](https://github.com/unclebob/swarm-forge)) | legacy Python swarm |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Recipes (personas + policy per role) | ✅ built-in `pair`/`team`/`full` | ✅ per-branch packs | ⚠️ manual |
 | Budget enforcement (tokens / $ / wall-clock) | ✅ per-recipe (pair/team `900k / $4 / 7200s`, full `1.2M / $8 / 10800s`), `budget_exhausted` state | ❌ | ❌ |
 | Handoff audit gate | ✅ `AUDIT_REQUIRED` → identical re-run passes | ✅ first-class | ❌ |
@@ -410,7 +410,7 @@ agent-toolkit swarm promote <run-id>          # integrator merges, run moves to 
 Ready-to-use Model Context Protocol configuration templates. Drop into your MCP config directory and substitute your credentials.
 
 | Template | Services Covered |
-|----------|-----------------|
+| ---------- | ----------------- |
 | `github` | Repos, PRs, issues, releases, actions |
 | `slack` | Channels, messages, reactions, canvases |
 | `notion` | Pages, databases, blocks |
@@ -427,13 +427,14 @@ Templates live in [`mcp/templates/`](mcp/templates/) and use clearly marked plac
 
 > **New:** Every plugin in [`plugins/`](./plugins/) now ships as an **Agent Plugins 1.0** portable bundle (`plugin.json` + `skills/` + `mcp.json`) for **Cursor, VS Code, GitHub Copilot, ChatGPT/Codex, Kiro** — plus legacy `.claude-plugin/` for **Claude Code** (dual emit until Claude supports the spec). See [docs/AGENT_PLUGINS.md](docs/AGENT_PLUGINS.md).
 
-Product bundles are declared in [`distributions/products.yaml`](distributions/products.yaml). Four products are built for every compatible client; three ship in the Claude Code and Cursor marketplaces:
+Five products are declared in [`distributions/products.yaml`](distributions/products.yaml): four stable marketplace products and the experimental full-catalog bundle.
 
 | Product | Portable (Agent Plugins 1.0) | What's included |
-|---------|------------------------------|-----------------|
+| --------- | ------------------------------ | ----------------- |
 | `agent-toolkit-core` | `plugin.json` + `skills/` (6) + `mcp.json` (github) | 6 core skills (`assistant`, `dev-companion`, `output-handshake`, `pr-fallback`, `workspace-knowledge-sync`, `onboarding`), `code-reviewer` agent, `session-start-context` hook, GitHub MCP |
-| `agent-toolkit-agents` | `plugin.json` + `agents/` via `com.anthropic.claude-code` extension | 16 marketplace personas (disk has 17; `agentic-security-reviewer` is not in this plugin) |
-| `agent-toolkit-forge` | `plugin.json` + `skills/` (7) | 7 forge skills — `github-cli-workflow`, `gitlab-cli-workflow`, `gh-address-comments`, `gh-fix-ci`, `gh-contribution-planner`, `workflow-client-bootstrap`, `workflow-generic-project` |
+| `agent-toolkit-agents` | `plugin.json` + `agents/` via `com.anthropic.claude-code` extension | All 18 Agent Definitions |
+| `agent-toolkit-forge` | `plugin.json` + `skills/` (8) | GitHub/GitLab workflows, CI fixes, comment resolution, contribution planning, and generic delivery |
+| `agent-toolkit-craft` | `plugin.json` + `skills/` (3) | Writing quality and change-safety capabilities |
 | `agent-toolkit-complete` | `plugin.json` + `skills/` (full catalog) + `mcp.json` | Full skill catalog (experimental; portable manifest included, marketplace pending) — count via `agent-toolkit inventory` |
 
 Plugin manifests: [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) · [`.cursor-plugin/marketplace.json`](.cursor-plugin/marketplace.json) · `plugins/<id>/plugin.json` (Agent Plugins `$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) · `plugins/<id>/mcp.json` (where applicable)
@@ -445,7 +446,7 @@ Plugin manifests: [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace
 Packs bundle skills, agents, and loops for a specific team context. Load a pack to bring in everything a setup needs in one step.
 
 | Pack | Description |
-|------|-------------|
+| ------ | ------------- |
 | `oss-maintenance` | Full OSS maintainer setup: triage, PR monitor, briefings, contributor digest |
 | `engineering-workflow` | Fast delivery focus: code review, CI fix, PR automation, security sweep |
 | `delivery-discipline` | Governance-heavy: incident response, security review, codeowner workflows |
@@ -461,7 +462,7 @@ Browse packs: [`packs/`](packs/)
 ## 📚 Documentation
 
 | Guide | Description |
-|-------|-------------|
+| ------- | ------------- |
 | [🔨 How to add a skill](docs/HOW_TO_ADD_SKILL.md) | Create a new skill with SKILL.md frontmatter |
 | [🤖 How to add an agent](docs/HOW_TO_ADD_AGENT.md) | Define a new agent persona |
 | [🔄 How to create a loop](docs/HOW_TO_CREATE_LOOP.md) | Build a recurring agentic workflow |
@@ -475,7 +476,7 @@ Browse packs: [`packs/`](packs/)
 `agent-toolkit` is the **Capability + Runtime layer (L1.5)** in a four-layer ownership stack. It exposes two internal planes (Capability and Runtime) that share one binary and one release — see `docs/ARCHITECTURE.md`. Companion repos:
 
 | Layer | Repo | Role |
-|-------|------|------|
+| ------- | ------ | ------ |
 | **L1 — Machine** | [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation) | Machine provisioning — chezmoi, shell, packages, LLM policy |
 | **L1.5 — Toolkit** | **agent-toolkit** (this repo) | Capability + Runtime — skills, agents, MCP, plugins, plus workspace/memory/project/loop/devcompanion/swarm (`docs/ARCHITECTURE.md` planes) |
 | **L3 — Workspace** | [agentic-harness](https://github.com/ulises-jeremias/agentic-harness) | AI workspace scaffold for multi-repo orchestration |
@@ -518,7 +519,7 @@ Live counts: `agent-toolkit inventory` (not hardcoded).
 > **Stage vs Layer:** `L1`/`L2`/`L3` below are **Stages** (Loop Engineering mutation-safety), not ownership Layers.
 
 | Stage | Mutation posture | Example |
-|-------|------------------|---------|
+| ------- | ------------------ | --------- |
 | **L1** | Observe / propose | `oss-triage`, `oss-daily-briefing`, `issue-triage` |
 | **L2** | Controlled mutations | `ci-sweeper`, `pr-babysitter`, `dep-sweeper` |
 | **L3** | High-autonomy (merge/close allowlist) | `oss-pr-monitor` |
@@ -569,11 +570,3 @@ See [SHOWCASE.md](SHOWCASE.md) for community usage examples and pack walkthrough
 <sub>Built with ❤️ for AI-assisted software delivery</sub>
 
 </div>
-
-## 👥 Contributors
-
-<a href="https://github.com/ulises-jeremias/agent-toolkit/contributors">
-  <img alt="Contributors" src="https://contrib.rocks/image?repo=ulises-jeremias/agent-toolkit"/>
-</a>
-
-Made with [contributors-img](https://contrib.rocks).

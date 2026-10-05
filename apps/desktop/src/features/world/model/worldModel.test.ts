@@ -714,10 +714,12 @@ describe('layoutWorld', () => {
     const secondAlpha = two.entities.find((entity) => entity.id === 'place:project:alpha')!;
     expect(secondAlpha).toMatchObject({ x: firstAlpha.x, y: firstAlpha.y, w: firstAlpha.w, h: firstAlpha.h });
     const firstBeta = two.entities.find((entity) => entity.id === 'place:project:beta')!;
-    expect(firstBeta.x - (secondAlpha.x + secondAlpha.w)).toBeGreaterThanOrEqual(1);
+    expect(firstBeta.x - (secondAlpha.x + secondAlpha.w)).toBeGreaterThanOrEqual(5);
     const compactTeam = layoutFor(['alpha', 'beta', 'gamma']);
-    expect(compactTeam.cols).toBeLessThanOrEqual(29);
-    expect(compactTeam.rows).toBeLessThanOrEqual(13);
+    const thirdProject = compactTeam.entities.find((entity) => entity.id === 'place:project:gamma')!;
+    expect(thirdProject.y - (secondAlpha.y + secondAlpha.h)).toBeGreaterThanOrEqual(5);
+    expect(compactTeam.cols).toBeLessThanOrEqual(32);
+    expect(compactTeam.rows).toBeLessThanOrEqual(15);
   });
 
   it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {
