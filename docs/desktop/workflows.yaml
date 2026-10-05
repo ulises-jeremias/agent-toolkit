@@ -85,6 +85,30 @@ journeys:
           - assets/electron/cozy-pixel-world/operations.png
           - assets/electron/cozy-pixel-world/terminal.png
       - note: >-
+          Current visual capture at source b894fa7992afdcdb006bd6b29a0b28d34f5320c5
+          (workflow 37338378577) reviewed the empty valley at compact and large
+          sizes, one and several projects, Dusk, the project room, Library,
+          People, Operations, Terminal, and the Munder import review. The five
+          tree sprites now share a custom pixel-art family and project
+          settlements carry denser deterministic groves. The screenshots show
+          clearer foliage, but broad lawns, angular trails, and unused project
+          room floor remain active art gaps; the README gallery uses this same
+          source capture.
+        build: "b894fa7992afdcdb006bd6b29a0b28d34f5320c5 (Linux Electron capture; 37338378577)"
+        screenshots:
+          - assets/electron/world/world-empty-compact.png
+          - assets/electron/world/world-empty-large.png
+          - assets/electron/world/world-one-project-large.png
+          - assets/electron/world/world-several-projects-large.png
+          - assets/electron/world/project-files-room-compact.png
+          - assets/electron/world/project-files-room-large.png
+          - assets/electron/cozy-pixel-world/world-dusk.png
+          - assets/electron/cozy-pixel-world/library.png
+          - assets/electron/cozy-pixel-world/people.png
+          - assets/electron/cozy-pixel-world/operations.png
+          - assets/electron/cozy-pixel-world/terminal.png
+          - assets/electron/cozy-pixel-world/munder-import-review.png
+      - note: >-
           Linux Electron capture at source 9eff43e91c46cfba6024943ab9122c03b0c73762
           (workflow 37305618460) reviewed empty, one-project, and several-project
           worlds at compact and large viewports plus both project-room sizes.

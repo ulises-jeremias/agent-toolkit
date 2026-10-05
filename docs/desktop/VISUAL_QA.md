@@ -1,5 +1,42 @@
 # Desktop visual QA
 
+## Tree art, settlement screenshots, and README gallery — 2026-10-05
+
+Source `b894fa7992afdcdb006bd6b29a0b28d34f5320c5`, Linux Electron capture
+workflow `37338378577`. I opened the fresh empty valley at 1024×640 and
+1920×1080, the one- and several-project layouts, the Dusk world, the project
+room at both sizes, Library, People, Operations, Terminal, and the Munder
+import review. The five tree sources now share an original 48px pixel-art
+family; project districts carry a denser deterministic grove frame while
+remaining clear of paths, doors, and building footprints. I refreshed every
+README screenshot from this same capture.
+
+The valley reads more richly at a glance and its house silhouettes remain
+legible, but the open lawns and right-angle trail sections are still obvious.
+The project interior still has generous unused floor. Those are the next
+composition and interior-art targets; this capture is evidence of the current
+state, not a visual sign-off.
+
+Opened files:
+
+- [Empty valley, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, large](assets/electron/world/world-one-project-large.png) and
+  [several projects, large](assets/electron/world/world-several-projects-large.png).
+- [Dusk valley, large](assets/electron/cozy-pixel-world/world-dusk.png),
+  [project room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+- [Library](assets/electron/cozy-pixel-world/library.png),
+  [People](assets/electron/cozy-pixel-world/people.png),
+  [Operations](assets/electron/cozy-pixel-world/operations.png),
+  [Terminal](assets/electron/cozy-pixel-world/terminal.png), and
+  [Munder import review](assets/electron/cozy-pixel-world/munder-import-review.png).
+
+The capture workflow passed the asset freshness check, lint, type check, unit
+tests, build, renderer E2E, screenshot verification, and packaged-directory
+build. The pull-request integration and package checks were still running when
+this note was written; use the PR checks for their final result.
+
 ## Attention navigation and current screenshot gallery — 2026-10-05
 
 Source `16e3264dcf21c3f1281f68b9bf9417a061947297`, Linux Electron capture
