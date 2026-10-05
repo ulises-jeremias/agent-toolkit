@@ -127,7 +127,12 @@ still selected for the swarm as a whole; saved per-Person runner/model
 preferences are not applied by this runtime. Runtime presence is not projected
 into the World from swarm bindings yet.
 
-Not implemented yet; see below.
+In the Start Swarm review, **Remember** stores the selected Person as a
+workspace default for that recipe role. The UI shows the pinned Person and any
+ordered fallback People returned by the backend. Clearing the pin preserves
+the fallback list and returns resolution to those fallbacks, compatible role
+matching, then an ephemeral role. These controls use the typed
+`GET/PUT /api/v1/people/bindings` endpoints; no YAML editing is required.
 
 ## Desktop implementation
 
@@ -156,13 +161,13 @@ file authoring as the user interface:
 - Runtime enforcement of token/cost limits and non-inherited isolation for the
   local PTY Start flow. `max_seconds` is enforced by Desktop and stops the PTY
   when its time budget expires.
-- Desktop editing/review of `people/bindings.yaml`, per-role runner/model
-  preference enforcement, an Agent Toolkit consumer for the swarm Person
-  environment hint, swarm-process terminal reopen/stop from Desktop, and
-  truthful swarm-session projection into the World.
+- Per-role runner/model preference enforcement, an Agent Toolkit consumer for
+  the swarm Person environment hint, swarm-process terminal reopen/stop from
+  Desktop, and truthful swarm-session projection into the World.
 
 Explicit assignment wins. The backend then applies ordered preferences from
 `people/bindings.yaml`, followed by automatic matching by saved `role` or
-`definition_id`; any unmatched role remains ephemeral. The preference file is
-still an interoperability/configuration surface, not the Desktop interface,
-and per-role runner/model preferences are not applied yet.
+`definition_id`; any unmatched role remains ephemeral. Workspace role defaults
+are configured from the reviewed Desktop swarm start flow; the YAML file is an
+interoperability format, not the user interface. Per-role runner/model
+preferences are not applied yet.

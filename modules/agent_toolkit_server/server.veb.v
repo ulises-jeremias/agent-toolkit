@@ -551,6 +551,7 @@ const registered_api_routes = [
 	'/api/v1/memory/file',
 	'/api/v1/memory/file/archive',
 	'/api/v1/people',
+	'/api/v1/people/bindings',
 	'/api/v1/people/:id',
 	'/api/v1/people/:id/archive',
 	'/api/v1/memory/:sub',

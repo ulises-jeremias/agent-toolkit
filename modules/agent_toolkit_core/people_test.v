@@ -133,6 +133,32 @@ fn test_swarm_person_binding_preferences_fail_closed_on_invalid_documents_and_sy
 	}
 }
 
+fn test_workspace_swarm_person_defaults_roundtrip_preserves_other_roles() {
+	ws := os.join_path(os.temp_dir(), 'atk-people-binding-save-${os.getpid()}')
+	os.mkdir_all(os.join_path(ws, '.git')) or { panic(err) }
+	defer { os.rmdir_all(ws) or {} }
+	save_person(ws, lina_json, true)!
+	save_person(ws, lina_json.replace('"id":"lina"', '"id":"maya"').replace('"name":"Lina"', '"name":"Maya"'), true)!
+	first := save_person_role_bindings(ws, 'team', { 'reviewer': 'lina', 'planner': 'maya' })!
+	assert first.roles['reviewer']!.person_id == 'lina'
+	assert list_person_bindings(ws)!.roles['planner']!.person_id == 'maya'
+	cleared := save_person_role_bindings(ws, 'team', { 'reviewer': '' })!
+	assert cleared.roles['reviewer']!.person_id == ''
+	assert cleared.roles['planner']!.person_id == 'maya'
+	assert read_person_bindings(ws)!.len == 2
+	if _ := save_person_role_bindings(ws, 'pair', { 'planner': 'maya' }) {
+		assert false, 'role not included in selected recipe was accepted'
+	} else {
+		assert err.msg().contains('not in recipe')
+	}
+	save_person(ws, lina_json.replace('"id":"lina"', '"id":"maya"').replace('"name":"Lina"', '"name":"Maya"').replace('"archived":false', '"archived":true'), false)!
+	if _ := save_person_role_bindings(ws, 'team', { 'planner': 'maya' }) {
+		assert false, 'archived Person accepted as a default'
+	} else {
+		assert err.msg().contains('archived')
+	}
+}
+
 fn test_people_reject_invalid_runtime_and_symlink_storage() {
 	for invalid in [
 		lina_json.replace('"id":"lina"', '"id":"../lina"'),

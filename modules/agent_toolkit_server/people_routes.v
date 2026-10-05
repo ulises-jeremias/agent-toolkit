@@ -13,6 +13,61 @@ struct PersonArchiveReq {
 	workspace string
 }
 
+struct PersonBindingsReq {
+	workspace string
+	recipe    string
+	roles     map[string]string
+}
+
+struct PersonRoleBindingResp {
+pub:
+	role             string
+	person_id        string
+	preferred_people []string
+}
+
+struct PersonBindingsResp {
+pub:
+	ok    bool
+	roles []PersonRoleBindingResp
+}
+
+fn person_binding_list(roles map[string]agent_toolkit_core.PersonRolePreference) []PersonRoleBindingResp {
+	mut bindings := []PersonRoleBindingResp{}
+	mut names := roles.keys()
+	names.sort()
+	for role in names {
+		preference := roles[role]
+		bindings << PersonRoleBindingResp{
+			role: role
+			person_id: preference.person_id
+			preferred_people: preference.preferred_people.clone()
+		}
+	}
+	return bindings
+}
+
+@['/api/v1/people/bindings'; get]
+pub fn (app &App) people_bindings_list(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none { return respond_deny(mut ctx, deny) }
+	ws := serve_memory_workspace(ctx, '') or { return respond_sub_error(mut ctx, err) }
+	result := agent_toolkit_core.list_person_bindings(ws) or { return people_error(mut ctx, err) }
+	return ctx.json(PersonBindingsResp{ ok: result.ok, roles: person_binding_list(result.roles) })
+}
+
+@['/api/v1/people/bindings'; put]
+pub fn (app &App) people_bindings_update(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none { return respond_deny(mut ctx, deny) }
+	req := decode_sub_body[PersonBindingsReq](ctx.req.data) or { return respond_sub_error(mut ctx, err) }
+	ws := serve_memory_workspace(ctx, req.workspace) or { return respond_sub_error(mut ctx, err) }
+	result := agent_toolkit_core.save_person_role_bindings(ws, req.recipe, req.roles) or {
+		return people_error(mut ctx, err)
+	}
+	return ctx.json(PersonBindingsResp{ ok: result.ok, roles: person_binding_list(result.roles) })
+}
+
 @['/api/v1/people'; get]
 pub fn (app &App) people_list(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)

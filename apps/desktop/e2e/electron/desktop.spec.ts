@@ -820,6 +820,12 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
   await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText(
     'reviewer → Lina · selected',
   );
+  await dialog.getByRole('button', { name: 'Remember Lina' }).click();
+  await expect(dialog.getByText('Workspace default: Lina')).toBeVisible();
+  await dialog.getByLabel('Person for reviewer').selectOption('');
+  await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText(
+    'reviewer → Lina · workspace default',
+  );
   await expect(dialog.getByText(/Runner and model remain swarm-wide settings/)).toBeVisible();
   await setViewport(desktop.app, 1024, 768);
   await page.screenshot({ path: 'test-results/review/swarms-start-compact.png', fullPage: true });

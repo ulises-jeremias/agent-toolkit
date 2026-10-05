@@ -6,7 +6,7 @@ import x.json2
 
 const person_limit = 65536
 
-struct PersonRolePreference {
+pub struct PersonRolePreference {
 pub:
 	person_id        string
 	preferred_people []string
@@ -15,6 +15,12 @@ pub:
 struct PersonBindingsDocument {
 pub:
 	spec  string
+	roles map[string]PersonRolePreference
+}
+
+pub struct PersonBindingsResponse {
+pub:
+	ok    bool
 	roles map[string]PersonRolePreference
 }
 
@@ -262,6 +268,62 @@ fn read_person_bindings(workspace string) !map[string]PersonRolePreference {
 		return error('people bindings file is invalid YAML: ${err}')
 	}
 	return doc.roles
+}
+
+// list_person_bindings returns the validated workspace defaults used when
+// resolving swarm roles. They remain preferences; explicit run choices win.
+pub fn list_person_bindings(workspace string) !PersonBindingsResponse {
+	return PersonBindingsResponse{ ok: true, roles: read_person_bindings(workspace)! }
+}
+
+// save_person_role_bindings updates only roles in the selected recipe and
+// retains preferences for other recipes. Empty ids clear a primary Person.
+pub fn save_person_role_bindings(workspace string, recipe string, bindings map[string]string) !PersonBindingsResponse {
+	if bindings.len == 0 { return error('select at least one recipe role') }
+	roles_in_recipe := swarm_recipe_roles(recipe)
+	mut roles := read_person_bindings(workspace)!
+	for role, person_id in bindings {
+		if role !in roles_in_recipe { return error('role ${role} is not in recipe ${recipe}') }
+		if person_id.len > 0 {
+			if !person_slug(person_id) { return error('invalid Person id for ${role}') }
+			person := read_person(workspace, person_id) or { return error('Person for ${role}: ${err.msg()}') }
+			archived := person.person['archived'] or { return error('Person ${person_id} has no archive state') }
+			if archived is bool {
+				if archived { return error('Person ${person_id} is archived and cannot be a default') }
+			} else { return error('Person ${person_id} has invalid archive state') }
+			current := roles[role] or { PersonRolePreference{} }
+			roles[role] = PersonRolePreference{ person_id: person_id, preferred_people: current.preferred_people.clone() }
+		} else {
+			current := roles[role] or { continue }
+			roles[role] = PersonRolePreference{ preferred_people: current.preferred_people.clone() }
+		}
+	}
+	dir := person_dir(workspace)!
+	os.mkdir_all(dir) or { return error('people directory cannot be created') }
+	path := os.join_path(dir, 'bindings.yaml')
+	if os.is_link(dir) || os.is_link(path) { return error('people bindings storage is a symlink') }
+	mut names := roles.keys()
+	names.sort()
+	mut text := 'spec: agent-toolkit/people-bindings@1\nroles:\n'
+	for role in names {
+		preference := roles[role]
+		text += '  ${role}:\n'
+		if preference.person_id.len > 0 { text += '    person_id: ${preference.person_id}\n' }
+		if preference.preferred_people.len > 0 {
+			text += '    preferred_people: [${preference.preferred_people.join(', ')}]\n'
+		}
+		if preference.person_id.len == 0 && preference.preferred_people.len == 0 {
+			text += '    preferred_people: []\n'
+		}
+	}
+	tmp := path + '.${os.getpid()}.tmp'
+	if os.exists(tmp) || os.is_link(tmp) { return error('people bindings write is busy') }
+	os.write_file(tmp, text) or { return error('people bindings cannot be written') }
+	os.mv(tmp, path) or {
+		os.rm(tmp) or {}
+		return error('people bindings cannot be saved')
+	}
+	return PersonBindingsResponse{ ok: true, roles: roles }
 }
 
 fn find_person_by_id(people []map[string]json2.Any, id string) ?map[string]json2.Any {
