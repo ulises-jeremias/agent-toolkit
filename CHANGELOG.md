@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Project interiors now use a wider room layout with moonlit windows, amber sconces, plants, and a shared rug; ambient details remain separate from live Person or job state.
+
 - Command palette now opens the Library's reviewed capability installation preview and offers catalog-backed MCP provider configuration reviews.
 - Library can review the exact GitHub Copilot instruction contents and destination in a linked project, reject destination symlinks, preserve existing instructions, bind install and removal to reviewed snapshots, preserve post-install edits, and show receipt evidence.
 - Library installation reviews can target selected user-level tools, report the exact targets applied, and show persistent evidence from real install receipts. World tool actions open the same target-specific review; repository-scoped Copilot installation remains outside this flow.
