@@ -500,11 +500,7 @@ describe('buildWorldModel', () => {
       const tile = terrain.cells.find((cell) => `${cell.x},${cell.y}` === door)?.tile ?? 'no ground tile';
       expect(paths.has(door), `${landmark.id} door ${door} connects to the commons (terrain: ${tile})`).toBe(true);
       for (const other of landmarks.filter((candidate) => candidate.id !== landmark.id)) {
-        const covered =
-          doorX >= other.x &&
-          doorX < other.x + other.w &&
-          doorY >= other.y &&
-          doorY < other.y + other.h;
+        const covered = doorX >= other.x && doorX < other.x + other.w && doorY >= other.y && doorY < other.y + other.h;
         expect(covered, `${landmark.id} entrance is uncovered by ${other.id}`).toBe(false);
       }
     }
