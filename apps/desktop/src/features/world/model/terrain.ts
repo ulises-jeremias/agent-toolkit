@@ -545,7 +545,7 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
 function flowerGlades(p: Painter) {
   // Give the quiet spaces a visible meadow rhythm at overview scale. Glades
   // stay grouped and seed-stable so additional color does not become speckle.
-  const target = Math.min(20, Math.max(6, Math.floor((p.cols * p.rows) / 40)));
+  const target = Math.min(20, Math.max(6, Math.floor((p.cols * p.rows) / 36)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 2; y++) {
     for (let x = 2; x < p.cols - 2; x++) {
@@ -644,7 +644,7 @@ function flowerPatchSprites(p: Painter) {
 
 /** Pick a few stable grove hearts inside the settlement, away from its paths. */
 function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<string> {
-  const target = Math.min(7, Math.max(4, Math.floor((p.cols * p.rows) / 160)));
+  const target = Math.min(7, Math.max(5, Math.floor((p.cols * p.rows) / 160)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {
