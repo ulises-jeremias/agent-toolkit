@@ -87,6 +87,7 @@ class Painter {
   paths = new Set<string>();
   decor: DecorSprite[] = [];
   blocked = new Set<string>();
+  waterReservations = new Set<string>();
   cols: number;
   rows: number;
 
@@ -95,6 +96,9 @@ class Painter {
     this.rows = rows;
     for (const e of entities) {
       for (let y = e.y; y < e.y + e.h; y++) for (let x = e.x; x < e.x + e.w; x++) this.blocked.add(key(x, y));
+      if (e.kind === 'place') {
+        this.waterReservations.add(key(e.x + Math.floor(e.w / 2), e.y + e.h));
+      }
     }
   }
 
@@ -462,18 +466,19 @@ function creek(
     const desiredX = baseX + Math.sin(along * 0.22) * broadBend + anchoredSoftBend * softBend;
     const pool = Math.sin(along * 0.25 + 0.9);
     const width = pool > 0.45 ? 3 : 2;
+    const safeBank = (candidate: number) =>
+      Array.from({ length: width }, (_, offset) => {
+        const x = candidate + offset;
+        return !p.isBlocked(x, y) && !p.waterReservations.has(key(x, y));
+      }).every(Boolean);
     // Prefer the east-valley corridor and search the full map only when a real
     // footprint closes it. Never invent a fallback coordinate through a lot.
     const preferredCenters = Array.from({ length: maxCenterX - runMinX + 1 }, (_, offset) => runMinX + offset);
-    const safeInCorridor = preferredCenters.filter((candidate) =>
-      Array.from({ length: width }, (_, offset) => candidate + offset).every((column) => !p.isBlocked(column, y)),
-    );
+    const safeInCorridor = preferredCenters.filter(safeBank);
     const safeCenters =
       safeInCorridor.length > 0
         ? safeInCorridor
-        : Array.from({ length: p.cols - width - 2 }, (_, offset) => offset + 1).filter((candidate) =>
-            Array.from({ length: width }, (_, offset) => candidate + offset).every((column) => !p.isBlocked(column, y)),
-          );
+        : Array.from({ length: p.cols - width - 2 }, (_, offset) => offset + 1).filter(safeBank);
     return { y, width, desiredX, safeCenters };
   });
 

@@ -897,6 +897,10 @@ describe('layoutWorld', () => {
       .every(({ x, y }) => !trails.has(`${x},${y}`));
     expect(allFlowersStayOffTrails).toBe(true);
     const water = new Set(first.cells.filter(({ tile }) => tile === 'water').map(({ x, y }) => `${x},${y}`));
+    for (const place of layout.entities.filter((entity) => entity.kind === 'place')) {
+      const door = `${place.x + Math.floor(place.w / 2)},${place.y + place.h}`;
+      expect(water.has(door), `${place.id} entrance remains on dry ground`).toBe(false);
+    }
     const sparkles = first.decor.filter((sprite) => sprite.sprite === 'water-sparkle');
     expect(sparkles.length).toBeGreaterThan(0);
     expect(sparkles.length).toBeLessThanOrEqual(5);

@@ -219,12 +219,12 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     'object:library': { x: 1, y: 4 },
     // Services sit on distinct garden lots around the commons rather than a
     // single storefront row. Their separate door heights shape short paths.
-    'object:workshop': { x: 13, y: 8 },
+    'object:workshop': { x: 12, y: 7 },
     'object:operations': { x: 6, y: 3 },
     'object:terminal': { x: 11, y: 2 },
-    'object:attention': { x: 0, y: 9 },
-    'object:files': { x: 5, y: 7 },
-    'object:settings': { x: 9, y: 8 },
+    'object:attention': { x: 0, y: 8 },
+    'object:files': { x: 4, y: 8 },
+    'object:settings': { x: 8, y: 8 },
   };
   for (const landmark of sharedObjects) {
     const slot = civicSlots[landmark.id]!;
