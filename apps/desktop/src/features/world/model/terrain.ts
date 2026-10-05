@@ -911,7 +911,11 @@ function forest(p: Painter, projectlessMeadow = false) {
   for (let y = 3; y < p.rows - 2; y += 1) {
     for (let x = 2; x < p.cols - 2; x += 1) {
       const ground = p.get(x, y);
-      if ((!ground.startsWith('grass') && !ground.startsWith('flowers')) || p.isBlocked(x, y) || p.paths.has(key(x, y))) {
+      if (
+        (!ground.startsWith('grass') && !ground.startsWith('flowers')) ||
+        p.isBlocked(x, y) ||
+        p.paths.has(key(x, y))
+      ) {
         continue;
       }
       if (canopyOverBuilding(p, x, y, 0, 0) || canopyOverFlowerPatch(p, x, y, 0, 0)) continue;
@@ -943,7 +947,17 @@ function forest(p: Painter, projectlessMeadow = false) {
   if (clearing) {
     const kind = h2(clearing.x, clearing.y, 241) % 12;
     const tree = kind < 2 ? 'tree-pine' : kind < 6 ? 'tree-blossom' : kind < 8 ? 'tree-amber' : 'tree-round';
-    p.sprite(`tree:project-clearing:${clearing.x},${clearing.y}`, clearing.x, clearing.y, tree, 48, 48, -16, -32, false);
+    p.sprite(
+      `tree:project-clearing:${clearing.x},${clearing.y}`,
+      clearing.x,
+      clearing.y,
+      tree,
+      48,
+      48,
+      -16,
+      -32,
+      false,
+    );
   }
 }
 
