@@ -769,7 +769,7 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
   // Keep substantial woodland even after landmarks and project houses occupy
   // the map. More small clusters create sheltered clearings without placing a
   // uniform tree grid across the walkable meadow.
-  const target = Math.min(16, Math.max(12, Math.floor((p.cols * p.rows) / 90)));
+  const target = Math.min(16, Math.max(14, Math.floor((p.cols * p.rows) / 90)));
   const candidates: { x: number; y: number; rank: number; projectClearing: boolean }[] = [];
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {
