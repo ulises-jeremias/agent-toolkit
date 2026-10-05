@@ -1157,13 +1157,13 @@ describe('layoutWorld', () => {
     const trees = paintTerrain(layout.entities, layout.cols, layout.rows).decor.filter(({ sprite }) =>
       sprite.startsWith('tree-'),
     );
-    const projectSideTrees = trees.filter(({ x }) => x >= 17);
+    const projectSideTrees = trees.filter(({ x }) => x >= 21);
     const clusteredPairs = trees.filter((tree, index) =>
       trees.slice(index + 1).some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
     );
 
     expect(trees.length).toBeGreaterThan(20);
-    expect(projectSideTrees.length).toBeGreaterThan(5);
+    expect(projectSideTrees.length).toBeGreaterThan(8);
     expect(clusteredPairs.length).toBeGreaterThan(5);
   });
 

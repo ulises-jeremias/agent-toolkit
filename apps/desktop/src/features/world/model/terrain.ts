@@ -88,6 +88,7 @@ class Painter {
   decor: DecorSprite[] = [];
   blocked = new Set<string>();
   waterReservations = new Set<string>();
+  projectLots: LaidOutEntity[] = [];
   cols: number;
   rows: number;
 
@@ -98,6 +99,7 @@ class Painter {
       for (let y = e.y; y < e.y + e.h; y++) for (let x = e.x; x < e.x + e.w; x++) this.blocked.add(key(x, y));
       if (e.kind === 'place') {
         this.waterReservations.add(key(e.x + Math.floor(e.w / 2), e.y + e.h));
+        if (e.id.startsWith('place:project:')) this.projectLots.push(e);
       }
     }
   }
@@ -735,7 +737,7 @@ function flowerPatchSprites(p: Painter) {
   }
 }
 
-/** Pick a few stable grove hearts inside the settlement, away from its paths. */
+/** Pick stable grove hearts in real house clearings and open meadow, off routes. */
 function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<string> {
   // Keep substantial woodland even after landmarks and project houses occupy
   // the map. More small clusters create sheltered clearings without placing a
@@ -749,7 +751,16 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
       // walking tile and the full canopy is checked against every building
       // below. A one-tile exclusion here pushed all clusters to the map edge.
       if (nearStructureOrPath(p, x, y, 0)) continue;
-      candidates.push({ x, y, rank: h2(x, y, 173) });
+      const nearestLot = p.projectLots.reduce((distance, lot) => {
+        const dx = Math.max(lot.x - x, 0, x - (lot.x + lot.w - 1));
+        const dy = Math.max(lot.y - y, 0, y - (lot.y + lot.h - 1));
+        return Math.min(distance, Math.hypot(dx, dy));
+      }, Number.POSITIVE_INFINITY);
+      // Give occupied project clearings a few sheltered tree groups. The
+      // canopy pass below still rejects crowns that reach a real façade, and
+      // the root check above keeps actual routes open.
+      const projectClearing = nearestLot >= 2 && nearestLot <= 8;
+      candidates.push({ x, y, rank: h2(x, y, 173) - (projectClearing ? 0x1_0000_0000 : 0) });
     }
   }
   if (meadowHeart) {

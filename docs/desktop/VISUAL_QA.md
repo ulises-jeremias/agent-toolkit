@@ -1,5 +1,38 @@
 # Desktop visual QA
 
+## Project-side grove spacing — 2026-10-05
+
+Source `20d10fb07a21ee8f5dcfa470262a662979d5827d`, Linux Electron capture
+workflow `37350627201`. I opened the fresh empty valley, several-project valley
+at 1920×1080 and 1024×640, the several-project Dusk view at 1920×1080, and the
+project room at 1920×1080. The captures also refresh the README world, Dusk,
+and project-interior images.
+
+Allowing grove centers to sit directly beside a route or lot did not create the
+visual result the model test suggested: most tree crowns still collect at the
+far edges, leaving the occupied project district broad and bare. The compact
+and large captures have coherent pixel scaling and clear building silhouettes,
+but the map still reads as buildings on a flat lawn with angular service paths.
+At dusk the shoreline and windows retain contrast; the world still lacks the
+warm ambient lighting, varied path margins, and density of a finished game
+scene. The project room remains a mostly empty wooden rectangle with widely
+spaced controls.
+
+After reviewing these captures, I refreshed the tracked screenshots to the
+actual Electron output and recorded these composition issues as active work.
+The screenshots are current product evidence, not visual sign-off. The next
+visual pass should place deliberate groves around occupied districts, shape
+the paths and clearings around landmarks, and compose the interior around its
+real project stations before claiming the world is finished.
+
+Opened files:
+
+- [Empty valley, large](assets/electron/world/world-empty-large.png).
+- [Several projects, large](assets/electron/world/world-several-projects-large.png)
+  and [compact](assets/electron/world/world-several-projects-compact.png).
+- [Dusk valley, large](assets/electron/cozy-pixel-world/world-dusk.png).
+- [Project room, large](assets/electron/world/project-files-room-large.png).
+
 ## Tree art, settlement screenshots, and README gallery — 2026-10-05
 
 Source `b894fa7992afdcdb006bd6b29a0b28d34f5320c5`, Linux Electron capture
