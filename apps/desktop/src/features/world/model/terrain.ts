@@ -978,6 +978,64 @@ function forest(p: Painter, projectlessMeadow = false) {
       false,
     );
   }
+
+  // Project-free valleys need one readable grove in the open meadow, even
+  // when the shared buildings and approaches leave the seeded edge groups
+  // with too few surviving roots. This deterministic fallback only plants
+  // environmental trees on free grass; it never marks a worker or resource.
+  if (projectlessMeadow) {
+    const treeCount = () => p.decor.filter((decor) => decor.sprite.startsWith('tree-')).length;
+    const groveOffsets = [
+      [0, 0],
+      [-2, 0],
+      [2, 0],
+      [-1, 2],
+      [1, 2],
+    ] as const;
+    const openMeadow: { x: number; y: number; rank: number; eastBank: boolean }[] = [];
+    for (let y = 4; y < p.rows - 3; y += 1) {
+      for (let x = 6; x < p.cols - 6; x += 1) {
+        const ground = p.get(x, y);
+        if ((!ground.startsWith('grass') && !ground.startsWith('flowers')) || p.isBlocked(x, y)) continue;
+        if (p.paths.has(key(x, y)) || canopyOverBuilding(p, x, y, 0, 0)) continue;
+        if (canopyOverFlowerPatch(p, x, y, 0, 0)) continue;
+        openMeadow.push({ x, y, rank: h2(x, y, 257), eastBank: x > creekSafe(p) });
+      }
+    }
+    openMeadow.sort(
+      (a, b) => Number(b.eastBank) - Number(a.eastBank) || a.rank - b.rank || a.y - b.y || a.x - b.x,
+    );
+    for (const center of openMeadow) {
+      if (treeCount() >= 12) break;
+      for (const [dx, dy] of groveOffsets) {
+        const x = center.x + dx;
+        const y = center.y + dy;
+        const ground = p.get(x, y);
+        if ((!ground.startsWith('grass') && !ground.startsWith('flowers')) || p.isBlocked(x, y)) continue;
+        if (p.paths.has(key(x, y)) || canopyOverBuilding(p, x, y, 0, 0)) continue;
+        if (
+          p.decor.some((decor) => decor.sprite.startsWith('tree-') && decor.x === x && decor.y === y)
+        ) {
+          continue;
+        }
+        const kind = h2(x, y, 263) % 12;
+        const tree =
+          kind < 2 ? 'tree-pine' : kind < 6 ? 'tree-blossom' : kind < 8 ? 'tree-amber' : 'tree-round';
+        p.sprite(
+          `tree:meadow-grove:${x},${y}`,
+          x,
+          y,
+          tree,
+          48,
+          48,
+          -16,
+          -32,
+          false,
+        );
+        if (treeCount() >= 12) break;
+      }
+    }
+  }
 }
 
 /** A warm pixel-step aura sits beneath each physical lantern sprite. */
