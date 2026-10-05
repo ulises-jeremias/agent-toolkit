@@ -777,8 +777,8 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
               </p>
             ) : null}
             <p className={styles.bindingNote}>
-              Explicit choices win. Auto assigns a unique active Person with a matching saved role or Agent
-              Definition, then falls back to an ephemeral role. Runner and model remain swarm-wide settings.
+              Explicit choices win. Auto assigns a unique active Person with a matching saved role or Agent Definition,
+              then falls back to an ephemeral role. Runner and model remain swarm-wide settings.
             </p>
             <div className={styles.recipeSummary}>
               <span>
