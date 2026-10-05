@@ -8,7 +8,7 @@
 
 > **New here?** Start with [Getting Started](docs/GETTING_STARTED.md) — install → doctor → first skill.
 
-**Composable AI agent capabilities for every major coding assistant**
+**A semantic, GUI-first agent workspace — with reusable capabilities for every major coding assistant**
 
 [![CI](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=CI)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
 [![Desktop](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/desktop.yml?branch=main&label=Desktop)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/desktop.yml)
@@ -39,11 +39,11 @@ agent-toolkit install
 agent-toolkit doctor
 ```
 
-Agent Toolkit has two faces over one canonical runtime: the V engine and CLI
-provide automation and typed operations; Electron Desktop makes the workspace
-visible as a semantic pixel valley. Projects are places, shared capabilities
-live in the Library, and precise work happens in readable game-menu inspectors.
-Only observed jobs and live sessions appear as active characters.
+Agent Toolkit Desktop is the flagship way to understand and operate a workspace:
+a cozy pixel valley where real projects have their own places, shared capabilities
+live in the Library, and precise work happens in compact game-menu inspectors.
+The V engine remains the single source of domain behavior for both Desktop and
+CLI automation. Only observed jobs and live sessions appear as active characters.
 
 ```mermaid
 flowchart LR
@@ -136,7 +136,7 @@ agent-toolkit doctor     # verify everything is set up
 
 ### Desktop app (GUI)
 
-Agent Toolkit Desktop is the flagship Electron application over the canonical V backend: a cozy pixel world of real project houses, a capability Library, Operations, People, terminals, and guided onboarding. Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installer on Windows from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest). The app bundles its backend; a CLI install or source checkout is not required. Details: [product vision](docs/desktop/PRODUCT_VISION.md) · [packaging](docs/desktop/PACKAGING.md).
+Agent Toolkit Desktop is the flagship Electron application over the canonical V backend. The valley is the home screen: each registered project is a distinct building, while Library, Archive, Operations and Terminal are shared places. Clicking a place opens the same real resource as direct navigation or the command palette. Dense work stays in readable game-menu inspectors, and offline People never appear as workers. Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installer on Windows from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest). The app bundles its backend; a CLI install or source checkout is not required. Start with the [Desktop guide](docs/desktop/README.md) for product behavior, screenshots and known limits.
 
 | Meadow valley | Dusk valley |
 |---|---|

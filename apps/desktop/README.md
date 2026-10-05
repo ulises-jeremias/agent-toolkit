@@ -18,10 +18,16 @@ with **pnpm** only — one canonical lockfile at the repo root.
   (health-gated, version-checked, crash-detected, clean shutdown), narrow
   typed preload bridge (`contextIsolation`, no `nodeIntegration`), and the
   node-pty terminal transport adapter.
-- Destinations: **World** (default home), Office, Operations, Workspace,
-  Library, Insights, Terminal, Settings — all controls hit real backend
-  endpoints. Spatial contract:
+- Destinations: **World** (default home), Attention, Operations, Workspace,
+  Library, Insights, Terminal, Settings — domain actions use typed backend
+  endpoints. The journey ledger identifies behavior that still has limits.
+  Spatial contract:
   [SEMANTIC_WORLD.md](../../docs/desktop/SEMANTIC_WORLD.md).
+
+Product behavior, real Electron captures and known gaps are indexed in the
+[Desktop guide](../../docs/desktop/README.md). It is the user-facing source for
+the world metaphor; [VISUAL_QA.md](../../docs/desktop/VISUAL_QA.md) is the
+engineering evidence log, not a promise that every open visual issue is solved.
 
 ## Develop
 

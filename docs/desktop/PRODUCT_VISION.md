@@ -91,8 +91,10 @@ Marketing claims are not independently verified runtime evidence.
 Work in coherent reviewed PRs from fresh canonical main. Audit first; establish
 trust and shared interactions before redesigning separate panels. Build, run,
 navigate, capture, open images, critique and correct every major UX change.
-Merge only green changes without unresolved Blocker/High findings. Release
-publication requires separate authorization.
+Merge changes only after required checks pass and no unresolved Blocker/High
+finding remains. The current owner has authorized a release after the product
+pass; publish only from final main after release assets and host installation
+have been verified.
 
 The mission ends only after a packaged product tour verifies standalone setup,
 important workflows, truthful state, terminal reliability, responsive layouts,
