@@ -1142,6 +1142,33 @@ describe('layoutWorld', () => {
     expect(interiorTrees.length).toBeGreaterThan(3);
   });
 
+  it('keeps a wooded frame around a populated project settlement', () => {
+    const layout = layoutWorld(
+      buildWorldModel(
+        baseInput({
+          projects: ['alpha', 'bravo', 'cinder', 'delta'].map((name) => ({
+            name,
+            target: `/${name}`,
+            status: 'ok' as const,
+          })),
+        }),
+      ),
+    );
+    const trees = paintTerrain(layout.entities, layout.cols, layout.rows).decor.filter(({ sprite }) =>
+      sprite.startsWith('tree-'),
+    );
+    const projectSideTrees = trees.filter(({ x }) => x >= 17);
+    const clusteredPairs = trees.filter((tree, index) =>
+      trees
+        .slice(index + 1)
+        .some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
+    );
+
+    expect(trees.length).toBeGreaterThan(20);
+    expect(projectSideTrees.length).toBeGreaterThan(5);
+    expect(clusteredPairs.length).toBeGreaterThan(5);
+  });
+
   it('keeps loose stones on the creek bank instead of scattering them across meadow paths', () => {
     const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
     const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);

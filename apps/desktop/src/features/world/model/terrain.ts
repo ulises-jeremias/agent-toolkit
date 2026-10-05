@@ -737,9 +737,10 @@ function flowerPatchSprites(p: Painter) {
 
 /** Pick a few stable grove hearts inside the settlement, away from its paths. */
 function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<string> {
-  const target = meadowHeart
-    ? Math.min(14, Math.max(12, Math.floor((p.cols * p.rows) / 100)))
-    : Math.min(10, Math.max(8, Math.floor((p.cols * p.rows) / 130)));
+  // Keep substantial woodland even after landmarks and project houses occupy
+  // the map. More small clusters create sheltered clearings without placing a
+  // uniform tree grid across the walkable meadow.
+  const target = Math.min(16, Math.max(12, Math.floor((p.cols * p.rows) / 90)));
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {
@@ -782,7 +783,7 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
   ] as const;
   for (const candidate of candidates) {
     if (centers.length >= target) break;
-    const minSpacing = meadowHeart ? 6 : 8;
+    const minSpacing = 6;
     if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < minSpacing)) continue;
     centers.push(candidate);
     for (const [dx, dy] of offsets) {
@@ -831,10 +832,9 @@ function forest(p: Painter, projectlessMeadow = false) {
       // Keep tall canopies fully inside the framed world; low grass and
       // flowers can still reach the edge without looking accidentally cut.
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
-      // Project districts used to feel exposed beside the creek; carry more of
-      // the wooded frame into real settlements while keeping door approaches,
-      // clearings, and façades protected below.
-      const groveDensity = projectlessMeadow ? 31 : 25;
+      // Grove anchors provide the settlement's large silhouettes; the seeded
+      // fill below closes small gaps while preserving open routes and façades.
+      const groveDensity = projectlessMeadow ? 31 : 28;
       const naturallyWooded = edge
         ? roll < (x >= p.cols - 6 ? 27 : 29)
         : nearCreek
