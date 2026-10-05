@@ -206,7 +206,7 @@
 
   /* World backdrop behind the map (forest depth). */
   --world-outside: #2c4a28;
-  --world-outside-interior: #322740;
+  --world-outside-interior: #36272f;
   --world-plaque-fg: var(--cw-ivory);
   --world-plaque-bg: rgba(23, 26, 43, 0.88);
   --world-plaque-border: var(--cw-menu-500);
@@ -281,7 +281,7 @@
   --surface-terminal-chrome: #0d0f1a;
 
   --world-outside: #182818;
-  --world-outside-interior: #251f38;
+  --world-outside-interior: #2b202a;
   --world-plaque-fg: var(--cw-ivory);
   --world-plaque-bg: rgba(13, 15, 26, 0.92);
   --world-plaque-border: var(--cw-menu-500);

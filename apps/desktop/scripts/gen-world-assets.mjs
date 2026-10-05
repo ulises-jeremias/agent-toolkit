@@ -264,12 +264,12 @@ const P = {
   ink: [0x3a, 0x32, 0x47],
   inkd: [0x22, 0x1e, 0x30],
   sh: [0x26, 0x20, 0x33, 0x55],
-  // Interior timber is a deep plum heartwood with moonlit teal grain. It
-  // keeps rooms warm without turning the floor into parchment or a ledger.
-  floorWood: [0x4c, 0x3a, 0x52],
-  floorWoodLight: [0x5c, 0x45, 0x62],
-  floorWoodShade: [0x36, 0x2b, 0x43],
-  floorWoodEdge: [0x78, 0x58, 0x68],
+  // Warm chestnut boards keep the room inviting while the teal rune inlays
+  // carry the valley's gentle-magic accent. Avoid parchment or paper tones.
+  floorWood: [0x75, 0x49, 0x31],
+  floorWoodLight: [0x93, 0x60, 0x3b],
+  floorWoodShade: [0x4f, 0x32, 0x2b],
+  floorWoodEdge: [0x35, 0x27, 0x31],
   floorMoon: [0x78, 0xb8, 0xb0],
   floorMoonShade: [0x4f, 0x8f, 0x91],
 };
@@ -1502,11 +1502,11 @@ function floorRune() {
 
 function wallBand() {
   const img = new Img(16, 16);
-  // Continuous cool timber framing avoids a repeated stud at every tile.
-  img.rect(0, 0, 15, 15, 'ink');
+  // Continuous warm timber framing avoids a repeated stud at every tile.
+  img.rect(0, 0, 15, 15, 'od');
   img.rect(0, 0, 15, 2, 'inkd');
-  img.hline(0, 15, 3, 'rsd').hline(0, 15, 4, 'rsl');
-  img.hline(0, 15, 13, 'rsd').hline(0, 15, 14, 'inkd');
+  img.hline(0, 15, 3, 'od').hline(0, 15, 4, 'ol');
+  img.hline(0, 15, 13, 'ol').hline(0, 15, 14, 'inkd');
   img.set(2, 8, 'rsd').set(9, 10, 'rsd').set(14, 6, 'rsd');
   img.set(6, 7, 'inkd').set(12, 11, 'inkd');
   return [{ name: 'wall-top', img }];
