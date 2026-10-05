@@ -877,11 +877,12 @@ function forest(p: Painter, projectlessMeadow = false) {
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
       // Grove anchors provide the settlement's large silhouettes; the seeded
       // fill below closes small gaps while preserving open routes and façades.
-      const groveDensity = projectlessMeadow ? 31 : 28;
+      const creekDensity = 12;
+      const groveDensity = projectlessMeadow ? 24 : 22;
       const naturallyWooded = edge
-        ? roll < (x >= p.cols - 6 ? 27 : 29)
+        ? roll < (x >= p.cols - 6 ? 11 : 8)
         : nearCreek
-          ? roll < groveDensity
+          ? roll < creekDensity
           : grove && roll < groveDensity;
       const woodlandCell = plantedGroves.has(key(x, y)) || naturallyWooded;
       const wantTree = treeInsideFrame && !overlapsBuilding && !overlapsFlowerPatch && !nearTrail && woodlandCell;
