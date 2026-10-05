@@ -716,10 +716,9 @@ function forest(p: Painter, projectlessMeadow = false) {
         const canopyTop = y - 2 + ((h2(x, y, 53) % 3) - 1) / 16;
         return canopyLeft < right && canopyLeft + 3 > left && canopyTop < bottom && canopyTop + 3 > top;
       });
-      // Tree crowns may lean over a path; only keep trunks off the walking
-      // surface itself and its immediate edge. The old 5×5 exclusion created
-      // a broad empty moat around every route in compact worlds.
-      const nearTrail = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => p.paths.has(key(x + dx, y + dy))));
+      // Tree crowns may lean over a path. Keep trunks off the walking tiles,
+      // while allowing the canopy to frame the route instead of making a moat.
+      const nearTrail = p.paths.has(key(x, y));
       const grove = insideGrove(x, y);
       // Keep tall canopies fully inside the framed world; low grass and
       // flowers can still reach the edge without looking accidentally cut.
