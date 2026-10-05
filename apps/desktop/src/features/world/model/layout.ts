@@ -219,7 +219,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     'object:library': { x: 1, y: 4 },
     // Stagger the service lane around its small meadow clearing. Keeping all
     // three façades on one baseline made their footpaths read as a rigid grid.
-    'object:workshop': { x: 12, y: 8 },
+    'object:workshop': { x: 12, y: 10 },
     'object:operations': { x: 6, y: 3 },
     'object:terminal': { x: 11, y: 2 },
     'object:attention': { x: 0, y: 11 },
