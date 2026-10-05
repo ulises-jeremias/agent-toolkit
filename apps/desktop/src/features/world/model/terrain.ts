@@ -770,11 +770,19 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
         const dy = Math.max(lot.y - y, 0, y - (lot.y + lot.h - 1));
         return Math.min(distance, Math.hypot(dx, dy));
       }, Number.POSITIVE_INFINITY);
+      const neighboringLots = p.projectLots.filter((lot) => {
+        const dx = Math.max(lot.x - x, 0, x - (lot.x + lot.w - 1));
+        const dy = Math.max(lot.y - y, 0, y - (lot.y + lot.h - 1));
+        return Math.hypot(dx, dy) <= 4;
+      }).length;
       // Give occupied project clearings a few sheltered tree groups. The
       // canopy pass below still rejects crowns that reach a real façade, and
       // the root check above keeps actual routes open.
       const projectClearing = nearestLot >= 2 && nearestLot <= 8;
-      candidates.push({ x, y, rank: h2(x, y, 173) - (projectClearing ? 0x1_0000_0000 : 0) });
+      const clearCanopy = !canopyOverBuilding(p, x, y, 0, 0);
+      const sharedClearing = projectClearing && neighboringLots >= 2 && clearCanopy;
+      const rank = h2(x, y, 173) - (projectClearing ? 0x1_0000_0000 : 0) - (sharedClearing ? 0x2_0000_0000 : 0);
+      candidates.push({ x, y, rank });
     }
   }
   if (meadowHeart) {
