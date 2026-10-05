@@ -745,7 +745,10 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {
       if (!p.get(x, y).startsWith('grass') && !p.get(x, y).startsWith('flowers')) continue;
-      if (nearStructureOrPath(p, x, y, 1)) continue;
+      // A clear root may sit beside a path or lot: the trunk stays off the
+      // walking tile and the full canopy is checked against every building
+      // below. A one-tile exclusion here pushed all clusters to the map edge.
+      if (nearStructureOrPath(p, x, y, 0)) continue;
       candidates.push({ x, y, rank: h2(x, y, 173) });
     }
   }
