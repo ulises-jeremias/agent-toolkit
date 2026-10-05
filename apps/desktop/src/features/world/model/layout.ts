@@ -82,15 +82,15 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   );
   const rest = sorted.filter((e) => !used.has(e.id));
 
-  // Project room: real resources occupy distinct wall stations and leave a
-  // broad central aisle for navigation and any genuinely live sessions.
+  // Project room: real resources form two compact wall stations around a
+  // navigable central aisle. Keep the useful room filled at normal zoom.
   if (exit) place(exit, 0, 5);
-  if (room) place(room, 6, 0);
-  if (memory) place(memory, 17, 0);
-  if (terminal) place(terminal, 6, 6);
-  if (files) place(files, 17, 6);
+  if (room) place(room, 3, 0);
+  if (memory) place(memory, 11, 0);
+  if (terminal) place(terminal, 3, 6);
+  if (files) place(files, 11, 6);
 
-  let entryX = 17;
+  let entryX = 11;
   const entryY = 5;
   for (const entry of memoryEntries) {
     place(entry, entryX, entryY);
@@ -117,7 +117,7 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   return {
     // Keep the real project stations close enough to read as one room. Only
     // actual records or active sessions expand the space beyond this footprint.
-    cols: Math.max(maxX, 22),
+    cols: Math.max(maxX, 18),
     rows: Math.max(maxY, 11),
     entities: laid,
   };

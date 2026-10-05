@@ -1179,9 +1179,9 @@ export function paintInterior(entities: readonly LaidOutEntity[], cols: number, 
   p.sprite('room-window:east', 14, 0, 'window-valley', 32, 24);
   p.sprite('room-sconce:west', 0, 3, 'wall-sconce', 16, 24);
   p.sprite('room-sconce:east', cols - 1, 3, 'wall-sconce', 16, 24);
-  p.sprite('room-rug:commons', 10, Math.max(4, rows - 6), 'rug', 32, 16);
+  p.sprite('room-rug:commons', Math.floor(cols / 2) - 1, Math.max(4, rows - 6), 'rug', 32, 16);
   p.sprite('room-plant:west', 1, rows - 2, 'plant', 24, 24);
-  p.sprite('room-plant:east', 12, rows - 2, 'plant', 24, 24);
+  p.sprite('room-plant:east', Math.max(2, cols - 3), rows - 2, 'plant', 24, 24);
   p.sprite('room-mote:west', 5, 5, 'mote', 10, 10, 4, 3, false, true);
   p.sprite('room-mote:east', 12, 5, 'mote', 10, 10, 4, 3, false, true);
   return { cells: cellsToArray(p), decor: p.decor };
