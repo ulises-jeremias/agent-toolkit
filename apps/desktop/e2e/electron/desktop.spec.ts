@@ -89,7 +89,7 @@ function initializeTestRepository(workspace: string): void {
 
 const DESTINATIONS: ReadonlyArray<{ link: string; path: string }> = [
   { link: 'World', path: '/world' },
-  { link: 'Office', path: '/office' },
+  { link: 'Attention', path: '/office' },
   { link: 'Operations', path: '/operations' },
   { link: 'Workspace', path: '/workspace' },
   { link: 'Library', path: '/library' },
@@ -940,7 +940,7 @@ test('theme choice applies immediately and survives a reload', async () => {
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'meadow');
 });
 
-test('a failed job appears in Office attention and Next that needs me opens it', async () => {
+test('a failed job appears in Attention and Next that needs me opens it', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
   await page.getByRole('button', { name: 'Start job' }).click();
@@ -950,7 +950,7 @@ test('a failed job appears in Office attention and Next that needs me opens it',
   await expect(dialog).toBeHidden();
   await expect(page.getByRole('region', { name: 'no-such-command' }).getByText('failed')).toBeVisible();
 
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Office' }).click();
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Attention' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Attention' })).toBeVisible();
   const needsYou = page.getByRole('region', { name: 'Needs you' });
   await expect(needsYou).toContainText(/no-such-command failed/);
@@ -982,7 +982,7 @@ test('terminal runs a real pseudo-terminal session that survives navigation', as
   await page.keyboard.press('Enter');
   await expect(terminal.locator('.xterm-rows')).toContainText('atk-e2e-42');
 
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Office' }).click();
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Attention' }).click();
   const dock = page.getByRole('complementary', { name: 'Terminal dock' });
   await expect(dock.getByRole('tab', { name: /e2e-shell/ })).toBeVisible();
   await expect(dock.getByLabel('Terminal for e2e-shell').locator('.xterm-rows')).toContainText('atk-e2e-42');
@@ -1012,7 +1012,7 @@ test('the world focuses a real PTY and does not invent one', async () => {
   await expect(first).toHaveAttribute('aria-selected', 'true');
   expect(page.url()).toContain(`pty=${firstId}`);
 
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Office' }).click();
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Attention' }).click();
   expect(page.url()).toContain(`pty=${firstId}`);
   await expect(first).toHaveAttribute('aria-selected', 'true');
 
@@ -1085,7 +1085,7 @@ test('a crashed backend is attention, while its real PTY stays available for rec
   await page.keyboard.press('Enter');
   await expect(terminal.locator('.xterm-rows')).toContainText('pty-survives-backend-crash');
 
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Office' }).click();
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Attention' }).click();
   const binaryPath = await page.evaluate(async () => {
     const state = await window.atk?.backendStatus();
     return state?.binary?.path ?? null;

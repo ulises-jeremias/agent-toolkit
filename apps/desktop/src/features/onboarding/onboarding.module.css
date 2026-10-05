@@ -21,13 +21,13 @@
   place-items: center;
   width: 2rem;
   height: 2rem;
-  border: 2px solid var(--accent-brass);
+  border: 2px solid var(--accent-gold);
   background: var(--surface-panel);
   image-rendering: pixelated;
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: 600;
-  color: var(--accent-brass-strong);
+  color: var(--accent-gold-strong);
 }
 
 .brand {
@@ -71,7 +71,7 @@
 
 .railItem[data-current='true'] {
   color: var(--text-primary);
-  border-bottom-color: var(--accent-brass);
+  border-bottom-color: var(--accent-gold);
   font-weight: 600;
 }
 

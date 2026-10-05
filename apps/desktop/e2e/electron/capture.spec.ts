@@ -18,7 +18,7 @@ const SIZES = [
 const THEMES = ['meadow', 'dusk'] as const;
 const DESTINATIONS = [
   'World',
-  'Office',
+  'Attention',
   'Operations',
   'Workspace',
   'Library',

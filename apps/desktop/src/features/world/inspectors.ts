@@ -36,7 +36,7 @@ export function entityActivateVerb(
     'memory.index': 'Memory archive',
     'tool.terminal': 'Terminal',
     'ops.crate': 'Operations',
-    'attention.inbox': 'Office',
+    'attention.inbox': 'Attention',
     'files.workspace': 'Workspace files',
     'files.project': 'Project files',
     'workspace.grounds': 'Workspace inspector',

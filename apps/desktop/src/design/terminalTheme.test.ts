@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { TERMINAL_OPTIONS } from './terminalTheme';
 
 describe('TERMINAL_OPTIONS', () => {
-  it('keeps the Cozy World terminal palette: ink ground, green cursor, brass selection', () => {
+  it('keeps the Cozy World terminal palette: night ground, green cursor, gold selection', () => {
     const theme = TERMINAL_OPTIONS.theme;
     expect(theme?.background).toBe('#161510');
     expect(theme?.cursor).toBe('#39ff9b');

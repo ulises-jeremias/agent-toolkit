@@ -51,13 +51,13 @@
   color: var(--text-muted);
 }
 
-/* Focused slip the world opened — manila paper, brass rule. Not a card. */
+/* Focused item opened from the world notice board. */
 tr[data-inspect='true'] > * {
-  background: var(--surface-manila);
+  background: var(--surface-notice);
 }
 
 tr[data-inspect='true'] > :first-child {
-  box-shadow: inset 3px 0 0 var(--accent-brass);
+  box-shadow: inset 3px 0 0 var(--accent-gold);
 }
 
 .rowLinks {
@@ -104,9 +104,9 @@ tr[data-inspect='true'] > :first-child {
 }
 
 tr[data-inspect='true'] > * {
-  background: var(--surface-manila);
+  background: var(--surface-notice);
 }
 
 tr[data-inspect='true'] > :first-child {
-  box-shadow: inset 3px 0 0 var(--accent-brass);
+  box-shadow: inset 3px 0 0 var(--accent-gold);
 }
