@@ -69,7 +69,7 @@ function insideGrove(x: number, y: number): boolean {
     for (let gx = cellX - 1; gx <= cellX + 1; gx++) {
       const seedX = gx * cellSize + 2 + (h2(gx, gy, 23) % 5);
       const seedY = gy * cellSize + 2 + (h2(gx, gy, 29) % 5);
-      const radius = 3 + (h2(gx, gy, 31) % 4);
+      const radius = 4 + (h2(gx, gy, 31) % 4);
       const dx = x - seedX;
       const dy = (y - seedY) * 1.15;
       if (dx * dx + dy * dy <= radius * radius) return true;
