@@ -965,7 +965,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   // quarter without a street, so every entrance detoured toward the southern
   // service lane and turned the settlement into a rectangular loop.
   const publicDoorY = Math.max(
-    8,
+    10,
     ...commons
       .filter((place) => ['object:library', 'object:operations', 'object:terminal'].includes(place.id))
       .map((place) => place.y + place.h),
