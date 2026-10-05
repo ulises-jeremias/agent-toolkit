@@ -451,9 +451,8 @@ actions stay direct and precise.
 
 ## 18. Design references
 
-The historical concept boards in `assets/design/` (Paper Co. era) are
-**deprecated visual references** kept for provenance only; they hold no
-authority. The current references are:
+Old concept boards were removed from the active repository on 2026-10-05;
+their provenance remains in Git history. The current references are:
 
 - this document and [SEMANTIC_WORLD.md](SEMANTIC_WORLD.md);
 - the executable system: `src/design/tokens.css`,

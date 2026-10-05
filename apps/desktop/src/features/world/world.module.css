@@ -474,13 +474,14 @@
   z-index: 4;
 }
 
-/* Dusk: the valley darkens; sprites keep their baked warm windows. */
+/* Dusk tints terrain beneath the authored sprites. Warm windows, lanterns,
+   fireflies, and water glints stay bright against the cooler evening ground. */
 .mapRegion::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 7;
+  z-index: 2;
 }
 
 :root[data-theme='meadow'] .mapRegion::after {
@@ -488,6 +489,6 @@
 }
 
 :root[data-theme='dusk'] .mapRegion::after {
-  background: rgba(18, 24, 56, 0.22);
+  background: rgba(18, 24, 56, 0.34);
   mix-blend-mode: multiply;
 }
