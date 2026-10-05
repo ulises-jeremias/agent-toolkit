@@ -160,6 +160,13 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
           await page.getByRole('button', { name: /^agent-toolkit version/ }).click();
         }
         await settle(page);
+        if (destination === 'Terminal') {
+          const marker = `capture-${theme}-${size.width}`;
+          await terminal.click();
+          await page.keyboard.type(`echo ${marker}`);
+          await page.keyboard.press('Enter');
+          await expect(terminal.locator('.xterm-rows')).toContainText(marker);
+        }
         await page.mouse.move(size.width - 1, size.height - 1);
         await page.screenshot({
           path: path.join(OUT_DIR, `${theme}-${size.width}x${size.height}-${destination.toLowerCase()}.png`),
