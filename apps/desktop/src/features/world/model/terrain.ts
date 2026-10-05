@@ -409,6 +409,35 @@ function renderPaths(p: Painter) {
   }
 }
 
+/** Let footpaths meet the meadow with clustered blossoms, not a hard tile seam. */
+function softenPathVerge(p: Painter) {
+  const blooms = ['flowers-daisy', 'flowers-lavender', 'flowers-gold'] as const;
+  const pathCells = [...p.paths].map((at) => at.split(',').map(Number));
+  const planted = new Set<string>();
+  for (const [x = 0, y = 0] of pathCells) {
+    // Sparse seed points become little shoulder clusters. This keeps paths
+    // legible and walkable while breaking the ruler-straight edges at game zoom.
+    if (h2(x, y, 211) % 37 !== 0) continue;
+    const side = h2(x, y, 223) % 2 === 0 ? -1 : 1;
+    for (const [dx, dy] of [[side, 0], [side, -1], [side, 1]] as const) {
+      const nx = x + dx;
+      const ny = y + dy;
+      const at = key(nx, ny);
+      if (
+        planted.has(at) ||
+        p.isBlocked(nx, ny) ||
+        p.paths.has(at) ||
+        !p.get(nx, ny).startsWith('grass')
+      ) {
+        continue;
+      }
+      if (h2(nx, ny, 227) % 4 === 0) continue;
+      p.set(nx, ny, blooms[h2(nx, ny, 229) % blooms.length]!);
+      planted.add(at);
+    }
+  }
+}
+
 /** A winding east-valley stream that bends around real building footprints. */
 function creek(
   p: Painter,
@@ -425,8 +454,8 @@ function creek(
   const bankCenter = Math.floor((minCenterX + maxCenterX) / 2);
   const baseX = preferredFitsBank ? preferredX : bankCenter;
   const corridorRadius = (maxCenterX - runMinX) / 2;
-  const broadBend = Math.min(3.4, corridorRadius * 1.25);
-  const softBend = Math.min(0.9, corridorRadius * 0.32);
+  const broadBend = Math.min(4.6, corridorRadius * 1.55);
+  const softBend = Math.min(1.25, corridorRadius * 0.42);
   const creekRows = Array.from({ length: p.rows }, (_, y) => {
     const along = y - bridgeY;
     // The bridge remains the fixed crossing while the stream swings through a
@@ -1142,6 +1171,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   }
   connectPathIslands(p);
   renderPaths(p);
+  softenPathVerge(p);
   plazaCore(p, hall, commons);
   if (plannedCreekX !== null) {
     bridgeAt(p, creekX, roadY);

@@ -888,6 +888,22 @@ describe('layoutWorld', () => {
         .filter((cell) => cell.tile.startsWith('trail') || cell.tile === 'plaza' || cell.tile === 'plaza-b')
         .map(({ x, y }) => `${x},${y}`),
     );
+    const pathsideFlowers = first.cells.filter(
+      ({ x, y, tile }) =>
+        tile.startsWith('flowers') &&
+        [
+          [x, y - 1],
+          [x - 1, y],
+          [x + 1, y],
+          [x, y + 1],
+        ].some(([nx, ny]) => trails.has(`${nx},${ny}`)),
+    );
+    expect(pathsideFlowers.length).toBeGreaterThan(0);
+    expect(
+      first.cells
+        .filter(({ tile }) => tile.startsWith('flowers'))
+        .every(({ x, y }) => !trails.has(`${x},${y}`)),
+    ).toBe(true);
     const water = new Set(first.cells.filter(({ tile }) => tile === 'water').map(({ x, y }) => `${x},${y}`));
     const sparkles = first.decor.filter((sprite) => sprite.sprite === 'water-sparkle');
     expect(sparkles.length).toBeGreaterThan(0);
