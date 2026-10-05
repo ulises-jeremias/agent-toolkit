@@ -224,7 +224,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     'object:terminal': { x: 11, y: 2 },
     'object:attention': { x: 0, y: 9 },
     'object:files': { x: 4, y: 8 },
-    'object:settings': { x: 9, y: 7 },
+    'object:settings': { x: 8, y: 7 },
   };
   for (const landmark of sharedObjects) {
     const slot = civicSlots[landmark.id]!;
