@@ -772,7 +772,10 @@ function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonl
     if (y < p.rows) {
       const center = hall.x + Math.floor(hall.w / 2);
       for (let x = center - 1; x <= center + 1; x++) {
-        if (!p.isBlocked(x, y)) p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b', true);
+        if (!p.isBlocked(x, y)) {
+          p.path(x, y);
+          p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b', true);
+        }
       }
     }
     // A small paved commons gives the two civic streets a readable center.
@@ -780,6 +783,7 @@ function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonl
     for (let y = 9; y <= 10; y++) {
       for (let x = center - 1; x <= center + 1; x++) {
         if (!p.isBlocked(x, y) && p.get(x, y).startsWith('grass')) {
+          p.path(x, y);
           p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b');
         }
       }
@@ -1043,13 +1047,13 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
       connectEntrance(p, doorX, doorY, street);
     }
   }
+  plazaCore(p, hall, commons);
   renderPaths(p);
   if (plannedCreekX !== null) {
     bridgeAt(p, creekX, roadY);
     bridgeLanterns(p, creekX, roadY);
   }
   feather(p);
-  plazaCore(p, hall, commons);
   flowerGlades(p);
   flowerPatchSprites(p);
   forest(p, projects.length === 0);
