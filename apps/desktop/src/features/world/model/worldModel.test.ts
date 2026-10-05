@@ -498,6 +498,17 @@ describe('buildWorldModel', () => {
       const tile = terrain.cells.find((cell) => `${cell.x},${cell.y}` === door)?.tile ?? 'no ground tile';
       expect(paths.has(door), `${landmark.id} door ${door} connects to the commons (terrain: ${tile})`).toBe(true);
     }
+    const serviceDoors = landmarks.slice(3).map((landmark) => ({
+      x: landmark.x + Math.floor(landmark.w / 2),
+      y: landmark.y + landmark.h,
+    }));
+    const serviceFrontY = serviceDoors[0]!.y;
+    expect(serviceDoors.every(({ y }) => y === serviceFrontY)).toBe(true);
+    const serviceLeftX = Math.min(...serviceDoors.map(({ x }) => x));
+    const serviceRightX = Math.max(...serviceDoors.map(({ x }) => x));
+    for (let x = serviceLeftX; x <= serviceRightX; x += 1) {
+      expect(paths.has(`${x},${serviceFrontY}`), `shared service lane has no gaps at ${x},${serviceFrontY}`).toBe(true);
+    }
     expect(terrain.cells.some((cell) => cell.tile.startsWith('plaza'))).toBe(true);
     const operations = landmarks.find((landmark) => landmark.id === 'object:operations')!;
     const operationsDoor = terrain.cells.find(

@@ -984,8 +984,34 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   // project houses keep a gentle curved approach into their neighborhood.
   const street = new Set(p.paths);
   if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h, street);
+  const servicePlaces = commons.filter((place) =>
+    ['object:attention', 'object:files', 'object:settings', 'object:workshop'].includes(place.id),
+  );
+  const serviceDoors = servicePlaces.map((place) => ({
+    x: place.x + Math.floor(place.w / 2),
+    y: place.y + place.h,
+  }));
+  const serviceY = Math.max(...serviceDoors.map(({ y }) => y));
+  const sharesFrontage =
+    serviceDoors.length > 1 && serviceDoors.every(({ y }) => y === serviceY);
+  const serviceLeft = Math.min(...serviceDoors.map(({ x }) => x));
+  const serviceRight = Math.max(...serviceDoors.map(({ x }) => x));
+  const serviceLaneClear =
+    sharesFrontage &&
+    Array.from({ length: serviceRight - serviceLeft + 1 }, (_, offset) => serviceLeft + offset).every(
+      (x) => !p.isBlocked(x, serviceY) && p.get(x, serviceY) !== 'water',
+    );
+  if (serviceLaneClear) {
+    // Files, Settings, Workshop and Attention share a small service lane.
+    // Give their real front doors one legible street, then join it to the
+    // commons once; independent detours around neighboring façades created
+    // rectangular loops in the open meadow.
+    for (let x = serviceLeft; x <= serviceRight; x += 1) p.path(x, serviceY);
+    connectEntrance(p, serviceRight + 1, serviceY, street);
+  }
   for (const place of commons) {
     if (place.id === 'place:memory') continue;
+    if (serviceLaneClear && servicePlaces.includes(place)) continue;
     const doorX = place.x + Math.floor(place.w / 2);
     const doorY = place.y + place.h;
     connectEntrance(p, doorX, doorY, street);
