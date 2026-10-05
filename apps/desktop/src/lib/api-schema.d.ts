@@ -583,6 +583,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/people/bindings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List validated workspace default People for swarm roles */
+        get: operations["list_people_bindings"];
+        /** Save reviewed default People for selected recipe roles */
+        put: operations["update_people_bindings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/people/{id}": {
         parameters: {
             query?: never;
@@ -1374,6 +1392,22 @@ export interface components {
         ModelsResponse: {
             ok: boolean;
             models: components["schemas"]["ModelInfo"][];
+        };
+        PersonRoleBinding: {
+            role: string;
+            person_id: string;
+            preferred_people: string[];
+        };
+        PersonBindingsResponse: {
+            ok: boolean;
+            roles: components["schemas"]["PersonRoleBinding"][];
+        };
+        PersonBindingsRequest: {
+            workspace: string;
+            recipe: string;
+            roles: {
+                [key: string]: string;
+            };
         };
         /** @description Honest origin for a knowledge file. author is the last git committer on read when `.git` exists; agent is empty unless a real source records it. timestamp is the first YYYY-MM-DD in the file, else mtime. */
         MemoryProvenance: {
@@ -3010,6 +3044,86 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    list_people_bindings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonBindingsResponse"];
+                };
+            };
+            /** @description workspace not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    update_people_bindings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonBindingsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonBindingsResponse"];
+                };
+            };
+            /** @description invalid recipe role or Person id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description workspace outside allowed roots or symlink storage */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description workspace or Person not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
                 };
             };
         };

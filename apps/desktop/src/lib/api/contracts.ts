@@ -126,6 +126,11 @@ export interface PersonResponse {
   person: Person;
 }
 
+export interface PersonBindingsResponse {
+  ok: boolean;
+  roles: Array<{ role: string; person_id: string; preferred_people: string[] }>;
+}
+
 /** OpenAPI `MemoryEntry` (list omits body). */
 export interface MemoryEntry {
   id: string;

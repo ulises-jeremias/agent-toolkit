@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useModels, useProviders } from '../../data/catalog';
 import { useLiveStatus } from '../../data/live';
 import { useSwarmCommand, useSwarmRecipes, useSwarmRun, useSwarmRunAction, useSwarms } from '../../data/swarms';
@@ -518,6 +518,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   const models = useModels();
   const catalog = useSwarmRecipes();
   const mutate = useSwarmCommand();
+  const queryClient = useQueryClient();
   const receipt = useActionReceipt('Swarm start posted');
   const [recipe, setRecipe] = useState('pair');
   const [task, setTask] = useState('');
@@ -536,6 +537,19 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
     queryKey: ['people', context.workspace],
     queryFn: () => requireClient(client).people(context.workspace),
     enabled: open && Boolean(context.workspace) && client !== null,
+  });
+  const defaultsQuery = useQuery({
+    queryKey: ['people', 'bindings', context.workspace],
+    queryFn: () => requireClient(client).personBindings(context.workspace),
+    enabled: open && Boolean(context.workspace) && client !== null,
+  });
+  const saveDefaults = useMutation({
+    mutationFn: (roles: Record<string, string>) =>
+      requireClient(client).savePersonBindings(context.workspace, recipe, roles),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['people', 'bindings', context.workspace] });
+      receipt.onSuccess({ message: 'Workspace swarm People defaults saved' });
+    },
   });
 
   const selectedRecipe = catalog.data?.recipes.find((item) => item.name === recipe);
@@ -603,6 +617,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   }, [startPreview.data]);
 
   const close = () => {
+    saveDefaults.reset();
     setRecipe('pair');
     setTask('');
     setRunner('');
@@ -678,6 +693,13 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
             <div className={styles.recipeRoles}>
               {selectedRecipe.roles.map((item) => {
                 const assigned = personBindings[item.name] ?? '';
+                const savedPreference = defaultsQuery.data?.roles.find((entry) => entry.role === item.name);
+                const savedId = savedPreference?.person_id ?? '';
+                const savedPerson = people.find((candidate) => candidate.id === savedId);
+                const assignedPerson = people.find((candidate) => candidate.id === assigned);
+                const fallbackNames = (savedPreference?.preferred_people ?? []).map(
+                  (personId) => people.find((candidate) => candidate.id === personId)?.name ?? personId,
+                );
                 return (
                   <div className={styles.recipeRole} key={item.name}>
                     <strong>{item.name}</strong>
@@ -712,23 +734,53 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
                         </Select>
                       )}
                     </Field>
+                    <div className={styles.rolePreference}>
+                      <span>
+                        Workspace default: <strong>{savedPerson?.name ?? (savedId || 'automatic')}</strong>
+                        {fallbackNames.length > 0 ? ` · then ${fallbackNames.join(', ')}` : ''}
+                      </span>
+                      {assigned && assigned !== savedId ? (
+                        <button
+                          type="button"
+                          className={styles.preferenceAction}
+                          disabled={saveDefaults.isPending}
+                          onClick={() => saveDefaults.mutate({ [item.name]: assigned })}
+                        >
+                          Remember {assignedPerson?.name ?? assigned}
+                        </button>
+                      ) : null}
+                      {savedId ? (
+                        <button
+                          type="button"
+                          className={styles.preferenceAction}
+                          disabled={saveDefaults.isPending}
+                          onClick={() => saveDefaults.mutate({ [item.name]: '' })}
+                        >
+                          Clear pinned Person
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 );
               })}
             </div>
             {peopleQuery.isPending ? <p>Loading People…</p> : null}
             {peopleQuery.isError ? <ErrorState title="Could not load People" error={peopleQuery.error} /> : null}
+            {defaultsQuery.isError ? (
+              <ErrorState title="Could not load workspace People defaults" error={defaultsQuery.error} />
+            ) : null}
+            {saveDefaults.error ? (
+              <ErrorState title="Could not save this role default" error={saveDefaults.error} />
+            ) : null}
             {people.length === 0 && peopleQuery.isSuccess ? (
               <p>
                 No active People are configured. Auto keeps every recipe role available with ephemeral role sessions.
               </p>
             ) : null}
-            {Object.keys(activePersonBindings).length > 0 ? (
-              <p className={styles.bindingNote}>
-                Explicit choices win. Auto assigns a unique active Person with a matching saved role or Agent
-                Definition, then falls back to an ephemeral role. Runner and model remain swarm-wide settings.
-              </p>
-            ) : null}
+            <p className={styles.bindingNote}>
+              Explicit choices win. Auto assigns a unique active Person with a matching saved role or Agent Definition,
+              then falls back to an ephemeral role. Runner and model remain swarm-wide settings.
+            </p>
             <div className={styles.recipeSummary}>
               <span>
                 Workspace <strong>{selectedRecipe.workspace_strategy}</strong>
@@ -886,10 +938,16 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
                   const personId = resolvedPeople[role.name];
                   const person = people.find((item) => item.id === personId);
                   const explicit = activePersonBindings[role.name] === personId;
+                  const preference = defaultsQuery.data?.roles.find((item) => item.role === role.name);
+                  const workspaceDefault =
+                    personId !== undefined &&
+                    (preference?.person_id === personId || preference?.preferred_people.includes(personId) === true);
                   return (
                     <span key={role.name}>
                       {role.name} → <strong>{person?.name ?? (personId ? personId : 'Ephemeral role session')}</strong>
-                      {person ? ` · ${explicit ? 'selected' : 'matched role'}` : ''}
+                      {person
+                        ? ` · ${explicit ? 'selected' : workspaceDefault ? 'workspace default' : 'matched role'}`
+                        : ''}
                     </span>
                   );
                 })}

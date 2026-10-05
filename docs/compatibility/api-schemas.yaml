@@ -224,6 +224,26 @@ schemas:
       - ok:boolean
       - 'models:#ModelInfo[]'
 
+  - name: PersonRoleBinding
+    v_struct: PersonRoleBindingResp
+    fields:
+      - role:string
+      - person_id:string
+      - preferred_people:string[]
+
+  - name: PersonBindingsResponse
+    v_struct: PersonBindingsResp
+    fields:
+      - ok:boolean
+      - 'roles:#PersonRoleBinding[]'
+
+  - name: PersonBindingsRequest
+    v_struct: PersonBindingsReq
+    fields:
+      - workspace:string
+      - recipe:string
+      - roles:map<string>
+
   - name: MemoryProvenance
     description: >-
       Honest origin for a knowledge file. author is the last git committer
@@ -628,6 +648,23 @@ native:
     op: list_people
     summary: List validated durable People in a workspace
     response: object
+  - path: /api/v1/people/bindings
+    method: get
+    op: list_people_bindings
+    summary: List validated workspace default People for swarm roles
+    response: '#PersonBindingsResponse'
+    errors:
+      - '404:workspace not found'
+  - path: /api/v1/people/bindings
+    method: put
+    op: update_people_bindings
+    summary: Save reviewed default People for selected recipe roles
+    request_body: PersonBindingsRequest
+    response: '#PersonBindingsResponse'
+    errors:
+      - '400:invalid recipe role or Person id'
+      - '403:workspace outside allowed roots or symlink storage'
+      - '404:workspace or Person not found'
   - path: /api/v1/people
     method: post
     op: create_person

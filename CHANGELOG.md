@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the process is live, remain independent of the saved Person profile, and
   stay visible until a requested stop is confirmed by the process exit event.
 - Swarm role review now previews real backend resolution: explicit Person choices win, otherwise a unique active Person with a matching role/Agent Definition is assigned, with ephemeral fallback for unmatched roles.
+- Operations can pin or clear a workspace-default Person per swarm recipe role through the typed People bindings API; Auto uses those defaults before role matching and keeps the resolver guidance visible throughout the start review.
 
 ### Changed
 

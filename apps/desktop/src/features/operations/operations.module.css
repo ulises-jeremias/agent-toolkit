@@ -100,6 +100,35 @@
   font-size: var(--text-2xs);
 }
 
+.rolePreference {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-2xs);
+}
+
+.rolePreference strong {
+  color: var(--text-secondary);
+}
+
+.preferenceAction {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-gold);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+
+.preferenceAction:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
 .recipeSummary {
   display: flex;
   flex-wrap: wrap;

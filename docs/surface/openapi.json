@@ -1558,6 +1558,94 @@
         }
       }
     },
+    "/api/v1/people/bindings": {
+      "get": {
+        "operationId": "list_people_bindings",
+        "summary": "List validated workspace default People for swarm roles",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonBindingsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "update_people_bindings",
+        "summary": "Save reviewed default People for selected recipe roles",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonBindingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonBindingsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid recipe role or Person id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "workspace outside allowed roots or symlink storage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "workspace or Person not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/people/{id}": {
       "get": {
         "operationId": "get_person",
@@ -4031,6 +4119,68 @@
         "required": [
           "ok",
           "models"
+        ]
+      },
+      "PersonRoleBinding": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "person_id": {
+            "type": "string"
+          },
+          "preferred_people": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "role",
+          "person_id",
+          "preferred_people"
+        ]
+      },
+      "PersonBindingsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonRoleBinding"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "roles"
+        ]
+      },
+      "PersonBindingsRequest": {
+        "type": "object",
+        "properties": {
+          "workspace": {
+            "type": "string"
+          },
+          "recipe": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "workspace",
+          "recipe",
+          "roles"
         ]
       },
       "MemoryProvenance": {
