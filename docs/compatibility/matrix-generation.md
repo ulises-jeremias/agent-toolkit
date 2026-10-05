@@ -8,7 +8,10 @@ Canonical: distributions/products.yaml (products → includes.skills/includes.ag
 
 Generated: docs/SKILL_PRODUCT_MATRIX.md via scripts/generate-skill-matrix.vsh (do not hand-edit — header says Generated from distributions/products.yaml — do not hand-edit).
 
-Current: Generated from 5 products × 86 skills × 17 agents. via products.yaml (5 products: agent-toolkit-core stable claude-code,cursor 6 skills, agent-toolkit-agents 17 agents, agent-toolkit-forge 8 skills, agent-toolkit-craft stable claude-code,cursor 3 skills, agent-toolkit-complete experimental 86 skills).
+The original counts below describe the 2026-08-12 snapshot only. Catalog sizes
+change as repository-owned capabilities evolve; the generated matrix header is
+the current count, and `scripts/generate-skill-matrix.vsh --check` verifies it.
+The five product names remain declared in `distributions/products.yaml`.
 
 Honest per-skill support (validated, not badges): inventory JSON is source of truth; docs/matrix generated via conversion, not duplication. scripts/generate-skill-matrix.vsh --check enforces in CI.
 

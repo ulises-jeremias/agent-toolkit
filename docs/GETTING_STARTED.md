@@ -98,9 +98,9 @@ agent-toolkit swarm promote RUN_ID --to team   # elastic pair→team→full
 agent-toolkit swarm approve RUN_ID --gate plan # human gate
 ```
 
-- ** pair ** — implementer → reviewer/integrator → human approval (bugs, features).
-- ** team ** — planner → implementer → reviewer → architect → human approval (medium features, requires plan approval).
-- ** full ** — planner → implementer → refactorer → architect → hardener → qa → human approval (security/releases).
+- **pair** — implementer → reviewer/integrator → human approval (bugs, features).
+- **team** — planner → implementer → reviewer → architect → human approval (medium features, requires plan approval).
+- **full** — planner → implementer → refactorer → architect → hardener → QA → human approval (security/releases).
 - Budgets: `max_total_tokens`, `max_cost_usd`, `max_wall_seconds`, concurrency/round-trip limits. Human gates: plan, architecture, cost escalation, final integration. State under `.agent-toolkit/swarm/runs/<run-id>/`.
 
 Details: [SWARMS.md](SWARMS.md) (overview + quickstart), [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md) (diagrams + state machines), [SWARM_HERDR.md](SWARM_HERDR.md) (Herdr UI), [SWARM_TMUX.md](SWARM_TMUX.md) (tmux fallback), [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) (models/budgets), [SWARM_SECURITY.md](SWARM_SECURITY.md) (permissions/privacy).
@@ -109,17 +109,17 @@ Prerequisites: see [INSTALLATION.md — Swarms prerequisites](INSTALLATION.md#sw
 
 ## Next steps
 
-* **Agents:** see `agents/` (17 personas) and `catalogs/agent-catalog.yaml`
-* **MCP:** see `mcp/` templates (placeholders only, add credentials locally)
-* **Advanced CLI:** see [docs/SCOPE.md](SCOPE.md) and [docs/CLI_SURFACES.md](CLI_SURFACES.md) for the single-binary progressive disclosure model
-* **Loops:** see `loops/` (10 templates) and `docs/HOW_TO_CREATE_LOOP.md`
-* **Swarms:** see `docs/SWARMS.md`, `docs/SWARM_ARCHITECTURE.md`, `docs/HOW_TO_CREATE_SWARM_RECIPE.md`
-* **Contributing:** see [CONTRIBUTING.md](../CONTRIBUTING.md) for CI parity (`uv sync --project packages/pypi/agent-toolkit-cli --all-extras`, `AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v`)
+- **Agent Definitions:** see `agents/` and the generated `catalogs/agent-catalog.yaml`.
+- **MCP:** see `mcp/` templates (placeholders only; add credentials locally).
+- **Advanced CLI:** see [SCOPE.md](SCOPE.md) and [CLI surfaces](CLI_SURFACES.md) for progressive command discovery.
+- **Loops:** see `loops/` and [how to create a loop](HOW_TO_CREATE_LOOP.md).
+- **Swarms:** see [SWARMS.md](SWARMS.md), [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md), and [how to create a swarm recipe](HOW_TO_CREATE_SWARM_RECIPE.md).
+- **Contributing:** see [CONTRIBUTING.md](../CONTRIBUTING.md) for local setup and CI checks.
 
 ## Troubleshooting
 
-* `agent-toolkit doctor` reports missing tool → install that tool first
-* `inventory` empty → re-run `agent-toolkit install` with `--force`
-* Broken install channel → pick another: Homebrew, AUR `agent-toolkit-bin`, GitHub Release, `uv tool install 'agent-toolkit-cli>=1.30.1'`, or `npm i -g agent-toolkit-cli`
+- `agent-toolkit doctor` reports a missing tool → install that tool first.
+- `inventory` is empty → re-run `agent-toolkit install` with `--force`.
+- A package channel is unavailable → use Homebrew, AUR `agent-toolkit-bin`, GitHub Releases, `uv tool install agent-toolkit-cli`, or `npm i -g agent-toolkit-cli`.
 
 See also: [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for doctor error recipes.
