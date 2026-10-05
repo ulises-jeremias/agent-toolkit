@@ -476,7 +476,7 @@ describe('buildWorldModel', () => {
       layout.entities.find((entity) => entity.id === 'object:attention')?.x ?? 0,
     );
     expect(new Set(landmarks.slice(0, 3).map((entity) => entity.y)).size).toBe(3);
-    expect(new Set(landmarks.slice(3).map((entity) => entity.y)).size).toBeGreaterThan(1);
+    expect(new Set(landmarks.slice(3).map((entity) => entity.y)).size).toBe(1);
 
     for (let left = 0; left < landmarks.length; left += 1) {
       for (let right = left + 1; right < landmarks.length; right += 1) {
@@ -1108,7 +1108,7 @@ describe('layoutWorld', () => {
     );
     const interiorTrees = trees.filter((tree) => tree.x >= 6 && tree.x < layout.cols - 6);
 
-    expect(trees.length).toBeGreaterThan(12);
+    expect(trees.length).toBeGreaterThan(8);
     expect(neighboringPairs.length).toBeGreaterThan(3);
     expect(interiorTrees.length).toBeGreaterThan(3);
   });

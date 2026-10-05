@@ -988,7 +988,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     : marker
       ? marker.x + Math.floor(marker.w / 2)
       : cols - 4;
-  road(p, roadY, creekX, routeEndX, 1);
+  road(p, roadY, creekX, routeEndX, 3);
   // Every doorway branches from the same street instead of attaching to a
   // previously added doorway path. Shared services take short branches;
   // project houses keep a gentle curved approach into their neighborhood.

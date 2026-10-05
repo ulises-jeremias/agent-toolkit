@@ -222,9 +222,9 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     'object:workshop': { x: 12, y: 8 },
     'object:operations': { x: 6, y: 3 },
     'object:terminal': { x: 11, y: 2 },
-    'object:attention': { x: 0, y: 9 },
-    'object:files': { x: 4, y: 8 },
-    'object:settings': { x: 8, y: 8 },
+    'object:attention': { x: 0, y: 11 },
+    'object:files': { x: 4, y: 10 },
+    'object:settings': { x: 8, y: 10 },
   };
   for (const landmark of sharedObjects) {
     const slot = civicSlots[landmark.id]!;
@@ -239,7 +239,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // that can fit at 32px tiles instead of shrinking the whole world to 16px.
   const districtY = 4;
   const districtX = projectDistrictX;
-  if (emptyProject) place(emptyProject, emptyMarkerX, districtY);
+  if (emptyProject) place(emptyProject, emptyMarkerX, districtY + 1);
   const projectSlots = new Map<string, { x: number; y: number }>();
   projects.forEach((project, index) => {
     const col = index % districtCols;
