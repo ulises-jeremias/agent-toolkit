@@ -6,9 +6,9 @@
 
 # agent-toolkit
 
-> **New here?** Start with [Getting Started](docs/GETTING_STARTED.md) — install → doctor → first skill.
+> **New here?** Start with the [Desktop guide](docs/desktop/README.md) for a graphical workspace tour, or use [Getting Started](docs/GETTING_STARTED.md) for the CLI.
 
-**A semantic, GUI-first agent workspace — with reusable capabilities for every major coding assistant**
+**A semantic developer workspace represented as a living pixel valley — with reusable capabilities for every major coding assistant**
 
 [![CI](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=CI)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
 [![Desktop](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/desktop.yml?branch=main&label=Desktop)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/desktop.yml)
@@ -16,7 +16,8 @@
 [![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
 
 [Documentation](docs/) ·
-[Quick Install](#-quick-install) ·
+[Desktop](#desktop-app-gui) ·
+[CLI Install](#-cli-quick-install) ·
 [Skills](#%EF%B8%8F-skills--catalog-via-agent-toolkit-inventory) ·
 [Agents](#-agent-personas) ·
 [Loops](#-loop-engineering) ·
@@ -29,21 +30,11 @@
 
 ## ✨ What is agent-toolkit?
 
-**agent-toolkit** is a modular collection of skills, agent personas, MCP configuration templates, and loop engineering patterns that work across all major AI coding assistants. Instead of maintaining separate prompt libraries for each tool, you keep **one source of truth** and deploy exactly what each tool needs.
+**Agent Toolkit Desktop** is the flagship GUI for a semantic developer workspace. Projects have their own houses in a cozy pixel valley; shared capabilities, memory, operations and terminals each have a meaningful place. The world is a real navigation surface, while compact inspectors handle precise work.
 
-One toolkit. Any coding assistant. Zero duplication.
+The canonical V engine powers both Desktop and CLI. Domain operations stay shared, so projects, People, capabilities, sessions and runs mean the same thing in the GUI and in automation. Only real jobs and live sessions appear as working characters.
 
-```bash
-# Native V CLI (any channel below), then:
-agent-toolkit install
-agent-toolkit doctor
-```
-
-Agent Toolkit Desktop is the flagship way to understand and operate a workspace:
-a cozy pixel valley where real projects have their own places, shared capabilities
-live in the Library, and precise work happens in compact game-menu inspectors.
-The V engine remains the single source of domain behavior for both Desktop and
-CLI automation. Only observed jobs and live sessions appear as active characters.
+The toolkit also distributes reusable skills, Agent Definitions, MCP templates and loop workflows across coding assistants — one catalog, deployed to each tool's native format.
 
 ```mermaid
 flowchart LR
@@ -53,6 +44,22 @@ flowchart LR
   D --> E[Electron + React Desktop]
   E --> F[World · People · Library · Operations · Terminal]
 ```
+
+### Desktop app (GUI)
+
+Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installer on Windows from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest). The Electron app bundles its backend; normal workspace setup does not require a separate CLI, source checkout, or manual configuration files. Start with the [Desktop guide](docs/desktop/README.md) for supported workflows and current limits.
+
+| Meadow valley | Dusk valley |
+| --- | --- |
+| <img src="static/screenshots/world.png" width="100%" alt="The workspace valley with semantic buildings, creek, paths and gardens" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The same workspace valley at dusk" /> |
+| Project interior | Capability Library |
+| <img src="static/screenshots/project-interior.png" width="100%" alt="A project house with real file, memory, terminal and project stations" /> | <img src="static/screenshots/library.png" width="100%" alt="Library showing reusable capabilities and installation evidence" /> |
+| People roster | Operations |
+| <img src="static/screenshots/people.png" width="100%" alt="Configured offline People in the durable collaborator roster" /> | <img src="static/screenshots/operations.png" width="100%" alt="Operations showing actual jobs, outcomes and loop templates" /> |
+| Real PTY terminal | Reviewed import |
+| <img src="static/screenshots/terminal.png" width="100%" alt="Live shell session with real command output in the integrated terminal" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder hire import review showing mapped and ignored fields before saving" /> |
+
+These screenshots are captured from the shipping Electron app against a disposable workspace and the real backend. Offline People do not create world characters, and the terminal view contains a real PTY. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
 
 ---
 
@@ -105,7 +112,7 @@ flowchart LR
 
 ---
 
-## 🚀 Quick Install
+## 🚀 CLI Quick Install
 
 **Recommended:** the product CLI is the **native V binary**. PyPI/`uv` is a thin launcher over that binary ([ADR-021](docs/adrs/ADR-021-pypi-binary.md)).
 
@@ -133,22 +140,6 @@ agent-toolkit doctor     # verify everything is set up
 > **Support matrix:** see [`docs/TRUST.md#Installation channels`](docs/TRUST.md#installation-channels) for the single channel table (GitHub Releases canonical artifact, PyPI, npm, Homebrew, AUR, GHCR container, Claude/Cursor marketplaces, Agent Plugins artifacts) with trust anchor, support level, and verification command. The product CLI is the **native V binary**; Python is a thin launcher — see `docs/RELEASING.md` (canonical artifact) and `docs/TRUST.md`.
 
 → Full walkthrough: [docs/INSTALLATION.md](docs/INSTALLATION.md) · Full channel matrix: [docs/TRUST.md#Installation channels](docs/TRUST.md#installation-channels)
-
-### Desktop app (GUI)
-
-Agent Toolkit Desktop is the flagship Electron application over the canonical V backend. The valley is the home screen: each registered project is a distinct building, while Library, Archive, Operations and Terminal are shared places. Clicking a place opens the same real resource as direct navigation or the command palette. Dense work stays in readable game-menu inspectors, and offline People never appear as workers. Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installer on Windows from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest). The app bundles its backend; a CLI install or source checkout is not required. Start with the [Desktop guide](docs/desktop/README.md) for product behavior, screenshots and known limits.
-
-| Meadow valley | Dusk valley |
-| --- | --- |
-| <img src="static/screenshots/world.png" width="100%" alt="The workspace valley with semantic buildings, creek, paths and gardens" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The same workspace valley at dusk" /> |
-| Project interior | Capability Library |
-| <img src="static/screenshots/project-interior.png" width="100%" alt="A project house with real file, memory, terminal and project stations" /> | <img src="static/screenshots/library.png" width="100%" alt="Library showing reusable capabilities and installation evidence" /> |
-| People roster | Operations |
-| <img src="static/screenshots/people.png" width="100%" alt="Configured offline People in the durable collaborator roster" /> | <img src="static/screenshots/operations.png" width="100%" alt="Operations showing actual jobs, outcomes and loop templates" /> |
-| Real PTY terminal | Reviewed import |
-| <img src="static/screenshots/terminal.png" width="100%" alt="Live shell session with real command output in the integrated terminal" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder hire import review showing mapped and ignored fields before saving" /> |
-
-These are captures of the shipping Electron app against a disposable workspace and real backend (Linux Electron capture `37350627201`, source `20d10fb0`). The image dimensions reflect the viewports used for each state; the CI visual-review tour also captures compact and large layouts. Offline People do not create world characters, and runtime activity appears only when observed. The terminal image shows a real PTY, not a mockup. The README uses rendered product screenshots instead of design-board or SVG mockups. The latest visual review records the remaining broad lawns, angular paths, and sparse project interior instead of presenting them as finished.
 
 ### Advanced install methods
 
