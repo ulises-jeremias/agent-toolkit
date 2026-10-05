@@ -814,11 +814,8 @@ unfinished art work: broad lawn regions remain visually uniform, the central
 watercourse and many paths are geometric, and the project room still has a
 large unused plank floor. People, Library, Operations and Settings use
 readable compact information layouts; the People screen has substantial unused
-vertical space at large size. The real PTY capture contains command output at
-1024×640, but the 1920×1080 capture's terminal canvas is blank despite the same
-session being live, so only the compact terminal image is used in the README.
-These are remaining polish issues, not reasons to claim the desired magical
-world art pass is finished.
+vertical space at large size. These are remaining polish issues, not reasons to
+claim the desired magical world art pass is finished.
 
 Opened and preserved review images:
 
@@ -839,3 +836,13 @@ Opened and preserved review images:
   [Munder import review, compact](assets/electron/review-2026-10-05/meadow-1024x640-munder-import-review.png),
   [PTY with output, compact](assets/electron/review-2026-10-05/meadow-1024x640-terminal.png),
   and [PTY, large](assets/electron/review-2026-10-05/meadow-1920x1080-terminal.png).
+
+### Terminal resize recapture
+
+The first large terminal screenshot was captured before the resized PTY had
+produced visible output. The Electron E2E now writes and checks a real marker
+after each resize. I reran it on source `50704f60` in [workflow
+37284850886](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37284850886)
+and opened both terminal screenshots at native resolution. Output is visible at
+1024×640 and 1920×1080, so both sizes are now suitable for documentation. The
+README uses the compact capture; the review gallery retains both.
