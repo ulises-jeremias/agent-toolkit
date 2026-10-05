@@ -451,8 +451,8 @@ function creek(
   const bankCenter = Math.floor((minCenterX + maxCenterX) / 2);
   const baseX = preferredFitsBank ? preferredX : bankCenter;
   const corridorRadius = (maxCenterX - runMinX) / 2;
-  const broadBend = Math.min(4.6, corridorRadius * 1.55);
-  const softBend = Math.min(1.25, corridorRadius * 0.42);
+  const broadBend = Math.min(3.4, corridorRadius * 1.25);
+  const softBend = Math.min(0.9, corridorRadius * 0.32);
   const creekRows = Array.from({ length: p.rows }, (_, y) => {
     const along = y - bridgeY;
     // The bridge remains the fixed crossing while the stream swings through a
