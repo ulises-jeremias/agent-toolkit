@@ -56,21 +56,15 @@ fn person_ref(value string) bool {
 
 fn person_string(doc map[string]json2.Any, field string, required bool, max_len int, kind string) !string {
 	value := doc[field] or {
-		if required {
-			return error('${field} is required')
-		}
+		if required { return error('${field} is required') }
 		return ''
 	}
 	if value is string {
 		if value.len == 0 || value.len > max_len {
 			return error('${field} has invalid length')
 		}
-		if kind == 'id' && !person_slug(value) {
-			return error('${field} has invalid id')
-		}
-		if kind == 'ref' && !person_ref(value) {
-			return error('${field} has invalid reference')
-		}
+		if kind == 'id' && !person_slug(value) { return error('${field} has invalid id') }
+		if kind == 'ref' && !person_ref(value) { return error('${field} has invalid reference') }
 		return value
 	}
 	return error('${field} must be text')
@@ -78,28 +72,20 @@ fn person_string(doc map[string]json2.Any, field string, required bool, max_len 
 
 fn person_allowed(doc map[string]json2.Any, fields []string) ! {
 	for field, _ in doc {
-		if field !in fields {
-			return error('person contains an unsupported field')
-		}
+		if field !in fields { return error('person contains an unsupported field') }
 	}
 }
 
 fn person_refs(doc map[string]json2.Any, field string) ! {
 	value := doc[field] or { return }
 	if value is []json2.Any {
-		if value.len > 32 {
-			return error('${field} has too many entries')
-		}
+		if value.len > 32 { return error('${field} has too many entries') }
 		mut seen := []string{}
 		for item in value {
 			if item is string {
-				if !person_ref(item) || item in seen {
-					return error('${field} contains an invalid or duplicate reference')
-				}
+				if !person_ref(item) || item in seen { return error('${field} contains an invalid or duplicate reference') }
 				seen << item
-			} else {
-				return error('${field} must contain references')
-			}
+			} else { return error('${field} must contain references') }
 		}
 		return
 	}
@@ -110,18 +96,10 @@ fn person_number(doc map[string]json2.Any, field string, limit f64, integer bool
 	value := doc[field] or { return }
 	mut number := f64(-1)
 	match value {
-		f64 {
-			number = value
-		}
-		int {
-			number = f64(value)
-		}
-		i64 {
-			number = f64(value)
-		}
-		else {
-			return error('${field} must be a number')
-		}
+		f64 { number = value }
+		int { number = f64(value) }
+		i64 { number = f64(value) }
+		else { return error('${field} must be a number') }
 	}
 	if number < 0 || number > limit || (integer && number != f64(i64(number))) {
 		return error('${field} is outside the allowed range')
@@ -131,38 +109,26 @@ fn person_number(doc map[string]json2.Any, field string, limit f64, integer bool
 // validate_person_json enforces the workspace declaration contract at the
 // canonical write boundary. Unknown fields, runtime fields and commands fail.
 pub fn validate_person_json(raw string) !map[string]json2.Any {
-	if raw.len == 0 || raw.len > person_limit {
-		return error('person document has invalid size')
-	}
+	if raw.len == 0 || raw.len > person_limit { return error('person document has invalid size') }
 	doc := json2.decode[map[string]json2.Any](raw) or { return error('person document is not valid JSON') }
 	person_allowed(doc, ['spec', 'id', 'name', 'role', 'goal', 'archived', 'definition_id', 'avatar',
 		'preferred_provider', 'preferred_model', 'capabilities', 'skills', 'mcp_servers', 'isolation',
 		'budget', 'import_source'])!
-	if person_string(doc, 'spec', true, 64, '')! != 'agent-toolkit/person@1' {
-		return error('unsupported person spec')
-	}
+	if person_string(doc, 'spec', true, 64, '')! != 'agent-toolkit/person@1' { return error('unsupported person spec') }
 	person_string(doc, 'id', true, 64, 'id')!
 	person_string(doc, 'name', true, 128, '')!
 	person_string(doc, 'role', true, 64, 'id')!
 	person_string(doc, 'goal', true, 2048, '')!
 	archived := doc['archived'] or { return error('archived is required') }
-	if archived !is bool {
-		return error('archived must be a boolean')
-	}
+	if archived !is bool { return error('archived must be a boolean') }
 	for field in ['definition_id', 'preferred_provider', 'preferred_model'] {
 		person_string(doc, field, false, 128, 'ref')!
 	}
-	for field in ['capabilities', 'skills', 'mcp_servers'] {
-		person_refs(doc, field)!
-	}
+	for field in ['capabilities', 'skills', 'mcp_servers'] { person_refs(doc, field)! }
 	if isolation := doc['isolation'] {
 		if isolation is string {
-			if isolation !in ['inherited', 'worktree', 'session'] {
-				return error('isolation is not supported')
-			}
-		} else {
-			return error('isolation must be text')
-		}
+			if isolation !in ['inherited', 'worktree', 'session'] { return error('isolation is not supported') }
+		} else { return error('isolation must be text') }
 	}
 	if avatar := doc['avatar'] {
 		if avatar is map[string]json2.Any {
@@ -170,21 +136,13 @@ pub fn validate_person_json(raw string) !map[string]json2.Any {
 			person_string(avatar, 'character', false, 64, 'id')!
 			if accent := avatar['accent'] {
 				if accent is string {
-					if accent.len != 7 || accent[0] != `#` {
-						return error('avatar accent must be a hex color')
-					}
+					if accent.len != 7 || accent[0] != `#` { return error('avatar accent must be a hex color') }
 					for ch in accent[1..].bytes() {
-						if !ch.is_hex_digit() {
-							return error('avatar accent must be a hex color')
-						}
+						if !ch.is_hex_digit() { return error('avatar accent must be a hex color') }
 					}
-				} else {
-					return error('avatar accent must be text')
-				}
+				} else { return error('avatar accent must be text') }
 			}
-		} else {
-			return error('avatar must be an object')
-		}
+		} else { return error('avatar must be an object') }
 	}
 	if budget := doc['budget'] {
 		if budget is map[string]json2.Any {
@@ -192,38 +150,23 @@ pub fn validate_person_json(raw string) !map[string]json2.Any {
 			person_number(budget, 'max_tokens', 1000000000, true)!
 			person_number(budget, 'max_cost_usd', 1000000, false)!
 			person_number(budget, 'max_seconds', 31536000, true)!
-		} else {
-			return error('budget must be an object')
-		}
+		} else { return error('budget must be an object') }
 	}
 	if source := doc['import_source'] {
 		if source is map[string]json2.Any {
 			person_allowed(source, ['spec', 'id', 'review_required', 'auto_spawn', 'auto_install',
 				'live_sync', 'original_character', 'original_accent'])!
-			if person_string(source, 'spec', true, 64, '')! != 'munder-difflin/hire@1' {
-				return error('unsupported import source')
-			}
+			if person_string(source, 'spec', true, 64, '')! != 'munder-difflin/hire@1' { return error('unsupported import source') }
 			person_string(source, 'id', false, 128, 'ref')!
 			person_string(source, 'original_character', false, 128, '')!
 			person_string(source, 'original_accent', false, 128, '')!
-			for field, expected in {
-				'review_required': true
-				'auto_spawn':      false
-				'auto_install':    false
-				'live_sync':       false
-			} {
+			for field, expected in {'review_required': true, 'auto_spawn': false, 'auto_install': false, 'live_sync': false} {
 				flag := source[field] or { return error('${field} is required') }
 				if flag is bool {
-					if flag != expected {
-						return error('${field} cannot be enabled')
-					}
-				} else {
-					return error('${field} must be a boolean')
-				}
+					if flag != expected { return error('${field} cannot be enabled') }
+				} else { return error('${field} must be a boolean') }
 			}
-		} else {
-			return error('import source must be an object')
-		}
+		} else { return error('import source must be an object') }
 	}
 	return doc
 }
@@ -231,21 +174,15 @@ pub fn validate_person_json(raw string) !map[string]json2.Any {
 fn person_dir(workspace string) !string {
 	ws := find_workspace_root(workspace) or { return error('workspace not found') }
 	dir := os.join_path(os.real_path(ws), 'people')
-	if os.is_link(dir) {
-		return error('people directory is a symlink')
-	}
+	if os.is_link(dir) { return error('people directory is a symlink') }
 	return dir
 }
 
 fn person_path(workspace string, id string) !string {
-	if !person_slug(id) {
-		return error('invalid person id')
-	}
+	if !person_slug(id) { return error('invalid person id') }
 	dir := person_dir(workspace)!
 	path := os.join_path(dir, '${id}.json')
-	if os.is_link(path) {
-		return error('person file is a symlink')
-	}
+	if os.is_link(path) { return error('person file is a symlink') }
 	return path
 }
 
@@ -255,29 +192,17 @@ fn person_path(workspace string, id string) !string {
 fn read_person_bindings(workspace string) !map[string]PersonRolePreference {
 	dir := person_dir(workspace)!
 	path := os.join_path(dir, 'bindings.yaml')
-	if os.is_link(path) {
-		return error('people bindings file is a symlink')
-	}
-	if !os.is_file(path) {
-		return map[string]PersonRolePreference{}
-	}
+	if os.is_link(path) { return error('people bindings file is a symlink') }
+	if !os.is_file(path) { return map[string]PersonRolePreference{} }
 	text := os.read_file(path) or { return error('people bindings file cannot be read') }
-	if text.len == 0 || text.len > person_limit {
-		return error('people bindings file has invalid size')
-	}
+	if text.len == 0 || text.len > person_limit { return error('people bindings file has invalid size') }
 	doc := yaml.decode[PersonBindingsDocument](text) or {
 		return error('people bindings file is invalid YAML: ${err}')
 	}
-	if doc.spec != 'agent-toolkit/people-bindings@1' {
-		return error('unsupported people bindings spec')
-	}
-	if doc.roles.len > 64 {
-		return error('people bindings has too many role entries')
-	}
+	if doc.spec != 'agent-toolkit/people-bindings@1' { return error('unsupported people bindings spec') }
+	if doc.roles.len > 64 { return error('people bindings has too many role entries') }
 	for role, preference in doc.roles {
-		if !person_slug(role) {
-			return error('people bindings contains an invalid role id')
-		}
+		if !person_slug(role) { return error('people bindings contains an invalid role id') }
 		if preference.person_id.len > 0 && !person_slug(preference.person_id) {
 			return error('people bindings contains an invalid person id')
 		}
@@ -298,22 +223,16 @@ fn read_person_bindings(workspace string) !map[string]PersonRolePreference {
 pub fn list_people(workspace string) !PeopleResponse {
 	dir := person_dir(workspace)!
 	mut people := []map[string]json2.Any{}
-	if !os.is_dir(dir) {
-		return PeopleResponse{ ok: true, people: people }
-	}
+	if !os.is_dir(dir) { return PeopleResponse{ ok: true, people: people } }
 	mut names := os.ls(dir) or { return error('people directory cannot be read') }
 	names.sort()
 	for name in names {
-		if !name.ends_with('.json') {
-			continue
-		}
+		if !name.ends_with('.json') { continue }
 		id := name[..name.len - 5]
 		path := person_path(workspace, id)!
 		text := os.read_file(path) or { return error('person ${id} cannot be read') }
 		person := validate_person_json(text) or { return error('person ${id} is invalid: ${err}') }
-		if person_string(person, 'id', true, 64, 'id')! != id {
-			return error('person filename does not match id')
-		}
+		if person_string(person, 'id', true, 64, 'id')! != id { return error('person filename does not match id') }
 		people << person
 	}
 	return PeopleResponse{ ok: true, people: people }
@@ -321,14 +240,10 @@ pub fn list_people(workspace string) !PeopleResponse {
 
 pub fn read_person(workspace string, id string) !PersonResponse {
 	path := person_path(workspace, id)!
-	if !os.is_file(path) {
-		return error('person not found')
-	}
+	if !os.is_file(path) { return error('person not found') }
 	text := os.read_file(path) or { return error('person cannot be read') }
 	person := validate_person_json(text)!
-	if person_string(person, 'id', true, 64, 'id')! != id {
-		return error('person filename does not match id')
-	}
+	if person_string(person, 'id', true, 64, 'id')! != id { return error('person filename does not match id') }
 	return PersonResponse{ ok: true, person: person }
 }
 
@@ -336,21 +251,13 @@ pub fn save_person(workspace string, raw string, create bool) !PersonResponse {
 	person := validate_person_json(raw)!
 	id := person_string(person, 'id', true, 64, 'id')!
 	path := person_path(workspace, id)!
-	if create && os.exists(path) {
-		return error('person already exists')
-	}
-	if !create && !os.is_file(path) {
-		return error('person not found')
-	}
+	if create && os.exists(path) { return error('person already exists') }
+	if !create && !os.is_file(path) { return error('person not found') }
 	dir := os.dir(path)
 	os.mkdir_all(dir) or { return error('people directory cannot be created') }
-	if os.is_link(dir) || os.is_link(path) {
-		return error('person storage is a symlink')
-	}
+	if os.is_link(dir) || os.is_link(path) { return error('person storage is a symlink') }
 	tmp := path + '.${os.getpid()}.tmp'
-	if os.exists(tmp) || os.is_link(tmp) {
-		return error('person write is busy')
-	}
+	if os.exists(tmp) || os.is_link(tmp) { return error('person write is busy') }
 	os.write_file(tmp, json2.encode(person, escape_unicode: true) + '\n') or { return error('person cannot be written') }
 	os.mv(tmp, path) or {
 		os.rm(tmp) or {}
@@ -390,8 +297,8 @@ pub fn validate_swarm_person_bindings(workspace string, recipe string, bindings 
 }
 
 // resolve_swarm_person_bindings preserves explicit assignments, then applies
-// ordered workspace preferences, then matches an active Person by durable role
-// or AgentDefinition. Unmatched roles stay absent and use the ephemeral role.
+// ordered compatible workspace preferences, then matches an active Person by
+// durable role or AgentDefinition. Unmatched roles remain ephemeral.
 pub fn resolve_swarm_person_bindings(workspace string, recipe string, explicit map[string]string) !map[string]string {
 	validate_swarm_person_bindings(workspace, recipe, explicit)!
 	mut resolved := explicit.clone()
@@ -408,60 +315,39 @@ pub fn resolve_swarm_person_bindings(workspace string, recipe string, explicit m
 	}
 	config := resolve_swarm_config(workspace, recipe, '', '', '')!
 	for role_name in swarm_recipe_roles(recipe) {
-		if role_name in resolved {
-			continue
-		}
+		if role_name in resolved { continue }
 		role := config.spec.roles[role_name] or { continue }
 		preference := preferences[role_name] or { PersonRolePreference{} }
 		preferred_ids := if preference.person_id.len > 0 {
-			[preference.person_id]++
-			preference.preferred_people
+			[preference.person_id] ++ preference.preferred_people
 		} else {
 			preference.preferred_people
 		}
 		for id in preferred_ids {
-			if id in used {
-				continue
-			}
+			if id in used { continue }
 			person := people_by_id[id] or { continue }
 			archived := person['archived'] or { continue }
 			if archived is bool {
-				if archived {
-					continue
-				}
-			} else {
-				continue
-			}
+				if archived { continue }
+			} else { continue }
 			person_role := person_string(person, 'role', true, 64, 'id')!
 			definition_id := person_string(person, 'definition_id', false, 128, 'ref')!
-			if person_role != role_name && (role.persona.len == 0 || definition_id != role.persona) {
-				continue
-			}
+			if person_role != role_name && (role.persona.len == 0 || definition_id != role.persona) { continue }
 			resolved[role_name] = id
 			used << id
 			break
 		}
-		if role_name in resolved {
-			continue
-		}
+		if role_name in resolved { continue }
 		for person in people.people {
 			id := person_string(person, 'id', true, 64, 'id')!
-			if id in used {
-				continue
-			}
+			if id in used { continue }
 			archived := person['archived'] or { continue }
 			if archived is bool {
-				if archived {
-					continue
-				}
-			} else {
-				continue
-			}
+				if archived { continue }
+			} else { continue }
 			person_role := person_string(person, 'role', true, 64, 'id')!
 			definition_id := person_string(person, 'definition_id', false, 128, 'ref')!
-			if person_role != role_name && (role.persona.len == 0 || definition_id != role.persona) {
-				continue
-			}
+			if person_role != role_name && (role.persona.len == 0 || definition_id != role.persona) { continue }
 			resolved[role_name] = id
 			used << id
 			break
