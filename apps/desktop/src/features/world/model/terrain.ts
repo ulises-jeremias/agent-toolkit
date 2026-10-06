@@ -1185,7 +1185,7 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
     const [xs, ys] = at.split(',');
     const x = Number(xs);
     const y = Number(ys);
-    if (!tile.startsWith('grass') || Math.abs(x - creekSafe(p)) > 5 || y <= 4) return [];
+    if (!tile.startsWith('grass') || Math.abs(x - creekSafe(p)) > 5 || y <= 4 || p.waterReservations.has(at)) return [];
     return [{ at, x, y, rank: h2(x, y, 97) }];
   });
   // Prefer an open glade. Narrow, projectless layouts may have no grass two
@@ -1214,7 +1214,7 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
     const y = Number(ys);
     if ((!tile.startsWith('grass') && !tile.startsWith('flowers')) || Math.abs(x - creekSafe(p)) <= 4 || y <= 3)
       return [];
-    if (nearStructureOrPath(p, x, y, 0) || canopyOverBuilding(p, x, y, 0, 0)) return [];
+    if (p.waterReservations.has(at) || nearStructureOrPath(p, x, y, 0) || canopyOverBuilding(p, x, y, 0, 0)) return [];
     return [{ at, x, y, rank: h2(x, y, 271) }];
   });
   meadowMotes.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);

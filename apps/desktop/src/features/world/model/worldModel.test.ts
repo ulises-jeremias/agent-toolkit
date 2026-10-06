@@ -1084,6 +1084,9 @@ describe('layoutWorld', () => {
     const motes = decor.filter((sprite) => sprite.sprite === 'mote');
     const gladeMotes = motes.filter((sprite) => sprite.id.startsWith('mote:glade:'));
     const terrain = new Map(first.cells.map(({ x, y, tile }) => [`${x},${y}`, tile]));
+    const doors = new Set(
+      layout.entities.map((entity) => `${entity.x + Math.floor(entity.w / 2)},${entity.y + entity.h}`),
+    );
 
     expect(fireflies.length).toBeGreaterThanOrEqual(2);
     expect(fireflies.length).toBeLessThanOrEqual(6);
@@ -1093,6 +1096,7 @@ describe('layoutWorld', () => {
     expect(motes.length).toBeGreaterThan(0);
     expect(motes.length).toBeLessThanOrEqual(10);
     expect(motes.every((sprite) => sprite.ambient && sprite.w === 10 && sprite.h === 10)).toBe(true);
+    expect(motes.every((sprite) => !doors.has(`${sprite.x},${sprite.y}`))).toBe(true);
     expect(gladeMotes.length).toBeGreaterThan(0);
     expect(gladeMotes.length).toBeLessThanOrEqual(4);
     expect(
