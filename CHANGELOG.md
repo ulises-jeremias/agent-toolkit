@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.42.0] — 2026-10-06
+
 ### Added
 
 - Project interiors now gather the project board, records, files, and terminal into a compact room with crisp 5× scaling on large windows; live work remains the only source of runtime characters.
@@ -1207,7 +1209,9 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.40.0...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.42.0...HEAD
+[1.42.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.41.0...v1.42.0
+[1.41.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.40.0...v1.41.0
 [1.40.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.39.0...v1.40.0
 [1.39.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.38.0...v1.39.0
 [1.38.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.37.0...v1.38.0
