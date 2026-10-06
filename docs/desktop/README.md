@@ -86,7 +86,7 @@ still missing; it does not mean the user should substitute a CLI command.
 
 | Workflow | Desktop entry point | Status | Current limit |
 | --- | --- | --- | --- |
-| First-run workspace creation | Onboarding | Partial | Recovery evidence still needs a complete create/reuse/retry pass. |
+| First-run workspace creation | Onboarding | **Ready** | Creates or reuses a workspace through the GUI; a real supervised-backend crash/restart is verified before entering the world. |
 | Switch and inspect workspaces | Settings → Workspace | Partial | Real switch, project link and return work; broader recovery remains open. |
 | Enter a project and open its real files | World project house, Workspace | **Ready** | Files are read from the linked project through the typed backend. |
 | Discover and install capabilities | Library | Partial | Some compiled Copilot Skills and Agent Definitions are not installable in Desktop; mixed catalog/install state still needs stronger review. |

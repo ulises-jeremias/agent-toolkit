@@ -161,6 +161,7 @@ test.describe('first-run backend recovery', () => {
     killBackend(desktop);
     await expect(page.getByRole('button', { name: 'Restart backend' })).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('button', { name: 'Continue' })).toBeDisabled();
+    await setViewport(app, 1024, 768);
     await capture(page, 'recovery-backend-failed-compact');
 
     await setViewport(app, 1440, 960);

@@ -14,17 +14,24 @@ journeys:
   - id: first-run-onboarding
     title: First run to a created or reused workspace
     destinations: [onboarding]
-    status: partial
+    status: ok
     evidence:
       - note: copied Linux package launched outside the checkout with fresh
           HOME/XDG and minimal PATH, workspace created entirely through the GUI
         build: "1.40.0 @ feat/cozy-pixel-world cb7394b2 (2026-09-30)"
-      - note: e2e/electron/onboarding.spec.ts
-      - note: real Linux supervised-backend crash, in-onboarding restart, and
-          continuation to folder selection; compact and large captures opened
-        build: "1.42.0 @ feat/onboarding-backend-recovery"
+      - note: >-
+          First-run E2E covers an existing workspace, explicit creation of a
+          missing workspace, and a crashed supervised backend restarted inside
+          onboarding before continuing; the package smoke launches from fresh
+          HOME/XDG. Compact and large failed-state captures were opened.
+        build: "adda39ed (#1472; packaged Electron acceptance and Linux E2E)"
+        tests:
+          - apps/desktop/e2e/electron/onboarding.spec.ts
+        screenshots:
+          - assets/electron/onboarding/recovery-backend-failed-compact.png
+          - assets/electron/onboarding/recovery-backend-failed-large.png
     blockers: []
-    recovery: guided retry on backend failure; no partial workspace left behind
+    recovery: restart a failed local backend from onboarding; existing workspaces remain unchanged
   - id: workspace-switch-inspect
     title: Switch workspace and read its truth in the World
     destinations: [world, workspace]
