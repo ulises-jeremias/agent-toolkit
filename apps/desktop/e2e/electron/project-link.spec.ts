@@ -4,6 +4,7 @@ import { expect, test } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend } from './fixtures';
 
 test('links an existing project from the GUI and places it in the world', async () => {
+  if (process.env['ATK_CAPTURE'] === '1') test.setTimeout(5 * 60_000);
   const desktop = await openDesktop();
   try {
     const { page, home } = desktop;
