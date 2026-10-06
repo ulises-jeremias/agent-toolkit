@@ -53,7 +53,7 @@ The [workflow ledger](workflows.yaml) records functional evidence separately;
 a passing screenshot does not establish an end-to-end journey, and a passing
 test does not establish visual quality.
 
-## Latest opened review — 2026-10-06
+## Earlier iteration review — 2026-10-06 (before v1.42.0)
 
 The dusk-ground tint adjustment at `162391b6` was captured by [Linux Electron
 review run 37420506125](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37420506125).
@@ -130,35 +130,48 @@ interior-art approval. The meadow capture keeps its current creek/bridge
 layout at both sizes, but broad grass and rectilinear paths still need a
 composition pass.
 
-## Latest main capture — 2026-10-06
+## Latest main capture — v1.42.0, 2026-10-06
 
-The final-main Electron capture is source `023770eff488a4f53bcd51c373e2c5a29ba67c63`,
-[workflow run 37432867725](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37432867725).
-I opened `meadow-1920x1080-world.png`, `world-several-projects-large.png`,
-`world-several-projects-compact.png`, `world-one-project-large.png`,
-`world-empty-compact.png`, `dusk-1920x1080-world.png`,
-`dusk-1024x640-world.png`, `project-files-room-large.png`,
-`meadow-1920x1080-library.png`, `meadow-1024x640-library.png`,
-`people-roster-large.png`, `people-roster-compact.png`,
+The Electron visual-review workflow captured source
+`ea154c2f192d6844d3f2a2e6a9764de5a5249aa3` in
+[run 37445405836](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37445405836).
+This is the released `v1.42.0` main SHA. I opened the full capture contact sheet
+and the original-size files `meadow-1920x1080-world.png`,
+`dusk-1920x1080-world.png`, `world-empty-compact.png`,
+`world-one-project-large.png`, `world-several-projects-large.png`,
+`project-files-room-large.png`, `meadow-1920x1080-library.png`,
+`meadow-1920x1080-people.png`, `people-roster-large.png`,
+`person-start-large.png`, `meadow-1024x640-person-create.png`,
+`meadow-1024x640-munder-import-review.png`,
 `meadow-1920x1080-operations.png`, `meadow-1920x1080-terminal.png`,
-`meadow-1920x1080-settings.png`, `dusk-1920x1080-attention.png`,
-`meadow-1024x640-munder-import-review.png`, and
-`meadow-1024x640-person-create.png`. The corrected 14×10 room keeps both
-windows inside its walls and remains readable at compact and large scale. The
-multi-project map distinguishes three project houses from shared landmarks, and
-the Dusk veil is visible at both sizes without obscuring the creek or buildings.
+`meadow-1920x1080-settings.png`, `mcp-configure-large.png`, and
+`dusk-1024x640-attention.png`. A compact contact sheet also covered
+`world-empty-compact.png`, `world-one-project-compact.png`,
+`world-several-projects-compact.png`, `project-files-room-compact.png`,
+`people-roster-compact.png`, `person-start-compact.png`,
+`meadow-1024x640-library.png`, and compact MCP configuration/credential review.
+The 54-image artifact is archived at
+[`assets/electron/final-main-2026-10-06/`](assets/electron/final-main-2026-10-06/).
 
-The capture also makes the remaining gap clear: the valley still has broad,
-regular grass fields and orthogonal paths; ground detail repeats; and the room's
-timber wall is a repetitive texture around stations with large gaps between
-them. The map has stronger visual identity than earlier captures, but the
-inspectors remain standard data panels on a flat green field. The People roster
-has large unused space at desktop size, while the Library's long catalog needs
-a careful scrolling review at compact size. These are open art and layout issues,
-not sign-off. The README gallery and the current compact/large world and
-inspector evidence were replaced with genuine captures from this same Electron
-app and backend run. Screenshots, rather than decorative SVG mockups, are the
-repository's product imagery; no SVG files are tracked.
+The final captures confirm crisp pixel scaling, distinct shared landmarks,
+three individually named project buildings, a bridge across the creek, and
+truthful offline People states. The start review accurately explains that no
+interactive runner is installed in the disposable test environment; it does
+not claim to have started a session. The import review makes the no-spawn rule
+and ignored fields explicit. The final code changes improve the dusk contrast
+and bring the compact interior window inside the wall; screenshots now show
+those exact changes.
+
+This is still not art sign-off. The valley reads as a rectangular grass board
+with highly regular terrain marks and angular paths; the creek divides the map
+almost vertically. The room wall repeats the same timber pattern and leaves
+large bare areas between its real resource stations. Inspectors use legible
+pixel headings and hard-edged frames, but the broad flat green page and navy
+cards still read closer to a conventional dashboard than a cozy game menu. The
+large People roster leaves most of its canvas unused. Keep these as important
+product work; passing capture and build checks does not make the experience
+visually complete. The README gallery now uses genuine screenshots from this
+released Electron build, and no tracked SVG mockups are used as product images.
 
 ## Screenshot policy
 
