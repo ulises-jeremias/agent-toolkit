@@ -23,7 +23,9 @@ the strongest integration it actually supports.
 ### Cursor IDE/CLI (cursor)
 
 **Type:** plugin  
-**Install:** Dashboard → Plugins → import `ulises-jeremias/agent-toolkit`  
+**Install:** Open **Customize** in Cursor, find the Agent Toolkit plugins, and
+choose **Install** at user or project scope. See the [current Cursor plugin
+guide](https://cursor.com/docs/plugins).
 **Skills:** native | **Agents:** native | **Rules:** separate profile surface  
 **Note:** Cursor IDE and Cursor CLI both read from the same plugin bundle.
 

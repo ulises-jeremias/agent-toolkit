@@ -156,11 +156,15 @@ catalog.
 
 ## Cursor: Installing from the Marketplace
 
-Cursor uses a different plugin mechanism. Import agent-toolkit via the Cursor team dashboard:
+Cursor supports the Agent Plugins open standard and its own plugin format.
+Install the Agent Toolkit plugins from **Customize** in the Cursor sidebar:
 
-1. Go to **Cursor Settings → Plugins**
-2. Click **Import** and paste: `https://github.com/ulises-jeremias/agent-toolkit`
-3. Select the plugins you want to install
+1. Open **Customize**.
+2. Find the Agent Toolkit plugins in the marketplace.
+3. Choose **Install** and select user or project scope.
+
+See the [current Cursor plugin guide](https://cursor.com/docs/plugins) for
+marketplace and local-development instructions.
 
 **Alternative: local symlink install:**
 

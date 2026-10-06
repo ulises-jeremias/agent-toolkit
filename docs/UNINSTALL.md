@@ -61,7 +61,9 @@ live in your repositories — remove with `git rm` when appropriate.
 
 ### Cursor
 
-Remove plugins via **Dashboard → Plugins** for `ulises-jeremias/agent-toolkit`.
+Open **Customize** in Cursor, find the installed Agent Toolkit plugins, and
+uninstall each one. See the [Cursor plugin guide](https://cursor.com/docs/plugins)
+for the current management flow.
 
 ---
 
