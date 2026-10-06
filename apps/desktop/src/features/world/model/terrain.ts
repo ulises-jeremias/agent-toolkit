@@ -1355,7 +1355,9 @@ export function paintInterior(entities: readonly LaidOutEntity[], cols: number, 
   // Windows and lanterns belong to the room itself; they make an empty
   // project feel lived in without suggesting that a Person is online.
   p.sprite('room-window:west', 2, 0, 'window-valley', 32, 24);
-  p.sprite('room-window:east', 14, 0, 'window-valley', 32, 24);
+  // Keep the two-tile window inset symmetrically when compact room layouts
+  // shrink; a hard-coded east offset used to let the window float past the wall.
+  p.sprite('room-window:east', Math.max(2, cols - 4), 0, 'window-valley', 32, 24);
   p.sprite('room-sconce:west', 0, 3, 'wall-sconce', 16, 24);
   p.sprite('room-sconce:east', cols - 1, 3, 'wall-sconce', 16, 24);
   p.sprite('room-rug:commons', Math.floor(cols / 2) - 1, Math.max(4, rows - 6), 'rug', 32, 16);

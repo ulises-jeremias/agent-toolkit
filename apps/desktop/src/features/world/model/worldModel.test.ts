@@ -1035,19 +1035,23 @@ describe('layoutWorld', () => {
   });
 
   it('makes quiet project rooms cozy without implying runtime activity', () => {
-    const first = paintInterior([], 18, 12);
-    const second = paintInterior([], 18, 12);
+    const first = paintInterior([], 14, 10);
+    const second = paintInterior([], 14, 10);
     const sprites = new Set(first.decor.map(({ sprite }) => sprite));
     const ambient = first.decor.filter(({ ambient }) => ambient);
 
     expect(sprites).toEqual(new Set(['window-valley', 'wall-sconce', 'rug', 'plant', 'mote']));
     expect(first.decor).toEqual(second.decor);
     expect(first.decor.filter(({ sprite }) => sprite === 'window-valley')).toHaveLength(2);
+    expect(first.decor.filter(({ sprite }) => sprite === 'window-valley').map(({ x }) => x)).toEqual([2, 10]);
     expect(first.decor.filter(({ sprite }) => sprite === 'wall-sconce')).toHaveLength(2);
     expect(first.decor.filter(({ sprite }) => sprite === 'plant')).toHaveLength(2);
     expect(first.decor.filter(({ sprite }) => sprite === 'plant').every(({ w, h }) => w === 24 && h === 24)).toBe(true);
     expect(ambient).toHaveLength(2);
     expect(ambient.every(({ sprite }) => sprite === 'mote')).toBe(true);
+    expect(first.decor.every(({ x, y, w, h }) => x + Math.ceil(w / 16) <= 14 && y + Math.ceil(h / 16) <= 10)).toBe(
+      true,
+    );
   });
 
   it('keeps a small, stable firefly presence along the creek in the idle world', () => {
