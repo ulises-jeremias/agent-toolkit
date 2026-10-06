@@ -106,6 +106,13 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
       await expect.poll(() => page.evaluate(() => [innerWidth, innerHeight])).toEqual([size.width, size.height]);
       for (const destination of DESTINATIONS) {
         await nav(page).getByRole('link', { name: destination }).click();
+        if (destination === 'World') {
+          await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
+          // A visible route/header can precede the workspace query. Wait for a
+          // real canonical landmark so design-review captures never preserve
+          // the loading background as if it were an empty world.
+          await expect(page.locator('[data-entity-id="object:library"]')).toBeVisible();
+        }
         if (destination === 'People' && !createdPerson) {
           await page.getByRole('button', { name: 'Create Person' }).click();
           const dialog = page.getByRole('dialog', { name: 'Create Person' });

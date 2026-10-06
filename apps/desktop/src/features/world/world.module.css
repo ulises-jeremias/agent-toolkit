@@ -523,12 +523,13 @@
 }
 
 :root[data-theme='dusk'] .mapWorld::after {
-  /* Blue-hour ground, with low warm lantern pools and a cool creek shimmer.
-     Keep the light restrained so the pixel tile art stays crisp and colorful. */
+  /* Blue-hour ground, with warm clearings and a cool creek shimmer. Multiply
+     keeps terrain legible while making the daylight meadow distinctly dusk;
+     this layer stays below authored buildings, characters and lanterns. */
   background:
-    radial-gradient(ellipse at 16% 22%, rgb(255 186 94 / 14%), transparent 28%),
-    radial-gradient(ellipse at 55% 62%, rgb(85 213 214 / 10%), transparent 27%),
-    radial-gradient(ellipse at 84% 24%, rgb(255 190 103 / 10%), transparent 22%),
-    linear-gradient(180deg, rgb(23 28 66 / 35%), rgb(24 26 54 / 22%));
-  mix-blend-mode: soft-light;
+    radial-gradient(ellipse at 16% 22%, rgb(255 190 104 / 30%), transparent 30%),
+    radial-gradient(ellipse at 55% 62%, rgb(93 194 209 / 21%), transparent 28%),
+    radial-gradient(ellipse at 84% 24%, rgb(255 194 110 / 24%), transparent 24%),
+    linear-gradient(180deg, rgb(31 39 87 / 48%), rgb(35 37 77 / 42%));
+  mix-blend-mode: multiply;
 }

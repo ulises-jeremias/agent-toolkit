@@ -230,6 +230,22 @@ Opened references: [empty world, compact](assets/electron/world/world-empty-comp
 [Copilot install review, compact](assets/electron/library/copilot-project-review-compact.png),
 and [large](assets/electron/library/copilot-project-review-large.png).
 
+## Dusk lighting review — 2026-10-06
+
+After opening the compact and large dusk captures, the previous blue-hour
+overlay still looked too close to daytime. I changed the terrain-only tint
+from a low-strength soft-light blend to a stronger multiply blend with warm
+clearing pools and a cool creek reflection. The authored buildings, people,
+labels, and controls remain crisp and untinted; lit windows stay warm against
+the darker ground. I recaptured and opened [Dusk compact](assets/electron/world/world-empty-dusk-compact.png),
+[Dusk large](assets/electron/world/world-empty-dusk-large.png), [Meadow compact](assets/electron/world/world-empty-compact.png),
+and [Meadow large](assets/electron/world/world-empty-large.png). The screenshot
+tour now waits for the real Library landmark before saving a World image, so a
+slow workspace query cannot masquerade as an empty map. Dusk now reads as a
+distinct evening palette at both sizes. This improves atmosphere, but the map
+composition issues above remain open; the screenshot is evidence of the
+specific lighting change, not overall art sign-off.
+
 ## Screenshot policy
 
 Checked-in screenshots must come from the running Electron app and canonical
