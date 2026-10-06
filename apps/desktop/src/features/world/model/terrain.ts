@@ -148,8 +148,10 @@ function baseGround(p: Painter) {
       if (p.isBlocked(x, y)) continue;
       // Let the low-frequency fields span enough of the palette to produce
       // visibly different meadow biomes even on a compact empty workspace.
-      const moisture = meadowField(x, y, 6, 11) * 0.72 + meadowField(x, y, 13, 17) * 0.28;
-      const bloom = meadowField(x, y, 4, 19);
+      // Broad, overlapping moisture bands make whole clearings feel like
+      // distinct meadows instead of changing biome at every few tiles.
+      const moisture = meadowField(x, y, 12, 11) * 0.72 + meadowField(x, y, 24, 17) * 0.28;
+      const bloom = meadowField(x, y, 6, 19);
       const roll = h2(x, y, 1) % 23;
       if (bloom > 0.8 && roll < 12) {
         p.set(x, y, ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'][h2(x, y, 12) % 4]!);
