@@ -81,6 +81,10 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
   env['HOME'] = home;
   env['XDG_CONFIG_HOME'] = path.join(home, '.config');
   env['XDG_DATA_HOME'] = path.join(home, '.local', 'share');
+  // The Electron supervisor must launch the same binary used to scaffold and
+  // smoke this workspace. Otherwise a stale dist/ binary can win discovery
+  // and make the renderer appear to target an older API than the test setup.
+  env['ATK_BACKEND_BIN'] = backendBin;
   const schedulerShim = process.env['ATK_E2E_SYSTEMCTL_SHIM'];
   env['PATH'] = [schedulerShim, path.dirname(backendBin), process.env.PATH]
     .filter((entry): entry is string => Boolean(entry))

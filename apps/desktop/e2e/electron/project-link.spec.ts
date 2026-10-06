@@ -13,7 +13,7 @@ test('links an existing project from the GUI and places it in the world', async 
     if (process.env.ATK_CAPTURE === '1') {
       fs.mkdirSync(captureDir, { recursive: true });
       await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-      await expect(page.getByRole('button', { name: /No projects yet/ })).toBeVisible();
+      await expect(page.getByRole('button', { name: /Add project/ })).toBeVisible();
       await expect(page.locator('[data-entity-id="object:workshop"]')).toHaveCount(1);
       for (const size of [
         { width: 1024, height: 640, key: 'compact' },
@@ -49,10 +49,12 @@ test('links an existing project from the GUI and places it in the world', async 
     await pick(outsideAllowedRoots);
 
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-    const emptyMarker = page.getByRole('button', { name: /No projects yet/ });
+    const emptyMarker = page.getByRole('button', { name: /Add project/ });
     await emptyMarker.click();
     await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
-    await page.getByRole('button', { name: 'Link existing folder' }).click();
+    const linkFolder = page.getByRole('button', { name: 'Link existing folder' });
+    await expect(linkFolder).toBeEnabled();
+    await linkFolder.click();
 
     const review = page.getByRole('dialog', { name: 'Review project link' });
     const outsideName = path.basename(outsideAllowedRoots);

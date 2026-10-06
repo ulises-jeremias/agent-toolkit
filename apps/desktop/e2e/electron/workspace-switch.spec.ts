@@ -66,7 +66,7 @@ test('switches workspaces, reads their own projects, and returns safely', async 
     await expect(harnessValue).toContainText(workspace, { timeout: 20_000 });
     await waitForBackend(page);
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-    await expect(page.getByRole('button', { name: /No projects yet/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Add project/ })).toBeVisible();
     if (process.env.ATK_CAPTURE === '1') {
       for (const size of [
         { width: 1024, height: 640, key: 'workspace-return-compact' },

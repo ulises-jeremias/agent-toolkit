@@ -173,6 +173,33 @@ product work; passing capture and build checks does not make the experience
 visually complete. The README gallery now uses genuine screenshots from this
 released Electron build, and no tracked SVG mockups are used as product images.
 
+## Empty-world review — enchanted-lighting branch, 2026-10-06
+
+I captured the current Electron renderer at 1024×640 and 1920×1080 in both
+Meadow and Dusk against the disposable E2E workspace and the real 1.42.0
+backend. The four opened images are [Meadow compact](assets/electron/world/world-empty-compact.png),
+[Meadow large](assets/electron/world/world-empty-large.png),
+[Dusk compact](assets/electron/world/world-empty-dusk-compact.png), and
+[Dusk large](assets/electron/world/world-empty-dusk-large.png). The empty
+workspace now has a project notice board with a clear “Add project” action;
+it no longer draws a project house that does not exist. Both themes preserve
+crisp integer-scaled sprites and warm windows, and the large view gives the
+terrain and creek room to read as a place.
+
+This review does not sign off the art direction. The empty scene still uses a
+large rectangular grass field with repetitive ground marks, orthogonal paths,
+and a nearly vertical creek. Dusk is the more atmospheric palette, but the
+new static light treatment is subtle at normal map scale; it does not yet give
+the valley the enchanted, firefly-lit quality in the product brief. At compact
+size the navigation and dock consume a noticeable share of the viewport. Keep
+the README’s multi-project screenshots as the product overview: the empty
+world is useful for documenting first-run behavior, but is a weaker showcase.
+
+The README currently displays real Electron screenshots in PNG format. Keep
+those over illustrative SVG mockups; there are no SVG mockups in its gallery.
+Use the visual review archive for empty-state and edge-case screenshots rather
+than replacing the product overview with an empty map.
+
 ## Screenshot policy
 
 Checked-in screenshots must come from the running Electron app and canonical

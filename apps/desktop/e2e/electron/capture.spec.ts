@@ -8,6 +8,7 @@ import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtur
  * Every job and session shown is real, created through the UI.
  */
 const CAPTURE = process.env.ATK_CAPTURE === '1';
+const WORLD_ONLY = process.env.ATK_CAPTURE_WORLD_ONLY === '1';
 const OUT_DIR =
   process.env.ATK_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/foundations');
 
@@ -16,17 +17,19 @@ const SIZES = [
   { width: 1920, height: 1080 },
 ] as const;
 const THEMES = ['meadow', 'dusk'] as const;
-const DESTINATIONS = [
-  'World',
-  'Attention',
-  'Operations',
-  'Workspace',
-  'Library',
-  'People',
-  'Insights',
-  'Terminal',
-  'Settings',
-] as const;
+const DESTINATIONS = WORLD_ONLY
+  ? ['World']
+  : ([
+      'World',
+      'Attention',
+      'Operations',
+      'Workspace',
+      'Library',
+      'People',
+      'Insights',
+      'Terminal',
+      'Settings',
+    ] as const);
 
 test.describe.configure({ mode: 'serial' });
 test.skip(!CAPTURE, 'Set ATK_CAPTURE=1 to capture design review screenshots.');
@@ -70,24 +73,29 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
   await waitForBackend(page);
   let createdPerson = false;
 
-  await startJob(page, 'version');
-  await startJob(page, 'workspace');
-  await startJob(page, 'no-such-command');
+  if (!WORLD_ONLY) {
+    await startJob(page, 'version');
+    await startJob(page, 'workspace');
+    await startJob(page, 'no-such-command');
+  }
 
-  await nav(page).getByRole('link', { name: 'Terminal' }).click();
-  await page.getByRole('main').getByRole('button', { name: 'New session' }).click();
-  const session = page.getByRole('dialog', { name: 'New terminal session' });
-  await session.getByRole('textbox', { name: 'Command', exact: true }).fill('/bin/sh');
-  await session.getByRole('textbox', { name: 'Label', exact: true }).fill('shell');
-  await session.getByRole('button', { name: 'Open session' }).click();
-  const terminal = page.getByLabel('Terminal for shell');
-  await terminal.click();
-  await page.keyboard.type('agent-toolkit version');
-  await page.keyboard.press('Enter');
-  await expect(terminal.locator('.xterm-rows')).toContainText(/\d+\.\d+/);
-  await expect(page.getByRole('region', { name: 'Receipts' }).getByRole('listitem')).toHaveCount(0, {
-    timeout: 20_000,
-  });
+  let terminal = page.getByLabel('Terminal for shell');
+  if (!WORLD_ONLY) {
+    await nav(page).getByRole('link', { name: 'Terminal' }).click();
+    await page.getByRole('main').getByRole('button', { name: 'New session' }).click();
+    const session = page.getByRole('dialog', { name: 'New terminal session' });
+    await session.getByRole('textbox', { name: 'Command', exact: true }).fill('/bin/sh');
+    await session.getByRole('textbox', { name: 'Label', exact: true }).fill('shell');
+    await session.getByRole('button', { name: 'Open session' }).click();
+    terminal = page.getByLabel('Terminal for shell');
+    await terminal.click();
+    await page.keyboard.type('agent-toolkit version');
+    await page.keyboard.press('Enter');
+    await expect(terminal.locator('.xterm-rows')).toContainText(/\d+\.\d+/);
+    await expect(page.getByRole('region', { name: 'Receipts' }).getByRole('listitem')).toHaveCount(0, {
+      timeout: 20_000,
+    });
+  }
 
   for (const theme of THEMES) {
     await nav(page).getByRole('link', { name: 'Settings' }).click();
@@ -160,7 +168,7 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
           await page.getByRole('button', { name: /^agent-toolkit version/ }).click();
         }
         await settle(page);
-        if (destination === 'Terminal') {
+        if (!WORLD_ONLY && destination === 'Terminal') {
           const marker = `capture-${theme}-${size.width}`;
           await terminal.click();
           // Split the visible marker with adjacent shell strings so the PTY's
@@ -180,9 +188,11 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
   // Capture opens a real PTY for the terminal screenshots. Close it through
   // the same reviewed UI action as a user so the Electron process and backend
   // can shut down promptly after the tour.
-  await nav(page).getByRole('link', { name: 'Terminal' }).click();
-  await page.getByRole('button', { name: 'Close' }).click();
-  const closeDialog = page.getByRole('dialog', { name: 'Close this session?' });
-  await closeDialog.getByRole('button', { name: 'Kill and close' }).click();
-  await expect(page.getByRole('tab', { name: /shell.*running/ })).toHaveCount(0);
+  if (!WORLD_ONLY) {
+    await nav(page).getByRole('link', { name: 'Terminal' }).click();
+    await page.getByRole('button', { name: 'Close' }).click();
+    const closeDialog = page.getByRole('dialog', { name: 'Close this session?' });
+    await closeDialog.getByRole('button', { name: 'Kill and close' }).click();
+    await expect(page.getByRole('tab', { name: /shell.*running/ })).toHaveCount(0);
+  }
 });
