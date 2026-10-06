@@ -18,6 +18,7 @@ pub mut:
 	started time.Time
 	runner  &JobRunner = unsafe { nil }
 	bus     &EventBus = unsafe { nil }
+	sessions &agent_toolkit_core.PersonSessionStore = unsafe { nil }
 }
 
 fn is_loopback(host string) bool {
@@ -260,6 +261,7 @@ pub fn new_app(opts ServeOptions) &App {
 		started: time.utc()
 		runner: runner
 		bus: bus
+		sessions: agent_toolkit_core.new_person_session_store()
 	}
 }
 
@@ -554,6 +556,8 @@ const registered_api_routes = [
 	'/api/v1/people/bindings',
 	'/api/v1/people/:id',
 	'/api/v1/people/:id/archive',
+	'/api/v1/sessions',
+	'/api/v1/sessions/:id/status',
 	'/api/v1/memory/:sub',
 	'/api/v1/files',
 	'/api/v1/files/hits',

@@ -164,6 +164,42 @@ describe('ApiClient', () => {
     expect(calls[0]?.init?.method).toBe('GET');
   });
 
+  it('uses typed Person session history and lifecycle routes', async () => {
+    const session = {
+      id: 'session_1',
+      person_id: 'lina',
+      person: 'Lina',
+      role: 'reviewer',
+      project_id: 'agent-toolkit',
+      cwd: '/workspace/projects/agent-toolkit',
+      provider: 'opencode',
+      model: '',
+      status: 'launching',
+      started_at: '2026-10-06T00:00:00Z',
+      ended_at: '',
+      exit_code: -1,
+    };
+    const api = client({ ok: true, sessions: [session], session });
+    await api.personSessions('/workspace with space');
+    await api.createPersonSession({
+      workspace: '/workspace',
+      person_id: 'lina',
+      project_id: 'agent-toolkit',
+      provider: 'opencode',
+      model: '',
+    });
+    await api.updatePersonSession('/workspace', 'session_1', 'running');
+    expect(calls.map((call) => [call.init?.method, call.url])).toEqual([
+      ['GET', 'http://127.0.0.1:9/api/v1/sessions?workspace=%2Fworkspace+with+space'],
+      ['POST', 'http://127.0.0.1:9/api/v1/sessions'],
+      ['POST', 'http://127.0.0.1:9/api/v1/sessions/session_1/status'],
+    ]);
+    expect(calls[1]?.init?.body).toBe(
+      '{"workspace":"/workspace","person_id":"lina","project_id":"agent-toolkit","provider":"opencode","model":""}',
+    );
+    expect(calls[2]?.init?.body).toBe('{"workspace":"/workspace","status":"running","exit_code":-1}');
+  });
+
   it('loads MCP provider catalogue state from its typed endpoint', async () => {
     const response = await client({
       ok: true,

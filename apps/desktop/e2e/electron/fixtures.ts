@@ -114,8 +114,26 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
     home,
     workspace,
     close: async () => {
-      await app.close();
-      fs.rmSync(root, { recursive: true, force: true });
+      const process = app.process();
+      let killTimer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        await Promise.race([
+          app.close(),
+          new Promise<void>((resolve) => {
+            killTimer = setTimeout(() => {
+              try {
+                process.kill('SIGKILL');
+              } catch {
+                // The Electron process may have exited while shutdown was pending.
+              }
+              resolve();
+            }, 20_000);
+          }),
+        ]);
+      } finally {
+        if (killTimer) clearTimeout(killTimer);
+        fs.rmSync(root, { recursive: true, force: true });
+      }
     },
   };
 }

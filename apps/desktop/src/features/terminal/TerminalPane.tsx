@@ -168,7 +168,11 @@ export function TerminalPane({
         <p className={styles.exitNotice} role="status">
           {exitReason === 'time-budget'
             ? `The configured ${session.maxSeconds}s time limit ended this process.`
-            : `The process ended with exit code ${exitCode}.`}{' '}
+            : exitReason === 'user-stop'
+              ? 'You stopped this process from Desktop.'
+              : exitReason === 'app-shutdown'
+                ? 'Desktop closed before this process completed; its Person session is marked interrupted.'
+                : `The process ended with exit code ${exitCode}.`}{' '}
           Output is kept until you close or restart the session.
         </p>
       ) : null}

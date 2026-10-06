@@ -131,6 +131,10 @@ export interface PersonBindingsResponse {
   roles: Array<{ role: string; person_id: string; preferred_people: string[] }>;
 }
 
+export type PersonSession = components['schemas']['PersonSession'];
+export type PersonSessionsResponse = components['schemas']['PersonSessionsResponse'];
+export type PersonSessionResponse = components['schemas']['PersonSessionResponse'];
+
 /** OpenAPI `MemoryEntry` (list omits body). */
 export interface MemoryEntry {
   id: string;

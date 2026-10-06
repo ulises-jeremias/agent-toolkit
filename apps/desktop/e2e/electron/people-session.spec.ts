@@ -42,6 +42,8 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
     await page.getByRole('button', { name: /Lina.*reviewer.*Offline/ }).click();
     if (CAPTURE) {
       fs.mkdirSync(CAPTURE_DIR, { recursive: true });
+      await setViewport(desktop.app, 1920, 1080);
+      await page.screenshot({ path: path.join(CAPTURE_DIR, 'people-roster-large.png') });
       await setViewport(desktop.app, 1024, 640);
       await page.screenshot({ path: path.join(CAPTURE_DIR, 'people-roster-compact.png') });
     }
@@ -135,6 +137,19 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
     const stopDialog = page.getByRole('dialog', { name: "Stop Lina's session?" });
     await stopDialog.getByRole('button', { name: 'Stop session' }).click();
     await expect(page.getByRole('button', { name: /Lina.*reviewer.*Offline/ })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText('Recent sessions')).toBeVisible();
+    await expect(page.getByText('Stopped', { exact: true })).toBeVisible();
+    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
+    await page.getByRole('button', { name: 'Restart' }).click();
+    await expect(page.getByRole('tab', { name: /Lina.*agent-toolkit.*running/i })).toBeVisible({
+      timeout: 20_000,
+    });
+    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'People' }).click();
+    await page.getByRole('button', { name: 'Stop session' }).click();
+    const restartStopDialog = page.getByRole('dialog', { name: "Stop Lina's session?" });
+    await restartStopDialog.getByRole('button', { name: 'Stop session' }).click();
+    await expect(page.getByRole('button', { name: /Lina.*reviewer.*Offline/ })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText('Stopped', { exact: true })).toHaveCount(2);
     if (CAPTURE) await page.screenshot({ path: path.join(CAPTURE_DIR, 'people-offline-after-stop.png') });
   } finally {
     await desktop.close();

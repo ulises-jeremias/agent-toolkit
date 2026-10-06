@@ -80,6 +80,10 @@ export type HarnessSwitchResult =
 export interface PtyCreateOptions {
   agent: string;
   personId?: string;
+  /** Durable V-owned AgentSession associated with this PTY, when launched from People. */
+  agentSessionId?: string;
+  /** Workspace that owns agentSessionId, even if the user later switches workspace. */
+  sessionWorkspace?: string;
   projectId?: string;
   provider?: string;
   model?: string;
@@ -97,6 +101,8 @@ export interface PtySessionInfo {
   id: string;
   agent: string;
   personId?: string;
+  agentSessionId?: string;
+  sessionWorkspace?: string;
   projectId?: string;
   provider?: string;
   model?: string;
@@ -104,7 +110,7 @@ export interface PtySessionInfo {
   args: string[];
   cwd: string;
   maxSeconds?: number;
-  exitReason?: 'time-budget';
+  exitReason?: 'time-budget' | 'user-stop' | 'app-shutdown';
   cols: number;
   rows: number;
   exitCode: number | null;
@@ -119,7 +125,7 @@ export interface PtyDataEvent {
 export interface PtyExitEvent {
   id: string;
   exitCode: number;
-  exitReason?: 'time-budget';
+  exitReason?: 'time-budget' | 'user-stop' | 'app-shutdown';
 }
 
 export type Unsubscribe = () => void;

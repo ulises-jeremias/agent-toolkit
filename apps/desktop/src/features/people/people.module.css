@@ -80,6 +80,29 @@
   margin: 0;
   overflow-wrap: anywhere;
 }
+.sessionHistory {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sessionHistory li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  border: 2px solid var(--border-strong);
+  background: var(--surface-raised);
+  padding: var(--space-2) var(--space-3);
+}
+.sessionHistory li > span {
+  font-weight: 700;
+}
+.sessionHistory li > small {
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+}
 .form {
   display: grid;
   gap: var(--space-4);

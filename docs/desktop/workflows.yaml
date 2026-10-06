@@ -287,12 +287,21 @@ journeys:
     destinations: [people, terminal, world]
     status: partial
     evidence:
-      - note: People can review project, discovered runner and model, then open a real Electron PTY tagged with Person/project identity; a live PTY plus its saved Person and matching project is projected as a character, including while that real session is stopping
-        build: "0af40865e7c0064bcf07efb6322b51652e897b52 (#1368)"
+      - note: >-
+          People validates the selected Person, linked project and provider with
+          the V backend, writes a durable PersonSession lifecycle record, and
+          only then opens a real Electron PTY carrying that record ID. The
+          record tracks launch, running, terminal outcomes and interruption
+          recovery; the World still projects only a live local PTY assigned to
+          a real project.
+        build: "42bc820f (#1453; screenshot capture workflow 37402811259)"
         screenshots:
           - assets/electron/people/people-roster-compact.png
+          - assets/electron/people/people-roster-large.png
           - assets/electron/people/person-start-compact.png
           - assets/electron/people/person-start-large.png
+          - assets/electron/people/person-start-no-runner-compact.png
+          - assets/electron/people/person-start-no-runner-large.png
           - assets/electron/people/world-person-compact.png
           - assets/electron/people/world-person-large.png
           - assets/electron/people/people-offline-after-stop.png
@@ -304,7 +313,7 @@ journeys:
           - assets/electron/people/world-person-large.png
           - assets/electron/people/people-offline-after-stop.png
     blockers:
-      - the process is a local PTY binding, not a server-side AgentSession with durable history
+      - provider conversation IDs, transcript continuity and safe runner-specific resume are not available yet
       - max_seconds is enforced by Desktop; token/cost limits and non-inherited isolation still require explicit acknowledgement because the interactive PTY cannot enforce them
   - id: swarm-role-picker
     title: Choose People for swarm roles before start

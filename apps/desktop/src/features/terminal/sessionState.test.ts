@@ -17,4 +17,12 @@ describe('sessionState', () => {
   it('reports a configured time limit separately from a process error', () => {
     expect(sessionState(143, 'time-budget')).toEqual({ tone: 'warn', label: 'time limit reached' });
   });
+
+  it('reports a user stop as an intentional action', () => {
+    expect(sessionState(143, 'user-stop')).toEqual({ tone: 'idle', label: 'stopped' });
+  });
+
+  it('reports app shutdown as an interrupted session', () => {
+    expect(sessionState(137, 'app-shutdown')).toEqual({ tone: 'warn', label: 'interrupted' });
+  });
 });

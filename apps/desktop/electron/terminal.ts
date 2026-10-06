@@ -19,6 +19,9 @@ export interface TerminalSessionInfo {
   agent: string;
   /** Person identity when this PTY was started from the People roster. */
   personId?: string;
+  /** Canonical V-owned session record, when present. */
+  agentSessionId?: string;
+  sessionWorkspace?: string;
   projectId?: string;
   provider?: string;
   model?: string;
@@ -27,7 +30,7 @@ export interface TerminalSessionInfo {
   args: string[];
   cwd: string;
   maxSeconds?: number;
-  exitReason?: 'time-budget';
+  exitReason?: 'time-budget' | 'user-stop' | 'app-shutdown';
   cols: number;
   rows: number;
   exitCode: number | null;
@@ -45,7 +48,7 @@ const MAX_TAIL_CHARS = 8 * 1024;
 const MAX_TIMER_DELAY_MS = 2_147_000_000;
 
 type DataListener = (id: string, chunk: string) => void;
-type ExitListener = (id: string, exitCode: number, exitReason?: 'time-budget') => void;
+type ExitListener = (id: string, exitCode: number, exitReason?: 'time-budget' | 'user-stop' | 'app-shutdown') => void;
 
 export interface TerminalServiceOptions {
   /** cwd for sessions created without one: the resolved harness in the app. */
@@ -104,6 +107,8 @@ export class TerminalService {
   create(options: {
     agent: string;
     personId?: string;
+    agentSessionId?: string;
+    sessionWorkspace?: string;
     projectId?: string;
     provider?: string;
     model?: string;
@@ -135,6 +140,8 @@ export class TerminalService {
       id,
       agent: options.agent,
       personId: options.personId,
+      agentSessionId: options.agentSessionId,
+      sessionWorkspace: options.sessionWorkspace,
       projectId: options.projectId,
       provider: options.provider,
       model: options.model,
@@ -189,6 +196,9 @@ export class TerminalService {
   signal(id: string, signal: 'int' | 'term' | 'kill'): boolean {
     const session = this.sessions.get(id);
     if (!session || session.exitCode !== null) return false;
+    if ((signal === 'term' || signal === 'kill') && session.exitReason !== 'time-budget') {
+      session.exitReason = 'user-stop';
+    }
     if (signal !== 'int' && session.exitReason !== 'time-budget') this.clearTimers(session);
     try {
       if (signal === 'int') session.proc.write('\x03');
@@ -203,6 +213,7 @@ export class TerminalService {
   close(id: string): boolean {
     const session = this.sessions.get(id);
     if (!session) return false;
+    session.exitReason = 'user-stop';
     try {
       session.proc.kill();
     } catch {
@@ -214,7 +225,16 @@ export class TerminalService {
   }
 
   dispose(): void {
-    for (const id of [...this.sessions.keys()]) this.close(id);
+    for (const session of this.sessions.values()) {
+      session.exitReason = 'app-shutdown';
+      try {
+        session.proc.kill();
+      } catch {
+        // already gone
+      }
+      this.clearTimers(session);
+    }
+    this.sessions.clear();
   }
 
   private infoOf(session: Session): TerminalSessionInfo {
