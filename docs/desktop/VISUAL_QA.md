@@ -58,8 +58,10 @@ test does not establish visual quality.
 The follow-up at source `3b269c26` was captured by [Linux Electron review run
 37416352771](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37416352771).
 I opened `world-several-projects-large.png`,
-`world-several-projects-compact.png`, `world-empty-compact.png`, and
-`project-files-room-large.png` from its screenshot artifact. Allowing diagonal
+`world-several-projects-compact.png`, `world-one-project-large.png`,
+`world-empty-large.png`, `world-empty-compact.png`,
+`dusk-1920x1080-world.png`, and `project-files-room-large.png` from its
+screenshot artifact. Allowing diagonal
 tree-root neighbors creates a denser, less orchard-like canopy on the project
 bank while leaving building footprints, entrances, and the bridge clear. This
 is a visible improvement at both world sizes, not final art acceptance: the
