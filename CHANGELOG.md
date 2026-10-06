@@ -42,6 +42,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Swarm role review now previews real backend resolution: explicit Person choices win, otherwise a unique active Person with a matching role/Agent Definition is assigned, with ephemeral fallback for unmatched roles.
 - Operations can pin or clear a workspace-default Person per swarm recipe role through the typed People bindings API; Auto uses those defaults before role matching and keeps the resolver guidance visible throughout the start review.
 
+### Fixed
+
+- Compact project interiors now inset the east window within the room instead of drawing it beyond the wall.
+
 ### Changed
 
 - Dusk mode now dims meadow terrain while keeping water, foliage, labels, warm windows, and lanterns easy to distinguish.
