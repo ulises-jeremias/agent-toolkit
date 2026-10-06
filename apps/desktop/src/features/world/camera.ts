@@ -5,7 +5,7 @@
  * (ADR-035 craft rules: 16px source tiles, integer multiples).
  */
 
-export const WORLD_ZOOMS = [16, 32, 48, 64] as const;
+export const WORLD_ZOOMS = [16, 32, 48, 64, 80] as const;
 
 export interface Point {
   x: number;

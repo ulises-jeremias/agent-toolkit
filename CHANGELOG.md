@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Project interiors now use a wider room layout with moonlit windows, amber sconces, plants, and a shared rug; ambient details remain separate from live Person or job state.
+- Project interiors now gather the project board, records, files, and terminal into a compact room with crisp 5× scaling on large windows; live work remains the only source of runtime characters.
 
 - Command palette now opens the Library's reviewed capability installation preview and offers catalog-backed MCP provider configuration reviews.
 - Library can review the exact GitHub Copilot instruction contents and destination in a linked project, reject destination symlinks, preserve existing instructions, bind install and removal to reviewed snapshots, preserve post-install edits, and show receipt evidence.

@@ -230,7 +230,7 @@ export function WorldEntityMap({
     }
     setZoom(next);
   };
-  const zoomIn = () => changeZoom(ZOOMS.find((s) => s > zoom) ?? 64);
+  const zoomIn = () => changeZoom(ZOOMS.find((s) => s > zoom) ?? ZOOMS[ZOOMS.length - 1]!);
   const zoomOut = () => changeZoom([...ZOOMS].reverse().find((s) => s < zoom) ?? 16);
 
   return (
