@@ -2,7 +2,7 @@
 # An L3 loop that monitors open PRs across a multi-repo OSS ecosystem.
 # Cadence: daily. Cost: high (scales with repo count).
 # Designed for maintainers managing 20-50 repos.
-# Tier L3 is required: merge/close are forbidden at L2 by loop-gh-gate.
+# Tier L3 is required: the in-process loop gate forbids merge/close at L2.
 #
 # Usage:
 #   agent-toolkit loop init oss-pr-monitor --pack packs/my-ecosystem.yaml

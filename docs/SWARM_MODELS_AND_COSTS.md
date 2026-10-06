@@ -68,8 +68,8 @@ Related: [SWARMS.md](SWARMS.md) · [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md
 
 ```bash
 agent-toolkit swarm models --runner skeleton --profile balanced  # no binary needed
-agent-toolkit swarm plan --recipe pair --runner skeleton "demo" --json  # side-effect free
-agent-toolkit swarm start --runner skeleton --ui tmux "offline demo"     # no LLM, no Herdr
+agent-toolkit swarm start --recipe pair --backend headless --runner skeleton --dry-run "demo" --json  # side-effect free
+agent-toolkit swarm start --runner skeleton --backend tmux "offline demo" # no LLM, no Herdr
 ```
 
 ## Updating Advisor

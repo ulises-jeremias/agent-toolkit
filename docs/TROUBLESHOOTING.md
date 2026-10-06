@@ -77,7 +77,7 @@ See `docs/CONCEPTS.md` and `docs/ARCHITECTURE.md` ADR-003/004.
 
 ## 6. Swarm: Herdr not found
 
-**Symptom:** `agent-toolkit swarm start --ui herdr` fails with "Herdr was explicitly requested but was not found."
+**Symptom:** `agent-toolkit swarm start --backend herdr` fails because Herdr is not installed or available.
 
 **Fix:**
 
@@ -87,7 +87,7 @@ herdr --version                # check presence
 brew install herdr              # macOS
 curl -fsSL https://herdr.dev/install.sh | sh   # Linux
 # Or use portable fallback:
-agent-toolkit swarm start --ui tmux ...
+agent-toolkit swarm start --backend tmux ...
 ```
 
 ## 7. Swarm: Runner not found
@@ -143,12 +143,12 @@ See [SWARMS.md](SWARMS.md) and [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md) (h
 **Fix:**
 
 ```bash
-agent-toolkit swarm plan --recipe pair --ui tmux --runner skeleton "demo" --json   # side-effect free
-agent-toolkit swarm start --runner skeleton --ui tmux "offline demo"
+agent-toolkit swarm start --recipe pair --backend tmux --runner skeleton --dry-run "demo" --json
+agent-toolkit swarm start --runner skeleton --backend tmux "offline demo"
 agent-toolkit swarm models --runner skeleton --profile balanced
 ```
 
-`--runner skeleton` (always available) + `--ui tmux` works fully offline. `plan` never creates worktrees. See [SWARMS.md](SWARMS.md) and [SWARM_TMUX.md](SWARM_TMUX.md).
+`--runner skeleton` (always available) + `--backend tmux` works fully offline. `start --dry-run` never creates a run or worktrees. See [SWARMS.md](SWARMS.md) and [SWARM_TMUX.md](SWARM_TMUX.md).
 
 ---
 
@@ -216,4 +216,3 @@ See `docs/compatibility/matrix-generation.md` (matrix generated from `distributi
 **Symptom:** `ask` skill at repo root references Confluence JIRA stack after archive.
 
 **Fix:** `ask` is evaluated as `UNKNOWN` then `REJECT` per vendor evaluation — not a `doctor` gate. Use `jira-*` / `confluence-*` skills via `mcp/registry` + `providers/providers.yaml` (Atlassian Rovo official) instead.
-

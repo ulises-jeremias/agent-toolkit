@@ -87,12 +87,12 @@ agent-toolkit swarm recipe show pair
 agent-toolkit swarm models --runner opencode   # provider/model discovery
 
 # Side-effect free dry-run — no worktrees, no LLM needed
-agent-toolkit swarm plan --recipe pair --ui tmux --runner skeleton "Demo: add hello endpoint"
+agent-toolkit swarm start --recipe pair --backend headless --runner skeleton --dry-run "Demo: add hello endpoint"
 
 # Start a swarm — Herdr (recommended)
-agent-toolkit swarm start --recipe pair --ui herdr --runner opencode --model-profile balanced "Implement issue #123"
+agent-toolkit swarm start --recipe pair --backend herdr --runner opencode --model-profile balanced "Implement issue #123"
 # tmux fallback (works over SSH/headless)
-agent-toolkit swarm start --recipe pair --ui tmux --runner opencode --model-profile balanced "Fix bug #42"
+agent-toolkit swarm start --recipe pair --backend tmux --runner opencode --model-profile balanced "Fix bug #42"
 
 # Observe & operate
 agent-toolkit swarm list
@@ -101,7 +101,7 @@ agent-toolkit swarm handoffs RUN_ID
 agent-toolkit swarm artifacts RUN_ID
 agent-toolkit swarm logs RUN_ID implementer
 agent-toolkit swarm promote RUN_ID --to team   # elastic pair→team→full
-agent-toolkit swarm approve RUN_ID --gate plan # human gate
+agent-toolkit swarm approve RUN_ID plan # human gate
 ```
 
 - **pair** — implementer → reviewer/integrator → human approval (bugs, features).
@@ -111,7 +111,7 @@ agent-toolkit swarm approve RUN_ID --gate plan # human gate
 
 Details: [SWARMS.md](SWARMS.md) (overview + quickstart), [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md) (diagrams + state machines), [SWARM_HERDR.md](SWARM_HERDR.md) (Herdr UI), [SWARM_TMUX.md](SWARM_TMUX.md) (tmux fallback), [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) (models/budgets), [SWARM_SECURITY.md](SWARM_SECURITY.md) (permissions/privacy).
 
-Prerequisites: see [INSTALLATION.md — Swarms prerequisites](INSTALLATION.md#swarms--agent-toolkit-swarm-prerequisites) for Herdr/tmux/runner setup, or `agent_swarms.enabled=true` in [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation) for auto-provision. Offline: `--runner skeleton` + `--ui tmux` works without Herdr or LLM.
+Prerequisites: see [INSTALLATION.md — Swarms prerequisites](INSTALLATION.md#swarms--agent-toolkit-swarm-prerequisites) for Herdr/tmux/runner setup, or `agent_swarms.enabled=true` in [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation) for auto-provision. Offline: `--runner skeleton` + `--backend tmux` works without Herdr or an LLM.
 
 ## Next steps
 
