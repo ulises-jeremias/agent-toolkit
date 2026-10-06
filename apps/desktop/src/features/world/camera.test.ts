@@ -3,7 +3,7 @@ import { clampCamera, fitCamera, WORLD_ZOOMS, zoomCamera } from './camera';
 
 describe('WORLD_ZOOMS', () => {
   it('stays integer and starts at one source pixel', () => {
-    expect(WORLD_ZOOMS).toEqual([16, 32, 48, 64]);
+    expect(WORLD_ZOOMS).toEqual([16, 32, 48, 64, 80]);
     for (const step of WORLD_ZOOMS) {
       expect(Number.isInteger(step)).toBe(true);
     }
@@ -36,6 +36,12 @@ describe('fitCamera', () => {
     expect(camera.zoom).toBe(64);
     expect(camera.pan.x).toBe(80);
     expect(camera.pan.y).toBe(44);
+  });
+
+  it('uses crisp 5x scale when a compact interior fits a large window', () => {
+    const camera = fitCamera({ x: 1920, y: 900 }, { x: 14, y: 10 });
+    expect(camera.zoom).toBe(80);
+    expect(camera.pan).toEqual({ x: 400, y: 50 });
   });
 
   it('frames a large window at readable integer scale while retaining a strict fit', () => {

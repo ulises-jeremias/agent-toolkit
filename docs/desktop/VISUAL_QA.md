@@ -116,6 +116,20 @@ opened review are still required after that corrected candidate passes the
 full gate. Keep the remaining composition issues visible rather than treating
 generated assets or green tests as an art-quality verdict.
 
+The project-room proportion iteration at source `4b20a576` was captured by
+[Linux Electron review run 37424603379](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37424603379).
+I opened `project-files-room-large.png`, `project-files-room-compact.png`,
+`meadow-1920x1080-world.png`, and `meadow-1024x640-world.png`. At 1920×1080,
+the 14×10 room renders at crisp 80-pixel tiles and makes the project board,
+records, files, exit, and terminal easier to inspect; at 1024×640 it remains
+compact and legible at 32-pixel tiles. The large room now uses more of the
+available height, while its centered 1120-pixel width still leaves generous
+side margins. The wall remains repetitive and the floor has visible gaps
+between stations, so this is a proportion improvement rather than final
+interior-art approval. The meadow capture keeps its current creek/bridge
+layout at both sizes, but broad grass and rectilinear paths still need a
+composition pass.
+
 ## Screenshot policy
 
 Checked-in screenshots must come from the running Electron app and canonical

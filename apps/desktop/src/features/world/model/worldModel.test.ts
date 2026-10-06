@@ -1272,11 +1272,11 @@ describe('layoutWorld', () => {
     expect(exit && room).toBeTruthy();
     expect(exit!.x).toBe(1);
     expect(room!.x).toBeGreaterThan(exit!.x);
-    expect(records?.x).toBe(12);
-    expect(terminal?.y).toBe(7);
-    expect(files?.y).toBe(7);
+    expect(records?.x).toBe(9);
+    expect(terminal?.y).toBe(6);
+    expect(files?.y).toBe(6);
     expect(files!.x - terminal!.x).toBeGreaterThanOrEqual(4);
-    expect(layout.cols).toBe(18);
-    expect(layout.rows).toBe(11);
+    expect(layout.cols).toBe(14);
+    expect(layout.rows).toBe(10);
   });
 });
