@@ -489,8 +489,8 @@
 }
 
 :root[data-theme='dusk'] .mapWorld::after {
-  /* Twilight should cool the grass without swallowing its authored colors.
-     Lamp auras and warm windows sit above this veil and remain readable. */
-  background: rgba(24, 31, 66, 0.22);
+  /* Make dusk feel like evening across the ground. Authored landmarks, warm
+     windows, lanterns, labels, and runtime characters stay above this veil. */
+  background: rgba(18, 25, 58, 0.34);
   mix-blend-mode: multiply;
 }
