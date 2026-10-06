@@ -59,7 +59,7 @@ Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installe
 | Real PTY terminal | Reviewed import |
 | <img src="static/screenshots/terminal.png" width="100%" alt="Live shell session with real command output in the integrated terminal" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder hire import review showing mapped and ignored fields before saving" /> |
 
-These are PNG screenshots of the running Electron app against a disposable workspace and the real backend. Offline People do not create world characters, and the terminal view contains a real PTY. The gallery uses screenshots rather than illustrative SVG mockups; linked CI, license, and release badges are live status metadata. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
+These PNGs show Electron with the real backend and a disposable workspace: offline People stay off the map, and the terminal is a live PTY. The badges above link to CI, license, and release metadata. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
 
 ---
 
