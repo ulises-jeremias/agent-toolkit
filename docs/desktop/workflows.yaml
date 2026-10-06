@@ -44,14 +44,15 @@ journeys:
     status: ok
     evidence:
       - note: >-
-          Final main capture at 023770ef (workflow 37432867725) opened the compact
-          and large project interiors and empty, one-project, and three-project
-          valleys at both sizes. Project rooms now use a 14×10 tile footprint;
+          Released main v1.42.0 capture at ea154c2f (workflow 37445405836)
+          opened compact and large empty, one-project, and three-project valleys,
+          both project interiors, People roster and start review, Person creation,
+          Munder import review, Library, Operations, Terminal, Settings, Attention,
+          and MCP configuration. Project rooms use a 14×10 tile footprint;
           integer scaling reaches 80px on the large viewport and stays readable
-          at 32px compact. The same run captures real Library, People, Operations,
-          Terminal, Settings, Attention, Munder import review, and Person creation
-          screens from the Electron app and canonical backend.
-        build: "023770eff488a4f53bcd51c373e2c5a29ba67c63 (Linux Electron capture; 37432867725)"
+          at 32px compact. The saved screenshots are from the Electron app and
+          canonical backend at the same SHA as the published release.
+        build: "ea154c2f192d6844d3f2a2e6a9764de5a5249aa3 (Linux Electron capture; 37445405836)"
         screenshots:
           - assets/electron/world/project-files-room-compact.png
           - assets/electron/world/project-files-room-large.png
