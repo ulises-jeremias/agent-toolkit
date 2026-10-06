@@ -184,6 +184,7 @@ test('palette actions open the same reviewed terminal, job, loop, and swarm work
 
 test('palette reaches Person creation and Munder import review without saving or spawning', async () => {
   const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).focus();
   await page.keyboard.press('Control+k');
   let palette = page.getByRole('dialog', { name: 'Commands' });
   await palette.getByLabel('Filter commands').fill('Create Person');

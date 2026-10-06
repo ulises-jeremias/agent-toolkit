@@ -72,9 +72,14 @@ documents supported configuration and current session limits.
 The executable coverage source is [`workflows.yaml`](workflows.yaml). It marks
 each user journey `ok`, `partial`, `blocked`, or `not-implemented` with evidence;
 read it before assuming a workflow is complete. Visual quality is tracked
-separately in [VISUAL_QA.md](VISUAL_QA.md). Current important gaps include
-durable server-side session history and recovery, full Person preference
-enforcement in swarm runs, and the remaining valley/interior composition work.
+separately in [VISUAL_QA.md](VISUAL_QA.md). Person sessions now have durable V
+lifecycle records and recover truthfully as interrupted when the local PTY is
+gone. Important gaps remain: provider conversation IDs and safe resume, sending
+the saved Person goal to a runner, enforcing token/cost limits and isolation for
+interactive PTYs, full Person preference enforcement in swarms, and remaining
+valley/interior composition work. A runner-unavailable Start review is shown in
+the [People guide](../PEOPLE.md#desktop-implementation) alongside the successful
+runner review and the compact/large roster screenshots.
 
 For architecture and contribution commands, see the [Desktop package guide](../../apps/desktop/README.md), [design contract](DESIGN.md), and
 [contributor guide](../../CONTRIBUTING.md).

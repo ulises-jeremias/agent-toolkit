@@ -294,11 +294,14 @@ journeys:
           record tracks launch, running, terminal outcomes and interruption
           recovery; the World still projects only a live local PTY assigned to
           a real project.
-        build: "0af40865e7c0064bcf07efb6322b51652e897b52 (#1368)"
+        build: "42bc820f (#1453; screenshot capture workflow 37402811259)"
         screenshots:
           - assets/electron/people/people-roster-compact.png
+          - assets/electron/people/people-roster-large.png
           - assets/electron/people/person-start-compact.png
           - assets/electron/people/person-start-large.png
+          - assets/electron/people/person-start-no-runner-compact.png
+          - assets/electron/people/person-start-no-runner-large.png
           - assets/electron/people/world-person-compact.png
           - assets/electron/people/world-person-large.png
           - assets/electron/people/people-offline-after-stop.png

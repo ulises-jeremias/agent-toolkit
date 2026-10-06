@@ -1,5 +1,34 @@
 # Desktop visual QA
 
+## People session recovery at compact and large sizes — 2026-10-06
+
+Source `42bc820f5f27f19c8aabbcb81ea29b8071a75422`, Linux Electron visual
+capture workflow `37402811259`. I opened the roster at 1024×640 and 1920×1080,
+and the Start Person review with no interactive runner at both sizes. The
+capture used the real Electron app and V backend; runner discovery returned no
+installed provider, so no session or character was created.
+
+The compact roster remains scrollable, but the selected profile continues
+below the 640px viewport. The large single-Person view leaves substantial open
+space below its inspector. The Start review names the missing requirement and
+next action clearly, keeps Start unavailable, and explains that the goal is
+not injected into the interactive runner. The 1920px dialog is readable but
+its large dimmed backdrop dominates; the smaller dialog needs scrolling to
+reach the full preview. These are usability follow-ups, not visual sign-off.
+
+After opening the captures, I added compact and large roster images plus the
+no-runner recovery images to the People guide and recorded this visual evidence
+in the workflow ledger. The README gallery keeps the three-Person roster
+capture because it communicates the offline roster more clearly than the
+single-Person test fixture.
+
+Opened files:
+
+- [People roster, compact](assets/electron/people/people-roster-compact.png)
+  and [large](assets/electron/people/people-roster-large.png).
+- [Start with no runner, compact](assets/electron/people/person-start-no-runner-compact.png)
+  and [large](assets/electron/people/person-start-no-runner-large.png).
+
 ## Meadow grove fallback and current README screenshots — 2026-10-05
 
 Source `91e88c99d9b8cefd2d55dc47255711fafafa2687`, Linux Electron capture

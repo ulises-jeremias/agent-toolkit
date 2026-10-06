@@ -15,9 +15,13 @@ both compact and large sizes. A configured Person is offline until a real PTY
 starts. The world shows the selected Person only while that PTY is alive and
 assigned to a registered project.
 
-| Roster at 1024×640 | Start review at 1920×1080 |
+| Roster at 1024×640 | Roster at 1920×1080 |
 |---|---|
-| ![Offline Person in the roster](desktop/assets/electron/people/people-roster-compact.png) | ![Runner, model, project, goal and local-session limits reviewed before start](desktop/assets/electron/people/person-start-large.png) |
+| ![Offline Person in the compact roster](desktop/assets/electron/people/people-roster-compact.png) | ![Offline Person in the large roster](desktop/assets/electron/people/people-roster-large.png) |
+
+| Start review with an available runner | Recovery when no runner is installed |
+|---|---|
+| ![Runner, model, project, goal and local-session limits reviewed before start](desktop/assets/electron/people/person-start-large.png) | ![Start review clearly explains that no interactive runner is installed](desktop/assets/electron/people/person-start-no-runner-large.png) |
 
 | Real Person session in the world | Person after the PTY stops |
 |---|---|
