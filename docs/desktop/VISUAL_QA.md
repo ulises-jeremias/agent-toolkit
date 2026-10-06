@@ -41,7 +41,7 @@ that the change can affect:
 - idle world and real active runtime presence;
 - People roster and create/edit/review flows when touched;
 - Library, Operations, loops, swarms, terminal, settings, and onboarding when
-touched.
+  touched.
 
 For each capture ask whether the screen reads as a real game world, remains a
 fast developer workstation, keeps pixel art crisp, composes buildings and
@@ -55,23 +55,27 @@ test does not establish visual quality.
 
 ## Latest opened review — 2026-10-06
 
-Linux Electron run [`37408692569`](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37408692569)
-was opened at compact and large sizes for an empty world, one project, several
-projects, the project interior, meadow, and dusk. Added grass motifs are
-crisper and more visible at normal map scale, and the dusk pass retains more
-color. The project room reads as a place with actual overview, records, files,
-and terminal destinations. The full map still needs work: the ground has a
-strong horizontal color seam, the creek and paths look too straight, and some
-trees on the eastern edge read as separated rows rather than a grove. This was
-an iteration review, not visual sign-off.
+Linux Electron runs [`37408692569`](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37408692569)
+and [`37410543955`](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37410543955)
+were opened at compact and large sizes. The second review specifically opened
+`world-several-projects-large.png`, `world-empty-compact.png`,
+`meadow-1920x1080-world.png`, `dusk-1920x1080-world.png`, and
+`project-files-room-large.png`. Added grass motifs are crisp and more visible
+at map scale; the dusk pass keeps its color; and the project room exposes real
+overview, records, files, and terminal destinations. The full map is not yet
+accepted: broad meadow areas still read as a horizontal band, the creek is
+nearly a straight divider despite the wider corridor, paths remain too
+geometric, and eastern trees look like separated rows rather than a grove.
+The room also has too much empty floor around its semantic stations. These
+captures are iteration evidence, not visual sign-off.
 
-A wider creek corridor and rotated meadow-noise field are on branch
-`feat/enchanted-world-composition` at `046a26f6`. Fresh captures are pending in
-[`desktop.yml` run 37410543955](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37410543955).
-Open that run's uploaded screenshots before accepting the change. Record the
-specific files reviewed and any post-capture corrections here; keep remaining
-composition issues visible rather than treating asset generation or green
-tests as an art-quality verdict.
+The next candidate on `feat/enchanted-world-composition` removes the creek's
+workshop-aligned west-bank constraint and raises the required bank span. It
+must be captured and opened before acceptance; the visual check must confirm
+that the water actually meanders around safe building footprints instead of
+merely satisfying the numeric range assertion. Keep the remaining composition
+issues visible rather than treating generated assets or green tests as an art
+quality verdict.
 
 ## Screenshot policy
 

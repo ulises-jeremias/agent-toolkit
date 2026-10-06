@@ -448,19 +448,14 @@ function softenPathVerge(p: Painter) {
 }
 
 /** A winding east-valley stream that bends around real building footprints. */
-function creek(
-  p: Painter,
-  preferredX: number,
-  bridgeRows: ReadonlySet<number>,
-  eastLimit: number,
-  workshopBankX: number,
-) {
+function creek(p: Painter, preferredX: number, bridgeRows: ReadonlySet<number>, eastLimit: number) {
   const bridgeY = [...bridgeRows][0] ?? Math.floor(p.rows / 2);
   const maxCenterX = Math.max(7, Math.min(p.cols - 6, eastLimit));
-  const minCenterX = Math.max(6, Math.min(maxCenterX, workshopBankX));
-  // Give the stream a broad, safe meander corridor. The earlier five-tile
-  // strip forced the creek into an almost vertical cut through the valley.
-  const runMinX = Math.max(6, minCenterX - 8);
+  // Let the water use the full landscape between the west frame and project
+  // bank. Building footprints constrain it safely; pinning the west bank to
+  // the workshop made the creek read as an almost straight property boundary.
+  const minCenterX = 6;
+  const runMinX = minCenterX;
   const preferredFitsBank = preferredX >= minCenterX && preferredX <= maxCenterX;
   const bankCenter = Math.floor((minCenterX + maxCenterX) / 2);
   const baseX = preferredFitsBank ? preferredX : bankCenter;
@@ -1265,14 +1260,13 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const roadY = Math.min(rows - 3, projects.length > 0 ? Math.max(9, publicDoorY) : publicDoorY);
 
   // creek first so roads bridge it
-  const workshop = entities.find((e) => e.id === 'object:workshop');
   const riverAnchorX = projects.length
     ? Math.min(...projects.map((project) => project.x))
     : (marker?.x ?? Math.floor(cols / 2));
   const riverX = riverAnchorX - (projects.length ? 2 : 8);
   // Carry one shared street from the west edge, through the civic quarter,
   // over the bridge, and up to the project district.
-  const plannedCreekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
+  const plannedCreekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3);
   const creekX = plannedCreekX ?? Math.max(4, Math.min(cols - 5, riverX));
   (p as unknown as { creekX: number }).creekX = creekX;
   const routeEndX = Math.min(
