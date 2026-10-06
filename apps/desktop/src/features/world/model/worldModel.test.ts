@@ -753,10 +753,17 @@ describe('layoutWorld', () => {
     }
   });
 
-  it('makes the no-project building lead to the real project linking workflow', () => {
+  it('shows a project board instead of a fake house and opens project linking', () => {
     const model = buildWorldModel(baseInput({ projects: [] }));
     const marker = model.entities.find((entity) => entity.id === 'place:projects-empty');
-    expect(marker).toMatchObject({ hrefPath: '/workspace', hrefExtra: { panel: 'projects' } });
+    expect(marker).toMatchObject({
+      kind: 'marker',
+      concept: 'Project directory',
+      name: 'Add project',
+      facade: 'project-board',
+      hrefPath: '/workspace',
+      hrefExtra: { panel: 'projects' },
+    });
     const layout = layoutWorld(model);
     const plan = paintTerrain(layout.entities, layout.cols, layout.rows);
     const laidMarker = layout.entities.find((entity) => entity.id === marker?.id)!;

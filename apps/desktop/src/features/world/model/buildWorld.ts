@@ -315,14 +315,15 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     entities.push({
       id: 'place:projects-empty',
       kind: 'marker',
-      concept: 'Project roster',
-      name: 'No projects yet',
+      concept: 'Project directory',
+      name: 'Add project',
       state: 'empty',
       themeKey: 'project.building',
       availability: 'empty',
       hrefPath: '/workspace',
       hrefExtra: { panel: 'projects' },
-      detail: 'Add or open a project — the world stays quiet until then',
+      detail: 'Link a repository here to give it a house in the workspace valley',
+      facade: 'project-board',
     });
   } else {
     const facades = projectFacades(input.projects.map((project) => project.name));
