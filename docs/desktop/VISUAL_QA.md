@@ -69,13 +69,16 @@ geometric, and eastern trees look like separated rows rather than a grove.
 The room also has too much empty floor around its semantic stations. These
 captures are iteration evidence, not visual sign-off.
 
-The next candidate on `feat/enchanted-world-composition` removes the creek's
-workshop-aligned west-bank constraint and raises the required bank span. It
-must be captured and opened before acceptance; the visual check must confirm
-that the water actually meanders around safe building footprints instead of
-merely satisfying the numeric range assertion. Keep the remaining composition
-issues visible rather than treating generated assets or green tests as an art
-quality verdict.
+The follow-up at `c9231168` removed the workshop-aligned creek boundary. Its
+Electron gate rejected the result before screenshots: creek bank span was only
+four tiles, the bridge landing disconnected from the empty-project marker,
+and the terminal entrance no longer reached the commons. Those assertions
+remain intact; this candidate is rejected. The implementation has restored
+the creek to its dedicated corridor between the civic and project districts,
+where it can meander without cutting off town access. A fresh capture and
+opened review are still required after that corrected candidate passes the
+full gate. Keep the remaining composition issues visible rather than treating
+generated assets or green tests as an art-quality verdict.
 
 ## Screenshot policy
 

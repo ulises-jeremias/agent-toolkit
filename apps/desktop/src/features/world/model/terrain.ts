@@ -448,14 +448,19 @@ function softenPathVerge(p: Painter) {
 }
 
 /** A winding east-valley stream that bends around real building footprints. */
-function creek(p: Painter, preferredX: number, bridgeRows: ReadonlySet<number>, eastLimit: number) {
+function creek(
+  p: Painter,
+  preferredX: number,
+  bridgeRows: ReadonlySet<number>,
+  eastLimit: number,
+  workshopBankX: number,
+) {
   const bridgeY = [...bridgeRows][0] ?? Math.floor(p.rows / 2);
   const maxCenterX = Math.max(7, Math.min(p.cols - 6, eastLimit));
-  // Let the water use the full landscape between the west frame and project
-  // bank. Building footprints constrain it safely; pinning the west bank to
-  // the workshop made the creek read as an almost straight property boundary.
-  const minCenterX = 6;
-  const runMinX = minCenterX;
+  const minCenterX = Math.max(6, Math.min(maxCenterX, workshopBankX));
+  // Keep the stream in its natural corridor between the civic quarter and
+  // project district; a narrow westward shoulder preserves all town access.
+  const runMinX = Math.max(6, minCenterX - 8);
   const preferredFitsBank = preferredX >= minCenterX && preferredX <= maxCenterX;
   const bankCenter = Math.floor((minCenterX + maxCenterX) / 2);
   const baseX = preferredFitsBank ? preferredX : bankCenter;
@@ -1266,7 +1271,8 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const riverX = riverAnchorX - (projects.length ? 2 : 8);
   // Carry one shared street from the west edge, through the civic quarter,
   // over the bridge, and up to the project district.
-  const plannedCreekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3);
+  const workshop = entities.find((e) => e.id === 'object:workshop');
+  const plannedCreekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
   const creekX = plannedCreekX ?? Math.max(4, Math.min(cols - 5, riverX));
   (p as unknown as { creekX: number }).creekX = creekX;
   const routeEndX = Math.min(
