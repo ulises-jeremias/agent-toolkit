@@ -1077,9 +1077,16 @@ describe('layoutWorld', () => {
 
   it('keeps a small, stable firefly presence along the creek in the idle world', () => {
     const layout = layoutWorld(buildWorldModel(baseInput({ projects: [] })));
-    const decor = paintTerrain(layout.entities, layout.cols, layout.rows).decor;
+    const first = paintTerrain(layout.entities, layout.cols, layout.rows);
+    const decor = first.decor;
+    const second = paintTerrain(layout.entities, layout.cols, layout.rows).decor;
     const fireflies = decor.filter((sprite) => sprite.sprite === 'firefly');
     const motes = decor.filter((sprite) => sprite.sprite === 'mote');
+    const gladeMotes = motes.filter((sprite) => sprite.id.startsWith('mote:glade:'));
+    const terrain = new Map(first.cells.map(({ x, y, tile }) => [`${x},${y}`, tile]));
+    const doors = new Set(
+      layout.entities.map((entity) => `${entity.x + Math.floor(entity.w / 2)},${entity.y + entity.h}`),
+    );
 
     expect(fireflies.length).toBeGreaterThanOrEqual(2);
     expect(fireflies.length).toBeLessThanOrEqual(6);
@@ -1087,8 +1094,29 @@ describe('layoutWorld', () => {
     expect(fireflies.every((sprite) => sprite.ambient)).toBe(true);
     expect(fireflies.every((sprite) => sprite.w === 12 && sprite.h === 12)).toBe(true);
     expect(motes.length).toBeGreaterThan(0);
-    expect(motes.length).toBeLessThanOrEqual(6);
+    expect(motes.length).toBeLessThanOrEqual(10);
     expect(motes.every((sprite) => sprite.ambient && sprite.w === 10 && sprite.h === 10)).toBe(true);
+    expect(motes.every((sprite) => !doors.has(`${sprite.x},${sprite.y}`))).toBe(true);
+    expect(gladeMotes.length).toBeGreaterThan(0);
+    expect(gladeMotes.length).toBeLessThanOrEqual(4);
+    expect(
+      gladeMotes.every((sprite) => {
+        const tile = terrain.get(`${sprite.x},${sprite.y}`) ?? '';
+        return tile.startsWith('grass') || tile.startsWith('flowers');
+      }),
+    ).toBe(true);
+    expect(
+      gladeMotes.every((sprite) =>
+        layout.entities.every(
+          (entity) =>
+            sprite.x < entity.x ||
+            sprite.x >= entity.x + entity.w ||
+            sprite.y < entity.y ||
+            sprite.y >= entity.y + entity.h,
+        ),
+      ),
+    ).toBe(true);
+    expect(motes).toEqual(second.filter((sprite) => sprite.sprite === 'mote'));
   });
 
   it('places a few ambient butterflies across flower clearings, not in a row', () => {

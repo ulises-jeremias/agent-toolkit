@@ -327,3 +327,27 @@ and [large failure screen](assets/electron/onboarding/recovery-backend-failed-la
 The panel now explains that the workspace was not changed, provides an
 immediate restart action, and keeps the technical detail available on demand.
 The same E2E journey restarts the process and continues to folder selection.
+
+## Meadow life pass — 2026-10-06
+
+Opened fresh compact and large Electron captures of the empty valley and the
+three-project meadow in both Meadow and Dusk themes. The idle valley's ambient
+motes had been confined to the creek, leaving the project-side clearings quiet.
+The terrain pass now adds at most four deterministic meadow motes, keeping them
+off paths, doorways, and building footprints; they remain ambient decoration and
+are independent of jobs, People, or sessions. The mote count stays capped at ten
+including the existing creekside group. Browser visibility and reduced-motion
+settings continue to govern their animation.
+
+The opened images show the new light points among the garden and creek-side
+clearings at both scales. This adds a little life without filling the lawns with
+particles. It does not resolve the larger composition findings: grass still
+reads as a broad rectangular field, paths are mostly orthogonal, and the creek
+still separates the civic and project districts. Those remain open art work.
+
+Captures: [empty, compact](assets/electron/meadow-motes-2026-10-06/empty-compact.png),
+[empty, large](assets/electron/meadow-motes-2026-10-06/empty-large.png),
+[several projects in Meadow, compact](assets/electron/meadow-motes-2026-10-06/several-meadow-compact.png),
+[large](assets/electron/meadow-motes-2026-10-06/several-meadow-large.png),
+[several projects in Dusk, compact](assets/electron/meadow-motes-2026-10-06/several-dusk-compact.png),
+and [large](assets/electron/meadow-motes-2026-10-06/several-dusk-large.png).

@@ -196,6 +196,25 @@ journeys:
           - assets/electron/world/project-files-room-compact.png
           - assets/electron/world/project-files-room-large.png
       - note: apps/desktop/e2e/electron/project-link.spec.ts; modules/agent_toolkit_core/file_catalog_test.v covers project symlink containment and unsafe paths
+      - note: >-
+          The current meadow-life capture opens the empty valley and three-project
+          map at compact and large sizes in Meadow and Dusk. Four deterministic
+          meadow motes extend the existing creekside ambience; placement remains
+          clear of paths, doorways, and building footprints and does not depend on
+          runtime activity. Opened captures confirm the particles stay subtle at
+          both scales. Broad lawns, angular path runs, and the creek's district
+          split remain open visual work.
+        build: "1cea8799 (Linux Electron E2E; project-link.spec.ts; screenshots opened)"
+        tests:
+          - apps/desktop/src/features/world/model/worldModel.test.ts
+          - apps/desktop/e2e/electron/project-link.spec.ts
+        screenshots:
+          - assets/electron/meadow-motes-2026-10-06/empty-compact.png
+          - assets/electron/meadow-motes-2026-10-06/empty-large.png
+          - assets/electron/meadow-motes-2026-10-06/several-meadow-compact.png
+          - assets/electron/meadow-motes-2026-10-06/several-meadow-large.png
+          - assets/electron/meadow-motes-2026-10-06/several-dusk-compact.png
+          - assets/electron/meadow-motes-2026-10-06/several-dusk-large.png
     blockers: []
   - id: capability-discovery
     title: Browse skills/agents/packs in the Library
