@@ -42,6 +42,8 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
     await page.getByRole('button', { name: /Lina.*reviewer.*Offline/ }).click();
     if (CAPTURE) {
       fs.mkdirSync(CAPTURE_DIR, { recursive: true });
+      await setViewport(desktop.app, 1920, 1080);
+      await page.screenshot({ path: path.join(CAPTURE_DIR, 'people-roster-large.png') });
       await setViewport(desktop.app, 1024, 640);
       await page.screenshot({ path: path.join(CAPTURE_DIR, 'people-roster-compact.png') });
     }
