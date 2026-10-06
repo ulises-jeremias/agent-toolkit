@@ -254,8 +254,62 @@ review evidence, not concept-board art. Refresh `static/screenshots/` when the
 pictured product changes, and keep the README gallery to a small set that
 explains the current experience. The README uses genuine PNG captures and
 functional status badges; do not use illustrative SVG mockups as product
-screenshots. Keep status badges as links, not substitutes for product images. The complete
-compact/large and edge-case capture sets stay under
+screenshots. Keep status badges as links, not substitutes for product images.
+The complete compact/large and edge-case capture sets stay under
 `docs/desktop/assets/electron/` and are linked from review evidence.
 Inspiration boards must never be copied into product art or presented as
 screenshots.
+
+## Product polish review — 2026-10-06
+
+I captured the Electron app against its disposable workspace and the real
+1.42.0 backend. The full 38-image route/theme/size set is in
+[`assets/electron/product-review-2026-10-06/`](assets/electron/product-review-2026-10-06/);
+the project-link E2E also captured empty, one-project, three-project, and
+project-interior scenes there. These are actual GUI flows, not concept art.
+
+I opened `meadow-1920x1080-world.png`, `dusk-1920x1080-world.png`,
+`meadow-1024x640-world.png`, `dusk-1024x640-world.png`,
+`world-empty-compact.png`, `world-empty-large.png`,
+`world-one-project-compact.png`, `world-one-project-large.png`,
+`world-several-projects-meadow-compact.png`,
+`world-several-projects-meadow-large.png`,
+`world-several-projects-dusk-compact.png`,
+`world-several-projects-dusk-large.png`, `project-files-room-compact.png`,
+`project-files-room-large.png`, `meadow-1024x640-people.png`,
+`meadow-1024x640-person-create.png`,
+`meadow-1024x640-munder-import-review.png`, `meadow-1024x640-library.png`,
+`meadow-1024x640-operations.png`, `meadow-1024x640-terminal.png`,
+`meadow-1024x640-settings.png`, `meadow-1024x640-workspace.png`, and
+`dusk-1024x640-attention.png` from the new set.
+
+The review found `.ai-workspace` leaking as a product name in the persistent
+context, Workspace page, and terminal tabs. The UI now calls the default place
+“AI Workspace”; focusing the context field still exposes the editable real
+path, and the Workspace page retains the full path as its supporting text.
+The compact and large captures confirm the terminal retains the friendly name
+without losing the real PTY. A lighter Dusk overlay read too much like Meadow,
+so I restored the stronger blue-hour tint and opened both sizes again; warm
+lamps and windows remain clear.
+
+The review does not sign off the art. The current valley is colorful and its
+landmarks are distinct, but the terrain still reads as a rectangular board,
+paths remain mostly orthogonal, and the creek divides the districts almost
+vertically. The project house interior has real files, records, overview, and
+terminal stations, but its timber wall repeats and leaves large bare areas.
+People are truthful and legible, though the large roster still has excess
+unused space. Compact Library content continues below the fold. These findings
+remain open; a fresh screenshot is evidence of the label and Dusk adjustments,
+not a claim that the requested enchanted world-art pass is complete.
+
+The README gallery now uses refreshed PNG captures for the valley, Dusk,
+project room, Library, People, Operations, terminal, and inert Munder review.
+There are no repository-owned SVG product illustrations: the README's external
+SVG badges remain functional CI, license, and release links. The backend was
+rebuilt from this source with `VJOBS=2` for the project-link Electron E2E; the
+context-label and exited-PTY tests also passed. The app unit suite reports 45
+files and 382 passing tests, and Desktop type-check, lint, and production build
+pass. Builds ran in a systemd scope capped at 4 GiB and 200% CPU. An initial
+E2E attempt using the older main checkout binary returned 404 for the Copilot
+review route; the branch-built backend fixed that environment mismatch and
+the full project-link journey then passed.

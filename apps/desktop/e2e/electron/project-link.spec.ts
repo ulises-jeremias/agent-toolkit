@@ -53,6 +53,7 @@ test('links an existing project from the GUI and places it in the world', async 
     const emptyMarker = page.getByRole('button', { name: /Add project/ });
     await emptyMarker.click();
     await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'AI Workspace' })).toBeVisible();
     const linkFolder = page.getByRole('button', { name: 'Link existing folder' });
     await expect(linkFolder).toBeEnabled();
     await linkFolder.click();
@@ -236,18 +237,24 @@ test('links an existing project from the GUI and places it in the world', async 
       }
       await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
       await expect(page.getByRole('button', { name: /garden-api.*Project/ })).toBeVisible();
-      for (const size of [
-        { width: 1024, height: 640, key: 'compact' },
-        { width: 1920, height: 1080, key: 'large' },
-      ]) {
-        await setViewport(desktop.app, size.width, size.height);
-        await page.getByRole('button', { name: 'Fit world' }).click();
-        await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toHaveAttribute(
-          'data-zoom',
-          size.key === 'large' ? '64' : '32',
-        );
-        await page.waitForTimeout(200);
-        await page.screenshot({ path: path.join(captureDir, `world-several-projects-${size.key}.png`) });
+      for (const theme of ['meadow', 'dusk'] as const) {
+        await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
+        await page.getByRole('radio', { name: new RegExp(theme === 'meadow' ? 'Meadow' : 'Dusk') }).check();
+        await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+        await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
+        for (const size of [
+          { width: 1024, height: 640, key: 'compact' },
+          { width: 1920, height: 1080, key: 'large' },
+        ]) {
+          await setViewport(desktop.app, size.width, size.height);
+          await page.getByRole('button', { name: 'Fit world' }).click();
+          await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toHaveAttribute(
+            'data-zoom',
+            size.key === 'large' ? '64' : '32',
+          );
+          await page.waitForTimeout(200);
+          await page.screenshot({ path: path.join(captureDir, `world-several-projects-${theme}-${size.key}.png`) });
+        }
       }
     }
   } finally {

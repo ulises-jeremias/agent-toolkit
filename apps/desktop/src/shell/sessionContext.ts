@@ -62,3 +62,15 @@ export function basename(path: string): string {
   const parts = trimmed.split(/[/\\]/).filter(Boolean);
   return parts[parts.length - 1] ?? path;
 }
+
+export function displayLocationName(path: string): string {
+  const name = basename(path);
+  return name.toLowerCase() === '.ai-workspace' ? 'AI Workspace' : name;
+}
+
+/** Prefer a compact location label at rest; focusing the field reveals its full editable path. */
+export function displayWorkspacePath(path: string, harnessPath: string, isDefaultHarness: boolean): string {
+  if (!path) return '';
+  if (isDefaultHarness && path === harnessPath) return 'AI Workspace';
+  return displayLocationName(path);
+}
