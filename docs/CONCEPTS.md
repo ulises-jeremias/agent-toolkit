@@ -77,16 +77,19 @@ See also: `packs/README.md` (solution packs), `workspace load` CLI help, `loop/p
 
 ## People — durable workspace collaborators (not a toolkit capability plane)
 
-Durable People are **workspace-owned declarations** in `people/<id>.json`
-(`agent-toolkit/person@1`), not toolkit capabilities and not runtime
-characters. A Person is a collaborator the user chose and reviewed; the
-toolkit owns only the canonical schema set, the scaffold, the mirror sync and
-the offline validator ([docs/PEOPLE.md](PEOPLE.md),
-[ADR-036](adrs/ADR-036-durable-people.md)). Agent definitions (`agents/`),
-agent profiles (`profiles/`), People and sessions stay distinct; configuring a
-Person never creates a world character. Import of `munder-difflin/hire@1` is
-contract-only (review required, no auto-spawn/install/live sync); import
-mapping lives in `capabilities/imports/`.
+Durable People are **workspace-owned collaborators** declared in
+`people/<id>.json` (`agent-toolkit/person@1`), not toolkit catalog capabilities
+or runtime characters. The Desktop provides roster CRUD, reviewed Munder
+import, and a Start flow backed by real local PTY sessions and V-owned lifecycle
+records. The toolkit owns the canonical schemas, scaffold, mirror sync,
+validator, and runtime APIs; workspace data remains the source of truth
+([docs/PEOPLE.md](PEOPLE.md), [ADR-036](adrs/ADR-036-durable-people.md)). Agent
+definitions (`agents/`), agent profiles (`profiles/`), People, AgentSessions,
+and temporary swarm roles stay distinct. Configuring a Person never creates a
+world character; only a live runtime session associated with a project can do
+that. `munder-difflin/hire@1` is a one-way reviewed import format: it never
+spawns, installs code, or syncs live. Import mapping lives in
+`capabilities/imports/`.
 
 ## Key rules
 

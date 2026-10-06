@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTerminalSessions } from '../../data/terminal';
 import { errorMessage } from '../../lib/api';
-import { basename } from '../../shell/sessionContext';
+import { displayLocationName } from '../../shell/sessionContext';
 import { TerminalPane } from './TerminalPane';
 import { sessionState } from './sessionState';
 import styles from './terminal.module.css';
@@ -61,12 +61,12 @@ export function TerminalTabs() {
             className={styles.tab}
             onClick={() => focusSession(session.id)}
             data-session-id={session.id}
-            aria-label={`${session.agent}${run ? ` · ${run}` : ''} · ${basename(session.cwd)} · ${state.label}`}
+            aria-label={`${session.agent}${run ? ` · ${run}` : ''} · ${displayLocationName(session.cwd)} · ${state.label}`}
             title={`${session.agent}${run ? ` · ${run}` : ''} · ${session.cwd} · ${state.label}`}
           >
             <span className={styles.tabAgent}>{session.agent}</span>
             {run ? <span className={styles.tabRun}>{run}</span> : null}
-            <span className={styles.tabCwd}>{basename(session.cwd)}</span>
+            <span className={styles.tabCwd}>{displayLocationName(session.cwd)}</span>
             <span className={styles.tabState} data-tone={state.tone}>
               {state.label}
             </span>

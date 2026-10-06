@@ -209,7 +209,7 @@ function curvedPoints(x0: number, y0: number, x1: number, y1: number, side: numb
   const length = Math.hypot(dx, dy);
   if (length < 2) return rasterPoints(x0, y0, x1, y1);
 
-  const bend = Math.min(4, Math.max(2, length * 0.35)) * side;
+  const bend = Math.min(5, Math.max(2, length * 0.46)) * side;
   const controlX = (x0 + x1) / 2 - (dy / length) * bend;
   const controlY = (y0 + y1) / 2 + (dx / length) * bend;
   const samples = Math.max(4, Math.ceil(length * 2));
@@ -243,11 +243,11 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
     // Keep a short bank approach and the three bridge tiles level. The road's
     // wider meadow bend must not overwrite water on neighboring stream rows.
     const crossing = x >= bridgeX - 4 && x < bridgeX + 4;
-    // A two-tile sway gives the commons a footworn curve at overview scale.
-    // Larger bends fell into the lower service street and made the settlement
-    // read as a rigid rectangular loop instead of a main route with branches.
+    // A gentle S-curve gives the commons a footworn line at overview scale.
+    // Keep it below the lower service street so the settlement reads as a
+    // connected village path, not a rigid rectangular loop.
     // Keep the project-side approach bowed south; the bridge remains level.
-    const bank = x < bridgeX - 1 ? Math.round(bend * 1.8) : Math.max(0, Math.round(bend * 1.8));
+    const bank = x < bridgeX - 1 ? Math.round(bend * 2.5) : Math.max(0, Math.round(bend * 2.5));
     const current = { x, y: crossing ? y : y + bank };
     rasterLine(p, previous.x, previous.y, current.x, current.y);
     previous = current;
@@ -896,7 +896,7 @@ function forest(p: Painter, projectlessMeadow = false) {
       // boundary fill, which previously formed continuous tree walls.
       const groveDensity = projectlessMeadow ? 31 : 28;
       const naturallyWooded = edge
-        ? roll < (x >= p.cols - 6 ? 11 : 8)
+        ? roll < (x >= p.cols - 6 ? 12 : 10)
         : nearCreek
           ? roll < creekDensity
           : grove && roll < groveDensity;

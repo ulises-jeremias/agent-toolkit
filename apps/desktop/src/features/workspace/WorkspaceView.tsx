@@ -19,6 +19,7 @@ import {
 } from '../../ui';
 import { FilesPanel } from './FilesPanel';
 import { parseProjectListMessage } from '../world/model/parseProjects';
+import { displayLocationName } from '../../shell/sessionContext';
 
 function riskTone(risk: string | undefined): Tone {
   switch (risk?.toUpperCase()) {
@@ -102,11 +103,7 @@ export default function WorkspaceView() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Workspace"
-        title={path ? (path.split('/').filter(Boolean).pop() ?? path) : 'Workspace'}
-        lede={path}
-      />
+      <PageHeader eyebrow="Workspace" title={path ? displayLocationName(path) : 'Workspace'} lede={path} />
       <Stack>
         {focusFiles ? <FilesPanel key={filesProject ?? 'workspace'} project={filesProject} /> : null}
         <Grid>

@@ -68,6 +68,20 @@ describe('jobBelongsToProject', () => {
 });
 
 describe('buildWorldModel', () => {
+  it('gives the default hidden harness a human-readable settlement name', () => {
+    const model = buildWorldModel(baseInput({ workspacePath: '/home/me/.ai-workspace' }));
+    const workspace = model.entities.find((entity) => entity.id === 'place:workspace');
+
+    expect(workspace?.name).toBe('AI Workspace');
+    expect(model.workspaceLabel).toBe('AI Workspace');
+  });
+
+  it('keeps custom workspace directory names intact', () => {
+    const model = buildWorldModel(baseInput({ workspacePath: '/home/me/bright-valley' }));
+
+    expect(model.workspaceLabel).toBe('bright-valley');
+  });
+
   it('shows only explicitly supplied live Person sessions at their real project house', () => {
     const project = { name: 'alpha', target: '/repos/alpha', status: 'ok' as const };
     const base = baseInput({
