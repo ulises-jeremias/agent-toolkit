@@ -130,6 +130,36 @@ interior-art approval. The meadow capture keeps its current creek/bridge
 layout at both sizes, but broad grass and rectilinear paths still need a
 composition pass.
 
+## Latest main capture — 2026-10-06
+
+The final-main Electron capture is source `023770eff488a4f53bcd51c373e2c5a29ba67c63`,
+[workflow run 37432867725](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37432867725).
+I opened `meadow-1920x1080-world.png`, `world-several-projects-large.png`,
+`world-several-projects-compact.png`, `world-one-project-large.png`,
+`world-empty-compact.png`, `dusk-1920x1080-world.png`,
+`dusk-1024x640-world.png`, `project-files-room-large.png`,
+`meadow-1920x1080-library.png`, `meadow-1024x640-library.png`,
+`people-roster-large.png`, `people-roster-compact.png`,
+`meadow-1920x1080-operations.png`, `meadow-1920x1080-terminal.png`,
+`meadow-1920x1080-settings.png`, `dusk-1920x1080-attention.png`,
+`meadow-1024x640-munder-import-review.png`, and
+`meadow-1024x640-person-create.png`. The corrected 14×10 room keeps both
+windows inside its walls and remains readable at compact and large scale. The
+multi-project map distinguishes three project houses from shared landmarks, and
+the Dusk veil is visible at both sizes without obscuring the creek or buildings.
+
+The capture also makes the remaining gap clear: the valley still has broad,
+regular grass fields and orthogonal paths; ground detail repeats; and the room's
+timber wall is a repetitive texture around stations with large gaps between
+them. The map has stronger visual identity than earlier captures, but the
+inspectors remain standard data panels on a flat green field. The People roster
+has large unused space at desktop size, while the Library's long catalog needs
+a careful scrolling review at compact size. These are open art and layout issues,
+not sign-off. The README gallery and the current compact/large world and
+inspector evidence were replaced with genuine captures from this same Electron
+app and backend run. Screenshots, rather than decorative SVG mockups, are the
+repository's product imagery; no SVG files are tracked.
+
 ## Screenshot policy
 
 Checked-in screenshots must come from the running Electron app and canonical
