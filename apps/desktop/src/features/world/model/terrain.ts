@@ -148,8 +148,14 @@ function baseGround(p: Painter) {
       if (p.isBlocked(x, y)) continue;
       // Let the low-frequency fields span enough of the palette to produce
       // visibly different meadow biomes even on a compact empty workspace.
-      const moisture = meadowField(x, y, 6, 11) * 0.72 + meadowField(x, y, 13, 17) * 0.28;
-      const bloom = meadowField(x, y, 4, 19);
+      // Broad, overlapping moisture bands make whole clearings feel like
+      // distinct meadows instead of changing biome at every few tiles.
+      // Rotate the noise domain so broad color patches do not form visible
+      // horizontal bands across the valley at the scale of the full map.
+      const fieldX = x * 0.82 + y * 0.57;
+      const fieldY = y * 0.82 - x * 0.57;
+      const moisture = meadowField(fieldX, fieldY, 12, 11) * 0.72 + meadowField(fieldX, fieldY, 24, 17) * 0.28;
+      const bloom = meadowField(x, y, 6, 19);
       const roll = h2(x, y, 1) % 23;
       if (bloom > 0.8 && roll < 12) {
         p.set(x, y, ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'][h2(x, y, 12) % 4]!);
@@ -452,13 +458,15 @@ function creek(
   const bridgeY = [...bridgeRows][0] ?? Math.floor(p.rows / 2);
   const maxCenterX = Math.max(7, Math.min(p.cols - 6, eastLimit));
   const minCenterX = Math.max(6, Math.min(maxCenterX, workshopBankX));
-  const runMinX = Math.max(6, minCenterX - 5);
+  // Keep the stream in its natural corridor between the civic quarter and
+  // project district; a narrow westward shoulder preserves all town access.
+  const runMinX = Math.max(6, minCenterX - 8);
   const preferredFitsBank = preferredX >= minCenterX && preferredX <= maxCenterX;
   const bankCenter = Math.floor((minCenterX + maxCenterX) / 2);
   const baseX = preferredFitsBank ? preferredX : bankCenter;
   const corridorRadius = (maxCenterX - runMinX) / 2;
-  const broadBend = Math.min(3.4, corridorRadius * 1.25);
-  const softBend = Math.min(0.9, corridorRadius * 0.32);
+  const broadBend = Math.min(4.8, corridorRadius * 1.25);
+  const softBend = Math.min(1.2, corridorRadius * 0.45);
   const creekRows = Array.from({ length: p.rows }, (_, y) => {
     const along = y - bridgeY;
     // The bridge remains the fixed crossing while the stream swings through a
@@ -897,7 +905,15 @@ function forest(p: Painter, projectlessMeadow = false) {
           ? roll < creekDensity
           : grove && roll < groveDensity;
       const woodlandCell = plantedGroves.has(key(x, y)) || naturallyWooded;
-      const wantTree = treeInsideFrame && !overlapsBuilding && !overlapsFlowerPatch && !nearTrail && woodlandCell;
+      // Canopies are three tiles wide. Avoid placing trunks in adjacent
+      // cells: at overview zoom their crowns merge into a hedge along the
+      // valley edge. A two-cell root separation keeps natural clusters while
+      // preserving a visible gap between individual silhouettes.
+      const crowdedCanopy = p.decor.some(
+        (sprite) => sprite.sprite.startsWith('tree-') && Math.abs(sprite.x - x) < 2 && Math.abs(sprite.y - y) < 2,
+      );
+      const wantTree =
+        treeInsideFrame && !overlapsBuilding && !overlapsFlowerPatch && !nearTrail && !crowdedCanopy && woodlandCell;
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
         const tree =
@@ -1011,7 +1027,11 @@ function forest(p: Painter, projectlessMeadow = false) {
         const ground = p.get(x, y);
         if ((!ground.startsWith('grass') && !ground.startsWith('flowers')) || p.isBlocked(x, y)) continue;
         if (p.paths.has(key(x, y)) || canopyOverBuilding(p, x, y, 0, 0)) continue;
-        if (p.decor.some((decor) => decor.sprite.startsWith('tree-') && decor.x === x && decor.y === y)) {
+        if (
+          p.decor.some(
+            (decor) => decor.sprite.startsWith('tree-') && Math.abs(decor.x - x) < 2 && Math.abs(decor.y - y) < 2,
+          )
+        ) {
           continue;
         }
         const kind = h2(x, y, 263) % 12;
@@ -1245,13 +1265,13 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const roadY = Math.min(rows - 3, projects.length > 0 ? Math.max(9, publicDoorY) : publicDoorY);
 
   // creek first so roads bridge it
-  const workshop = entities.find((e) => e.id === 'object:workshop');
   const riverAnchorX = projects.length
     ? Math.min(...projects.map((project) => project.x))
     : (marker?.x ?? Math.floor(cols / 2));
   const riverX = riverAnchorX - (projects.length ? 2 : 8);
   // Carry one shared street from the west edge, through the civic quarter,
   // over the bridge, and up to the project district.
+  const workshop = entities.find((e) => e.id === 'object:workshop');
   const plannedCreekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
   const creekX = plannedCreekX ?? Math.max(4, Math.min(cols - 5, riverX));
   (p as unknown as { creekX: number }).creekX = creekX;

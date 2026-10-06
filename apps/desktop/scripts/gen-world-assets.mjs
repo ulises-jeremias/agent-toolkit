@@ -930,20 +930,59 @@ function grassTile(seed) {
     return state % max;
   };
   const clovers = [
-    [[0, 1, 'fl'], [1, 0, 'gl'], [1, 1, 'gt'], [2, 1, 'gl'], [1, 2, 'gd']],
-    [[1, 0, 'gl'], [0, 1, 'fl'], [1, 1, 'gt'], [2, 1, 'gd'], [1, 2, 'gl']],
-    [[0, 0, 'gl'], [1, 0, 'gd'], [1, 1, 'gt'], [2, 1, 'gl'], [2, 2, 'fl']],
-    [[1, 0, 'gd'], [0, 1, 'gl'], [1, 1, 'gt'], [2, 1, 'fl'], [1, 2, 'gl']],
+    [
+      [0, 1, 'fl'],
+      [1, 0, 'gl'],
+      [1, 1, 'gt'],
+      [2, 1, 'gl'],
+      [1, 2, 'gd'],
+    ],
+    [
+      [1, 0, 'gl'],
+      [0, 1, 'fl'],
+      [1, 1, 'gt'],
+      [2, 1, 'gd'],
+      [1, 2, 'gl'],
+    ],
+    [
+      [0, 0, 'gl'],
+      [1, 0, 'gd'],
+      [1, 1, 'gt'],
+      [2, 1, 'gl'],
+      [2, 2, 'fl'],
+    ],
+    [
+      [1, 0, 'gd'],
+      [0, 1, 'gl'],
+      [1, 1, 'gt'],
+      [2, 1, 'fl'],
+      [1, 2, 'gl'],
+    ],
   ];
   const tufts = [
-    [[0, 2, 'gd'], [1, 1, 'gl'], [2, 0, 'gm'], [2, 1, 'gt']],
-    [[0, 1, 'gm'], [1, 0, 'gl'], [1, 1, 'gt'], [2, 2, 'gd']],
-    [[0, 2, 'gd'], [1, 1, 'gt'], [1, 2, 'gl'], [2, 0, 'gm']],
+    [
+      [0, 2, 'gd'],
+      [1, 1, 'gl'],
+      [2, 0, 'gm'],
+      [2, 1, 'gt'],
+    ],
+    [
+      [0, 1, 'gm'],
+      [1, 0, 'gl'],
+      [1, 1, 'gt'],
+      [2, 2, 'gd'],
+    ],
+    [
+      [0, 2, 'gd'],
+      [1, 1, 'gt'],
+      [1, 2, 'gl'],
+      [2, 0, 'gm'],
+    ],
   ];
   // Ground should stay readable beneath buildings and characters, but sparse
-  // clovers disappear at overview scale. Six to eight loose leaf clusters give
-  // the meadow a hand-painted texture that survives map zoom without noise.
-  const count = 6 + random(3);
+  // clovers disappear at overview scale. Ten to thirteen loose leaf clusters
+  // give the meadow a hand-painted texture that survives map zoom without noise.
+  const count = 10 + random(4);
   for (let i = 0; i < count; i++) {
     const motif = random(3) === 0 ? tufts[random(tufts.length)] : clovers[random(clovers.length)];
     const left = 1 + random(12);
@@ -1000,9 +1039,20 @@ function wildflowerPatch(kind) {
   img.ellipse(20, 22, 14, 3, 'fl');
   img.ellipse(20, 21, 10, 2, 'fo');
   for (const [x, y] of [
-    [4, 22], [7, 20], [10, 23], [13, 21], [16, 22], [19, 20],
-    [22, 22], [25, 20], [28, 23], [31, 21], [34, 22], [37, 20],
-  ]) img.set(x, y, x % 2 ? 'gd' : 'gt');
+    [4, 22],
+    [7, 20],
+    [10, 23],
+    [13, 21],
+    [16, 22],
+    [19, 20],
+    [22, 22],
+    [25, 20],
+    [28, 23],
+    [31, 21],
+    [34, 22],
+    [37, 20],
+  ])
+    img.set(x, y, x % 2 ? 'gd' : 'gt');
 
   // A leafy base makes the stems read as one planted clump at small zoom.
   for (const [x, y, color] of [
@@ -1021,7 +1071,8 @@ function wildflowerPatch(kind) {
     [39, 28, 'fd'],
     [42, 25, 'fl'],
     [45, 27, 'fo'],
-  ]) img.set(x, y, color);
+  ])
+    img.set(x, y, color);
 
   const stems = [
     [4, 14],
@@ -1034,17 +1085,32 @@ function wildflowerPatch(kind) {
   ];
   for (const [x, headY] of stems) {
     img.vline(x, headY + 2, 25, 'fo').set(x, headY + 3, 'fl');
-    img.set(x - 3, headY + 6, 'fd').set(x - 2, headY + 5, 'fl').set(x - 1, headY + 6, 'gd');
-    img.set(x + 1, headY + 7, 'fd').set(x + 2, headY + 6, 'fl').set(x, headY + 9, 'gd');
+    img
+      .set(x - 3, headY + 6, 'fd')
+      .set(x - 2, headY + 5, 'fl')
+      .set(x - 1, headY + 6, 'gd');
+    img
+      .set(x + 1, headY + 7, 'fd')
+      .set(x + 2, headY + 6, 'fl')
+      .set(x, headY + 9, 'gd');
 
     // Five-pixel petals sit inside a dark diamond outline with a golden heart.
     // The asymmetrical highlights follow the same top-left light as the valley.
     img.set(x, headY - 2, 'k');
     img.hline(x - 2, x + 2, headY - 1, 'k').hline(x - 2, x + 2, headY + 1, 'k');
-    img.set(x - 1, headY + 2, 'k').set(x, headY + 2, 'k').set(x + 1, headY + 2, 'k');
+    img
+      .set(x - 1, headY + 2, 'k')
+      .set(x, headY + 2, 'k')
+      .set(x + 1, headY + 2, 'k');
     img.set(x, headY - 1, highlight);
-    img.set(x - 1, headY, highlight).set(x, headY, petal).set(x + 1, headY, shadow);
-    img.set(x - 1, headY + 1, petal).set(x, headY + 1, center).set(x + 1, headY + 1, shadow);
+    img
+      .set(x - 1, headY, highlight)
+      .set(x, headY, petal)
+      .set(x + 1, headY, shadow);
+    img
+      .set(x - 1, headY + 1, petal)
+      .set(x, headY + 1, center)
+      .set(x + 1, headY + 1, shadow);
     if (x % 2 === 0) img.set(x + 4, headY - 1, 'gg');
   }
   return img;
@@ -1803,7 +1869,10 @@ function mote() {
     img.set(2, 4, 'glowOuter').set(7, 4, 'glowOuter').set(2, 5, 'glowOuter').set(7, 5, 'glowOuter');
     img.set(3, 6, 'glowOuter').set(6, 6, 'glowOuter').hline(4, 5, 7, 'glowOuter');
     img.set(4, 4, 'glowMiddle').set(5, 4, 'glowMiddle').set(3, 5, 'glowMiddle').set(6, 5, 'glowMiddle');
-    img.set(4, 5, bright ? 'wy' : 'gg').set(5, 5, 'go').set(4, 6, 'god');
+    img
+      .set(4, 5, bright ? 'wy' : 'gg')
+      .set(5, 5, 'go')
+      .set(4, 6, 'god');
   };
   const f0 = new Img(10, 10);
   const f1 = new Img(10, 10);

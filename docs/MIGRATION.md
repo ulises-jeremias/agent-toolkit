@@ -45,7 +45,10 @@ Claude Code and Cursor.
    /plugin install agent-toolkit-forge@agent-toolkit
    ```
 
-   **Cursor:** Dashboard → Plugins → `ulises-jeremias/agent-toolkit`
+   **Cursor:** open **Customize → Plugins → Add → From GitHub Repository**,
+   enter `https://github.com/ulises-jeremias/agent-toolkit`, and install the
+   desired plugin at user or project scope. See the
+   [current Cursor plugin guide](https://cursor.com/docs/plugins).
 
 4. **Verify** — new session; ask *"What skills do you have available?"*
 
