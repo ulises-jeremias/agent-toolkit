@@ -150,7 +150,11 @@ function baseGround(p: Painter) {
       // visibly different meadow biomes even on a compact empty workspace.
       // Broad, overlapping moisture bands make whole clearings feel like
       // distinct meadows instead of changing biome at every few tiles.
-      const moisture = meadowField(x, y, 12, 11) * 0.72 + meadowField(x, y, 24, 17) * 0.28;
+      // Rotate the noise domain so broad color patches do not form visible
+      // horizontal bands across the valley at the scale of the full map.
+      const fieldX = x * 0.82 + y * 0.57;
+      const fieldY = y * 0.82 - x * 0.57;
+      const moisture = meadowField(fieldX, fieldY, 12, 11) * 0.72 + meadowField(fieldX, fieldY, 24, 17) * 0.28;
       const bloom = meadowField(x, y, 6, 19);
       const roll = h2(x, y, 1) % 23;
       if (bloom > 0.8 && roll < 12) {
@@ -454,13 +458,15 @@ function creek(
   const bridgeY = [...bridgeRows][0] ?? Math.floor(p.rows / 2);
   const maxCenterX = Math.max(7, Math.min(p.cols - 6, eastLimit));
   const minCenterX = Math.max(6, Math.min(maxCenterX, workshopBankX));
-  const runMinX = Math.max(6, minCenterX - 5);
+  // Give the stream a broad, safe meander corridor. The earlier five-tile
+  // strip forced the creek into an almost vertical cut through the valley.
+  const runMinX = Math.max(6, minCenterX - 8);
   const preferredFitsBank = preferredX >= minCenterX && preferredX <= maxCenterX;
   const bankCenter = Math.floor((minCenterX + maxCenterX) / 2);
   const baseX = preferredFitsBank ? preferredX : bankCenter;
   const corridorRadius = (maxCenterX - runMinX) / 2;
-  const broadBend = Math.min(3.4, corridorRadius * 1.25);
-  const softBend = Math.min(0.9, corridorRadius * 0.32);
+  const broadBend = Math.min(4.8, corridorRadius * 1.25);
+  const softBend = Math.min(1.2, corridorRadius * 0.45);
   const creekRows = Array.from({ length: p.rows }, (_, y) => {
     const along = y - bridgeY;
     // The bridge remains the fixed crossing while the stream swings through a
