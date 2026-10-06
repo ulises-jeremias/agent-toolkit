@@ -74,12 +74,11 @@ each user journey `ok`, `partial`, `blocked`, or `not-implemented` with evidence
 read it before assuming a workflow is complete. Visual quality is tracked
 separately in [VISUAL_QA.md](VISUAL_QA.md). Person sessions now have durable V
 lifecycle records and recover truthfully as interrupted when the local PTY is
-gone. Important gaps remain: provider conversation IDs and safe resume, sending
-the saved Person goal to a runner, enforcing token/cost limits and isolation for
-interactive PTYs, full Person preference enforcement in swarms, and remaining
-valley/interior composition work. A runner-unavailable Start review is shown in
-the [People guide](../PEOPLE.md#desktop-implementation) alongside the successful
-runner review and the compact/large roster screenshots.
+gone. The Start review now preloads the saved goal into a one-time task, previews
+the role/goal/task prompt, and sends it through documented interactive options
+for Claude, Codex, OpenCode and Copilot. Cursor and Muse open without an initial
+prompt and offer a copy action. The prompt itself is not retained in the
+PersonSession record.
 
 The table below is a user-facing summary of that ledger. “Partial” means the
 GUI path exists but a documented end-to-end capability or recovery case is
@@ -87,21 +86,32 @@ still missing; it does not mean the user should substitute a CLI command.
 
 | Workflow | Desktop entry point | Status | Current limit |
 | --- | --- | --- | --- |
-| Create or switch workspace | Onboarding, Settings, Workspace | Partial | Workspace setup and switching still need stronger end-to-end recovery evidence. |
-| Enter a project and open real files | World project house, Workspace | **Ready** | Project-specific files are read from the linked project through the backend. |
-| Browse and install capabilities | Library | Partial | Catalog versus installed state needs a mixed-state review; compiled Copilot Skills and Agent Definitions are not yet installable here. |
-| Configure MCP | Library → MCP | **Ready** | Probe verifies local executable health; it does not claim a live model connection. |
+| First-run workspace creation | Onboarding | Partial | Recovery evidence still needs a complete create/reuse/retry pass. |
+| Switch and inspect workspaces | Settings → Workspace | Partial | Real switch, project link and return work; broader recovery remains open. |
+| Enter a project and open its real files | World project house, Workspace | **Ready** | Files are read from the linked project through the typed backend. |
+| Discover and install capabilities | Library | Partial | Some compiled Copilot Skills and Agent Definitions are not installable in Desktop; mixed catalog/install state still needs stronger review. |
+| Configure and probe MCP | Library → MCP | **Ready** | The probe checks the local executable, not a live model connection. |
 | Start and inspect jobs | Operations; World presence | **Ready** | Only backend-confirmed active work appears in the World. |
-| Use a real terminal | Terminal or terminal dock | **Ready** | PTY lifecycle is real; a Person’s interactive limits are shown before Start. |
-| Manage and import People | People | **Ready** | Import is reviewed and inert; saving a Person never starts it. |
-| Start a Person | People → Start | Partial | Provider conversation resume, goal injection, token/cost enforcement, and isolated PTYs are not supported. |
-| Start and operate swarms | Operations → Swarms | Partial | Role review and controls exist; per-Person runner/model, session identity, World presence, and full adapter recovery remain incomplete. |
-| Run or schedule loops | Operations → Loops | **Ready** | Run reports and schedule preview/create/disable are available in the GUI. |
-| Find and launch actions | Command palette (`Ctrl/Cmd+K`) | **Ready** | Palette actions route to the same canonical UI/backend operations. |
+| Use and recover a real terminal | Terminal or terminal dock | **Ready** | PTY lifecycle is real and covered through close, exit and restart recovery. |
+| Create, edit, archive and import People | People | **Ready** | Munder import is reviewed and inert; saving never starts a process. |
+| Start a Person | People → Start | Partial | One-time prompts work for Claude, Codex, OpenCode and Copilot; no durable conversation/resume exists. Token/cost limits and non-inherited isolation are not enforced by this interactive PTY. |
+| Review swarm recipe and topology | Operations → Swarms | **Ready** | Start configuration previews real roles, policies, gates and budgets. |
+| Bind People to swarm roles | Operations → Swarms → People | Partial | Preferences resolve before start, but role processes are not canonical PersonSessions and do not appear as People in the World. |
+| Run and observe a swarm | Operations → Swarms | Partial | Run inspection and controls exist; adapter-backed workers, handoffs and failure recovery need an end-to-end Desktop run. |
+| Run/report and schedule loops | Operations → Loops | **Ready** | GUI supports one-shot run/report plus schedule preview, create, disable and recovery. |
+| Find and launch core actions | Command palette (`Ctrl/Cmd+K`) | **Ready** | Palette actions enter the same GUI review flows and canonical backend operations. |
 
 For exact evidence and the scope of each status, use the journey record in
 [`workflows.yaml`](workflows.yaml); this summary deliberately does not upgrade
 any ledger result.
+
+This guide is maintained against the shipping Electron + React application;
+the retired native-V GUI is not part of the product. V remains the canonical
+engine, server and CLI. Older captures and migration records live in
+[`VISUAL_QA_HISTORY.md`](VISUAL_QA_HISTORY.md) and are evidence, not current
+art direction. The README gallery shows real app captures, while its external
+SVG badges report CI, license and release metadata; there are no illustrative
+SVG dashboard mockups in the product gallery.
 
 For architecture and contribution commands, see the [Desktop package guide](../../apps/desktop/README.md), [design contract](DESIGN.md), and
 [contributor guide](../../CONTRIBUTING.md).
