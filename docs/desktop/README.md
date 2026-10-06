@@ -81,5 +81,27 @@ valley/interior composition work. A runner-unavailable Start review is shown in
 the [People guide](../PEOPLE.md#desktop-implementation) alongside the successful
 runner review and the compact/large roster screenshots.
 
+The table below is a user-facing summary of that ledger. “Partial” means the
+GUI path exists but a documented end-to-end capability or recovery case is
+still missing; it does not mean the user should substitute a CLI command.
+
+| Workflow | Desktop entry point | Status | Current limit |
+| --- | --- | --- | --- |
+| Create or switch workspace | Onboarding, Settings, Workspace | Partial | Workspace setup and switching still need stronger end-to-end recovery evidence. |
+| Enter a project and open real files | World project house, Workspace | **Ready** | Project-specific files are read from the linked project through the backend. |
+| Browse and install capabilities | Library | Partial | Catalog versus installed state needs a mixed-state review; compiled Copilot Skills and Agent Definitions are not yet installable here. |
+| Configure MCP | Library → MCP | **Ready** | Probe verifies local executable health; it does not claim a live model connection. |
+| Start and inspect jobs | Operations; World presence | **Ready** | Only backend-confirmed active work appears in the World. |
+| Use a real terminal | Terminal or terminal dock | **Ready** | PTY lifecycle is real; a Person’s interactive limits are shown before Start. |
+| Manage and import People | People | **Ready** | Import is reviewed and inert; saving a Person never starts it. |
+| Start a Person | People → Start | Partial | Provider conversation resume, goal injection, token/cost enforcement, and isolated PTYs are not supported. |
+| Start and operate swarms | Operations → Swarms | Partial | Role review and controls exist; per-Person runner/model, session identity, World presence, and full adapter recovery remain incomplete. |
+| Run or schedule loops | Operations → Loops | **Ready** | Run reports and schedule preview/create/disable are available in the GUI. |
+| Find and launch actions | Command palette (`Ctrl/Cmd+K`) | **Ready** | Palette actions route to the same canonical UI/backend operations. |
+
+For exact evidence and the scope of each status, use the journey record in
+[`workflows.yaml`](workflows.yaml); this summary deliberately does not upgrade
+any ledger result.
+
 For architecture and contribution commands, see the [Desktop package guide](../../apps/desktop/README.md), [design contract](DESIGN.md), and
 [contributor guide](../../CONTRIBUTING.md).
