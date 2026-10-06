@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Changed
+
+- The Desktop Dusk world uses a stronger blue-hour terrain tint with warm clearing pools; visual-review capture waits for the loaded Library landmark before saving the map.
+
 ## [1.42.0] — 2026-10-06
 
 ### Added
