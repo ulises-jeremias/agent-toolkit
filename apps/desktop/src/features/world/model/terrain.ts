@@ -897,7 +897,15 @@ function forest(p: Painter, projectlessMeadow = false) {
           ? roll < creekDensity
           : grove && roll < groveDensity;
       const woodlandCell = plantedGroves.has(key(x, y)) || naturallyWooded;
-      const wantTree = treeInsideFrame && !overlapsBuilding && !overlapsFlowerPatch && !nearTrail && woodlandCell;
+      // Canopies are three tiles wide. Avoid placing trunks in adjacent
+      // cells: at overview zoom their crowns merge into a hedge along the
+      // valley edge. A two-cell root separation keeps natural clusters while
+      // preserving a visible gap between individual silhouettes.
+      const crowdedCanopy = p.decor.some(
+        (sprite) => sprite.sprite.startsWith('tree-') && Math.abs(sprite.x - x) < 2 && Math.abs(sprite.y - y) < 2,
+      );
+      const wantTree =
+        treeInsideFrame && !overlapsBuilding && !overlapsFlowerPatch && !nearTrail && !crowdedCanopy && woodlandCell;
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
         const tree =
@@ -1011,7 +1019,11 @@ function forest(p: Painter, projectlessMeadow = false) {
         const ground = p.get(x, y);
         if ((!ground.startsWith('grass') && !ground.startsWith('flowers')) || p.isBlocked(x, y)) continue;
         if (p.paths.has(key(x, y)) || canopyOverBuilding(p, x, y, 0, 0)) continue;
-        if (p.decor.some((decor) => decor.sprite.startsWith('tree-') && decor.x === x && decor.y === y)) {
+        if (
+          p.decor.some(
+            (decor) => decor.sprite.startsWith('tree-') && Math.abs(decor.x - x) < 2 && Math.abs(decor.y - y) < 2,
+          )
+        ) {
           continue;
         }
         const kind = h2(x, y, 263) % 12;

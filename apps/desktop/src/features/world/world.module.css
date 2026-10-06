@@ -489,6 +489,8 @@
 }
 
 :root[data-theme='dusk'] .mapWorld::after {
-  background: rgba(18, 24, 56, 0.34);
+  /* Twilight should cool the grass without swallowing its authored colors.
+     Lamp auras and warm windows sit above this veil and remain readable. */
+  background: rgba(24, 31, 66, 0.22);
   mix-blend-mode: multiply;
 }
