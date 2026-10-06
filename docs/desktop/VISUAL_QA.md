@@ -170,8 +170,9 @@ pixel headings and hard-edged frames, but the broad flat green page and navy
 cards still read closer to a conventional dashboard than a cozy game menu. The
 large People roster leaves most of its canvas unused. Keep these as important
 product work; passing capture and build checks does not make the experience
-visually complete. The README gallery now uses genuine screenshots from this
-released Electron build, and no tracked SVG mockups are used as product images.
+visually complete. The README gallery uses genuine PNG screenshots from the
+released Electron build; the functional status badges are links, not product
+artwork.
 
 ## Empty-world review — enchanted-lighting branch, 2026-10-06
 
@@ -196,9 +197,9 @@ the README’s multi-project screenshots as the product overview: the empty
 world is useful for documenting first-run behavior, but is a weaker showcase.
 
 The README currently displays real Electron screenshots in PNG format. Keep
-those over illustrative SVG mockups; there are no SVG mockups in its gallery.
-Use the visual review archive for empty-state and edge-case screenshots rather
-than replacing the product overview with an empty map.
+those over illustrative SVG mockups; the only SVGs in its header are functional
+status badges. Use the visual review archive for empty-state and edge-case
+screenshots rather than replacing the product overview with an empty map.
 
 ## Current natural-ground capture — v1.42.0, 2026-10-06
 
@@ -235,9 +236,9 @@ Checked-in screenshots must come from the running Electron app and canonical
 backend against disposable test data. They are documentation examples and
 review evidence, not concept-board art. Refresh `static/screenshots/` when the
 pictured product changes, and keep the README gallery to a small set that
-explains the current experience. The README currently uses genuine PNG captures;
-there are no tracked SVG mockups in the repository. Keep functional status
-badges as links, not substitutes for product screenshots. The complete
+explains the current experience. The README uses genuine PNG captures and
+functional status badges; do not use illustrative SVG mockups as product
+screenshots. Keep status badges as links, not substitutes for product images. The complete
 compact/large and edge-case capture sets stay under
 `docs/desktop/assets/electron/` and are linked from review evidence.
 Inspiration boards must never be copied into product art or presented as

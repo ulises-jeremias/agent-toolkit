@@ -12,10 +12,10 @@ agent-toolkit swarm doctor
 agent-toolkit swarm recipes
 agent-toolkit swarm recipe show pair
 
-# Plan without side effects
-agent-toolkit swarm plan \
+# Dry-run without creating a run or worktrees
+agent-toolkit swarm start --dry-run \
   --recipe pair \
-  --ui auto \
+  --backend auto \
   --runner opencode \
   --model-profile balanced \
   "Implement GitHub issue #123"
@@ -23,7 +23,7 @@ agent-toolkit swarm plan \
 # Start a swarm (Herdr recommended, tmux fallback)
 agent-toolkit swarm start \
   --recipe pair \
-  --ui herdr \
+  --backend herdr \
   --runner opencode \
   --model-profile balanced \
   "Implement GitHub issue #123"
@@ -31,7 +31,7 @@ agent-toolkit swarm start \
 # Same workflow with tmux
 agent-toolkit swarm start \
   --recipe pair \
-  --ui tmux \
+  --backend tmux \
   --runner opencode \
   --model-profile balanced \
   "Implement GitHub issue #123"
@@ -86,7 +86,7 @@ Semantic profiles `economy`, `balanced`, `quality`, `private` map task classes `
 
 ## Backends
 
-- **Herdr** (recommended): `herdr workspace create`, `herdr agent start/prompt/wait/read`, JSON output, `herdr integration install opencode`. Falls back to tmux only under `--ui auto`.
+- **Herdr** (recommended): `herdr workspace create`, `herdr agent start/prompt/wait/read`, JSON output, `herdr integration install opencode`. Select with `--backend herdr`; `--backend auto` may fall back to tmux.
 - **tmux** (portable): isolated server/socket per run `agent-toolkit-swarm-<run-id>`, never mutates user sessions, works over SSH.
 
 ## Observability
@@ -132,17 +132,17 @@ No mandatory cloud, no telemetry, no transcript storage by default (opt-in with 
 
 - **Herdr plugin:** thin plugin at `integrations/herdr/agent-toolkit-swarm/` (`herdr-plugin.toml`, `min_herdr_version`, actions Start Pair/Team/Full, Open Status/Handoff Queue/Final Report, Pause/Resume/Stop/Clean Up) — no orchestration logic, delegates to `agent-toolkit swarm`. Local dev: `herdr plugin link ./integrations/herdr/agent-toolkit-swarm`. See [SWARM_HERDR.md](SWARM_HERDR.md).
 - **tmux fallback:** isolated server/socket per run `agent-toolkit-swarm-<run-id>`, never mutates user sessions, works over SSH, `shlex.quote` safe quoting, parity via `SwarmUIBackend` interface. See [SWARM_TMUX.md](SWARM_TMUX.md).
-- `--ui auto` falls back Herdr → tmux; `--ui herdr` fails with install guidance if missing.
+- `--backend auto` falls back Herdr → tmux; `--backend herdr` fails with install guidance if missing.
 
 ## Offline / Fake Demo
 
 No Herdr or LLM needed to explore swarms offline:
 
 ```bash
-# Fully offline — plan is side-effect free, skeleton needs no binary
-agent-toolkit swarm plan --recipe pair --ui tmux --runner skeleton "Demo: add hello endpoint" --json
-agent-toolkit swarm plan --recipe team --ui tmux --runner skeleton "Design API" --json
-agent-toolkit swarm start --runner skeleton --ui tmux "Offline demo"
+# Fully offline — dry-run writes no state; skeleton needs no external runner executable
+agent-toolkit swarm start --recipe pair --backend headless --runner skeleton --dry-run "Demo: add hello endpoint" --json
+agent-toolkit swarm start --recipe team --backend headless --runner skeleton --dry-run "Design API" --json
+agent-toolkit swarm start --runner skeleton --backend tmux "Offline demo"
 agent-toolkit swarm models --runner opencode   # fallback to profile models when runner missing
 ```
 
@@ -153,7 +153,7 @@ agent-toolkit swarm models --runner opencode   # fallback to profile models when
 1. Create a recipe `apiVersion: agent-toolkit.dev/v1alpha1`, `kind: SwarmRecipe` — see [HOW_TO_CREATE_SWARM_RECIPE.md](HOW_TO_CREATE_SWARM_RECIPE.md).
 2. Place under `~/.config/agent-toolkit/swarm/recipes/` or `.agent-toolkit/swarm/recipes/` and reference via config.
 3. Reuse personas from `agents/` (planner, architect, code-reviewer, etc.) and map `model_profile` to task classes (`planning`/`coding`/`review`/`architecture`/`hardening`/`qa`) in [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md).
-4. Test offline: `agent-toolkit swarm plan --recipe your-recipe --runner skeleton "task"` should be side-effect free.
+4. Preview offline: `agent-toolkit swarm start --recipe your-recipe --runner skeleton --backend headless --dry-run "task"` should be side-effect free.
 
 Mermaid diagrams for ecosystem boundaries, runtime layers, pair/team/full workflows, handoff/role/run state machines, and Herdr/tmux adapter separation are in [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md).
 

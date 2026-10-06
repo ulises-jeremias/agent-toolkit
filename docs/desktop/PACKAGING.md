@@ -1,6 +1,6 @@
 # Desktop packaging
 
-Agent Toolkit Desktop is the Electron application in `apps/desktop`. It bundles the V `agent-toolkit` backend. The V modules and CLI own domain logic; Electron owns presentation, PTY windows, and interaction. The former native V GUI was removed.
+Agent Toolkit Desktop is the Electron application in `apps/desktop`. It bundles the V `agent-toolkit` backend. The V modules and CLI own domain logic; Electron owns presentation, PTY windows, and interaction.
 
 ## Local build
 

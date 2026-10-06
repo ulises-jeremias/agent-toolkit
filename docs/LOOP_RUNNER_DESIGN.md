@@ -5,6 +5,12 @@
 **Owner:** Wave 3 #267 (parent #263)  
 **Do not refactor `loop/runner.py` in this issue — documentation first**
 
+> **Historical implementation note.** This document describes the retired Python
+> runner and its `loop-gh-gate` shim. Current loop behavior is implemented by
+> the V engine. Use [LOOPS.md](LOOPS.md) for the supported contract and inspect
+> `modules/agent_toolkit_core/loop_*` for current implementation details. Keep
+> this page only as migration context for ADR-008 and ADR-020.
+
 User-facing loop behavior lives in `docs/LOOPS.md`. This note covers **internals** of the loop engine so contributors can reason about safety and budgets without reading the full 2.4k LOC.
 
 ## Summary

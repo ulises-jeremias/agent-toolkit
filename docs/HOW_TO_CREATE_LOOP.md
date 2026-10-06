@@ -32,7 +32,7 @@ Token budgets: 50,000 – 300,000 per run.
 
 ### L3 — High-Autonomy (merge/close allowlisted)
 
-L3 is required when a loop's allowlist includes **merge** or **close** — `loop-gh-gate` forbids those actions at L2 regardless of allowlist. Use L3 only for proven automation (for example `oss-pr-monitor` merging Dependabot PRs with passing CI). L3 loops still require explicit allowlist/deny lists and operator approval before production use.
+L3 is required when a loop's allowlist includes **merge** or **close** — the V runner's in-process mutation gate denies those actions at L2 regardless of allowlist and requires a fresh verifier receipt at L3. Use L3 only for proven automation (for example `oss-pr-monitor` merging Dependabot PRs with passing CI). L3 loops still require explicit allowlist/deny lists and operator approval before production use.
 
 In practice, most teams run all loops at L1 or L2. Start with L1.
 

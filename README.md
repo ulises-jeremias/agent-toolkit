@@ -59,7 +59,7 @@ Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installe
 | Real PTY terminal | Reviewed import |
 | <img src="static/screenshots/terminal.png" width="100%" alt="Live shell session with real command output in the integrated terminal" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder hire import review showing mapped and ignored fields before saving" /> |
 
-These screenshots are captured from the shipping Electron app against a disposable workspace and the real backend. Offline People do not create world characters, and the terminal view contains a real PTY. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
+These are PNG screenshots of the running Electron app against a disposable workspace and the real backend. Offline People do not create world characters, and the terminal view contains a real PTY. The small SVG badges are live CI, license, and release links; they are not product artwork. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
 
 ---
 
@@ -341,7 +341,7 @@ Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · ta
 
 ## 🔄 Loop Engineering
 
-Loops are recurring agentic workflows that run on a schedule or cadence. They follow a three-tier **mutation-safety** model enforced by `loop-gh-gate` (cadence is independent of tier):
+Loops are recurring agentic workflows that run on a schedule or cadence. The V runner enforces a three-tier **mutation-safety** model in process (cadence is independent of tier):
 
 | Tier | Mutation posture | Purpose |
 | ------ | ------------------ | --------- |
@@ -366,7 +366,7 @@ Loops are recurring agentic workflows that run on a schedule or cadence. They fo
 
 > **Stage vs Layer:** Loop tiers `L1`/`L2`/`L3` are mutation-safety **Stages** (Loop Engineering discipline), not ownership Layers. See `docs/ARCHITECTURE.md` for the `L1` Machine / `L1.5` Toolkit / `L3` Workspace layer model.
 
-Each loop template lives in `loops/<name>/` (see `agent-toolkit inventory` for live count) with a `loop.yaml` definition (prompt in `request:`). At runtime the runner writes `STATE.md` and `report.md` under that directory.
+Each loop template lives in `loops/<name>/` (see `agent-toolkit inventory` for the live catalog) with a `loop.yaml` definition (prompt in `request:`). Runs write their own state and report beneath the loop's run directory.
 
 ---
 
@@ -379,8 +379,8 @@ filesystem state-of-truth, budgets, and human approval gates.
 agent-toolkit swarm recipes                   # pair / team / full — personas + policy + budget per recipe
 agent-toolkit swarm start --recipe pair --dry-run "Add a health check endpoint with tests"
 agent-toolkit swarm start --recipe team --backend herdr "Migrate the auth module"
-agent-toolkit swarm watch <run-id>            # observability: report / artifacts / handoffs / logs / approvals
-agent-toolkit swarm promote <run-id>          # integrator merges, run moves to cleanup
+agent-toolkit swarm watch <run-id>            # reports, artifacts, handoffs, logs, approvals
+agent-toolkit swarm promote <run-id>          # promote an approved run; inspect its gates first
 ```
 
 | | agent-toolkit swarm | classic tmux swarms ([swarm-forge](https://github.com/unclebob/swarm-forge)) | legacy Python swarm |

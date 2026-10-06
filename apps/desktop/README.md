@@ -11,7 +11,7 @@ with **pnpm** only — one canonical lockfile at the repo root.
 ## Architecture
 
 - **V is the backend.** Every destination reads/mutates through the typed
-  client in `src/lib/api.ts` (TanStack Query owns server state). No domain
+  client in `src/lib/api/` (TanStack Query owns server state). No domain
   logic in TypeScript, no CLI-output parsing, no Node backend.
 - **`electron/` is infrastructure only**: window lifecycle, supervising the
   bundled `agent-toolkit serve --no-browser` on a dynamic localhost port
@@ -19,7 +19,7 @@ with **pnpm** only — one canonical lockfile at the repo root.
   typed preload bridge (`contextIsolation`, no `nodeIntegration`), and the
   node-pty terminal transport adapter.
 - Destinations: **World** (default home), Attention, Operations, Workspace,
-  Library, Insights, Terminal, Settings — domain actions use typed backend
+  Library, People, Insights, Terminal, Settings — domain actions use typed backend
   endpoints. The journey ledger identifies behavior that still has limits.
   Spatial contract:
   [SEMANTIC_WORLD.md](../../docs/desktop/SEMANTIC_WORLD.md).
@@ -34,7 +34,7 @@ engineering evidence log, not a promise that every open visual issue is solved.
 ```bash
 pnpm install                    # from repo root (builds electron, node-pty)
 pnpm --filter agent-toolkit-desktop dev          # renderer vs any backend
-pnpm --filter agent-toolkit-desktop dev:electron # full shell (needs built main)
+pnpm --filter agent-toolkit-desktop dev:electron # build Electron main, then launch the shell
 pnpm --filter agent-toolkit-desktop gen:api      # regenerate from docs/surface/openapi.json
 ```
 

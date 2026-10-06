@@ -66,6 +66,6 @@ See [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md) for handoff/run/role state ma
 
 ## Backend-Neutral & Extension
 
-Handoffs are transport-agnostic (`transport: filesystem`) and UI-agnostic — Herdr ([SWARM_HERDR.md](SWARM_HERDR.md)) and tmux ([SWARM_TMUX.md](SWARM_TMUX.md)) both use the same durable queue under `.agent-toolkit/swarm/runs/<run-id>/handoffs/` with parity via `SwarmUIBackend`. No LLM or Herdr required: `swarm plan` + `--runner skeleton` works offline for handoff prototyping.
+Handoffs are transport-agnostic (`transport: filesystem`) and session-backend agnostic — Herdr ([SWARM_HERDR.md](SWARM_HERDR.md)) and tmux ([SWARM_TMUX.md](SWARM_TMUX.md)) both use the same durable queue under `.agent-toolkit/swarm/runs/<run-id>/handoffs/`. No LLM or Herdr is needed for a preview: use `swarm start --dry-run --runner skeleton`; omit `--dry-run` to create a real local run for handoff prototyping.
 
 Related: [SWARMS.md](SWARMS.md) · [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md) · [SWARM_RECIPES.md](SWARM_RECIPES.md) · [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) · [SWARM_SECURITY.md](SWARM_SECURITY.md) · [HOW_TO_CREATE_SWARM_RECIPE.md](HOW_TO_CREATE_SWARM_RECIPE.md) · [SWARM_TMUX.md](SWARM_TMUX.md) · [SWARM_HERDR.md](SWARM_HERDR.md)

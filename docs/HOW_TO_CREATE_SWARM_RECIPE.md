@@ -56,16 +56,16 @@ spec:
 ```
 
 4. Validate: `validate_recipe()` will check names/policies.
-5. Test offline: `agent-toolkit swarm plan --recipe your-recipe --json "task"` should be side-effect free.
+5. Preview offline: `agent-toolkit swarm start --recipe your-recipe --backend headless --runner skeleton --dry-run --json "task"` should be side-effect free.
 6. Place file under `~/.config/agent-toolkit/swarm/recipes/` or repo `.agent-toolkit/swarm/recipes/` and reference via config, or contribute built-in via PR.
 
 Reuse personas from `agents/` (planner, architect, code-reviewer, etc.), don't create duplicate `swarm-*` personas unless overlay needed.
 
 ## Herdr / tmux & Offline
 
-- Recipes declare `ui: auto` (Herdr preferred, tmux fallback). At runtime `agent-toolkit swarm start --ui herdr|tmux|auto` overrides; validation via `swarm doctor` and `swarm backends`. See [SWARM_HERDR.md](SWARM_HERDR.md) and [SWARM_TMUX.md](SWARM_TMUX.md) for isolated-server vs workspace semantics.
+- Recipes declare the session backend in their spec (`ui: auto` for Herdr preference with tmux fallback). At runtime `agent-toolkit swarm start --backend herdr|tmux|auto` overrides it; validation uses `swarm doctor` and `swarm backends`. See [SWARM_HERDR.md](SWARM_HERDR.md) and [SWARM_TMUX.md](SWARM_TMUX.md) for backend semantics.
 - Model profiles (`economy`/`balanced`/`quality`/`private` → task classes `planning`/`coding`/`review`/`architecture`/`hardening`/`qa`) are separate from recipes; set via `--model-profile` and [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md).
-- Offline test does not need Herdr/LLM: `agent-toolkit swarm plan --recipe your-recipe --runner skeleton --ui tmux "task"` is side-effect free; full offline demo uses `--runner skeleton --ui tmux`.
+- Offline preview does not need Herdr or an LLM: `agent-toolkit swarm start --recipe your-recipe --runner skeleton --backend headless --dry-run "task"` is side-effect free; omit `--dry-run` to exercise a full local run with the skeleton runner.
 
 ## Privacy, State & Cleanup
 

@@ -66,14 +66,14 @@ request: |
 
 ## Comment attribution (default ON)
 
-When a loop posts a GitHub comment or review body via `gh`, `loop-gh-gate` prepends a disclosure if it is missing:
+When a loop posts a GitHub comment or review body via `gh`, the V runner's in-process mutation gate prepends a disclosure if it is missing:
 
 ```markdown
 > 🤖 AI-assisted message posted as `@your-login` by [agent-toolkit](https://github.com/ulises-jeremias/agent-toolkit) (`loop-name`).
 ```
 
 - **Default:** enabled for every loop run (no config required).
-- **Login:** resolved from the authenticated `gh` token (`gh api user`).
+- **Identity:** actions are bound to the current run; L3 merge and close actions require a fresh verifier receipt.
 - **Idempotent:** bodies that already start with `> 🤖 AI-assisted` are left unchanged.
 - **Disable per loop:**
 
@@ -102,7 +102,7 @@ Token budgets: 20,000 – 150,000 per run.
 
 ### L2 — Controlled Mutations
 
-L2 loops can make changes, but only within a tightly scoped allowlist. Common L2 actions include applying labels, posting comments, opening draft PRs, and branch housekeeping — but **`loop-gh-gate` forbids merge and close at L2**. Every L2 loop has an explicit deny list that prevents high-risk actions (force-push, approve, push to main).
+L2 loops can make changes, but only within a tightly scoped allowlist. Common L2 actions include applying labels and posting comments — the in-process gate denies merge, close, approve, push, commit, force-push, and delete at L2. Every loop also has an explicit deny list for high-risk actions.
 
 L2 loops typically require human review of their report before the next run. They are suitable for daily automation once the L1 equivalent has been running reliably.
 
@@ -186,7 +186,7 @@ See the [OSS Maintenance Patterns](#oss-maintenance-patterns) section below for 
 
 **Tier:** L3 | **Cadence:** daily | **Max tokens:** 300,000 | **[README](../loops/oss-pr-monitor/README.md)**
 
-The most powerful loop in the toolkit. Monitors all open PRs across every configured OSS repo. Merges Dependabot PRs with passing CI, closes dirty Dependabot PRs (they regenerate automatically), and reports on human PRs with CI failures or conflicts. Never merges or closes human PRs. Requires **L3** because `loop-gh-gate` forbids merge/close at L2.
+The most powerful loop in the toolkit. Monitors all open PRs across every configured OSS repo. Merges Dependabot PRs with passing CI, closes dirty Dependabot PRs (they regenerate automatically), and reports on human PRs with CI failures or conflicts. Never merges or closes human PRs. Requires **L3** because the in-process gate forbids merge/close at L2 and demands a fresh verifier receipt for either action.
 
 Supports resumability via `STATE.md` checkpointing — if interrupted mid-run, it resumes from the last processed repo on the next execution.
 
