@@ -465,15 +465,15 @@ function creek(
   const bankCenter = Math.floor((minCenterX + maxCenterX) / 2);
   const baseX = preferredFitsBank ? preferredX : bankCenter;
   const corridorRadius = (maxCenterX - runMinX) / 2;
-  const broadBend = Math.min(4.8, corridorRadius * 1.25);
-  const softBend = Math.min(1.2, corridorRadius * 0.45);
+  const broadBend = Math.min(6.2, corridorRadius * 1.45);
+  const softBend = Math.min(1.6, corridorRadius * 0.5);
   const creekRows = Array.from({ length: p.rows }, (_, y) => {
     const along = y - bridgeY;
     // The bridge remains the fixed crossing while the stream swings through a
     // wide, low-frequency S-curve. A shorter bend keeps its banks irregular
     // without creating per-row jitter.
     const anchoredSoftBend = Math.sin(along * 0.31 + 0.7) - Math.sin(0.7);
-    const desiredX = baseX + Math.sin(along * 0.22) * broadBend + anchoredSoftBend * softBend;
+    const desiredX = baseX + Math.sin(along * 0.19) * broadBend + anchoredSoftBend * softBend;
     const pool = Math.sin(along * 0.25 + 0.9);
     const width = pool > 0.45 ? 3 : 2;
     const safeBank = (candidate: number) =>
