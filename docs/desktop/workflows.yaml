@@ -43,6 +43,28 @@ journeys:
     destinations: [world, workspace]
     status: ok
     evidence:
+      - note: >-
+          Final main capture at 023770ef (workflow 37432867725) opened the compact
+          and large project interiors and empty, one-project, and three-project
+          valleys at both sizes. Project rooms now use a 14×10 tile footprint;
+          integer scaling reaches 80px on the large viewport and stays readable
+          at 32px compact. The same run captures real Library, People, Operations,
+          Terminal, Settings, Attention, Munder import review, and Person creation
+          screens from the Electron app and canonical backend.
+        build: "023770eff488a4f53bcd51c373e2c5a29ba67c63 (Linux Electron capture; 37432867725)"
+        screenshots:
+          - assets/electron/world/project-files-room-compact.png
+          - assets/electron/world/project-files-room-large.png
+          - assets/electron/world/world-empty-compact.png
+          - assets/electron/world/world-empty-large.png
+          - assets/electron/world/world-one-project-compact.png
+          - assets/electron/world/world-one-project-large.png
+          - assets/electron/world/world-several-projects-compact.png
+          - assets/electron/world/world-several-projects-large.png
+          - assets/electron/cozy-pixel-world/library.png
+          - assets/electron/cozy-pixel-world/people.png
+          - assets/electron/cozy-pixel-world/operations.png
+          - assets/electron/cozy-pixel-world/terminal.png
       - note: Registered project house opens a project overview board; its filing cabinet opens Workspace Files scoped to the registered project root, and the GUI reads a real README through the typed API
         build: "4847b25434c53162fbeb979baa92a97931daf841 (Linux Electron E2E)"
         screenshots:
@@ -154,11 +176,10 @@ journeys:
           - assets/electron/world/project-files-room-compact.png
           - assets/electron/world/project-files-room-large.png
       - note: >-
-          Follow-up capture at source 1b148c967b88f2cb4f5962e5f882424fb94ef661
+          Historical follow-up at source 1b148c967b88f2cb4f5962e5f882424fb94ef661
           (workflow 37307216771) brought project resources into tighter wall
-          stations and reduced the base room width to 18 tiles. The two room
-          screenshots were opened at compact and large sizes; the new arrangement
-          is easier to scan, though open plank floor remains a visible art gap.
+          stations and reduced the then-current base room width to 18 tiles. The
+          later 14×10 room layout is recorded in the current main capture above.
         build: "1b148c967b88f2cb4f5962e5f882424fb94ef661 (Linux Electron capture; 37307216771)"
         screenshots:
           - assets/electron/world/project-files-room-compact.png
