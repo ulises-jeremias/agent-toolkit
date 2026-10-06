@@ -55,6 +55,27 @@ test does not establish visual quality.
 
 ## Latest opened review — 2026-10-06
 
+The dusk-ground tint adjustment at `162391b6` was captured by [Linux Electron
+review run 37420506125](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37420506125).
+I opened `dusk-1920x1080-world.png`, `dusk-1024x640-world.png`,
+`meadow-1920x1080-world.png`, `meadow-1024x640-library.png`,
+`people-roster-large.png`, `world-empty-large.png`,
+`world-one-project-large.png`, `world-several-projects-large.png`,
+`project-files-room-large.png`, and `project-files-room-compact.png` from that
+run.
+The dusk treatment now reads darker than Meadow at both world sizes while
+keeping water, foliage, labels, buildings, and their warm windows distinct.
+The change improves the existing nighttime state, but it does not solve the
+larger map composition issues below: the creek remains mostly vertical, paths
+are orthogonal, and the map still lacks a more deliberate settlement layout.
+People remains a conventional inspector, with substantial unused space at
+large size; this CSS-only change does not alter it. The project interior has
+the expected five real destinations and remains crisp at compact size, but its
+wide floor still leaves too much unstructured space. The compact Library has
+clear installation/removal actions and a distinct dark game-menu frame, though
+the content extends below the first viewport and needs a focused scrolling
+review before screenshot-gallery refresh.
+
 The follow-up at source `3b269c26` was captured by [Linux Electron review run
 37416352771](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37416352771).
 I opened `world-several-projects-large.png`,
