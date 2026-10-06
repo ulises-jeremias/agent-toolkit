@@ -1203,6 +1203,29 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
     motePositions.push({ x, y });
     if (motePositions.length >= 6) break;
   }
+
+  // A few quiet motes belong to the meadow clearings too, so the valley has
+  // ambient life away from the water. Keep them out of paths, doorways,
+  // building canopies, and the brighter creekside group. This is environmental
+  // magic only; it never derives from or implies agent runtime state.
+  const meadowMotes = [...p.cells].flatMap(([at, tile]) => {
+    const [xs, ys] = at.split(',');
+    const x = Number(xs);
+    const y = Number(ys);
+    if ((!tile.startsWith('grass') && !tile.startsWith('flowers')) || Math.abs(x - creekSafe(p)) <= 4 || y <= 3)
+      return [];
+    if (nearStructureOrPath(p, x, y, 0) || canopyOverBuilding(p, x, y, 0, 0)) return [];
+    return [{ at, x, y, rank: h2(x, y, 271) }];
+  });
+  meadowMotes.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
+  let gladeMoteCount = 0;
+  for (const { at, x, y } of meadowMotes) {
+    if (motePositions.some((position) => Math.hypot(position.x - x, position.y - y) < 7)) continue;
+    p.sprite(`mote:glade:${at}`, x, y, 'mote', 10, 10, 3, 3, true, true);
+    motePositions.push({ x, y });
+    gladeMoteCount += 1;
+    if (gladeMoteCount >= 4) break;
+  }
 }
 
 /** Paired lanterns mark the shared bridge as a welcoming route at dusk. */
