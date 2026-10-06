@@ -1,5 +1,56 @@
 # Desktop visual QA
 
+## Meadow grove fallback and current README screenshots — 2026-10-05
+
+Source `91e88c99d9b8cefd2d55dc47255711fafafa2687`, Linux Electron capture
+workflow `37380199800`. I opened the empty valley at 1024×640 and 1920×1080,
+one- and several-project layouts, the project room, People roster and create
+flow, Library, Operations, Terminal, the Munder import review, and the Dusk
+world at 1920×1080. The current gallery now uses screenshots from this capture
+and the workflow run is the provenance for the files below.
+
+The projectless valley now has a small deterministic grove in its open meadow.
+The multi-project valley has tree groups framing separate homes around the
+creek instead of a continuous hedge behind them. Buildings remain legible at
+both sizes, and the bridge, paths, and shared landmarks still read clearly.
+There is still too much uninterrupted grass and the service paths remain
+angular; the project room also keeps a broad, sparse plank floor. The dusk
+capture reads as a darker palette treatment rather than a fully magical
+night-time lighting pass. People correctly shows configured collaborators as
+offline without placing them in the world; its roster is usable, while the
+large create form still feels like a conventional inspector rather than a
+distinctive game-menu surface. Library, Operations, and the live PTY remain
+readable at large size, and the import review clearly states that saving does
+not start a session.
+
+After viewing these captures, I retained the meadow fallback because it reads
+as one small grove rather than stray trees or a wall, and refreshed the
+tracked screenshots to match the reviewed build. The remaining composition,
+interior, dusk-lighting, and People-surface issues stay explicit follow-up
+work; this capture is evidence of the current state, not final visual sign-off.
+
+Opened files:
+
+- [Empty valley, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, large](assets/electron/world/world-one-project-large.png) and
+  [several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project room, large](assets/electron/world/project-files-room-large.png),
+  [People roster](assets/electron/cozy-pixel-world/people.png), and
+  [Person create flow](assets/electron/cozy-pixel-world/person-create.png).
+- [Library](assets/electron/cozy-pixel-world/library.png),
+  [Operations](assets/electron/cozy-pixel-world/operations.png),
+  [Terminal](assets/electron/cozy-pixel-world/terminal.png), and
+  [Munder import review](assets/electron/cozy-pixel-world/munder-import-review.png).
+- [Dusk valley](assets/electron/cozy-pixel-world/world-dusk.png).
+
+The capture workflow passed asset freshness, backend packaging, lint, type
+check, Desktop tests, build, renderer E2E, screenshot verification, and the
+packaged-directory build. The PR workflow on the same source passed Desktop
+gates and the packaged Electron fresh-HOME smoke. See current PR checks for
+the remaining repository-wide CI matrix.
+
 ## Project-side grove spacing — 2026-10-05
 
 Source `20d10fb07a21ee8f5dcfa470262a662979d5827d`, Linux Electron capture
