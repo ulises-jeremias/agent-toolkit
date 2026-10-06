@@ -57,7 +57,9 @@ export default function WorkspaceView() {
   const [candidate, setCandidate] = useState<string | null>(null);
   const [pickerError, setPickerError] = useState<string | null>(null);
 
-  const path = budget.data?.data['workspace'];
+  // The project list also identifies its workspace. Keep the folder picker
+  // reachable if the budget query is temporarily unavailable or still loading.
+  const path = budget.data?.data['workspace'] ?? projects.data?.data['workspace'];
   const linkedProjects = projects.data ? parseProjectListMessage(envelopeText(projects.data)) : [];
   const candidateName = candidate?.split(/[\\/]/).filter(Boolean).at(-1) ?? '';
   const previousTarget = linkedProjects.find((project) => project.name === candidateName)?.target;
