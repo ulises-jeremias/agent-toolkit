@@ -109,6 +109,32 @@ journeys:
           - assets/electron/cozy-pixel-world/terminal.png
           - assets/electron/cozy-pixel-world/munder-import-review.png
       - note: >-
+          Follow-up capture at source 91e88c99d9b8cefd2d55dc47255711fafafa2687
+          (workflow 37380199800) opened empty, one-project, and several-project
+          worlds at compact and large sizes, the project room, People roster and
+          create form, Library, Operations, Terminal, Munder import review, and
+          Dusk. The empty meadow has a small deterministic grove and project
+          homes sit in distinct tree groups. Screenshots still show broad lawns,
+          angular paths, sparse interior floor, subdued Dusk lighting, and a
+          People form that needs stronger game-menu styling; composition remains
+          active visual work rather than accepted art sign-off.
+        build: "91e88c99d9b8cefd2d55dc47255711fafafa2687 (Linux Electron capture; 37380199800)"
+        screenshots:
+          - assets/electron/world/world-empty-compact.png
+          - assets/electron/world/world-empty-large.png
+          - assets/electron/world/world-one-project-compact.png
+          - assets/electron/world/world-one-project-large.png
+          - assets/electron/world/world-several-projects-compact.png
+          - assets/electron/world/world-several-projects-large.png
+          - assets/electron/world/project-files-room-large.png
+          - assets/electron/cozy-pixel-world/people.png
+          - assets/electron/cozy-pixel-world/person-create.png
+          - assets/electron/cozy-pixel-world/library.png
+          - assets/electron/cozy-pixel-world/operations.png
+          - assets/electron/cozy-pixel-world/terminal.png
+          - assets/electron/cozy-pixel-world/munder-import-review.png
+          - assets/electron/cozy-pixel-world/world-dusk.png
+      - note: >-
           Linux Electron capture at source 9eff43e91c46cfba6024943ab9122c03b0c73762
           (workflow 37305618460) reviewed empty, one-project, and several-project
           worlds at compact and large viewports plus both project-room sizes.
