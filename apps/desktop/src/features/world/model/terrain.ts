@@ -465,15 +465,15 @@ function creek(
   const bankCenter = Math.floor((minCenterX + maxCenterX) / 2);
   const baseX = preferredFitsBank ? preferredX : bankCenter;
   const corridorRadius = (maxCenterX - runMinX) / 2;
-  const broadBend = Math.min(6.2, corridorRadius * 1.45);
-  const softBend = Math.min(1.6, corridorRadius * 0.5);
+  const broadBend = Math.min(4.8, corridorRadius * 1.25);
+  const softBend = Math.min(1.2, corridorRadius * 0.45);
   const creekRows = Array.from({ length: p.rows }, (_, y) => {
     const along = y - bridgeY;
     // The bridge remains the fixed crossing while the stream swings through a
     // wide, low-frequency S-curve. A shorter bend keeps its banks irregular
     // without creating per-row jitter.
     const anchoredSoftBend = Math.sin(along * 0.31 + 0.7) - Math.sin(0.7);
-    const desiredX = baseX + Math.sin(along * 0.19) * broadBend + anchoredSoftBend * softBend;
+    const desiredX = baseX + Math.sin(along * 0.22) * broadBend + anchoredSoftBend * softBend;
     const pool = Math.sin(along * 0.25 + 0.9);
     const width = pool > 0.45 ? 3 : 2;
     const safeBank = (candidate: number) =>
@@ -806,29 +806,25 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
 
   const centers: { x: number; y: number }[] = [];
   const anchors = new Set<string>();
-  // Broad irregular clumps make the meadow feel sheltered and lived in. Roots
-  // stay clear of doors and paths; the separate canopy pass keeps crowns from
-  // obscuring façades. Avoid a uniform row of tree ornaments.
+  // Irregular pockets leave little windows between crowns. The old row-like
+  // template read as orchard planting at overview scale; a hand-shaped grove
+  // gives the tree silhouettes a soft, natural perimeter instead.
   const offsets = [
     [0, 0],
     [-2, 0],
-    [2, 0],
-    [-4, 0],
-    [4, 0],
-    [-1, 1],
     [1, 1],
-    [-2, 2],
-    [0, 2],
-    [2, 2],
-    [-4, 2],
-    [4, 2],
-    [-3, 3],
-    [0, 3],
-    [3, 3],
-    [-3, 1],
-    [3, 1],
     [-3, 2],
-    [3, 2],
+    [-1, 3],
+    [2, 3],
+    [4, 1],
+    [3, -2],
+    [-4, -1],
+    [-3, -3],
+    [0, -3],
+    [2, -3],
+    [4, -1],
+    [-1, -2],
+    [1, 4],
   ] as const;
   const addGrove = (candidate: (typeof candidates)[number]) => {
     const minSpacing = 6;
