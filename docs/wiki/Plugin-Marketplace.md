@@ -157,10 +157,11 @@ catalog.
 ## Cursor: Installing from the Marketplace
 
 Cursor supports the Agent Plugins open standard and its own plugin format.
-Install the Agent Toolkit plugins from **Customize** in the Cursor sidebar:
+Import the Agent Toolkit GitHub repository from **Customize** in the Cursor
+sidebar, then install the plugins you need:
 
-1. Open **Customize**.
-2. Find the Agent Toolkit plugins in the marketplace.
+1. Open **Plugins → Add → From GitHub Repository**.
+2. Enter `https://github.com/ulises-jeremias/agent-toolkit`.
 3. Choose **Install** and select user or project scope.
 
 See the [current Cursor plugin guide](https://cursor.com/docs/plugins) for

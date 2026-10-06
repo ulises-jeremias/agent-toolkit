@@ -165,18 +165,18 @@ Native plugins from [`.cursor-plugin/marketplace.json`](.cursor-plugin/marketpla
 
 **Cursor IDE**
 
-1. Open **Customize** in the sidebar (or Command Palette → *Cursor: Open Plugin Marketplace*).
-2. Import the marketplace repo: `https://github.com/ulises-jeremias/agent-toolkit`
-3. Install the plugins you need (`agent-toolkit-core` is the baseline).
+1. Open **Customize** in the sidebar and choose **Plugins → Add → From GitHub Repository**.
+2. Enter `https://github.com/ulises-jeremias/agent-toolkit`.
+3. Install the plugins you need (`agent-toolkit-core` is the baseline) at user or project scope. See the [current Cursor plugin guide](https://cursor.com/docs/plugins).
 
 User-scoped installs sync to Cursor Agent CLI sessions automatically.
 
 **Cursor Agent CLI**
 
 ```bash
-# Interactive — browse / install from the Marketplace tab
+# Open Cursor Agent and use its current plugin install flow.
+# See https://cursor.com/docs/plugins for the current CLI syntax and scope options.
 cursor-agent
-# then type: /plugin
 ```
 
 Load a local plugin directory for one session (useful while developing):
