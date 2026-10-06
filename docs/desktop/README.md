@@ -13,8 +13,9 @@ or run CLI commands.
 
 ## See the product
 
-These are screenshots captured from the running Electron application with its
-real backend. They are product evidence, not concept-board art or SVG mockups.
+These screenshots were captured from the running Electron application with its
+real backend. They show product behavior; visual approval and remaining
+composition work are tracked separately in the [visual QA log](VISUAL_QA.md).
 The larger world and inspector gallery is in the [repository README](../../README.md#desktop-app-gui).
 
 | Project interior | People roster |
