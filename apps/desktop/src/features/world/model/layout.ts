@@ -188,9 +188,10 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // previous reservation made one house inherit the width of a five-lot
   // district, which turned a small workspace into a mostly empty panorama.
   // Lot coordinates remain stable as projects are added.
-  // Leave one clear garden tile between neighboring façades so projects read
-  // as separate lots rather than touching storefronts.
-  const projectLaneGap = 5;
+  // Leave a three-tile grove clearing between neighboring project houses. A
+  // full tree canopy can sit between façades while three-house maps still fit
+  // the crisp 32px zoom at compact desktop sizes.
+  const projectLaneGap = 6;
   const districtW = projects.length ? (Math.min(projects.length, districtCols) - 1) * projectLaneGap + 3 : 0;
   // Put project homes across a visible creek crossing from the shared
   // services. Keep the bank gap compact enough that the project district
@@ -248,9 +249,9 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     // Stagger alternate streets so a rear house never shares its front-door
     // path with a house directly in front of it.
     const x = districtX + col * projectLaneGap + (row % 2 === 1 ? 2 : 0);
-    // Alternate houses by two tiles along the bank so neighboring porches
-    // read as a small lane instead of one storefront row.
-    const y = districtY + row * 5 + (col % 2) * 2;
+    // Offset the next street and leave enough land for a path verge or tree
+    // canopy between its houses and the previous row.
+    const y = districtY + row * 6 + (col % 2) * 2;
     place(project, x, y);
     if (project.projectId) projectSlots.set(project.projectId, { x, y });
   });
@@ -278,7 +279,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   }
 
   const districtRows = Math.ceil(projects.length / Math.max(1, districtCols));
-  const projectRows = districtY + Math.max(0, districtRows - 1) * 5 + 3;
+  const projectRows = districtY + Math.max(0, districtRows - 1) * 6 + 3;
   // Give every civic front door at least one walkable tile inside the camera
   // bounds, including the southern workshop lane on empty workspaces.
   const landmarkRows = Math.max(

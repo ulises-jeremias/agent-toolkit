@@ -5,6 +5,12 @@ Status: **HISTORICAL RECOVERY REVIEW** — 2026-10-01, worktree
 `agent-toolkit 1.40.0`. For current product status and fresh captures, see
 [`VISUAL_QA.md`](VISUAL_QA.md) and [`workflows.yaml`](workflows.yaml).
 
+> This is a frozen record of that recovery checkpoint. Its validation results,
+> feature gaps, implementation counts, screenshots, and host notes describe
+> the 2026-10-01 build only. They are not current guidance. Use
+> [Desktop product guide](README.md), the workflow ledger, and the latest
+> dated entry in [`VISUAL_QA.md`](VISUAL_QA.md) for current behavior.
+
 This is the honest review of the recovered work after the `/tmp/opencode`
 restart. Everything here was rebuilt, tested, and captured again on this host;
 nothing is claimed from the vanished session.
@@ -16,8 +22,8 @@ surviving world implementation found real defects: entity tiles followed a
 fixed 48px tile while the terrain followed the live zoom, sprites stretched
 to fill their footprint instead of keeping authored dimensions, a pointer
 drag that started on an entity opened its inspector, zoom was not anchored,
-and the two-frame CSS animation (`background-position-x: calc(var(--frames)
-* -100%)`) shifted animated sprites off the visible area on alternate frames.
+and the two-frame CSS animation shifted sprites off the visible area on
+alternate frames.
 Fixes: shared camera math (`camera.ts`), integer zoom `[16, 32, 48, 64]` with
 centered clamp, manifest-dimensioned sprites bottom-center anchored in the
 semantic footprint, drag threshold + capture release + click suppression,
@@ -33,12 +39,13 @@ are authoritative.
 (`--ink-muted`/`--paper`/`--manila`/`--rule`/`--paper-raised`/`--ink-wash`)
 onto the game-menu system. Evidence: opened PNGs below.
 
-**Declarative workflow ledger.** `docs/desktop/workflows.yaml`
-(`spec: agent-toolkit/desktop-workflows@1`) is the Electron per-journey
-ledger, checked by `apps/desktop/src/workflowLedger.test.ts`. The native-V
-matrix in `workflows.yaml` tracks current evidence; People CRUD/import/
-Start/swarm-picker are explicitly `not-implemented` — schemas and file
-authoring are not the user interface.
+**Declarative workflow ledger.** At the time of this recovery snapshot,
+`docs/desktop/workflows.yaml` (`spec: agent-toolkit/desktop-workflows@1`) was
+the Electron per-journey ledger, checked by
+`apps/desktop/src/workflowLedger.test.ts`. The retired native-V matrix was a
+separate historical artifact. People CRUD/import/Start/swarm-picker describe
+the gaps recorded at that snapshot only; consult the current Electron ledger
+before interpreting their status.
 
 ## Evidence (opened, critiqued, recaptured)
 
@@ -50,30 +57,30 @@ Paper-era file panel (fixed, recaptured), world meta text on the chrome bar
 
 ## Validation run on this host
 
-- V master (`c0e47bf`) test suite: 34/34 files pass (`./make.vsh test`).
-- Desktop unit: 282 passed (39 files); lint and type-check pass.
-- E2E Electron (real V backend): 20 passed; renderer E2E: 6 passed;
+* V master (`c0e47bf`) test suite: 34/34 files pass (`./make.vsh test`).
+* Desktop unit: 282 passed (39 files); lint and type-check pass.
+* E2E Electron (real V backend): 20 passed; renderer E2E: 6 passed;
   capture tour: 1 passed (33 PNGs); interior probe: 1 passed.
-- `agent-toolkit build --check`: Tier-1 compile + plugin drift OK.
-- `validate-skills.vsh` (105), `validate-agents.vsh` (18),
+* `agent-toolkit build --check`: Tier-1 compile + plugin drift OK.
+* `validate-skills.vsh` (105), `validate-agents.vsh` (18),
   `validate-loops.vsh` (10), `generate-catalogs.vsh --check`: all pass.
-- World asset generator: 80 sprites fresh (`--check`).
-- Clean-machine smoke: `release/linux-unpacked/agent-toolkit-desktop`
+* World asset generator: 80 sprites fresh (`--check`).
+* Clean-machine smoke: `release/linux-unpacked/agent-toolkit-desktop`
   launched with fresh `HOME`/`XDG_*` and `--ozone-platform=x11`
   `+ swiftshader` created the workspace through the GUI; bundled backend
   reports `agent-toolkit 1.40.0`.
 
 ## Known limitations (not shipped, not claimed)
 
-- People CRUD, reviewed import, and local PTY Start/Stop now exist in Desktop.
+* People CRUD, reviewed import, and local PTY Start/Stop now exist in Desktop.
   Server-side AgentSession history, enforced Person budgets/isolation, and the
   swarm Person role picker remain incomplete (see ADR-036 and the workflow
   ledger).
-- Typed MCP setup/probe, swarm run/watch, loop scheduling, installation
+* Typed MCP setup/probe, swarm run/watch, loop scheduling, installation
   preview/rollback, and universal action reachability remain incomplete.
-- HiDPI/scaling, OS accessibility tree, Arabic bidi and soak are unverified;
+* HiDPI/scaling, OS accessibility tree, Arabic bidi and soak are unverified;
   no screen-reader or full WCAG claim.
-- GPU launch on this host's Wayland needs `--ozone-platform=x11` (Vulkan
+* GPU launch on this host's Wayland needs `--ozone-platform=x11` (Vulkan
   incompatibility); first-run on Wayland stock flags is untested here.
 
 ## Evidence correction — 2026-10-02

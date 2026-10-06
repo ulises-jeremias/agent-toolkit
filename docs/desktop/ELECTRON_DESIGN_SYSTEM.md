@@ -257,11 +257,15 @@ regenerates the screenshot matrix:
 - Meadow and Dusk;
 - 1024x640 (the minimum window) and 1920x1080.
 
-The jobs and the terminal session they show are created through the UI
-during the run. Captures live in `assets/electron/foundations/`, named
-`<theme>-<width>x<height>-<destination>.png` with `theme ∈ {meadow, dusk}`.
-The matrix is re-captured as part of every major visual change (last:
-Cozy Pixel World reset, [ADR-035](../adrs/ADR-035-cozy-pixel-world.md)).
+The jobs and terminal session shown in the captures are created through the
+UI during the run. The `desktop.yml` visual-review workflow captures the
+current world, real destinations, and project interiors from the packaged
+Electron app, then uploads them as the `electron-review-screenshots` artifact.
+Open that artifact before updating tracked screenshots; copy only reviewed
+captures into `assets/electron/` and `static/screenshots/`, and record the
+source SHA, run ID, opened files, critique, and resulting fixes in
+[VISUAL_QA.md](VISUAL_QA.md). Checked-in images are review evidence, not a
+claim that every screen has passed visual sign-off.
 
 First-run captures live in `assets/electron/onboarding/`. Home after setup is
 the semantic world (`WorldView`).

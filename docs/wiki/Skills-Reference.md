@@ -1,12 +1,13 @@
 # Skills Reference
 
-**103+ skills** on disk. Do not maintain a second catalog here.
+The catalog is generated from repository capabilities. Do not maintain a
+second list or a static count here.
 
-| Source | What |
+|Source|What|
 |--------|------|
-| [`catalogs/skill-catalog.yaml`](../../catalogs/skill-catalog.yaml) | Generated inventory |
-| [`docs/SKILLS.md`](../SKILLS.md) | What a skill is, frontmatter, membership |
-| [`docs/SKILL_PRODUCT_MATRIX.md`](../SKILL_PRODUCT_MATRIX.md) | Product × skill matrix |
-| [`docs/HOW_TO_ADD_SKILL.md`](../HOW_TO_ADD_SKILL.md) | Authoring |
+|[`catalogs/skill-catalog.yaml`](../../catalogs/skill-catalog.yaml)|Generated inventory|
+|[`docs/SKILLS.md`](../SKILLS.md)|What a skill is, frontmatter, membership|
+|[`docs/SKILL_PRODUCT_MATRIX.md`](../SKILL_PRODUCT_MATRIX.md)|Product × skill matrix|
+|[`docs/HOW_TO_ADD_SKILL.md`](../HOW_TO_ADD_SKILL.md)|Authoring|
 
 Live list: `agent-toolkit inventory` / `agent-toolkit skills list`.

@@ -714,9 +714,11 @@ describe('layoutWorld', () => {
     const secondAlpha = two.entities.find((entity) => entity.id === 'place:project:alpha')!;
     expect(secondAlpha).toMatchObject({ x: firstAlpha.x, y: firstAlpha.y, w: firstAlpha.w, h: firstAlpha.h });
     const firstBeta = two.entities.find((entity) => entity.id === 'place:project:beta')!;
-    expect(firstBeta.x - (secondAlpha.x + secondAlpha.w)).toBeGreaterThanOrEqual(1);
+    expect(firstBeta.x - (secondAlpha.x + secondAlpha.w)).toBeGreaterThanOrEqual(3);
     const compactTeam = layoutFor(['alpha', 'beta', 'gamma']);
-    expect(compactTeam.cols).toBeLessThanOrEqual(29);
+    const thirdProject = compactTeam.entities.find((entity) => entity.id === 'place:project:gamma')!;
+    expect(thirdProject.y - (secondAlpha.y + secondAlpha.h)).toBeGreaterThanOrEqual(3);
+    expect(compactTeam.cols).toBeLessThanOrEqual(30);
     expect(compactTeam.rows).toBeLessThanOrEqual(13);
   });
 
@@ -1114,6 +1116,16 @@ describe('layoutWorld', () => {
     const buildings = layout.entities.filter((entity) => entity.kind === 'place' && entity.id.startsWith('place:'));
 
     expect(trees.length).toBeGreaterThan(0);
+    const projectHouses = buildings.filter((building) => building.id.startsWith('place:project:'));
+    const houseDistance = (tree: (typeof trees)[number], building: (typeof projectHouses)[number]) => {
+      const dx = Math.max(building.x - tree.x, 0, tree.x - (building.x + building.w - 1));
+      const dy = Math.max(building.y - tree.y, 0, tree.y - (building.y + building.h - 1));
+      return Math.hypot(dx, dy);
+    };
+    expect(
+      trees.some((tree) => projectHouses.filter((house) => houseDistance(tree, house) <= 6).length >= 2),
+      'a canopy should frame a clearing shared by multiple project houses',
+    ).toBe(true);
     for (const tree of trees) {
       const left = tree.x + tree.dx / 16;
       const right = left + tree.w / 16;
@@ -1140,6 +1152,31 @@ describe('layoutWorld', () => {
     expect(trees.length).toBeGreaterThan(8);
     expect(neighboringPairs.length).toBeGreaterThan(3);
     expect(interiorTrees.length).toBeGreaterThan(3);
+  });
+
+  it('keeps a wooded frame around a populated project settlement', () => {
+    const layout = layoutWorld(
+      buildWorldModel(
+        baseInput({
+          projects: ['alpha', 'bravo', 'cinder', 'delta'].map((name) => ({
+            name,
+            target: `/${name}`,
+            status: 'ok' as const,
+          })),
+        }),
+      ),
+    );
+    const trees = paintTerrain(layout.entities, layout.cols, layout.rows).decor.filter(({ sprite }) =>
+      sprite.startsWith('tree-'),
+    );
+    const projectSideTrees = trees.filter(({ x }) => x >= 21);
+    const clusteredPairs = trees.filter((tree, index) =>
+      trees.slice(index + 1).some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
+    );
+
+    expect(trees.length).toBeGreaterThan(20);
+    expect(projectSideTrees.length).toBeGreaterThan(8);
+    expect(clusteredPairs.length).toBeGreaterThan(5);
   });
 
   it('keeps loose stones on the creek bank instead of scattering them across meadow paths', () => {

@@ -88,6 +88,7 @@ class Painter {
   decor: DecorSprite[] = [];
   blocked = new Set<string>();
   waterReservations = new Set<string>();
+  projectLots: LaidOutEntity[] = [];
   cols: number;
   rows: number;
 
@@ -98,6 +99,7 @@ class Painter {
       for (let y = e.y; y < e.y + e.h; y++) for (let x = e.x; x < e.x + e.w; x++) this.blocked.add(key(x, y));
       if (e.kind === 'place') {
         this.waterReservations.add(key(e.x + Math.floor(e.w / 2), e.y + e.h));
+        if (e.id.startsWith('place:project:')) this.projectLots.push(e);
       }
     }
   }
@@ -634,6 +636,33 @@ function nearStructureOrPath(p: Painter, x: number, y: number, radius: number): 
   return false;
 }
 
+/** Test a 48px tree crown against occupied tiles using its actual footprint. */
+function canopyOverBuilding(p: Painter, x: number, y: number, offsetX: number, offsetY: number): boolean {
+  const left = x - 1 + offsetX / 16;
+  const top = y - 2 + offsetY / 16;
+  const right = left + 3;
+  const bottom = top + 3;
+  for (let tileY = Math.floor(top); tileY < bottom; tileY += 1) {
+    for (let tileX = Math.floor(left); tileX < right; tileX += 1) {
+      if (p.blocked.has(key(tileX, tileY))) return true;
+    }
+  }
+  return false;
+}
+
+function canopyOverFlowerPatch(p: Painter, x: number, y: number, offsetX: number, offsetY: number): boolean {
+  const left = x - 1 + offsetX / 16;
+  const top = y - 2 + offsetY / 16;
+  return p.decor.some((decor) => {
+    if (!decor.sprite.startsWith('wildflower-patch-')) return false;
+    const patchLeft = decor.x + decor.dx / 16;
+    const patchTop = decor.y + decor.dy / 16;
+    const patchRight = patchLeft + decor.w / 16;
+    const patchBottom = patchTop + decor.h / 16;
+    return left < patchRight && left + 3 > patchLeft && top < patchBottom && top + 3 > patchTop;
+  });
+}
+
 /** Broad irregular flower beds give open lawns a visible meadow rhythm. */
 function flowerGlades(p: Painter) {
   // Give the quiet spaces a visible meadow rhythm at overview scale. Glades
@@ -735,17 +764,30 @@ function flowerPatchSprites(p: Painter) {
   }
 }
 
-/** Pick a few stable grove hearts inside the settlement, away from its paths. */
+/** Pick stable grove hearts in real house clearings and open meadow, off routes. */
 function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<string> {
-  const target = meadowHeart
-    ? Math.min(14, Math.max(12, Math.floor((p.cols * p.rows) / 100)))
-    : Math.min(10, Math.max(8, Math.floor((p.cols * p.rows) / 130)));
-  const candidates: { x: number; y: number; rank: number }[] = [];
+  // Keep substantial woodland even after landmarks and project houses occupy
+  // the map. More small clusters create sheltered clearings without placing a
+  // uniform tree grid across the walkable meadow.
+  const target = Math.min(16, Math.max(14, Math.floor((p.cols * p.rows) / 90)));
+  const candidates: { x: number; y: number; rank: number; projectClearing: boolean }[] = [];
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {
       if (!p.get(x, y).startsWith('grass') && !p.get(x, y).startsWith('flowers')) continue;
-      if (nearStructureOrPath(p, x, y, 1)) continue;
-      candidates.push({ x, y, rank: h2(x, y, 173) });
+      // A clear root may sit beside a path or lot: the trunk stays off the
+      // walking tile and the full canopy is checked against every building
+      // below. A one-tile exclusion here pushed all clusters to the map edge.
+      if (nearStructureOrPath(p, x, y, 0)) continue;
+      const nearestLot = p.projectLots.reduce((distance, lot) => {
+        const dx = Math.max(lot.x - x, 0, x - (lot.x + lot.w - 1));
+        const dy = Math.max(lot.y - y, 0, y - (lot.y + lot.h - 1));
+        return Math.min(distance, Math.hypot(dx, dy));
+      }, Number.POSITIVE_INFINITY);
+      // Give occupied project clearings a few sheltered tree groups. The
+      // canopy pass below still rejects crowns that reach a real façade, and
+      // the root check above keeps actual routes open.
+      const projectClearing = nearestLot >= 2 && nearestLot <= 8;
+      candidates.push({ x, y, rank: h2(x, y, 173), projectClearing });
     }
   }
   if (meadowHeart) {
@@ -780,16 +822,31 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
     [-3, 2],
     [3, 2],
   ] as const;
-  for (const candidate of candidates) {
-    if (centers.length >= target) break;
-    const minSpacing = meadowHeart ? 6 : 8;
-    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < minSpacing)) continue;
+  const addGrove = (candidate: (typeof candidates)[number]) => {
+    const minSpacing = 6;
+    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < minSpacing)) return false;
     centers.push(candidate);
     for (const [dx, dy] of offsets) {
       const x = candidate.x + dx;
       const y = candidate.y + dy;
       if (p.get(x, y).startsWith('grass') || p.get(x, y).startsWith('flowers')) anchors.add(key(x, y));
     }
+    return true;
+  };
+
+  // A couple of sheltered groups connect neighboring project gardens without
+  // merging into a hedge. The remaining anchors are chosen across open meadow
+  // so populated districts keep clearings and project-free valleys still feel
+  // naturally wooded.
+  const projectGroveLimit = Math.min(4, Math.max(2, Math.ceil(p.projectLots.length / 2)));
+  let projectGroves = 0;
+  for (const candidate of candidates.filter((entry) => entry.projectClearing)) {
+    if (centers.length >= target || projectGroves >= projectGroveLimit) break;
+    if (addGrove(candidate)) projectGroves += 1;
+  }
+  for (const candidate of candidates) {
+    if (centers.length >= target) break;
+    addGrove(candidate);
   }
   return anchors;
 }
@@ -808,22 +865,18 @@ function forest(p: Painter, projectlessMeadow = false) {
       const edge = x < 6 || x >= p.cols - 6 || y < 3 || y >= p.rows - 4;
       const nearCreek = [-4, -3, -2, -1, 0, 1, 2, 3, 4].some((dx) => p.get(x + dx, y) === 'water');
       const roll = h2(x, y, 3) % 31;
-      // Reserve the whole oversized canopy footprint around real buildings.
-      // Checking only the tree anchor lets a bright crown crowd a nearby
-      // façade even though its trunk is technically on free ground.
-      const canopyOverBuilding = [-3, -2, -1, 0, 1].some((dy) =>
-        [-2, -1, 0, 1, 2].some((dx) => p.blocked.has(key(x + dx, y + dy))),
-      );
-      const canopyOverFlowerPatch = p.decor.some((decor) => {
-        if (!decor.sprite.startsWith('wildflower-patch-')) return false;
-        const left = decor.x + decor.dx / 16;
-        const top = decor.y + decor.dy / 16;
-        const right = left + decor.w / 16;
-        const bottom = top + decor.h / 16;
-        const canopyLeft = x - 1 + ((h2(x, y, 47) % 5) - 2) / 16;
-        const canopyTop = y - 2 + ((h2(x, y, 53) % 3) - 1) / 16;
-        return canopyLeft < right && canopyLeft + 3 > left && canopyTop < bottom && canopyTop + 3 > top;
-      });
+      const nearestLot = p.projectLots.reduce((distance, lot) => {
+        const dx = Math.max(lot.x - x, 0, x - (lot.x + lot.w - 1));
+        const dy = Math.max(lot.y - y, 0, y - (lot.y + lot.h - 1));
+        return Math.min(distance, Math.hypot(dx, dy));
+      }, Number.POSITIVE_INFINITY);
+      // Keep trees beside a house aligned to the tile grid. Meadow crowns can
+      // sway by a couple of pixels, but that tiny offset would clip a roof
+      // when a full three-tile grove clearing exists between two lots.
+      const canopyOffsetX = nearestLot <= 3 ? 0 : (h2(x, y, 47) % 5) - 2;
+      const canopyOffsetY = nearestLot <= 3 ? 0 : (h2(x, y, 53) % 3) - 1;
+      const overlapsBuilding = canopyOverBuilding(p, x, y, canopyOffsetX, canopyOffsetY);
+      const overlapsFlowerPatch = canopyOverFlowerPatch(p, x, y, canopyOffsetX, canopyOffsetY);
       // Tree crowns may lean over a path. Keep trunks off the walking tiles,
       // while allowing the canopy to frame the route instead of making a moat.
       const nearTrail = p.paths.has(key(x, y));
@@ -831,21 +884,22 @@ function forest(p: Painter, projectlessMeadow = false) {
       // Keep tall canopies fully inside the framed world; low grass and
       // flowers can still reach the edge without looking accidentally cut.
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
-      // Project districts used to feel exposed beside the creek; carry more of
-      // the wooded frame into real settlements while keeping door approaches,
-      // clearings, and façades protected below.
-      const groveDensity = projectlessMeadow ? 31 : 25;
+      // Grove anchors provide the settlement's large silhouettes; the seeded
+      // fill below closes small gaps while preserving open routes and façades.
+      const creekDensity = 18;
+      // Intentionally planted grove cells should remain dense enough to read
+      // as small forest groups; sparse probabilities apply to open shore and
+      // boundary fill, which previously formed continuous tree walls.
+      const groveDensity = projectlessMeadow ? 31 : 28;
       const naturallyWooded = edge
-        ? roll < (x >= p.cols - 6 ? 27 : 29)
+        ? roll < (x >= p.cols - 6 ? 11 : 8)
         : nearCreek
-          ? roll < groveDensity
+          ? roll < creekDensity
           : grove && roll < groveDensity;
       const woodlandCell = plantedGroves.has(key(x, y)) || naturallyWooded;
-      const wantTree = treeInsideFrame && !canopyOverBuilding && !canopyOverFlowerPatch && !nearTrail && woodlandCell;
+      const wantTree = treeInsideFrame && !overlapsBuilding && !overlapsFlowerPatch && !nearTrail && woodlandCell;
       if (wantTree) {
         const kind = h2(x, y, 4) % 12;
-        const canopyOffsetX = (h2(x, y, 47) % 5) - 2;
-        const canopyOffsetY = (h2(x, y, 53) % 3) - 1;
         const tree =
           nearCreek && kind < 4
             ? 'tree-willow'
@@ -866,6 +920,105 @@ function forest(p: Painter, projectlessMeadow = false) {
       } else if ((edge || nearCreek || grove) && (roll === 9 || roll === 10)) {
         p.sprite(`grass-tuft:${x},${y}`, x, y, 'tall-grass', 16, 8, 0, 8);
       } else if (roll === 11 && edge) p.sprite(`shroom:${x},${y}`, x, y, 'mushroom', 16, 12, 0, 5);
+    }
+  }
+
+  // Give the project quarter one intentional green heart when multiple real
+  // houses form a usable clearing. Broad anchor spacing can otherwise leave
+  // the exact three-tile garden gap empty even though the canopy fits there.
+  const clearings: { x: number; y: number; neighbors: number; distance: number; rank: number }[] = [];
+  for (let y = 3; y < p.rows - 2; y += 1) {
+    for (let x = 2; x < p.cols - 2; x += 1) {
+      const ground = p.get(x, y);
+      if (
+        (!ground.startsWith('grass') && !ground.startsWith('flowers')) ||
+        p.isBlocked(x, y) ||
+        p.paths.has(key(x, y))
+      ) {
+        continue;
+      }
+      if (canopyOverBuilding(p, x, y, 0, 0) || canopyOverFlowerPatch(p, x, y, 0, 0)) continue;
+      const distances = p.projectLots.map((lot) => {
+        const dx = Math.max(lot.x - x, 0, x - (lot.x + lot.w - 1));
+        const dy = Math.max(lot.y - y, 0, y - (lot.y + lot.h - 1));
+        return Math.hypot(dx, dy);
+      });
+      const neighbors = distances.filter((distance) => distance <= 4).length;
+      if (neighbors < 2) continue;
+      const overlapsExistingTree = p.decor.some((decor) => {
+        if (!decor.sprite.startsWith('tree-')) return false;
+        return Math.hypot(decor.x - x, decor.y - y) < 3;
+      });
+      if (overlapsExistingTree) continue;
+      clearings.push({
+        x,
+        y,
+        neighbors,
+        distance: distances.reduce((sum, value) => sum + value, 0),
+        rank: h2(x, y, 239),
+      });
+    }
+  }
+  clearings.sort(
+    (a, b) => b.neighbors - a.neighbors || a.distance - b.distance || a.rank - b.rank || a.y - b.y || a.x - b.x,
+  );
+  const clearing = clearings[0];
+  if (clearing) {
+    const kind = h2(clearing.x, clearing.y, 241) % 12;
+    const tree = kind < 2 ? 'tree-pine' : kind < 6 ? 'tree-blossom' : kind < 8 ? 'tree-amber' : 'tree-round';
+    p.sprite(
+      `tree:project-clearing:${clearing.x},${clearing.y}`,
+      clearing.x,
+      clearing.y,
+      tree,
+      48,
+      48,
+      -16,
+      -32,
+      false,
+    );
+  }
+
+  // Project-free valleys need one readable grove in the open meadow, even
+  // when the shared buildings and approaches leave the seeded edge groups
+  // with too few surviving roots. This deterministic fallback only plants
+  // environmental trees on free grass; it never marks a worker or resource.
+  if (projectlessMeadow) {
+    const treeCount = () => p.decor.filter((decor) => decor.sprite.startsWith('tree-')).length;
+    const groveOffsets = [
+      [0, 0],
+      [-2, 0],
+      [2, 0],
+      [-1, 2],
+      [1, 2],
+    ] as const;
+    const openMeadow: { x: number; y: number; rank: number; eastBank: boolean }[] = [];
+    for (let y = 4; y < p.rows - 3; y += 1) {
+      for (let x = 6; x < p.cols - 6; x += 1) {
+        const ground = p.get(x, y);
+        if ((!ground.startsWith('grass') && !ground.startsWith('flowers')) || p.isBlocked(x, y)) continue;
+        if (p.paths.has(key(x, y)) || canopyOverBuilding(p, x, y, 0, 0)) continue;
+        if (canopyOverFlowerPatch(p, x, y, 0, 0)) continue;
+        openMeadow.push({ x, y, rank: h2(x, y, 257), eastBank: x > creekSafe(p) });
+      }
+    }
+    openMeadow.sort((a, b) => Number(b.eastBank) - Number(a.eastBank) || a.rank - b.rank || a.y - b.y || a.x - b.x);
+    for (const center of openMeadow) {
+      if (treeCount() >= 12) break;
+      for (const [dx, dy] of groveOffsets) {
+        const x = center.x + dx;
+        const y = center.y + dy;
+        const ground = p.get(x, y);
+        if ((!ground.startsWith('grass') && !ground.startsWith('flowers')) || p.isBlocked(x, y)) continue;
+        if (p.paths.has(key(x, y)) || canopyOverBuilding(p, x, y, 0, 0)) continue;
+        if (p.decor.some((decor) => decor.sprite.startsWith('tree-') && decor.x === x && decor.y === y)) {
+          continue;
+        }
+        const kind = h2(x, y, 263) % 12;
+        const tree = kind < 2 ? 'tree-pine' : kind < 6 ? 'tree-blossom' : kind < 8 ? 'tree-amber' : 'tree-round';
+        p.sprite(`tree:meadow-grove:${x},${y}`, x, y, tree, 48, 48, -16, -32, false);
+        if (treeCount() >= 12) break;
+      }
     }
   }
 }

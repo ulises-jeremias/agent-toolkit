@@ -70,7 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Meadow colors now follow smooth deterministic terrain patches instead of
   changing palette tile by tile, and empty-workspace bridges align with the
   project's real linking path.
-- Seeded meadow flowers, creek-bank trees, and edge undergrowth now appear more often while remaining excluded from building footprints and path corridors.
+- Seeded meadow flowers, creek-bank trees, and edge undergrowth now appear more often. Active project settlements carry additional deterministic grove clusters while keeping tree trunks off paths and oversized canopies clear of building fronts.
 - Deterministic flower glades now form broader, readable beds in open ground while preserving connected trails and project entrances.
 - The creek now meanders from both sides of its bridge while staying within clear space between shared buildings and project homes.
 - The settlement now uses a tighter three-row composition so empty and

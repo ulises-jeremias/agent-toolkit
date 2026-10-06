@@ -28,7 +28,7 @@ Optional but recommended:
 - **node** / **npm** — for MCP server installation and `npx skills`
 - **git** + **bash** — only needed for git-clone or install-script methods below
 
-#### Swarms — `agent-toolkit swarm` prerequisites
+### Swarms — `agent-toolkit swarm` prerequisites
 
 Swarms are backend-neutral: the orchestration engine is filesystem-based, no cloud required. You need a **UI backend** and a **runner**:
 
@@ -54,6 +54,17 @@ agent-toolkit swarm runners --json
 ---
 
 ## Primary install (recommended)
+
+### Graphical Desktop app
+
+Download the latest [Agent Toolkit Desktop release](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+for Linux, macOS, or Windows. The Electron package includes the canonical
+backend, so a separate CLI install, source checkout, or developer toolchain is
+not required for normal Desktop use. Start with the [Desktop product guide](desktop/README.md)
+for onboarding, People, projects, Library, Operations, and terminal workflows.
+
+The CLI install below is for terminal-first setup, scripting, CI, and headless
+workflows. Desktop users can perform their basic workspace setup from the GUI.
 
 > **Support matrix:** the single source is [`docs/TRUST.md#Installation channels`](TRUST.md#installation-channels) — GitHub Releases (canonical artifact), PyPI, npm, Homebrew, AUR, GHCR container, Claude/Cursor marketplaces, Agent Plugins artifacts. The **canonical artifact** is the native V binary from a GitHub Release; PyPI/npm/marketplaces are distribution adapters, Homebrew/AUR are downstream packages that fetch the canonical artifact. V is canonical, Python is a thin launcher.
 
@@ -359,21 +370,21 @@ Restart OpenCode after adding agent files.
 
 ### validate-skills.vsh fails
 
-| Error | Fix |
+|Error|Fix|
 |-------|-----|
-| Missing `SKILL.md` | Add `SKILL.md` to the skill directory |
-| Missing frontmatter `name` | Add `name:` to the `---` block in `SKILL.md` |
-| Missing frontmatter `description` | Add `description:` to the `---` block |
-| Secret pattern detected | Remove the credential; use `${ENV_VAR}` placeholders |
+|Missing `SKILL.md`|Add `SKILL.md` to the skill directory|
+|Missing frontmatter `name`|Add `name:` to the `---` block in `SKILL.md`|
+|Missing frontmatter `description`|Add `description:` to the `---` block|
+|Secret pattern detected|Remove the credential; use `${ENV_VAR}` placeholders|
 
 ---
 
 ## Related guides
 
-| Guide | Description |
+|Guide|Description|
 |-------|-------------|
-| [TARGETS.md](TARGETS.md) | Supported compile targets and capability matrix |
-| [MIGRATION.md](MIGRATION.md) | Move from profile-copy to native plugins |
-| [MCP.md](MCP.md) | MCP provider setup |
+|[TARGETS.md](TARGETS.md)|Supported compile targets and capability matrix|
+|[MIGRATION.md](MIGRATION.md)|Move from profile-copy to native plugins|
+|[MCP.md](MCP.md)|MCP provider setup|
 
 See also: [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for doctor error recipes.

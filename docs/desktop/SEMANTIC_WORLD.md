@@ -75,7 +75,7 @@ filled with fabricated contents.
 | Registered project | Distinct project house on the east-bank neighborhood | A development repo gets a stable place in the workspace valley | Click / Enter opens that project's interior; the overview board opens its project context | ok / broken / empty roster | World Index lists project name + link status | `project.building` |
 | Project files | Filing cabinet / project desk | Files belong to the registered repository root, which may live outside the workspace | Open Workspace Files scoped to that project | listed / empty / unavailable / unsafe link skipped | List: relative path + project name | `files.project` |
 | Project knowledge | Project study shelf | Project-scoped knowledge, only when a project knowledge API exists | Open project knowledge inspector | present / empty / unavailable | List: knowledge entry counts or unavailable | `knowledge.project` (reserved; omitted until backed by an API) |
-| Memory entry (typed memory API) | Document / ledger page | Durable knowledge file with provenance | Open memory inspector | listed / readable / archived | List: id, kind, title | `memory.entry` |
+| Memory entry (typed memory API) | Archive record card | Durable remembered context with provenance | Open memory inspector | listed / readable / archived | List: id, kind, title | `memory.entry` |
 | Memory search / hits | Card index | Retrieval without inventing results | Open search / hits | hits / no hits / unavailable | List of hits | `memory.index` |
 | Terminal / PTY session | Terminal workstation | Direct agent/shell work | Open Terminal destination / dock | idle / attached / exited | List: session ids | `tool.terminal` |
 | Coding tool (detected CLI) | Tool rack slot | Real PATH/config discovery | Open Settings / Library tools | detected / configured / verified / unknown enablement | List: ToolInfo fields | `tool.coding` |
@@ -87,7 +87,7 @@ filled with fabricated contents.
 | Swarm run | Meeting table / handoff tray | Multi-agent coordination evidence | Open Operations swarms | present / empty / unavailable | List: run ids when API provides them | `swarm.table` |
 | Loop | Calendar / clock object | Scheduled or invoked loop evidence | Open Operations loops | started / finished via events | List: loop subject from events | `loop.clock` |
 | Install / update operation | Crate / delivery | Real install lifecycle events | Open Library / Insights | started / finished | List: install events | `ops.crate` |
-| Attention (failed jobs, self-check, backend down) | Red stamp / inbox | Needs a human | Open Office attention inspector | items / none | Office "Needs you" table | `attention.inbox` |
+| Attention (failed jobs, self-check, backend down) | Signal board and status lantern | Needs a human | Open Attention inspector | items / none | Attention list with a text status | `attention.inbox` |
 | Backend live stream | Workshop lamp | Connection health | Status in chrome | live / reconnecting / offline / stale | Live indicator text | `ops.lamp` |
 
 \* `agent.idle` is used only when a runtime row exists in an idle-compatible
@@ -121,7 +121,7 @@ large viewports in the project-link Electron E2E.
 |---|---|
 | No job / run / session evidence | **No character** |
 | Job queued or running | Character with `agent.working` (or blocked if status/evidence says waiting on human) |
-| Job failed / rejected (recent) | Character or stamp with blocked/attention — also listed in Office |
+| Job failed / rejected (recent) | Runtime character with an explicit blocked/attention marker — also listed in Attention |
 | Catalog agent only | Nameplate / desk object, not a character |
 
 ### Event mapping (`GET /api/v1/events`)
