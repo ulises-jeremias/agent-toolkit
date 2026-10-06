@@ -806,29 +806,25 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
 
   const centers: { x: number; y: number }[] = [];
   const anchors = new Set<string>();
-  // Broad irregular clumps make the meadow feel sheltered and lived in. Roots
-  // stay clear of doors and paths; the separate canopy pass keeps crowns from
-  // obscuring façades. Avoid a uniform row of tree ornaments.
+  // Irregular pockets leave little windows between crowns. The old row-like
+  // template read as orchard planting at overview scale; a hand-shaped grove
+  // gives the tree silhouettes a soft, natural perimeter instead.
   const offsets = [
     [0, 0],
     [-2, 0],
-    [2, 0],
-    [-4, 0],
-    [4, 0],
-    [-1, 1],
     [1, 1],
-    [-2, 2],
-    [0, 2],
-    [2, 2],
-    [-4, 2],
-    [4, 2],
-    [-3, 3],
-    [0, 3],
-    [3, 3],
-    [-3, 1],
-    [3, 1],
     [-3, 2],
-    [3, 2],
+    [-1, 3],
+    [2, 3],
+    [4, 1],
+    [3, -2],
+    [-4, -1],
+    [-3, -3],
+    [0, -3],
+    [2, -3],
+    [4, -1],
+    [-1, -2],
+    [1, 4],
   ] as const;
   const addGrove = (candidate: (typeof candidates)[number]) => {
     const minSpacing = 6;
@@ -905,12 +901,15 @@ function forest(p: Painter, projectlessMeadow = false) {
           ? roll < creekDensity
           : grove && roll < groveDensity;
       const woodlandCell = plantedGroves.has(key(x, y)) || naturallyWooded;
-      // Canopies are three tiles wide. Avoid placing trunks in adjacent
-      // cells: at overview zoom their crowns merge into a hedge along the
-      // valley edge. A two-cell root separation keeps natural clusters while
-      // preserving a visible gap between individual silhouettes.
+      // Canopies are three tiles wide. Keep trunks out of the same row or
+      // column, but allow diagonal neighbors: their crowns overlap softly and
+      // make planted groups read as woodland instead of orchard rows.
       const crowdedCanopy = p.decor.some(
-        (sprite) => sprite.sprite.startsWith('tree-') && Math.abs(sprite.x - x) < 2 && Math.abs(sprite.y - y) < 2,
+        (sprite) =>
+          sprite.sprite.startsWith('tree-') &&
+          Math.abs(sprite.x - x) < 2 &&
+          Math.abs(sprite.y - y) < 2 &&
+          (sprite.x === x || sprite.y === y),
       );
       const wantTree =
         treeInsideFrame && !overlapsBuilding && !overlapsFlowerPatch && !nearTrail && !crowdedCanopy && woodlandCell;
@@ -1029,7 +1028,11 @@ function forest(p: Painter, projectlessMeadow = false) {
         if (p.paths.has(key(x, y)) || canopyOverBuilding(p, x, y, 0, 0)) continue;
         if (
           p.decor.some(
-            (decor) => decor.sprite.startsWith('tree-') && Math.abs(decor.x - x) < 2 && Math.abs(decor.y - y) < 2,
+            (decor) =>
+              decor.sprite.startsWith('tree-') &&
+              Math.abs(decor.x - x) < 2 &&
+              Math.abs(decor.y - y) < 2 &&
+              (decor.x === x || decor.y === y),
           )
         ) {
           continue;
