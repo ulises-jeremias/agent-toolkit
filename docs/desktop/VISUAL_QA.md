@@ -200,6 +200,35 @@ those over illustrative SVG mockups; there are no SVG mockups in its gallery.
 Use the visual review archive for empty-state and edge-case screenshots rather
 than replacing the product overview with an empty map.
 
+## Current natural-ground capture — v1.42.0, 2026-10-06
+
+I recaptured the empty, one-project, and three-project workspace at 1024×640 and
+1920×1080, plus both project-room sizes, from the Electron app against a freshly
+built 1.42.0 V backend. The capture is linked from the current files above and
+the three-project large image is also the README's main valley screenshot. The
+world-art source now emits fewer tiny grass flecks per tile. The creek is
+unchanged in this capture; its existing bridge, entrances, and deterministic
+layout all pass the terrain tests.
+
+The opened large and compact views keep crisp scaling, real project houses,
+separate civic landmarks, the shared bridge, and a quieter grass texture. The
+creek still reads as a nearly straight district boundary; the broad lawn and
+orthogonal paths also remain obvious. A wider, faster creek prototype was
+rejected after it broke doorway connectivity and reduced the wooded frame in
+the empty valley. The project room still has a repeated timber wall and empty
+space between real stations. This is a reviewed iteration, not visual sign-off.
+
+Opened references: [empty world, compact](assets/electron/world/world-empty-compact.png),
+[empty world, large](assets/electron/world/world-empty-large.png),
+[one project, compact](assets/electron/world/world-one-project-compact.png),
+[one project, large](assets/electron/world/world-one-project-large.png),
+[several projects, compact](assets/electron/world/world-several-projects-compact.png),
+[several projects, large](assets/electron/world/world-several-projects-large.png),
+[project room, compact](assets/electron/world/project-files-room-compact.png),
+[project room, large](assets/electron/world/project-files-room-large.png),
+[Copilot install review, compact](assets/electron/library/copilot-project-review-compact.png),
+and [large](assets/electron/library/copilot-project-review-large.png).
+
 ## Screenshot policy
 
 Checked-in screenshots must come from the running Electron app and canonical

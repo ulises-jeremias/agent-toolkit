@@ -979,10 +979,11 @@ function grassTile(seed) {
       [2, 0, 'gm'],
     ],
   ];
-  // Ground should stay readable beneath buildings and characters, but sparse
-  // clovers disappear at overview scale. Ten to thirteen loose leaf clusters
-  // give the meadow a hand-painted texture that survives map zoom without noise.
-  const count = 10 + random(4);
+  // Ground should carry a quiet, continuous base at overview scale. Dense
+  // clovers read as repeated confetti once integer-scaled across a whole
+  // valley, so use a few larger pockets and let the authored glades, grasses,
+  // and tree canopies provide the stronger texture.
+  const count = 5 + random(4);
   for (let i = 0; i < count; i++) {
     const motif = random(3) === 0 ? tufts[random(tufts.length)] : clovers[random(clovers.length)];
     const left = 1 + random(12);
