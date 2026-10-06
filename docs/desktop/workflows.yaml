@@ -20,6 +20,9 @@ journeys:
           HOME/XDG and minimal PATH, workspace created entirely through the GUI
         build: "1.40.0 @ feat/cozy-pixel-world cb7394b2 (2026-09-30)"
       - note: e2e/electron/onboarding.spec.ts
+      - note: real Linux supervised-backend crash, in-onboarding restart, and
+          continuation to folder selection; compact and large captures opened
+        build: "1.42.0 @ feat/onboarding-backend-recovery"
     blockers: []
     recovery: guided retry on backend failure; no partial workspace left behind
   - id: workspace-switch-inspect

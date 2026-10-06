@@ -313,3 +313,17 @@ pass. Builds ran in a systemd scope capped at 4 GiB and 200% CPU. An initial
 E2E attempt using the older main checkout binary returned 404 for the Copilot
 review route; the branch-built backend fixed that environment mismatch and
 the full project-link journey then passed.
+
+## First-run recovery — 2026-10-06
+
+I used the real Linux Electron app and its supervised 1.42.0 backend in a
+throwaway HOME, killed only that backend process, and opened the failed state at
+1024×768 and 1440×960. The first capture showed an unhelpful “Starting” label
+and exposed an absolute executable path by default. I changed the state label
+to “Needs restart”, replaced the default error copy with a clear explanation,
+and moved raw diagnostics into a collapsed disclosure. I reopened the [compact
+failure screen](assets/electron/onboarding/recovery-backend-failed-compact.png)
+and [large failure screen](assets/electron/onboarding/recovery-backend-failed-large.png).
+The panel now explains that the workspace was not changed, provides an
+immediate restart action, and keeps the technical detail available on demand.
+The same E2E journey restarts the process and continues to folder selection.

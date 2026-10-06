@@ -26,7 +26,7 @@ import { backendIsReady, harnessIsChosen, harnessNeedsCreate, type OnboardingSte
 
 export function Onboarding({ onComplete }: { onComplete: () => void }) {
   const navigate = useNavigate();
-  const { backend } = useBackend();
+  const { backend, restartBackend } = useBackend();
   const { setContext, context } = useSessionContext();
   const [step, setStep] = useState<OnboardingStep>('ready');
   const ready = backendIsReady(backend);
@@ -60,7 +60,14 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
             The folder
           </li>
         </ol>
-        {step === 'ready' ? <ReadyStep ready={ready} backend={backend} onContinue={() => setStep('harness')} /> : null}
+        {step === 'ready' ? (
+          <ReadyStep
+            ready={ready}
+            backend={backend}
+            restartBackend={restartBackend}
+            onContinue={() => setStep('harness')}
+          />
+        ) : null}
         {step === 'harness' ? (
           <HarnessStep backend={backend} onBack={() => setStep('ready')} onEnterWorld={finish} />
         ) : null}
@@ -72,12 +79,30 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
 function ReadyStep({
   ready,
   backend,
+  restartBackend,
   onContinue,
 }: {
   ready: boolean;
   backend: ReturnType<typeof useBackend>['backend'];
+  restartBackend: ReturnType<typeof useBackend>['restartBackend'];
   onContinue: () => void;
 }) {
+  const [restarting, setRestarting] = useState(false);
+  const [restartError, setRestartError] = useState<Error | null>(null);
+  const unavailable = backend?.status === 'failed' || backend?.status === 'crashed';
+
+  const retryBackend = async () => {
+    setRestarting(true);
+    setRestartError(null);
+    try {
+      await restartBackend();
+    } catch (cause) {
+      setRestartError(cause instanceof Error ? cause : new Error(String(cause)));
+    } finally {
+      setRestarting(false);
+    }
+  };
+
   return (
     <div className={styles.desk}>
       <div className={styles.blotter}>
@@ -87,7 +112,7 @@ function ReadyStep({
           lede="Sit at the desk. The backend is real. Next you choose a folder, then you enter the world: each project is a house, shared knowledge and tools live as places — never fake scenery."
         />
         <Stack>
-          <Panel tone="notice" title="Backend" meta={ready ? 'Ready' : 'Starting'}>
+          <Panel tone="notice" title="Backend" meta={unavailable ? 'Needs restart' : ready ? 'Ready' : 'Starting'}>
             {backend ? (
               <KeyValue
                 items={[
@@ -96,7 +121,6 @@ function ReadyStep({
                     value: <StatusBadge tone={ready ? 'ok' : 'info'} label={backend.status} live={!ready} />,
                   },
                   { label: 'Version', value: backend.version ?? 'Unknown' },
-                  ...(backend.detail ? [{ label: 'Detail', value: backend.detail }] : []),
                 ]}
               />
             ) : (
@@ -105,11 +129,41 @@ function ReadyStep({
             {!ready && backend?.status !== 'failed' && backend?.status !== 'crashed' ? (
               <LoadingState label="Waiting for the backend" />
             ) : null}
-            {backend?.status === 'failed' || backend?.status === 'crashed' ? (
-              <ErrorState title={`Backend ${backend.status}`} error={new Error(backend.detail ?? backend.status)} />
+            {unavailable ? (
+              <>
+                <ErrorState
+                  title={`Backend ${backend.status}`}
+                  error={
+                    new Error(
+                      backend.status === 'crashed'
+                        ? 'The local service stopped unexpectedly.'
+                        : 'The local service could not start.',
+                    )
+                  }
+                  guidance="Your workspace has not been changed. Restart the local service and try again."
+                />
+                {backend.detail ? (
+                  <details className={styles.diagnostics}>
+                    <summary>Technical details</summary>
+                    <Mono>{backend.detail}</Mono>
+                  </details>
+                ) : null}
+                {restartError ? <ErrorState title="Restart failed" error={restartError} /> : null}
+              </>
             ) : null}
           </Panel>
           <ButtonRow>
+            {unavailable && window.atk ? (
+              <Button
+                variant="secondary"
+                disabled={restarting}
+                busy={restarting}
+                busyLabel="Restarting backend…"
+                onClick={() => void retryBackend()}
+              >
+                Restart backend
+              </Button>
+            ) : null}
             <Button
               variant="primary"
               disabled={!ready}
