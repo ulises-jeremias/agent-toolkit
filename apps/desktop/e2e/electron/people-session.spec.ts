@@ -26,6 +26,15 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
     });
 
     const page = desktop.page;
+    if (process.env['ATK_E2E_NO_RUNNERS'] === '1') {
+      await page.route('**/api/v1/providers', (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ ok: true, providers: [] }),
+        }),
+      );
+    }
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'People' }).click();
     await page.getByRole('button', { name: 'Create Person' }).click();
     const create = page.getByRole('dialog', { name: 'Create Person' });
@@ -68,8 +77,12 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
       )
       .toBe(true);
     if ((await installedOptions.count()) === 0) {
-      await expect(start.getByRole('status')).toContainText('No interactive runner is installed');
+      await expect(
+        start.getByText('No interactive runner is installed. Configure one in Library, then return here.'),
+      ).toBeVisible();
+      await expect(start.getByRole('checkbox')).toHaveCount(0);
       if (CAPTURE) {
+        await setViewport(desktop.app, 1024, 640);
         await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-compact.png') });
         await setViewport(desktop.app, 1920, 1080);
         await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-large.png') });
@@ -81,6 +94,12 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
     const runnerId = await installedOptions.first().getAttribute('value');
     if (!runnerId) throw new Error('Discovered runner option is missing its id.');
     await runner.selectOption(runnerId);
+    const taskField = start.getByRole('textbox', { name: 'Task for this session' });
+    await expect(taskField).toHaveValue('Review changes in this project');
+    await taskField.fill('Check this project for release blockers.');
+    await expect(start.locator('pre')).toContainText(
+      'Task for this session:\nCheck this project for release blockers.',
+    );
     if (CAPTURE) {
       await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-compact.png') });
       await setViewport(desktop.app, 1920, 1080);
@@ -88,6 +107,9 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
     }
     await start.getByRole('checkbox').check();
     await expect(startButton).toBeEnabled();
+    // The screenshot captures the prefilled reviewed task, but the lifecycle
+    // smoke must never submit work to a developer's installed model provider.
+    await taskField.fill('');
     await start.getByRole('button', { name: 'Start and open terminal' }).click();
     await expect(start).toBeHidden();
     await expect(page).toHaveURL(/#\/terminal\?[^#]*pty=/);
@@ -137,6 +159,7 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
     const stopDialog = page.getByRole('dialog', { name: "Stop Lina's session?" });
     await stopDialog.getByRole('button', { name: 'Stop session' }).click();
     await expect(page.getByRole('button', { name: /Lina.*reviewer.*Offline/ })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText('Review changes in this project', { exact: true })).toBeVisible();
     await expect(page.getByText('Recent sessions')).toBeVisible();
     await expect(page.getByText('Stopped', { exact: true })).toBeVisible();
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
