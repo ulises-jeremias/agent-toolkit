@@ -28,6 +28,7 @@ import { reviewMunderHire, type MunderReview } from './importMunder';
 import { parseProjectListMessage } from '../world/model';
 import { personSessionOptions } from './personRunner';
 import { personCharacter } from './avatar';
+import { personSessionStatusLabel } from '../../data/personSessionStatus';
 
 const blank: Person = {
   spec: 'agent-toolkit/person@1',
@@ -709,7 +710,7 @@ export default function People() {
                                       ? 'warn'
                                       : 'idle'
                               }
-                              label={session.status}
+                              label={personSessionStatusLabel(session.status)}
                             />
                             <small>
                               {session.provider}

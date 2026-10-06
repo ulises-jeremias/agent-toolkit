@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { personSessionEndStatus } from './personSessionStatus';
+import { personSessionEndStatus, personSessionStatusLabel } from './personSessionStatus';
 
 describe('personSessionEndStatus', () => {
   it.each([
@@ -10,5 +10,20 @@ describe('personSessionEndStatus', () => {
     [137, 'app-shutdown', 'interrupted'],
   ] as const)('maps real exit evidence (%s, %s) to %s', (code, reason, status) => {
     expect(personSessionEndStatus(code, reason)).toBe(status);
+  });
+});
+
+describe('personSessionStatusLabel', () => {
+  it.each([
+    ['launching', 'Starting'],
+    ['running', 'Running'],
+    ['completed', 'Completed'],
+    ['failed', 'Failed'],
+    ['stopped', 'Stopped'],
+    ['timed_out', 'Timed out'],
+    ['interrupted', 'Interrupted'],
+    ['unexpected', 'Unknown'],
+  ])('shows %s as %s', (status, label) => {
+    expect(personSessionStatusLabel(status)).toBe(label);
   });
 });
