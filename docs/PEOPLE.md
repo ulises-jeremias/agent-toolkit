@@ -21,7 +21,7 @@ assigned to a registered project.
 
 | Start review with an available runner | Recovery when no runner is installed |
 |---|---|
-| ![Runner, model, project, goal and local-session limits reviewed before start](desktop/assets/electron/people/person-start-large.png) | ![Start review clearly explains that no interactive runner is installed](desktop/assets/electron/people/person-start-no-runner-large.png) |
+| ![Project, runner, editable one-time task and exact role-goal-task prompt reviewed before start](desktop/assets/electron/people/person-start-large.png) | ![Start review clearly explains that no interactive runner is installed](desktop/assets/electron/people/person-start-no-runner-large.png) |
 
 | Real Person session in the world | Person after the PTY stops |
 |---|---|
@@ -153,10 +153,16 @@ and rejects symlinked storage. The import picker accepts a local
 `munder-difflin/hire@1` JSON file, previews every mapped domain field and the
 names of ignored fields, and requires a separate save action. Saving or
 importing never starts a process. The Start review selects a real project,
-discovered runner and optional runner model. The V backend validates the
-Person, linked project and provider, resolves the canonical working folder,
-and writes `.agent-toolkit/sessions/<id>.json` with `launching` before Electron
-opens the runner through node-pty. Electron reports `running` and terminal lifecycle outcomes;
+discovered runner and optional runner model. It preloads the Person's durable
+goal into a one-time editable task field, then previews the exact initial
+prompt (role, goal and task) before Start. The task is not written back to the
+Person or stored in the canonical PersonSession lifecycle record. OpenCode,
+Claude, Codex and Copilot receive it through their documented interactive
+prompt options; runners with no verified option open normally and offer a
+copy action. The V backend validates the Person, linked project and provider,
+resolves the canonical working folder, and writes
+`.agent-toolkit/sessions/<id>.json` with `launching`
+before Electron opens the runner through node-pty. Electron reports `running` and terminal lifecycle outcomes;
 on startup, Desktop reconciles active records against PTYs still owned by its
 main process and records missing processes as interrupted. The PTY carries the
 V session ID, Person ID and project ID so a living process can be inspected
@@ -176,9 +182,10 @@ file authoring as the user interface:
   keeping a process alive after Desktop exits. The durable lifecycle record
   remains, but Desktop marks a missing PTY as interrupted rather than claiming
   the provider conversation can resume.
-- The saved Person goal and definition are shown in the review but are not yet
-  sent as a runner prompt. Start opens the provider interactively; the user
-  enters the task in its real terminal.
+- Cursor and Muse currently open interactively without a submitted initial
+  task because their runner-specific interactive prompt contracts have not
+  been verified. The Start review lets the user copy the reviewed prompt into
+  those terminals.
 - Runtime enforcement of token/cost limits and non-inherited isolation for the
   local PTY Start flow. `max_seconds` is enforced by Desktop and stops the PTY
   when its time budget expires.

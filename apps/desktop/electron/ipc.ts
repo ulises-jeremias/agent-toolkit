@@ -112,6 +112,8 @@ export function registerIpc(deps: IpcDeps): void {
         agent: string;
         personId?: string;
         projectId?: string;
+        agentSessionId?: string;
+        sessionWorkspace?: string;
         provider?: string;
         model?: string;
         cmd: string;
@@ -123,13 +125,37 @@ export function registerIpc(deps: IpcDeps): void {
       },
     ) => {
       if (!isRecord(options)) return null;
-      const { agent, personId, projectId, provider, model, cmd, args, cwd, maxSeconds, cols, rows } = options;
+      const {
+        agent,
+        personId,
+        agentSessionId,
+        sessionWorkspace,
+        projectId,
+        provider,
+        model,
+        cmd,
+        args,
+        cwd,
+        maxSeconds,
+        cols,
+        rows,
+      } = options;
       if (typeof agent !== 'string' || !agent.trim()) return null;
       if (typeof cmd !== 'string' || !cmd.trim()) return null;
       if (args !== undefined && (!Array.isArray(args) || args.some((a) => typeof a !== 'string'))) return null;
       if (cwd !== undefined && typeof cwd !== 'string') return null;
       if (maxSeconds !== undefined && (!isPositiveInt(maxSeconds) || maxSeconds > 31_536_000)) return null;
       if (personId !== undefined && (typeof personId !== 'string' || !/^[a-z0-9][a-z0-9_-]{0,63}$/.test(personId)))
+        return null;
+      if (
+        agentSessionId !== undefined &&
+        (typeof agentSessionId !== 'string' || !/^[a-z0-9][a-z0-9_-]{0,127}$/.test(agentSessionId))
+      )
+        return null;
+      if (
+        sessionWorkspace !== undefined &&
+        (typeof sessionWorkspace !== 'string' || !sessionWorkspace.trim() || sessionWorkspace.length > 4096)
+      )
         return null;
       if (projectId !== undefined && (typeof projectId !== 'string' || projectId.length > 256)) return null;
       if (provider !== undefined && (typeof provider !== 'string' || provider.length > 64)) return null;
@@ -141,6 +167,8 @@ export function registerIpc(deps: IpcDeps): void {
           deps.getTerminals()?.create({
             agent,
             personId,
+            agentSessionId,
+            sessionWorkspace,
             projectId,
             provider,
             model,

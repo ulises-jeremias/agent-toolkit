@@ -187,6 +187,34 @@
 .startFooter > :last-child {
   justify-content: flex-end;
 }
+.promptPreview {
+  box-sizing: border-box;
+  max-height: 12rem;
+  overflow: auto;
+  margin: 0;
+  border: 2px solid var(--border-strong);
+  border-left: 4px solid var(--accent-gold);
+  background: var(--surface-raised);
+  padding: var(--space-3);
+  color: var(--text-primary);
+  font: 0.92rem/1.5 var(--font-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.copyTaskRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-muted);
+}
+.recoveryNote {
+  margin: 0;
+  border-left: 4px solid var(--accent-gold);
+  background: var(--surface-raised);
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-primary);
+  line-height: 1.45;
+}
 .policyAcknowledgement input {
   flex: 0 0 auto;
   margin-top: 0.2rem;

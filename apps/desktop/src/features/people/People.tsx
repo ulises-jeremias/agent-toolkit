@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAgents, useModels, useProviders } from '../../data/catalog';
+import { useAgents, useProviders } from '../../data/catalog';
 import { requireClient, useBackend } from '../../data/backend';
-import { errorMessage, envelopeText, type Person } from '../../lib/api';
-import { useSubQuery } from '../../data/commands';
+import { errorMessage, type Person } from '../../lib/api';
 import { useTerminalSessions } from '../../data/terminal';
 import { useSessionContext } from '../../shell/useSessionContext';
 import {
@@ -25,8 +24,7 @@ import {
 } from '../../ui';
 import styles from './people.module.css';
 import { reviewMunderHire, type MunderReview } from './importMunder';
-import { parseProjectListMessage } from '../world/model';
-import { personSessionOptions } from './personRunner';
+import { PersonStartDialog } from './PersonStartDialog';
 import { personCharacter } from './avatar';
 import { personSessionStatusLabel } from '../../data/personSessionStatus';
 
@@ -331,17 +329,8 @@ export default function People() {
   const [importPromptOpen, setImportPromptOpen] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [starting, setStarting] = useState<Person | null>(null);
-  const [startProject, setStartProject] = useState('');
-  const [startProvider, setStartProvider] = useState('');
-  const [startModel, setStartModel] = useState('');
-  const [acknowledgeUnenforcedPolicy, setAcknowledgeUnenforcedPolicy] = useState(false);
   const [stoppingSessionId, setStoppingSessionId] = useState<string | null>(null);
   const [sessionActionError, setSessionActionError] = useState<string | null>(null);
-  const [startError, setStartError] = useState<string | null>(null);
-  const [startBusy, setStartBusy] = useState(false);
-  const projectsQuery = useSubQuery('project', 'list');
-  const providersQuery = useProviders();
-  const modelsQuery = useModels();
   const importInput = useRef<HTMLInputElement>(null);
   const chooseImport = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -391,11 +380,6 @@ export default function People() {
   });
   const people = list.data?.people ?? [];
   const selected = people.find((person) => person.id === selectedId) ?? people[0];
-  const projects = useMemo(
-    () =>
-      projectsQuery.isSuccess && projectsQuery.data ? parseProjectListMessage(envelopeText(projectsQuery.data)) : [],
-    [projectsQuery.data, projectsQuery.isSuccess],
-  );
   const selectedSession = selected
     ? terminals.sessions.find((session) => session.personId === selected.id && session.exitCode === null)
     : undefined;
@@ -417,19 +401,6 @@ export default function People() {
       ),
     [terminals.sessions],
   );
-  const providers = useMemo(() => providersQuery.data?.providers ?? [], [providersQuery.data]);
-  const models = useMemo(() => modelsQuery.data?.models ?? [], [modelsQuery.data]);
-  const matchingModels = models.filter((model) => model.runner === startProvider);
-  const chosenProvider = providers.find((provider) => provider.id === startProvider);
-  const chosenModel = matchingModels.find((model) => model.model === startModel);
-  const chosenProject = projects.find((project) => project.name === startProject);
-  const unenforcedPersonPolicy = starting
-    ? [
-        starting.isolation && starting.isolation !== 'inherited' ? `Isolation: ${starting.isolation}` : null,
-        starting.budget?.max_tokens ? `Token limit: ${starting.budget.max_tokens.toLocaleString()}` : null,
-        starting.budget?.max_cost_usd ? `Cost limit: $${starting.budget.max_cost_usd.toFixed(2)}` : null,
-      ].filter((item): item is string => item !== null)
-    : [];
   const formOpen = creating || editing !== null || importDraft !== null;
 
   useEffect(() => {
@@ -466,82 +437,6 @@ export default function People() {
     next.delete('start');
     setParams(next, { replace: true });
   }, [list.data, list.isSuccess, params, setParams]);
-
-  useEffect(() => {
-    if (!starting) return;
-    setStartProject('');
-    setStartProvider(starting.preferred_provider || '');
-    setStartModel(starting.preferred_model || '');
-    setAcknowledgeUnenforcedPolicy(false);
-    setStartError(null);
-  }, [starting]);
-
-  useEffect(() => {
-    if (!starting) return;
-    setStartProject((current) => current || projects.find((project) => project.status === 'ok')?.name || '');
-    setStartProvider(
-      (current) => current || providers.find((provider) => provider.available && provider.id !== 'skeleton')?.id || '',
-    );
-  }, [starting, projects, providers]);
-
-  const beginPerson = async () => {
-    if (!starting || !chosenProvider || !chosenProject || startBusy) return;
-    if (unenforcedPersonPolicy.length > 0 && !acknowledgeUnenforcedPolicy) return;
-    setStartError(null);
-    const options = personSessionOptions(
-      starting,
-      chosenProvider,
-      chosenModel,
-      chosenProject.target,
-      chosenProject.name,
-    );
-    if (!options) {
-      setStartError(
-        'This runner is not available for a local PTY session. Choose an installed runner and a valid project.',
-      );
-      return;
-    }
-    setStartBusy(true);
-    try {
-      const api = requireClient(client);
-      const record = await api.createPersonSession({
-        workspace,
-        person_id: starting.id,
-        project_id: chosenProject.name,
-        provider: chosenProvider.id,
-        model: chosenModel?.model ?? '',
-      });
-      let session = null;
-      try {
-        session = await terminals.create({
-          ...options,
-          cwd: record.session.cwd,
-          agentSessionId: record.session.id,
-          sessionWorkspace: workspace,
-        });
-        if (!session) throw new Error('Desktop could not start the local PTY process.');
-        try {
-          await api.updatePersonSession(workspace, record.session.id, 'running');
-        } catch (error) {
-          const current = await api.personSessions(workspace).catch(() => null);
-          const saved = current?.sessions.find((candidate) => candidate.id === record.session.id);
-          if (!saved || !['completed', 'failed', 'stopped', 'timed_out', 'interrupted'].includes(saved.status))
-            throw error;
-        }
-      } catch (error) {
-        if (session) await terminals.close(session.id);
-        await api.updatePersonSession(workspace, record.session.id, 'failed').catch(() => null);
-        throw error;
-      }
-      void queryClient.invalidateQueries({ queryKey: ['person-sessions', workspace] });
-      setStarting(null);
-      navigate(href('/terminal', { pty: session.id }));
-    } catch (error) {
-      setStartError(errorMessage(error));
-    } finally {
-      setStartBusy(false);
-    }
-  };
 
   return (
     <>
@@ -781,11 +676,7 @@ export default function People() {
                         />
                       </>
                     ) : !selected.archived ? (
-                      <Button
-                        variant="primary"
-                        disabled={!terminals.available || projectsQuery.isPending || providersQuery.isPending}
-                        onClick={() => setStarting(selected)}
-                      >
+                      <Button variant="primary" disabled={!terminals.available} onClick={() => setStarting(selected)}>
                         Start {selected.name}
                       </Button>
                     ) : null}
@@ -845,174 +736,7 @@ export default function People() {
           error={save.error}
         />
       </Dialog>
-      <Dialog
-        open={starting !== null}
-        onClose={() => setStarting(null)}
-        title={starting ? `Start ${starting.name}` : 'Start Person'}
-        description="Starts the discovered runner in a real local PTY at the project folder. The Person goal is a reference, not an instruction sent to the runner. Max runtime is enforced; token/cost limits and worktree/session isolation are not supported by this interactive PTY yet."
-        size="wide"
-        footer={
-          <div className={styles.startFooter}>
-            {unenforcedPersonPolicy.length > 0 ? (
-              <label className={styles.policyAcknowledgement}>
-                <input
-                  type="checkbox"
-                  checked={acknowledgeUnenforcedPolicy}
-                  onChange={(event) => setAcknowledgeUnenforcedPolicy(event.target.checked)}
-                />
-                <span>
-                  Start without enforcing {unenforcedPersonPolicy.join(', ')}. This session will use the selected
-                  project folder; its files may be changed by the runner.
-                </span>
-              </label>
-            ) : null}
-            <ButtonRow>
-              <Button onClick={() => setStarting(null)}>Cancel</Button>
-              <Button
-                variant="primary"
-                busy={startBusy}
-                busyLabel="Starting…"
-                disabled={
-                  !chosenProject ||
-                  !chosenProvider ||
-                  startBusy ||
-                  (unenforcedPersonPolicy.length > 0 && !acknowledgeUnenforcedPolicy)
-                }
-                onClick={() => void beginPerson()}
-              >
-                Start and open terminal
-              </Button>
-            </ButtonRow>
-          </div>
-        }
-      >
-        {starting ? (
-          <div className={styles.form}>
-            <div className={styles.formGrid}>
-              <Field label="Project and working folder">
-                {(control) => (
-                  <Select {...control} value={startProject} onChange={(event) => setStartProject(event.target.value)}>
-                    <option value="">Choose a project</option>
-                    {projects
-                      .filter((project) => project.status === 'ok')
-                      .map((project) => (
-                        <option key={project.name} value={project.name}>
-                          {project.name} · {project.target}
-                        </option>
-                      ))}
-                  </Select>
-                )}
-              </Field>
-              <Field label="Runner">
-                {(control) => (
-                  <Select
-                    {...control}
-                    value={startProvider}
-                    onChange={(event) => {
-                      setStartProvider(event.target.value);
-                      setStartModel('');
-                    }}
-                  >
-                    <option value="">Choose an installed runner</option>
-                    {providers.map((provider) => (
-                      <option
-                        key={provider.id}
-                        value={provider.id}
-                        disabled={!provider.available || provider.id === 'skeleton'}
-                      >
-                        {provider.id}
-                        {provider.available ? '' : ' · unavailable'}
-                      </option>
-                    ))}
-                  </Select>
-                )}
-              </Field>
-              <Field label="Model" hint="Optional. Only models discovered for this runner are offered.">
-                {(control) => (
-                  <Select {...control} value={startModel} onChange={(event) => setStartModel(event.target.value)}>
-                    <option value="">Runner default</option>
-                    {startModel && !matchingModels.some((model) => model.model === startModel) ? (
-                      <option value={startModel} disabled>
-                        {startModel} · not discovered
-                      </option>
-                    ) : null}
-                    {matchingModels.map((model) => (
-                      <option key={`${model.profile}:${model.model}`} value={model.model}>
-                        {model.profile} · {model.model}
-                      </option>
-                    ))}
-                  </Select>
-                )}
-              </Field>
-            </div>
-            <Panel title="Start preview" meta={starting.role}>
-              <p>
-                <strong>Goal:</strong> {starting.goal}
-              </p>
-              <p>
-                <strong>Command:</strong>{' '}
-                <code>
-                  {chosenProvider?.bin || 'Choose a runner'}
-                  {chosenModel ? ` --model ${chosenModel.model}` : ''}
-                </code>
-              </p>
-              {startModel && !chosenModel ? (
-                <p role="status">
-                  Preferred model “{startModel}” is not in this runner&apos;s discovered catalog; the runner default
-                  will be used.
-                </p>
-              ) : null}
-              <p>
-                <strong>Working folder:</strong> <code>{chosenProject?.target || 'Choose a project'}</code>
-              </p>
-              <p>
-                <strong>Isolation:</strong> {starting.isolation || 'inherited'} · this session uses the selected project
-                folder
-              </p>
-              <p>
-                <strong>Runtime cap:</strong>{' '}
-                {starting.budget?.max_seconds
-                  ? `${starting.budget.max_seconds}s · enforced by Desktop`
-                  : 'None configured'}
-              </p>
-              {starting.budget?.max_tokens || starting.budget?.max_cost_usd ? (
-                <p>
-                  <strong>Usage limits:</strong>{' '}
-                  {[
-                    starting.budget.max_tokens ? `${starting.budget.max_tokens.toLocaleString()} tokens` : null,
-                    starting.budget.max_cost_usd ? `$${starting.budget.max_cost_usd.toFixed(2)}` : null,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}{' '}
-                  · not enforced for this interactive runner
-                </p>
-              ) : null}
-              <p>The runner opens interactively. Enter the task in its terminal to begin.</p>
-            </Panel>
-            {projectsQuery.isError ? <ErrorState title="Could not load projects" error={projectsQuery.error} /> : null}
-            {providersQuery.isError ? (
-              <ErrorState title="Could not discover runners" error={providersQuery.error} />
-            ) : null}
-            {providersQuery.isSuccess &&
-            !providers.some((provider) => provider.available && provider.id !== 'skeleton') ? (
-              <p role="status">
-                No interactive runner is installed. Install or configure one from Library, then retry.
-              </p>
-            ) : null}
-            {projectsQuery.isSuccess && !projects.some((project) => project.status === 'ok') ? (
-              <p role="status">
-                No healthy project is linked yet. Link an existing folder from World or Workspace before starting this
-                Person.
-              </p>
-            ) : null}
-            {startError ? (
-              <p role="alert" className={styles.error}>
-                {startError}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-      </Dialog>
+      <PersonStartDialog person={starting} onClose={() => setStarting(null)} />
       <Dialog
         open={importReview !== null}
         onClose={() => setImportReview(null)}

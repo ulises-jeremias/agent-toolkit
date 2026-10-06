@@ -328,6 +328,8 @@ journeys:
           - assets/electron/people/world-person-large.png
           - assets/electron/people/people-offline-after-stop.png
       - note: Ctrl+K Start Person opens the same review flow as People; the active Person command opens its existing PTY; apps/desktop/e2e/electron/people-session.spec.ts checks the real PTY lifecycle when a runner is available and the unavailable-runner recovery state otherwise
+      - note: Start preloads a one-time task from the durable Person goal, previews the exact role/goal/task prompt, and passes it only to documented interactive launch options for OpenCode, Claude, Codex and Copilot; the task never updates the Person record. Cursor and Muse stay interactive and provide a copy action until their prompt contracts are verified.
+      - note: Electron's PTY bridge retains the owning workspace and V session ID; the lifecycle E2E confirms process stop changes the durable record from running to stopped while the Person and goal remain configured.
       - note: After the project-valley layout update, the real Lina PTY character remains beside the linked agent-toolkit house while the PTY is open and disappears from the map after exit is confirmed; captures were regenerated and opened at compact and large sizes
         build: "9deb8f6b (Linux Electron E2E; people-session.spec.ts)"
         screenshots:
@@ -336,6 +338,7 @@ journeys:
           - assets/electron/people/people-offline-after-stop.png
     blockers:
       - provider conversation IDs, transcript continuity and safe runner-specific resume are not available yet
+      - initial-task submission is not supported for Cursor or Muse; no runner-specific argument contract is assumed
       - max_seconds is enforced by Desktop; token/cost limits and non-inherited isolation still require explicit acknowledgement because the interactive PTY cannot enforce them
   - id: swarm-role-picker
     title: Choose People for swarm roles before start
