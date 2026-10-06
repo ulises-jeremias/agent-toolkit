@@ -47,6 +47,8 @@ export interface Desktop {
   home: string;
   /** Scratch workspace scaffolded by the real CLI when `initWorkspace` is true. */
   workspace: string;
+  /** Exact backend binary started by the Electron supervisor. */
+  backendBin: string;
   close: () => Promise<void>;
 }
 
@@ -117,6 +119,7 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
     page,
     home,
     workspace,
+    backendBin,
     close: async () => {
       const process = app.process();
       let killTimer: ReturnType<typeof setTimeout> | undefined;
