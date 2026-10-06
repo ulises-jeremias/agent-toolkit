@@ -1558,6 +1558,154 @@
         }
       }
     },
+    "/api/v1/sessions": {
+      "get": {
+        "operationId": "list_person_sessions",
+        "summary": "List durable Person session lifecycle records",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonSessionsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "create_person_session",
+        "summary": "Validate a Person launch and create a session record",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonSessionCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonSessionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Person, project, provider or model cannot be launched",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "workspace or Person not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{id}/status": {
+      "post": {
+        "operationId": "update_person_session_status",
+        "summary": "Record a PTY lifecycle transition reported by Desktop",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonSessionStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonSessionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid session status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "session not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "invalid lifecycle transition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/people/bindings": {
       "get": {
         "operationId": "list_people_bindings",
@@ -4181,6 +4329,158 @@
           "workspace",
           "recipe",
           "roles"
+        ]
+      },
+      "PersonSession": {
+        "type": "object",
+        "description": "Durable lifecycle evidence for a real local PTY bound to a Person.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "person_id": {
+            "type": "string"
+          },
+          "person": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "cwd": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "launching",
+              "running",
+              "completed",
+              "failed",
+              "stopped",
+              "timed_out",
+              "interrupted"
+            ]
+          },
+          "started_at": {
+            "type": "string"
+          },
+          "ended_at": {
+            "type": "string"
+          },
+          "exit_code": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "person_id",
+          "person",
+          "role",
+          "project_id",
+          "cwd",
+          "provider",
+          "model",
+          "status",
+          "started_at",
+          "ended_at",
+          "exit_code"
+        ]
+      },
+      "PersonSessionsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonSession"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "sessions"
+        ]
+      },
+      "PersonSessionResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "session": {
+            "$ref": "#/components/schemas/PersonSession"
+          }
+        },
+        "required": [
+          "ok",
+          "session"
+        ]
+      },
+      "PersonSessionCreateRequest": {
+        "type": "object",
+        "properties": {
+          "workspace": {
+            "type": "string"
+          },
+          "person_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace",
+          "person_id",
+          "project_id",
+          "provider",
+          "model"
+        ]
+      },
+      "PersonSessionStatusRequest": {
+        "type": "object",
+        "properties": {
+          "workspace": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "completed",
+              "failed",
+              "stopped",
+              "timed_out",
+              "interrupted"
+            ]
+          },
+          "exit_code": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "workspace",
+          "status",
+          "exit_code"
         ]
       },
       "MemoryProvenance": {

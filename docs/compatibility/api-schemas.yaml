@@ -244,6 +244,51 @@ schemas:
       - recipe:string
       - roles:map<string>
 
+  - name: PersonSession
+    v_struct: PersonSession
+    description: Durable lifecycle evidence for a real local PTY bound to a Person.
+    fields:
+      - id:string
+      - person_id:string
+      - person:string
+      - role:string
+      - project_id:string
+      - cwd:string
+      - provider:string
+      - model:string
+      - status:string=launching|running|completed|failed|stopped|timed_out|interrupted
+      - started_at:string
+      - ended_at:string
+      - exit_code:integer
+
+  - name: PersonSessionsResponse
+    v_struct: PersonSessionsResponse
+    fields:
+      - ok:boolean
+      - 'sessions:#PersonSession[]'
+
+  - name: PersonSessionResponse
+    v_struct: PersonSessionResponse
+    fields:
+      - ok:boolean
+      - 'session:#PersonSession'
+
+  - name: PersonSessionCreateRequest
+    v_struct: PersonSessionCreateRequest
+    fields:
+      - workspace:string
+      - person_id:string
+      - project_id:string
+      - provider:string
+      - model:string
+
+  - name: PersonSessionStatusRequest
+    v_struct: PersonSessionStatusRequest
+    fields:
+      - workspace:string
+      - status:string=running|completed|failed|stopped|timed_out|interrupted
+      - exit_code:integer
+
   - name: MemoryProvenance
     description: >-
       Honest origin for a knowledge file. author is the last git committer
@@ -648,6 +693,31 @@ native:
     op: list_people
     summary: List validated durable People in a workspace
     response: object
+  - path: /api/v1/sessions
+    method: get
+    op: list_person_sessions
+    summary: List durable Person session lifecycle records
+    query_params: ['workspace?:string']
+    response: '#PersonSessionsResponse'
+  - path: /api/v1/sessions
+    method: post
+    op: create_person_session
+    summary: Validate a Person launch and create a session record
+    request_body: PersonSessionCreateRequest
+    response: '#PersonSessionResponse'
+    errors:
+      - '400:Person, project, provider or model cannot be launched'
+      - '404:workspace or Person not found'
+  - path: /api/v1/sessions/{id}/status
+    method: post
+    op: update_person_session_status
+    summary: Record a PTY lifecycle transition reported by Desktop
+    request_body: PersonSessionStatusRequest
+    response: '#PersonSessionResponse'
+    errors:
+      - '400:invalid session status'
+      - '404:session not found'
+      - '409:invalid lifecycle transition'
   - path: /api/v1/people/bindings
     method: get
     op: list_people_bindings

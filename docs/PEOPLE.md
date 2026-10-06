@@ -2,10 +2,13 @@
 
 Status: **PARTIAL PRODUCT DELIVERY** — Desktop supports roster CRUD, reviewed
 one-way Munder import, and starting a discovered runner as a real local PTY
-bound to a Person and project. The local PTY enforces `max_seconds`; token and
-cost limits and non-inherited isolation are disclosed as unsupported and need
-explicit acknowledgement. This is not yet a durable server-side
-`AgentSession`; see [Gaps](#gaps).
+bound to a Person and project. The V backend records session identity and
+lifecycle history; Electron remains the process/PTY owner. A configured Person
+stays offline unless a matching local PTY is alive. The local PTY enforces
+`max_seconds`; token and cost limits and non-inherited isolation are disclosed
+as unsupported and need explicit acknowledgement. Provider conversation IDs,
+resume, and process continuity across app exit are not implemented; see
+[Gaps](#gaps).
 
 The screenshots below were captured from the live Electron app and backend at
 both compact and large sizes. A configured Person is offline until a real PTY
@@ -36,7 +39,7 @@ These five things are different, and the code keeps them different:
 | **Agent definition** | toolkit `agents/<name>/AGENT.md` | A reusable persona template — how an AI works in a session |
 | **Agent profile** | toolkit `profiles/<target>/` | A per-target adapter/overlay of toolkit capabilities |
 | **Person** | workspace `people/<id>.json` | A durable collaborator you chose and reviewed |
-| **Agent session** | runtime | A live conversation with ephemeral state |
+| **Agent session** | workspace `.agent-toolkit/sessions/<id>.json` + Electron PTY | Durable lifecycle record joined to one local runner process; provider conversation state is not captured yet |
 | **Swarm role** | recipe | A slot in a swarm run, resolved per run |
 
 Workspace personas (`personas/*.md`) constrain behavior and permissions during
@@ -57,6 +60,9 @@ a session; they are not identity. A Person composes an optional
     person.schema.json     mirrored (canonical: toolkit schemas/person.schema.json)
     people-bindings.schema.json
     people-contracts.lock.json  SHA256/source lock for the mirrors
+  .agent-toolkit/
+    sessions/
+      <session-id>.json    V-owned PersonSession lifecycle evidence
 ```
 
 `workspace init` scaffolds `people/README.md` and rejects symlinked
@@ -143,21 +149,32 @@ and rejects symlinked storage. The import picker accepts a local
 `munder-difflin/hire@1` JSON file, previews every mapped domain field and the
 names of ignored fields, and requires a separate save action. Saving or
 importing never starts a process. The Start review selects a real project,
-discovered runner and optional runner model, then opens that runner in the
-project's real working folder through node-pty. The PTY retains the Person and
-project IDs so a living process can be inspected from the world and reopened in
-Terminal; stopping/reaping it leaves the Person untouched. The portrait uses
-original Toolkit sprites; source appearance is attribution only. Operations
-also offers explicit Person assignment per swarm role, validates the choice
-against the workspace roster, and can launch real adapter-backed role sessions.
+discovered runner and optional runner model. The V backend validates the
+Person, linked project and provider, resolves the canonical working folder,
+and writes `.agent-toolkit/sessions/<id>.json` with `launching` before Electron
+opens the runner through node-pty. Electron reports `running` and terminal lifecycle outcomes;
+on startup, Desktop reconciles active records against PTYs still owned by its
+main process and records missing processes as interrupted. The PTY carries the
+V session ID, Person ID and project ID so a living process can be inspected
+from the world and reopened in Terminal; stopping/reaping it leaves the Person
+untouched. This record is lifecycle evidence, not a provider conversation
+transcript or resumable session. The portrait uses original Toolkit sprites;
+source appearance is attribution only. Operations also offers explicit Person
+assignment per swarm role, validates the choice against the workspace roster,
+and can launch real adapter-backed role sessions.
 
 ## Gaps
 
 The following are explicitly **not implemented**. Do not represent schemas or
 file authoring as the user interface:
 
-- Durable backend `AgentSession` records, session history across Desktop
-  restarts, and runner-specific injection of the saved Person goal/definition.
+- Runner-specific provider session IDs, conversation history, safe resume, and
+  keeping a process alive after Desktop exits. The durable lifecycle record
+  remains, but Desktop marks a missing PTY as interrupted rather than claiming
+  the provider conversation can resume.
+- The saved Person goal and definition are shown in the review but are not yet
+  sent as a runner prompt. Start opens the provider interactively; the user
+  enters the task in its real terminal.
 - Runtime enforcement of token/cost limits and non-inherited isolation for the
   local PTY Start flow. `max_seconds` is enforced by Desktop and stops the PTY
   when its time budget expires.

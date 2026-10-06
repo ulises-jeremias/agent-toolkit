@@ -21,6 +21,8 @@ import type {
   PeopleResponse,
   PersonResponse,
   PersonBindingsResponse,
+  PersonSessionResponse,
+  PersonSessionsResponse,
   Person,
   ProvidersResponse,
   SelfcheckResponse,
@@ -448,6 +450,31 @@ export class ApiClient {
   archivePerson(workspace: string, id: string): Promise<PersonResponse> {
     return this.json('POST', fillPath('/api/v1/people/{id}/archive' satisfies PathWith<'post'>, { id }), {
       body: { workspace },
+    });
+  }
+
+  personSessions(workspace: string): Promise<PersonSessionsResponse> {
+    return this.json('GET', '/api/v1/sessions' satisfies PathWith<'get'>, { query: { workspace } });
+  }
+
+  createPersonSession(input: {
+    workspace: string;
+    person_id: string;
+    project_id: string;
+    provider: string;
+    model: string;
+  }): Promise<PersonSessionResponse> {
+    return this.json('POST', '/api/v1/sessions' satisfies PathWith<'post'>, { body: input });
+  }
+
+  updatePersonSession(
+    workspace: string,
+    id: string,
+    status: 'running' | 'completed' | 'failed' | 'stopped' | 'timed_out' | 'interrupted',
+    exit_code = -1,
+  ): Promise<PersonSessionResponse> {
+    return this.json('POST', fillPath('/api/v1/sessions/{id}/status' satisfies PathWith<'post'>, { id }), {
+      body: { workspace, status, exit_code },
     });
   }
 

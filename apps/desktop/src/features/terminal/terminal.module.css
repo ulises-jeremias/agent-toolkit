@@ -67,6 +67,19 @@
   min-height: 0;
 }
 
+.sessionError {
+  position: absolute;
+  z-index: 3;
+  top: var(--space-3);
+  left: var(--space-3);
+  right: var(--space-3);
+  margin: 0;
+  border: 2px solid var(--status-err-fg);
+  background: var(--status-err-bg);
+  color: var(--status-err-fg);
+  padding: var(--space-2) var(--space-3);
+}
+
 .hostPane {
   position: absolute;
   inset: 0;
@@ -126,7 +139,9 @@
 }
 
 .chrome:focus-within {
-  box-shadow: var(--shadow-raised), 0 0 0 2px var(--accent-gold);
+  box-shadow:
+    var(--shadow-raised),
+    0 0 0 2px var(--accent-gold);
 }
 
 .chromeBar {

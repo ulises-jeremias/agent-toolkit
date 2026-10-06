@@ -361,6 +361,11 @@ export default function People() {
     queryFn: () => requireClient(client).people(workspace),
     enabled: client !== null && Boolean(workspace),
   });
+  const sessionHistory = useQuery({
+    queryKey: ['person-sessions', workspace],
+    queryFn: () => requireClient(client).personSessions(workspace),
+    enabled: client !== null && Boolean(workspace),
+  });
   const save = useMutation({
     mutationFn: (person: Person) =>
       editing
@@ -398,6 +403,9 @@ export default function People() {
         .filter((session) => session.personId === selected.id)
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
     : undefined;
+  const selectedSessionHistory = selected
+    ? (sessionHistory.data?.sessions.filter((session) => session.person_id === selected.id).slice(0, 5) ?? [])
+    : [];
   const displaySession = selectedSession ?? selectedRecentSession;
   const activePersonIds = useMemo(
     () =>
@@ -494,11 +502,37 @@ export default function People() {
     }
     setStartBusy(true);
     try {
-      const session = await terminals.create(options);
-      if (!session)
-        throw new Error(
-          'The session was not created. Recheck the project folder and confirm Desktop is still connected.',
-        );
+      const api = requireClient(client);
+      const record = await api.createPersonSession({
+        workspace,
+        person_id: starting.id,
+        project_id: chosenProject.name,
+        provider: chosenProvider.id,
+        model: chosenModel?.model ?? '',
+      });
+      let session = null;
+      try {
+        session = await terminals.create({
+          ...options,
+          cwd: record.session.cwd,
+          agentSessionId: record.session.id,
+          sessionWorkspace: workspace,
+        });
+        if (!session) throw new Error('Desktop could not start the local PTY process.');
+        try {
+          await api.updatePersonSession(workspace, record.session.id, 'running');
+        } catch (error) {
+          const current = await api.personSessions(workspace).catch(() => null);
+          const saved = current?.sessions.find((candidate) => candidate.id === record.session.id);
+          if (!saved || !['completed', 'failed', 'stopped', 'timed_out', 'interrupted'].includes(saved.status))
+            throw error;
+        }
+      } catch (error) {
+        if (session) await terminals.close(session.id);
+        await api.updatePersonSession(workspace, record.session.id, 'failed').catch(() => null);
+        throw error;
+      }
+      void queryClient.invalidateQueries({ queryKey: ['person-sessions', workspace] });
       setStarting(null);
       navigate(href('/terminal', { pty: session.id }));
     } catch (error) {
@@ -657,6 +691,36 @@ export default function People() {
                         ? `Last local PTY stopped at its ${selectedRecentSession.maxSeconds}s runtime limit.`
                         : `Last local PTY exited with code ${selectedRecentSession.exitCode ?? 'unknown'}.`}
                     </p>
+                  ) : null}
+                  {selectedSessionHistory.length > 0 ? (
+                    <section aria-label={`${selected.name} session history`}>
+                      <h3>Recent sessions</h3>
+                      <ul className={styles.sessionHistory}>
+                        {selectedSessionHistory.map((session) => (
+                          <li key={session.id}>
+                            <span>{session.project_id}</span>
+                            <StatusBadge
+                              tone={
+                                session.status === 'running'
+                                  ? 'ok'
+                                  : session.status === 'failed'
+                                    ? 'err'
+                                    : session.status === 'timed_out' || session.status === 'interrupted'
+                                      ? 'warn'
+                                      : 'idle'
+                              }
+                              label={session.status}
+                            />
+                            <small>
+                              {session.provider}
+                              {session.model ? ` · ${session.model}` : ''}
+                            </small>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  ) : sessionHistory.isError ? (
+                    <ErrorState title="Session history is unavailable" error={sessionHistory.error} />
                   ) : null}
                   <dl>
                     <dt>Definition</dt>

@@ -78,12 +78,14 @@ describe('TerminalService', () => {
     }
   });
 
-  it('retains Person and project identity on a real PTY until it is reaped', () => {
+  it('retains Person and project identity on a real PTY until it is reaped', async () => {
     const service = new TerminalService();
     try {
       const session = service.create({
         agent: 'Lina',
         personId: 'lina',
+        agentSessionId: 'session-test-lina',
+        sessionWorkspace: '/work/harness',
         projectId: 'agent-toolkit',
         provider: 'opencode',
         model: 'model-x',
@@ -95,12 +97,20 @@ describe('TerminalService', () => {
         id: session.id,
         agent: 'Lina',
         personId: 'lina',
+        agentSessionId: 'session-test-lina',
+        sessionWorkspace: '/work/harness',
         projectId: 'agent-toolkit',
         provider: 'opencode',
         model: 'model-x',
         exitCode: null,
       });
+      const exited = new Promise<{ code: number; reason?: string }>((resolve) => {
+        service.onExit((id, code, reason) => {
+          if (id === session.id) resolve({ code, reason });
+        });
+      });
       expect(service.close(session.id)).toBe(true);
+      await expect(exited).resolves.toMatchObject({ reason: 'user-stop' });
       expect(service.list()).toHaveLength(0);
     } finally {
       service.dispose();

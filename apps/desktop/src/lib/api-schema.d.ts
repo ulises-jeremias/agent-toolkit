@@ -583,6 +583,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List durable Person session lifecycle records */
+        get: operations["list_person_sessions"];
+        put?: never;
+        /** Validate a Person launch and create a session record */
+        post: operations["create_person_session"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sessions/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record a PTY lifecycle transition reported by Desktop */
+        post: operations["update_person_session_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/people/bindings": {
         parameters: {
             query?: never;
@@ -1408,6 +1443,43 @@ export interface components {
             roles: {
                 [key: string]: string;
             };
+        };
+        /** @description Durable lifecycle evidence for a real local PTY bound to a Person. */
+        PersonSession: {
+            id: string;
+            person_id: string;
+            person: string;
+            role: string;
+            project_id: string;
+            cwd: string;
+            provider: string;
+            model: string;
+            /** @enum {string} */
+            status: "launching" | "running" | "completed" | "failed" | "stopped" | "timed_out" | "interrupted";
+            started_at: string;
+            ended_at: string;
+            exit_code: number;
+        };
+        PersonSessionsResponse: {
+            ok: boolean;
+            sessions: components["schemas"]["PersonSession"][];
+        };
+        PersonSessionResponse: {
+            ok: boolean;
+            session: components["schemas"]["PersonSession"];
+        };
+        PersonSessionCreateRequest: {
+            workspace: string;
+            person_id: string;
+            project_id: string;
+            provider: string;
+            model: string;
+        };
+        PersonSessionStatusRequest: {
+            workspace: string;
+            /** @enum {string} */
+            status: "running" | "completed" | "failed" | "stopped" | "timed_out" | "interrupted";
+            exit_code: number;
         };
         /** @description Honest origin for a knowledge file. author is the last git committer on read when `.git` exists; agent is empty unless a real source records it. timestamp is the first YYYY-MM-DD in the file, else mtime. */
         MemoryProvenance: {
@@ -3044,6 +3116,123 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    list_person_sessions: {
+        parameters: {
+            query?: {
+                workspace?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonSessionsResponse"];
+                };
+            };
+        };
+    };
+    create_person_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonSessionCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonSessionResponse"];
+                };
+            };
+            /** @description Person, project, provider or model cannot be launched */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description workspace or Person not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    update_person_session_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonSessionStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonSessionResponse"];
+                };
+            };
+            /** @description invalid session status */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description session not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description invalid lifecycle transition */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
                 };
             };
         };

@@ -1,9 +1,9 @@
 # Design note 02 — Sessions, provider adapters and terminal durability
 
-Status: **PROPOSAL** (2026-09-30). Part of
-[WORKSTATION_REFERENCE_ANALYSIS.md](../WORKSTATION_REFERENCE_ANALYSIS.md).
-Program todos: `real-agent-status`, `agent-result-continuity`, Phase 4.5
-Terminal, Phase 5 failure matrix.
+Status: **FOUNDATION IMPLEMENTED; provider continuity remains proposed**
+(2026-10-06). This note separates shipped lifecycle evidence from future
+provider-session work. See [People](../../PEOPLE.md) and the
+[Desktop workflow ledger](../workflows.yaml) for current evidence.
 
 ## Entities: composition, not a "Worker"
 
@@ -14,7 +14,7 @@ people call "an agent" is a projection of four V concepts:
 | --- | --- | --- |
 | **Agent** | Catalog definition: persona, skills, default provider/model | agents catalog (typed in PR C) |
 | **Run** | A unit of work: goal, workspace, budget, gates, worktrees, handoffs, artifacts. A swarm run or a single-agent run | swarm runs (`swarm.v` state file); single-agent run not yet |
-| **Session** | One provider process/conversation attached to a run: provider, model, transport, process state, turn state, provider session id | **missing** (Electron terminals have ad-hoc ids; swarm roles run in tmux/herdr panes without a V session record) |
+| **Session** | One provider process/conversation attached to a run: provider, model, transport, process state, turn state, provider session id | Person PTYs have durable V lifecycle records in `.agent-toolkit/sessions/`; provider conversation IDs and swarm-role session records are still missing |
 | **Job** | One CLI invocation run by `serve` | server jobs (`jobs.v`), SSE, cancel/delete (#1313), get/retry (#1320) |
 
 No TypeScript-invented `Worker` entity. The renderer shows Session + Run
@@ -64,14 +64,16 @@ button**, only "Start a new session in this run".
 
 | Concern | Owner | Why |
 | --- | --- | --- |
-| Session identity, run link, provider session id, status facets, lifecycle state, resume decision | **V** (`serve`) | domain truth; survives Desktop restarts; visible to CLI and loops |
+| Person PTY identity, Person/project link, runner/model and reported lifecycle state | **V** (`serve`, `.agent-toolkit/sessions/`) | Durable domain history; status is updated by the local Desktop adapter |
+| Provider conversation ID, run link, turn state and resume decision | **V** (`serve`, future Session entity) | Domain truth once runner adapters can report provider lifecycle evidence |
 | PTY bytes, resize, input, screen mirror | **Electron main** (ADR-033: node-pty adapter, no domain state) | Native terminal transport on supported Electron platforms |
 | Swarm roles on tmux/herdr backends | the backend (tmux/herdr) | already detached; V records `transport: tmux|herdr` |
 | Detached PTY host (later, opt-in) | a small supervisor spawned by Electron main | only for process durability across app quit/crash |
 
 Consequence: **PTYs survive a `serve` restart by construction**, because V never
-owned them. On restart V reloads session records from disk and replays each
-session's `events.jsonl` (design note 01), then republishes state.
+owned them. On restart V reads PersonSession lifecycle records from disk;
+Electron main continues to own the live PTY and its bounded in-memory tail.
+There is no persisted terminal transcript or event replay after Desktop exits.
 
 ## Durability guarantee ATK should offer
 
@@ -79,23 +81,19 @@ Say exactly which failure keeps what. Never "sessions survive restart".
 
 | Failure | Process | Screen | Conversation | Tier |
 | --- | --- | --- | --- | --- |
-| Renderer reload | kept (main owns PTY) | replay | kept | today (8 KiB tail) → G1 |
-| BrowserWindow closed and recreated (app still running) | kept | replay | kept | G1 |
-| `serve` restart / crash | kept | kept | kept | G1 (V reloads records) |
-| Renderer crash | kept | replay | kept | G1 |
-| Electron main crash | lost | persisted tail | resumable if id known | G2 |
-| Intentional quit | lost (default) | persisted tail | resumable | G2; G3 adds "keep running" |
-| Unexpected death / reboot | lost | persisted tail | resumable | G2 |
+| Renderer reload | kept (main owns PTY) | replay from the in-memory 8 KiB tail | kept while Electron main lives | implemented |
+| BrowserWindow closed and recreated (app still running) | expected kept while main is alive | in-memory tail | kept | not separately exercised |
+| `serve` restart / crash | kept (Electron main owns PTY) | replay from the in-memory tail | V reloads the durable PersonSession record | implemented |
+| Renderer crash | kept | replay from the in-memory tail | kept while Electron main lives | implemented |
+| Electron main crash | lost | lost | record is reconciled as interrupted on next Desktop startup | current behavior |
+| Intentional quit | stopped by Desktop | lost | record is reconciled as interrupted on next Desktop startup | current behavior |
+| Unexpected death / reboot | lost | lost | record is reconciled as interrupted on next Desktop startup | current behavior |
 
-- **G1 (commit to now, Phase 4.5):** replace the 8 KiB string tail with a
-  headless xterm mirror per session in main plus serialize-on-attach, bounded
-  by lines (Agent Office: 3,000). Persist the last N lines per session to the
-  run directory every few seconds and on quit, with atomic temp+rename writes
-  (Agent Office overwrites `workers.json` in place).
-- **G2 (commit to next):** conversation durability through the provider
-  adapter and the V session record. Interrupted sessions surface as a
-  `session_resumable` attention item.
-- **G3 (evaluate later):** a detached PTY host (Agent Office: `detached` +
+- **Next: provider continuity.** Add provider adapters only after each
+  installed CLI's start/session-id/resume behavior is verified. Until then the
+  UI records the real process lifecycle and does not promise a resumable
+  conversation or preserve terminal output across app exit.
+- **Evaluate later: detached PTY host.** (Agent Office: `detached` +
   `unref`, owner-only Unix socket, random token file mode 0600, protocol
   version handshake, "newest client wins", 30-minute orphan timeout). In
   Electron this means a separate Node process that outlives the app, which

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { useTerminalSessions } from '../../data/terminal';
+import { errorMessage } from '../../lib/api';
 import { basename } from '../../shell/sessionContext';
 import { TerminalPane } from './TerminalPane';
 import { sessionState } from './sessionState';
@@ -10,9 +12,15 @@ import styles from './terminal.module.css';
  */
 export function TerminalHost() {
   const { sessions, extras, activeId, close, restart } = useTerminalSessions();
-  if (sessions.length === 0) return null;
+  const [restartError, setRestartError] = useState<string | null>(null);
+  if (sessions.length === 0 && !restartError) return null;
   return (
     <div className={styles.host}>
+      {restartError ? (
+        <p role="alert" className={styles.sessionError}>
+          Could not restart session: {restartError}
+        </p>
+      ) : null}
       {sessions.map((session) => (
         <div
           key={session.id}
@@ -24,7 +32,11 @@ export function TerminalHost() {
             session={session}
             run={extras[session.id]?.run}
             onClose={() => void close(session.id)}
-            onRestart={() => void restart(session)}
+            onRestart={() =>
+              void restart(session)
+                .then(() => setRestartError(null))
+                .catch((error: unknown) => setRestartError(errorMessage(error)))
+            }
           />
         </div>
       ))}
