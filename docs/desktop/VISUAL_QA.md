@@ -67,7 +67,7 @@ an iteration review, not visual sign-off.
 
 A wider creek corridor and rotated meadow-noise field are on branch
 `feat/enchanted-world-composition` at `046a26f6`. Fresh captures are pending in
-[`desktop.yml` run 37409701733](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37409701733).
+[`desktop.yml` run 37410543955](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37410543955).
 Open that run's uploaded screenshots before accepting the change. Record the
 specific files reviewed and any post-capture corrections here; keep remaining
 composition issues visible rather than treating asset generation or green
