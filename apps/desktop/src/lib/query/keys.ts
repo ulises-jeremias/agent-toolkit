@@ -20,6 +20,7 @@ export type Domain =
   | 'tools'
   | 'providers'
   | 'models'
+  | 'projects'
   | SubFamily;
 
 export const qk = {
@@ -49,6 +50,10 @@ export const qk = {
     list: (path = '', depth = '', project = '') => ['files', 'list', project, path, depth] as const,
     hits: (q: string, project = '') => ['files', 'hits', project, q] as const,
     content: (path: string, project = '') => ['files', 'content', project, path] as const,
+  },
+
+  projects: {
+    list: (workspace = '') => ['projects', 'list', workspace] as const,
   },
 
   report: (kind: ReportKind) => [kind, 'report'] as const,

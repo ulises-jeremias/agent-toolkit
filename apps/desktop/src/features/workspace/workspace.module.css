@@ -1,0 +1,71 @@
+.projectList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-3);
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.projectRow {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 2px solid var(--border-default);
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.projectIdentity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.projectIdentity strong {
+  overflow-wrap: anywhere;
+  color: var(--text-primary);
+}
+
+.projectTarget {
+  min-width: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+  font: var(--text-xs) / 1.45 var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+.projectRow a {
+  width: fit-content;
+  color: var(--accent-cyan);
+  font-weight: 700;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.detailDisclosure {
+  color: var(--text-secondary);
+}
+
+.detailDisclosure summary {
+  width: fit-content;
+  color: var(--accent-cyan);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
+.detailDisclosure summary:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.detailDisclosure[open] summary {
+  margin-bottom: var(--space-3);
+}

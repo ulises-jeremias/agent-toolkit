@@ -221,6 +221,10 @@ export interface WorkspaceFileSearchResponse {
   hits: WorkspaceFileHit[];
 }
 
+/** OpenAPI project roster; target preserves the symlink target for session association. */
+export type ProjectListEntry = components['schemas']['ProjectListEntry'];
+export type ProjectListResponse = components['schemas']['ProjectListResponse'];
+
 /** OpenAPI `ApiEvent.type` on GET /api/v1/events. Unknown types stay verbatim. */
 export type ApiEventType =
   | 'backend.ready'

@@ -111,6 +111,21 @@ journeys:
           - assets/electron/world/project-files-room-compact.png
           - assets/electron/world/project-files-room-large.png
       - note: >-
+          Desktop project discovery now uses the typed GET /api/v1/projects
+          response in World, Workspace, Library, Person Start, and the command
+          palette. The Electron flow asserts the live backend response, links a
+          selected folder through the reviewed GUI flow, verifies its world
+          building and palette action, and rejects an outside-root path before
+          retrying safely. Compact and large Workspace captures were opened;
+          verbose start context stays collapsed while the project roster is in
+          view.
+        build: "feat/typed-project-roster-api (Linux Electron; project-link.spec.ts; real V backend)"
+        tests:
+          - apps/desktop/e2e/electron/project-link.spec.ts
+        screenshots:
+          - assets/electron/workspace/project-roster-typed-compact.png
+          - assets/electron/workspace/project-roster-typed-large.png
+      - note: >-
           World composition keeps shared landmarks on the commons bank and
           registered project houses across a traversable bridge; empty,
           one-project, and three-project layouts are captured at compact and

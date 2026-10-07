@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useModels, useProviders } from '../../data/catalog';
 import { requireClient, useBackend } from '../../data/backend';
-import { errorMessage, envelopeText, type Person } from '../../lib/api';
-import { useSubQuery } from '../../data/commands';
+import { useProjects } from '../../data/projects';
+import { errorMessage, type Person } from '../../lib/api';
 import { useTerminalSessions } from '../../data/terminal';
 import { useSessionContext } from '../../shell/useSessionContext';
 import { Button, ButtonRow, Dialog, ErrorState, Field, Panel, Select } from '../../ui';
-import { parseProjectListMessage } from '../world/model';
 import { initialPromptMode, personInitialPrompt, personSessionOptions } from './personRunner';
 import styles from './people.module.css';
 
@@ -28,15 +27,11 @@ export function PersonStartDialog({ person, onClose }: { person: Person | null; 
   const [acknowledgeUnenforcedPolicy, setAcknowledgeUnenforcedPolicy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const projectsQuery = useSubQuery('project', 'list');
+  const projectsQuery = useProjects(workspace);
   const providersQuery = useProviders();
   const modelsQuery = useModels();
 
-  const projects = useMemo(
-    () =>
-      projectsQuery.isSuccess && projectsQuery.data ? parseProjectListMessage(envelopeText(projectsQuery.data)) : [],
-    [projectsQuery.data, projectsQuery.isSuccess],
-  );
+  const projects = useMemo(() => projectsQuery.data?.projects ?? [], [projectsQuery.data]);
   const providers = useMemo(() => providersQuery.data?.providers ?? [], [providersQuery.data]);
   const models = modelsQuery.data?.models ?? [];
   const matchingModels = models.filter((model) => model.runner === providerId);

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildWorldModel, jobBelongsToProject } from './buildWorld';
 import { layoutWorld } from './layout';
-import { parseProjectListMessage } from './parseProjects';
 import { paintInterior, paintTerrain } from './terrain';
 import type { MemoryEntryRecord, MemorySummary, ToolRecord, WorldDomainInput } from './types';
 
@@ -40,22 +39,6 @@ function baseInput(overrides: Partial<WorldDomainInput> = {}): WorldDomainInput 
     ...overrides,
   };
 }
-
-describe('parseProjectListMessage', () => {
-  it('parses ok and broken rows and sorts by name', () => {
-    const message = `
-=== Projects ===
-
-  [ok]  zebra -> /repos/zebra
-  [broken]  alpha -> /missing/alpha
-  (noise)
-`;
-    expect(parseProjectListMessage(message)).toEqual([
-      { name: 'alpha', target: '/missing/alpha', status: 'broken' },
-      { name: 'zebra', target: '/repos/zebra', status: 'ok' },
-    ]);
-  });
-});
 
 describe('jobBelongsToProject', () => {
   it('matches by target path and by project name segment', () => {

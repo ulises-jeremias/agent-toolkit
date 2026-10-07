@@ -21,6 +21,21 @@ pub mut:
 	data    map[string]string
 }
 
+// ProjectListEntry is one registered project symlink and its current health.
+pub struct ProjectListEntry {
+pub:
+	name   string
+	target string
+	status string
+}
+
+// ProjectListResponse is the typed projection consumed by Desktop and API clients.
+pub struct ProjectListResponse {
+pub:
+	ok       bool
+	projects []ProjectListEntry
+}
+
 // run_project implements init/clone/list/add/remove/scan (Python cli/project.py).
 pub fn run_project(opts ProjectOptions) ProjectReport {
 	sub := opts.subcommand
@@ -255,6 +270,42 @@ fn project_clone(ws string, opts ProjectOptions) ProjectReport {
 	}
 }
 
+fn project_entries_for_workspace(ws string) ![]ProjectListEntry {
+	projects_dir := os.join_path(ws, 'projects')
+	if !os.is_dir(projects_dir) {
+		return []ProjectListEntry{}
+	}
+	entries := os.ls(projects_dir) or { return error('could not list projects: ${err.msg()}') }
+	mut names := entries.clone()
+	names.sort()
+	mut projects := []ProjectListEntry{}
+	for name in names {
+		path := os.join_path(projects_dir, name)
+		if !os.is_link(path) {
+			continue
+		}
+		target := os.readlink(path) or { '' }
+		status := if symlink_target_exists(path, target) { 'ok' } else { 'broken' }
+		projects << ProjectListEntry{
+			name: name
+			target: target
+			status: status
+		}
+	}
+	return projects
+}
+
+// list_project_entries returns the same registered project rows as `project list`
+// without requiring consumers to parse its human-readable message.
+pub fn list_project_entries(workspace string) !ProjectListResponse {
+	ws := find_workspace_root(workspace) or { return error('workspace not found') }
+	projects := project_entries_for_workspace(ws)!
+	return ProjectListResponse{
+		ok: true
+		projects: projects
+	}
+}
+
 fn project_list(ws string) ProjectReport {
 	projects_dir := os.join_path(ws, 'projects')
 	mut lines := []string{}
@@ -274,21 +325,11 @@ fn project_list(ws string) ProjectReport {
 			}
 		}
 	}
-	entries := os.ls(projects_dir) or { []string{} }
-	mut names := entries.clone()
-	names.sort()
-	mut n := 0
-	for name in names {
-		p := os.join_path(projects_dir, name)
-		if !os.is_link(p) {
-			continue
-		}
-		target := os.readlink(p) or { '' }
-		status := if symlink_target_exists(p, target) { 'ok' } else { 'broken' }
-		lines << '  [${status}]  ${name} -> ${target}'
-		n++
+	projects := project_entries_for_workspace(ws) or { []ProjectListEntry{} }
+	for project in projects {
+		lines << '  [${project.status}]  ${project.name} -> ${project.target}'
 	}
-	if n == 0 {
+	if projects.len == 0 {
 		lines << '  (no projects — run: agent-toolkit project clone owner/repo)'
 	}
 	lines << ''
@@ -298,7 +339,7 @@ fn project_list(ws string) ProjectReport {
 		data: {
 			'subcommand': 'list'
 			'workspace':  ws
-			'count':      '${n}'
+			'count':      '${projects.len}'
 		}
 	}
 }

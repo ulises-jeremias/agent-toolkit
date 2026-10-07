@@ -310,7 +310,9 @@ schemas:
       - agent:string
 
   - name: MemoryEntry
-    description: One memory file (learnings, processes, or todos). body is set on read and empty on list. Other knowledge/*.md files are not memory.
+    description: >-
+      One memory file (learnings, processes, or todos). body is set on read and
+      empty on list. Other knowledge/*.md files are not memory.
     fields:
       - id:string
       - kind:string
@@ -606,12 +608,32 @@ schemas:
       - message:string
       - path:string
 
+  - name: ProjectListEntry
+    v_struct: ProjectListEntry
+    description: A workspace-registered project link and whether its target currently exists.
+    fields:
+      - name:string
+      - target:string
+      - status:string=ok|broken
+
+  - name: ProjectListResponse
+    v_struct: ProjectListResponse
+    fields:
+      - ok:boolean
+      - 'projects:#ProjectListEntry[]'
+
 # Server-native endpoints (ADR-030): capabilities of the API itself, not
 # mirrors of CLI contract commands. `response` is a field type (see grammar),
 # `text` (text/plain) or `sse` (text/event-stream of `event_schema`).
 # `errors` lists `code:description` pairs answered with #ApiError.
 # `query_params` uses `name:type`; append `?` to mark an optional query value.
 native:
+  - path: /api/v1/projects
+    method: get
+    op: list_projects
+    summary: List registered workspace projects with link health as typed rows
+    query_params: ['workspace?:string']
+    response: '#ProjectListResponse'
   - path: /api/v1/mcp/providers
     method: get
     op: mcp_providers

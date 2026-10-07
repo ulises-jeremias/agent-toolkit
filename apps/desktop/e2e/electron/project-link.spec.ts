@@ -8,6 +8,12 @@ test('links an existing project from the GUI and places it in the world', async 
   const desktop = await openDesktop();
   try {
     const { page, home } = desktop;
+    const projectRosterResponses: import('@playwright/test').Response[] = [];
+    page.on('response', (response) => {
+      if (new URL(response.url()).pathname === '/api/v1/projects') projectRosterResponses.push(response);
+    });
+    // Attach before the backend becomes ready: the initial World render can
+    // fetch the roster while waitForBackend is still waiting for the live badge.
     await waitForBackend(page);
     const captureDir =
       process.env.ATK_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/world');
@@ -50,6 +56,10 @@ test('links an existing project from the GUI and places it in the world', async 
     await pick(outsideAllowedRoots);
 
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
+    await expect.poll(() => projectRosterResponses.length).toBeGreaterThan(0);
+    const initialProjectRoster = projectRosterResponses[0];
+    expect(initialProjectRoster?.ok()).toBe(true);
+    expect(await initialProjectRoster?.json()).toMatchObject({ ok: true, projects: [] });
     const emptyMarker = page.getByRole('button', { name: /Add project/ });
     await emptyMarker.click();
     await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
@@ -74,6 +84,18 @@ test('links an existing project from the GUI and places it in the world', async 
       page.getByRole('region', { name: 'Receipts' }).getByText('Project linked', { exact: true }),
     ).toBeVisible();
     await page.getByRole('button', { name: 'Dismiss: Project linked' }).click();
+
+    if (process.env.ATK_CAPTURE === '1') {
+      await expect(page.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible();
+      for (const size of [
+        { width: 1024, height: 640, key: 'compact' },
+        { width: 1920, height: 1080, key: 'large' },
+      ]) {
+        await setViewport(desktop.app, size.width, size.height);
+        await page.getByRole('heading', { name: 'Projects', exact: true }).scrollIntoViewIfNeeded();
+        await page.screenshot({ path: path.join(captureDir, `workspace-project-roster-${size.key}.png`) });
+      }
+    }
 
     const linkPath = path.join(home, '.ai-workspace', 'projects', 'garden-api');
     await expect.poll(() => fs.realpathSync(linkPath)).toBe(fs.realpathSync(projectPath));

@@ -34,6 +34,16 @@ fn test_project_init_add_list_remove_scan() {
 	assert add.ok, add.message
 	link := os.join_path(base, 'projects', 'already-cloned')
 	assert os.is_link(link)
+	typed := list_project_entries(base) or {
+		assert false, err.msg()
+		return
+	}
+	assert typed.ok
+	assert typed.projects == [ProjectListEntry{
+		name: 'already-cloned'
+		target: repo
+		status: 'ok'
+	}]
 
 	list := run_project(ProjectOptions{
 		subcommand: 'list'
@@ -58,6 +68,29 @@ fn test_project_init_add_list_remove_scan() {
 	assert rm.ok, rm.message
 	assert !os.exists(link)
 	assert os.is_dir(repo)
+}
+
+fn test_list_project_entries_is_sorted_and_reports_broken_links() {
+	base := os.join_path(os.temp_dir(), 'at-proj-typed-${os.getpid()}')
+	os.mkdir_all(os.join_path(base, 'projects')) or { panic(err) }
+	os.write_file(os.join_path(base, 'AGENTS.md'), '# workspace\n') or { panic(err) }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	repo := os.join_path(base, 'repo')
+	os.mkdir_all(repo) or { panic(err) }
+	projects := os.join_path(base, 'projects')
+	os.symlink(repo, os.join_path(projects, 'zeta')) or { panic(err) }
+	os.symlink(os.join_path(base, 'missing'), os.join_path(projects, 'broken')) or { panic(err) }
+	os.write_file(os.join_path(projects, 'ordinary-file'), 'ignored') or { panic(err) }
+	response := list_project_entries(base) or {
+		assert false, err.msg()
+		return
+	}
+	assert response.ok
+	assert response.projects.map(it.name) == ['broken', 'zeta']
+	assert response.projects[0].status == 'broken'
+	assert response.projects[1].status == 'ok'
 }
 
 fn test_project_clone_already_present() {

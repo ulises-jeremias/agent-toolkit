@@ -3,10 +3,9 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { requireClient, useBackend } from '../../data/backend';
 import { useTools } from '../../data/catalog';
-import { useSubQuery } from '../../data/commands';
 import { sortJobs, useJobs } from '../../data/jobs';
 import { useMemoryFile, useMemoryList } from '../../data/memory';
-import { envelopeText } from '../../lib/api';
+import { useProjects } from '../../data/projects';
 import { useTerminalSessions } from '../../data/terminal';
 import { personCharacterSprite } from '../people/avatar';
 import { useSessionContext } from '../../shell/useSessionContext';
@@ -16,7 +15,6 @@ import { MemoryRecordInspector } from './MemoryRecordInspector';
 import {
   buildWorldModel,
   layoutWorld,
-  parseProjectListMessage,
   pathIsWithin,
   type LaidOutEntity,
   type MemorySummary,
@@ -44,7 +42,8 @@ export default function WorldView() {
   const memoryPath = params.get('memory')?.trim() || '';
   const toolId = params.get('tool')?.trim() || '';
 
-  const projectsQuery = useSubQuery('project', 'list');
+  const workspacePath = context.workspace || backend?.harness?.path || '';
+  const projectsQuery = useProjects(workspacePath);
   const memoryQuery = useMemoryList();
   const memoryFileQuery = useMemoryFile(memoryPath, { enabled: memoryPath.length > 0 });
   const jobsQuery = useJobs();
@@ -61,15 +60,9 @@ export default function WorldView() {
   });
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const workspacePath =
-    context.workspace ||
-    backend?.harness?.path ||
-    (typeof projectsQuery.data?.data['workspace'] === 'string' ? projectsQuery.data.data['workspace'] : '') ||
-    '';
-
   const projects = useMemo(() => {
     if (!projectsQuery.isSuccess || !projectsQuery.data) return [];
-    return parseProjectListMessage(envelopeText(projectsQuery.data));
+    return projectsQuery.data.projects;
   }, [projectsQuery.data, projectsQuery.isSuccess]);
 
   const memory: MemorySummary = useMemo(() => {
