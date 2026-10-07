@@ -5,7 +5,8 @@ import time
 import x.json2
 
 // LLM runner adapters for `agent-toolkit loop run --runner`.
-// Re-port of the Python-era runner table in docs/LOOP_RUNNER_DESIGN.md.
+// Runner adapters replace the Python-era implementation recorded in
+// docs/LOOP_RUNNER_DESIGN.md; use this table as the current source of truth.
 //
 // Each runner is an argv adapter over an existing PATH binary plus stdout
 // capture to the run dir. Availability is a PATH probe; unknown or missing

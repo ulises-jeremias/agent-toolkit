@@ -25,7 +25,7 @@
 
 3. **Complete is the superset** — every catalog skill that is not catalog-only appears here.
 
-4. **Catalog-only** — a skill stays catalog-only (installable via `agent-toolkit install --skill <name>` or referenced in `agent-toolkit.yaml`) when it is:
+4. **Catalog-only** — a skill stays catalog-only (available through `agent-toolkit install --skill <name>`, without joining a bundled product) when it is:
    - niche (e.g. single-domain), or
    - awaiting curation (needs matrix + example before promotion).
 

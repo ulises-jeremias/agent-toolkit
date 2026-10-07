@@ -52,7 +52,7 @@ The pack content is surfaced by `agent-toolkit workspace context`. These packs a
 
 ### 3. Loop `--pack` overrides (loaded by `loop run --pack`)
 
-Loop packs are **YAML files that override loop settings at runtime**. A user passes `--pack <path>` to `agent-toolkit loop run`. The pack resolves relative to the workspace `packs/` directory. The loader (`loop/pack.py`) merges enabled, cadence, budget, tier, and other fields from the pack into the loop meta before the loop runs.
+Loop packs are **YAML files that override loop settings at runtime**. A user passes `--pack <path>` to `agent-toolkit loop run`. The V loop runner resolves the file path from the given path or the workspace `packs/` directory, then applies the selected loop's supported fields. Parsing lives in `parse_pack_overrides` in `modules/agent_toolkit_core/loop.v`.
 
 A loop pack file has a `loops` key mapping loop names to their override blocks:
 
@@ -73,7 +73,9 @@ loops:
 | Workspace pack | `packs/*.yaml` (workspace) | `agent-toolkit workspace load` | Per-client context bundle |
 | Loop pack | `packs/*.yaml` (workspace) | `agent-toolkit loop run --pack` | Runtime loop setting overrides |
 
-See also: `packs/README.md` (solution packs), `workspace load` CLI help, `loop/pack.py` (override logic), `docs/adrs/ADR-006-packs-docs-only.md`.
+See also: `packs/README.md` (solution packs), `workspace load` CLI help,
+`modules/agent_toolkit_core/loop.v` (`parse_pack_overrides`), and
+`docs/adrs/ADR-006-packs-docs-only.md`.
 
 ## People — durable workspace collaborators (not a toolkit capability plane)
 
@@ -112,11 +114,15 @@ profiles, personas, and AGENTS.md before any execution. It counts characters
 and estimates tokens (chars / 4 heuristic). It warns about large sections,
 duplicate blocks, and high total footprint. It needs no network or LLM.
 
-Execution budget (`loop/budget.py`, `swarm/budget.py`) measures runtime
-token/cost/wall-clock usage during or after model invocation. Context
-budget and execution budget are separate dimensions. A small execution
-budget does not protect against a large composed prompt. A large context
-footprint can degrade agent quality even when runtime limits are not hit.
+Loop execution enforces supported token and wall-clock limits from run traces
+in `modules/agent_toolkit_core/loop.v`. Swarm recipes also declare token,
+cost, concurrency, round-trip, and wall-clock budgets, but only wall-clock
+exhaustion is currently enforced as a hard runtime limit. Check each runtime's
+current contract before treating a budget as a guardrail.
+Context-budget analysis in `workspace.v` is a separate dimension: a small
+execution budget does not protect against a large composed prompt, and a large
+context footprint can degrade agent quality even when runtime limits are not
+hit.
 
 Token estimates are approximate. The heuristic (chars / 4) works for
 English text. It does not replace provider tokenization for billing.
@@ -141,8 +147,8 @@ Swarms extend the layer model with backend-neutral multi-agent orchestration:
 - **Repo ownership:** `agent-toolkit` owns runtime (engine, CLI, recipes, handoff/budget/worktree logic, runner + Herdr/tmux adapters). [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation) installs dependencies (`agent_swarms.enabled=true` → tmux, Herdr, `herdr integration install opencode`). [agentic-harness](https://github.com/ulises-jeremias/agentic-harness) demonstrates usage. See [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md).
 - **Recipes & elastic promotion:** `pair` (implementer → reviewer → human), `team` (planner → implementer → reviewer → architect → human, plan gate), `full` (… → refactorer → hardener → qa → human). Lazy creation — only ready roles start. `pair → team → full` promotion preserves run ID, branches, artifacts, budget, trace. See [SWARM_RECIPES.md](SWARM_RECIPES.md).
 - **Worktrees & handoffs:** one isolated worktree per writer on `agent-toolkit-swarm/<run-id>/<role>`; code moves only via validated full 40-char SHAs. Durable filesystem queue `handoffs/{outbox,queued,active,completed,failed}/`. See [SWARM_HANDOFFS.md](SWARM_HANDOFFS.md).
-- **Budgets, model profiles, permissions, gates:** semantic profiles `economy`/`balanced`/`quality`/`private` map task classes `planning`/`coding`/`review`/`architecture`/`hardening`/`qa` to `provider/model` (discover via `opencode models` / `swarm models`). Pricing stored separately, unknown honestly reported. Budgets: tokens/cost/wall-clock/concurrency/round-trips/per-role. Permissions: planner `read-only`, implementer `writer`, reviewer `reviewer-writer`, integrator `merge: ask`; deny `external_directory`/`push`/`release`/`base-merge` by default. Human gates: plan, architecture, cost escalation, final integration. See [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) and [SWARM_SECURITY.md](SWARM_SECURITY.md).
-- **State locations, privacy, cleanup:** `run.yaml`, `state.json` (versioned, atomic), `trace.jsonl`, `budget.json`, `ownership.json`, `approvals.json`, `artifacts/`, `handoffs/`, `prompts/`, `runner/opencode/agents/` per run. No cloud/telemetry/transcript by default; secrets redacted (`sanitize_args`), generic UI wake-ups only. `swarm stop` preserves state; `swarm cleanup` removes only Toolkit-owned worktrees, refuses dirty without `--force`, never deletes branches/user worktrees.
+- **Budgets, model profiles, permissions, gates:** semantic profiles `economy`/`balanced`/`quality`/`private` map task classes `planning`/`coding`/`review`/`architecture`/`hardening`/`qa` to `provider/model` (discover via `opencode models` / `swarm models`). Pricing stored separately, unknown honestly reported. Swarm budget fields include tokens/cost/wall-clock/concurrency/round-trips/per-role; only wall-clock currently has a hard exhaustion check. Recipe permission labels guide orchestration and prompts; they do not sandbox runner processes. Human gates govern Toolkit's explicit operations, not direct shell use by a runner. See [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) and [SWARM_SECURITY.md](SWARM_SECURITY.md).
+- **State locations, privacy, cleanup:** `run.yaml`, `state.json` (versioned, atomic), `trace.jsonl`, `budget.json`, `ownership.json`, `approvals.json`, `artifacts/`, `handoffs/`, `prompts/`, `runner/opencode/agents/` per run. State is local by default; runner processes inherit provider environment and their logs/output can contain sensitive data. `swarm stop` preserves state; `swarm cleanup` preserves branches and run records; `swarm prune` is the separate retention command that can delete eligible generated branches and run records.
 - **Herdr plugin & tmux fallback:** thin Herdr plugin at `integrations/herdr/agent-toolkit-swarm/` delegates to `agent-toolkit swarm`. Choose the session backend with `--backend`; `auto` prefers Herdr and can fall back to tmux, while explicit `herdr` reports setup guidance if unavailable. See [SWARM_HERDR.md](SWARM_HERDR.md) and [SWARM_TMUX.md](SWARM_TMUX.md).
 - **Offline/fake demo:** `agent-toolkit swarm start --dry-run` previews a run without filesystem writes or UI spawn. `--runner skeleton` provides a no-LLM runner for an actual local run. Pricing fallback is explicit and requires approval.
 - **Extension guide:** add recipes under `~/.config/agent-toolkit/swarm/recipes/` or `.agent-toolkit/swarm/recipes/`, map roles to personas in `agents/` and `model_profile` to task classes, validate with `validate_recipe()`. See [HOW_TO_CREATE_SWARM_RECIPE.md](HOW_TO_CREATE_SWARM_RECIPE.md). Mermaid diagrams for ecosystem boundaries, runtime layers, pair/team/full, handoff state machine, run state machine, and Herdr/tmux adapter separation live in [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md).
