@@ -9,7 +9,7 @@ import { useProjects } from '../../data/projects';
 import { useTerminalSessions } from '../../data/terminal';
 import { personCharacterSprite } from '../people/avatar';
 import { useSessionContext } from '../../shell/useSessionContext';
-import { EmptyState, ErrorState, LoadingState } from '../../ui';
+import { EmptyState, ErrorState } from '../../ui';
 import { installTargetForTool, worldDetailBackExtra, worldDetailBackLabel } from './inspectors';
 import { MemoryRecordInspector } from './MemoryRecordInspector';
 import {
@@ -234,10 +234,8 @@ export default function WorldView() {
         </Link>
       </header>
 
-      <div className={styles.mapWrap}>
-        {gathering ? (
-          <LoadingState label="Reading workspace, projects, memory, tools, jobs, and active People sessions" />
-        ) : layout.entities.length === 0 ? (
+      <div className={styles.mapWrap} aria-busy={gathering}>
+        {layout.entities.length === 0 ? (
           <EmptyState title="Nothing to place yet.">Waiting on workspace context.</EmptyState>
         ) : (
           <WorldEntityMap
@@ -253,6 +251,11 @@ export default function WorldView() {
             onActivate={openEntity}
           />
         )}
+        {gathering && layout.entities.length > 0 ? (
+          <p className={styles.worldLoadStatus} role="status" aria-live="polite">
+            Checking live workspace details…
+          </p>
+        ) : null}
         {projectsQuery.isError ? (
           <ErrorState
             title="Could not list projects"

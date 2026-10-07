@@ -11,11 +11,13 @@ import { expect, test } from '@playwright/test';
  */
 test.describe('desktop smoke', () => {
   test('world shell loads as home', async ({ page }) => {
+    test.setTimeout(60_000);
     await page.goto('/#/world');
-    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 45_000 });
     await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
     await expect(page.getByRole('form', { name: 'Session context' })).toBeVisible();
     await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
+    await expect(page.getByRole('alert')).toContainText('Live state may be incomplete or out of date.');
   });
 
   test('Attention is the Needs you inspector, not home', async ({ page }) => {

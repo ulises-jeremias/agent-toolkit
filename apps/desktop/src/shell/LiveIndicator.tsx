@@ -107,14 +107,14 @@ export function StaleNotice() {
     );
   }
   if (!down && status.connection !== 'offline') return null;
-  const since = status.lastHealthyAt ? ` from ${clock(status.lastHealthyAt)}` : '';
+  const since = status.lastHealthyAt ? ` Last successful response: ${clock(status.lastHealthyAt)}.` : '';
   const cause = down
     ? `The backend ${backend.status === 'stopped' ? 'is stopped' : `${backend.status}: ${backend.detail ?? 'no detail reported'}`}.`
     : 'The backend is not answering.';
   return (
     <div className={styles.notice} data-tone="err" role="alert">
       <p>
-        {cause} What you see is the last known state{since}; actions will fail until it answers.
+        {cause} Live state may be incomplete or out of date.{since} Actions will fail until it answers.
       </p>
       {window.atk ? (
         <button type="button" className={styles.noticeButton} onClick={() => void restartBackend()}>

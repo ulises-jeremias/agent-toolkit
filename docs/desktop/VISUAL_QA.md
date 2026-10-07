@@ -472,3 +472,18 @@ larger inspector/world visual hierarchy work. The screenshots came from the
 real Electron app and locally built V backend in a disposable E2E workspace;
 the test also asserted the live `GET /api/v1/projects` response, safe link
 review, world placement, and palette navigation.
+
+## Offline World shell — 2026-10-07
+
+The renderer-only smoke test caught that the whole map disappeared while
+workspace queries were still pending with no backend. `/world` now renders its
+known semantic places immediately, marks the map busy, and shows a small
+game-menu status plaque while live project, memory, tool, job, and Person
+state resolves. Read failures remain visible with their existing retry/recovery
+surfaces; no worker or project is inferred from missing data. The offline
+notice says that live state may be incomplete or out of date instead of
+claiming that fresh data is a previous snapshot. I opened the
+offline browser capture at
+[1280×720](assets/renderer/world-offline-loading-2026-10-07.png): the valley
+stays visible below the explicit backend-offline notice and the live-data
+plaque. The focused renderer E2E now passes with the backend unavailable.
