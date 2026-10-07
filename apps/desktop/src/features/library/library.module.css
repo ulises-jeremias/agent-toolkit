@@ -135,6 +135,46 @@
   font-weight: 700;
 }
 
+.artifactList {
+  max-height: min(42vh, 28rem);
+  margin: var(--space-2) 0 0;
+  padding: 0 var(--space-2) 0 0;
+  overflow: auto;
+  list-style: none;
+  border-top: 1px solid var(--border-default);
+}
+
+.artifactList:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.artifactList ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.artifactRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: start;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.artifactPath {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+
+.artifactPath small {
+  color: var(--text-muted);
+}
+
 @media (max-width: 36rem) {
   .projectInstall {
     grid-template-columns: 1fr;
@@ -143,5 +183,9 @@
   .projectInstall label {
     grid-column: 1;
     margin-bottom: calc(-1 * var(--space-3));
+  }
+
+  .artifactRow {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

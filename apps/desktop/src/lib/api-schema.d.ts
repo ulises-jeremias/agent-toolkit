@@ -1306,6 +1306,13 @@ export interface components {
             created_count: number;
             merged_count: number;
             receipt_path: string;
+            artifacts: components["schemas"]["InstallArtifactSummary"][];
+        };
+        InstallArtifactSummary: {
+            path: string;
+            ownership: string;
+            /** @enum {string} */
+            status: "unchanged" | "modified" | "missing" | "replaced" | "unavailable";
         };
         InstallReceiptsResponse: {
             ok: boolean;

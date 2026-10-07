@@ -35,10 +35,13 @@ journeys:
   - id: workspace-switch-inspect
     title: Switch workspace and read its truth in the World
     destinations: [world, workspace]
-    status: partial
+    status: ok
     evidence:
-      - note: Electron E2E changes to a second workspace through Settings, links a real project using the GUI, verifies its building in World, switches back, and verifies that the original workspace remains empty. The flow waits for the supervised backend to become live after each restart.
-        build: "8377e06a (Linux Electron E2E; temporary HOME)"
+      - note: >-
+          Electron E2E changes to a second workspace through Settings, links a real project using the GUI, verifies its
+          building in World, switches back, and verifies that the original workspace remains empty. The flow waits for
+          the supervised backend to become live after each restart; compact and large captures were opened.
+        build: "89399a14 (Linux Electron E2E; temporary HOME)"
         tests:
           - apps/desktop/e2e/electron/workspace-switch.spec.ts
         screenshots:
@@ -272,6 +275,29 @@ journeys:
         screenshots:
           - assets/electron/library/install-preview-compact.png
           - assets/electron/library/install-preview-large.png
+          - assets/electron/library/installation-receipts-compact.png
+          - assets/electron/library/installation-receipts-large.png
+          - assets/electron/library/removal-preview-compact.png
+          - assets/electron/library/removal-preview-large.png
+          - assets/electron/library/copilot-project-review-compact.png
+          - assets/electron/library/copilot-project-review-large.png
+      - note: >-
+          The installation evidence panel now checks each receipt artifact's
+          SHA-256 against its recorded digest and reports unchanged, edited,
+          missing, replaced-by-symlink, or unverifiable state. Refresh reruns
+          this read-only check; file contents and digests are never returned.
+          The expanded detail exposes receipt-owned paths and ownership only
+          on demand, and the Electron E2E verifies that an edited user file is
+          identified while an unreceipted file stays untouched.
+        build: "feature/library-artifact-evidence (Linux Electron E2E; CLI 1.42.0)"
+        tests:
+          - modules/agent_toolkit_server/server_test.v
+          - apps/desktop/e2e/electron/desktop.spec.ts
+        screenshots:
+          - assets/electron/library/install-evidence-2026-10-07/installation-receipts-compact.png
+          - assets/electron/library/install-evidence-2026-10-07/installation-receipts-large.png
+          - assets/electron/library/install-evidence-2026-10-07/installation-artifact-evidence-compact.png
+          - assets/electron/library/install-evidence-2026-10-07/installation-artifact-evidence-large.png
           - assets/electron/library/installation-receipts-compact.png
           - assets/electron/library/installation-receipts-large.png
           - assets/electron/library/removal-preview-compact.png

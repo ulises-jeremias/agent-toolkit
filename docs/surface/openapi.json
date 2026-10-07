@@ -3760,6 +3760,12 @@
           },
           "receipt_path": {
             "type": "string"
+          },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstallArtifactSummary"
+            }
           }
         },
         "required": [
@@ -3771,7 +3777,34 @@
           "artifact_count",
           "created_count",
           "merged_count",
-          "receipt_path"
+          "receipt_path",
+          "artifacts"
+        ]
+      },
+      "InstallArtifactSummary": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "ownership": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "unchanged",
+              "modified",
+              "missing",
+              "replaced",
+              "unavailable"
+            ]
+          }
+        },
+        "required": [
+          "path",
+          "ownership",
+          "status"
         ]
       },
       "InstallReceiptsResponse": {

@@ -395,3 +395,22 @@ divides the civic and project districts. This small lighting improvement does
 not resolve composition, interior density, or the conventional HUD taking
 space from the map. The README gallery remains unchanged until a broader visual
 pass produces a clearly better product capture.
+
+## Library receipt evidence — 2026-10-07
+
+I opened the compact and large Electron captures after adding per-file
+installation evidence, including expanded evidence-panel captures at both
+sizes. The panel keeps normal receipt rows compact; expanding a receipt reveals
+only its recorded paths, ownership, and digest comparison. Refresh detects a
+user edit without exposing file contents or following a replacement symlink.
+Changed, missing, or replaced files sort ahead of unchanged entries so the
+actionable state appears first. This fits the existing dark game-menu frame and
+keeps dense paths readable. The capture is evidence of the new receipt review, not a claim that every catalog
+resource can yet be mapped to an installed file; the Library journey remains
+partial for the existing Copilot Skills and Agent Definition gaps.
+
+The captures are from the real Electron app and V 1.42.0 backend in a disposable
+workspace: [compact receipts](assets/electron/library/install-evidence-2026-10-07/installation-receipts-compact.png),
+[large receipts](assets/electron/library/install-evidence-2026-10-07/installation-receipts-large.png),
+[compact expanded evidence](assets/electron/library/install-evidence-2026-10-07/installation-artifact-evidence-compact.png),
+and [large expanded evidence](assets/electron/library/install-evidence-2026-10-07/installation-artifact-evidence-large.png).

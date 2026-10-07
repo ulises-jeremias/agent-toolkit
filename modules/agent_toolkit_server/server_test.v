@@ -2,6 +2,26 @@ module agent_toolkit_server
 
 import agent_toolkit_core
 import os
+import time
+
+fn test_install_artifact_status_compares_receipt_digest_without_exposing_content() {
+	dir := os.join_path(os.temp_dir(), 'atk-install-evidence-${time.now().unix_nano()}')
+	os.mkdir_all(dir) or { panic(err) }
+	defer {
+		os.rmdir_all(dir) or {}
+	}
+	path := os.join_path(dir, 'skill.md')
+	os.write_file(path, 'Toolkit content\n') or { panic(err) }
+	digest := agent_toolkit_core.receipt_artifact_digest(path)
+	assert install_artifact_status(path, digest) == 'unchanged'
+	os.write_file(path, 'User edited content\n') or { panic(err) }
+	assert install_artifact_status(path, digest) == 'modified'
+	link := os.join_path(dir, 'skill-link.md')
+	os.symlink(path, link) or { return }
+	assert install_artifact_status(link, digest) == 'replaced'
+	os.rm(path) or { panic(err) }
+	assert install_artifact_status(path, digest) == 'missing'
+}
 
 fn test_validate_bind_local_ok() {
 	validate_bind('127.0.0.1', false, '') or { assert false, err.msg() }
