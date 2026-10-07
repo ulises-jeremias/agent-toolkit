@@ -112,7 +112,9 @@ engine, server and CLI. Older captures and migration records live in
 [`VISUAL_QA_HISTORY.md`](VISUAL_QA_HISTORY.md) and are evidence, not current
 art direction. The README gallery shows real app captures, while its external
 SVG badges report CI, license and release metadata; there are no illustrative
-SVG dashboard mockups in the product gallery.
+SVG dashboard mockups in the product gallery. Dated comparison proposals are
+indexed in [design-notes](design-notes/README.md) and are not current feature
+requirements.
 
 For architecture and contribution commands, see the [Desktop package guide](../../apps/desktop/README.md), [design contract](DESIGN.md), and
 [contributor guide](../../CONTRIBUTING.md).

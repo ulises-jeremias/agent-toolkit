@@ -12,7 +12,7 @@
 | V migration | [`docs/v/README.md`](v/README.md), [`docs/RELEASING.md`](RELEASING.md), [`distribution/`](../distribution/README.md) | Native binary is canonical; Python is launcher only |
 | Distribution | `distribution/` (channel contracts) vs `distributions/` (compiler input) | One letter apart — see `distribution/README.md:17` |
 | Target matrix | `docs/TARGETS.md`, `docs/targets/*-certification.md` | |
-| Research / historical | `docs/research/`, `docs/archive/`, `docs/desktop/VISUAL_QA_HISTORY.md`, `docs/desktop/WORKSTATION_REFERENCE_ANALYSIS.md` | Historical material is kept for provenance; current product guides and contracts take precedence |
+| Research / historical | `docs/research/`, `docs/archive/`, [`docs/desktop/design-notes/`](desktop/design-notes/README.md), `docs/desktop/VISUAL_QA_HISTORY.md`, `docs/desktop/WORKSTATION_REFERENCE_ANALYSIS.md` | Historical material is kept for provenance; current product guides and contracts take precedence |
 
 When `docs/` and `docs/wiki/` disagree, **`docs/` wins**. Wiki pages are **indexes** that should link here — not a second catalog. Update or delete a wiki page in the same PR if it duplicates or contradicts `docs/` (#101).
 
