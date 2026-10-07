@@ -435,7 +435,8 @@ and [Dusk large](../../static/screenshots/world-dusk.png).
 
 I captured a fresh empty world, one-project world, three-project world, and
 project interior from Electron after the wall-art and selection-context
-changes. I opened all eight compact and large PNGs in
+changes at source `ea2384a2` with the 1.42.0 local V backend. I opened all eight
+compact and large PNGs in
 [`assets/electron/world-review-2026-10-07/`](assets/electron/world-review-2026-10-07/).
 The room now mixes its warm timber with original moonlit wall panels; the
 small teal and gold rune marks add a restrained magical accent without

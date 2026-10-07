@@ -84,6 +84,25 @@ journeys:
           - assets/electron/cozy-pixel-world/operations.png
           - assets/electron/cozy-pixel-world/terminal.png
       - note: >-
+          Follow-up Electron E2E at source ea2384a2 captured compact and large
+          empty, one-project, three-project, and project-room views using the
+          local V 1.42.0 backend. Opened captures show the new moonlit interior
+          panels; the selected-place header now omits absolute project paths.
+          The test asserts that privacy behavior.
+        build: "ea2384a2 (Linux Electron E2E; project-link.spec.ts; 2026-10-07)"
+        tests:
+          - apps/desktop/e2e/electron/project-link.spec.ts
+          - apps/desktop/src/features/world/model/worldModel.test.ts
+        screenshots:
+          - assets/electron/world-review-2026-10-07/world-empty-compact.png
+          - assets/electron/world-review-2026-10-07/world-empty-large.png
+          - assets/electron/world-review-2026-10-07/world-one-project-compact.png
+          - assets/electron/world-review-2026-10-07/world-one-project-large.png
+          - assets/electron/world-review-2026-10-07/world-several-projects-meadow-compact.png
+          - assets/electron/world-review-2026-10-07/world-several-projects-meadow-large.png
+          - assets/electron/world-review-2026-10-07/project-files-room-compact.png
+          - assets/electron/world-review-2026-10-07/project-files-room-large.png
+      - note: >-
           Registered project house opens a project overview board; its filing
           cabinet opens Workspace Files scoped to the registered project root,
           and the GUI reads a real README through the typed API.
