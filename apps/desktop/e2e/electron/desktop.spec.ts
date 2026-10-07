@@ -890,10 +890,9 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
   await expect(dialog.getByText('Workspace default: Lina')).toBeVisible();
   await dialog.getByLabel('Person for reviewer').selectOption('');
   await expect(resolvedPeople).toContainText('workspace default');
-  await dialog
-    .getByText(/Runner & model/)
-    .last()
-    .click();
+  const roleRuntime = dialog.locator('details').filter({ hasText: 'Runner & model' }).last();
+  await roleRuntime.locator('summary').click();
+  await expect(dialog.getByLabel('Runner for reviewer')).toBeVisible();
   await dialog.getByLabel('Runner for reviewer').selectOption('skeleton');
   await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText('skeleton · auto');
   await setViewport(desktop.app, 1024, 768);
