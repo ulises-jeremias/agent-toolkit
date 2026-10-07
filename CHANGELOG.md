@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The World operations landmark now has a distinct observatory silhouette, project interiors use aligned timber planks, and the creek is narrower with deterministic bank details. Dusk has stronger blue-hour contrast, and the README gallery now shows current Electron captures at compact and large sizes.
 - Desktop World, Library, People Start, Workspace, and the command palette now share the typed project roster API instead of parsing `project list` output. Workspace project rows show link health and open the same canonical project in World; verbose start-context and catalog reports are collapsed until requested.
 - Project room walls now include deterministic moonlit mural tiles, and the selected-place chip keeps local filesystem paths out of the visible world header. README status links are plain links beside authentic Electron screenshots rather than external SVG badges.
 - The Desktop Dusk world uses a stronger blue-hour terrain tint with warm clearing pools; visual-review capture waits for the loaded Library landmark before saving the map.
