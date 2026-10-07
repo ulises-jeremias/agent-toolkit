@@ -134,8 +134,13 @@ The `launch_sessions` API option starts real Herdr/tmux role processes without
 attaching the server request to an interactive terminal. Headless mode records
 run state only and rejects a request to launch sessions. Runner and model are
 still selected for the swarm as a whole; saved per-Person runner/model
-preferences are not applied by this runtime. Runtime presence is not projected
-into the World from swarm bindings yet.
+preferences are not applied by this runtime. The run inspector resolves stored
+Person IDs against the current roster and shows the durable name, role, and
+saved runner/model preferences. If that Person was later archived or removed,
+the inspector explains that the live roster entry is unavailable. Preferences
+are informational only; they do not imply the swarm used that Person's runner
+or model. Runtime presence is not projected into the World from swarm bindings
+yet, and a binding alone never creates a PersonSession or character.
 
 In the Start Swarm review, **Remember** stores the selected Person as a
 workspace default for that recipe role. The UI shows the pinned Person and any

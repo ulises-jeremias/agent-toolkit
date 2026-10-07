@@ -861,6 +861,7 @@ test('Library configures MCP providers with secret-free previews and explicit ch
 
 test('swarm start reviews canonical topology and keeps runner separate from adapter', async () => {
   const { page } = desktop;
+  initializeTestRepository(desktop.workspace);
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'People' }).click();
   await page.getByRole('button', { name: 'Create Person' }).click();
   const personDialog = page.getByRole('dialog', { name: 'Create Person' });
@@ -911,6 +912,36 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
   await dialog.getByRole('button', { name: 'Start swarm' }).click();
   await expect(dialog).toBeHidden();
   await expect(page.getByRole('region', { name: 'Receipts' })).toContainText(/Swarm start posted/);
+
+  await page.getByRole('button', { name: 'Start swarm' }).click();
+  const boundDialog = page.getByRole('dialog', { name: 'Start a swarm' });
+  await boundDialog.getByLabel('Task').fill('Keep the selected collaborator visible in run history');
+  await boundDialog.getByLabel('Person for reviewer').selectOption('lina');
+  await boundDialog.getByText('Runtime options').click();
+  await boundDialog.getByLabel('Session adapter').selectOption('headless');
+  await boundDialog.getByRole('button', { name: 'Start swarm' }).click();
+  await expect(boundDialog).toBeHidden();
+  const boundRun = page.getByRole('button', { name: /Keep the selected collaborator visible in run history/ });
+  await expect(boundRun).toBeVisible();
+  await boundRun.click();
+  const boundInspector = page.getByRole('region', { name: 'pair' });
+  await expect(boundInspector.getByRole('region', { name: 'People bound to roles' })).toContainText('Lina');
+  await expect(boundInspector.getByRole('region', { name: 'People bound to roles' })).toContainText('reviewer');
+  await expect(boundInspector.getByRole('note')).toContainText('does not create a live Person session');
+  const startReceipt = page.getByRole('button', { name: 'Dismiss: Swarm start posted' }).last();
+  if (await startReceipt.isVisible()) await startReceipt.click();
+  await setViewport(desktop.app, 1024, 768);
+  await boundInspector.evaluate((element) => element.scrollIntoView({ block: 'start' }));
+  await page.screenshot({ path: 'test-results/review/swarm-run-person-binding-compact.png', fullPage: true });
+  if (CAPTURE) {
+    fs.mkdirSync(CAPTURE_DIR, { recursive: true });
+    await page.screenshot({ path: path.join(CAPTURE_DIR, 'swarm-run-person-binding-compact.png'), fullPage: true });
+  }
+  await setViewport(desktop.app, 1600, 1000);
+  await boundInspector.evaluate((element) => element.scrollIntoView({ block: 'start' }));
+  await page.screenshot({ path: 'test-results/review/swarm-run-person-binding-large.png', fullPage: true });
+  if (CAPTURE)
+    await page.screenshot({ path: path.join(CAPTURE_DIR, 'swarm-run-person-binding-large.png'), fullPage: true });
 });
 
 test('Operations refreshes a live swarm when its state changes outside Desktop', async () => {

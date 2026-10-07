@@ -3,7 +3,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useModels, useProviders } from '../../data/catalog';
 import { useLiveStatus } from '../../data/live';
 import { useSwarmCommand, useSwarmRecipes, useSwarmRun, useSwarmRunAction, useSwarms } from '../../data/swarms';
-import { requireOk, type CommandEnvelope, type SubBody, type SwarmRunInfo, type SwarmRunResponse } from '../../lib/api';
+import {
+  requireOk,
+  type CommandEnvelope,
+  type Person,
+  type SubBody,
+  type SwarmRunInfo,
+  type SwarmRunResponse,
+} from '../../lib/api';
 import { requireClient, useBackend } from '../../data/backend';
 import { useSessionContext } from '../../shell/useSessionContext';
 import {
@@ -163,6 +170,13 @@ function SwarmInspector({
   const [cleanupPreview, setCleanupPreview] = useState<CommandEnvelope | null>(null);
   const run = detail.data?.run ?? summary;
   const { context } = useSessionContext();
+  const { client } = useBackend();
+  const people = useQuery({
+    queryKey: ['people', context.workspace],
+    queryFn: () => requireClient(client).people(context.workspace),
+    enabled: client !== null && Boolean(context.workspace),
+    staleTime: 10_000,
+  });
   const offline = useLiveStatus().connection === 'offline';
 
   const act = (kind: 'approve' | 'reject' | 'stop') =>
@@ -342,15 +356,16 @@ function SwarmInspector({
         ) : null}
       </Dialog>
       <QueryView query={detail} loading="Loading swarm run" errorTitle="Could not load this swarm run">
-        {(data) => <SwarmRunBody data={data} />}
+        {(data) => <SwarmRunBody data={data} people={people.data?.people ?? []} />}
       </QueryView>
     </Panel>
   );
 }
 
-function SwarmRunBody({ data }: { data: SwarmRunResponse }) {
+function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person[] }) {
   const { run, budget } = data;
   const bindings = Object.entries(run.person_bindings ?? {});
+  const peopleById = new Map(people.map((person) => [person.id, person]));
   const cost =
     budget.cost_status === 'accounted'
       ? `${budget.total_cost} / ${budget.max_cost_usd}`
@@ -377,20 +392,21 @@ function SwarmRunBody({ data }: { data: SwarmRunResponse }) {
             <thead>
               <tr>
                 <th scope="col">Role</th>
-                <th scope="col">Person ID</th>
+                <th scope="col">Collaborator</th>
+                <th scope="col">Saved preferences</th>
               </tr>
             </thead>
             <tbody>
               {bindings.map(([role, id]) => (
-                <tr key={role}>
-                  <th scope="row">{role}</th>
-                  <td>
-                    <Mono>{id}</Mono>
-                  </td>
-                </tr>
+                <SwarmPersonBindingRow key={role} role={role} id={id} person={peopleById.get(id)} />
               ))}
             </tbody>
           </Table>
+          <p role="note">
+            This is the Person selected for the swarm role. Runtime status and terminal access come from the session
+            adapter; a saved binding alone does not create a live Person session or a World character. Runner and model
+            preferences are shown for reference and are not applied to individual roles yet.
+          </p>
         </SwarmSection>
       ) : null}
       <SwarmSection title="Approvals" empty="No gates on this run.">
@@ -498,6 +514,32 @@ function SwarmRunBody({ data }: { data: SwarmRunResponse }) {
         </section>
       ) : null}
     </>
+  );
+}
+
+function SwarmPersonBindingRow({ role, id, person }: { role: string; id: string; person: Person | undefined }) {
+  return (
+    <tr>
+      <th scope="row">{role}</th>
+      <td>
+        {person ? (
+          <>
+            <strong>{person.name}</strong>
+            <div>{person.role}</div>
+            <Mono>{id}</Mono>
+            {person.archived ? <div>Archived after this run was configured</div> : null}
+          </>
+        ) : (
+          <Mono>{id} · no longer in this workspace roster</Mono>
+        )}
+      </td>
+      <td>
+        {person
+          ? [person.preferred_provider, person.preferred_model].filter(Boolean).join(' · ') ||
+            'No runner/model preference'
+          : 'Preferences unavailable'}
+      </td>
+    </tr>
   );
 }
 
