@@ -291,12 +291,6 @@
       "h": 16,
       "frames": 1
     },
-    "floor-wood-b": {
-      "file": "floor-wood-b.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
     "floor-rune": {
       "file": "floor-rune.png",
       "w": 16,

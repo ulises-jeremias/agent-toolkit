@@ -155,7 +155,6 @@ export const cozyValleyTheme: WorldThemePack = {
   },
   interior: {
     'floor-a': sprite('floor-wood', 'Plank floor'),
-    'floor-b': sprite('floor-wood-b', 'Plank floor'),
     'floor-rune': sprite('floor-rune', 'Quiet floor inlay'),
     wall: sprite('wall-top', 'Wall'),
     'wall-mural': sprite('wall-mural', 'Moonlit wall panel'),

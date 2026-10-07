@@ -1056,6 +1056,8 @@ describe('layoutWorld', () => {
     expect(inlays.length).toBeGreaterThan(0);
     expect(inlays.length).toBeLessThanOrEqual(6);
     expect(inlays).toEqual(second.cells.filter((cell) => cell.tile === 'floor-rune'));
+    expect(first.cells.filter((cell) => cell.tile === 'floor-a')).toHaveLength(18 * 12 - 56 - inlays.length);
+    expect(first.cells.some((cell) => cell.tile === 'floor-b')).toBe(false);
     expect(first.cells.filter((cell) => cell.tile === 'wall' || cell.tile === 'wall-mural')).toHaveLength(56);
     expect(first.cells.some((cell) => cell.tile === 'wall-mural')).toBe(true);
     expect(first.cells).toEqual(second.cells);

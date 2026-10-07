@@ -1529,32 +1529,21 @@ function signPost() {
  * ------------------------------------------------------------------ */
 
 function floorPlank() {
-  const horizontalBoards = () => {
-    const img = new Img(16, 16);
-    img.rect(0, 0, 15, 15, 'floorWoodShade');
-    for (let course = 0; course < 4; course++) {
-      const y = course * 4;
-      const tone = course % 2 === 0 ? 'floorWood' : 'floorWoodLight';
-      const joint = course % 2 === 0 ? 5 : 11;
-      img.rect(0, y, 15, y + 2, tone);
-      img.hline(0, 15, y, 'floorWoodEdge');
-      img.hline(0, 15, y + 3, 'floorWoodShade');
-      img.vline(joint, y + 1, y + 2, 'floorWoodShade');
-      // Short grain strokes break the long board into hand-cut timber.
-      img.hline(2 + (course % 2), 4 + (course % 2), y + 1, 'floorWoodLight');
-      img.set(13 - (course % 2), y + 2, 'floorWoodEdge');
-    }
-    return img;
-  };
-  const a = horizontalBoards();
-  const b = new Img(16, 16);
-  for (let y = 0; y < 16; y++) {
-    for (let x = 0; x < 16; x++) b.set(15 - y, x, a.get(x, y));
+  const img = new Img(16, 16);
+  img.rect(0, 0, 15, 15, 'floorWoodShade');
+  for (let course = 0; course < 2; course++) {
+    const y = course * 8;
+    const tone = course === 0 ? 'floorWood' : 'floorWoodLight';
+    const joints = course === 0 ? [4, 12] : [8];
+    img.rect(0, y, 15, y + 6, tone);
+    img.hline(0, 15, y, 'floorWoodEdge');
+    img.hline(0, 15, y + 7, 'floorWoodShade');
+    for (const joint of joints) img.vline(joint, y + 1, y + 6, 'floorWoodShade');
+    // A few short grain marks keep the broad boards from looking synthetic.
+    img.hline(1 + course, 3 + course, y + 2, 'floorWoodLight');
+    img.hline(10 - course, 11 - course, y + 5, 'floorWood');
   }
-  return [
-    { name: 'floor-wood', img: a },
-    { name: 'floor-wood-b', img: b },
-  ];
+  return [{ name: 'floor-wood', img }];
 }
 
 /** A quiet carved wayfinding sigil, repeated rarely in the room floor. */

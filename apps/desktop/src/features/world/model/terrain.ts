@@ -475,7 +475,10 @@ function creek(
     const anchoredSoftBend = Math.sin(along * 0.31 + 0.7) - Math.sin(0.7);
     const desiredX = baseX + Math.sin(along * 0.22) * broadBend + anchoredSoftBend * softBend;
     const pool = Math.sin(along * 0.25 + 0.9);
-    const width = pool > 0.45 ? 3 : 2;
+    // Keep the creek mostly two tiles wide; only the occasional pool opens
+    // into a three-tile pocket. Frequent broad sections read as a moat at
+    // fit-to-world zoom and visually divide the town from its project homes.
+    const width = pool > 0.82 ? 3 : 2;
     const safeBank = (candidate: number) =>
       Array.from({ length: width }, (_, offset) => {
         const x = candidate + offset;
@@ -1373,7 +1376,10 @@ export function paintInterior(entities: readonly LaidOutEntity[], cols: number, 
       // Rare, stable floor inlays add quiet craft detail without encoding
       // runtime activity or creating false interactive objects.
       const rune = (x * 31 + y * 67 + x * y * 13) % 47 === 7;
-      const floorVariant = rune ? 'floor-rune' : (x + y) % 2 === 0 ? 'floor-a' : 'floor-b';
+      // Keep the timber grain running in one direction across the room. A
+      // per-cell rotation makes every other tile read like shelving instead
+      // of a continuous floor; rare rune inlays provide the only variation.
+      const floorVariant = rune ? 'floor-rune' : 'floor-a';
       p.set(x, y, wall ? wallTile : floorVariant, true);
     }
   }
