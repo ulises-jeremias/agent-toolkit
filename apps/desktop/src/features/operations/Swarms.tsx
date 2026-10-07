@@ -860,7 +860,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
                         </Select>
                       )}
                     </Field>
-                    <details className={styles.recipeRoleRuntime}>
+                    <details className={styles.recipeRoleRuntime} aria-label={`Runtime settings for ${item.name}`}>
                       <summary>
                         Runner &amp; model{' '}
                         <span>
