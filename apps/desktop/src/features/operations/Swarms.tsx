@@ -46,6 +46,8 @@ function compactBody(body: SubBody<'swarms'>): SubBody<'swarms'> {
   return next as SubBody<'swarms'>;
 }
 
+type RoleExecutionPreview = Record<string, { runner: string; model: string }>;
+
 export function SwarmsPanel({
   selectedId,
   dialogOpen,
@@ -364,7 +366,8 @@ function SwarmInspector({
 
 function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person[] }) {
   const { run, budget } = data;
-  const bindings = Object.entries(run.person_bindings ?? {});
+  const executionRoles = Object.keys(run.role_runners ?? {}).sort();
+  const personBindings = run.person_bindings ?? {};
   const peopleById = new Map(people.map((person) => [person.id, person]));
   const cost =
     budget.cost_status === 'accounted'
@@ -383,9 +386,9 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
           { label: 'Cost', value: cost },
         ]}
       />
-      {bindings.length > 0 ? (
+      {executionRoles.length > 0 ? (
         <SwarmSection
-          title="People bound to roles"
+          title="Role execution"
           empty="No People are explicitly bound; recipe roles use automatic ephemeral sessions."
         >
           <Table>
@@ -393,19 +396,28 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
               <tr>
                 <th scope="col">Role</th>
                 <th scope="col">Collaborator</th>
-                <th scope="col">Saved preferences</th>
+                <th scope="col">Runner and model</th>
               </tr>
             </thead>
             <tbody>
-              {bindings.map(([role, id]) => (
-                <SwarmPersonBindingRow key={role} role={role} id={id} person={peopleById.get(id)} />
-              ))}
+              {executionRoles.map((role) => {
+                const id = personBindings[role] ?? '';
+                return (
+                  <SwarmPersonBindingRow
+                    key={role}
+                    role={role}
+                    id={id}
+                    person={peopleById.get(id)}
+                    runner={run.role_runners?.[role]}
+                    model={run.role_models?.[role]}
+                  />
+                );
+              })}
             </tbody>
           </Table>
           <p role="note">
-            This is the Person selected for the swarm role. Runtime status and terminal access come from the session
-            adapter; a saved binding alone does not create a live Person session or a World character. Runner and model
-            preferences are shown for reference and are not applied to individual roles yet.
+            Runner and model show the saved launch configuration. A Person binding identifies the collaborator but does
+            not create a live Person session or a World character by itself.
           </p>
         </SwarmSection>
       ) : null}
@@ -517,7 +529,19 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
   );
 }
 
-function SwarmPersonBindingRow({ role, id, person }: { role: string; id: string; person: Person | undefined }) {
+function SwarmPersonBindingRow({
+  role,
+  id,
+  person,
+  runner,
+  model,
+}: {
+  role: string;
+  id: string;
+  person: Person | undefined;
+  runner?: string;
+  model?: string;
+}) {
   return (
     <tr>
       <th scope="row">{role}</th>
@@ -529,16 +553,13 @@ function SwarmPersonBindingRow({ role, id, person }: { role: string; id: string;
             <Mono>{id}</Mono>
             {person.archived ? <div>Archived after this run was configured</div> : null}
           </>
-        ) : (
+        ) : id ? (
           <Mono>{id} · no longer in this workspace roster</Mono>
+        ) : (
+          'Ephemeral role session'
         )}
       </td>
-      <td>
-        {person
-          ? [person.preferred_provider, person.preferred_model].filter(Boolean).join(' · ') ||
-            'No runner/model preference'
-          : 'Preferences unavailable'}
-      </td>
+      <td>{[runner, model].filter(Boolean).join(' · ') || 'Runner/model unavailable'}</td>
     </tr>
   );
 }
@@ -570,6 +591,8 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   const [dryRun, setDryRun] = useState(false);
   const [launchSessions, setLaunchSessions] = useState(true);
   const [personBindings, setPersonBindings] = useState<Record<string, string>>({});
+  const [roleRunnerOverrides, setRoleRunnerOverrides] = useState<Record<string, string>>({});
+  const [roleModelOverrides, setRoleModelOverrides] = useState<Record<string, string>>({});
   const [previewTask, setPreviewTask] = useState('');
   useEffect(() => {
     const timer = window.setTimeout(() => setPreviewTask(task.trim()), 300);
@@ -618,6 +641,24 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
     [personBindings, selectedRecipe],
   );
   const boundPeople = Object.values(activePersonBindings);
+  const activeRoleRunnerOverrides = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(roleRunnerOverrides).filter(
+          ([role, value]) => value && (selectedRecipe?.roles ?? []).some((item) => item.name === role),
+        ),
+      ),
+    [roleRunnerOverrides, selectedRecipe],
+  );
+  const activeRoleModelOverrides = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(roleModelOverrides).filter(
+          ([role, value]) => value && (selectedRecipe?.roles ?? []).some((item) => item.name === role),
+        ),
+      ),
+    [roleModelOverrides, selectedRecipe],
+  );
 
   const body = useMemo(() => {
     const payload: SubBody<'swarms'> = {
@@ -628,11 +669,25 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
       backend,
       model_profile: model || undefined,
       person_bindings: activePersonBindings,
+      role_runners: activeRoleRunnerOverrides,
+      role_models: activeRoleModelOverrides,
       launch_sessions: willLaunchSessions,
       dry_run: dryRun || undefined,
     };
     return compactBody(payload);
-  }, [activePersonBindings, backend, context.workspace, dryRun, model, recipe, runner, task, willLaunchSessions]);
+  }, [
+    activePersonBindings,
+    activeRoleModelOverrides,
+    activeRoleRunnerOverrides,
+    backend,
+    context.workspace,
+    dryRun,
+    model,
+    recipe,
+    runner,
+    task,
+    willLaunchSessions,
+  ]);
   const previewBody = useMemo(
     () => compactBody({ ...body, task: previewTask, launch_sessions: false, dry_run: true }),
     [body, previewTask],
@@ -657,6 +712,24 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
       return {};
     }
   }, [startPreview.data]);
+  const resolvedExecution = useMemo<RoleExecutionPreview>(() => {
+    const raw = startPreview.data?.data['role_execution'];
+    if (!raw) return {};
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
+      return Object.fromEntries(
+        Object.entries(parsed).flatMap(([role, value]) => {
+          if (typeof value !== 'object' || value === null || Array.isArray(value)) return [];
+          const execution = value as Record<string, unknown>;
+          if (typeof execution['runner'] !== 'string' || typeof execution['model'] !== 'string') return [];
+          return [[role, { runner: execution['runner'], model: execution['model'] }]];
+        }),
+      );
+    } catch {
+      return {};
+    }
+  }, [startPreview.data]);
 
   const close = () => {
     saveDefaults.reset();
@@ -668,6 +741,8 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
     setDryRun(false);
     setLaunchSessions(true);
     setPersonBindings({});
+    setRoleRunnerOverrides({});
+    setRoleModelOverrides({});
     onClose();
   };
 
@@ -739,6 +814,15 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
                 const savedId = savedPreference?.person_id ?? '';
                 const savedPerson = people.find((candidate) => candidate.id === savedId);
                 const assignedPerson = people.find((candidate) => candidate.id === assigned);
+                const roleRunner =
+                  roleRunnerOverrides[item.name] || assignedPerson?.preferred_provider || runner || 'opencode';
+                const roleModelOptions = models.data?.models.filter((entry) => entry.runner === roleRunner) ?? [];
+                const personModel = roleModelOptions.some((entry) => entry.model === assignedPerson?.preferred_model)
+                  ? assignedPerson?.preferred_model || ''
+                  : '';
+                const profileModel =
+                  roleModelOptions.find((entry) => entry.profile === (model || 'balanced'))?.model || '';
+                const defaultModel = personModel || profileModel || 'auto';
                 const fallbackNames = (savedPreference?.preferred_people ?? []).map(
                   (personId) => people.find((candidate) => candidate.id === personId)?.name ?? personId,
                 );
@@ -776,6 +860,72 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
                         </Select>
                       )}
                     </Field>
+                    <details className={styles.recipeRoleRuntime}>
+                      <summary>
+                        Runner &amp; model{' '}
+                        <span>
+                          {roleRunner} · {defaultModel}
+                        </span>
+                      </summary>
+                      <div className={styles.recipeRoleRuntimeFields}>
+                        <Field label={`Runner for ${item.name}`} hint="Person preference, then team default.">
+                          {(control) => (
+                            <Select
+                              value={roleRunnerOverrides[item.name] ?? ''}
+                              onChange={(event) => {
+                                const value = event.target.value;
+                                setRoleRunnerOverrides((current) => {
+                                  const next = { ...current };
+                                  if (value) next[item.name] = value;
+                                  else delete next[item.name];
+                                  return next;
+                                });
+                                setRoleModelOverrides((current) => {
+                                  const next = { ...current };
+                                  delete next[item.name];
+                                  return next;
+                                });
+                              }}
+                              {...control}
+                            >
+                              <option value="">Use Person / team default · {roleRunner}</option>
+                              {availableProviders.map((provider) => (
+                                <option key={provider.id} value={provider.id}>
+                                  {provider.id}
+                                  {provider.version ? ` · ${provider.version}` : ''}
+                                </option>
+                              ))}
+                            </Select>
+                          )}
+                        </Field>
+                        <Field
+                          label={`Model for ${item.name}`}
+                          hint="Only catalogued models for this runner are offered."
+                        >
+                          {(control) => (
+                            <Select
+                              value={roleModelOverrides[item.name] ?? ''}
+                              onChange={(event) =>
+                                setRoleModelOverrides((current) => {
+                                  const next = { ...current };
+                                  if (event.target.value) next[item.name] = event.target.value;
+                                  else delete next[item.name];
+                                  return next;
+                                })
+                              }
+                              {...control}
+                            >
+                              <option value="">Use Person / team default · {defaultModel}</option>
+                              {roleModelOptions.map((entry) => (
+                                <option key={`${entry.profile}:${entry.model}`} value={entry.model}>
+                                  {entry.model} · {entry.profile}
+                                </option>
+                              ))}
+                            </Select>
+                          )}
+                        </Field>
+                      </div>
+                    </details>
                     <div className={styles.rolePreference}>
                       <span>
                         Workspace default: <strong>{savedPerson?.name ?? (savedId || 'automatic')}</strong>
@@ -821,7 +971,8 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
             ) : null}
             <p className={styles.bindingNote}>
               Explicit choices win. Auto assigns a unique active Person with a matching saved role or Agent Definition,
-              then falls back to an ephemeral role. Runner and model remain swarm-wide settings.
+              then falls back to an ephemeral role. Each role uses its Person&apos;s runner/model preference, then the
+              team defaults; you can override either before starting.
             </p>
             <div className={styles.recipeSummary}>
               <span>
@@ -979,6 +1130,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
                 {(selectedRecipe?.roles ?? []).map((role) => {
                   const personId = resolvedPeople[role.name];
                   const person = people.find((item) => item.id === personId);
+                  const execution = resolvedExecution[role.name];
                   const explicit = activePersonBindings[role.name] === personId;
                   const preference = defaultsQuery.data?.roles.find((item) => item.role === role.name);
                   const workspaceDefault =
@@ -987,6 +1139,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
                   return (
                     <span key={role.name}>
                       {role.name} → <strong>{person?.name ?? (personId ? personId : 'Ephemeral role session')}</strong>
+                      {execution ? ` · ${execution.runner} · ${execution.model}` : ''}
                       {person
                         ? ` · ${explicit ? 'selected' : workspaceDefault ? 'workspace default' : 'matched role'}`
                         : ''}

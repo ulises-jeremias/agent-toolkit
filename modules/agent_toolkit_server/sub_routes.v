@@ -502,6 +502,8 @@ struct SwarmsSubReq {
 	runner        string
 	model_profile string
 	person_bindings map[string]string
+	role_runners    map[string]string
+	role_models     map[string]string
 	launch_sessions bool
 	task          string
 	reason        string
@@ -525,6 +527,8 @@ struct SwarmsSubReq {
 	older_than    string
 }
 
+// build_swarms_options keeps role-to-Person, runner, and model choices typed
+// at the HTTP boundary; canonical recipe and catalog validation stays in core.
 pub fn build_swarms_options(sub string, body string) !agent_toolkit_core.SwarmOptions {
 	check_sub('swarms', sub)!
 	req := decode_sub_body[SwarmsSubReq](body)!
@@ -567,6 +571,8 @@ pub fn build_swarms_options(sub string, body string) !agent_toolkit_core.SwarmOp
 		runner: req.runner
 		model_profile: req.model_profile
 		person_bindings: req.person_bindings
+		role_runners: req.role_runners
+		role_models: req.role_models
 		launch_sessions: req.launch_sessions
 		task: req.task
 		reason: req.reason

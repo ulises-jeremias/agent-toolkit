@@ -234,6 +234,24 @@ pub fn herdr_runner_cmd(runner string, role string, task string, worktree string
 	}
 }
 
+// herdr_runner_cmd_for_model adds only the model switch used by each supported
+// interactive runner. The model name is always shell-quoted and comes from the
+// validated runner catalog; unknown runner/model pairs fail closed upstream.
+pub fn herdr_runner_cmd_for_model(runner string, role string, task string, worktree string, prompt_file string, model string) string {
+	base := herdr_runner_cmd(runner, role, task, worktree, prompt_file)
+	if model.len == 0 || model == 'auto' || runner in ['muse', 'skeleton'] {
+		return base
+	}
+	flag := match runner {
+		'codex' { ' -m ' }
+		'opencode', 'claude', 'cursor', 'copilot' { ' --model ' }
+		else { return base }
+	}
+	command := runner_bins[runner] or { return base }
+	if !base.starts_with(command) { return base }
+	return command + flag + shell_quote(model) + base[command.len..]
+}
+
 fn probe_unix_bin(name string, argv []string) BackendDoctor {
 	$if windows {
 		return BackendDoctor{

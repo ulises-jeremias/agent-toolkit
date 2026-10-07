@@ -361,6 +361,8 @@ schemas:
       - created_at:string
       - task:string
       - person_bindings?:map<string>
+      - role_runners?:map<string>
+      - role_models?:map<string>
 
   - name: SwarmListResponse
     fields:

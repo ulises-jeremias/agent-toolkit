@@ -1558,6 +1558,12 @@ export interface components {
             person_bindings?: {
                 [key: string]: string;
             };
+            role_runners?: {
+                [key: string]: string;
+            };
+            role_models?: {
+                [key: string]: string;
+            };
         };
         SwarmListResponse: {
             ok: boolean;
@@ -2624,6 +2630,12 @@ export interface operations {
                     to_recipe?: string;
                     older_than?: string;
                     person_bindings?: {
+                        [key: string]: string;
+                    };
+                    role_runners?: {
+                        [key: string]: string;
+                    };
+                    role_models?: {
                         [key: string]: string;
                     };
                     launch_sessions?: boolean;

@@ -51,6 +51,61 @@ fn test_swarm_person_environment_hint_is_role_specific_and_shell_quoted() {
 	assert swarm_person_env('implementer', bindings) == ''
 }
 
+fn test_swarm_role_execution_uses_person_preferences_and_validated_overrides() {
+	base := os.join_path(os.temp_dir(), 'at-swarm-role-execution-${os.getpid()}')
+	os.mkdir_all(os.join_path(base, '.git')) or { panic(err) }
+	defer { os.rmdir_all(base) or {} }
+	save_person(base, '{"spec":"agent-toolkit/person@1","id":"lina","name":"Lina","role":"reviewer","goal":"Review changes","archived":false,"preferred_provider":"opencode","preferred_model":"sonnet"}', true) or { panic(err) }
+	person_default := resolve_swarm_role_execution(base, 'team', {'reviewer': 'lina'}, {}, {}, 'claude', 'quality') or {
+		panic(err)
+	}
+	assert person_default['reviewer'].runner == 'opencode'
+	assert person_default['reviewer'].model == 'sonnet'
+	assert person_default['planner'].runner == 'claude'
+	assert person_default['planner'].model == 'opus'
+	overridden := resolve_swarm_role_execution(base, 'team', {'reviewer': 'lina'}, {'reviewer': 'codex'}, {}, 'claude', 'quality') or {
+		panic(err)
+	}
+	assert overridden['reviewer'].runner == 'codex'
+	assert overridden['reviewer'].model == 'o4-mini'
+	selected_model := resolve_swarm_role_execution(base, 'team', {'reviewer': 'lina'}, {'reviewer': 'codex'}, {'reviewer': 'o3-mini'}, 'claude', 'quality') or {
+		panic(err)
+	}
+	assert selected_model['reviewer'].model == 'o3-mini'
+	if _ := resolve_swarm_role_execution(base, 'team', {'reviewer': 'lina'}, {}, {'reviewer': 'o3-mini'}, 'claude', 'quality') {
+		assert false, 'model for a different runner was accepted'
+	} else {
+		assert err.msg().contains('not available')
+	}
+	if _ := resolve_swarm_role_execution(base, 'team', {}, {'not-a-role': 'claude'}, {}, 'claude', 'quality') {
+		assert false, 'runner override for an unknown role was accepted'
+	} else {
+		assert err.msg().contains('outside recipe')
+	}
+}
+
+fn test_swarm_start_preview_reports_resolved_role_execution() {
+	base := os.join_path(os.temp_dir(), 'at-swarm-role-preview-${os.getpid()}')
+	os.mkdir_all(os.join_path(base, '.git')) or { panic(err) }
+	defer { os.rmdir_all(base) or {} }
+	save_person(base, '{"spec":"agent-toolkit/person@1","id":"lina","name":"Lina","role":"reviewer","goal":"Review changes","archived":false,"preferred_provider":"opencode","preferred_model":"sonnet"}', true) or { panic(err) }
+	preview := run_swarm(SwarmOptions{
+		subcommand: 'start'
+		workspace_path: base
+		recipe: 'team'
+		backend: 'headless'
+		dry_run: true
+		task: 'inspect role configuration'
+		person_bindings: {'reviewer': 'lina'}
+		role_runners: {'planner': 'codex'}
+		role_models: {'planner': 'o3-mini'}
+	})
+	assert preview.ok, preview.message
+	assert preview.data['role_execution'].contains('"reviewer":{"runner":"opencode","model":"sonnet"}')
+	assert preview.data['role_execution'].contains('"planner":{"runner":"codex","model":"o3-mini"}')
+	assert !os.is_dir(os.join_path(base, '.agent-toolkit', 'swarm', 'runs'))
+}
+
 fn test_swarm_recipe_catalog_exposes_canonical_topology_and_backends() {
 	catalog := list_swarm_recipes_typed()
 	assert catalog.ok

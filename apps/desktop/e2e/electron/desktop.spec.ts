@@ -894,7 +894,12 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
   await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText(
     'reviewer → Lina · workspace default',
   );
-  await expect(dialog.getByText(/Runner and model remain swarm-wide settings/)).toBeVisible();
+  await dialog
+    .getByText(/Runner & model/)
+    .last()
+    .click();
+  await dialog.getByLabel('Runner for reviewer').selectOption('skeleton');
+  await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText('skeleton · auto');
   await setViewport(desktop.app, 1024, 768);
   await page.screenshot({ path: 'test-results/review/swarms-start-compact.png', fullPage: true });
   if (CAPTURE) {
@@ -925,8 +930,9 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
   await expect(boundRun).toBeVisible();
   await boundRun.click();
   const boundInspector = page.getByRole('region', { name: 'pair' });
-  await expect(boundInspector.getByRole('region', { name: 'People bound to roles' })).toContainText('Lina');
-  await expect(boundInspector.getByRole('region', { name: 'People bound to roles' })).toContainText('reviewer');
+  await expect(boundInspector.getByRole('region', { name: 'Role execution' })).toContainText('Lina');
+  await expect(boundInspector.getByRole('region', { name: 'Role execution' })).toContainText('reviewer');
+  await expect(boundInspector.getByRole('region', { name: 'Role execution' })).toContainText('opencode · sonnet');
   await expect(boundInspector.getByRole('note')).toContainText('does not create a live Person session');
   const startReceipt = page.getByRole('button', { name: 'Dismiss: Swarm start posted' }).last();
   if (await startReceipt.isVisible()) await startReceipt.click();
