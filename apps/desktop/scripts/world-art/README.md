@@ -7,7 +7,8 @@ for this project; its prompt is recorded in `prompts/landmark-operations.md`.
 It was reduced to a 64×64 source sprite with nearest-neighbour sampling and a
 hard alpha edge for crisp integer scaling. The six tree silhouettes are an
 original transparent atlas in `tree-atlas-2026-10-07.png`, individually
-cropped to a shared 48×48 footprint with nearest-neighbour sampling. This
+cropped to a shared 48×48 footprint with nearest-neighbour sampling and a
+hard alpha threshold for crisp edges. This
 preserves the atlas's distinct oak, flowering, autumn, rune-lit, pine, and
 willow silhouettes while keeping display scaling crisp. The source atlas,
 selected crop PNGs, and generation prompt are checked in so review and

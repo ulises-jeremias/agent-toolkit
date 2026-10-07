@@ -35,5 +35,6 @@ Avoid: photorealism, antialiasing, fuzzy edges, painterly brushwork, flat
 
 The selected 1536×1024 transparent atlas is stored beside this record. Each
 cell was tightly cropped, proportionally reduced to fit 46×46 with nearest
-sampling, then placed on a transparent 48×48 canvas. The runtime displays all
+sampling, then alpha-cleaned with a 50% cutoff and placed on a transparent 48×48
+canvas. The runtime displays all
 tree sprites at 48×48 with nearest-neighbor scaling.
