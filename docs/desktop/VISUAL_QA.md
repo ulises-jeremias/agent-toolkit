@@ -220,8 +220,12 @@ the warm clearing and creek-reflection pools, then recaptured both sizes. Water
 and grass now retain separation while Dusk still reads as evening. This is a
 clarity improvement, not final art sign-off: the paths remain geometric,
 the project-side lawn is broad, and the room needs further composition work.
-The current captures and all temporary screenshots were kept separate from
-the two user-owned Library evidence files.
+Opened multi-project references: [Meadow compact](assets/electron/world-labels-2026-10-07/world-several-projects-meadow-compact.png),
+[Meadow large](assets/electron/world-labels-2026-10-07/world-several-projects-meadow-large.png),
+[Dusk compact](assets/electron/world-labels-2026-10-07/world-several-projects-dusk-compact.png),
+and [Dusk large](assets/electron/world-labels-2026-10-07/world-several-projects-dusk-large.png).
+These captures are stored separately from the two pre-existing user-owned
+Library evidence files.
 
 ## Current natural-ground capture — v1.42.0, 2026-10-06
 
