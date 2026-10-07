@@ -1,15 +1,8 @@
 # Profiles
 
-Canonical: [`docs/PROFILES.md`](../PROFILES.md). Per-tool copy steps: [`docs/INSTALLATION.md`](../INSTALLATION.md).
+Profile files are target-specific configuration overlays; the maintained
+guide explains their current role and deprecation boundaries.
 
-| Tool | Profile directory | Install path |
-|------|-------------------|--------------|
-| Claude Code | `profiles/claude-code/` | `~/.claude/` |
-| Cursor | `profiles/cursor/` | `~/.cursor/rules/` |
-| OpenCode | `profiles/opencode/` | `~/.config/opencode/` |
-| GitHub Copilot | `profiles/copilot/` | `.github/` (per project) |
-| Windsurf | `profiles/windsurf/` | `~/.codeium/windsurf/` |
-| Pi Coding Agent | `profiles/pi/` | `~/.pi/agent/skills/` |
-| Muse Code | `profiles/muse-code/` | `~/.config/muse/skills/` |
-
-Deploy with `agent-toolkit install` (auto-detects installed tools).
+- [Profiles](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/PROFILES.md)
+- [Installation channels](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/INSTALLATION.md)
+- [Target capability matrix](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/TARGET_CAPABILITY_MATRIX.md)
