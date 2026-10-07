@@ -351,3 +351,26 @@ Captures: [empty, compact](assets/electron/meadow-motes-2026-10-06/empty-compact
 [large](assets/electron/meadow-motes-2026-10-06/several-meadow-large.png),
 [several projects in Dusk, compact](assets/electron/meadow-motes-2026-10-06/several-dusk-compact.png),
 and [large](assets/electron/meadow-motes-2026-10-06/several-dusk-large.png).
+
+## North forest frame — 2026-10-07
+
+The forest pass had reserved the top three tile rows as a visual frame, but
+required tree anchors to start below that same region. That left the north edge
+empty. I moved the anchor boundary up one tile and kept the framing-row canopy
+aligned so its top pixels stay inside the map. The deterministic world-model
+test now requires a north-edge tree and checks that no canopy crosses the
+canvas boundary.
+
+I rebuilt the Desktop renderer and canonical V backend, then opened fresh
+Electron captures with three linked projects at compact and large sizes in
+Meadow and Dusk. The added crowns give the upper edge a more deliberate forest
+frame without covering the creek, project entrances, bridge, or paths. The
+captures still show the broader unresolved art issues: a large rectangular
+meadow, mostly orthogonal paths, and a creek that divides the districts. This
+small framing correction is not final visual sign-off.
+
+The README's two world images now use the reviewed large captures. Compact and
+large evidence is kept in
+[`assets/electron/north-forest-frame-2026-10-07/`](assets/electron/north-forest-frame-2026-10-07/).
+The run used the 1.42.0 backend built from the source checkout and the real
+Electron app in a disposable workspace.

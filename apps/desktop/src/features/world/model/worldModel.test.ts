@@ -1141,10 +1141,14 @@ describe('layoutWorld', () => {
     const decor = paintTerrain(layout.entities, layout.cols, layout.rows).decor;
     const trees = decor.filter((sprite) => sprite.sprite.startsWith('tree-'));
     expect(trees.length).toBeGreaterThan(0);
+    expect(
+      trees.some((tree) => tree.y === 2),
+      'a small grove frames the north edge of the valley',
+    ).toBe(true);
     for (const tree of trees) {
       expect(tree.x).toBeGreaterThanOrEqual(1);
       expect(tree.x).toBeLessThan(layout.cols - 1);
-      expect(tree.y).toBeGreaterThanOrEqual(3);
+      expect(tree.y + tree.dy / 16).toBeGreaterThanOrEqual(0);
       expect(tree.w).toBe(48);
       expect(tree.h).toBe(48);
     }

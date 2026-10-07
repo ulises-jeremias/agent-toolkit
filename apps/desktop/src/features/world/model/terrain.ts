@@ -878,7 +878,9 @@ function forest(p: Painter, projectlessMeadow = false) {
       // sway by a couple of pixels, but that tiny offset would clip a roof
       // when a full three-tile grove clearing exists between two lots.
       const canopyOffsetX = nearestLot <= 3 ? 0 : (h2(x, y, 47) % 5) - 2;
-      const canopyOffsetY = nearestLot <= 3 ? 0 : (h2(x, y, 53) % 3) - 1;
+      // At y=2 the three-tile canopy meets the north edge exactly. Keep that
+      // framing row aligned so a sway offset cannot crop the top pixel row.
+      const canopyOffsetY = y === 2 || nearestLot <= 3 ? 0 : (h2(x, y, 53) % 3) - 1;
       const overlapsBuilding = canopyOverBuilding(p, x, y, canopyOffsetX, canopyOffsetY);
       const overlapsFlowerPatch = canopyOverFlowerPatch(p, x, y, canopyOffsetX, canopyOffsetY);
       // Tree crowns may lean over a path. Keep trunks off the walking tiles,
@@ -887,7 +889,7 @@ function forest(p: Painter, projectlessMeadow = false) {
       const grove = insideGrove(x, y);
       // Keep tall canopies fully inside the framed world; low grass and
       // flowers can still reach the edge without looking accidentally cut.
-      const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
+      const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 2;
       // Grove anchors provide the settlement's large silhouettes; the seeded
       // fill below closes small gaps while preserving open routes and façades.
       const creekDensity = 18;
