@@ -104,6 +104,28 @@ The review covered these exact opened files: [Meadow compact](assets/electron/wo
 [MCP configure large](assets/electron/review-2026-10-07/mcp-configure-large.png),
 and [MCP credentials large](assets/electron/review-2026-10-07/mcp-credentials-large.png).
 
+## Original woodland atlas review — 2026-10-07
+
+The six-variant tree atlas was captured from the branch backend in [visual
+review run 37681553093](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37681553093).
+I opened the fresh compact empty workspace and the large populated valley in
+both Meadow and Dusk. The committed copies are [empty compact](assets/electron/review-2026-10-07/tree-atlas/world-empty-compact.png),
+[Meadow large](assets/electron/review-2026-10-07/tree-atlas/world-several-projects-meadow-large.png),
+and [Dusk large](assets/electron/review-2026-10-07/tree-atlas/world-several-projects-dusk-large.png).
+
+The new blossoms, autumn crowns, pine and rune-lit variant give the woodland
+more color and distinct silhouettes; hard alpha edges stay crisp at both
+integer scales, and Dusk still separates the blue creek from warm windows.
+This is a meaningful asset improvement, not final composition approval. In
+the populated large map, crowns compete with project façades, the lower route
+and porch approaches still read as squared-off channels, and broad grass
+clearings remain dominant. The two pale signs near the creek also lack a clear
+semantic affordance in this view and should be reviewed as part of layout
+composition. These are composition and layout issues; adding more decorative
+sprites would not solve them. Keep this atlas in the README gallery only after
+a final-main capture confirms the map composition and project states at
+compact and large sizes.
+
 ## Earlier iteration review — 2026-10-06 (before v1.42.0)
 
 The dusk-ground tint adjustment at `162391b6` was captured by [Linux Electron
