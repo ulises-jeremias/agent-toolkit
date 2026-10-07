@@ -35,10 +35,13 @@ journeys:
   - id: workspace-switch-inspect
     title: Switch workspace and read its truth in the World
     destinations: [world, workspace]
-    status: partial
+    status: ok
     evidence:
-      - note: Electron E2E changes to a second workspace through Settings, links a real project using the GUI, verifies its building in World, switches back, and verifies that the original workspace remains empty. The flow waits for the supervised backend to become live after each restart.
-        build: "8377e06a (Linux Electron E2E; temporary HOME)"
+      - note: >-
+          Electron E2E changes to a second workspace through Settings, links a real project using the GUI, verifies its
+          building in World, switches back, and verifies that the original workspace remains empty. The flow waits for
+          the supervised backend to become live after each restart; compact and large captures were opened.
+        build: "89399a14 (Linux Electron E2E; temporary HOME)"
         tests:
           - apps/desktop/e2e/electron/workspace-switch.spec.ts
         screenshots:
