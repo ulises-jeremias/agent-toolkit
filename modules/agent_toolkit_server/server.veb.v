@@ -14,10 +14,10 @@ import veb.sse
 
 pub struct App {
 pub mut:
-	opts    ServeOptions
-	started time.Time
-	runner  &JobRunner = unsafe { nil }
-	bus     &EventBus = unsafe { nil }
+	opts     ServeOptions
+	started  time.Time
+	runner   &JobRunner = unsafe { nil }
+	bus      &EventBus = unsafe { nil }
 	sessions &agent_toolkit_core.PersonSessionStore = unsafe { nil }
 }
 
@@ -362,6 +362,31 @@ pub:
 	created_count  int
 	merged_count   int
 	receipt_path   string
+	artifacts      []InstallArtifactSummary
+}
+
+pub struct InstallArtifactSummary {
+pub:
+	path      string
+	ownership string
+	status    string
+}
+
+fn install_artifact_status(path string, expected_digest string) string {
+	if os.is_link(path) {
+		return 'replaced'
+	}
+	if !os.is_file(path) {
+		return 'missing'
+	}
+	current_digest := agent_toolkit_core.receipt_artifact_digest(path)
+	if current_digest == 'missing' {
+		return 'unavailable'
+	}
+	if current_digest == expected_digest {
+		return 'unchanged'
+	}
+	return 'modified'
 }
 
 pub struct CopilotProjectInstallResp {
@@ -1003,10 +1028,16 @@ pub fn (app &App) install_receipts(mut ctx Ctx) veb.Result {
 		receipt := agent_toolkit_core.parse_install_receipt(contents) or { continue }
 		mut created := 0
 		mut merged := 0
+		mut artifacts := []InstallArtifactSummary{}
 		for artifact in receipt.artifacts {
 			if artifact.ownership == 'created' {
 				created++
 			} else if artifact.ownership == 'merged' { merged++ }
+			artifacts << InstallArtifactSummary{
+				path: artifact.path
+				ownership: artifact.ownership
+				status: install_artifact_status(artifact.path, artifact.digest)
+			}
 		}
 		receipts << InstallReceiptSummary{
 			product: receipt.product
@@ -1018,6 +1049,7 @@ pub fn (app &App) install_receipts(mut ctx Ctx) veb.Result {
 			created_count: created
 			merged_count: merged
 			receipt_path: os.real_path(receipt_path)
+			artifacts: artifacts
 		}
 	}
 	return ctx.json(InstallReceiptsResp{ ok: true, receipts: receipts })

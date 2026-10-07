@@ -69,6 +69,14 @@ const INSTALL_TARGETS = [
   { id: 'muse-code', label: 'Muse Code' },
 ] as const;
 
+const ARTIFACT_STATUS_ORDER: Record<string, number> = {
+  missing: 0,
+  replaced: 1,
+  modified: 2,
+  unavailable: 3,
+  unchanged: 4,
+};
+
 function reviewedTargets(preview: CommandEnvelope | null): string[] {
   return (preview?.data['targets'] ?? '').split(',').filter(Boolean).sort();
 }
@@ -83,6 +91,37 @@ function receiptDate(value: string): string {
   return Number.isNaN(time)
     ? 'Date unavailable'
     : new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(time);
+}
+
+function artifactStatus(value: string): { tone: Tone; label: string } {
+  switch (value) {
+    case 'unchanged':
+      return { tone: 'ok', label: 'unchanged' };
+    case 'modified':
+      return { tone: 'warn', label: 'edited since install' };
+    case 'missing':
+      return { tone: 'err', label: 'missing' };
+    case 'replaced':
+      return { tone: 'err', label: 'replaced by symlink' };
+    default:
+      return { tone: 'warn', label: 'could not verify' };
+  }
+}
+
+function artifactSummary(artifacts: readonly { status: string }[]): string {
+  const counts = new Map<string, number>();
+  for (const artifact of artifacts) counts.set(artifact.status, (counts.get(artifact.status) ?? 0) + 1);
+  return [...counts]
+    .map(([status, count]) => `${count} ${status === 'unchanged' ? status : artifactStatus(status).label}`)
+    .join(' · ');
+}
+
+function orderedArtifacts<T extends { status: string; path: string }>(artifacts: readonly T[]): T[] {
+  return [...artifacts].sort(
+    (a, b) =>
+      (ARTIFACT_STATUS_ORDER[a.status] ?? ARTIFACT_STATUS_ORDER.unavailable!) -
+        (ARTIFACT_STATUS_ORDER[b.status] ?? ARTIFACT_STATUS_ORDER.unavailable!) || a.path.localeCompare(b.path),
+  );
 }
 
 /**
@@ -629,6 +668,11 @@ export default function Library() {
           <Panel
             title="Installation evidence"
             meta={receipts.data ? `${receipts.data.receipts.length} receipts` : undefined}
+            actions={
+              <Button size="sm" variant="secondary" busy={receipts.isFetching} onClick={() => void receipts.refetch()}>
+                Refresh evidence
+              </Button>
+            }
           >
             <QueryView
               query={receipts}
@@ -639,7 +683,8 @@ export default function Library() {
                 response.receipts.length === 0 ? (
                   <EmptyState title="No Toolkit capability installations recorded on this machine.">
                     Review an installation above to choose destinations. Existing files are never reported as installed
-                    without a backend receipt.
+                    without a backend receipt. Receipt paths are checked against their recorded SHA-256 without
+                    returning file contents.
                   </EmptyState>
                 ) : (
                   <Table>
@@ -685,6 +730,30 @@ export default function Library() {
                             merged
                           </td>
                           <td>
+                            <details>
+                              <summary>File evidence · {artifactSummary(receipt.artifacts)}</summary>
+                              <div
+                                aria-label={`File evidence for ${receipt.product} on ${receipt.target}`}
+                                className={styles.artifactList}
+                                role="region"
+                                tabIndex={-1}
+                              >
+                                <ul>
+                                  {orderedArtifacts(receipt.artifacts).map((artifact) => {
+                                    const state = artifactStatus(artifact.status);
+                                    return (
+                                      <li className={styles.artifactRow} key={artifact.path}>
+                                        <div className={styles.artifactPath}>
+                                          <Mono>{artifact.path}</Mono>
+                                          <small>{artifact.ownership} by Toolkit</small>
+                                        </div>
+                                        <StatusBadge tone={state.tone} label={state.label} />
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </div>
+                            </details>
                             <details>
                               <summary>Local receipt path</summary>
                               <Mono>{receipt.receipt_path}</Mono>

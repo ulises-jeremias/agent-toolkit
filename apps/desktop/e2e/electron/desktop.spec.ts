@@ -7,7 +7,8 @@ import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtur
 const CAPTURE = process.env['ATK_CAPTURE'] === '1';
 const CAPTURE_DIR = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/swarms');
 const PALETTE_CAPTURE_DIR = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/palette');
-const LIBRARY_CAPTURE_DIR = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/library');
+const LIBRARY_CAPTURE_DIR =
+  process.env['ATK_LIBRARY_CAPTURE_DIR'] ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/library');
 
 /**
  * Kill the supervised `agent-toolkit serve` child. After ADR-034 the renderer
@@ -505,9 +506,11 @@ test('Library installs Skills and preserves user changes during reviewed removal
   await expect(page.getByRole('region', { name: 'Receipts' })).toContainText('Toolkit capabilities installed');
   expect(applyRequests).toBe(1);
   expect(appliedTargets).toEqual(['claude-code', 'cursor']);
-  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('receipts');
-  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('Claude Code');
-  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('Cursor');
+  const evidence = page.getByRole('region', { name: 'Installation evidence' });
+  await expect(evidence).toContainText('receipts');
+  await expect(evidence).toContainText('Claude Code');
+  await expect(evidence).toContainText('Cursor');
+  await expect(evidence).toContainText(/File evidence · .*unchanged/);
   await page.reload();
   await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('Claude Code');
   await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('Cursor');
@@ -533,6 +536,29 @@ test('Library installs Skills and preserves user changes during reviewed removal
   const toolkitSkill = path.join(desktop.home, '.claude', 'skills', 'pr-fallback', 'references', 'pr-body-default.md');
   expect(fs.existsSync(toolkitSkill)).toBe(true);
   fs.writeFileSync(toolkitSkill, 'Edited by the user after Toolkit installed it.\n');
+  await evidence.getByRole('button', { name: 'Refresh evidence' }).click();
+  await expect(evidence).toContainText('edited since install');
+  const claudeReceipt = evidence.getByRole('row').filter({ hasText: 'Claude Code' });
+  const fileEvidence = claudeReceipt.locator('details').filter({ hasText: 'File evidence ·' });
+  await fileEvidence.locator('summary').click();
+  await expect(fileEvidence).toContainText('SKILL.md');
+  await expect(fileEvidence).toContainText('edited since install');
+  await expect(fileEvidence).not.toContainText('User-owned skill, keep this file.');
+  await expect(fileEvidence.locator('li').first()).toContainText('edited since install');
+  if (CAPTURE) {
+    fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
+    for (const size of [
+      { width: 1024, height: 768, key: 'compact' },
+      { width: 1440, height: 900, key: 'large' },
+    ]) {
+      await page.setViewportSize({ width: size.width, height: size.height });
+      await fileEvidence.locator('summary').scrollIntoViewIfNeeded();
+      await evidence.screenshot({
+        path: path.join(LIBRARY_CAPTURE_DIR, `installation-artifact-evidence-${size.key}.png`),
+      });
+    }
+    await page.setViewportSize({ width: 1280, height: 800 });
+  }
 
   await page.getByRole('button', { name: 'Review removal' }).click();
   const removal = page.getByRole('dialog', { name: 'Review Toolkit file removal' });

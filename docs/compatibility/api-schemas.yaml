@@ -75,6 +75,14 @@ schemas:
       - created_count:integer
       - merged_count:integer
       - receipt_path:string
+      - 'artifacts:#InstallArtifactSummary[]'
+
+  - name: InstallArtifactSummary
+    v_struct: InstallArtifactSummary
+    fields:
+      - path:string
+      - ownership:string
+      - status:string=unchanged|modified|missing|replaced|unavailable
 
   - name: InstallReceiptsResponse
     v_struct: InstallReceiptsResp

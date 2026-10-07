@@ -278,6 +278,29 @@ journeys:
           - assets/electron/library/removal-preview-large.png
           - assets/electron/library/copilot-project-review-compact.png
           - assets/electron/library/copilot-project-review-large.png
+      - note: >-
+          The installation evidence panel now checks each receipt artifact's
+          SHA-256 against its recorded digest and reports unchanged, edited,
+          missing, replaced-by-symlink, or unverifiable state. Refresh reruns
+          this read-only check; file contents and digests are never returned.
+          The expanded detail exposes receipt-owned paths and ownership only
+          on demand, and the Electron E2E verifies that an edited user file is
+          identified while an unreceipted file stays untouched.
+        build: "feature/library-artifact-evidence (Linux Electron E2E; CLI 1.42.0)"
+        tests:
+          - modules/agent_toolkit_server/server_test.v
+          - apps/desktop/e2e/electron/desktop.spec.ts
+        screenshots:
+          - assets/electron/library/install-evidence-2026-10-07/installation-receipts-compact.png
+          - assets/electron/library/install-evidence-2026-10-07/installation-receipts-large.png
+          - assets/electron/library/install-evidence-2026-10-07/installation-artifact-evidence-compact.png
+          - assets/electron/library/install-evidence-2026-10-07/installation-artifact-evidence-large.png
+          - assets/electron/library/installation-receipts-compact.png
+          - assets/electron/library/installation-receipts-large.png
+          - assets/electron/library/removal-preview-compact.png
+          - assets/electron/library/removal-preview-large.png
+          - assets/electron/library/copilot-project-review-compact.png
+          - assets/electron/library/copilot-project-review-large.png
     blockers:
       - Compiled Copilot repository Skills and Agent Definitions are not yet exposed in Desktop; the current project flow installs only the instruction profile
   - id: mcp-configure-probe
