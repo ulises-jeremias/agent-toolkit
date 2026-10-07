@@ -372,8 +372,11 @@ Each loop template lives in `loops/<name>/` (see `agent-toolkit inventory` for t
 
 ## 🐝 Swarm Orchestration
 
-One command turns a task into a coordinated multi-agent run — git worktree per writer,
-filesystem state-of-truth, budgets, and human approval gates.
+Start a coordinated multi-agent run from **Operations → Swarms** in Desktop or
+from the CLI. Both entry points use the same V runtime for recipes, worktrees,
+budgets, human approval gates, artifacts, and run state. Operations lets you
+review a recipe before starting, then inspect real run progress and recovery;
+the World only shows the project where confirmed work is happening.
 
 ```bash
 agent-toolkit swarm recipes                   # pair / team / full — personas + policy + budget per recipe
@@ -389,7 +392,7 @@ agent-toolkit swarm promote <run-id>          # promote an approved run; inspect
 | Budget enforcement (tokens / $ / wall-clock) | ✅ per-recipe (pair/team `900k / $4 / 7200s`, full `1.2M / $8 / 10800s`), `budget_exhausted` state | ❌ | ❌ |
 | Handoff audit gate | ✅ `AUDIT_REQUIRED` → identical re-run passes | ✅ first-class | ❌ |
 | Blocking feedback with round-trip limit | ✅ `--blocking` (limit 2) | ⚠️ approval cards | ❌ |
-| Observability (watch / report / artifacts / logs / approvals) | ✅ CLI + `--json` | ✅ web cockpit | ⚠️ log files |
+| Observability (watch / report / artifacts / logs / approvals) | ✅ Desktop Operations + CLI + `--json` | ✅ web cockpit | ⚠️ log files |
 | Single static binary, offline-first | ✅ V, ~22 MB, no runtime deps | ❌ bash + tmux + bb + dashboard | ❌ Python env |
 | JSON API / programmatic surface | ✅ `serve` + `swarm --json` everywhere | ⚠️ HTTP dashboard only | ❌ |
 | Cross-platform | ✅ linux/macOS/windows binaries + brew/AUR/npm/PyPI | ⚠️ macOS-first | ⚠️ |
