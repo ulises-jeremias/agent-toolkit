@@ -191,7 +191,7 @@
       "h": 48,
       "frames": 1,
       "source": "scripts/world-art/tree-round.png",
-      "sha256": "03351d187464908f5b300f3260de7b9e4e35ca9c922b7dfe06ed7faf79a84c35"
+      "sha256": "c56cb4f373389079e12c9d4db7881aeabfa39e5cb5b9d65ab0352d4364dea005"
     },
     "tree-blossom": {
       "file": "tree-blossom.png",
@@ -199,7 +199,7 @@
       "h": 48,
       "frames": 1,
       "source": "scripts/world-art/tree-blossom.png",
-      "sha256": "dcddc864d1f573cd33c79fc80989905558355e93513874ed4e6f5fa7e2347149"
+      "sha256": "1a41d07dcb21076b40a48233701e3364dc861af87daf5f47c0357a80862cbc65"
     },
     "tree-amber": {
       "file": "tree-amber.png",
@@ -207,7 +207,15 @@
       "h": 48,
       "frames": 1,
       "source": "scripts/world-art/tree-amber.png",
-      "sha256": "c0ba3d7a57cd01f448e6694b86a083ddf7c7a2b6713428a737c73fb3b9d0cebc"
+      "sha256": "f755f1e39a8bc478ceb3f448bd45913d0704be93fa560279f0d6617f835c35ee"
+    },
+    "tree-rune": {
+      "file": "tree-rune.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1,
+      "source": "scripts/world-art/tree-rune.png",
+      "sha256": "a79333f1c562f69a58a23e720cb6daf543b82523fd0204240fee1db0477d77c8"
     },
     "tree-pine": {
       "file": "tree-pine.png",
@@ -215,7 +223,7 @@
       "h": 48,
       "frames": 1,
       "source": "scripts/world-art/tree-pine.png",
-      "sha256": "a606eb118585ed53a892f7e23e1a73ab4a6208ca316997484bae790d2f6e51d0"
+      "sha256": "a47b48b8fcf894615228011e79188d35af111faf7d98c3f1fe2e05d58afdb665"
     },
     "tree-willow": {
       "file": "tree-willow.png",
@@ -223,7 +231,7 @@
       "h": 48,
       "frames": 1,
       "source": "scripts/world-art/tree-willow.png",
-      "sha256": "514933a25e201ef11b8bc64975b954cbb55815cb546be2ddac46550e3f14a794"
+      "sha256": "e256967078dc1877154edd7c5dbf760592676dd8c4a50f010ead531ca76fd64d"
     },
     "bush": {
       "file": "bush.png",

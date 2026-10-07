@@ -43,6 +43,7 @@ const ORIGINAL_PIXEL_ASSETS = new Set([
   'tree-pine',
   'tree-blossom',
   'tree-amber',
+  'tree-rune',
   'tree-willow',
 ]);
 
@@ -1380,6 +1381,17 @@ function treeAmber() {
   return [{ name: 'tree-amber', img }];
 }
 
+function treeRune() {
+  const img = new Img(32, 40);
+  img.ellipse(16, 38, 10, 2, 'sh');
+  img.rect(13, 24, 18, 37, 'k').rect(14, 24, 17, 36, 'od');
+  img.set(14, 28, 'o').set(17, 31, 'o').set(15, 34, 'o');
+  leafyCanopy(img);
+  img.set(10, 12, 'cy').set(11, 11, 'iv').set(20, 18, 'cy').set(20, 17, 'iv');
+  img.set(16, 6, 'gl').set(15, 7, 'iv');
+  return [{ name: 'tree-rune', img }];
+}
+
 function treePine() {
   const img = new Img(32, 40);
   img.ellipse(16, 38, 9, 2, 'sh');
@@ -1955,6 +1967,7 @@ function collect() {
     treeRound(),
     treeBlossom(),
     treeAmber(),
+    treeRune(),
     treePine(),
     treeWillow(),
     bush(),

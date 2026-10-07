@@ -327,6 +327,12 @@ describe('WorldEntityMap activation', () => {
     expect(parseInt(hall.style.height, 10)).toBe(4 * zoom);
   });
 
+  it('registers the rune-lit woodland sprite as original decor art', () => {
+    expect(cozyValleyTheme.decor?.['tree-rune']).toEqual(
+      expect.objectContaining({ kind: 'sprite', src: '/world/tree-rune.png', label: 'Rune-lit tree' }),
+    );
+  });
+
   it('exposes zoom state and pauses animation when suspended', async () => {
     const model = buildWorldModel(baseInput());
     const layout = layoutWorld(model);

@@ -928,17 +928,19 @@ function forest(p: Painter, projectlessMeadow = false) {
       const wantTree =
         treeInsideFrame && !overlapsBuilding && !overlapsFlowerPatch && !nearTrail && !crowdedCanopy && woodlandCell;
       if (wantTree) {
-        const kind = h2(x, y, 4) % 12;
+        const kind = h2(x, y, 4) % 16;
         const tree =
           nearCreek && kind < 4
             ? 'tree-willow'
             : kind < 2
               ? 'tree-pine'
-              : kind < 6
+              : kind < 7
                 ? 'tree-blossom'
-                : kind < 8
+                : kind < 10
                   ? 'tree-amber'
-                  : 'tree-round';
+                  : kind === 10
+                    ? 'tree-rune'
+                    : 'tree-round';
         p.sprite(`tree:${x},${y}`, x, y, tree, 48, 48, -16 + canopyOffsetX, -32 + canopyOffsetY, false);
       } else if ((edge || nearCreek || grove) && (roll === 5 || roll === 6)) {
         p.sprite(`bush:${x},${y}`, x, y, 'bush', 16, 12, 0, 4);
@@ -993,8 +995,17 @@ function forest(p: Painter, projectlessMeadow = false) {
   );
   const clearing = clearings[0];
   if (clearing) {
-    const kind = h2(clearing.x, clearing.y, 241) % 12;
-    const tree = kind < 2 ? 'tree-pine' : kind < 6 ? 'tree-blossom' : kind < 8 ? 'tree-amber' : 'tree-round';
+    const kind = h2(clearing.x, clearing.y, 241) % 16;
+    const tree =
+      kind < 2
+        ? 'tree-pine'
+        : kind < 7
+          ? 'tree-blossom'
+          : kind < 10
+            ? 'tree-amber'
+            : kind === 10
+              ? 'tree-rune'
+              : 'tree-round';
     p.sprite(
       `tree:project-clearing:${clearing.x},${clearing.y}`,
       clearing.x,
@@ -1051,8 +1062,17 @@ function forest(p: Painter, projectlessMeadow = false) {
         ) {
           continue;
         }
-        const kind = h2(x, y, 263) % 12;
-        const tree = kind < 2 ? 'tree-pine' : kind < 6 ? 'tree-blossom' : kind < 8 ? 'tree-amber' : 'tree-round';
+        const kind = h2(x, y, 263) % 16;
+        const tree =
+          kind < 2
+            ? 'tree-pine'
+            : kind < 7
+              ? 'tree-blossom'
+              : kind < 10
+                ? 'tree-amber'
+                : kind === 10
+                  ? 'tree-rune'
+                  : 'tree-round';
         p.sprite(`tree:meadow-grove:${x},${y}`, x, y, tree, 48, 48, -16, -32, false);
         if (treeCount() >= 12) break;
       }
