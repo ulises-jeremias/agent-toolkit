@@ -209,7 +209,7 @@ function curvedPoints(x0: number, y0: number, x1: number, y1: number, side: numb
   const length = Math.hypot(dx, dy);
   if (length < 2) return rasterPoints(x0, y0, x1, y1);
 
-  const bend = Math.min(5, Math.max(2, length * 0.46)) * side;
+  const bend = Math.min(7, Math.max(3, length * 0.56)) * side;
   const controlX = (x0 + x1) / 2 - (dy / length) * bend;
   const controlY = (y0 + y1) / 2 + (dx / length) * bend;
   const samples = Math.max(4, Math.ceil(length * 2));
@@ -902,7 +902,9 @@ function forest(p: Painter, projectlessMeadow = false) {
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 2;
       // Grove anchors provide the settlement's large silhouettes; the seeded
       // fill below closes small gaps while preserving open routes and façades.
-      const creekDensity = 18;
+      // Let the creek remain visible between small tree groups; dense willow
+      // roots made the east bank read as a continuous hedge at fit-to-world.
+      const creekDensity = 9;
       // Intentionally planted grove cells should remain dense enough to read
       // as small forest groups; sparse probabilities apply to open shore and
       // boundary fill, which previously formed continuous tree walls.
