@@ -123,6 +123,16 @@ describe('ApiClient', () => {
     expect(calls[0]?.init?.body).toBeUndefined();
   });
 
+  it('reads project rows from the typed workspace roster endpoint', async () => {
+    const response = await client({
+      ok: true,
+      projects: [{ name: 'demo', target: '../repos/demo', status: 'ok' }],
+    }).projects('/workspace with spaces');
+    expect(response.projects).toEqual([{ name: 'demo', target: '../repos/demo', status: 'ok' }]);
+    expect(calls[0]?.url).toBe('http://127.0.0.1:9/api/v1/projects?workspace=%2Fworkspace+with+spaces');
+    expect(calls[0]?.init?.method).toBe('GET');
+  });
+
   it('reviews explicit installation targets and applies only that selection', async () => {
     const api = client({ ok: true, message: 'reviewed', data: { targets: 'cursor,opencode' } });
     await api.installPreview(['cursor', 'opencode']);

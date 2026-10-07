@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { requireClient, useBackend } from '../data/backend';
-import { useSubQuery } from '../data/commands';
+import { useProjects } from '../data/projects';
 import { useMcpProviders } from '../data/catalog';
 import { useLoops } from '../data/loops';
 import { useSwarms } from '../data/swarms';
@@ -11,9 +11,7 @@ import { setThemePreference } from '../design/theme';
 import { takeNextNeedsMe } from '../features/office/attention';
 import { useAttention } from '../features/office/useAttention';
 import { requestOnboardingReplay } from '../features/onboarding/complete';
-import { parseProjectListMessage } from '../features/world/model';
 import { projectWorldCommands, resolveProjectWorldJump, resolveWorldJump } from '../features/world/worldJumps';
-import { envelopeText } from '../lib/api';
 import { Button, Dialog, Kbd, TextInput, VisuallyHidden } from '../ui';
 import {
   filterCommands,
@@ -56,7 +54,7 @@ export function CommandPalette() {
   const { client, restartBackend } = useBackend();
   const terminals = useTerminalSessions();
   const attention = useAttention();
-  const projectsQuery = useSubQuery('project', 'list');
+  const projectsQuery = useProjects(context.workspace, { enabled: open });
   const loopsQuery = useLoops();
   const swarmsQuery = useSwarms();
   const mcpProvidersQuery = useMcpProviders({ enabled: open, staleTime: 15_000 });
@@ -69,7 +67,7 @@ export function CommandPalette() {
 
   const projectCommands = useMemo((): readonly PaletteCommand[] => {
     if (!projectsQuery.isSuccess || !projectsQuery.data) return [];
-    const names = parseProjectListMessage(envelopeText(projectsQuery.data)).map((row) => row.name);
+    const names = projectsQuery.data.projects.map((row) => row.name);
     return projectWorldCommands(names);
   }, [projectsQuery.data, projectsQuery.isSuccess]);
 

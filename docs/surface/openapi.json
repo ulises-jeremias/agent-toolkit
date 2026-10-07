@@ -1039,6 +1039,36 @@
         }
       }
     },
+    "/api/v1/projects": {
+      "get": {
+        "operationId": "list_projects",
+        "summary": "List registered workspace projects with link health as typed rows",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/mcp/providers": {
       "get": {
         "operationId": "mcp_providers",
@@ -5617,6 +5647,48 @@
           "ok",
           "message",
           "path"
+        ]
+      },
+      "ProjectListEntry": {
+        "type": "object",
+        "description": "A workspace-registered project link and whether its target currently exists.",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "broken"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "target",
+          "status"
+        ]
+      },
+      "ProjectListResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectListEntry"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "projects"
         ]
       }
     }

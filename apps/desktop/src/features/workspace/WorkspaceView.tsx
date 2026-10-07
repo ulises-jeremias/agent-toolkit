@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { useSubMutation, useSubQuery } from '../../data/commands';
-import { envelopeText, errorMessage, recoveryHint } from '../../lib/api';
+import { useProjects } from '../../data/projects';
+import { errorMessage, recoveryHint } from '../../lib/api';
 import {
   Button,
   ButtonRow,
   CommandReport,
   Dialog,
+  EmptyState,
   Grid,
   KeyValue,
   PageHeader,
@@ -18,8 +20,9 @@ import {
   useActionReceipt,
 } from '../../ui';
 import { FilesPanel } from './FilesPanel';
-import { parseProjectListMessage } from '../world/model/parseProjects';
 import { displayLocationName } from '../../shell/sessionContext';
+import { useSessionContext } from '../../shell/useSessionContext';
+import styles from './workspace.module.css';
 
 function riskTone(risk: string | undefined): Tone {
   switch (risk?.toUpperCase()) {
@@ -36,32 +39,32 @@ function riskTone(risk: string | undefined): Tone {
 
 /**
  * Workspace: what is this workspace and what does it contain?
- * Reads the real `workspace` and `project` subcommands. Their output is CLI
- * text until Phase 2 gives them typed responses; structured fields the
- * server already returns (budget, violation counts) are shown as data.
- * Files panel uses typed GET /api/v1/files (not CLI parsing).
+ * Project links use the typed project roster; other workspace reports remain
+ * canonical command operations until the server exposes typed projections.
+ * Files use the contained GET /api/v1/files API.
  */
 export default function WorkspaceView() {
+  const { context: sessionContext, href } = useSessionContext();
   const [params] = useSearchParams();
   const focusFiles = params.get('panel') === 'files';
   const focusProjects = params.get('panel') === 'projects';
   const filesProject = params.get('project') || undefined;
   const projectPanel = useRef<HTMLDivElement>(null);
   const context = useSubQuery('workspace', 'context');
-  const projects = useSubQuery('project', 'list');
   const budget = useSubQuery('workspace', 'budget');
+  const path = context.data?.data['workspace'] ?? budget.data?.data['workspace'] ?? sessionContext.workspace ?? '';
+  const projects = useProjects(path);
   const validation = useSubQuery('workspace', 'validate', undefined, { failureIsData: true });
   const personas = useSubQuery('workspace', 'personas');
   const profiles = useSubQuery('workspace', 'profiles');
-  const projectMutation = useSubMutation('project', 'add', { invalidates: ['workspace'] });
+  const projectMutation = useSubMutation('project', 'add', { invalidates: ['workspace', 'projects'] });
   const projectReceipt = useActionReceipt('Project linked');
   const [candidate, setCandidate] = useState<string | null>(null);
   const [pickerError, setPickerError] = useState<string | null>(null);
 
   // The project list also identifies its workspace. Keep the folder picker
   // reachable if the budget query is temporarily unavailable or still loading.
-  const path = budget.data?.data['workspace'] ?? projects.data?.data['workspace'];
-  const linkedProjects = projects.data ? parseProjectListMessage(envelopeText(projects.data)) : [];
+  const linkedProjects = projects.data?.projects ?? [];
   const candidateName = candidate?.split(/[\\/]/).filter(Boolean).at(-1) ?? '';
   const previousTarget = linkedProjects.find((project) => project.name === candidateName)?.target;
 
@@ -163,7 +166,12 @@ export default function WorkspaceView() {
         {!focusFiles ? <FilesPanel key={filesProject ?? 'workspace'} project={filesProject} /> : null}
         <Panel tone="notice" title="Agent start context" meta="What an agent sees when it starts here">
           <QueryView query={context} loading="Reading start context" errorTitle="Could not read the start context">
-            {(envelope) => <CommandReport envelope={envelope} label="Session context" />}
+            {(envelope) => (
+              <details className={styles.detailDisclosure}>
+                <summary>Inspect the complete start context</summary>
+                <CommandReport envelope={envelope} label="Session context" />
+              </details>
+            )}
           </QueryView>
         </Panel>
         <div ref={projectPanel}>
@@ -185,9 +193,36 @@ export default function WorkspaceView() {
               change files inside the repository.
             </p>
             {pickerError ? <p role="alert">{pickerError}</p> : null}
-            <QueryView query={projects} loading="Listing projects" errorTitle="Could not list projects">
-              {(envelope) => <CommandReport envelope={envelope} label="Projects" />}
-            </QueryView>
+            {projects.isPending ? <p role="status">Reading registered projects…</p> : null}
+            {projects.isError ? (
+              <p role="alert">
+                Could not list registered projects: {errorMessage(projects.error)} {recoveryHint(projects.error)}
+              </p>
+            ) : null}
+            {projects.isSuccess && linkedProjects.length === 0 ? (
+              <EmptyState title="No projects linked yet.">
+                Pick an existing repository to give it a place in your workspace valley.
+              </EmptyState>
+            ) : null}
+            {linkedProjects.length > 0 ? (
+              <ul className={styles.projectList} aria-label="Linked projects">
+                {linkedProjects.map((project) => (
+                  <li key={project.name} className={styles.projectRow}>
+                    <div className={styles.projectIdentity}>
+                      <strong>{project.name}</strong>
+                      <StatusBadge
+                        tone={project.status === 'ok' ? 'ok' : 'warn'}
+                        label={project.status === 'ok' ? 'Linked' : 'Target missing'}
+                      />
+                    </div>
+                    <code className={styles.projectTarget} title={project.target}>
+                      {project.target}
+                    </code>
+                    <Link to={href('/world', { project: project.name })}>Open in World</Link>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </Panel>
         </div>
         <Grid>
@@ -196,7 +231,12 @@ export default function WorkspaceView() {
             meta={personas.data?.data['count'] ? `${personas.data.data['count']} available` : undefined}
           >
             <QueryView query={personas} loading="Listing personas" errorTitle="Could not list personas">
-              {(envelope) => <CommandReport envelope={envelope} label="Personas" hideFields={['count']} />}
+              {(envelope) => (
+                <details className={styles.detailDisclosure}>
+                  <summary>Inspect available work modes</summary>
+                  <CommandReport envelope={envelope} label="Personas" hideFields={['count']} />
+                </details>
+              )}
             </QueryView>
           </Panel>
           <Panel
@@ -204,7 +244,12 @@ export default function WorkspaceView() {
             meta={profiles.data?.data['count'] ? `${profiles.data.data['count']} available` : undefined}
           >
             <QueryView query={profiles} loading="Listing profiles" errorTitle="Could not list profiles">
-              {(envelope) => <CommandReport envelope={envelope} label="Profiles" hideFields={['count']} />}
+              {(envelope) => (
+                <details className={styles.detailDisclosure}>
+                  <summary>Inspect configured model profiles</summary>
+                  <CommandReport envelope={envelope} label="Profiles" hideFields={['count']} />
+                </details>
+              )}
             </QueryView>
           </Panel>
         </Grid>

@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAgents, useInstallReceipts, useProviders, useTools } from '../../data/catalog';
 import { useReport, useSubQuery } from '../../data/commands';
 import { requireClient, useBackend } from '../../data/backend';
+import { useProjects } from '../../data/projects';
 import { useSessionContext } from '../../shell/useSessionContext';
 import {
   envelopeText,
@@ -17,7 +18,6 @@ import {
 } from '../../lib/api';
 import { invalidateDomains, OPERATION_EFFECTS } from '../../lib/query/invalidation';
 import { parsePluginBundles, parseSkillCatalog } from '../../lib/reports';
-import { parseProjectListMessage } from '../world/model';
 import { libraryResourceEvidence, type LibraryResourceKind } from './resourceEvidence';
 import {
   Button,
@@ -176,11 +176,8 @@ export default function Library() {
   const receipts = useInstallReceipts();
   const agents = useAgents();
   const providers = useProviders();
-  const projectsQuery = useSubQuery('project', 'list');
-  const projects = useMemo(
-    () => (projectsQuery.data ? parseProjectListMessage(envelopeText(projectsQuery.data)) : []),
-    [projectsQuery.data],
-  );
+  const projectsQuery = useProjects(workspacePath);
+  const projects = projectsQuery.data?.projects ?? [];
   const queryClient = useQueryClient();
   const skills = useSubQuery('skills', 'list');
   const plugins = useSubQuery('plugin', 'check', undefined, { failureIsData: true });

@@ -451,3 +451,39 @@ creek that divides districts. These captures are current evidence, not visual
 sign-off. `static/screenshots/world.png` and
 `static/screenshots/project-interior.png` now use the opened Electron captures;
 the README header uses direct text links instead of external badge images.
+
+## Typed project roster review — 2026-10-07
+
+The live Electron project-link flow now reads registered projects from the
+typed V endpoint instead of parsing CLI output. I opened the compact and large
+Workspace captures after the UI adjustment:
+[compact](assets/electron/workspace/project-roster-typed-compact.png) and
+[large](assets/electron/workspace/project-roster-typed-large.png). The long
+agent start-context report is now collapsed by default, keeping the linked
+project card visible and actionable at both sizes. The card exposes real link
+health, the current target, and a direct route to the same project building in
+World.
+
+The compact view still shares the page with the file browser above the roster,
+and the Workspace inspector remains denser and more conventional than the
+spatial World. This pass improves project reachability and avoids making
+verbose context output the first thing users see; it does not resolve the
+larger inspector/world visual hierarchy work. The screenshots came from the
+real Electron app and locally built V backend in a disposable E2E workspace;
+the test also asserted the live `GET /api/v1/projects` response, safe link
+review, world placement, and palette navigation.
+
+## Offline World shell — 2026-10-07
+
+The renderer-only smoke test caught that the whole map disappeared while
+workspace queries were still pending with no backend. `/world` now renders its
+known semantic places immediately, marks the map busy, and shows a small
+game-menu status plaque while live project, memory, tool, job, and Person
+state resolves. Read failures remain visible with their existing retry/recovery
+surfaces; no worker or project is inferred from missing data. The offline
+notice says that live state may be incomplete or out of date instead of
+claiming that fresh data is a previous snapshot. I opened the
+offline browser capture at
+[1280×720](assets/renderer/world-offline-loading-2026-10-07.png): the valley
+stays visible below the explicit backend-offline notice and the live-data
+plaque. The focused renderer E2E now passes with the backend unavailable.

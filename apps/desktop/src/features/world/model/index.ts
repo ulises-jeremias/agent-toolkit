@@ -1,11 +1,10 @@
-export { buildWorldModel, jobBelongsToProject, pathIsWithin } from './buildWorld';
+export { buildWorldModel, jobBelongsToProject, pathIsWithin, resolveProjectTarget } from './buildWorld';
 export { PROJECT_FACADES, projectFacade } from './facades';
 export type { BuildingFacade, LandmarkFacade, ProjectFacade } from './facades';
 export { footprintFor, layoutWorld, projectDistrictCols } from './layout';
 export { paintInterior, paintTerrain } from './terrain';
 export type { DecorSprite, TerrainCell, TerrainPlan } from './terrain';
 export { jobStandAtId, memoryProjectScope, projectScopedMemory, workspaceLevelMemory } from './memoryScope';
-export { parseProjectListMessage } from './parseProjects';
 export type {
   EntityAvailability,
   EntityKind,

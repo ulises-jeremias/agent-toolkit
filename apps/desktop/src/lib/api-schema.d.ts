@@ -343,6 +343,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List registered workspace projects with link health as typed rows */
+        get: operations["list_projects"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/mcp/providers": {
         parameters: {
             query?: never;
@@ -1760,6 +1777,17 @@ export interface components {
             message: string;
             path: string;
         };
+        /** @description A workspace-registered project link and whether its target currently exists. */
+        ProjectListEntry: {
+            name: string;
+            target: string;
+            /** @enum {string} */
+            status: "ok" | "broken";
+        };
+        ProjectListResponse: {
+            ok: boolean;
+            projects: components["schemas"]["ProjectListEntry"][];
+        };
     };
     responses: never;
     parameters: never;
@@ -2669,6 +2697,28 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    list_projects: {
+        parameters: {
+            query?: {
+                workspace?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectListResponse"];
+                };
             };
         };
     };

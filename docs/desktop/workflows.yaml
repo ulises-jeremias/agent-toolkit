@@ -38,13 +38,18 @@ journeys:
     status: ok
     evidence:
       - note: >-
-          Electron E2E changes to a second workspace through Settings, links a real project using the GUI, verifies its
-          building in World, rejects a missing destination without changing the active workspace, switches back, and
-          verifies that the original workspace remains empty. The flow waits for the supervised backend to become
-          live after each successful restart; compact and large captures were opened.
-        build: "89399a14 (Linux Electron E2E; temporary HOME)"
+          Electron E2E changes to a second workspace through Settings, verifies
+          the URL scope changes with the supervised harness, links a real
+          project using the GUI, verifies its building in World, rejects a
+          missing destination without changing the active workspace, switches
+          back, and verifies that the original workspace remains empty. Project
+          roster views revalidate on mount so an external CLI change does not
+          remain hidden behind a fresh cache. Compact and large captures were
+          opened.
+        build: "206e4c6f9bb2177339c1c4fd866bed2a7ae1bdf6 (Linux Electron E2E; temporary HOME)"
         tests:
           - apps/desktop/e2e/electron/workspace-switch.spec.ts
+          - apps/desktop/e2e/electron/people-session.spec.ts
         screenshots:
           - assets/electron/workspace/workspace-project-compact.png
           - assets/electron/workspace/workspace-project-large.png
@@ -110,6 +115,36 @@ journeys:
         screenshots:
           - assets/electron/world/project-files-room-compact.png
           - assets/electron/world/project-files-room-large.png
+      - note: >-
+          Desktop project discovery now uses the typed GET /api/v1/projects
+          response in World, Workspace, Library, Person Start, and the command
+          palette. The Electron flow asserts the live backend response, links a
+          selected folder through the reviewed GUI flow, verifies its world
+          building and palette action, and rejects an outside-root path before
+          retrying safely. Compact and large Workspace captures were opened;
+          verbose start context stays collapsed while the project roster is in
+          view.
+        build: "b57fb0ce (Linux Electron; project-link.spec.ts; real V backend)"
+        tests:
+          - apps/desktop/e2e/electron/project-link.spec.ts
+        screenshots:
+          - assets/electron/workspace/project-roster-typed-compact.png
+          - assets/electron/workspace/project-roster-typed-large.png
+      - note: >-
+          With live backend state unavailable, the World map now remains
+          visible and marks its state as loading; the global offline notice
+          explicitly says state can be incomplete or out of date. The
+          renderer smoke verifies both surfaces, and the offline capture was
+          opened at 1280x720. Workspace uses URL context while its reports are
+          pending, and relative project symlink targets resolve against
+          workspace/projects for live-session matching while their display
+          value remains unchanged.
+        build: "a39e965cd1a59808614ffabda506e8adaa96881d (renderer + Electron E2E)"
+        tests:
+          - apps/desktop/e2e/smoke.spec.ts
+          - apps/desktop/e2e/electron/project-link.spec.ts
+        screenshots:
+          - assets/renderer/world-offline-loading-2026-10-07.png
       - note: >-
           World composition keeps shared landmarks on the commons bank and
           registered project houses across a traversable bridge; empty,

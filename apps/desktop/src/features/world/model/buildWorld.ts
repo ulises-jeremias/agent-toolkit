@@ -522,6 +522,32 @@ export function pathIsWithin(path: string, root: string): boolean {
   return left === right || (right === '/' ? left.startsWith('/') : left.startsWith(`${right}/`));
 }
 
+/** Resolve a project symlink's literal target relative to workspace/projects. */
+export function resolveProjectTarget(workspace: string, target: string): string {
+  const normalizedTarget = target.replace(/\\/g, '/');
+  const isAbsolute = normalizedTarget.startsWith('/') || /^[a-z]:\//i.test(normalizedTarget);
+  const combined = isAbsolute ? normalizedTarget : `${workspace.replace(/[\\/]+$/, '')}/projects/${normalizedTarget}`;
+  const prefix = /^[a-z]:\//i.test(combined)
+    ? combined.slice(0, 3)
+    : combined.startsWith('//')
+      ? '//'
+      : combined.startsWith('/')
+        ? '/'
+        : '';
+  const segments = combined.slice(prefix.length).split('/');
+  const resolved: string[] = [];
+  for (const segment of segments) {
+    if (!segment || segment === '.') continue;
+    if (segment === '..') {
+      if (resolved.length > 0 && resolved[resolved.length - 1] !== '..') resolved.pop();
+      else if (!prefix) resolved.push(segment);
+      continue;
+    }
+    resolved.push(segment);
+  }
+  return `${prefix}${resolved.join('/')}` || '.';
+}
+
 /**
  * DOMAIN STATE → SEMANTIC WORLD MODEL.
  * Grounds vs project interior. Characters only for proven jobs.

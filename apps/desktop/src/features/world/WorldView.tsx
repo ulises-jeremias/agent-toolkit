@@ -3,21 +3,20 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { requireClient, useBackend } from '../../data/backend';
 import { useTools } from '../../data/catalog';
-import { useSubQuery } from '../../data/commands';
 import { sortJobs, useJobs } from '../../data/jobs';
 import { useMemoryFile, useMemoryList } from '../../data/memory';
-import { envelopeText } from '../../lib/api';
+import { useProjects } from '../../data/projects';
 import { useTerminalSessions } from '../../data/terminal';
 import { personCharacterSprite } from '../people/avatar';
 import { useSessionContext } from '../../shell/useSessionContext';
-import { EmptyState, ErrorState, LoadingState } from '../../ui';
+import { EmptyState, ErrorState } from '../../ui';
 import { installTargetForTool, worldDetailBackExtra, worldDetailBackLabel } from './inspectors';
 import { MemoryRecordInspector } from './MemoryRecordInspector';
 import {
   buildWorldModel,
   layoutWorld,
-  parseProjectListMessage,
   pathIsWithin,
+  resolveProjectTarget,
   type LaidOutEntity,
   type MemorySummary,
   type ToolRecord,
@@ -44,7 +43,8 @@ export default function WorldView() {
   const memoryPath = params.get('memory')?.trim() || '';
   const toolId = params.get('tool')?.trim() || '';
 
-  const projectsQuery = useSubQuery('project', 'list');
+  const workspacePath = context.workspace || backend?.harness?.path || '';
+  const projectsQuery = useProjects(workspacePath);
   const memoryQuery = useMemoryList();
   const memoryFileQuery = useMemoryFile(memoryPath, { enabled: memoryPath.length > 0 });
   const jobsQuery = useJobs();
@@ -61,15 +61,9 @@ export default function WorldView() {
   });
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const workspacePath =
-    context.workspace ||
-    backend?.harness?.path ||
-    (typeof projectsQuery.data?.data['workspace'] === 'string' ? projectsQuery.data.data['workspace'] : '') ||
-    '';
-
   const projects = useMemo(() => {
     if (!projectsQuery.isSuccess || !projectsQuery.data) return [];
-    return parseProjectListMessage(envelopeText(projectsQuery.data));
+    return projectsQuery.data.projects;
   }, [projectsQuery.data, projectsQuery.isSuccess]);
 
   const memory: MemorySummary = useMemo(() => {
@@ -108,7 +102,9 @@ export default function WorldView() {
     return livePersonPtys.flatMap((session) => {
       const person = session.personId ? peopleById.get(session.personId) : undefined;
       const project = projects.find(
-        (candidate) => candidate.name === session.projectId && pathIsWithin(session.cwd, candidate.target),
+        (candidate) =>
+          candidate.name === session.projectId &&
+          pathIsWithin(session.cwd, resolveProjectTarget(workspacePath, candidate.target)),
       );
       if (!person || !project) return [];
       return [
@@ -125,7 +121,7 @@ export default function WorldView() {
         },
       ];
     });
-  }, [livePersonPtys, peopleQuery.data, projects]);
+  }, [livePersonPtys, peopleQuery.data, projects, workspacePath]);
 
   const harnessNotice = backend?.harness?.notice ?? null;
 
@@ -241,10 +237,8 @@ export default function WorldView() {
         </Link>
       </header>
 
-      <div className={styles.mapWrap}>
-        {gathering ? (
-          <LoadingState label="Reading workspace, projects, memory, tools, jobs, and active People sessions" />
-        ) : layout.entities.length === 0 ? (
+      <div className={styles.mapWrap} aria-busy={gathering}>
+        {layout.entities.length === 0 ? (
           <EmptyState title="Nothing to place yet.">Waiting on workspace context.</EmptyState>
         ) : (
           <WorldEntityMap
@@ -260,6 +254,11 @@ export default function WorldView() {
             onActivate={openEntity}
           />
         )}
+        {gathering && layout.entities.length > 0 ? (
+          <p className={styles.worldLoadStatus} role="status" aria-live="polite">
+            Checking live workspace details…
+          </p>
+        ) : null}
         {projectsQuery.isError ? (
           <ErrorState
             title="Could not list projects"

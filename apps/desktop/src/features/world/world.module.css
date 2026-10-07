@@ -53,10 +53,26 @@
 
 /* The map fills the shell: no card, no page margins. */
 .mapWrap {
+  position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+.worldLoadStatus {
+  position: absolute;
+  z-index: 20;
+  top: var(--space-3);
+  left: var(--space-3);
+  max-width: min(28rem, calc(100vw - 2rem));
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 2px solid var(--border-chrome);
+  background: var(--surface-chrome);
+  box-shadow: var(--shadow-panel);
+  color: var(--text-on-chrome);
+  font: var(--text-sm) / 1.4 var(--font-body);
 }
 
 .mapRegion {

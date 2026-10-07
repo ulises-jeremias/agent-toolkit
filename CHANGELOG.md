@@ -12,10 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Desktop World, Library, People Start, Workspace, and the command palette now share the typed project roster API instead of parsing `project list` output. Workspace project rows show link health and open the same canonical project in World; verbose start-context and catalog reports are collapsed until requested.
 - Project room walls now include deterministic moonlit mural tiles, and the selected-place chip keeps local filesystem paths out of the visible world header. README status links are plain links beside authentic Electron screenshots rather than external SVG badges.
 - The Desktop Dusk world uses a stronger blue-hour terrain tint with warm clearing pools; visual-review capture waits for the loaded Library landmark before saving the map.
 - People Start now reviews a one-time editable task from the saved goal and sends its role/goal/task prompt to supported interactive runners without saving the task to the Person or changing runner permissions.
 - Electron now preserves the owning workspace and canonical session ID across its PTY bridge, so a real process exit updates the durable Person session instead of leaving stale running state.
+- World remains visible while live workspace data loads or the backend is unavailable; its loading plaque and offline notice distinguish known landmarks from incomplete runtime state.
+- Successful harness changes now update the URL-backed workspace scope for every destination. Project rosters revalidate when their view opens, and Person Start can use the supervised harness while the URL context initializes.
 
 ## [1.42.0] — 2026-10-06
 
@@ -609,7 +612,6 @@ beyond what 1.30.0 introduced — this release finishes it.
 
 ## [1.26.0] — 2026-08-31
 
-
 - **Feat (insights)** — Re-port `agent-toolkit insights` as native V command (pure V, all runners): opencode, cursor, claude, windsurf, copilot, codex, pi, muse, all — with `--days`, `--output`, `--json`, `--no-llm`. No Python dependency. `/api/v1/insights` server route added.
 - **Feat (swarm)** — Graph-engineered swarms: feedback cycles (`reviewer⇢implementer` bounded by round-trip limit), `swarm graph --json` live topology, edge activation (autostart + wake on every handoff type)
 - **Fix (loop)** — Restore `attribution` support in V (was lost in the rewrite): `attribution: false|true|{enabled,template}` in `loop.yaml`
@@ -716,7 +718,6 @@ beyond what 1.30.0 introduced — this release finishes it.
 - **Fixed** — Catalog/profile/docs drift audit (20 issues): sync `skills-layout.json` ghost `ui-ux-pro-max` → 84 skills ([#799](https://github.com/ulises-jeremias/agent-toolkit/issues/799), [#810](https://github.com/ulises-jeremias/agent-toolkit/pull/810)), remove `ORCHESTRATION.md` ghost ([#800](https://github.com/ulises-jeremias/agent-toolkit/issues/800), [#811](https://github.com/ulises-jeremias/agent-toolkit/pull/811)), remove 3 dangling pack loops + phantom agent ([#801](https://github.com/ulises-jeremias/agent-toolkit/issues/801), [#812](https://github.com/ulises-jeremias/agent-toolkit/pull/812)), fix `SKILLS.md` domain counts ([#802](https://github.com/ulises-jeremias/agent-toolkit/issues/802), [#813](https://github.com/ulises-jeremias/agent-toolkit/pull/813)), expand `AGENTS.md` allowlist 9→14 domains ([#803](https://github.com/ulises-jeremias/agent-toolkit/issues/803), [#814](https://github.com/ulises-jeremias/agent-toolkit/pull/814)), fix MCP dead links 7→8 ([#804](https://github.com/ulises-jeremias/agent-toolkit/issues/804), [#815](https://github.com/ulises-jeremias/agent-toolkit/pull/815)), badge drift 80→84 + ADR-026 + wiki links ([#805](https://github.com/ulises-jeremias/agent-toolkit/issues/805), [#816](https://github.com/ulises-jeremias/agent-toolkit/pull/816)), add `test_skills_layout` coverage ([#806](https://github.com/ulises-jeremias/agent-toolkit/issues/806), [#817](https://github.com/ulises-jeremias/agent-toolkit/pull/817)), Pi/Muse-code profile parity ([#807](https://github.com/ulises-jeremias/agent-toolkit/issues/807), [#818](https://github.com/ulises-jeremias/agent-toolkit/pull/818))
 - **Fixed** — `CHANGELOG` missing 1.17.0 ([#782](https://github.com/ulises-jeremias/agent-toolkit/issues/782), [#819](https://github.com/ulises-jeremias/agent-toolkit/pull/819)), Cursor `README` heredoc ([#783](https://github.com/ulises-jeremias/agent-toolkit/issues/783), [#820](https://github.com/ulises-jeremias/agent-toolkit/pull/820)), duplicate `forge/workflow-*` stubs ([#791](https://github.com/ulises-jeremias/agent-toolkit/issues/791), [#821](https://github.com/ulises-jeremias/agent-toolkit/pull/821)), `complete` missing 17 agents ([#793](https://github.com/ulises-jeremias/agent-toolkit/issues/793), [#822](https://github.com/ulises-jeremias/agent-toolkit/pull/822)), profile parity `contribution-planner` + inline `settings.json` ([#784](https://github.com/ulises-jeremias/agent-toolkit/issues/784), [#785](https://github.com/ulises-jeremias/agent-toolkit/issues/785), [#823](https://github.com/ulises-jeremias/agent-toolkit/pull/823)), `PROFILES.md` Cursor per-agent ([#788](https://github.com/ulises-jeremias/agent-toolkit/issues/788), [#824](https://github.com/ulises-jeremias/agent-toolkit/pull/824)), `muse-code`/`codex`/`gemini` profiles ([#789](https://github.com/ulises-jeremias/agent-toolkit/issues/789), [#790](https://github.com/ulises-jeremias/agent-toolkit/issues/790), [#825](https://github.com/ulises-jeremias/agent-toolkit/pull/825)), Pi docs ([#787](https://github.com/ulises-jeremias/agent-toolkit/issues/787))
 
-
 ## [1.17.0] — 2026-08-21
 
 - **Feat** — Embed all capability data in V binary — standalone offline-first (distribution) ([#778](https://github.com/ulises-jeremias/agent-toolkit/pull/778))
@@ -802,7 +803,6 @@ Audit cleanup and V-first ops: CI gates, Docker/Release coupling, scripts→`.vs
 - **CI** — Include `check-surfaces` in `required-ci` needs so surface drift cannot merge (Fixes #677)
 - **Docs** — Homebrew README links in-repo ADR-023 path (keep #490 as discussion)
 - **Fixed** — `distributions/products.yaml` `version_source` points at packages/pypi layout
-
 
 ## [1.12.1] — 2026-08-13
 
@@ -914,6 +914,7 @@ First GitHub Release that attaches **native V binaries** (ADR-018 names, SHA256S
 ## [1.10.0] — 2026-08-12
 
 ### Added
+
 - **Providers** — capability provider abstraction WHAT vs HOW (Closes #386), audit 8 candidates + 5 ADOPT via hierarchy (Refs #393), curated agentic-security/code-quality/architecture/design-engineering packs (Closes #390)
 - **Design** — Vercel web-design-guidelines + Microsoft frontend-design-review dual-source pinning (Closes #372, #391), design-assessment orchestration (Closes #373), browser-grounded design-improvement iteration (Closes #374), Chrome DevTools MCP provider (Closes #375)
 - **A11y & Figma** — WCAG 2.2 AA accessibility review (Closes #377), Figma ecosystem audit (Closes #376)
@@ -923,64 +924,77 @@ First GitHub Release that attaches **native V binaries** (ADR-018 names, SHA256S
 - **CLI** — `doctor` provenance/pack/MCP + matrix + context-cost + audit surface (Closes #387, #388, Refs #395, Closes #397), skill-catalog 73→77 + pack validation (Closes #390, #451, #450)
 
 ### Fixed
+
 - **CI green** — MegaLinter PYTHON_RUFF + v10.0.0 alignment + `providers.yaml` empty-line fix (Closes #453, #454), Required CI aggregate gate, branch protection `Required CI` (app_id 15368) enforcement
 - **Swarm** — tear down tmux server on cleanup to stop orphan-socket leak
 - **Workspace/Packs** — validate nested packs, warn on unknown profile keys, regenerate catalogs
 
 ### Changed
+
 - **Docs** — addyosmani documentation-and-adrs vs adr/docs-generator diff (Closes #394), third-party UI UX Pro Max as optional external (REJECT vendoring) per #392
 
 ## [1.9.0] — 2026-08-10
 
 ### Added
+
 - **Agent Plugins 1.0** portable plugin standard — every plugin in `plugins/` now ships as `plugin.json` (`$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) + `skills/` + `mcp.json` for Cursor, VS Code, GitHub Copilot, ChatGPT/Codex, Kiro. Dual emit keeps `.claude-plugin/plugin.json` for Claude Code (which does not yet support the spec). See `docs/AGENT_PLUGINS.md`, `plugins/README.md`, and `schemas/agent-plugins/1.0.0/`. Compiler target `agent-plugins`, validator `scripts/validate-agent-plugins.vsh`, and CI job `validate-agent-plugins` added; `scripts/bump-version.vsh` now preserves `$schema`/`extensions`.
 
 ### Changed
+
 - **Docs** — `docs/COMPATIBILITY.md` clarifies Claude legacy-only and adds VS Code/Kiro + dedicated Agent Plugins 1.0 subsection; `docs/TARGETS.md` adds Agent Plugins 1.0 row to capability matrix.
 
 ## [1.8.4] — 2026-08-07
 
 ### Fixed
+
 - **Swarm interactive bootstrap** — when `swarm start` is run without a prompt (`--recipe full --ui herdr --runner claude --attach`), the first agent now does only a very brief context analysis (runs `agent-toolkit workspace context` if inside a workspace like `~/.ai-workspace`, otherwise brief `README`/`git status` check) and stays on standby awaiting the user's first request. Applies `assistant` discovery + `workflow-generic-project` (plan -> approval -> implement -> draft PR) once the task arrives. Prevents the planner from inventing work.
 
 ## [1.8.3] — 2026-08-06
 
 ### Fixed
+
 - **CI ruff format** — run `uv run ruff format` on `tests/test_swarm_cli.py` after `pytest.skip` line wrap (fixes Validate `Ruff format check` failure on 1.8.2).
 
 ## [1.8.2] — 2026-08-06
 
 ### Fixed
+
 - **CI macos tmux** — make `test_swarm_auto_fallback_to_tmux` skip when neither herdr nor tmux is available on runner (fixes 1 failure on macos-latest).
 
 ## [1.8.1] — 2026-08-06
 
 ### Fixed
+
 - **CI portability** — fix `tests/test_swarm_cli.py` hardcoded `/home/ulisesjcf/...` project path to `Path(__file__).resolve().parents[1]` so `uv run --project` works on any runner (fixes Validate `test_swarm_cli` 9 failures on Python 3.13).
 
 ## [1.8.0] — 2026-08-06
 
 ### Added
+
 - **Swarm skills (Herdr-first)** — 4 new swarm-focused skills: `swarm` (launcher via `agent-toolkit swarm start --recipe pair/team/full --ui herdr/tmux --runner opencode/claude --model-profile balanced/economy --attach "task"` with eager windows `Waiting for handoff: <pred> -> <role>` and `_user_shell()` `zsh` detection), `swarm-observer` (monitor `status/handoffs/logs/attach` and recover `worktree_failed`/`headless` fallback), `swarm-handoff` (artifact/commit file handoffs with worktree-per-writer and promotion), `herdr` (Herdr workspace/tab/pane management) and `worktree` (Git worktree isolation). All validated via `muse skills validate` and `agent-toolkit skills validate` (61 total) and integrated with `code-reviewer`/`security-reviewer`/`github-cli-workflow`/`output-handshake`.
 - **Workspace orchestration skills** — `workspace` (stateless `~/.ai-workspace` `workspace context` + `memory inject/todo` + packs), `project` (`project clone/list` multi-repo), `mcp` (`mcp setup/list/doctor`), and `inventory` (`inventory/matrix/skills list` discovery). Completes end-to-end DX: `workspace` → `project` → `swarm` → `handoff` → `promote` → `github-cli-workflow`.
 - **Skill catalog growth** — total 52 → 61 skills across 9 domains; `agent-toolkit-complete` now includes all 9 new skills; badges, `catalogs/skill-catalog.yaml`, `catalogs/skills-layout.json`, and `docs/SKILL_PRODUCT_MATRIX.md` regenerated; `README.md`, `packages/pypi/agent-toolkit-cli/README.md`, `docs/GETTING_STARTED.md`, `docs/TROUBLESHOOTING.md`, `docs/wiki/Home.md` updated.
 
 ### Fixed
+
 - **Docs 100% current** — regenerated catalogs (`scripts/generate-catalogs.vsh`, `prepare-package-data.sh`, `generate-skill-matrix.py`), fixed stale `skills-52` badges and `50 skills` assertions, and ensured `agent-toolkit install` deploys 61 skills to `~/.config/muse/skills` and `~/.agents/skills`.
 
 ## [1.7.2] — 2026-08-06
 
 ### Fixed
+
 - **Swarm workspace UX polish** — fix `swarm list` duplicate entries when aggregating from `~/.ai-workspace`, make `swarm status/stop/cleanup/attach/report/artifacts/handoffs/logs` workspace-aware via `find_run_dir_by_id` (works from `~/.ai-workspace` without `--workspace` and with `--workspace OWNER/REPO`/`-C`), and ensure prompt autodetect works for all Create-Node-App aliases. Ensures `agent-toolkit swarm start "Fix https://github.com/Create-Node-App/..."` from workspace root creates worktree in correct repo with isolated tmux `-L agent-toolkit-swarm-<id>` N-windows like `swarm-forge` `./swarm`.
 
 ## [1.7.1] — 2026-08-06
 
 ### Added
+
 - **Swarm prompt autodetect + workspace UX** — `agent-toolkit swarm start/plan` now autodetects repo from prompt (`https://github.com/OWNER/REPO`, `OWNER/REPO#123`, aliases `create-node-app`/`cna-templates` → `Create-Node-App/...`) and resolves to `~/.ai-workspace/repos/github.com/OWNER/REPO`, so `agent-toolkit swarm start "Fix https://github.com/Create-Node-App/create-node-app/issues/240"` works from `~/.ai-workspace` without `--workspace`/`--issue` flags (like `swarm-forge` `./swarm` but better: backend-neutral Herdr/tmux, isolated worktrees, handoffs). Adds `--workspace`/`--repo`/`-C` to `plan`/`start` and workspace-aware `list`/`status` (`list_all_runs`/`find_run_dir_by_id` aggregating across clones). Inspired by swarm-forge patterns (window-per-role tmux, worktrees, handoffs) clean-room.
 
 ## [1.7.0] — 2026-08-06
 
 ### Added
+
 - **Swarm orchestration** — new `agent-toolkit swarm` CLI (ADR-008) with backend-neutral orchestration (Herdr recommended, tmux fallback), recipes `pair`/`team`/`full` (lazy/elastic, `pair→team→full` promotion), Git worktree isolation per writer, durable filesystem handoffs (artifact/commit/feedback/decision_request), commit-based code transfer, human approval gates, budgets (tokens/cost/wall-clock/concurrency/round-trips), model profiles (`economy`/`balanced`/`quality`/`private`), runner abstraction (OpenCode primary, Muse/Claude/Codex/Cursor/Copilot), OpenCode per-role agent generation, Herdr backend (JSON CLI) + tmux backend (isolated socket `agent-toolkit-swarm-<run-id>`), Herdr plugin (`integrations/herdr/agent-toolkit-swarm`), and docs (`docs/SWARMS.md`, `SWARM_ARCHITECTURE.md`, `SWARM_RECIPES.md`, `SWARM_HANDOFFS.md`, `SWARM_MODELS_AND_COSTS.md`, `SWARM_HERDR.md`, `SWARM_TMUX.md`, `SWARM_SECURITY.md`, `HOW_TO_CREATE_SWARM_RECIPE.md`) with Mermaid diagrams and offline `--runner skeleton` demo. Complete cross-repo integration: Workstation provision (tmux/Herdr) and Harness reference workspace.
 
 ## [1.6.0] — 2026-08-06
@@ -1225,7 +1239,6 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 [1.37.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.36.0...v1.37.0
 [1.36.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.35.0...v1.36.0
 [1.35.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.35.0
-[1.25.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.25.0
 [1.24.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.24.0
 [1.23.1]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.23.1
 [1.23.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.23.0
@@ -1239,7 +1252,6 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 [1.18.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.18.0
 [1.17.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.17.0
 [1.16.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.16.0
-[1.15.1]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.15.1
 [1.15.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.15.0
 [1.14.1]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.14.1
 [1.14.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.14.0

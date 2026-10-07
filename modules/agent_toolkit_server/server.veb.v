@@ -587,6 +587,7 @@ const registered_api_routes = [
 	'/api/v1/files',
 	'/api/v1/files/hits',
 	'/api/v1/files/content',
+	'/api/v1/projects',
 	'/api/v1/project/:sub',
 	'/api/v1/dc/:sub',
 	'/api/v1/build',

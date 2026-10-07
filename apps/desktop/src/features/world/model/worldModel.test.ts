@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildWorldModel, jobBelongsToProject } from './buildWorld';
+import { buildWorldModel, jobBelongsToProject, pathIsWithin, resolveProjectTarget } from './buildWorld';
 import { layoutWorld } from './layout';
-import { parseProjectListMessage } from './parseProjects';
 import { paintInterior, paintTerrain } from './terrain';
 import type { MemoryEntryRecord, MemorySummary, ToolRecord, WorldDomainInput } from './types';
 
@@ -41,19 +40,18 @@ function baseInput(overrides: Partial<WorldDomainInput> = {}): WorldDomainInput 
   };
 }
 
-describe('parseProjectListMessage', () => {
-  it('parses ok and broken rows and sorts by name', () => {
-    const message = `
-=== Projects ===
+describe('project target paths', () => {
+  it('resolves relative symlink targets against workspace/projects for live session matching', () => {
+    const target = '../repos/agent-toolkit';
+    const resolved = resolveProjectTarget('/home/user/workspace', target);
 
-  [ok]  zebra -> /repos/zebra
-  [broken]  alpha -> /missing/alpha
-  (noise)
-`;
-    expect(parseProjectListMessage(message)).toEqual([
-      { name: 'alpha', target: '/missing/alpha', status: 'broken' },
-      { name: 'zebra', target: '/repos/zebra', status: 'ok' },
-    ]);
+    expect(target).toBe('../repos/agent-toolkit');
+    expect(resolved).toBe('/home/user/workspace/repos/agent-toolkit');
+    expect(pathIsWithin('/home/user/workspace/repos/agent-toolkit/apps/desktop', resolved)).toBe(true);
+  });
+
+  it('preserves already absolute project targets', () => {
+    expect(resolveProjectTarget('/home/user/workspace', '/srv/repos/agent-toolkit')).toBe('/srv/repos/agent-toolkit');
   });
 });
 

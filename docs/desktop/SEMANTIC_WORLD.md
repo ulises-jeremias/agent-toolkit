@@ -24,7 +24,7 @@ This is not pixel-art SaaS and not "game before tool".
 ## 1. Decision audit (KEEP / EVOLVE / REPLACE / REMOVE)
 
 | Decision | Verdict | Notes |
-|---|---|---|
+| --- | --- | --- |
 | Paper Co. palette, materials, Fraunces / IBM Plex editorial type | **REMOVE (2026-09-30, ADR-035)** | Visual language deprecated; superseded by Cozy Pixel World (DESIGN.md). |
 | Cozy Pixel World language (pixel world + game-menu panels) | **KEEP** | Single visual contract: world + inspectors share one art direction |
 | Design hierarchy Clarity → Control → Feedback → Discoverability → Personality → Delight | **KEEP** | Personality never outranks truth or input focus |
@@ -69,7 +69,7 @@ are not backed by a live API are **omitted** or shown as **Unavailable** — nev
 filled with fabricated contents.
 
 | Domain concept | Metaphor | Why this metaphor | Primary interaction | States (truthful) | A11y fallback | Theme key |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | Active harness / workspace root | Workshop grounds / home lot | One managed environment organizing projects | Select → Workspace inspector | known / missing harness / notice | List: workspace path + harness source | `workspace.grounds` |
 | Workspace knowledge (`knowledge/` or memory API with workspace scope) | Shared archive / library annex | Shared facts for every agent started here | Open → Workspace / memory | present / empty / unavailable | List: knowledge entry counts or "empty" | `knowledge.workspace` |
 | Registered project | Distinct project house on the east-bank neighborhood | A development repo gets a stable place in the workspace valley | Click / Enter opens that project's interior; the overview board opens its project context | ok / broken / empty roster | World Index lists project name + link status | `project.building` |
@@ -118,7 +118,7 @@ large viewports in the project-link Electron E2E.
 ### Character rule
 
 | Condition | World representation |
-|---|---|
+| --- | --- |
 | No job / run / session evidence | **No character** |
 | Job queued or running | Character with `agent.working` (or blocked if status/evidence says waiting on human) |
 | Job failed / rejected (recent) | Runtime character with an explicit blocked/attention marker — also listed in Attention |
@@ -129,7 +129,7 @@ large viewports in the project-link Electron E2E.
 Map only kinds the backend emits today:
 
 | Event `type` | World effect |
-|---|---|
+| --- | --- |
 | `backend.ready` / `backend.resync` | Refresh domain snapshot; lamp ok |
 | `job.created` / `job.updated` / `job.deleted` | Upsert/remove job character; never invent progress bars |
 | `loop.started` / `loop.finished` | Update loop object state from `subject` / `status` |
@@ -204,7 +204,7 @@ popularity, copied game artwork.
 ## 6. Navigation and inspectors
 
 | User intent | Fast path |
-|---|---|
+| --- | --- |
 | Go to world home | `/` → `/world`; palette "Go to World" |
 | Inspect attention | `/office` (Needs you) |
 | Control jobs | `/operations` (+ `?job=`) |
@@ -257,7 +257,7 @@ parallel Office/Operations/Library/Terminal branches by rewriting them here.
 A working `/world` home that:
 
 1. Builds grounds from the real harness/workspace.
-2. Places project buildings from real `project list` (honest empty if none).
+2. Places project buildings from typed `GET /api/v1/projects` rows (honest empty if none).
 3. Shows shared knowledge only if memory/knowledge evidence exists; otherwise
    omits or shows empty.
 4. Lets the user enter a project space and open knowledge / memory / terminal
@@ -270,10 +270,10 @@ A working `/world` home that:
 ### Implemented on main (honest scope)
 
 | Concept | Status |
-|---|---|
+| --- | --- |
 | `/world` home + project interiors | **Implemented** |
 | Project board → Workspace project context; filing cabinet → registered project files | **Implemented** (typed project-scoped file API; read-only, symlink-safe) |
-| Project houses from roster | **Implemented** (CLI-text parser transitional) |
+| Project houses from roster | **Implemented** (`GET /api/v1/projects`, typed V rows; human CLI output remains independent) |
 | Memory archive + per-entry tiles → memory-file inspector | **Implemented** |
 | Library annex → `/library` | **Implemented** |
 | Operations / settings / files commons places | **Implemented** |
