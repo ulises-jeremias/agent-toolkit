@@ -393,8 +393,8 @@ The opened captures still show the more important unresolved art issues: the
 valley has a broad rectangular lawn, mostly straight paths, and a creek that
 divides the civic and project districts. This small lighting improvement does
 not resolve composition, interior density, or the conventional HUD taking
-space from the map. The README gallery remains unchanged until a broader visual
-pass produces a clearly better product capture.
+space from the map. The README's Meadow and Dusk hero screenshots now use the
+latest reviewed Electron captures; the broader composition work remains open.
 
 ## Library receipt evidence — 2026-10-07
 
@@ -427,6 +427,6 @@ trees that crowd a few labels; those remain the larger composition issues.
 
 These are live Electron captures against the real V 1.42.0 backend in a
 disposable workspace: [Meadow compact](assets/electron/world/window-lights-2026-10-07/several-projects-meadow-compact.png),
-[Meadow large](assets/electron/world/window-lights-2026-10-07/several-projects-meadow-large.png),
+[Meadow large](../../static/screenshots/world.png),
 [Dusk compact](assets/electron/world/window-lights-2026-10-07/several-projects-dusk-compact.png),
-and [Dusk large](assets/electron/world/window-lights-2026-10-07/several-projects-dusk-large.png).
+and [Dusk large](../../static/screenshots/world-dusk.png).
