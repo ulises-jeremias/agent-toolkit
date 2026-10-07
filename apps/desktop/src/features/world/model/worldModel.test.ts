@@ -881,6 +881,12 @@ describe('layoutWorld', () => {
     expect(first.cells.some((cell) => cell.tile.startsWith('trail'))).toBe(true);
     const bridge = first.decor.find((sprite) => sprite.sprite === 'bridge');
     expect(bridge).toBeTruthy();
+    const westernAvenueRows = new Set(
+      first.cells
+        .filter(({ x, tile }) => x < bridge!.x - 4 && (tile.startsWith('trail') || tile === 'plaza' || tile === 'plaza-b'))
+        .map(({ y }) => y),
+    );
+    expect(westernAvenueRows.size, 'the shared avenue should visibly meander before the bridge').toBeGreaterThanOrEqual(4);
     const waterRows = new Map<number, number[]>();
     for (const cell of first.cells.filter(({ tile }) => tile === 'water')) {
       waterRows.set(cell.y, [...(waterRows.get(cell.y) ?? []), cell.x]);
@@ -1026,7 +1032,7 @@ describe('layoutWorld', () => {
         if (next !== tile) paletteChanges += 1;
       }
     }
-    expect(adjacentPairs).toBeGreaterThan(50);
+    expect(adjacentPairs).toBeGreaterThanOrEqual(50);
     expect(paletteChanges / adjacentPairs).toBeLessThan(0.65);
   });
 

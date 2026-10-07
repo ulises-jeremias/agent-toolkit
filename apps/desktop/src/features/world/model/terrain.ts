@@ -243,11 +243,8 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
     // Keep a short bank approach and the three bridge tiles level. The road's
     // wider meadow bend must not overwrite water on neighboring stream rows.
     const crossing = x >= bridgeX - 4 && x < bridgeX + 4;
-    // The old shallow bend disappeared at fitted map zoom and made the shared
-    // route read as a ruler-straight service road. Give the footpath enough
-    // room to wander through the meadow while keeping its bridge approach
-    // level and the southern service lane clear.
-    const bank = x < bridgeX - 1 ? Math.round(bend * 2.75) : Math.max(0, Math.round(bend * 2.75));
+    // A broader bend keeps the town road readable at fitted map zoom.
+    const bank = x < bridgeX - 1 ? Math.round(bend * 3.25) : Math.max(0, Math.round(bend * 3.25));
     const current = { x, y: crossing ? y : y + bank };
     rasterLine(p, previous.x, previous.y, current.x, current.y);
     previous = current;
