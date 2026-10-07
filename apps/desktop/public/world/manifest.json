@@ -75,11 +75,11 @@
     },
     "landmark-operations": {
       "file": "landmark-operations.png",
-      "w": 57,
+      "w": 64,
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art/landmark-operations.png",
-      "sha256": "5c72024ec16d5e5f8ebd52d736daaf4af371957cc76f5123d2621876b1fb0fcf"
+      "sha256": "5d8ef0ac6784edcb5c989d55e77f1c9c0dc7cad6b0d7c0372519e42652e37d5c"
     },
     "landmark-terminal": {
       "file": "landmark-terminal.png",
@@ -287,12 +287,6 @@
     },
     "floor-wood": {
       "file": "floor-wood.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "floor-wood-b": {
-      "file": "floor-wood-b.png",
       "w": 16,
       "h": 16,
       "frames": 1

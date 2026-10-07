@@ -904,8 +904,8 @@ describe('layoutWorld', () => {
     const downstreamStarts = [...waterRows.entries()].filter(([y]) => y > bridgeRoadY).map(([, xs]) => Math.min(...xs));
     expect(Math.min(...upstreamStarts)).toBeLessThan(bridge!.x);
     expect(Math.max(...downstreamStarts)).toBeGreaterThan(bridge!.x);
-    expect([...waterRows.values()].every((xs) => xs.length === 2 || xs.length === 3)).toBe(true);
-    expect([...waterRows.values()].some((xs) => xs.length === 3)).toBe(true);
+    expect([...waterRows.values()].every((xs) => xs.length === 1 || xs.length === 2)).toBe(true);
+    expect([...waterRows.values()].some((xs) => xs.length === 2)).toBe(true);
     expect(new Set(first.cells.filter(({ tile }) => tile.startsWith('trail')).map(({ y }) => y)).size).toBeGreaterThan(
       1,
     );
@@ -1056,6 +1056,8 @@ describe('layoutWorld', () => {
     expect(inlays.length).toBeGreaterThan(0);
     expect(inlays.length).toBeLessThanOrEqual(6);
     expect(inlays).toEqual(second.cells.filter((cell) => cell.tile === 'floor-rune'));
+    expect(first.cells.filter((cell) => cell.tile === 'floor-a')).toHaveLength(18 * 12 - 56 - inlays.length);
+    expect(first.cells.some((cell) => cell.tile === 'floor-b')).toBe(false);
     expect(first.cells.filter((cell) => cell.tile === 'wall' || cell.tile === 'wall-mural')).toHaveLength(56);
     expect(first.cells.some((cell) => cell.tile === 'wall-mural')).toBe(true);
     expect(first.cells).toEqual(second.cells);

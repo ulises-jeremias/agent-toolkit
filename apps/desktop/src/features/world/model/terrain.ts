@@ -209,7 +209,7 @@ function curvedPoints(x0: number, y0: number, x1: number, y1: number, side: numb
   const length = Math.hypot(dx, dy);
   if (length < 2) return rasterPoints(x0, y0, x1, y1);
 
-  const bend = Math.min(5, Math.max(2, length * 0.46)) * side;
+  const bend = Math.min(7, Math.max(3, length * 0.56)) * side;
   const controlX = (x0 + x1) / 2 - (dy / length) * bend;
   const controlY = (y0 + y1) / 2 + (dx / length) * bend;
   const samples = Math.max(4, Math.ceil(length * 2));
@@ -475,7 +475,11 @@ function creek(
     const anchoredSoftBend = Math.sin(along * 0.31 + 0.7) - Math.sin(0.7);
     const desiredX = baseX + Math.sin(along * 0.22) * broadBend + anchoredSoftBend * softBend;
     const pool = Math.sin(along * 0.25 + 0.9);
-    const width = pool > 0.45 ? 3 : 2;
+    // Keep the channel mostly one tile wide so it reads as a stream through
+    // the valley instead of a moat between the civic commons and homes.
+    // Occasional two-tile pools add a natural pause without widening the
+    // crossing itself.
+    const width = Math.abs(along) > 2 && pool > 0.82 ? 2 : 1;
     const safeBank = (candidate: number) =>
       Array.from({ length: width }, (_, offset) => {
         const x = candidate + offset;
@@ -557,6 +561,12 @@ function creek(
       const reedsSide = h2(x, y, 41) % 2 === 0 ? x - 1 : x + width;
       if (y % 7 === 3 && h2(x, y, 43) % 3 === 0) {
         p.sprite(`reeds:${reedsSide},${y}`, reedsSide, y, 'reeds', 16, 16, 0, 0, true);
+      }
+      if (y % 13 === 6 && y !== bridgeY) {
+        const rockX = h2(x, y, 47) % 2 === 0 ? x - 1 : x + width;
+        if (!p.isBlocked(rockX, y) && !p.paths.has(key(rockX, y))) {
+          p.sprite(`creek-stone:${rockX},${y}`, rockX, y, 'rock', 16, 12, 0, 5);
+        }
       }
     }
   }
@@ -892,7 +902,9 @@ function forest(p: Painter, projectlessMeadow = false) {
       const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 2;
       // Grove anchors provide the settlement's large silhouettes; the seeded
       // fill below closes small gaps while preserving open routes and façades.
-      const creekDensity = 18;
+      // Let the creek remain visible between small tree groups; dense willow
+      // roots made the east bank read as a continuous hedge at fit-to-world.
+      const creekDensity = 9;
       // Intentionally planted grove cells should remain dense enough to read
       // as small forest groups; sparse probabilities apply to open shore and
       // boundary fill, which previously formed continuous tree walls.
@@ -1373,7 +1385,10 @@ export function paintInterior(entities: readonly LaidOutEntity[], cols: number, 
       // Rare, stable floor inlays add quiet craft detail without encoding
       // runtime activity or creating false interactive objects.
       const rune = (x * 31 + y * 67 + x * y * 13) % 47 === 7;
-      const floorVariant = rune ? 'floor-rune' : (x + y) % 2 === 0 ? 'floor-a' : 'floor-b';
+      // Keep the timber grain running in one direction across the room. A
+      // per-cell rotation makes every other tile read like shelving instead
+      // of a continuous floor; rare rune inlays provide the only variation.
+      const floorVariant = rune ? 'floor-rune' : 'floor-a';
       p.set(x, y, wall ? wallTile : floorVariant, true);
     }
   }
