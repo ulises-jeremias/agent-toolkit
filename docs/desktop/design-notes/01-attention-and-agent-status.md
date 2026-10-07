@@ -1,6 +1,10 @@
 # Design note 01 — Attention queue and real agent status
 
-Status: **PROPOSAL** (2026-09-30). Part of
+Status: **HISTORICAL PROPOSAL** (2026-09-30). This note predates the current
+Cozy Pixel World and Electron product contracts; it is preserved for design
+rationale and is not a feature specification or current status report. Use the
+[workflow ledger](../workflows.yaml) for shipped Attention behavior and
+[UX_ARCHITECTURE.md](../UX_ARCHITECTURE.md) for current ownership. Part of
 [WORKSTATION_REFERENCE_ANALYSIS.md](../WORKSTATION_REFERENCE_ANALYSIS.md).
 Program todos: `attention-queue`, `real-agent-status`, `return-to-work`
 (Phase 4.2 Office, Phase 2 PR B/E backend).
@@ -31,8 +35,9 @@ project and only *names* another project that has someone waiting).
 Until V emits `AttentionItem`, Electron Office is the **attention
 inspector** the semantic world opens — not the product home. It answers
 the five questions from today's typed sources only: supervisor
-`backend-status` (crash / version mismatch / harness), `GET /api/v1/jobs`
-+ status, selfcheck, health, and the #1320 bus (`GET /api/v1/events`).
+`backend-status` (crash / version mismatch / harness), job status from
+`GET /api/v1/jobs`, selfcheck, health, and the #1320 event bus
+(`GET /api/v1/events`).
 Manila "Needs you" is crash, mismatch, harness, failed jobs, and failing
 self-checks. Running and completed stay in their own sections. Empty copy
 is "Nothing needs you." only after the job list and self-check succeed —

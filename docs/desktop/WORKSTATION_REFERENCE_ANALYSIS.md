@@ -23,7 +23,7 @@ external capability references. It is not a feature-parity program and not a
 visual brief.
 
 Visual authority is [DESIGN.md](DESIGN.md) (Cozy Pixel World).
-Design notes:
+Historical design notes (proposal records, not current requirements):
 
 - [01 — Attention and agent status](design-notes/01-attention-and-agent-status.md)
 - [02 — Sessions, adapters, durability](design-notes/02-sessions-terminals-and-durability.md)
