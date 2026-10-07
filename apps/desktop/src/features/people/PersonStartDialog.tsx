@@ -12,12 +12,12 @@ import { initialPromptMode, personInitialPrompt, personSessionOptions } from './
 import styles from './people.module.css';
 
 export function PersonStartDialog({ person, onClose }: { person: Person | null; onClose: () => void }) {
-  const { client } = useBackend();
+  const { backend, client } = useBackend();
   const { context, href } = useSessionContext();
   const navigate = useNavigate();
   const terminals = useTerminalSessions();
   const queryClient = useQueryClient();
-  const workspace = context.workspace;
+  const workspace = context.workspace || backend?.harness?.path || '';
   const [projectName, setProjectName] = useState('');
   const [providerId, setProviderId] = useState('');
   const [modelName, setModelName] = useState('');

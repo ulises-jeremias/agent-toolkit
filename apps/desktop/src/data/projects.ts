@@ -11,5 +11,6 @@ export function useProjects(workspace: string, options: { enabled?: boolean } = 
     queryFn: () => requireClient(client).projects(workspace),
     enabled: client !== null && workspace.trim().length > 0 && (options.enabled ?? true),
     staleTime: 15_000,
+    refetchOnMount: 'always',
   });
 }

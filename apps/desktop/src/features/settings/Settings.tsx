@@ -6,6 +6,7 @@ import { useBackend, useHealth, useHelp, useSelfcheck } from '../../data/backend
 import { backendProblemCopy } from '../../lib/backend-copy';
 import type { HarnessSwitchResult } from '../../types/electron';
 import { requestOnboardingReplay } from '../onboarding/complete';
+import { useSessionContext } from '../../shell/useSessionContext';
 import {
   setMotionPreference,
   setThemePreference,
@@ -100,6 +101,7 @@ export default function Settings() {
   const harnessChooseRef = useRef<HTMLButtonElement>(null);
   const appearance = useAppearance();
   const { backend, backendUrl, restartBackend } = useBackend();
+  const { setContext } = useSessionContext();
   const health = useHealth();
   const selfcheck = useSelfcheck();
   const update = useOperation('update');
@@ -124,7 +126,8 @@ export default function Settings() {
     setHarnessError(null);
     try {
       const result = await action();
-      if (!result.ok && result.error !== 'cancelled') setHarnessError(result.message);
+      if (result.ok) setContext({ workspace: result.harness.path });
+      else if (result.error !== 'cancelled') setHarnessError(result.message);
       await harnessStatus.refetch();
     } finally {
       setHarnessBusy(false);

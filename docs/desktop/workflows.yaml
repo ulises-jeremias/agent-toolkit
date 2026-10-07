@@ -38,13 +38,18 @@ journeys:
     status: ok
     evidence:
       - note: >-
-          Electron E2E changes to a second workspace through Settings, links a real project using the GUI, verifies its
-          building in World, rejects a missing destination without changing the active workspace, switches back, and
-          verifies that the original workspace remains empty. The flow waits for the supervised backend to become
-          live after each successful restart; compact and large captures were opened.
-        build: "89399a14 (Linux Electron E2E; temporary HOME)"
+          Electron E2E changes to a second workspace through Settings, verifies
+          the URL scope changes with the supervised harness, links a real
+          project using the GUI, verifies its building in World, rejects a
+          missing destination without changing the active workspace, switches
+          back, and verifies that the original workspace remains empty. Project
+          roster views revalidate on mount so an external CLI change does not
+          remain hidden behind a fresh cache. Compact and large captures were
+          opened.
+        build: "pending local revision (Linux Electron E2E; temporary HOME)"
         tests:
           - apps/desktop/e2e/electron/workspace-switch.spec.ts
+          - apps/desktop/e2e/electron/people-session.spec.ts
         screenshots:
           - assets/electron/workspace/workspace-project-compact.png
           - assets/electron/workspace/workspace-project-large.png

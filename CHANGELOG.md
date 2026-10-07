@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - People Start now reviews a one-time editable task from the saved goal and sends its role/goal/task prompt to supported interactive runners without saving the task to the Person or changing runner permissions.
 - Electron now preserves the owning workspace and canonical session ID across its PTY bridge, so a real process exit updates the durable Person session instead of leaving stale running state.
 - World remains visible while live workspace data loads or the backend is unavailable; its loading plaque and offline notice distinguish known landmarks from incomplete runtime state.
+- Successful harness changes now update the URL-backed workspace scope for every destination. Project rosters revalidate when their view opens, and Person Start can use the supervised harness while the URL context initializes.
 
 ## [1.42.0] — 2026-10-06
 

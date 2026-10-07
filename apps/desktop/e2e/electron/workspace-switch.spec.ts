@@ -50,6 +50,7 @@ test('switches workspaces, reads their own projects, and returns safely', async 
     await chooseFolder(alternateWorkspace);
     await page.getByRole('button', { name: /Change harness/ }).click();
     await expect(harnessValue).toContainText(alternateWorkspace, { timeout: 20_000 });
+    await expect(page).toHaveURL(new RegExp(encodeURIComponent(alternateWorkspace)));
     await waitForBackend(page);
 
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
@@ -81,6 +82,7 @@ test('switches workspaces, reads their own projects, and returns safely', async 
     await chooseFolder(workspace);
     await page.getByRole('button', { name: /Change harness/ }).click();
     await expect(harnessValue).toContainText(workspace, { timeout: 20_000 });
+    await expect(page).toHaveURL(new RegExp(encodeURIComponent(workspace)));
     await waitForBackend(page);
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
     await expect(page.getByRole('button', { name: /Add project/ })).toBeVisible();
