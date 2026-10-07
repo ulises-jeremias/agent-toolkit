@@ -1,6 +1,6 @@
 # ADR-036 — Durable People in the workspace, distinct from agent definitions
 
-- **Status:** Accepted (2026-10-01) — partial delivery (schemas, storage ownership, scaffolding, validation)
+- **Status:** Accepted (2026-10-01); see [PEOPLE.md](../PEOPLE.md) for current implementation state
 - **Deciders:** ulises-jeremias (owner)
 - **Amends:** ADR-034 (semantic world — characters are runtime truth, not declarations)
 
@@ -56,8 +56,15 @@ then an ephemeral canonical session with pre-start role selection.
   hardlink.
 - Import of `munder-difflin/hire@1` stays contract-only: review required, no
   auto-spawn, no auto-install, no live sync.
-- People CRUD, import review, Start, session binding and the swarm role picker
-  in Desktop are future work and must ship as real GUI journeys.
+- Desktop now provides GUI CRUD/archive/restore, reviewed one-way Munder
+  import, Start against a real local PTY with V-owned lifecycle evidence, and
+  per-role Person selection with backend preview. See [PEOPLE.md](../PEOPLE.md)
+  for the current behavior and limits. Provider conversation resume, process
+  continuity after Desktop exits, token/cost enforcement and inherited
+  isolation are still unsupported by the local interactive PTY. Swarm Person
+  bindings remain run metadata and adapter hints; they are not yet canonical
+  PersonSessions or World characters. Journey evidence is maintained in
+  [the Desktop workflow ledger](../desktop/workflows.yaml).
 
 ## Rollback
 

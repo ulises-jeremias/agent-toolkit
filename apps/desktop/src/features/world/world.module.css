@@ -124,6 +124,22 @@
 .decorSprite[data-sprite='water'] {
   animation-duration: 1.8s;
 }
+
+/* Pixel-step halos make real environmental light readable at room scale. The
+   glow follows only the sprite's opaque pixels and carries no agent state. */
+.decorSprite[data-sprite='lamp-glow'] {
+  filter: drop-shadow(0 0 8px rgb(255 194 100 / 34%));
+}
+
+.decorSprite[data-sprite='firefly'],
+.decorSprite[data-sprite='mote'] {
+  filter: drop-shadow(0 0 7px rgb(255 221 126 / 48%));
+}
+
+.decorSprite[data-sprite='water-sparkle'] {
+  filter: drop-shadow(0 0 6px rgb(133 232 239 / 36%));
+}
+
 .decorSprite[data-sprite='water-sparkle'] {
   animation-duration: 2.8s;
 }

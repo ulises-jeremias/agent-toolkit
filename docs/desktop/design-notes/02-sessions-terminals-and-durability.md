@@ -67,7 +67,7 @@ button**, only "Start a new session in this run".
 | Person PTY identity, Person/project link, runner/model and reported lifecycle state | **V** (`serve`, `.agent-toolkit/sessions/`) | Durable domain history; status is updated by the local Desktop adapter |
 | Provider conversation ID, run link, turn state and resume decision | **V** (`serve`, future Session entity) | Domain truth once runner adapters can report provider lifecycle evidence |
 | PTY bytes, resize, input, screen mirror | **Electron main** (ADR-033: node-pty adapter, no domain state) | Native terminal transport on supported Electron platforms |
-| Swarm roles on tmux/herdr backends | the backend (tmux/herdr) | already detached; V records `transport: tmux|herdr` |
+| Swarm roles on tmux/herdr backends | the backend (tmux or herdr) | already detached; V records the transport kind |
 | Detached PTY host (later, opt-in) | a small supervisor spawned by Electron main | only for process durability across app quit/crash |
 
 Consequence: **PTYs survive a `serve` restart by construction**, because V never

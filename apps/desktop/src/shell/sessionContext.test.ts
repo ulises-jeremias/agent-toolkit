@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { basename, EMPTY_CONTEXT, readContext, withContext, writeContext } from './sessionContext';
+import {
+  basename,
+  displayLocationName,
+  displayWorkspacePath,
+  EMPTY_CONTEXT,
+  readContext,
+  withContext,
+  writeContext,
+} from './sessionContext';
 
 describe('readContext', () => {
   it('reads workspace, agent and run and ignores other params', () => {
@@ -48,5 +56,17 @@ describe('withContext', () => {
 describe('basename', () => {
   it('returns the last path segment', () => {
     expect(basename('/home/u/.ai-workspace/')).toBe('.ai-workspace');
+  });
+});
+
+describe('displayWorkspacePath', () => {
+  it('uses a friendly label for the default harness and preserves custom project names', () => {
+    expect(displayWorkspacePath('/tmp/test-home/.ai-workspace', '/tmp/test-home/.ai-workspace', true)).toBe(
+      'AI Workspace',
+    );
+    expect(displayWorkspacePath('/repos/agent-toolkit', '/tmp/test-home/.ai-workspace', false)).toBe('agent-toolkit');
+    expect(displayWorkspacePath('', '', false)).toBe('');
+    expect(displayLocationName('/home/test/.ai-workspace')).toBe('AI Workspace');
+    expect(displayLocationName('/repos/agent-toolkit')).toBe('agent-toolkit');
   });
 });

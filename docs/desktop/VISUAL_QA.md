@@ -254,8 +254,123 @@ review evidence, not concept-board art. Refresh `static/screenshots/` when the
 pictured product changes, and keep the README gallery to a small set that
 explains the current experience. The README uses genuine PNG captures and
 functional status badges; do not use illustrative SVG mockups as product
-screenshots. Keep status badges as links, not substitutes for product images. The complete
-compact/large and edge-case capture sets stay under
+screenshots. Keep status badges as links, not substitutes for product images.
+The complete compact/large and edge-case capture sets stay under
 `docs/desktop/assets/electron/` and are linked from review evidence.
 Inspiration boards must never be copied into product art or presented as
 screenshots.
+
+## Product polish review — 2026-10-06
+
+I captured the Electron app against its disposable workspace and the real
+1.42.0 backend. The full 38-image route/theme/size set is in
+[`assets/electron/product-review-2026-10-06/`](assets/electron/product-review-2026-10-06/);
+the project-link E2E also captured empty, one-project, three-project, and
+project-interior scenes there. These are actual GUI flows, not concept art.
+
+I opened `meadow-1920x1080-world.png`, `dusk-1920x1080-world.png`,
+`meadow-1024x640-world.png`, `dusk-1024x640-world.png`,
+`world-empty-compact.png`, `world-empty-large.png`,
+`world-one-project-compact.png`, `world-one-project-large.png`,
+`world-several-projects-meadow-compact.png`,
+`world-several-projects-meadow-large.png`,
+`world-several-projects-dusk-compact.png`,
+`world-several-projects-dusk-large.png`, `project-files-room-compact.png`,
+`project-files-room-large.png`, `meadow-1024x640-people.png`,
+`meadow-1024x640-person-create.png`,
+`meadow-1024x640-munder-import-review.png`, `meadow-1024x640-library.png`,
+`meadow-1024x640-operations.png`, `meadow-1024x640-terminal.png`,
+`meadow-1024x640-settings.png`, `meadow-1024x640-workspace.png`, and
+`dusk-1024x640-attention.png` from the new set.
+
+The review found `.ai-workspace` leaking as a product name in the persistent
+context, Workspace page, and terminal tabs. The UI now calls the default place
+“AI Workspace”; focusing the context field still exposes the editable real
+path, and the Workspace page retains the full path as its supporting text.
+The compact and large captures confirm the terminal retains the friendly name
+without losing the real PTY. A lighter Dusk overlay read too much like Meadow,
+so I restored the stronger blue-hour tint and opened both sizes again; warm
+lamps and windows remain clear.
+
+The review does not sign off the art. The current valley is colorful and its
+landmarks are distinct, but the terrain still reads as a rectangular board,
+paths remain mostly orthogonal, and the creek divides the districts almost
+vertically. The project house interior has real files, records, overview, and
+terminal stations, but its timber wall repeats and leaves large bare areas.
+People are truthful and legible, though the large roster still has excess
+unused space. Compact Library content continues below the fold. These findings
+remain open; a fresh screenshot is evidence of the label and Dusk adjustments,
+not a claim that the requested enchanted world-art pass is complete.
+
+The README gallery now uses refreshed PNG captures for the valley, Dusk,
+project room, Library, People, Operations, terminal, and inert Munder review.
+There are no repository-owned SVG product illustrations: the README's external
+SVG badges remain functional CI, license, and release links. The backend was
+rebuilt from this source with `VJOBS=2` for the project-link Electron E2E; the
+context-label and exited-PTY tests also passed. The app unit suite reports 45
+files and 382 passing tests, and Desktop type-check, lint, and production build
+pass. Builds ran in a systemd scope capped at 4 GiB and 200% CPU. An initial
+E2E attempt using the older main checkout binary returned 404 for the Copilot
+review route; the branch-built backend fixed that environment mismatch and
+the full project-link journey then passed.
+
+## First-run recovery — 2026-10-06
+
+I used the real Linux Electron app and its supervised 1.42.0 backend in a
+throwaway HOME, killed only that backend process, and opened the failed state at
+1024×768 and 1440×960. The first capture showed an unhelpful “Starting” label
+and exposed an absolute executable path by default. I changed the state label
+to “Needs restart”, replaced the default error copy with a clear explanation,
+and moved raw diagnostics into a collapsed disclosure. I reopened the [compact
+failure screen](assets/electron/onboarding/recovery-backend-failed-compact.png)
+and [large failure screen](assets/electron/onboarding/recovery-backend-failed-large.png).
+The panel now explains that the workspace was not changed, provides an
+immediate restart action, and keeps the technical detail available on demand.
+The same E2E journey restarts the process and continues to folder selection.
+
+## Meadow life pass — 2026-10-06
+
+Opened fresh compact and large Electron captures of the empty valley and the
+three-project meadow in both Meadow and Dusk themes. The idle valley's ambient
+motes had been confined to the creek, leaving the project-side clearings quiet.
+The terrain pass now adds at most four deterministic meadow motes, keeping them
+off paths, doorways, and building footprints; they remain ambient decoration and
+are independent of jobs, People, or sessions. The mote count stays capped at ten
+including the existing creekside group. Browser visibility and reduced-motion
+settings continue to govern their animation.
+
+The opened images show the new light points among the garden and creek-side
+clearings at both scales. This adds a little life without filling the lawns with
+particles. It does not resolve the larger composition findings: grass still
+reads as a broad rectangular field, paths are mostly orthogonal, and the creek
+still separates the civic and project districts. Those remain open art work.
+
+Captures: [empty, compact](assets/electron/meadow-motes-2026-10-06/empty-compact.png),
+[empty, large](assets/electron/meadow-motes-2026-10-06/empty-large.png),
+[several projects in Meadow, compact](assets/electron/meadow-motes-2026-10-06/several-meadow-compact.png),
+[large](assets/electron/meadow-motes-2026-10-06/several-meadow-large.png),
+[several projects in Dusk, compact](assets/electron/meadow-motes-2026-10-06/several-dusk-compact.png),
+and [large](assets/electron/meadow-motes-2026-10-06/several-dusk-large.png).
+
+## North forest frame — 2026-10-07
+
+The forest pass had reserved the top three tile rows as a visual frame, but
+required tree anchors to start below that same region. That left the north edge
+empty. I moved the anchor boundary up one tile and kept the framing-row canopy
+aligned so its top pixels stay inside the map. The deterministic world-model
+test now requires a north-edge tree and checks that no canopy crosses the
+canvas boundary.
+
+I rebuilt the Desktop renderer and canonical V backend, then opened fresh
+Electron captures with three linked projects at compact and large sizes in
+Meadow and Dusk. The added crowns give the upper edge a more deliberate forest
+frame without covering the creek, project entrances, bridge, or paths. The
+captures still show the broader unresolved art issues: a large rectangular
+meadow, mostly orthogonal paths, and a creek that divides the districts. This
+small framing correction is not final visual sign-off.
+
+The README's two world images now use the reviewed large captures. Compact and
+large evidence is kept in
+[`assets/electron/north-forest-frame-2026-10-07/`](assets/electron/north-forest-frame-2026-10-07/).
+The run used the 1.42.0 backend built from the source checkout and the real
+Electron app in a disposable workspace.

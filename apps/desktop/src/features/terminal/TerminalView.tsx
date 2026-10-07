@@ -1,5 +1,5 @@
 import { useTerminalSessions } from '../../data/terminal';
-import { basename } from '../../shell/sessionContext';
+import { displayLocationName } from '../../shell/sessionContext';
 import { Button, EmptyState, LoadingState, Mono, PageHeader, Panel, StatusBadge, Table } from '../../ui';
 import { sessionState } from './sessionState';
 import styles from './terminal.module.css';
@@ -78,7 +78,7 @@ export default function TerminalView() {
                     </th>
                     <td>{run ? <Mono>{run}</Mono> : '—'}</td>
                     <td title={session.cwd}>
-                      <Mono>{basename(session.cwd)}</Mono>
+                      <Mono>{displayLocationName(session.cwd)}</Mono>
                     </td>
                     <td>
                       <StatusBadge tone={state.tone} label={state.label} live={session.exitCode === null} />

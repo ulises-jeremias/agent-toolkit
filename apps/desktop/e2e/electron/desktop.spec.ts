@@ -133,7 +133,12 @@ test('supervisor starts the real backend and the shell connects', async () => {
 test('the context bar shows the default ~/.ai-workspace harness', async () => {
   const { page, workspace } = desktop;
   const bar = page.getByRole('form', { name: 'Session context' });
-  await expect(bar.getByLabel('Workspace')).toHaveValue(workspace);
+  const workspaceField = bar.getByLabel('Workspace');
+  await expect(workspaceField).toHaveValue('AI Workspace');
+  await workspaceField.focus();
+  await expect(workspaceField).toHaveValue(workspace);
+  await workspaceField.blur();
+  await expect(workspaceField).toHaveValue('AI Workspace');
   await expect(bar).toContainText('default');
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
   await expect(page.getByRole('region', { name: 'Backend' })).toContainText(`${workspace} (default)`);
@@ -1060,15 +1065,15 @@ test('an exited session keeps its output and can restart', async () => {
   await dialog.getByRole('textbox', { name: 'Label', exact: true }).fill('e2e-exit');
   await dialog.getByRole('button', { name: 'Open session' }).click();
 
-  await expect(page.getByRole('tab', { name: /e2e-exit · e2e-run · \.ai-workspace · running/ })).toBeVisible();
+  await expect(page.getByRole('tab', { name: /e2e-exit · e2e-run · AI Workspace · running/ })).toBeVisible();
   const terminal = page.getByLabel('Terminal for e2e-exit');
   await terminal.click();
   await page.keyboard.type('exit 7');
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('tab', { name: /e2e-exit · e2e-run · \.ai-workspace · exited 7/ })).toBeVisible();
+  await expect(page.getByRole('tab', { name: /e2e-exit · e2e-run · AI Workspace · exited 7/ })).toBeVisible();
   await expect(page.getByRole('status').filter({ hasText: 'exit code 7' })).toBeVisible();
   await page.getByRole('button', { name: 'Restart' }).click();
-  await expect(page.getByRole('tab', { name: /e2e-exit · e2e-run · \.ai-workspace · running/ })).toBeVisible();
+  await expect(page.getByRole('tab', { name: /e2e-exit · e2e-run · AI Workspace · running/ })).toBeVisible();
   await page.getByRole('button', { name: 'Close' }).click();
   const closeDialog = page.getByRole('dialog', { name: 'Close this session?' });
   await expect(closeDialog).toContainText('The process is killed and its scrollback is discarded.');

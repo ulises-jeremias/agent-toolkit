@@ -14,14 +14,24 @@ journeys:
   - id: first-run-onboarding
     title: First run to a created or reused workspace
     destinations: [onboarding]
-    status: partial
+    status: ok
     evidence:
       - note: copied Linux package launched outside the checkout with fresh
           HOME/XDG and minimal PATH, workspace created entirely through the GUI
         build: "1.40.0 @ feat/cozy-pixel-world cb7394b2 (2026-09-30)"
-      - note: e2e/electron/onboarding.spec.ts
+      - note: >-
+          First-run E2E covers an existing workspace, explicit creation of a
+          missing workspace, and a crashed supervised backend restarted inside
+          onboarding before continuing; the package smoke launches from fresh
+          HOME/XDG. Compact and large failed-state captures were opened.
+        build: "adda39ed (#1472; packaged Electron acceptance and Linux E2E)"
+        tests:
+          - apps/desktop/e2e/electron/onboarding.spec.ts
+        screenshots:
+          - assets/electron/onboarding/recovery-backend-failed-compact.png
+          - assets/electron/onboarding/recovery-backend-failed-large.png
     blockers: []
-    recovery: guided retry on backend failure; no partial workspace left behind
+    recovery: restart a failed local backend from onboarding; existing workspaces remain unchanged
   - id: workspace-switch-inspect
     title: Switch workspace and read its truth in the World
     destinations: [world, workspace]
@@ -186,6 +196,41 @@ journeys:
           - assets/electron/world/project-files-room-compact.png
           - assets/electron/world/project-files-room-large.png
       - note: apps/desktop/e2e/electron/project-link.spec.ts; modules/agent_toolkit_core/file_catalog_test.v covers project symlink containment and unsafe paths
+      - note: >-
+          The current meadow-life capture opens the empty valley and three-project
+          map at compact and large sizes in Meadow and Dusk. Four deterministic
+          meadow motes extend the existing creekside ambience; placement remains
+          clear of paths, doorways, and building footprints and does not depend on
+          runtime activity. Opened captures confirm the particles stay subtle at
+          both scales. Broad lawns, angular path runs, and the creek's district
+          split remain open visual work.
+        build: "1cea8799 (Linux Electron E2E; project-link.spec.ts; screenshots opened)"
+        tests:
+          - apps/desktop/src/features/world/model/worldModel.test.ts
+          - apps/desktop/e2e/electron/project-link.spec.ts
+        screenshots:
+          - assets/electron/meadow-motes-2026-10-06/empty-compact.png
+          - assets/electron/meadow-motes-2026-10-06/empty-large.png
+          - assets/electron/meadow-motes-2026-10-06/several-meadow-compact.png
+          - assets/electron/meadow-motes-2026-10-06/several-meadow-large.png
+          - assets/electron/meadow-motes-2026-10-06/several-dusk-compact.png
+          - assets/electron/meadow-motes-2026-10-06/several-dusk-large.png
+      - note: >-
+          Source c48cac48 adds a deterministic north-edge tree row while keeping
+          canopy pixels inside the canvas. Electron project-link captures were
+          opened at compact and large sizes in Meadow and Dusk. The README now
+          uses the reviewed large captures. This is an incremental framing
+          improvement; broad lawns, mostly straight paths, and the creek's
+          district split remain open visual work.
+        build: "c48cac48 (Linux Electron; project-link.spec.ts; screenshots opened)"
+        tests:
+          - apps/desktop/src/features/world/model/worldModel.test.ts
+          - apps/desktop/e2e/electron/project-link.spec.ts
+        screenshots:
+          - assets/electron/north-forest-frame-2026-10-07/meadow-several-projects-compact.png
+          - assets/electron/north-forest-frame-2026-10-07/meadow-several-projects-large.png
+          - assets/electron/north-forest-frame-2026-10-07/dusk-several-projects-compact.png
+          - assets/electron/north-forest-frame-2026-10-07/dusk-several-projects-large.png
     blockers: []
   - id: capability-discovery
     title: Browse skills/agents/packs in the Library
@@ -330,6 +375,15 @@ journeys:
       - note: Ctrl+K Start Person opens the same review flow as People; the active Person command opens its existing PTY; apps/desktop/e2e/electron/people-session.spec.ts checks the real PTY lifecycle when a runner is available and the unavailable-runner recovery state otherwise
       - note: Start preloads a one-time task from the durable Person goal, previews the exact role/goal/task prompt, and passes it only to documented interactive launch options for OpenCode, Claude, Codex and Copilot; the task never updates the Person record. Cursor and Muse stay interactive and provide a copy action until their prompt contracts are verified.
       - note: Electron's PTY bridge retains the owning workspace and V session ID; the lifecycle E2E confirms process stop changes the durable record from running to stopped while the Person and goal remain configured.
+        build: "1bc3bdc23fa210eca84cd325850637f0bf0935af (#1468; Linux/Windows CI and fresh-HOME Desktop acceptance passed; macOS checks not used as merge gate by maintainer instruction)"
+        tests:
+          - apps/desktop/e2e/electron/people-session.spec.ts
+          - apps/desktop/src/features/people/personRunner.test.ts
+        screenshots:
+          - assets/electron/people/person-start-compact.png
+          - assets/electron/people/person-start-large.png
+          - assets/electron/people/person-start-no-runner-compact.png
+          - assets/electron/people/person-start-no-runner-large.png
       - note: After the project-valley layout update, the real Lina PTY character remains beside the linked agent-toolkit house while the PTY is open and disappears from the map after exit is confirmed; captures were regenerated and opened at compact and large sizes
         build: "9deb8f6b (Linux Electron E2E; people-session.spec.ts)"
         screenshots:

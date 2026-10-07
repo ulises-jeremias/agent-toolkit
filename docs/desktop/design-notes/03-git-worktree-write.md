@@ -1,8 +1,13 @@
 # Design note 03 — Git / worktree write lifecycle
 
-Status: **PROPOSAL** (2026-09-30). Part of
-[WORKSTATION_REFERENCE_ANALYSIS.md](../WORKSTATION_REFERENCE_ANALYSIS.md).
-#1227: git write/checkout = OPEN-future; native worktree *visibility* ≠ write.
+Status: **HISTORICAL PROPOSAL** (2026-09-30). This note records the Git and
+worktree design discussion at that date; its implementation claims are not
+current. Check the [workflow ledger](../workflows.yaml) and current
+[Desktop guide](../README.md) before treating any item as a gap. It remains
+part of [WORKSTATION_REFERENCE_ANALYSIS.md](../WORKSTATION_REFERENCE_ANALYSIS.md).
+
+Issue #1227: Git write/checkout was open future work; native worktree
+*visibility* did not imply write support.
 
 ## Current truth
 

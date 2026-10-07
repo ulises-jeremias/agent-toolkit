@@ -1,15 +1,16 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react';
 import { Link } from 'react-router';
 import { useBackend } from '../data/backend';
-import { Kbd, Mono } from '../ui';
+import { Kbd } from '../ui';
 import { openCommandPalette } from './CommandPalette';
-import { basename } from './sessionContext';
+import { displayWorkspacePath } from './sessionContext';
 import { useSessionContext } from './useSessionContext';
 import styles from './shell.module.css';
 
 function Field({
   label,
   value,
+  displayValue,
   placeholder,
   mono,
   title,
@@ -17,13 +18,14 @@ function Field({
 }: {
   label: string;
   value: string;
+  displayValue?: string;
   placeholder: string;
   mono?: boolean;
   title?: string;
   onCommit: (next: string) => void;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
-  const shown = draft ?? value;
+  const shown = draft ?? displayValue ?? value;
   const commit = () => {
     if (draft === null) return;
     onCommit(draft);
@@ -72,6 +74,7 @@ export function ContextBar() {
       <Field
         label="Workspace"
         value={context.workspace}
+        displayValue={displayWorkspacePath(context.workspace, harness?.path ?? '', harness?.source === 'default')}
         placeholder={harness?.path || 'No workspace'}
         mono
         title={
@@ -83,7 +86,6 @@ export function ContextBar() {
       />
       {harness ? (
         <span className={styles.contextMeta} data-tone={harness.notice ? 'warn' : undefined}>
-          <Mono>{basename(harness.path)}</Mono>
           <span>{harness.source}</span>
           {harness.notice ? (
             <Link to={href('/settings')} title={harness.notice}>

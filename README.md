@@ -51,7 +51,7 @@ Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installe
 
 | Meadow valley | Dusk valley |
 | --- | --- |
-| <img src="static/screenshots/world.png" width="100%" alt="The workspace valley with three real project houses, shared landmarks, a creek and connected paths" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The empty workspace valley at dusk" /> |
+| <img src="static/screenshots/world.png" width="100%" alt="Agent Toolkit's workspace valley with project houses, shared landmarks, creek and forest framing in Meadow light" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The workspace valley, project houses and forest framing under Dusk lighting" /> |
 | Project interior | Capability Library |
 | <img src="static/screenshots/project-interior.png" width="100%" alt="A project house with real file, memory, terminal and project stations" /> | <img src="static/screenshots/library.png" width="100%" alt="Library showing reusable capabilities and installation evidence" /> |
 | People roster | Operations |
@@ -59,7 +59,7 @@ Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installe
 | Real PTY terminal | Reviewed import |
 | <img src="static/screenshots/terminal.png" width="100%" alt="Live shell session with real command output in the integrated terminal" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder hire import review showing mapped and ignored fields before saving" /> |
 
-These are PNG screenshots of the running Electron app against a disposable workspace and the real backend. Offline People do not create world characters, and the terminal view contains a real PTY. The small SVG badges are live CI, license, and release links; they are not product artwork. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
+These PNGs show Electron with the real backend and a disposable workspace: offline People stay off the map, and the terminal is a live PTY. The badges above link to CI, license, and release metadata. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
 
 ---
 

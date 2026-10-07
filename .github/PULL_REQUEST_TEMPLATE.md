@@ -45,8 +45,8 @@
 
 ## Governance (skills / upstream)
 
-- [ ] Upstream vs first-party decision documented ([UPSTREAM_VS_FIRST_PARTY.md](docs/UPSTREAM_VS_FIRST_PARTY.md))
-- [ ] [Skill Integration Checklist](docs/SKILL_INTEGRATION_CHECKLIST.md) completed (if skill/agent routing changed)
+- [ ] Upstream vs first-party decision documented ([UPSTREAM_VS_FIRST_PARTY.md](../docs/UPSTREAM_VS_FIRST_PARTY.md))
+- [ ] [Skill Integration Checklist](../docs/SKILL_INTEGRATION_CHECKLIST.md) completed (if skill/agent routing changed)
 
 ## Checklist
 

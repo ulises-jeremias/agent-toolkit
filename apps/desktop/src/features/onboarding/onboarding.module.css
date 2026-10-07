@@ -2,9 +2,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  background:
-    linear-gradient(180deg, var(--surface-sunken) 0, var(--surface-canvas) 40%),
-    var(--surface-canvas);
+  background: linear-gradient(180deg, var(--surface-sunken) 0, var(--surface-canvas) 40%), var(--surface-canvas);
 }
 
 .masthead {
@@ -125,6 +123,28 @@
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--text-muted);
+}
+
+.diagnostics {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.diagnostics summary {
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.diagnostics > :last-child {
+  display: block;
+  margin-top: var(--space-2);
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 @media (max-width: 40rem) {

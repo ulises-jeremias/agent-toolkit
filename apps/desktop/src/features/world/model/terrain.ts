@@ -209,7 +209,7 @@ function curvedPoints(x0: number, y0: number, x1: number, y1: number, side: numb
   const length = Math.hypot(dx, dy);
   if (length < 2) return rasterPoints(x0, y0, x1, y1);
 
-  const bend = Math.min(4, Math.max(2, length * 0.35)) * side;
+  const bend = Math.min(5, Math.max(2, length * 0.46)) * side;
   const controlX = (x0 + x1) / 2 - (dy / length) * bend;
   const controlY = (y0 + y1) / 2 + (dx / length) * bend;
   const samples = Math.max(4, Math.ceil(length * 2));
@@ -243,11 +243,11 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
     // Keep a short bank approach and the three bridge tiles level. The road's
     // wider meadow bend must not overwrite water on neighboring stream rows.
     const crossing = x >= bridgeX - 4 && x < bridgeX + 4;
-    // A two-tile sway gives the commons a footworn curve at overview scale.
-    // Larger bends fell into the lower service street and made the settlement
-    // read as a rigid rectangular loop instead of a main route with branches.
+    // A gentle S-curve gives the commons a footworn line at overview scale.
+    // Keep it below the lower service street so the settlement reads as a
+    // connected village path, not a rigid rectangular loop.
     // Keep the project-side approach bowed south; the bridge remains level.
-    const bank = x < bridgeX - 1 ? Math.round(bend * 1.8) : Math.max(0, Math.round(bend * 1.8));
+    const bank = x < bridgeX - 1 ? Math.round(bend * 2.5) : Math.max(0, Math.round(bend * 2.5));
     const current = { x, y: crossing ? y : y + bank };
     rasterLine(p, previous.x, previous.y, current.x, current.y);
     previous = current;
@@ -878,7 +878,9 @@ function forest(p: Painter, projectlessMeadow = false) {
       // sway by a couple of pixels, but that tiny offset would clip a roof
       // when a full three-tile grove clearing exists between two lots.
       const canopyOffsetX = nearestLot <= 3 ? 0 : (h2(x, y, 47) % 5) - 2;
-      const canopyOffsetY = nearestLot <= 3 ? 0 : (h2(x, y, 53) % 3) - 1;
+      // At y=2 the three-tile canopy meets the north edge exactly. Keep that
+      // framing row aligned so a sway offset cannot crop the top pixel row.
+      const canopyOffsetY = y === 2 || nearestLot <= 3 ? 0 : (h2(x, y, 53) % 3) - 1;
       const overlapsBuilding = canopyOverBuilding(p, x, y, canopyOffsetX, canopyOffsetY);
       const overlapsFlowerPatch = canopyOverFlowerPatch(p, x, y, canopyOffsetX, canopyOffsetY);
       // Tree crowns may lean over a path. Keep trunks off the walking tiles,
@@ -887,7 +889,7 @@ function forest(p: Painter, projectlessMeadow = false) {
       const grove = insideGrove(x, y);
       // Keep tall canopies fully inside the framed world; low grass and
       // flowers can still reach the edge without looking accidentally cut.
-      const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 3;
+      const treeInsideFrame = x >= 1 && x < p.cols - 1 && y >= 2;
       // Grove anchors provide the settlement's large silhouettes; the seeded
       // fill below closes small gaps while preserving open routes and façades.
       const creekDensity = 18;
@@ -896,7 +898,7 @@ function forest(p: Painter, projectlessMeadow = false) {
       // boundary fill, which previously formed continuous tree walls.
       const groveDensity = projectlessMeadow ? 31 : 28;
       const naturallyWooded = edge
-        ? roll < (x >= p.cols - 6 ? 11 : 8)
+        ? roll < (x >= p.cols - 6 ? 12 : 10)
         : nearCreek
           ? roll < creekDensity
           : grove && roll < groveDensity;
@@ -1185,7 +1187,7 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
     const [xs, ys] = at.split(',');
     const x = Number(xs);
     const y = Number(ys);
-    if (!tile.startsWith('grass') || Math.abs(x - creekSafe(p)) > 5 || y <= 4) return [];
+    if (!tile.startsWith('grass') || Math.abs(x - creekSafe(p)) > 5 || y <= 4 || p.waterReservations.has(at)) return [];
     return [{ at, x, y, rank: h2(x, y, 97) }];
   });
   // Prefer an open glade. Narrow, projectless layouts may have no grass two
@@ -1202,6 +1204,29 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
     p.sprite(`mote:${at}`, x, y, 'mote', 10, 10, 3, 3, true, true);
     motePositions.push({ x, y });
     if (motePositions.length >= 6) break;
+  }
+
+  // A few quiet motes belong to the meadow clearings too, so the valley has
+  // ambient life away from the water. Keep them out of paths, doorways,
+  // building canopies, and the brighter creekside group. This is environmental
+  // magic only; it never derives from or implies agent runtime state.
+  const meadowMotes = [...p.cells].flatMap(([at, tile]) => {
+    const [xs, ys] = at.split(',');
+    const x = Number(xs);
+    const y = Number(ys);
+    if ((!tile.startsWith('grass') && !tile.startsWith('flowers')) || Math.abs(x - creekSafe(p)) <= 4 || y <= 3)
+      return [];
+    if (p.waterReservations.has(at) || nearStructureOrPath(p, x, y, 0) || canopyOverBuilding(p, x, y, 0, 0)) return [];
+    return [{ at, x, y, rank: h2(x, y, 271) }];
+  });
+  meadowMotes.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
+  let gladeMoteCount = 0;
+  for (const { at, x, y } of meadowMotes) {
+    if (motePositions.some((position) => Math.hypot(position.x - x, position.y - y) < 7)) continue;
+    p.sprite(`mote:glade:${at}`, x, y, 'mote', 10, 10, 3, 3, true, true);
+    motePositions.push({ x, y });
+    gladeMoteCount += 1;
+    if (gladeMoteCount >= 4) break;
   }
 }
 

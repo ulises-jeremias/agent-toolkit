@@ -15,7 +15,11 @@ import type {
 function workspaceLabel(path: string): string {
   const trimmed = path.replace(/[/\\]+$/, '');
   const parts = trimmed.split(/[/\\]/).filter(Boolean);
-  return parts[parts.length - 1] ?? (path || 'Workspace');
+  const name = parts[parts.length - 1] ?? '';
+  // The default harness directory is an implementation path, not the name of
+  // the place users think of as their workspace.
+  if (name.toLowerCase() === '.ai-workspace') return 'AI Workspace';
+  return name || path || 'Workspace';
 }
 
 function jobCommandLine(job: WorldDomainInput['jobs'][number]): string {
