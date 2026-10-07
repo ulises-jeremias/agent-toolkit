@@ -53,6 +53,57 @@ The [workflow ledger](workflows.yaml) records functional evidence separately;
 a passing screenshot does not establish an end-to-end journey, and a passing
 test does not establish visual quality.
 
+## Creek, landmark and room review — 2026-10-07
+
+The Electron capture workflow ran against the real 1.42.0 backend and a
+disposable workspace. The successful visual-review run is
+[37671764863](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37671764863).
+I opened the compact and large multi-project Meadow captures, the compact
+multi-project Dusk capture, the large empty world, the large project room, the
+large People roster and Person Start review, compact Person creation and
+Munder import review, and large Library, Operations, Terminal, Settings and
+MCP configuration/credential screens. The captured world states are retained
+under [`assets/electron/world/`](assets/electron/world/); representative
+workflow captures are in
+[`assets/electron/review-2026-10-07/`](assets/electron/review-2026-10-07/).
+
+The stream now stays one tile wide except for occasional two-tile pools, and
+the bridge still connects the shared commons to project homes. Explicit bank
+stones keep a small natural detail visible without relying on random scenery.
+Reduced willow density prevents the east bank from becoming a solid hedge.
+The operations landmark now has its own observatory silhouette, the project
+room uses continuous horizontal boards, and the Dusk overlay has clearer
+blue-hour contrast. The README gallery now uses these current Electron PNGs;
+the gallery contains no illustrative SVGs.
+
+The opened screenshots also set the next visual work clearly. The water remains
+a strong central separator, the main routes still turn at conspicuously square
+angles, and broad grass clearings dominate the empty and populated maps. Dusk
+is distinct from Meadow but still needs a more memorable lantern-lit
+atmosphere. The room has a coherent floor and real resource stations, with
+large wall areas that should only gain detail when a real project resource
+supports it. People, import review, and Start keep the durable-person/runtime
+distinction clear; the Start preview correctly says that no interactive runner
+is installed. Library and Operations remain information-dense professional
+inspectors rather than pixel-art scenes. These limits remain important art and
+composition work, not sign-off.
+
+The review covered these exact opened files: [Meadow compact](assets/electron/world/world-several-projects-compact.png),
+[Meadow large](assets/electron/world/world-several-projects-large.png),
+[Dusk compact](assets/electron/world/world-several-projects-dusk-compact.png),
+[empty large](assets/electron/world/world-empty-large.png),
+[project room large](assets/electron/world/project-files-room-large.png),
+[People large](assets/electron/review-2026-10-07/people-roster-large.png),
+[Person Start large](assets/electron/review-2026-10-07/person-start-large.png),
+[Person create compact](assets/electron/review-2026-10-07/meadow-1024x640-person-create.png),
+[Munder import compact](assets/electron/review-2026-10-07/meadow-1024x640-munder-import-review.png),
+[Library large](assets/electron/review-2026-10-07/meadow-1920x1080-library.png),
+[Operations large](assets/electron/review-2026-10-07/meadow-1920x1080-operations.png),
+[Terminal large](assets/electron/review-2026-10-07/meadow-1920x1080-terminal.png),
+[Settings large](assets/electron/review-2026-10-07/meadow-1920x1080-settings.png),
+[MCP configure large](assets/electron/review-2026-10-07/mcp-configure-large.png),
+and [MCP credentials large](assets/electron/review-2026-10-07/mcp-credentials-large.png).
+
 ## Earlier iteration review — 2026-10-06 (before v1.42.0)
 
 The dusk-ground tint adjustment at `162391b6` was captured by [Linux Electron
