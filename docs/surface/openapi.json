@@ -990,6 +990,18 @@
                       "type": "string"
                     }
                   },
+                  "role_runners": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "role_models": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
                   "launch_sessions": {
                     "type": "boolean"
                   }
@@ -4733,6 +4745,18 @@
             "type": "string"
           },
           "person_bindings": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "role_runners": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "role_models": {
             "type": "object",
             "additionalProperties": {
               "type": "string"

@@ -881,20 +881,20 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
     'Direct base merge: Not allowed',
   );
   await dialog.getByLabel('Task').fill('Inspect the existing Desktop architecture');
-  await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText(
-    'reviewer → Lina · matched role',
-  );
+  const resolvedPeople = dialog.getByRole('region', { name: 'Resolved swarm People' });
+  await expect(resolvedPeople).toContainText('reviewer → Lina');
+  await expect(resolvedPeople).toContainText('matched role');
   await dialog.getByLabel('Person for reviewer').selectOption('lina');
-  await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText(
-    'reviewer → Lina · selected',
-  );
+  await expect(resolvedPeople).toContainText('selected');
   await dialog.getByRole('button', { name: 'Remember Lina' }).click();
   await expect(dialog.getByText('Workspace default: Lina')).toBeVisible();
   await dialog.getByLabel('Person for reviewer').selectOption('');
-  await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText(
-    'reviewer → Lina · workspace default',
-  );
-  await expect(dialog.getByText(/Runner and model remain swarm-wide settings/)).toBeVisible();
+  await expect(resolvedPeople).toContainText('workspace default');
+  const roleRuntime = dialog.getByRole('group', { name: 'Runtime settings for reviewer' });
+  await roleRuntime.locator('summary').click();
+  await expect(dialog.getByLabel('Runner for reviewer')).toBeVisible();
+  await dialog.getByLabel('Runner for reviewer').selectOption('skeleton');
+  await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText('skeleton · auto');
   await setViewport(desktop.app, 1024, 768);
   await page.screenshot({ path: 'test-results/review/swarms-start-compact.png', fullPage: true });
   if (CAPTURE) {
@@ -925,8 +925,9 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
   await expect(boundRun).toBeVisible();
   await boundRun.click();
   const boundInspector = page.getByRole('region', { name: 'pair' });
-  await expect(boundInspector.getByRole('region', { name: 'People bound to roles' })).toContainText('Lina');
-  await expect(boundInspector.getByRole('region', { name: 'People bound to roles' })).toContainText('reviewer');
+  await expect(boundInspector.getByRole('region', { name: 'Role execution' })).toContainText('Lina');
+  await expect(boundInspector.getByRole('region', { name: 'Role execution' })).toContainText('reviewer');
+  await expect(boundInspector.getByRole('region', { name: 'Role execution' })).toContainText('opencode · sonnet');
   await expect(boundInspector.getByRole('note')).toContainText('does not create a live Person session');
   const startReceipt = page.getByRole('button', { name: 'Dismiss: Swarm start posted' }).last();
   if (await startReceipt.isVisible()) await startReceipt.click();

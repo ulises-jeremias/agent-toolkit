@@ -162,11 +162,13 @@ fn test_swarms_fields_forwarded_and_never_attach() {
 }
 
 fn test_swarm_person_bindings_map_is_typed_and_forwarded() {
-	start := build_swarms_options('start', '{"person_bindings":{"planner":"maya","reviewer":"lina"},"launch_sessions":true}') or {
+	start := build_swarms_options('start', '{"person_bindings":{"planner":"maya","reviewer":"lina"},"role_runners":{"planner":"claude"},"role_models":{"planner":"opus"},"launch_sessions":true}') or {
 		panic(err.msg())
 	}
 	assert start.person_bindings['planner'] == 'maya'
 	assert start.person_bindings['reviewer'] == 'lina'
+	assert start.role_runners['planner'] == 'claude'
+	assert start.role_models['planner'] == 'opus'
 	assert start.launch_sessions
 	assert start.no_attach
 	assert !start.attach

@@ -100,6 +100,31 @@
   font-size: var(--text-2xs);
 }
 
+.recipeRoleRuntime {
+  border-block: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.recipeRoleRuntime summary {
+  padding-block: var(--space-1);
+  color: var(--accent-gold);
+  cursor: pointer;
+}
+
+.recipeRoleRuntime summary span {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+}
+
+.recipeRoleRuntimeFields {
+  display: grid;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+
 .rolePreference {
   display: flex;
   flex-wrap: wrap;
