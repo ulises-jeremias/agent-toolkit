@@ -378,12 +378,30 @@ function connectPathIslands(p: Painter) {
       }
     }
     if (!target) return;
+    const connector: { x: number; y: number }[] = [];
     let cursor: string | null = target;
     while (cursor) {
       const [x = 0, y = 0] = cursor.split(',').map(Number);
-      p.path(x, y);
+      connector.push({ x, y });
       cursor = parent.get(cursor) ?? null;
     }
+    const sourceEnd = connector.at(-1);
+    const targetEnd = connector[0];
+    let smoothed: { x: number; y: number }[] | undefined;
+    if (sourceEnd && targetEnd && connector.length >= 6) {
+      const preferredSide = h2(sourceEnd.x, sourceEnd.y, targetEnd.x) % 2 === 0 ? 1 : -1;
+      for (const side of [preferredSide, -preferredSide]) {
+        const curve = curvedPoints(sourceEnd.x, sourceEnd.y, targetEnd.x, targetEnd.y, side);
+        const clear = curve.every(
+          ({ x, y }) => !p.isBlocked(x, y) && (p.paths.has(key(x, y)) || p.get(x, y) !== 'water'),
+        );
+        if (clear) {
+          smoothed = curve;
+          break;
+        }
+      }
+    }
+    for (const point of smoothed ?? connector) p.path(point.x, point.y);
     islands = components();
   }
 }
