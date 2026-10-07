@@ -883,10 +883,14 @@ describe('layoutWorld', () => {
     expect(bridge).toBeTruthy();
     const westernAvenueRows = new Set(
       first.cells
-        .filter(({ x, tile }) => x < bridge!.x - 4 && (tile.startsWith('trail') || tile === 'plaza' || tile === 'plaza-b'))
+        .filter(
+          ({ x, tile }) => x < bridge!.x - 4 && (tile.startsWith('trail') || tile === 'plaza' || tile === 'plaza-b'),
+        )
         .map(({ y }) => y),
     );
-    expect(westernAvenueRows.size, 'the shared avenue should visibly meander before the bridge').toBeGreaterThanOrEqual(4);
+    expect(westernAvenueRows.size, 'the shared avenue should visibly meander before the bridge').toBeGreaterThanOrEqual(
+      4,
+    );
     const waterRows = new Map<number, number[]>();
     for (const cell of first.cells.filter(({ tile }) => tile === 'water')) {
       waterRows.set(cell.y, [...(waterRows.get(cell.y) ?? []), cell.x]);
