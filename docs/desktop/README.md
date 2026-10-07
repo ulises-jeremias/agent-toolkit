@@ -88,7 +88,7 @@ still missing; it does not mean the user should substitute a CLI command.
 | Workflow | Desktop entry point | Status | Current limit |
 | --- | --- | --- | --- |
 | First-run workspace creation | Onboarding | **Ready** | Creates or reuses a workspace through the GUI; a real supervised-backend crash/restart is verified before entering the world. |
-| Switch and inspect workspaces | Settings → Workspace | **Ready** | The GUI switches to a second workspace, links a project there, verifies its World building, then switches back without changing the original workspace. Invalid destinations and backend restart recovery remain separately covered by onboarding and workspace validation. |
+| Switch and inspect workspaces | Settings → Workspace | **Ready** | The GUI rejects a missing destination without changing the active workspace, switches to a second workspace, links a project there, verifies its World building, then switches back without changing the original workspace. Backend recovery after a successful switch is exercised as part of the same flow. |
 | Enter a project and open its real files | World project house, Workspace | **Ready** | Files are read from the linked project through the typed backend. |
 | Discover and install capabilities | Library | Partial | Skills and Agent Definitions now show receipt-backed verified, partial and needs-attention states beside catalog membership; no receipt stays distinct from a user-managed install. Compiled Copilot resources, catalog provenance, dependencies and compatibility review still need coverage. |
 | Configure and probe MCP | Library → MCP | **Ready** | The probe checks the local executable, not a live model connection. |

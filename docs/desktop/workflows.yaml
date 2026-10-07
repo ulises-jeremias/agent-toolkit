@@ -39,8 +39,9 @@ journeys:
     evidence:
       - note: >-
           Electron E2E changes to a second workspace through Settings, links a real project using the GUI, verifies its
-          building in World, switches back, and verifies that the original workspace remains empty. The flow waits for
-          the supervised backend to become live after each restart; compact and large captures were opened.
+          building in World, rejects a missing destination without changing the active workspace, switches back, and
+          verifies that the original workspace remains empty. The flow waits for the supervised backend to become
+          live after each successful restart; compact and large captures were opened.
         build: "89399a14 (Linux Electron E2E; temporary HOME)"
         tests:
           - apps/desktop/e2e/electron/workspace-switch.spec.ts

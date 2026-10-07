@@ -8,6 +8,8 @@ test('switches workspaces, reads their own projects, and returns safely', async 
   try {
     const { page, home, workspace } = desktop;
     await waitForBackend(page);
+    const captureDir =
+      process.env.ATK_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/workspace');
 
     const alternateWorkspace = path.join(home, 'workspaces', 'alternate');
     const serverState = path.join(workspace, '.agent-toolkit', 'server');
@@ -28,6 +30,23 @@ test('switches workspaces, reads their own projects, and returns safely', async 
 
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
     await expect(harnessValue).toContainText(workspace);
+    const missingWorkspace = path.join(home, 'workspaces', 'missing');
+    await chooseFolder(missingWorkspace);
+    await page.getByRole('button', { name: /Change harness/ }).click();
+    await expect(page.getByText(`${missingWorkspace} does not exist`)).toBeVisible();
+    await expect(harnessValue).toContainText(workspace);
+    await waitForBackend(page);
+    if (process.env.ATK_CAPTURE === '1') {
+      fs.mkdirSync(captureDir, { recursive: true });
+      for (const size of [
+        { width: 1024, height: 640, key: 'workspace-invalid-compact' },
+        { width: 1920, height: 1080, key: 'workspace-invalid-large' },
+      ]) {
+        await setViewport(desktop.app, size.width, size.height);
+        await page.screenshot({ path: path.join(captureDir, `${size.key}.png`) });
+      }
+      await setViewport(desktop.app, 1280, 800);
+    }
     await chooseFolder(alternateWorkspace);
     await page.getByRole('button', { name: /Change harness/ }).click();
     await expect(harnessValue).toContainText(alternateWorkspace, { timeout: 20_000 });
@@ -46,8 +65,6 @@ test('switches workspaces, reads their own projects, and returns safely', async 
 
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
     await expect(page.getByRole('button', { name: /maple-worker/ })).toBeVisible();
-    const captureDir =
-      process.env.ATK_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/workspace');
     if (process.env.ATK_CAPTURE === '1') {
       fs.mkdirSync(captureDir, { recursive: true });
       for (const size of [
