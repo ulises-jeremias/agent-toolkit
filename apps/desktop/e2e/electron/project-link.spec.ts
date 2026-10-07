@@ -162,7 +162,9 @@ test('links an existing project from the GUI and places it in the world', async 
     );
     await copilotReview.getByText('Review file contents').click();
     if (process.env.ATK_CAPTURE === '1') {
-      const libraryDir = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/library');
+      const libraryDir =
+        process.env.ATK_LIBRARY_CAPTURE_DIR ??
+        path.resolve(__dirname, '../../../../docs/desktop/assets/electron/library');
       fs.mkdirSync(libraryDir, { recursive: true });
       for (const size of [
         { width: 1024, height: 768, key: 'compact' },
