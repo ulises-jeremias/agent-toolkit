@@ -514,3 +514,20 @@ offline browser capture at
 [1280×720](assets/renderer/world-offline-loading-2026-10-07.png): the valley
 stays visible below the explicit backend-offline notice and the live-data
 plaque. The focused renderer E2E now passes with the backend unavailable.
+
+## Commons footpath fit — 2026-10-07
+
+I retuned the shared route's bank bend slightly so its arc survives the fitted
+world view without consuming so much meadow that terrain-variation checks lose
+their representative grass sample. The real Electron app was captured against
+the source-built 1.42.0 V backend in a disposable workspace. I opened the empty
+and one-project maps at both 1024×640 and 1920×1080:
+[empty compact](assets/electron/footpath-review-2026-10-07/world-empty-compact.png),
+[empty large](assets/electron/footpath-review-2026-10-07/world-empty-large.png),
+[one project compact](assets/electron/footpath-review-2026-10-07/world-one-project-compact.png),
+and [one project large](assets/electron/footpath-review-2026-10-07/world-one-project-large.png).
+The bend is subtle and keeps the bridge approach level. Opening the captures
+also confirmed that this is only a small improvement: entrance routes still
+form right-angle runs, and the empty valley still has a broad lawn. Those are
+composition work, not visual sign-off. No runtime characters appear in these
+idle captures.
