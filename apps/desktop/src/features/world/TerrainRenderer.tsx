@@ -16,6 +16,12 @@ interface SpriteInfo {
   frameW: number;
 }
 
+interface PlannedTile {
+  src: string;
+  frames: number;
+  name: string;
+}
+
 const imageCache = new Map<string, Promise<SpriteInfo>>();
 
 function loadSprite(src: string, frames: number): Promise<SpriteInfo> {
@@ -36,6 +42,21 @@ function loadSprite(src: string, frames: number): Promise<SpriteInfo> {
 function frameMs(name: string): number {
   if (name.startsWith('water')) return 900;
   return 800;
+}
+
+export function terrainAnimationInterval(
+  tiles: Iterable<{ frames: number; name: string }>,
+  animate: boolean,
+  reducedMotion: boolean,
+): number | null {
+  if (!animate || reducedMotion) return null;
+  let interval: number | null = null;
+  for (const tile of tiles) {
+    if (tile.frames <= 1) continue;
+    const step = frameMs(tile.name);
+    interval = interval === null ? step : Math.min(interval, step);
+  }
+  return interval;
 }
 
 function assetFor(theme: WorldThemePack, mode: 'grounds' | 'interior', tile: string): ThemeAsset | undefined {
@@ -59,7 +80,7 @@ export function TerrainCanvas({ theme, cells, cols, rows, mode, animate, tileSiz
   const ts = theme.sourceTile;
 
   const plan = useMemo(() => {
-    const byCell = new Map<string, { src: string; frames: number; name: string }>();
+    const byCell = new Map<string, PlannedTile>();
     for (const cell of cells) {
       const asset = assetFor(theme, mode, cell.tile);
       if (!asset || asset.kind !== 'sprite') continue;
@@ -77,40 +98,64 @@ export function TerrainCanvas({ theme, cells, cols, rows, mode, animate, tileSiz
 
     let alive = true;
     let timer = 0;
+    const sprites = new Map<string, SpriteInfo>();
+    const sources = new Map<string, number>();
+    const sourceCells = new Map<string, { x: number; y: number; tile: PlannedTile }[]>();
+    for (const [at, tile] of plan) {
+      if (!sources.has(tile.src)) sources.set(tile.src, tile.frames);
+      const [xs, ys] = at.split(',');
+      const x = Number(xs);
+      const y = Number(ys);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+      const cells = sourceCells.get(tile.src) ?? [];
+      cells.push({ x, y, tile });
+      sourceCells.set(tile.src, cells);
+    }
+    const interval = terrainAnimationInterval(plan.values(), animate, motion === 'reduced');
+
+    const drawSource = (src: string, sprite: SpriteInfo, now: number) => {
+      for (const { x, y, tile } of sourceCells.get(src) ?? []) {
+        const frame = animate && tile.frames > 1 ? Math.floor(now / frameMs(tile.name)) % tile.frames : 0;
+        ctx.drawImage(
+          sprite.image,
+          frame * sprite.frameW,
+          0,
+          sprite.frameW,
+          sprite.image.height,
+          x * ts,
+          y * ts,
+          ts,
+          ts,
+        );
+      }
+    };
 
     const draw = (now: number) => {
       if (!alive) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (const [at, tile] of plan) {
-        const [xs, ys] = at.split(',');
-        const x = Number(xs);
-        const y = Number(ys);
-        if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
-        void loadSprite(tile.src, tile.frames)
-          .then((sprite) => {
-            const frame = animate && tile.frames > 1 ? Math.floor(now / frameMs(tile.name)) % tile.frames : 0;
-            ctx.drawImage(
-              sprite.image,
-              frame * sprite.frameW,
-              0,
-              sprite.frameW,
-              sprite.image.height,
-              x * ts,
-              y * ts,
-              ts,
-              ts,
-            );
-          })
-          .catch(() => {
-            /* failed sprite — the cell stays empty; fallback remains CSS-side */
-          });
+      for (const [src, sprite] of sprites) {
+        drawSource(src, sprite, now);
       }
-      if (animate && motion !== 'reduced') {
-        timer = window.setTimeout(() => draw(performance.now()), 140);
+      if (interval !== null) {
+        timer = window.setTimeout(() => draw(performance.now()), interval);
       }
     };
 
-    draw(performance.now());
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    void Promise.all(
+      [...sources].map(async ([src, frames]) => {
+        try {
+          const sprite = await loadSprite(src, frames);
+          if (!alive) return;
+          sprites.set(src, sprite);
+          drawSource(src, sprite, performance.now());
+        } catch {
+          /* failed sprite — the cell stays empty; fallback remains CSS-side */
+        }
+      }),
+    ).then(() => {
+      if (alive && interval !== null) timer = window.setTimeout(() => draw(performance.now()), interval);
+    });
     return () => {
       alive = false;
       window.clearTimeout(timer);
