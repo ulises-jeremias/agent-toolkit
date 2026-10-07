@@ -891,6 +891,14 @@ describe('layoutWorld', () => {
     expect(westernAvenueRows.size, 'the shared avenue should visibly meander before the bridge').toBeGreaterThanOrEqual(
       4,
     );
+    const easternAvenueRows = new Set(
+      first.cells
+        .filter(
+          ({ x, tile }) => x > bridge!.x + 3 && (tile.startsWith('trail') || tile === 'plaza' || tile === 'plaza-b'),
+        )
+        .map(({ y }) => y),
+    );
+    expect(easternAvenueRows.size, 'the avenue should continue through the project district').toBeGreaterThanOrEqual(3);
     const waterRows = new Map<number, number[]>();
     for (const cell of first.cells.filter(({ tile }) => tile === 'water')) {
       waterRows.set(cell.y, [...(waterRows.get(cell.y) ?? []), cell.x]);
