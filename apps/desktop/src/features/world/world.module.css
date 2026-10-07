@@ -227,10 +227,34 @@
   cursor: pointer;
 }
 
+/* Warm windows make the settlement feel inhabited by its environment, even
+   when no runtime sessions exist. This sits behind each authored facade and
+   never represents agent activity. */
+.entity[data-kind='place']::before {
+  content: '';
+  position: absolute;
+  inset: 0 -4% -4%;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(ellipse at 31% 55%, rgb(255 198 94 / 23%) 0 5%, transparent 23%),
+    radial-gradient(ellipse at 68% 55%, rgb(255 198 94 / 23%) 0 5%, transparent 23%),
+    radial-gradient(ellipse at 50% 38%, rgb(255 224 145 / 16%) 0 4%, transparent 19%);
+}
+
+:root[data-theme='dusk'] .entity[data-kind='place']::before {
+  background:
+    radial-gradient(ellipse at 31% 55%, rgb(255 192 91 / 48%) 0 5%, transparent 25%),
+    radial-gradient(ellipse at 68% 55%, rgb(255 192 91 / 48%) 0 5%, transparent 25%),
+    radial-gradient(ellipse at 50% 38%, rgb(255 224 145 / 34%) 0 4%, transparent 20%);
+}
+
 .entitySprite {
   position: absolute;
   bottom: 0;
   left: 50%;
+  z-index: 1;
   transform: translateX(-50%);
   pointer-events: none;
   image-rendering: pixelated;
