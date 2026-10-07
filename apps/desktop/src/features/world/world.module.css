@@ -136,8 +136,20 @@
   filter: drop-shadow(0 0 7px rgb(255 221 126 / 48%));
 }
 
+/* Let the tiny firefly read at map scale: the first, close halo keeps the
+   pixel sprite legible while the second, wider halo gives it a soft place in
+   the dusk. The source pixels stay crisp and this is environmental light,
+   never a signal of agent activity. */
+.decorSprite[data-sprite='firefly'] {
+  filter: drop-shadow(0 0 5px rgb(255 229 145 / 78%)) drop-shadow(0 0 13px rgb(255 180 84 / 38%));
+}
+
 .decorSprite[data-sprite='water-sparkle'] {
   filter: drop-shadow(0 0 6px rgb(133 232 239 / 36%));
+}
+
+:root[data-theme='dusk'] .decorSprite[data-sprite='firefly'] {
+  filter: drop-shadow(0 0 6px rgb(255 237 169 / 88%)) drop-shadow(0 0 16px rgb(255 180 84 / 54%));
 }
 
 .decorSprite[data-sprite='water-sparkle'] {

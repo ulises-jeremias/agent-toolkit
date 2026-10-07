@@ -374,3 +374,24 @@ large evidence is kept in
 [`assets/electron/north-forest-frame-2026-10-07/`](assets/electron/north-forest-frame-2026-10-07/).
 The run used the 1.42.0 backend built from the source checkout and the real
 Electron app in a disposable workspace.
+
+## Firefly light review — 2026-10-07
+
+I captured a three-project workspace from Electron with the real 1.42.0 backend
+at 1024×640 and 1920×1080 in Meadow and Dusk. The four screenshots were opened
+after the change: [Meadow compact](assets/electron/world/firefly-light-2026-10-07/meadow-compact.png),
+[Meadow large](assets/electron/world/firefly-light-2026-10-07/meadow-large.png),
+[Dusk compact](assets/electron/world/firefly-light-2026-10-07/dusk-compact.png),
+and [Dusk large](assets/electron/world/firefly-light-2026-10-07/dusk-large.png).
+The CSS now gives environmental fireflies a crisp close halo and a softer outer
+glow; Dusk strengthens those two layers. The source sprite remains pixelated,
+and the effect is independent of runtime state. I kept the increase restrained
+in Meadow so daytime remains clear. The Dusk captures show distinct warm glints
+at ordinary map scale without obscuring the terrain or building silhouettes.
+
+The opened captures still show the more important unresolved art issues: the
+valley has a broad rectangular lawn, mostly straight paths, and a creek that
+divides the civic and project districts. This small lighting improvement does
+not resolve composition, interior density, or the conventional HUD taking
+space from the map. The README gallery remains unchanged until a broader visual
+pass produces a clearly better product capture.
