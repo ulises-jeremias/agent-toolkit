@@ -130,10 +130,14 @@ journeys:
           visible and marks its state as loading; the global offline notice
           explicitly says state can be incomplete or out of date. The
           renderer smoke verifies both surfaces, and the offline capture was
-          opened at 1280x720.
-        build: "68391097f1102f80ae31d0de3a10eb4d85a354e9 (renderer E2E; backend unavailable)"
+          opened at 1280x720. Workspace uses URL context while its reports are
+          pending, and relative project symlink targets resolve against
+          workspace/projects for live-session matching while their display
+          value remains unchanged.
+        build: "a39e965cd1a59808614ffabda506e8adaa96881d (renderer + Electron E2E)"
         tests:
           - apps/desktop/e2e/smoke.spec.ts
+          - apps/desktop/e2e/electron/project-link.spec.ts
         screenshots:
           - assets/renderer/world-offline-loading-2026-10-07.png
       - note: >-
