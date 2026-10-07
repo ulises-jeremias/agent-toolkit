@@ -595,9 +595,9 @@
      keeps terrain legible while making the daylight meadow distinctly dusk;
      this layer stays below authored buildings, characters and lanterns. */
   background:
-    radial-gradient(ellipse at 16% 22%, rgb(255 190 104 / 30%), transparent 30%),
-    radial-gradient(ellipse at 55% 62%, rgb(93 194 209 / 21%), transparent 28%),
-    radial-gradient(ellipse at 84% 24%, rgb(255 194 110 / 24%), transparent 24%),
-    linear-gradient(180deg, rgb(31 39 87 / 48%), rgb(35 37 77 / 42%));
+    radial-gradient(ellipse at 16% 22%, rgb(255 190 104 / 34%), transparent 30%),
+    radial-gradient(ellipse at 55% 62%, rgb(93 194 209 / 28%), transparent 28%),
+    radial-gradient(ellipse at 84% 24%, rgb(255 194 110 / 30%), transparent 24%),
+    linear-gradient(180deg, rgb(31 39 87 / 30%), rgb(35 37 77 / 26%));
   mix-blend-mode: multiply;
 }

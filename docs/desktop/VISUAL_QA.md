@@ -201,6 +201,28 @@ those over illustrative SVG mockups; the only SVGs in its header are functional
 status badges. Use the visual review archive for empty-state and edge-case
 screenshots rather than replacing the product overview with an empty map.
 
+## Resting-world label and lighting review — 2026-10-07
+
+I captured the Electron world with the real backend and a disposable workspace
+containing three projects at 1024×640 and 1920×1080. I opened the compact and
+large Meadow/Dusk captures, the one-project view, and the several-project
+view. Permanent plaques made the map read like an annotated dashboard, so
+landmark labels now appear only for a hovered, keyboard-focused, or selected
+place. Its tooltip still explains the place, state, and action. The README
+hero now uses the real multi-project Meadow capture; the Dusk pair is also a
+real Electron screenshot rather than an illustration.
+
+The open map has more breathing room and the buildings and creek carry the
+scene without a label on every doorway. The selected project remains named;
+keyboard focus exposes the same plaque and tooltip as pointer hover. Dusk was
+too dark in the first opened capture, so I reduced the terrain tint and raised
+the warm clearing and creek-reflection pools, then recaptured both sizes. Water
+and grass now retain separation while Dusk still reads as evening. This is a
+clarity improvement, not final art sign-off: the paths remain geometric,
+the project-side lawn is broad, and the room needs further composition work.
+The current captures and all temporary screenshots were kept separate from
+the two user-owned Library evidence files.
+
 ## Current natural-ground capture — v1.42.0, 2026-10-06
 
 I recaptured the empty, one-project, and three-project workspace at 1024×640 and

@@ -207,13 +207,19 @@ describe('WorldEntityMap activation', () => {
     expect(terminalInspect?.getAttribute('href')).toContain('/terminal');
   });
 
-  it('keeps semantic plaques above the depth layer and out of duplicate screen-reader content', () => {
-    renderMap();
-    const plaques = [...document.querySelectorAll<HTMLElement>('[data-label-kind]')];
+  it('keeps the idle valley clear and reveals a semantic plaque on hover', async () => {
+    const { user } = renderMap();
+    expect(document.querySelector('[data-label-kind]')).toBeNull();
 
-    expect(plaques.length).toBeGreaterThan(0);
-    expect(plaques.every((plaque) => !plaque.closest('button'))).toBe(true);
-    expect(plaques.every((plaque) => plaque.getAttribute('aria-hidden') === 'true')).toBe(true);
+    const library = screen.getByRole('button', { name: /^Library · Capability library/i });
+    await user.hover(library);
+    const plaque = document.querySelector<HTMLElement>('[data-entity-label-for="object:library"]');
+    expect(plaque?.textContent).toBe('Library');
+    expect(plaque?.closest('button')).toBeNull();
+    expect(plaque?.getAttribute('aria-hidden')).toBe('true');
+
+    await user.unhover(library);
+    expect(document.querySelector('[data-label-kind]')).toBeNull();
   });
 
   it('activates project memory records via click and keyboard on /world', async () => {

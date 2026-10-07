@@ -103,6 +103,7 @@ export function WorldEntityMap({
   const [zoom, setZoom] = useState<number>(48);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [cameraMode, setCameraMode] = useState<'frame' | 'fit' | 'manual'>('frame');
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const drag = useRef<{ x: number; y: number; panX: number; panY: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
   const [tabVisible, setTabVisible] = useState(() => document.visibilityState !== 'hidden');
@@ -296,6 +297,7 @@ export function WorldEntityMap({
             tileSize={zoom}
             onSelect={onSelect}
             onActivate={onActivate}
+            onHover={setHoveredId}
           />
         ))}
         {plan.decor
@@ -304,16 +306,15 @@ export function WorldEntityMap({
             <DecorSpriteView key={d.id} decor={d} theme={theme} scale={scale} />
           ))}
         {entities
-          .filter(
-            (entity) => entity.kind !== 'character' && (entity.themeKey !== 'memory.entry' || entity.id === selectedId),
-          )
+          .filter((entity) => entity.kind !== 'character' && (entity.id === selectedId || entity.id === hoveredId))
           .map((entity) => (
             <span
               key={`label:${entity.id}`}
               className={styles.worldLabel}
+              data-entity-label-for={entity.id}
               aria-hidden="true"
               data-label-kind={entity.kind}
-              data-selected={entity.id === selectedId ? 'true' : undefined}
+              data-selected={entity.id === selectedId || entity.id === hoveredId ? 'true' : undefined}
               style={{
                 left: (entity.x + entity.w / 2) * zoom,
                 top: (entity.y + entity.h) * zoom + 2,
@@ -376,6 +377,7 @@ function EntityTile({
   tileSize,
   onSelect,
   onActivate,
+  onHover,
 }: {
   entity: LaidOutEntity;
   theme: WorldThemePack;
@@ -384,6 +386,7 @@ function EntityTile({
   tileSize: number;
   onSelect: (id: string) => void;
   onActivate: (entity: LaidOutEntity) => void;
+  onHover: (id: string | null) => void;
 }) {
   const asset = resolveEntityAsset(theme, entity);
   const isCharacter = entity.kind === 'character';
@@ -438,7 +441,17 @@ function EntityTile({
       }}
       onClick={canInspect ? () => activateEntity(entity, onSelect, onActivate) : undefined}
       onKeyDown={canInspect ? onKeyDown : undefined}
-      onFocus={canInspect ? () => onSelect(entity.id) : undefined}
+      onMouseEnter={canInspect ? () => onHover(entity.id) : undefined}
+      onMouseLeave={canInspect ? () => onHover(null) : undefined}
+      onFocus={
+        canInspect
+          ? () => {
+              onSelect(entity.id);
+              onHover(entity.id);
+            }
+          : undefined
+      }
+      onBlur={canInspect ? () => onHover(null) : undefined}
     >
       {src ? (
         <span
