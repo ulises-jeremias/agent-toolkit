@@ -608,7 +608,12 @@ journeys:
           default Person, inspect ordered fallback names, and use Auto with the
           same backend resolver. The compact and large Electron captures show
           the saved Lina default; the compact dialog keeps Cancel/Start visible
-          while its role review scrolls. Runner/model remain swarm-wide settings.
+          while its role review scrolls. Runner/model defaults are resolved
+          per role from a compatible Person preference and then the team
+          profile; explicit role overrides take precedence. The backend dry-run
+          returns this resolved execution map, and the Start request persists
+          it with the run so the same runner/model is used by immediate and
+          handoff-triggered session launches.
         build: >-
           6ee3ac89 (Linux Electron + real V backend; desktop.spec.ts; capture
           run 37329725206; screenshots opened)
@@ -617,19 +622,19 @@ journeys:
           - assets/electron/swarms/swarm-start-large.png
       - note: >-
           The run inspector resolves persisted Person IDs to current roster
-          names, role labels and saved provider/model preferences. It explicitly
-          explains that these preferences remain informational, and that a
-          binding alone creates neither a PersonSession, terminal action nor
-          World character. Real-backend Electron E2E starts a headless bound run
-          and verifies the inspector at compact and large sizes.
+          names, role labels, and each role's persisted runner/model launch
+          configuration, including ephemeral roles. It explicitly explains
+          that a binding alone creates neither a PersonSession, terminal action
+          nor World character. Real-backend Electron E2E starts a headless bound
+          run and verifies the inspector at compact and large sizes.
         build: "feat/swarm-role-person-sessions (Linux Electron E2E; 1 passed)"
         screenshots:
           - assets/electron/swarms/swarm-run-person-binding-compact.png
           - assets/electron/swarms/swarm-run-person-binding-large.png
     blockers:
-      - per-Person provider/model preference and Person-specific terminal actions are not implemented
       - Agent Toolkit does not consume the role-process Person hint as a session identity
       - swarm role sessions are not yet projected into truthful World characters
+      - Person-specific terminal actions do not yet resolve to a real AgentSession
   - id: swarm-start-review
     title: Review canonical recipe topology and runtime settings before starting
     destinations: [operations]

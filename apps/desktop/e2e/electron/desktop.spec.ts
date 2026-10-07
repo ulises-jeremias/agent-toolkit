@@ -881,19 +881,15 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
     'Direct base merge: Not allowed',
   );
   await dialog.getByLabel('Task').fill('Inspect the existing Desktop architecture');
-  await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText(
-    'reviewer → Lina · matched role',
-  );
+  const resolvedPeople = dialog.getByRole('region', { name: 'Resolved swarm People' });
+  await expect(resolvedPeople).toContainText('reviewer → Lina');
+  await expect(resolvedPeople).toContainText('matched role');
   await dialog.getByLabel('Person for reviewer').selectOption('lina');
-  await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText(
-    'reviewer → Lina · selected',
-  );
+  await expect(resolvedPeople).toContainText('selected');
   await dialog.getByRole('button', { name: 'Remember Lina' }).click();
   await expect(dialog.getByText('Workspace default: Lina')).toBeVisible();
   await dialog.getByLabel('Person for reviewer').selectOption('');
-  await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText(
-    'reviewer → Lina · workspace default',
-  );
+  await expect(resolvedPeople).toContainText('workspace default');
   await dialog
     .getByText(/Runner & model/)
     .last()
