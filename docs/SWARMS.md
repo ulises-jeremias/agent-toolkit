@@ -77,7 +77,7 @@ All recipes are lazy/elastic: topology created logically, only roles whose input
 
 ## Budgets & Gates
 
-- Budgets: `max_total_tokens`, `max_cost_usd`, `max_wall_seconds`, `max_concurrency` (default 2), `max_role_round_trips` (default 2), per-role limits.
+- Recipe budget fields include `max_total_tokens`, `max_cost_usd`, `max_wall_seconds`, `max_concurrency`, and `max_role_round_trips`. At present wall-clock exhaustion is enforced; token/cost counters are not yet populated from runner usage, and concurrency/round-trip values are not hard runtime limits. Treat those fields as planning metadata until enforcement lands.
 - Human gates: plan approval, architecture decision, cost escalation, final integration. No auto-merge to base by default, no push, no publish.
 
 ## Model Profiles
@@ -100,9 +100,9 @@ Each run under `.agent-toolkit/swarm/runs/<run-id>/` produces `run.yaml`, `state
 
 ## Security, Permissions & Human Gates
 
-See [SWARM_SECURITY.md](SWARM_SECURITY.md). Validate identifiers, use full SHAs, atomically write state, redact secrets, deny external-directory writes/push/release/base-merge by default, fail closed on unclear ownership.
+See [SWARM_SECURITY.md](SWARM_SECURITY.md). Toolkit validates selected orchestration inputs and fails closed on unclear ownership. Recipe permission declarations are not OS sandbox rules; runner processes may have the local user's access. Claude currently starts with `--dangerously-skip-permissions`.
 
-- **Permissions:** planner `read-only`; implementer `writer`; reviewer `reviewer-writer` (optional); integrator `merge: ask`. Runner defaults: `external_directory: deny`, `git push: deny`, `git reset --hard: deny`, `git clean: deny`. `allow_direct_base_merge: false`, `allow_push: false`.
+- **Role guidance:** planner `read-only`; implementer `writer`; reviewer `reviewer-writer` (optional); integrator `merge: ask`. These guide orchestration/prompts; they do not constrain shell commands unless the provider independently enforces them. `allow_direct_base_merge: false` and `allow_push: false` are recipe metadata, not command filters.
 - **Human gates:** plan approval, architecture decision, cost escalation, final integration. No auto-merge. `agent-toolkit swarm approve` / `reject`.
 
 ## State Locations & Observability
@@ -121,12 +121,13 @@ See [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md) for run/role/handoff state ma
 
 ## Privacy
 
-No mandatory cloud, no telemetry, no transcript storage by default (opt-in with warning). Secrets redacted via `sanitize_args()` (`token`/`secret`/`key`/`password` → `[REDACTED]`); credentials never serialized; env scoped per process; generic UI wake-up notifications only. See [SWARM_SECURITY.md](SWARM_SECURITY.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
+Swarm state is local by default and Toolkit does not require cloud storage. Runner processes inherit the environment needed by their provider, and provider requests or output may contain sensitive data. Do not assume credentials or logs are universally redacted. See [SWARM_SECURITY.md](SWARM_SECURITY.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Cleanup
 
 - `agent-toolkit swarm stop RUN_ID` — kills backend windows (Herdr/tmux), preserves filesystem state.
 - `agent-toolkit swarm cleanup RUN_ID` — removes only Toolkit-owned worktrees under `runs/<run-id>/worktrees/`, checks `git status --porcelain` dirty and refuses without `--force`, never deletes branches automatically, never removes user worktrees, fail-closed on unclear ownership. See [SWARM_TMUX.md](SWARM_TMUX.md) and [SWARM_HERDR.md](SWARM_HERDR.md).
+- `agent-toolkit swarm prune --older-than DURATION --dry-run` — previews retention cleanup of eligible old run records, worktrees, and generated swarm branches. Review the preview; omit `--dry-run` only when that deletion is intended. Dirty worktrees are skipped unless `--force` is supplied.
 
 ## Herdr Plugin & tmux Fallback
 

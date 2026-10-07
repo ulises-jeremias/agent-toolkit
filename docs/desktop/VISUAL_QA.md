@@ -197,9 +197,10 @@ the README’s multi-project screenshots as the product overview: the empty
 world is useful for documenting first-run behavior, but is a weaker showcase.
 
 The README currently displays real Electron screenshots in PNG format. Keep
-those over illustrative SVG mockups; the only SVGs in its header are functional
-status badges. Use the visual review archive for empty-state and edge-case
-screenshots rather than replacing the product overview with an empty map.
+those over illustrative SVG mockups. It uses plain-text CI, license, and release
+links; there are no SVG product illustrations or README badge images. Use the
+visual review archive for empty-state and edge-case screenshots rather than
+replacing the product overview with an empty map.
 
 ## Resting-world label and lighting review — 2026-10-07
 
@@ -279,8 +280,8 @@ backend against disposable test data. They are documentation examples and
 review evidence, not concept-board art. Refresh `static/screenshots/` when the
 pictured product changes, and keep the README gallery to a small set that
 explains the current experience. The README uses genuine PNG captures and
-functional status badges; do not use illustrative SVG mockups as product
-screenshots. Keep status badges as links, not substitutes for product images.
+plain-text links; do not use illustrative SVG mockups as product screenshots.
+Keep operational links out of the product gallery.
 The complete compact/large and edge-case capture sets stay under
 `docs/desktop/assets/electron/` and are linked from review evidence.
 Inspiration boards must never be copied into product art or presented as
@@ -330,8 +331,8 @@ not a claim that the requested enchanted world-art pass is complete.
 
 The README gallery now uses refreshed PNG captures for the valley, Dusk,
 project room, Library, People, Operations, terminal, and inert Munder review.
-There are no repository-owned SVG product illustrations: the README's external
-SVG badges remain functional CI, license, and release links. The backend was
+There are no repository-owned SVG product illustrations or README badge
+images; operational destinations are plain-text links. The backend was
 rebuilt from this source with `VJOBS=2` for the project-link Electron E2E; the
 context-label and exited-PTY tests also passed. The app unit suite reports 45
 files and 382 passing tests, and Desktop type-check, lint, and production build

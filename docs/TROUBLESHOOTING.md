@@ -128,13 +128,13 @@ See [SWARMS.md](SWARMS.md) and [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md) (h
 
 **Symptom:** worried about credentials in `state.json` / `trace.jsonl`.
 
-**Fix:** secrets are redacted by `sanitize_args()` (`token`/`secret`/`key`/`password` → `[REDACTED]`), credentials never serialized, env scoped per process, generic UI wake-ups only. No cloud upload or transcript storage by default (opt-in with warning). See [SWARM_SECURITY.md](SWARM_SECURITY.md).
+**Fix:** swarm runner processes inherit provider environment and may emit sensitive data in provider requests or output. Do not assume all credentials or logs are redacted. Keep run directories private and inspect runner/provider logging settings. Toolkit stores orchestration state locally by default; see [SWARM_SECURITY.md](SWARM_SECURITY.md).
 
 ## 11. Swarm: Cleanup safety
 
 **Symptom:** unsure if `cleanup` will delete user branches/worktrees.
 
-**Fix:** `cleanup` removes only Toolkit-owned worktrees under `.agent-toolkit/swarm/runs/<run-id>/worktrees/`; refuses dirty (`git status --porcelain`) without `--force`; never deletes branches or user worktrees; fail-closed on unclear ownership. `stop` preserves state. See [SWARM_TMUX.md](SWARM_TMUX.md) and [SWARM_SECURITY.md](SWARM_SECURITY.md).
+**Fix:** `cleanup` removes only run-owned worktrees, refuses dirty worktrees without `--force`, and preserves branches and run records. `stop` preserves state. `prune` is a separate retention operation that may delete eligible generated branches and records; inspect `--dry-run` first. See [SWARM_TMUX.md](SWARM_TMUX.md) and [SWARM_SECURITY.md](SWARM_SECURITY.md).
 
 ## 12. Swarm: Offline / Fake demo
 

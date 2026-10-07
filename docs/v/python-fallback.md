@@ -39,10 +39,12 @@ Production rollback is a **V** binary pin, not Python — see [rollback.md](roll
 
 ## Dev flow (V)
 
-Per `docs/HOW_TO_DEVELOP_V.md` (V pin `0.5.2`, `import json` not `json2`):
+Per `docs/HOW_TO_DEVELOP_V.md` (`.v-version` selects `master`; use the
+immutable toolchain pins from `.github/actions/setup-v`, `import json` not
+`json2`):
 
 ```bash
-./make.vsh test && ./make.vsh build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
+VJOBS=2 ./make.vsh test && VJOBS=2 ./make.vsh build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 # packaging pytest parity (launcher only, no Python CLI):
 uv sync --project packages/pypi/agent-toolkit-cli --all-extras
 AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v

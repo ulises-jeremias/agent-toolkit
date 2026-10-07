@@ -166,12 +166,18 @@ No backend conditionals in orchestrator; backend metadata stays in backend state
 
 - Validate role/branch/commit identifiers; full SHA internally.
 - Atomic writes, path containment, symlink escape prevention.
-- Deny `external_directory`, `push`, `release`, `base-merge`.
-- Redact secrets, never serialize credentials.
-- Cleanup only Toolkit-owned worktrees; preserve dirty.
+- Recipe declarations describe intended policy; they are not enforced OS-level denies. Runner access depends on provider configuration and local permissions.
+- Do not assume credentials or runner output are universally redacted or absent from state.
+- Cleanup checks Toolkit worktree ownership and dirty state; `prune` is a separate operation that may remove generated branches and run records.
 
 ## Cost Controls
 
-Reuse `loop/budget.py` ideas. Limits: total tokens, per-role, cost, wall-clock, concurrency, restarts, round-trips, artifact size, handoff count. On limit: stop launching, preserve resumable `budget_exhausted`, partial report, explain resume.
+The V runtime declares total-token, cost, wall-clock, concurrency, and
+round-trip budget fields. Current hard exhaustion checks cover wall-clock;
+token/cost counters are persisted but are not yet populated by runner usage,
+and concurrency/round-trip fields are not enforced. Treat those values as
+configuration or estimates, not reliable hard limits, until the corresponding
+runner and enforcement paths are implemented. See
+`modules/agent_toolkit_core/swarm_recipes.v` and `swarm.v`.
 
 See ADR-008 for decisions and rejected alternatives.

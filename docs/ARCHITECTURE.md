@@ -2,7 +2,7 @@
 
 agent-toolkit sits in a four-layer ownership stack and, within its own layer, separates two conceptual **planes** that share one codebase and one release artifact.
 
-**Canonical CLI:** native **V 0.5.2** (`import json`, not json2). Build with `./make.vsh build-cli` → `build/agent-toolkit`. PyPI/`uv`/`npm` are distribution adapters over that binary. See [`docs/HOW_TO_DEVELOP_V.md`](HOW_TO_DEVELOP_V.md) and [`docs/v/README.md`](v/README.md).
+**Canonical CLI:** native **V**, using the immutable compiler/toolchain inputs recorded by `.github/actions/setup-v`. The repository selects the `master` toolchain in `.v-version`; the currently pinned compiler commit reports `V 0.5.2 c0e47bf`. Build with `VJOBS=2 ./make.vsh build-cli` → `build/agent-toolkit`. PyPI/`uv`/`npm` are distribution adapters over that binary. See [`docs/HOW_TO_DEVELOP_V.md`](HOW_TO_DEVELOP_V.md) and [`docs/v/README.md`](v/README.md).
 
 ---
 
@@ -63,6 +63,22 @@ The toolkit layer itself separates two conceptual planes that **share one repo, 
 | **Runtime Plane** | What is *executed* from a harness workspace — automation, memory, and orchestration that consumes Capability data | `workspace` / `memory` / `project` / `loop` / `devcompanion` / `swarm` commands; `serve` programmatic API surface over both planes (TUI retired, ADR-030); `| Resolves toolkit data via ordered tiers `AGENT_TOOLKIT_ROOT` → `XDG` → **embedded `3a`** → FHS `3b` → sidecar `3c` → checkout → CWD (sanitized against harness `knowledge/`). Offline never downloads — see **ADR-015** (Runtime Resolution, amends ADR-005) and **ADR-026** `paths.v` tiers / `data_io.v` abstraction. |
 
 **Without splitting code:** Both planes are built by the same `make.vsh build-cli` (`gen-embedded` → `build/agent-toolkit`) and shipped in the same GitHub Release / Homebrew / AUR / PyPI / npm / Docker artifacts (ADR-018/021/023/024/025). The split is documentary: capability edits go to `skills/` + `products.yaml` then `build`; runtime is exercised from a harness via `agent-toolkit loop run …` etc. References: **ADR-015** runtime order and **ADR-026** full-embed (supersedes ADR-011) — see `docs/adrs/ADR-015-runtime-resolution.md` and `docs/adrs/ADR-026-full-embed.md`.
+
+### Desktop is a client of the runtime, not a second engine
+
+Agent Toolkit Desktop is the flagship GUI and ships as an Electron application
+with a React renderer. Electron supervises the bundled `agent-toolkit serve`
+process and owns OS integration; the renderer presents typed API data and
+invokes the same domain operations as the CLI. Domain rules, People storage,
+projects, loops, jobs, swarms, and capability receipts remain in the canonical
+V core/server. The renderer must not duplicate those rules or prefer parsing
+CLI text where a typed operation exists. This keeps the world, direct
+navigation, keyboard palette, and CLI aligned on one state and one action.
+
+For the shipping product contract, supported journeys, and visual evidence,
+see [Desktop](desktop/README.md), [the workflow ledger](desktop/workflows.yaml),
+and [visual QA](desktop/VISUAL_QA.md). ADR-033 records the accepted Electron
+boundary; ADR-032 is historical and describes the retired native-V GUI path.
 
 ### Plane boundaries and import rules (#982)
 
@@ -193,7 +209,6 @@ Packs are the recommended entry point for teams. Instead of picking individual s
 Swarms coordinate multiple coding-agent sessions with worktree isolation and durable handoffs. See `docs/SWARMS.md` and `docs/SWARM_ARCHITECTURE.md`. Orchestration engine + UI backends (Herdr/tmux) + runner adapters (OpenCode etc.) with filesystem state authoritative, commit-based handoffs, human gates, and budgets. Details in ADR-008.
 
 ---
-
 
 ## Repository Structure
 

@@ -8,7 +8,7 @@ Index: [`docs/v/README.md`](v/README.md) · packaging adapters: [`distribution/R
 
 | Item | Value |
 |------|--------|
-| V pin | [`.v-version`](../.v-version) — currently **0.5.2** |
+| V pin | [`.v-version`](../.v-version) — `master`; `.github/actions/setup-v` builds immutable V/VC/TCC commits and currently reports `V 0.5.2 c0e47bf` |
 | JSON | `import json` (stdlib). Do **not** `import json2` or run `v fmt` in a way that rewrites `json` → `json2` |
 | Layout | `modules/agent_toolkit_core`, `modules/agent_toolkit_cli`, `cmd/agent-toolkit` ([ADR-009](adrs/ADR-009-v-module-architecture.md)) |
 | Output | `./make.vsh build-cli` → `build/agent-toolkit` |
@@ -16,7 +16,10 @@ Index: [`docs/v/README.md`](v/README.md) · packaging adapters: [`distribution/R
 | Script keepers | Four scripts stay non-V by design: `scripts/provenance.py` (SLSA chain), `scripts/validate-upstream.py` (network + YAML), `scripts/release-linkage.sh` (sourced flags library for release builds), `scripts/subset-sc-font.sh` (fontTools/curl wrapper, manual use) |
 
 ```bash
-v version          # second field must match .v-version
+export PATH="$HOME/vlang-master:$PATH"  # use the locally pinned V checkout
+export VJOBS=2                         # bound compiler parallelism on workstations
+v version
+cat .v-version                         # currently selects master
 ./make.vsh --tasks   # list targets (or `./make.vsh help`)
 ./make.vsh fmt-check
 ./make.vsh vet

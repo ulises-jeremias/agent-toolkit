@@ -1,6 +1,6 @@
 # V CLI — current map
 
-The product CLI is a **native V 0.5.2** binary (`import json`, not json2). Python on PyPI is only a thin trampoline (`agent-toolkit` → V), same idea as npm ([python-fallback.md](python-fallback.md)). Contributor how-to: [`docs/HOW_TO_DEVELOP_V.md`](../HOW_TO_DEVELOP_V.md).
+The product CLI is a **native V** binary (`import json`, not json2). `.v-version` selects `master`; CI builds it from immutable V, VC, and TCC commit pins. The current pinned compiler reports `V 0.5.2 c0e47bf`. Python on PyPI is only a thin trampoline (`agent-toolkit` → V), same idea as npm ([python-fallback.md](python-fallback.md)). Contributor how-to: [`docs/HOW_TO_DEVELOP_V.md`](../HOW_TO_DEVELOP_V.md).
 
 > **Terminology:** Ownership **Layers** are `L1` Machine / `L1.5` Toolkit / `L3` Workspace + Project Overlay (`docs/ARCHITECTURE.md`). Loop tiers `L1`/`L2`/`L3` and `L0`–`L3` discipline elsewhere are **Stages** (mutation-safety), not Layers.
 
@@ -9,8 +9,8 @@ Historical strangler / cutover notes live under [`archive/`](archive/).
 ## Build from source
 
 ```bash
-# Pin is .v-version (currently 0.5.2)
-./make.vsh build-cli          # → build/agent-toolkit
+# Compiler source is .v-version (currently master); CI pins immutable commits
+VJOBS=2 ./make.vsh build-cli  # → build/agent-toolkit
 VMODULES=$PWD/modules ./build/agent-toolkit --version
 ```
 
