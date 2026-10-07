@@ -314,29 +314,12 @@ function connectEntrance(
 
   // If a building or water blocks the graceful line, use the safe shortest
   // route found above instead of cutting across a real footprint.
-  const route: { x: number; y: number }[] = [];
   let cursor: string | null = target;
   while (cursor) {
     const [x = 0, y = 0] = cursor.split(',').map(Number);
-    route.push({ x, y });
+    p.path(x, y);
     cursor = parent.get(cursor) ?? null;
   }
-  const routeStart = route.at(-1);
-  const routeEnd = route[0];
-  if (routeStart && routeEnd && route.length >= 6) {
-    const preferredSide = h2(routeStart.x, routeStart.y, routeEnd.x) % 2 === 0 ? 1 : -1;
-    for (const side of [preferredSide, -preferredSide]) {
-      const curve = curvedPoints(routeStart.x, routeStart.y, routeEnd.x, routeEnd.y, side);
-      const clear = curve.every(
-        ({ x, y }) => !p.isBlocked(x, y) && (p.paths.has(key(x, y)) || p.get(x, y) !== 'water'),
-      );
-      if (clear) {
-        for (const point of curve) p.path(point.x, point.y);
-        return;
-      }
-    }
-  }
-  for (const point of route) p.path(point.x, point.y);
 }
 
 /** Join any remaining path islands without crossing a building or open water. */
@@ -392,30 +375,12 @@ function connectPathIslands(p: Painter) {
       }
     }
     if (!target) return;
-    const connector: { x: number; y: number }[] = [];
     let cursor: string | null = target;
     while (cursor) {
       const [x = 0, y = 0] = cursor.split(',').map(Number);
-      connector.push({ x, y });
+      p.path(x, y);
       cursor = parent.get(cursor) ?? null;
     }
-    const sourceEnd = connector.at(-1);
-    const targetEnd = connector[0];
-    let smoothed: { x: number; y: number }[] | undefined;
-    if (sourceEnd && targetEnd && connector.length >= 6) {
-      const preferredSide = h2(sourceEnd.x, sourceEnd.y, targetEnd.x) % 2 === 0 ? 1 : -1;
-      for (const side of [preferredSide, -preferredSide]) {
-        const curve = curvedPoints(sourceEnd.x, sourceEnd.y, targetEnd.x, targetEnd.y, side);
-        const clear = curve.every(
-          ({ x, y }) => !p.isBlocked(x, y) && (p.paths.has(key(x, y)) || p.get(x, y) !== 'water'),
-        );
-        if (clear) {
-          smoothed = curve;
-          break;
-        }
-      }
-    }
-    for (const point of smoothed ?? connector) p.path(point.x, point.y);
     islands = components();
   }
 }
@@ -461,7 +426,7 @@ function softenPathVerge(p: Painter) {
   for (const [x = 0, y = 0] of pathCells) {
     // Sparse seed points become little shoulder clusters. This keeps paths
     // legible and walkable while breaking the ruler-straight edges at game zoom.
-    if (h2(x, y, 211) % 19 !== 0) continue;
+    if (h2(x, y, 211) % 37 !== 0) continue;
     const side = h2(x, y, 223) % 2 === 0 ? -1 : 1;
     for (const [dx, dy] of [
       [side, 0],
@@ -1368,7 +1333,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const creekX = plannedCreekX ?? Math.max(4, Math.min(cols - 5, riverX));
   (p as unknown as { creekX: number }).creekX = creekX;
   const routeEndX = projects.length
-    ? Math.max(...projects.map((project) => project.x + Math.floor(project.w / 2)))
+    ? Math.min(cols - 2, Math.max(...projects.map((project) => project.x + Math.floor(project.w / 2))))
     : marker
       ? Math.min(creekX + 3, marker.x + Math.floor(marker.w / 2))
       : creekX + 3;
