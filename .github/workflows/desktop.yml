@@ -106,7 +106,8 @@ jobs:
           for screenshot in \
             world-empty-compact.png world-empty-large.png \
             world-one-project-compact.png world-one-project-large.png \
-            world-several-projects-compact.png world-several-projects-large.png \
+            world-several-projects-meadow-compact.png world-several-projects-meadow-large.png \
+            world-several-projects-dusk-compact.png world-several-projects-dusk-large.png \
             project-files-room-compact.png project-files-room-large.png; do
             test -s "${{ runner.temp }}/atk-world-review/$screenshot"
           done

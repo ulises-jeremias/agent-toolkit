@@ -904,8 +904,8 @@ describe('layoutWorld', () => {
     const downstreamStarts = [...waterRows.entries()].filter(([y]) => y > bridgeRoadY).map(([, xs]) => Math.min(...xs));
     expect(Math.min(...upstreamStarts)).toBeLessThan(bridge!.x);
     expect(Math.max(...downstreamStarts)).toBeGreaterThan(bridge!.x);
-    expect([...waterRows.values()].every((xs) => xs.length === 2 || xs.length === 3)).toBe(true);
-    expect([...waterRows.values()].some((xs) => xs.length === 3)).toBe(true);
+    expect([...waterRows.values()].every((xs) => xs.length === 1 || xs.length === 2)).toBe(true);
+    expect([...waterRows.values()].some((xs) => xs.length === 2)).toBe(true);
     expect(new Set(first.cells.filter(({ tile }) => tile.startsWith('trail')).map(({ y }) => y)).size).toBeGreaterThan(
       1,
     );

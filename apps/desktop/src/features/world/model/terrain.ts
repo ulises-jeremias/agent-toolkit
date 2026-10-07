@@ -475,10 +475,11 @@ function creek(
     const anchoredSoftBend = Math.sin(along * 0.31 + 0.7) - Math.sin(0.7);
     const desiredX = baseX + Math.sin(along * 0.22) * broadBend + anchoredSoftBend * softBend;
     const pool = Math.sin(along * 0.25 + 0.9);
-    // Keep the creek mostly two tiles wide; only the occasional pool opens
-    // into a three-tile pocket. Frequent broad sections read as a moat at
-    // fit-to-world zoom and visually divide the town from its project homes.
-    const width = pool > 0.82 ? 3 : 2;
+    // Keep the channel mostly one tile wide so it reads as a stream through
+    // the valley instead of a moat between the civic commons and homes.
+    // Occasional two-tile pools add a natural pause without widening the
+    // crossing itself.
+    const width = Math.abs(along) > 2 && pool > 0.82 ? 2 : 1;
     const safeBank = (candidate: number) =>
       Array.from({ length: width }, (_, offset) => {
         const x = candidate + offset;
@@ -560,6 +561,12 @@ function creek(
       const reedsSide = h2(x, y, 41) % 2 === 0 ? x - 1 : x + width;
       if (y % 7 === 3 && h2(x, y, 43) % 3 === 0) {
         p.sprite(`reeds:${reedsSide},${y}`, reedsSide, y, 'reeds', 16, 16, 0, 0, true);
+      }
+      if (y % 13 === 6 && y !== bridgeY) {
+        const rockX = h2(x, y, 47) % 2 === 0 ? x - 1 : x + width;
+        if (!p.isBlocked(rockX, y) && !p.paths.has(key(rockX, y))) {
+          p.sprite(`creek-stone:${rockX},${y}`, rockX, y, 'rock', 16, 12, 0, 5);
+        }
       }
     }
   }
