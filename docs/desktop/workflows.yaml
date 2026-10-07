@@ -119,7 +119,7 @@ journeys:
           retrying safely. Compact and large Workspace captures were opened;
           verbose start context stays collapsed while the project roster is in
           view.
-        build: "feat/typed-project-roster-api (Linux Electron; project-link.spec.ts; real V backend)"
+        build: "b57fb0ce (Linux Electron; project-link.spec.ts; real V backend)"
         tests:
           - apps/desktop/e2e/electron/project-link.spec.ts
         screenshots:
