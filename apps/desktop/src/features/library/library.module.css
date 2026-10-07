@@ -42,6 +42,20 @@
   color: var(--text-secondary);
 }
 
+.resourceEvidence {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 7rem;
+}
+
+.resourceEvidence small {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  line-height: 1.35;
+}
+
 .installPreview {
   max-height: min(52vh, 34rem);
   overflow: auto;
