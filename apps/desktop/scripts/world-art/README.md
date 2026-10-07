@@ -5,11 +5,14 @@ art. The facades use the team's design references without copying their
 buildings or layouts. The Operations observatory was generated specifically
 for this project; its prompt is recorded in `prompts/landmark-operations.md`.
 It was reduced to a 64×64 source sprite with nearest-neighbour sampling and a
-hard alpha edge for crisp integer scaling. The five tree silhouettes were
-generated as a transparent horizontal sprite sheet, then individually
-cropped, alpha-cleaned, reduced with nearest-neighbour sampling, and
-quantized. Selected source PNGs are checked in here so asset generation and
-review do not depend on a network service or image editor.
+hard alpha edge for crisp integer scaling. The six tree silhouettes are an
+original transparent atlas in `tree-atlas-2026-10-07.png`, individually
+cropped to a shared 48×48 footprint with nearest-neighbour sampling and a
+hard alpha threshold for crisp edges. This
+preserves the atlas's distinct oak, flowering, autumn, rune-lit, pine, and
+willow silhouettes while keeping display scaling crisp. The source atlas,
+selected crop PNGs, and generation prompt are checked in so review and
+generation do not depend on a network service or image editor.
 
 `node scripts/gen-world-assets.mjs` copies these selected sources into
 `public/world/` and records their dimensions, source path, and SHA-256 in

@@ -128,6 +128,7 @@ export const cozyValleyTheme: WorldThemePack = {
     'tree-round': sprite('tree-round', 'Tree'),
     'tree-blossom': sprite('tree-blossom', 'Flowering tree'),
     'tree-amber': sprite('tree-amber', 'Amber tree'),
+    'tree-rune': sprite('tree-rune', 'Rune-lit tree'),
     'tree-pine': sprite('tree-pine', 'Pine'),
     'tree-willow': sprite('tree-willow', 'Creek willow'),
     bush: sprite('bush', 'Bush'),
