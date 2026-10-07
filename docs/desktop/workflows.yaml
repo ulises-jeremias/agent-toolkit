@@ -46,7 +46,7 @@ journeys:
           roster views revalidate on mount so an external CLI change does not
           remain hidden behind a fresh cache. Compact and large captures were
           opened.
-        build: "pending local revision (Linux Electron E2E; temporary HOME)"
+        build: "206e4c6f9bb2177339c1c4fd866bed2a7ae1bdf6 (Linux Electron E2E; temporary HOME)"
         tests:
           - apps/desktop/e2e/electron/workspace-switch.spec.ts
           - apps/desktop/e2e/electron/people-session.spec.ts
