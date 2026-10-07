@@ -393,8 +393,8 @@ The opened captures still show the more important unresolved art issues: the
 valley has a broad rectangular lawn, mostly straight paths, and a creek that
 divides the civic and project districts. This small lighting improvement does
 not resolve composition, interior density, or the conventional HUD taking
-space from the map. The README gallery remains unchanged until a broader visual
-pass produces a clearly better product capture.
+space from the map. The README's Meadow and Dusk hero screenshots now use the
+latest reviewed Electron captures; the broader composition work remains open.
 
 ## Library receipt evidence — 2026-10-07
 
@@ -414,3 +414,19 @@ workspace: [compact receipts](assets/electron/library/install-evidence-2026-10-0
 [large receipts](assets/electron/library/install-evidence-2026-10-07/installation-receipts-large.png),
 [compact expanded evidence](assets/electron/library/install-evidence-2026-10-07/installation-artifact-evidence-compact.png),
 and [large expanded evidence](assets/electron/library/install-evidence-2026-10-07/installation-artifact-evidence-large.png).
+
+## World window light — 2026-10-07
+
+The compact and large multi-project Electron maps were captured and opened in
+both Meadow and Dusk after adding static warm light over building windows. The
+light sits on authored building facades, stays strongest in Dusk, and has no
+connection to jobs or Person sessions. At normal map scale it helps the small
+windows feel warm without changing silhouettes or obscuring labels. The pass
+does not resolve the broad open lawns, straight civic path runs, or project
+trees that crowd a few labels; those remain the larger composition issues.
+
+These are live Electron captures against the real V 1.42.0 backend in a
+disposable workspace: [Meadow compact](assets/electron/world/window-lights-2026-10-07/several-projects-meadow-compact.png),
+[Meadow large](../../static/screenshots/world.png),
+[Dusk compact](assets/electron/world/window-lights-2026-10-07/several-projects-dusk-compact.png),
+and [Dusk large](../../static/screenshots/world-dusk.png).
