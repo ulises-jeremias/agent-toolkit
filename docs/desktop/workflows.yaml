@@ -131,7 +131,7 @@ journeys:
           explicitly says state can be incomplete or out of date. The
           renderer smoke verifies both surfaces, and the offline capture was
           opened at 1280x720.
-        build: "pending local revision (renderer E2E; backend unavailable)"
+        build: "68391097f1102f80ae31d0de3a10eb4d85a354e9 (renderer E2E; backend unavailable)"
         tests:
           - apps/desktop/e2e/smoke.spec.ts
         screenshots:
