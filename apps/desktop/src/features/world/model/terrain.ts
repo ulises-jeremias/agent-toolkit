@@ -1341,11 +1341,11 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   // Each real doorway finds its own safe, short approach to the public street.
   // This keeps the village from acquiring a second ruler-straight service lane.
   const street = new Set(p.paths);
-  if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h, street, false);
+  if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h, street);
   for (const place of commons) {
     const doorX = place.x + Math.floor(place.w / 2);
     const doorY = place.y + place.h;
-    connectEntrance(p, doorX, doorY, street, false);
+    connectEntrance(p, doorX, doorY, street);
   }
   for (const project of projects) {
     const doorX = project.x + Math.floor(project.w / 2);
