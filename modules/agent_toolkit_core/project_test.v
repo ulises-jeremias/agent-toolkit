@@ -41,7 +41,7 @@ fn test_project_init_add_list_remove_scan() {
 	assert typed.ok
 	assert typed.projects == [ProjectListEntry{
 		name: 'already-cloned'
-		target: repo
+		target: os.real_path(repo)
 		status: 'ok'
 	}]
 
