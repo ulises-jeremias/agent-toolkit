@@ -131,16 +131,28 @@ jobs:
           pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/desktop.spec.ts
           --grep "Library configures MCP providers"
       - name: Stage screenshots for visual review
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
+        if: always() && github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
         run: |
           mkdir -p apps/desktop/test-results/review
-          cp "${{ runner.temp }}/atk-world-review/"*.png apps/desktop/test-results/review/
-          cp "${{ runner.temp }}/atk-destination-review/"*.png apps/desktop/test-results/review/
-          cp "${{ runner.temp }}/atk-people-review/"*.png apps/desktop/test-results/review/
-          cp docs/desktop/assets/electron/library/mcp-configure-compact.png apps/desktop/test-results/review/
-          cp docs/desktop/assets/electron/library/mcp-configure-large.png apps/desktop/test-results/review/
-          cp docs/desktop/assets/electron/library/mcp-credentials-compact.png apps/desktop/test-results/review/
-          cp docs/desktop/assets/electron/library/mcp-credentials-large.png apps/desktop/test-results/review/
+          for directory in \
+            "${{ runner.temp }}/atk-world-review" \
+            "${{ runner.temp }}/atk-destination-review" \
+            "${{ runner.temp }}/atk-people-review"; do
+            for screenshot in "$directory"/*.png; do
+              if test -s "$screenshot"; then
+                cp "$screenshot" apps/desktop/test-results/review/
+              fi
+            done
+          done
+          for screenshot in \
+            docs/desktop/assets/electron/library/mcp-configure-compact.png \
+            docs/desktop/assets/electron/library/mcp-configure-large.png \
+            docs/desktop/assets/electron/library/mcp-credentials-compact.png \
+            docs/desktop/assets/electron/library/mcp-credentials-large.png; do
+            if test -s "$screenshot"; then
+              cp "$screenshot" apps/desktop/test-results/review/
+            fi
+          done
       - name: E2E (Electron + real backend)
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.capture_visual_review != 'true'
         env:
