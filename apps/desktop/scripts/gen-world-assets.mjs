@@ -1586,6 +1586,23 @@ function wallBand() {
   return [{ name: 'wall-top', img }];
 }
 
+/** A moonlit plaster panel breaks up repeated timber while keeping the same room palette. */
+function wallMural() {
+  const img = new Img(16, 16);
+  img.rect(0, 0, 15, 15, 'rsd');
+  img.rect(2, 2, 13, 10, 'rs');
+  img.hline(0, 15, 11, 'inkd').hline(0, 15, 12, 'od');
+  img.hline(0, 15, 13, 'ol').hline(0, 15, 14, 'od');
+  img.vline(1, 0, 10, 'od').vline(2, 0, 10, 'rsl');
+  img.vline(13, 0, 10, 'rsl').vline(14, 0, 10, 'od');
+  // Tiny rune-like stars make this an Agent Toolkit room without turning the
+  // wall into a control or suggesting live activity.
+  img.set(5, 4, 'cy').set(6, 4, 'rel').set(10, 7, 'lv').set(11, 7, 'rs');
+  img.set(8, 5, 'wy').set(8, 6, 'god').set(7, 7, 'god').set(9, 7, 'god');
+  img.set(4, 8, 'rsl').set(11, 3, 'rsl');
+  return [{ name: 'wall-mural', img }];
+}
+
 /** A moonlit window with a tiny valley silhouette and warm timber frame. */
 function interiorWindow() {
   const img = new Img(32, 24);
@@ -1963,6 +1980,7 @@ function collect() {
     floorPlank(),
     floorRune(),
     wallBand(),
+    wallMural(),
     interiorWindow(),
     interiorSconce(),
     doorExit(),

@@ -86,6 +86,7 @@ test('links an existing project from the GUI and places it in the world', async 
     await expect(projectCommand).toBeVisible();
     await projectCommand.click();
     await expect(page.getByRole('application', { name: 'Interior of garden-api' })).toBeVisible();
+    await expect(page.getByText('Selected:')).not.toContainText(projectPath);
     await expect(page.locator('[data-entity-id="object:workshop"]')).toHaveCount(0);
     await expect(page.locator('[data-entity-id^="object:tool:"]')).toHaveCount(0);
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();

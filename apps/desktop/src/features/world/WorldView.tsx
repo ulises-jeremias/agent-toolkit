@@ -11,7 +11,7 @@ import { useTerminalSessions } from '../../data/terminal';
 import { personCharacterSprite } from '../people/avatar';
 import { useSessionContext } from '../../shell/useSessionContext';
 import { EmptyState, ErrorState, LoadingState } from '../../ui';
-import { entityAccessibleName, installTargetForTool, worldDetailBackExtra, worldDetailBackLabel } from './inspectors';
+import { installTargetForTool, worldDetailBackExtra, worldDetailBackLabel } from './inspectors';
 import { MemoryRecordInspector } from './MemoryRecordInspector';
 import {
   buildWorldModel,
@@ -232,7 +232,8 @@ export default function WorldView() {
         </span>
         {selected ? (
           <span className={styles.selectedChip} aria-live="polite">
-            Selected: <strong>{selected.name}</strong> — {entityAccessibleName(selected)}
+            Selected: <strong>{selected.name}</strong> — {selected.concept}
+            {selected.state ? ` · ${selected.state}` : ''}
           </span>
         ) : null}
         <Link className={styles.worldHeaderLink} to={model.focusProjectId ? href('/world') : href('/workspace')}>
