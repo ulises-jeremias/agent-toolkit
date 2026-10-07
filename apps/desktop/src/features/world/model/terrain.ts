@@ -314,12 +314,29 @@ function connectEntrance(
 
   // If a building or water blocks the graceful line, use the safe shortest
   // route found above instead of cutting across a real footprint.
+  const route: { x: number; y: number }[] = [];
   let cursor: string | null = target;
   while (cursor) {
     const [x = 0, y = 0] = cursor.split(',').map(Number);
-    p.path(x, y);
+    route.push({ x, y });
     cursor = parent.get(cursor) ?? null;
   }
+  const routeStart = route.at(-1);
+  const routeEnd = route[0];
+  if (routeStart && routeEnd && route.length >= 6) {
+    const preferredSide = h2(routeStart.x, routeStart.y, routeEnd.x) % 2 === 0 ? 1 : -1;
+    for (const side of [preferredSide, -preferredSide]) {
+      const curve = curvedPoints(routeStart.x, routeStart.y, routeEnd.x, routeEnd.y, side);
+      const clear = curve.every(
+        ({ x, y }) => !p.isBlocked(x, y) && (p.paths.has(key(x, y)) || p.get(x, y) !== 'water'),
+      );
+      if (clear) {
+        for (const point of curve) p.path(point.x, point.y);
+        return;
+      }
+    }
+  }
+  for (const point of route) p.path(point.x, point.y);
 }
 
 /** Join any remaining path islands without crossing a building or open water. */
