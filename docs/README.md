@@ -3,7 +3,7 @@
 ## Source of truth
 
 | Audience | Canonical docs | Notes |
-|----------|----------------|-------|
+| --- | --- | --- |
 | Consumers | `README.md`, `docs/INSTALLATION.md`, `docs/UNINSTALL.md`, `docs/MIGRATION.md`, `docs/TRUST_BOUNDARIES.md` | Prefer these over wiki mirrors |
 | Contributors | `CONTRIBUTING.md`, `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/HOW_TO_DEVELOP_V.md`, `docs/HOW_TO_ADD_SKILL.md` | V CLI first; Python is launcher/tests only |
 | Architecture | `docs/CONCEPTS.md` (short model) → `docs/ARCHITECTURE.md` (canonical) | Engine/backend, CLI and Desktop ownership; `CONCEPTS.md` is the quick orientation |
@@ -21,7 +21,7 @@ When `docs/` and `docs/wiki/` disagree, **`docs/` wins**. Wiki pages are **index
 Choose the path that matches what you want to do:
 
 | You want to… | Start here |
-|-------------|------------|
+| --- | --- |
 | Install Agent Toolkit and make the first capability useful | [Getting Started](GETTING_STARTED.md) |
 | Understand the CLI, backend and ownership boundaries | [Concepts](CONCEPTS.md) → [Architecture](ARCHITECTURE.md) |
 | Use the Desktop spatial workspace | [Agent Toolkit Desktop](desktop/README.md) |

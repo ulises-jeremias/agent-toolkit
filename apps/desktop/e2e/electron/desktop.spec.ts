@@ -511,6 +511,40 @@ test('Library installs Skills and preserves user changes during reviewed removal
   await expect(evidence).toContainText('Claude Code');
   await expect(evidence).toContainText('Cursor');
   await expect(evidence).toContainText(/File evidence · .*unchanged/);
+  const skillCatalog = page.getByRole('region', { name: 'Skills catalog' });
+  const installedSkill = skillCatalog.getByRole('row', { name: /pr-fallback core/ });
+  await expect(installedSkill).toContainText('verified');
+  await expect(installedSkill).toContainText('Claude Code');
+  const agentCatalog = page.getByRole('region', { name: 'Agent definitions' });
+  const installedAgent = agentCatalog.getByRole('row', { name: /reviewer holistic/ });
+  await expect(installedAgent).toContainText('verified');
+  await expect(installedAgent).toContainText('Claude Code');
+  const userOwnedSkill = skillCatalog.getByRole('row', { name: /review accessibility/ });
+  await expect(userOwnedSkill).toContainText('partial receipt');
+  if (CAPTURE) {
+    fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
+    for (const size of [
+      { width: 1024, height: 768, key: 'compact' },
+      { width: 1440, height: 900, key: 'large' },
+    ]) {
+      await page.setViewportSize({ width: size.width, height: size.height });
+      await installedSkill.scrollIntoViewIfNeeded();
+      await page.screenshot({
+        path: path.join(LIBRARY_CAPTURE_DIR, `catalog-install-evidence-${size.key}.png`),
+      });
+    }
+    for (const size of [
+      { width: 1024, height: 768, key: 'compact' },
+      { width: 1440, height: 900, key: 'large' },
+    ]) {
+      await page.setViewportSize({ width: size.width, height: size.height });
+      await userOwnedSkill.scrollIntoViewIfNeeded();
+      await page.screenshot({
+        path: path.join(LIBRARY_CAPTURE_DIR, `catalog-partial-receipt-${size.key}.png`),
+      });
+    }
+    await page.setViewportSize({ width: 1280, height: 800 });
+  }
   await page.reload();
   await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('Claude Code');
   await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('Cursor');
@@ -538,6 +572,7 @@ test('Library installs Skills and preserves user changes during reviewed removal
   fs.writeFileSync(toolkitSkill, 'Edited by the user after Toolkit installed it.\n');
   await evidence.getByRole('button', { name: 'Refresh evidence' }).click();
   await expect(evidence).toContainText('edited since install');
+  await expect(installedSkill).toContainText('needs attention');
   const claudeReceipt = evidence.getByRole('row').filter({ hasText: 'Claude Code' });
   const fileEvidence = claudeReceipt.locator('details').filter({ hasText: 'File evidence ·' });
   await fileEvidence.locator('summary').click();

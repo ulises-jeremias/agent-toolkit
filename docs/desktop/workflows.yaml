@@ -50,7 +50,10 @@ journeys:
           - assets/electron/workspace/workspace-return-compact.png
           - assets/electron/workspace/workspace-return-large.png
     blockers: []
-    recovery: Settings keeps harness selection available; wait for backend live status before workspace operations, then retry or switch back to the previous workspace.
+    recovery: >-
+      Settings keeps harness selection available; wait for backend live status
+      before workspace operations, then retry or switch back to the previous
+      workspace.
   - id: project-spatial-files
     title: Enter a project and inspect its real files in the World
     destinations: [world, workspace]
@@ -79,12 +82,25 @@ journeys:
           - assets/electron/cozy-pixel-world/people.png
           - assets/electron/cozy-pixel-world/operations.png
           - assets/electron/cozy-pixel-world/terminal.png
-      - note: Registered project house opens a project overview board; its filing cabinet opens Workspace Files scoped to the registered project root, and the GUI reads a real README through the typed API
+      - note: >-
+          Registered project house opens a project overview board; its filing
+          cabinet opens Workspace Files scoped to the registered project root,
+          and the GUI reads a real README through the typed API.
         build: "4847b25434c53162fbeb979baa92a97931daf841 (Linux Electron E2E)"
         screenshots:
           - assets/electron/world/project-files-room-compact.png
           - assets/electron/world/project-files-room-large.png
-      - note: World composition keeps shared landmarks on the commons bank and registered project houses across a traversable bridge; empty, one-project, and three-project layouts are captured at compact and large viewports, with semantic project linking and building entry exercised through the GUI. The tightened vertical layout lets empty and one-project valleys fit at crisp 32px tiles in compact windows; wider multi-project valleys retain fit-to-world behavior. Smooth deterministic meadow patches reduce tile-by-tile color noise, and the empty-workspace bridge is anchored to the real path by the project marker.
+      - note: >-
+          World composition keeps shared landmarks on the commons bank and
+          registered project houses across a traversable bridge; empty,
+          one-project, and three-project layouts are captured at compact and
+          large viewports, with semantic project linking and building entry
+          exercised through the GUI. The tightened vertical layout lets empty
+          and one-project valleys fit at crisp 32px tiles in compact windows;
+          wider multi-project valleys retain fit-to-world behavior. Smooth
+          deterministic meadow patches reduce tile-by-tile color noise, and the
+          empty-workspace bridge is anchored to the real path by the project
+          marker.
         build: "feat/desktop-world-fit-compact (Linux Electron E2E; project-link.spec.ts; world screenshots opened)"
         screenshots:
           - assets/electron/world/world-empty-compact.png
@@ -93,7 +109,12 @@ journeys:
           - assets/electron/world/world-one-project-large.png
           - assets/electron/world/world-several-projects-compact.png
           - assets/electron/world/world-several-projects-large.png
-      - note: Meadow flowers, creek-bank trees, and edge undergrowth use stable coordinate seeds; captures were reviewed after two density iterations. The added foliage stays clear of semantic footprints and paths, but several-project maps still have broad lawn areas, so this is incremental terrain tuning rather than final art acceptance.
+      - note: >-
+          Meadow flowers, creek-bank trees, and edge undergrowth use stable
+          coordinate seeds; captures were reviewed after two density iterations.
+          The added foliage stays clear of semantic footprints and paths, but
+          several-project maps still have broad lawn areas, so this is
+          incremental terrain tuning rather than final art acceptance.
         build: "39fa40bc3b587c205cb5fd4dca0784a25e6f7dcb base + Linux Electron E2E (project-link.spec.ts)"
         screenshots:
           - assets/electron/world/world-empty-compact.png
@@ -198,7 +219,10 @@ journeys:
         screenshots:
           - assets/electron/world/project-files-room-compact.png
           - assets/electron/world/project-files-room-large.png
-      - note: apps/desktop/e2e/electron/project-link.spec.ts; modules/agent_toolkit_core/file_catalog_test.v covers project symlink containment and unsafe paths
+      - note: >-
+          apps/desktop/e2e/electron/project-link.spec.ts;
+          modules/agent_toolkit_core/file_catalog_test.v covers project symlink
+          containment and unsafe paths.
       - note: >-
           The current meadow-life capture opens the empty valley and three-project
           map at compact and large sizes in Meadow and Dusk. Four deterministic
@@ -241,8 +265,29 @@ journeys:
     status: partial
     evidence:
       - note: Library renders catalog definitions over the serve API
+      - note: >-
+          Skills and Agent Definitions now show per-resource Toolkit receipt state
+          beside catalog membership. The state is derived from receipt-owned
+          artifacts and their current digest checks: verified, needs attention,
+          partial receipt, or no receipt. Partial means support files have
+          Toolkit receipts but the primary Skill file remains user-owned. No
+          receipt does not claim that a user-managed copy is absent. Electron
+          E2E covers verified installs, an edited artifact, and a pre-existing
+          user file that Toolkit preserved.
+        build: "desktop Library receipt-state slice"
+        tests:
+          - apps/desktop/src/features/library/resourceEvidence.test.ts
+          - apps/desktop/e2e/electron/desktop.spec.ts
+        screenshots:
+          - assets/electron/library/catalog-install-evidence-compact.png
+          - assets/electron/library/catalog-install-evidence-large.png
+          - assets/electron/library/catalog-partial-receipt-compact.png
+          - assets/electron/library/catalog-partial-receipt-large.png
+          - ../../static/screenshots/library.png
     blockers:
-      - no installed-vs-catalog distinction review with mixed states on file
+      - >-
+          Capability catalog search, provenance, dependencies, and verified
+          compatibility are not yet available together in the Library.
   - id: install-capabilities
     title: Install skills/agents from the Library
     destinations: [library]
@@ -305,13 +350,25 @@ journeys:
           - assets/electron/library/copilot-project-review-compact.png
           - assets/electron/library/copilot-project-review-large.png
     blockers:
-      - Compiled Copilot repository Skills and Agent Definitions are not yet exposed in Desktop; the current project flow installs only the instruction profile
+      - >-
+          Compiled Copilot repository Skills and Agent Definitions are not yet
+          exposed in Desktop; the current project flow installs only the
+          instruction profile.
   - id: mcp-configure-probe
     title: Configure an MCP provider and probe it
     destinations: [library]
     status: ok
     evidence:
-      - note: Library uses a typed secret-free provider catalog and offers OS-encrypted credential entry. Saved names are visible but values are never returned; credentials are injected only into the supervised backend process on restart and are redacted from backend startup diagnostics. Configure and remove preview the exact local registry file; validation checks environment names/template provenance; probe explains that it checks the local executable, not a live model connection. Headless Linux without a secure keyring fails closed, disables credential entry, and explains that no value was saved.
+      - note: >-
+          Library uses a typed secret-free provider catalog and offers
+          OS-encrypted credential entry. Saved names are visible but values are
+          never returned; credentials are injected only into the supervised
+          backend process on restart and are redacted from backend startup
+          diagnostics. Configure and remove preview the exact local registry
+          file; validation checks environment names/template provenance; probe
+          explains that it checks the local executable, not a live model
+          connection. Headless Linux without a secure keyring fails closed,
+          disables credential entry, and explains that no value was saved.
         tests:
           - apps/desktop/electron/mcp-secrets.test.ts
           - apps/desktop/electron/backend.test.ts
@@ -328,7 +385,10 @@ journeys:
     destinations: [operations, world]
     status: ok
     evidence:
-      - note: Operations starts the real `version` job through the backend and shows its output and terminal result; `worldEvents.test.ts` confirms terminal jobs leave the world projection
+      - note: >-
+          Operations starts the real `version` job through the backend and
+          shows its output and terminal result; `worldEvents.test.ts` confirms
+          terminal jobs leave the world projection.
         build: "9deb8f6b (Linux Electron E2E; desktop.spec.ts and interior.spec.ts)"
         screenshots:
           - assets/electron/world/world-job-completed-large.png
@@ -356,9 +416,15 @@ journeys:
     destinations: [people]
     status: ok
     evidence:
-      - note: Electron screenshot tour creates Lina through the UI and confirms the offline roster; V people_test.v covers CRUD, archive, restore and invalid declarations
+      - note: >-
+          Electron screenshot tour creates Lina through the UI and confirms the
+          offline roster; V people_test.v covers CRUD, archive, restore and
+          invalid declarations.
         build: "feat/product-stabilization (pre-merge)"
-      - note: Electron E2E creates Milo, edits his goal and appearance, then archives and restores him with explicit confirmations; his offline state persists and archive never starts a session
+      - note: >-
+          Electron E2E creates Milo, edits his goal and appearance, then archives
+          and restores him with explicit confirmations; his offline state
+          persists and archive never starts a session.
         build: "feat/desktop-people-import-review (Linux Electron E2E)"
         screenshots:
           - assets/electron/people/people-roster-edit-compact.png
@@ -368,9 +434,15 @@ journeys:
     destinations: [people]
     status: ok
     evidence:
-      - note: Electron screenshot tour reviews Maya JSON, displays ignored command field, saves and observes offline roster; importMunder.test.ts covers inert source mapping
+      - note: >-
+          Electron screenshot tour reviews Maya JSON, displays ignored command
+          field, saves and observes offline roster; importMunder.test.ts covers
+          inert source mapping.
         build: "feat/product-stabilization (pre-merge)"
-      - note: Electron review also covers malformed JSON recovery, safe import review, duplicate ID conflict, edit-before-save recovery, and confirms the new Person remains offline
+      - note: >-
+          Electron review also covers malformed JSON recovery, safe import review,
+          duplicate ID conflict, edit-before-save recovery, and confirms the new
+          Person remains offline.
         build: "feat/desktop-people-import-review (Linux Electron E2E)"
         screenshots:
           - assets/electron/people/munder-import-collision-compact.png
@@ -398,10 +470,27 @@ journeys:
           - assets/electron/people/world-person-compact.png
           - assets/electron/people/world-person-large.png
           - assets/electron/people/people-offline-after-stop.png
-      - note: Ctrl+K Start Person opens the same review flow as People; the active Person command opens its existing PTY; apps/desktop/e2e/electron/people-session.spec.ts checks the real PTY lifecycle when a runner is available and the unavailable-runner recovery state otherwise
-      - note: Start preloads a one-time task from the durable Person goal, previews the exact role/goal/task prompt, and passes it only to documented interactive launch options for OpenCode, Claude, Codex and Copilot; the task never updates the Person record. Cursor and Muse stay interactive and provide a copy action until their prompt contracts are verified.
-      - note: Electron's PTY bridge retains the owning workspace and V session ID; the lifecycle E2E confirms process stop changes the durable record from running to stopped while the Person and goal remain configured.
-        build: "1bc3bdc23fa210eca84cd325850637f0bf0935af (#1468; Linux/Windows CI and fresh-HOME Desktop acceptance passed; macOS checks not used as merge gate by maintainer instruction)"
+      - note: >-
+          Ctrl+K Start Person opens the same review flow as People; the active
+          Person command opens its existing PTY;
+          apps/desktop/e2e/electron/people-session.spec.ts checks the real PTY
+          lifecycle when a runner is available and the unavailable-runner
+          recovery state otherwise.
+      - note: >-
+          Start preloads a one-time task from the durable Person goal, previews
+          the exact role/goal/task prompt, and passes it only to documented
+          interactive launch options for OpenCode, Claude, Codex and Copilot;
+          the task never updates the Person record. Cursor and Muse stay
+          interactive and provide a copy action until their prompt contracts
+          are verified.
+      - note: >-
+          Electron's PTY bridge retains the owning workspace and V session ID;
+          the lifecycle E2E confirms process stop changes the durable record
+          from running to stopped while the Person and goal remain configured.
+        build: >-
+          1bc3bdc23fa210eca84cd325850637f0bf0935af (#1468; Linux/Windows CI and
+          fresh-HOME Desktop acceptance passed; macOS checks not used as merge
+          gate by maintainer instruction)
         tests:
           - apps/desktop/e2e/electron/people-session.spec.ts
           - apps/desktop/src/features/people/personRunner.test.ts
@@ -410,7 +499,11 @@ journeys:
           - assets/electron/people/person-start-large.png
           - assets/electron/people/person-start-no-runner-compact.png
           - assets/electron/people/person-start-no-runner-large.png
-      - note: After the project-valley layout update, the real Lina PTY character remains beside the linked agent-toolkit house while the PTY is open and disappears from the map after exit is confirmed; captures were regenerated and opened at compact and large sizes
+      - note: >-
+          After the project-valley layout update, the real Lina PTY character
+          remains beside the linked agent-toolkit house while the PTY is open
+          and disappears from the map after exit is confirmed; captures were
+          regenerated and opened at compact and large sizes.
         build: "9deb8f6b (Linux Electron E2E; people-session.spec.ts)"
         screenshots:
           - assets/electron/people/world-person-compact.png
@@ -419,7 +512,10 @@ journeys:
     blockers:
       - provider conversation IDs, transcript continuity and safe runner-specific resume are not available yet
       - initial-task submission is not supported for Cursor or Muse; no runner-specific argument contract is assumed
-      - max_seconds is enforced by Desktop; token/cost limits and non-inherited isolation still require explicit acknowledgement because the interactive PTY cannot enforce them
+      - >-
+          max_seconds is enforced by Desktop; token/cost limits and non-inherited
+          isolation still require explicit acknowledgement because the
+          interactive PTY cannot enforce them.
   - id: swarm-role-picker
     title: Choose People for swarm roles before start
     destinations: [operations, people]
@@ -441,7 +537,9 @@ journeys:
           same backend resolver. The compact and large Electron captures show
           the saved Lina default; the compact dialog keeps Cancel/Start visible
           while its role review scrolls. Runner/model remain swarm-wide settings.
-        build: "6ee3ac89 (Linux Electron + real V backend; desktop.spec.ts; capture run 37329725206; screenshots opened)"
+        build: >-
+          6ee3ac89 (Linux Electron + real V backend; desktop.spec.ts; capture
+          run 37329725206; screenshots opened)
         screenshots:
           - assets/electron/swarms/swarm-start-compact.png
           - assets/electron/swarms/swarm-start-large.png
@@ -544,13 +642,21 @@ journeys:
           - assets/electron/swarms/swarm-run-watch-compact.png
           - assets/electron/swarms/swarm-run-watch-large.png
     blockers:
-      - adapter-backed worker starts, handoff progress, and failure recovery are not yet verified in an end-to-end Desktop run
+      - >-
+          Adapter-backed worker starts, handoff progress, and failure recovery
+          are not yet verified in an end-to-end Desktop run.
   - id: universal-search-actions
     title: Search and launch core actions with safe previews
     destinations: [shell]
     status: ok
     evidence:
-      - note: Typed palette actions map navigation, project houses, People, terminal, jobs, loops, swarm start, workspace chooser, and attention to existing GUI routes. Electron E2E exercises terminal/job/loop/swarm dialogs, workspace chooser focus, project entry, and backend restart reviews from both the palette and Settings. Both restart reviews default focus to Cancel; the palette review is captured at compact and large sizes.
+      - note: >-
+          Typed palette actions map navigation, project houses, People, terminal,
+          jobs, loops, swarm start, workspace chooser, and attention to existing
+          GUI routes. Electron E2E exercises terminal/job/loop/swarm dialogs,
+          workspace chooser focus, project entry, and backend restart reviews
+          from both the palette and Settings. Both restart reviews default focus
+          to Cancel; the palette review is captured at compact and large sizes.
         build: "feat/desktop-palette-reachability (Linux Electron E2E)"
         screenshots:
           - assets/electron/palette/backend-restart-compact.png

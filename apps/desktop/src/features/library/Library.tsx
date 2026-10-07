@@ -11,12 +11,14 @@ import {
   requireOk,
   type CommandEnvelope,
   type CopilotProjectInstallResponse,
+  type InstallReceiptSummary,
   type ToolEnabled,
   type ToolInfo,
 } from '../../lib/api';
 import { invalidateDomains, OPERATION_EFFECTS } from '../../lib/query/invalidation';
 import { parsePluginBundles, parseSkillCatalog } from '../../lib/reports';
 import { parseProjectListMessage } from '../world/model';
+import { libraryResourceEvidence, type LibraryResourceKind } from './resourceEvidence';
 import {
   Button,
   ButtonRow,
@@ -120,7 +122,37 @@ function orderedArtifacts<T extends { status: string; path: string }>(artifacts:
   return [...artifacts].sort(
     (a, b) =>
       (ARTIFACT_STATUS_ORDER[a.status] ?? ARTIFACT_STATUS_ORDER.unavailable!) -
-        (ARTIFACT_STATUS_ORDER[b.status] ?? ARTIFACT_STATUS_ORDER.unavailable!) || a.path.localeCompare(b.path),
+        (ARTIFACT_STATUS_ORDER[b.status] ?? ARTIFACT_STATUS_ORDER.unavailable!) ||
+      (typeof a.path === 'string' ? a.path : '').localeCompare(typeof b.path === 'string' ? b.path : ''),
+  );
+}
+
+function ResourceReceipt({
+  kind,
+  name,
+  receipts,
+}: {
+  kind: LibraryResourceKind;
+  name: string;
+  receipts: readonly InstallReceiptSummary[];
+}) {
+  const evidence = libraryResourceEvidence(kind, name, receipts);
+  const badge =
+    evidence.state === 'verified'
+      ? { tone: 'ok' as const, label: 'verified' }
+      : evidence.state === 'needs-attention'
+        ? { tone: 'warn' as const, label: 'needs attention' }
+        : evidence.state === 'partial'
+          ? { tone: 'warn' as const, label: 'partial receipt' }
+          : { tone: 'idle' as const, label: 'no Toolkit receipt' };
+  const targets = evidence.targets.map(
+    (target) => INSTALL_TARGETS.find((entry) => entry.id === target)?.label ?? target,
+  );
+  return (
+    <span className={styles.resourceEvidence}>
+      <StatusBadge tone={badge.tone} label={badge.label} />
+      {targets.length > 0 ? <small>{targets.join(', ')}</small> : null}
+    </span>
   );
 }
 
@@ -266,6 +298,7 @@ export default function Library() {
 
   const drift = plugins.data?.ok ? plugins.data.data['drift'] : undefined;
   const skillRows = skills.data ? parseSkillCatalog(envelopeText(skills.data)) : [];
+  const installReceipts = receipts.data?.receipts ?? [];
   const pluginRows = plugins.data ? parsePluginBundles(envelopeText(plugins.data)) : [];
   const selectedCopilotProject = projects.find((project) => project.name === copilotProject && project.status === 'ok');
   const copilotRemovalPreview = useQuery({
@@ -298,8 +331,8 @@ export default function Library() {
         title="Library board"
         lede={
           catalogRoot
-            ? `Shelves from ${catalogRoot}. Catalog, detected, configured and verified stay distinct. Memory is not this room. Running is unknown here.`
-            : 'Inspector for catalog knowledge the world opens here. Memory is not this room. Running is unknown here.'
+            ? `Shelves from ${catalogRoot}. Catalog membership and receipt-backed installs stay distinct. Memory is not this room; live activity is shown in Operations.`
+            : 'Catalog membership and receipt-backed installs stay distinct. Memory is not this room; live activity is shown in Operations.'
         }
         actions={
           <ButtonRow>
@@ -739,12 +772,12 @@ export default function Library() {
                                 tabIndex={-1}
                               >
                                 <ul>
-                                  {orderedArtifacts(receipt.artifacts).map((artifact) => {
+                                  {orderedArtifacts(receipt.artifacts ?? []).map((artifact, index) => {
                                     const state = artifactStatus(artifact.status);
                                     return (
-                                      <li className={styles.artifactRow} key={artifact.path}>
+                                      <li className={styles.artifactRow} key={artifact.path || `unavailable-${index}`}>
                                         <div className={styles.artifactPath}>
-                                          <Mono>{artifact.path}</Mono>
+                                          <Mono>{artifact.path || 'Path unavailable'}</Mono>
                                           <small>{artifact.ownership} by Toolkit</small>
                                         </div>
                                         <StatusBadge tone={state.tone} label={state.label} />
@@ -843,6 +876,7 @@ export default function Library() {
                         <tr>
                           <th scope="col">Id</th>
                           <th scope="col">Kind</th>
+                          <th scope="col">Toolkit receipt</th>
                           <th scope="col">Description</th>
                         </tr>
                       </thead>
@@ -853,6 +887,9 @@ export default function Library() {
                               <Mono>{agent.id}</Mono>
                             </th>
                             <td>{agent.kind || 'Unknown'}</td>
+                            <td>
+                              <ResourceReceipt kind="agent" name={agent.id} receipts={installReceipts} />
+                            </td>
                             <td>{agent.description || agent.name}</td>
                           </tr>
                         ))}
@@ -960,8 +997,8 @@ export default function Library() {
             title="Skills catalog"
             meta={
               skills.data?.data['count']
-                ? `${skills.data.data['count']} in catalog · installed-in-tool unknown`
-                : 'installed-in-tool unknown'
+                ? `${skills.data.data['count']} in catalog · Toolkit receipts shown per resource`
+                : 'Toolkit receipts shown per resource'
             }
           >
             <QueryView
@@ -972,7 +1009,8 @@ export default function Library() {
               {() =>
                 skillRows.length === 0 ? (
                   <EmptyState title="Skills catalog is not a table yet.">
-                    Count is {skills.data?.data['count'] ?? 'unknown'}. Installed-in-tool stays unknown.
+                    Count is {skills.data?.data['count'] ?? 'unknown'}. Receipt evidence appears when a catalog resource
+                    matches a Toolkit-owned file.
                   </EmptyState>
                 ) : (
                   <Table>
@@ -980,7 +1018,7 @@ export default function Library() {
                       <tr>
                         <th scope="col">Skill</th>
                         <th scope="col">Domain</th>
-                        <th scope="col">In catalog</th>
+                        <th scope="col">Catalog / Toolkit receipt</th>
                         <th scope="col">Description</th>
                       </tr>
                     </thead>
@@ -994,7 +1032,10 @@ export default function Library() {
                             </th>
                             <td>{row.domain}</td>
                             <td>
-                              <StatusBadge tone={catalog.tone} label={catalog.label} />
+                              <span className={styles.resourceEvidence}>
+                                <StatusBadge tone={catalog.tone} label={catalog.label} />
+                                <ResourceReceipt kind="skill" name={row.name} receipts={installReceipts} />
+                              </span>
                             </td>
                             <td>{row.description || '—'}</td>
                           </tr>
