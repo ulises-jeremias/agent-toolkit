@@ -461,7 +461,7 @@ function softenPathVerge(p: Painter) {
   for (const [x = 0, y = 0] of pathCells) {
     // Sparse seed points become little shoulder clusters. This keeps paths
     // legible and walkable while breaking the ruler-straight edges at game zoom.
-    if (h2(x, y, 211) % 37 !== 0) continue;
+    if (h2(x, y, 211) % 19 !== 0) continue;
     const side = h2(x, y, 223) % 2 === 0 ? -1 : 1;
     for (const [dx, dy] of [
       [side, 0],
