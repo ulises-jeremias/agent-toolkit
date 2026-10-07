@@ -44,7 +44,7 @@ function riskTone(risk: string | undefined): Tone {
  * Files use the contained GET /api/v1/files API.
  */
 export default function WorkspaceView() {
-  const { href } = useSessionContext();
+  const { context: sessionContext, href } = useSessionContext();
   const [params] = useSearchParams();
   const focusFiles = params.get('panel') === 'files';
   const focusProjects = params.get('panel') === 'projects';
@@ -52,7 +52,7 @@ export default function WorkspaceView() {
   const projectPanel = useRef<HTMLDivElement>(null);
   const context = useSubQuery('workspace', 'context');
   const budget = useSubQuery('workspace', 'budget');
-  const path = context.data?.data['workspace'] ?? budget.data?.data['workspace'] ?? '';
+  const path = context.data?.data['workspace'] ?? budget.data?.data['workspace'] ?? sessionContext.workspace ?? '';
   const projects = useProjects(path);
   const validation = useSubQuery('workspace', 'validate', undefined, { failureIsData: true });
   const personas = useSubQuery('workspace', 'personas');

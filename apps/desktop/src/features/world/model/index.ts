@@ -1,4 +1,4 @@
-export { buildWorldModel, jobBelongsToProject, pathIsWithin } from './buildWorld';
+export { buildWorldModel, jobBelongsToProject, pathIsWithin, resolveProjectTarget } from './buildWorld';
 export { PROJECT_FACADES, projectFacade } from './facades';
 export type { BuildingFacade, LandmarkFacade, ProjectFacade } from './facades';
 export { footprintFor, layoutWorld, projectDistrictCols } from './layout';

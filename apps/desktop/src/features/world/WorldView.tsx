@@ -16,6 +16,7 @@ import {
   buildWorldModel,
   layoutWorld,
   pathIsWithin,
+  resolveProjectTarget,
   type LaidOutEntity,
   type MemorySummary,
   type ToolRecord,
@@ -101,7 +102,9 @@ export default function WorldView() {
     return livePersonPtys.flatMap((session) => {
       const person = session.personId ? peopleById.get(session.personId) : undefined;
       const project = projects.find(
-        (candidate) => candidate.name === session.projectId && pathIsWithin(session.cwd, candidate.target),
+        (candidate) =>
+          candidate.name === session.projectId &&
+          pathIsWithin(session.cwd, resolveProjectTarget(workspacePath, candidate.target)),
       );
       if (!person || !project) return [];
       return [
@@ -118,7 +121,7 @@ export default function WorldView() {
         },
       ];
     });
-  }, [livePersonPtys, peopleQuery.data, projects]);
+  }, [livePersonPtys, peopleQuery.data, projects, workspacePath]);
 
   const harnessNotice = backend?.harness?.notice ?? null;
 
