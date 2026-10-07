@@ -215,6 +215,22 @@ journeys:
           - assets/electron/meadow-motes-2026-10-06/several-meadow-large.png
           - assets/electron/meadow-motes-2026-10-06/several-dusk-compact.png
           - assets/electron/meadow-motes-2026-10-06/several-dusk-large.png
+      - note: >-
+          Source c48cac48 adds a deterministic north-edge tree row while keeping
+          canopy pixels inside the canvas. Electron project-link captures were
+          opened at compact and large sizes in Meadow and Dusk. The README now
+          uses the reviewed large captures. This is an incremental framing
+          improvement; broad lawns, mostly straight paths, and the creek's
+          district split remain open visual work.
+        build: "c48cac48 (Linux Electron; project-link.spec.ts; screenshots opened)"
+        tests:
+          - apps/desktop/src/features/world/model/worldModel.test.ts
+          - apps/desktop/e2e/electron/project-link.spec.ts
+        screenshots:
+          - assets/electron/north-forest-frame-2026-10-07/meadow-several-projects-compact.png
+          - assets/electron/north-forest-frame-2026-10-07/meadow-several-projects-large.png
+          - assets/electron/north-forest-frame-2026-10-07/dusk-several-projects-compact.png
+          - assets/electron/north-forest-frame-2026-10-07/dusk-several-projects-large.png
     blockers: []
   - id: capability-discovery
     title: Browse skills/agents/packs in the Library

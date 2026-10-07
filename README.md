@@ -51,7 +51,7 @@ Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installe
 
 | Meadow valley | Dusk valley |
 | --- | --- |
-| <img src="static/screenshots/world.png" width="100%" alt="The workspace valley with three real project houses, shared landmarks, a creek and connected paths" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The same workspace valley and three project houses under dusk lighting" /> |
+| <img src="static/screenshots/world.png" width="100%" alt="Agent Toolkit's workspace valley with project houses, shared landmarks, creek and forest framing in Meadow light" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The workspace valley, project houses and forest framing under Dusk lighting" /> |
 | Project interior | Capability Library |
 | <img src="static/screenshots/project-interior.png" width="100%" alt="A project house with real file, memory, terminal and project stations" /> | <img src="static/screenshots/library.png" width="100%" alt="Library showing reusable capabilities and installation evidence" /> |
 | People roster | Operations |
