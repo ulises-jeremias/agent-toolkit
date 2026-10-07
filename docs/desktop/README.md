@@ -110,10 +110,10 @@ This guide is maintained against the shipping Electron + React application;
 the retired native-V GUI is not part of the product. V remains the canonical
 engine, server and CLI. Older captures and migration records live in
 [`VISUAL_QA_HISTORY.md`](VISUAL_QA_HISTORY.md) and are evidence, not current
-art direction. The README gallery shows real app captures, while its external
-SVG badges report CI, license and release metadata; there are no illustrative
-SVG dashboard mockups in the product gallery. Dated comparison proposals are
-indexed in [design-notes](design-notes/README.md) and are not current feature
+art direction. The README gallery uses real application screenshots rather
+than illustrative SVG mockups. CI, license and release destinations are plain
+text links. Dated comparison proposals are indexed in
+[design-notes](design-notes/README.md) and are not current feature
 requirements.
 
 For architecture and contribution commands, see the [Desktop package guide](../../apps/desktop/README.md), [design contract](DESIGN.md), and

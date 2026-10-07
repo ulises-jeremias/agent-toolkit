@@ -158,6 +158,7 @@ export const cozyValleyTheme: WorldThemePack = {
     'floor-b': sprite('floor-wood-b', 'Plank floor'),
     'floor-rune': sprite('floor-rune', 'Quiet floor inlay'),
     wall: sprite('wall-top', 'Wall'),
+    'wall-mural': sprite('wall-mural', 'Moonlit wall panel'),
     'window-valley': sprite('window-valley', 'Moonlit valley window'),
     'wall-sconce': sprite('wall-sconce', 'Lantern sconce'),
     exit: sprite('door-exit', 'Exit door'),

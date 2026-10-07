@@ -309,6 +309,12 @@
       "h": 16,
       "frames": 1
     },
+    "wall-mural": {
+      "file": "wall-mural.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
     "window-valley": {
       "file": "window-valley.png",
       "w": 32,

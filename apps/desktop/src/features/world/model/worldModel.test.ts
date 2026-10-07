@@ -452,9 +452,15 @@ describe('buildWorldModel', () => {
         expect(water.has(`${x},${y}`)).toBe(false);
       }
     }
-    const waterColumns = [...water].map((cell) => Number(cell.split(',')[0]));
-    expect(house.x).toBeGreaterThan(Math.max(...waterColumns));
-    expect(waterColumns.some((x) => x >= workshop.x + workshop.w && x < house.x)).toBe(true);
+    const waterRows = new Map<number, number[]>();
+    for (const cell of water) {
+      const [x, y] = cell.split(',').map(Number);
+      waterRows.set(y!, [...(waterRows.get(y!) ?? []), x!]);
+    }
+    const creekBanks = [...waterRows.values()].map((xs) => Math.min(...xs));
+    expect(house.x).toBeGreaterThan(Math.max(...[...waterRows.values()].flat()));
+    expect(creekBanks.some((x) => x >= workshop.x + workshop.w && x < house.x)).toBe(true);
+    expect(Math.max(...creekBanks) - Math.min(...creekBanks)).toBeGreaterThanOrEqual(3);
   });
 
   it('gathers shared landmarks around a staggered commons without overlapping entrances', () => {
@@ -1052,7 +1058,9 @@ describe('layoutWorld', () => {
     expect(inlays.length).toBeGreaterThan(0);
     expect(inlays.length).toBeLessThanOrEqual(6);
     expect(inlays).toEqual(second.cells.filter((cell) => cell.tile === 'floor-rune'));
-    expect(first.cells.filter((cell) => cell.tile === 'wall')).toHaveLength(56);
+    expect(first.cells.filter((cell) => cell.tile === 'wall' || cell.tile === 'wall-mural')).toHaveLength(56);
+    expect(first.cells.some((cell) => cell.tile === 'wall-mural')).toBe(true);
+    expect(first.cells).toEqual(second.cells);
   });
 
   it('makes quiet project rooms cozy without implying runtime activity', () => {

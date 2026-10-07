@@ -1369,11 +1369,12 @@ export function paintInterior(entities: readonly LaidOutEntity[], cols: number, 
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       const wall = y === 0 || y === rows - 1 || x === 0 || x === cols - 1;
+      const wallTile = wall && y > 0 && h2(x, y, 277) % 5 === 0 ? 'wall-mural' : 'wall';
       // Rare, stable floor inlays add quiet craft detail without encoding
       // runtime activity or creating false interactive objects.
       const rune = (x * 31 + y * 67 + x * y * 13) % 47 === 7;
       const floorVariant = rune ? 'floor-rune' : (x + y) % 2 === 0 ? 'floor-a' : 'floor-b';
-      p.set(x, y, wall ? 'wall' : floorVariant, true);
+      p.set(x, y, wall ? wallTile : floorVariant, true);
     }
   }
 

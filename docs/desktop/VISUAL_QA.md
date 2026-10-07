@@ -430,3 +430,24 @@ disposable workspace: [Meadow compact](assets/electron/world/window-lights-2026-
 [Meadow large](../../static/screenshots/world.png),
 [Dusk compact](assets/electron/world/window-lights-2026-10-07/several-projects-dusk-compact.png),
 and [Dusk large](../../static/screenshots/world-dusk.png).
+
+## Moonlit room panels and screenshot refresh — 2026-10-07
+
+I captured a fresh empty world, one-project world, three-project world, and
+project interior from Electron after the wall-art and selection-context
+changes at source `ea2384a2` with the 1.42.0 local V backend. I opened all eight
+compact and large PNGs in
+[`assets/electron/world-review-2026-10-07/`](assets/electron/world-review-2026-10-07/).
+The room now mixes its warm timber with original moonlit wall panels; the
+small teal and gold rune marks add a restrained magical accent without
+representing runtime state. The selected-place chip now shows only the name,
+concept and state, keeping absolute project paths out of the persistent
+header. The project-link E2E verifies this.
+
+The review improved wall variation and removed an unnecessary path leak, but
+the room still has too much bare floor between real stations. The valley still
+reads as a broad rectangular board, with highly geometric civic streets and a
+creek that divides districts. These captures are current evidence, not visual
+sign-off. `static/screenshots/world.png` and
+`static/screenshots/project-interior.png` now use the opened Electron captures;
+the README header uses direct text links instead of external badge images.

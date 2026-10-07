@@ -10,10 +10,10 @@
 
 **A semantic developer workspace represented as a living pixel valley — with reusable capabilities for every major coding assistant**
 
-[![CI](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=CI)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
-[![Desktop](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/desktop.yml?branch=main&label=Desktop)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/desktop.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-7c3aed?style=flat&labelColor=1f2937)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+[CI](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml) ·
+[Desktop CI](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/desktop.yml) ·
+[MIT License](LICENSE) ·
+[Latest release](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
 
 [Documentation](docs/) ·
 [Desktop](#desktop-app-gui) ·
@@ -59,7 +59,7 @@ Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installe
 | Real PTY terminal | Reviewed import |
 | <img src="static/screenshots/terminal.png" width="100%" alt="Live shell session with real command output in the integrated terminal" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder hire import review showing mapped and ignored fields before saving" /> |
 
-These PNGs show Electron with the real backend and a disposable workspace: offline People stay off the map, and the terminal is a live PTY. The badges above link to CI, license, and release metadata. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
+These PNGs are captures from Electron with the real backend and a disposable workspace: offline People stay off the map, and the terminal is a live PTY. The links above go directly to CI, licensing, and release information. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
 
 ---
 
