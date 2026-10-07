@@ -313,6 +313,23 @@ journeys:
           - assets/electron/north-forest-frame-2026-10-07/meadow-several-projects-large.png
           - assets/electron/north-forest-frame-2026-10-07/dusk-several-projects-compact.png
           - assets/electron/north-forest-frame-2026-10-07/dusk-several-projects-large.png
+      - note: >-
+          Semantic place plaques now appear on hover, keyboard focus, or
+          selection, leaving the idle map uncluttered while its canonical
+          tooltip remains available. The Electron capture also reviews the
+          softened Dusk terrain tint at compact and large sizes. The README
+          gallery uses genuine multi-project Meadow and Dusk captures. This
+          improves map clarity but does not resolve broad lawns or geometric
+          paths.
+        build: "6b7a22e1 (Linux Electron; project-link.spec.ts; opened compact and large captures)"
+        tests:
+          - apps/desktop/src/features/world/WorldEntityMap.test.tsx
+          - apps/desktop/e2e/electron/project-link.spec.ts
+        screenshots:
+          - assets/electron/world-labels-2026-10-07/world-several-projects-meadow-compact.png
+          - assets/electron/world-labels-2026-10-07/world-several-projects-meadow-large.png
+          - assets/electron/world-labels-2026-10-07/world-several-projects-dusk-compact.png
+          - assets/electron/world-labels-2026-10-07/world-several-projects-dusk-large.png
     blockers: []
   - id: capability-discovery
     title: Browse skills/agents/packs in the Library

@@ -59,7 +59,7 @@ Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installe
 | Real PTY terminal | Reviewed import |
 | <img src="static/screenshots/terminal.png" width="100%" alt="Live shell session with real command output in the integrated terminal" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder hire import review showing mapped and ignored fields before saving" /> |
 
-These PNGs are captures from Electron with the real backend and a disposable workspace: offline People stay off the map, and the terminal is a live PTY. The links above go directly to CI, licensing, and release information. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
+These PNGs are captures from Electron with the real backend and a disposable workspace: offline People stay off the map, and the terminal is a live PTY. Project and landmark names appear when you hover, focus, or select a place, keeping the resting valley clear while preserving keyboard discovery. The links above go directly to CI, licensing, and release information. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
 
 ---
 
