@@ -16,11 +16,12 @@ The **canonical artifact** is the native V binary from a GitHub Release (`agent-
 # 1. Create an isolated release-preparation branch before changing versions.
 git switch main
 git pull --ff-only
-git switch -c chore/release-1.43.0
+export RELEASE_VERSION=1.43.0  # replace with the reviewed next version
+git switch -c "chore/release-${RELEASE_VERSION}"
 export VJOBS=2  # keep local V compilation bounded on memory-constrained hosts
 
 # 2. Bump all version sources atomically and update CHANGELOG.md.
-./scripts/bump-version.vsh 1.43.0
+./scripts/bump-version.vsh "$RELEASE_VERSION"
 ./make.vsh gen-surface  # regenerate docs/surface/openapi.json (reads VERSION)
 git diff --stat  # VERSION, packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py, package.json, packages/npm/*/package.json, .claude-plugin/marketplace.json, .cursor-plugin/marketplace.json, docs/surface/openapi.json
 
@@ -38,22 +39,22 @@ AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 # 4. Commit and create the PR.
 git add VERSION CHANGELOG.md packages/pypi packages/npm package.json \
   .claude-plugin .cursor-plugin docs/surface/openapi.json
-git commit -m "chore(release): prepare v1.43.0"
-git push -u origin chore/release-1.43.0
-gh pr create --title "chore(release): prepare v1.43.0" --body "Prepare v1.43.0 release metadata and changelog."
+git commit -m "chore(release): prepare v${RELEASE_VERSION}"
+git push -u origin "chore/release-${RELEASE_VERSION}"
+gh pr create --title "chore(release): prepare v${RELEASE_VERSION}" --body "Prepare v${RELEASE_VERSION} release metadata and changelog."
 
 # 5. After review, green required checks and merge, tag the exact merged main commit.
 git switch main
 git pull --ff-only
-git tag -a v1.43.0 -m "v1.43.0"
-git push origin v1.43.0
+git tag -a "v${RELEASE_VERSION}" -m "v${RELEASE_VERSION}"
+git push origin "v${RELEASE_VERSION}"
 
 # 6. Watch Release + downstream
-gh run list --repo ulises-jeremias/agent-toolkit --limit 5  # Release v1.43.0 should be completed success
-gh release view v1.43.0 --repo ulises-jeremias/agent-toolkit
+gh run list --repo ulises-jeremias/agent-toolkit --limit 5  # release should be completed success
+gh release view "v${RELEASE_VERSION}" --repo ulises-jeremias/agent-toolkit
 # Docker is a reusable job on Release after upload-assets (do not rely on `on: release`;
 # GITHUB_TOKEN-created releases do not start sibling workflows). Manual fallback:
-#   gh workflow run Docker --ref v1.43.0
+#   gh workflow run Docker --ref "v${RELEASE_VERSION}"
 # Homebrew/AUR notifies wait for V binaries then repository_dispatch; check their repos
 gh run list --repo ulises-jeremias/homebrew-tap --limit 3
 gh run list --repo ulises-jeremias/aur-packages --limit 3
@@ -81,8 +82,8 @@ curl -sS 'https://aur.archlinux.org/rpc/?v=5&type=info&arg[]=agent-toolkit-bin' 
 Usage:
 
 ```bash
-./scripts/bump-version.vsh --check 1.43.0  # dry-run, exits 1 if would change
-./scripts/bump-version.vsh 1.43.0         # writes files
+./scripts/bump-version.vsh --check "$RELEASE_VERSION"  # dry-run, exits 1 if would change
+./scripts/bump-version.vsh "$RELEASE_VERSION"         # writes files
 ```
 
 ## Rollback / republish
@@ -96,10 +97,10 @@ Usage:
   ```bash
   npm trust github agent-toolkit-cli --file publish-npm.yml --repository ulises-jeremias/agent-toolkit --allow-publish -y
   ```
-* **GitHub Release:** delete tag locally + remote + release, fix, re-tag. Prefer `gh release delete v1.43.0 --yes && git tag -d v1.43.0 && git push origin :v1.43.0`.
+* **GitHub Release:** delete tag locally + remote + release, fix, re-tag. Prefer `gh release delete "v${RELEASE_VERSION}" --yes && git tag -d "v${RELEASE_VERSION}" && git push origin ":v${RELEASE_VERSION}"`.
 * **Homebrew/AUR:** downstream repos are notified via `repository_dispatch` from `release.yml` `create-release`. If they missed, replay per `docs/AUR_PLAYBOOK.md`:
   ```bash
-  gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit-bin' -f 'client_payload[version]=v1.43.0'
+  gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit-bin' -f "client_payload[version]=v${RELEASE_VERSION}"
   ```
 
 ## Asset naming
@@ -167,6 +168,6 @@ See `docs/AUR_PLAYBOOK.md` for re-dispatch when AUR leaves maintenance.
 Re-dispatch example:
 
 ```bash
-gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit-bin' -f 'client_payload[version]=v1.43.0'
-gh api repos/ulises-jeremias/homebrew-tap/dispatches -f event_type=new-release -f 'client_payload[formula_name]=agent-toolkit' -f 'client_payload[version]=1.43.0'
+gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit-bin' -f "client_payload[version]=v${RELEASE_VERSION}"
+gh api repos/ulises-jeremias/homebrew-tap/dispatches -f event_type=new-release -f 'client_payload[formula_name]=agent-toolkit' -f "client_payload[version]=${RELEASE_VERSION}"
 ```
