@@ -15,17 +15,31 @@ both compact and large sizes. A configured Person is offline until a real PTY
 starts. The world shows the selected Person only while that PTY is alive and
 assigned to a registered project.
 
-| Roster at 1024×640 | Roster at 1920×1080 |
-|---|---|
-| ![Offline Person in the compact roster](desktop/assets/electron/people/people-roster-compact.png) | ![Offline Person in the large roster](desktop/assets/electron/people/people-roster-large.png) |
+## Screenshots
 
-| Start review with an available runner | Recovery when no runner is installed |
-|---|---|
-| ![Project, runner, editable one-time task and exact role-goal-task prompt reviewed before start](desktop/assets/electron/people/person-start-large.png) | ![Start review clearly explains that no interactive runner is installed](desktop/assets/electron/people/person-start-no-runner-large.png) |
+### Compact roster
 
-| Real Person session in the world | Person after the PTY stops |
-|---|---|
-| ![Lina present at her project only while the real PTY is open](desktop/assets/electron/people/world-person-large.png) | ![Lina remains configured and offline after the real session stops](desktop/assets/electron/people/people-offline-after-stop.png) |
+![Offline Person in the compact roster](desktop/assets/electron/people/people-roster-compact.png)
+
+### Large roster
+
+![Offline Person in the large roster](desktop/assets/electron/people/people-roster-large.png)
+
+### Start review with an available runner
+
+![Project, runner, editable one-time task and exact role-goal-task prompt reviewed before start](desktop/assets/electron/people/person-start-large.png)
+
+### Recovery when no runner is installed
+
+![Start review clearly explains that no interactive runner is installed](desktop/assets/electron/people/person-start-no-runner-large.png)
+
+### Real Person session in the world
+
+![Lina present at her project only while the real PTY is open](desktop/assets/electron/people/world-person-large.png)
+
+### Person after the PTY stops
+
+![Lina remains configured and offline after the real session stops](desktop/assets/electron/people/people-offline-after-stop.png)
 
 A Person is a collaborator you have chosen and reviewed. It persists in your
 workspace, not in the toolkit. Configuration alone never creates a character:
@@ -38,13 +52,13 @@ output.
 
 These five things are different, and the code keeps them different:
 
-| Concept | Where it lives | What it is |
+|Concept|Where it lives|What it is|
 |---|---|---|
-| **Agent definition** | toolkit `agents/<name>/AGENT.md` | A reusable persona template — how an AI works in a session |
-| **Agent profile** | toolkit `profiles/<target>/` | A per-target adapter/overlay of toolkit capabilities |
-| **Person** | workspace `people/<id>.json` | A durable collaborator you chose and reviewed |
-| **Agent session** | workspace `.agent-toolkit/sessions/<id>.json` + Electron PTY | Durable lifecycle record joined to one local runner process; provider conversation state is not captured yet |
-| **Swarm role** | recipe | A slot in a swarm run, resolved per run |
+|**Agent definition**|toolkit `agents/<name>/AGENT.md`|A reusable persona template — how an AI works in a session|
+|**Agent profile**|toolkit `profiles/<target>/`|A per-target adapter/overlay of toolkit capabilities|
+|**Person**|workspace `people/<id>.json`|A durable collaborator you chose and reviewed|
+|**Agent session**|workspace `.agent-toolkit/sessions/<id>.json` + Electron PTY|Durable lifecycle record joined to one local runner process; provider conversation state is not captured yet|
+|**Swarm role**|recipe|A slot in a swarm run, resolved per run|
 
 Workspace personas (`personas/*.md`) constrain behavior and permissions during
 a session; they are not identity. A Person composes an optional

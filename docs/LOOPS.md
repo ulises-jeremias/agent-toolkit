@@ -238,14 +238,14 @@ The three OSS loops (`oss-pr-monitor`, `oss-triage`, `oss-daily-briefing`) are d
 
 Token consumption scales linearly with repo count. The budgets in the loop templates are calibrated for ecosystems of 20–50 repos.
 
-| Loop | Repos | Estimated tokens/run |
-|------|-------|----------------------|
-| `oss-daily-briefing` | 10 | ~20,000 |
-| `oss-daily-briefing` | 40 | ~80,000 |
-| `oss-triage` | 10 | ~40,000 |
-| `oss-triage` | 40 | ~150,000 |
-| `oss-pr-monitor` | 10 | ~80,000 |
-| `oss-pr-monitor` | 40 | ~300,000 |
+|Loop|Repos|Estimated tokens/run|
+|---|---|---|
+|`oss-daily-briefing`|10|~20,000|
+|`oss-daily-briefing`|40|~80,000|
+|`oss-triage`|10|~40,000|
+|`oss-triage`|40|~150,000|
+|`oss-pr-monitor`|10|~80,000|
+|`oss-pr-monitor`|40|~300,000|
 
 If your ecosystem has more than 50 repos, consider splitting it into two packs and running separate loop instances for each half.
 
@@ -274,11 +274,11 @@ Do not manually edit `STATE.md` during a run. Between runs, you can safely reset
 
 ### When to Use Each Loop
 
-| Loop | Use when |
-|------|----------|
-| `oss-daily-briefing` | You want a daily summary with no risk. Always start here. |
-| `oss-triage` | Briefing is running well and you want to auto-label and respond to questions. |
-| `oss-pr-monitor` | Triage is running well and you want to auto-merge Dependabot PRs. |
+|Loop|Use when|
+|---|---|
+|`oss-daily-briefing`|You want a daily summary with no risk. Always start here.|
+|`oss-triage`|Briefing is running well and you want to auto-label and respond to questions.|
+|`oss-pr-monitor`|Triage is running well and you want to auto-merge Dependabot PRs.|
 
 Run briefing for a week before enabling triage. Run triage for a week before enabling pr-monitor. This gives you confidence in the loop's behavior before enabling mutations.
 

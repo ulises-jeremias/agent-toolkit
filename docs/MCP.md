@@ -44,15 +44,15 @@ Never substitute real credentials directly into the template files and commit th
 
 ## Provider Table
 
-| Provider | Type | Transport | Env vars | Description |
-|----------|------|-----------|----------|-------------|
-| GitHub | Command | stdio | `GITHUB_PERSONAL_ACCESS_TOKEN` | Repos, PRs, issues, releases, Actions |
-| Slack | Command | stdio | `SLACK_BOT_TOKEN`, `SLACK_TEAM_ID` | Channels, messages, reactions, threads |
-| Notion | HTTP / Command | streamable_http or stdio | OAuth (remote) or `NOTION_TOKEN` (local) | Pages, databases, data sources |
-| Linear | HTTP/SSE | streamable_http | None (OAuth via browser) | Issues, projects, cycles, comments |
-| Figma | HTTP | streamable_http | `FIGMA_OAUTH_TOKEN`, `FIGMA_REGION` | Files, components, design tokens |
-| ClickUp | Command | stdio | `CLICKUP_API_TOKEN` | Tasks, lists, spaces, docs, comments |
-| Chrome DevTools | Command | stdio | None (opt `CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS`, `CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS`) | Live Chrome: network, console, performance traces, rendering diagnostics |
+|Provider|Type|Transport|Env vars|Description|
+|---|---|---|---|---|
+|GitHub|Command|stdio|`GITHUB_PERSONAL_ACCESS_TOKEN`|Repos, PRs, issues, releases, Actions|
+|Slack|Command|stdio|`SLACK_BOT_TOKEN`, `SLACK_TEAM_ID`|Channels, messages, reactions, threads|
+|Notion|HTTP / Command|streamable_http or stdio|OAuth (remote) or `NOTION_TOKEN` (local)|Pages, databases, data sources|
+|Linear|HTTP/SSE|streamable_http|None (OAuth via browser)|Issues, projects, cycles, comments|
+|Figma|HTTP|streamable_http|`FIGMA_OAUTH_TOKEN`, `FIGMA_REGION`|Files, components, design tokens|
+|ClickUp|Command|stdio|`CLICKUP_API_TOKEN`|Tasks, lists, spaces, docs, comments|
+|Chrome DevTools|Command|stdio|None (opt `CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS`, `CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS`)|Live Chrome: network, console, performance traces, rendering diagnostics|
 
 ---
 
@@ -82,14 +82,14 @@ Never substitute real credentials directly into the template files and commit th
 
 **Setup:**
 
-1. Create a GitHub personal access token (classic or fine-grained) at https://github.com/settings/tokens
+1. Create a GitHub personal access token (classic or fine-grained) in [GitHub token settings](https://github.com/settings/tokens).
    - Required scopes: `repo`, `read:org`, `workflow` (add `delete_repo` only if needed)
 2. Ensure Docker is available locally.
 3. Export the token:
    ```bash
    export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here
    ```
-4. Copy the template to your tool's MCP config location (see [Adding MCP to Your Tool](#adding-mcp-to-your-tool) below)
+4. Copy the template to your tool's MCP config location (see [Adding MCP to your AI tool](#adding-mcp-to-your-ai-tool) below).
 
 **What it enables:** List and create issues, review PRs, check Actions run status, read repository contents, manage releases.
 
@@ -113,7 +113,7 @@ Never substitute real credentials directly into the template files and commit th
 
 **Setup:**
 
-1. Create a Slack app at https://api.slack.com/apps
+1. Create a [Slack app](https://api.slack.com/apps).
 2. Under **OAuth & Permissions**, add bot token scopes:
    - `channels:history`, `channels:read`, `chat:write`, `reactions:write`, `users:read`
 3. Install the app to your workspace and copy the **Bot User OAuth Token** (`SLACK_BOT_TOKEN`)
@@ -163,7 +163,7 @@ Never substitute real credentials directly into the template files and commit th
 
 **Setup (local stdio fallback):**
 
-1. Create a Notion integration at https://www.notion.so/profile/integrations
+1. Create a [Notion integration](https://www.notion.so/profile/integrations).
 2. Share each page/database with the integration
 3. Export `NOTION_TOKEN` and copy `config.local.template.json`
 
@@ -224,7 +224,7 @@ Linear's MCP uses OAuth — there are no API keys to manage. The MCP client hand
 
 **Setup:**
 
-1. Generate a Figma personal access token at https://www.figma.com/settings → Security → Personal access tokens
+1. Generate a Figma personal access token in [Figma settings](https://www.figma.com/settings) → Security → Personal access tokens.
    - Scope: `File content (read-only)` is sufficient for design-to-code workflows
 2. Find your region (typically `us` or `eu` — check your Figma account settings)
 3. Export the values:
@@ -254,7 +254,7 @@ Linear's MCP uses OAuth — there are no API keys to manage. The MCP client hand
 
 **Setup:**
 
-1. Get your ClickUp API token at https://app.clickup.com/settings/apps
+1. Get your ClickUp API token in [ClickUp settings](https://app.clickup.com/settings/apps).
 2. Export the token:
    ```bash
    export CLICKUP_API_TOKEN=pk_your_token_here

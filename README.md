@@ -49,17 +49,17 @@ flowchart LR
 
 Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installer on Windows from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest). The Electron app bundles its backend; normal workspace setup does not require a separate CLI, source checkout, or manual configuration files. Start with the [Desktop guide](docs/desktop/README.md) for supported workflows and current limits.
 
-| Meadow valley | Dusk valley |
+| Dusk valley | Project interior |
 | --- | --- |
-| <img src="static/screenshots/world.png" width="100%" alt="The workspace as a pixel valley, with project houses, shared landmarks, varied footpaths, a creek and a bridge" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The same semantic workspace valley at dusk, with warm landmark windows" /> |
-| First-run welcome | Project interior |
-| <img src="static/screenshots/onboarding.png" width="100%" alt="First-run welcome with a preview made from the real workspace hall, library, creek and bridge sprites" /> | <img src="static/screenshots/project-interior.png" width="100%" alt="A project house with its real overview board, files, records and terminal stations" /> |
-| Capability Library | People roster |
-| <img src="static/screenshots/library.png" width="100%" alt="The reusable capability Library with truthful detection and installation evidence" /> | <img src="static/screenshots/people.png" width="100%" alt="A configured offline Person in the durable collaborator roster, with no fake world character" /> |
-| Operations | Real PTY terminal |
-| <img src="static/screenshots/operations.png" width="100%" alt="Operations showing real jobs, outcomes and available loop templates" /> | <img src="static/screenshots/terminal.png" width="100%" alt="A live shell session with real command output in the integrated terminal" /> |
-| Reviewed Person import | First-run welcome, compact |
-| <img src="static/screenshots/people-import.png" width="100%" alt="Munder hire import review showing mapped and ignored fields before saving" /> | <img src="static/screenshots/onboarding-compact.png" width="100%" alt="Compact first-run setup with the workspace hall, Library, creek and bridge sprites" /> |
+| <img src="static/screenshots/world-dusk.png" width="100%" alt="The semantic workspace valley at dusk, with project houses, shared landmarks, creek, bridge and warm windows" /> | <img src="static/screenshots/project-interior.png" width="100%" alt="A project house with its real overview board, files, records and terminal stations" /> |
+| Capability Library | Skill catalog detail |
+| <img src="static/screenshots/library.png" width="100%" alt="The reusable capability Library with truthful detection and installation evidence" /> | <img src="docs/desktop/assets/electron/library/catalog-search-details-large.png" width="100%" alt="A searched Skill with catalog provenance, requirements and target support separated from installation evidence" /> |
+| People roster | Operations |
+| <img src="static/screenshots/people.png" width="100%" alt="A configured offline Person in the durable collaborator roster, with no fake world character" /> | <img src="static/screenshots/operations.png" width="100%" alt="Operations showing real jobs, outcomes and available loop templates" /> |
+| Real PTY terminal | Reviewed Person import |
+| <img src="static/screenshots/terminal.png" width="100%" alt="A live shell session with real command output in the integrated terminal" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder hire import review showing mapped and ignored fields before saving" /> |
+| First-run welcome | First-run welcome, compact |
+| <img src="static/screenshots/onboarding.png" width="100%" alt="First-run welcome with a preview made from the real workspace hall, Library, creek and bridge sprites" /> | <img src="static/screenshots/onboarding-compact.png" width="100%" alt="Compact first-run setup with the workspace hall, Library, creek and bridge sprites" /> |
 
 <p align="center"><sub>These are real Electron captures from a disposable workspace. Import is a review step; saving a Person never starts a session.</sub></p>
 
@@ -93,9 +93,9 @@ These PNGs are captures from Electron with the real backend and a disposable wor
     </td>
     <td width="50%" valign="top">
       <h3>📦 Packs</h3>
-      <sub>Solution bundles that combine skills, agents, and loops for a team context (OSS maintenance, engineering workflow, delivery discipline).</sub>
+      <sub>Repository solution packs are docs-only workflow guides. They are distinct from workspace context packs and loop runtime overrides; none are installation bundles.</sub>
       <br><br>
-      <sub>Declared under <code>packs/</code>; load with your workspace tooling.</sub>
+      <sub>See <a href="docs/CONCEPTS.md#three-kinds-of-packs">the three pack types</a> and <a href="packs/README.md">solution pack guides</a>.</sub>
     </td>
   </tr>
   <tr>
