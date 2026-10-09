@@ -362,7 +362,7 @@ journeys:
           target compatibility separately from receipt-backed installation
           evidence. Skill searches use backend catalog metadata rather than
           parsing CLI report text; Electron E2E exercises search and details.
-        build: "Library typed-catalog feature branch from main 25464515 (local Linux Electron E2E)"
+        build: "5c813df1 (local Linux Electron E2E; source-built V backend)"
         tests:
           - modules/agent_toolkit_core/library_catalog_test.v
           - apps/desktop/src/lib/api/api.test.ts
