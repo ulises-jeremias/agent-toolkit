@@ -330,6 +330,24 @@ journeys:
           - assets/electron/world-labels-2026-10-07/world-several-projects-meadow-large.png
           - assets/electron/world-labels-2026-10-07/world-several-projects-dusk-compact.png
           - assets/electron/world-labels-2026-10-07/world-several-projects-dusk-large.png
+      - note: >-
+          World entities now support spatial keyboard navigation: arrows move
+          focus to the nearest inspectable place, Enter opens its canonical
+          destination, and a dedicated camera control retains arrow-key panning
+          plus Home-to-fit. Renderer tests verify directional selection and
+          ignore non-interactive scenery; project-link Electron E2E verifies
+          arrow focus, activation parity, and capture generation. Compact and
+          large captures were opened. The compact tooltip sits close to adjacent
+          art and the map still has broad lawn and angular routes, so composition
+          remains open visual work.
+        build: "f8c6c82309b492c1a0404a02d77a8ada817d4c25 (Linux Electron E2E; project-link.spec.ts; screenshots opened)"
+        tests:
+          - apps/desktop/src/features/world/spatialNavigation.test.ts
+          - apps/desktop/src/features/world/WorldEntityMap.test.tsx
+          - apps/desktop/e2e/electron/project-link.spec.ts
+        screenshots:
+          - assets/electron/world/world-spatial-focus-compact.png
+          - assets/electron/world/world-spatial-focus-large.png
     blockers: []
   - id: capability-discovery
     title: Browse skills/agents/packs in the Library
