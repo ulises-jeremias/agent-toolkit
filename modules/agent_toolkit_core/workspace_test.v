@@ -13,7 +13,9 @@ fn test_workspace_init_in_temp_dir() {
 	})
 	assert report.ok, report.message
 	assert os.is_file(os.join_path(base, 'AGENTS.md'))
+	assert os.is_file(os.join_path(base, 'knowledge', 'processes', '.gitkeep'))
 	assert os.is_file(os.join_path(base, 'knowledge', 'todos', 'pending.md'))
+	assert validate_knowledge(base).len == 0
 	assert os.is_file(os.join_path(base, 'personas', 'implementer.md'))
 	assert os.is_dir(os.join_path(base, 'projects'))
 	assert report.message.contains('Workspace initialized')

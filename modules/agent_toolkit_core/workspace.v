@@ -127,6 +127,7 @@ fn workspace_init(opts WorkspaceOptions) WorkspaceReport {
 		'.gitignore':                     workspace_gitignore
 		'knowledge/README.md':            workspace_knowledge_readme
 		'knowledge/learnings/general.md': workspace_learnings_general
+		'knowledge/processes/.gitkeep':   ''
 		'knowledge/todos/pending.md':     workspace_todos_pending
 		'packs/README.md':                workspace_packs_readme
 		'people/README.md':               workspace_people_readme
