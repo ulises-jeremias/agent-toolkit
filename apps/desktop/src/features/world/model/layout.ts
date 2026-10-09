@@ -47,12 +47,13 @@ function sizeFor(entity: SemanticEntity): { w: number; h: number } {
   return footprintFor(entity);
 }
 
-/** Project district columns adapt to roster size (1 → 2 → 5 → 7 lanes). */
+/** Project district columns adapt to roster size without making long house rows. */
 export function projectDistrictCols(count: number): number {
   if (count <= 1) return 1;
   if (count <= 3) return 2;
-  if (count <= 10) return 5;
-  return 7;
+  if (count <= 8) return 3;
+  if (count <= 18) return 4;
+  return 5;
 }
 
 function layoutInterior(entities: SemanticEntity[]): WorldLayout {
@@ -279,7 +280,9 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   }
 
   const districtRows = Math.ceil(projects.length / Math.max(1, districtCols));
-  const projectRows = districtY + Math.max(0, districtRows - 1) * 6 + 3;
+  // Reserve the front-porch tile after the southernmost house as well as its
+  // footprint; without it, wrapped project lanes could sit on the map edge.
+  const projectRows = districtY + Math.max(0, districtRows - 1) * 6 + 4;
   // Give every civic front door at least one walkable tile inside the camera
   // bounds, including the southern workshop lane on empty workspaces.
   const landmarkRows = Math.max(

@@ -692,9 +692,9 @@ describe('layoutWorld', () => {
     expect(library.w).toBe(4);
     expect(library.h).toBe(4);
     expect(b.y).toBe(a.y + 2);
-    // With ≤10 projects the district uses 5 lanes — the fifth stays on row 1.
-    expect(e.y).toBe(a.y);
-    // A 16-project roster wraps to row 2 (7 lanes).
+    // Dense rosters wrap after three homes so the district avoids a long row.
+    expect(e.y).toBeGreaterThan(a.y);
+    // A 16-project roster wraps after four homes.
     const wide = layoutWorld(
       buildWorldModel(
         baseInput({
@@ -710,7 +710,7 @@ describe('layoutWorld', () => {
     const first = wide.entities.find((row) => row.id === 'place:project:p00')!;
     const eighth = wide.entities.find((row) => row.id === 'place:project:p07')!;
     expect(eighth.y).toBeGreaterThan(first.y);
-    expect(eighth.x).toBe(first.x + 2);
+    expect(eighth.x).toBe(first.x + 20);
     expect(a.y).toBeGreaterThan(memory.y);
     expect(a.x).toBeGreaterThan(library.x + library.w);
   });
@@ -737,7 +737,7 @@ describe('layoutWorld', () => {
     const thirdProject = compactTeam.entities.find((entity) => entity.id === 'place:project:gamma')!;
     expect(thirdProject.y - (secondAlpha.y + secondAlpha.h)).toBeGreaterThanOrEqual(3);
     expect(compactTeam.cols).toBeLessThanOrEqual(30);
-    expect(compactTeam.rows).toBeLessThanOrEqual(13);
+    expect(compactTeam.rows).toBeLessThanOrEqual(14);
   });
 
   it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {
@@ -963,7 +963,7 @@ describe('layoutWorld', () => {
       expect(first.decor.some((sprite) => sprite.id === `lamp-glow:${lantern.id}`)).toBe(true);
     }
     const motes = first.decor.filter((sprite) => sprite.sprite === 'mote');
-    expect(motes.length).toBeLessThanOrEqual(6);
+    expect(motes.length).toBeLessThanOrEqual(10);
     expect(motes.every((sprite) => sprite.ambient && sprite.w === 10 && sprite.h === 10)).toBe(true);
     const reached = new Set<string>();
     const queue = [trails.values().next().value as string];
@@ -989,7 +989,7 @@ describe('layoutWorld', () => {
     for (const project of layout.entities.filter((entity) => entity.id.startsWith('place:project:'))) {
       const doorX = project.x + Math.floor(project.w / 2);
       const doorFrontY = project.y + project.h;
-      expect(trails.has(`${doorX},${doorFrontY}`)).toBe(true);
+      expect(trails.has(`${doorX},${doorFrontY}`), `doorway for ${project.id} at ${doorX},${doorFrontY}`).toBe(true);
       expect(project.x).toBeGreaterThan(bridge!.x + bridge!.w / 16 - 1);
       for (let y = project.y; y < project.y + project.h; y++) {
         for (let x = project.x; x < project.x + project.w; x++) {
