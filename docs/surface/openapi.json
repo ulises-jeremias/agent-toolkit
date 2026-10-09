@@ -2295,6 +2295,26 @@
         }
       }
     },
+    "/api/v1/skills/catalog": {
+      "get": {
+        "operationId": "list_library_skills",
+        "summary": "Typed skill catalog with dependencies, provenance and target support",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibrarySkillsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tools": {
       "get": {
         "operationId": "list_tools",
@@ -4180,6 +4200,118 @@
         "required": [
           "ok",
           "agents"
+        ]
+      },
+      "LibraryCompatibility": {
+        "type": "object",
+        "description": "Target-registry support for the portable Agent Skills format.",
+        "properties": {
+          "target": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "supported",
+              "partial",
+              "unsupported",
+              "unknown"
+            ]
+          }
+        },
+        "required": [
+          "target",
+          "display_name",
+          "status"
+        ]
+      },
+      "LibrarySkill": {
+        "type": "object",
+        "description": "Catalog metadata for one reusable skill. This does not claim that the skill is installed or available on the current machine.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "source_file": {
+            "type": "string"
+          },
+          "requires": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "prerequisites": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mcp_required": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "compatibility": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LibraryCompatibility"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "domain",
+          "description",
+          "origin",
+          "source_file",
+          "requires",
+          "prerequisites",
+          "mcp_required",
+          "compatibility"
+        ]
+      },
+      "LibrarySkillsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LibrarySkill"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "count",
+          "message",
+          "skills"
         ]
       },
       "ToolInfo": {

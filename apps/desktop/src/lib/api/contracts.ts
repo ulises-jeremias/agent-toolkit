@@ -28,6 +28,8 @@ export type InstallReceiptSummary = components['schemas']['InstallReceiptSummary
 export type CopilotProjectInstallResponse = components['schemas']['CopilotProjectInstallResponse'];
 export type McpProvidersResponse = components['schemas']['McpProvidersResponse'];
 export type McpProviderInfo = components['schemas']['McpProviderInfo'];
+export type LibrarySkill = components['schemas']['LibrarySkill'];
+export type LibrarySkillsResponse = components['schemas']['LibrarySkillsResponse'];
 
 export interface SelfcheckCheck {
   name: string;

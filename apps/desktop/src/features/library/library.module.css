@@ -56,6 +56,88 @@
   line-height: 1.35;
 }
 
+.catalogSearch {
+  display: grid;
+  grid-template-columns: minmax(10rem, max-content) minmax(16rem, 1fr);
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin: var(--space-4) 0 var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border: 2px solid var(--border-default);
+  background: var(--surface-sunken);
+  box-shadow: var(--shadow-menu);
+}
+
+.catalogSearch label {
+  color: var(--accent-gold);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.catalogSearch input {
+  width: 100%;
+  min-width: 0;
+}
+
+.catalogSearch small {
+  grid-column: 2;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.compatibilitySummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.resourceName {
+  display: inline-block;
+  min-width: max-content;
+  white-space: nowrap;
+}
+
+.resourceDetails {
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+}
+
+.resourceDetails summary {
+  width: fit-content;
+  color: var(--accent-gold);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.resourceDetails summary:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.resourceDetails dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-1) var(--space-2);
+  margin: var(--space-2) 0 0;
+}
+
+.resourceDetails dt {
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.resourceDetails dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.resourceDetails ul {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-4);
+}
+
 .installPreview {
   max-height: min(52vh, 34rem);
   overflow: auto;
@@ -190,6 +272,13 @@
 }
 
 @media (max-width: 36rem) {
+  .catalogSearch {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .catalogSearch small {
+    grid-column: 1;
+  }
   .projectInstall {
     grid-template-columns: 1fr;
   }

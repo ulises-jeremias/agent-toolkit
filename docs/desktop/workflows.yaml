@@ -356,6 +356,21 @@ journeys:
     evidence:
       - note: Library renders catalog definitions over the serve API
       - note: >-
+          Desktop now searches Skills and Agent Definitions from one Library
+          field. The typed GET /api/v1/skills/catalog response exposes catalog
+          provenance, declared dependencies/prerequisites/MCP requirements, and
+          target compatibility separately from receipt-backed installation
+          evidence. Skill searches use backend catalog metadata rather than
+          parsing CLI report text; Electron E2E exercises search and details.
+        build: "5c813df1 (local Linux Electron E2E; source-built V backend)"
+        tests:
+          - modules/agent_toolkit_core/library_catalog_test.v
+          - apps/desktop/src/lib/api/api.test.ts
+          - apps/desktop/e2e/electron/desktop.spec.ts
+        screenshots:
+          - assets/electron/library/catalog-search-details-compact.png
+          - assets/electron/library/catalog-search-details-large.png
+      - note: >-
           Skills and Agent Definitions now show per-resource Toolkit receipt state
           beside catalog membership. The state is derived from receipt-owned
           artifacts and their current digest checks: verified, needs attention,
@@ -376,8 +391,8 @@ journeys:
           - ../../static/screenshots/library.png
     blockers:
       - >-
-          Capability catalog search, provenance, dependencies, and verified
-          compatibility are not yet available together in the Library.
+          Workspace capability packs are not yet browsable from the Library,
+          and target compatibility is currently declared for Skills only.
   - id: install-capabilities
     title: Install skills/agents from the Library
     destinations: [library]

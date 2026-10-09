@@ -15,6 +15,20 @@ export function useAgents() {
   });
 }
 
+export function useLibrarySkills() {
+  const { client } = useBackend();
+  return useQuery({
+    queryKey: qk.catalog.librarySkills(),
+    queryFn: async () => {
+      const catalog = await requireClient(client).librarySkills();
+      if (!catalog.ok) throw new Error(catalog.message || 'The Skill catalog is unavailable.');
+      return catalog;
+    },
+    enabled: client !== null,
+    staleTime: 5 * 60_000,
+  });
+}
+
 export function useTools() {
   const { client } = useBackend();
   return useQuery({

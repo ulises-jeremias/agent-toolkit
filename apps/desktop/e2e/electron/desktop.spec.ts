@@ -661,6 +661,96 @@ test('Library installs Skills and preserves user changes during reviewed removal
   );
 });
 
+test('Library searches typed catalog metadata and reveals provenance and compatibility', async () => {
+  const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+  await expect(page.getByText('Loading the skills catalog')).toBeHidden();
+  const search = page.getByRole('searchbox', { name: 'Find a capability' });
+  await search.fill('mcp-audit');
+  const skill = page.getByRole('row').filter({ hasText: /mcp.audit/ });
+  await expect(skill).toHaveCount(1);
+  await expect(skill.locator('th[scope="row"] span')).toHaveCSS('white-space', 'nowrap');
+  await expect(skill).toContainText('agentic-security');
+  await skill.getByText('Targets').click();
+  await skill.getByText('Provenance and requirements').click();
+  await expect(skill).toContainText('Claude Code: supported');
+  await expect(skill).toContainText('Windsurf: partial');
+  await expect(skill).toContainText('skills/agentic-security/mcp-audit/SKILL.md');
+  await expect(skill).toContainText('None declared');
+  await skill.getByText('Targets').click();
+  await skill.scrollIntoViewIfNeeded();
+  const skillsPanel = page.getByRole('region', { name: 'Skills catalog' });
+
+  if (CAPTURE) {
+    fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
+    for (const size of [
+      { width: 1024, height: 768, key: 'compact' },
+      { width: 1440, height: 900, key: 'large' },
+    ]) {
+      await setViewport(desktop.app, size.width, size.height);
+      await skillsPanel.evaluate((element) => element.scrollIntoView({ block: 'start' }));
+      await skillsPanel.screenshot({
+        path: path.join(LIBRARY_CAPTURE_DIR, `catalog-search-details-${size.key}.png`),
+      });
+    }
+    await setViewport(desktop.app, 1280, 800);
+  }
+
+  await search.fill('no-such-library-entry-72914');
+  await expect(page.getByRole('region', { name: 'Agent definitions' })).toContainText(
+    'No definitions match this search.',
+  );
+  const skillSearchResults = page.getByRole('region', { name: 'Skills catalog' });
+  await expect(skillSearchResults).toContainText('No Skills match this search.');
+  await expect(skillSearchResults).toContainText(
+    'Try another name, domain, or description, or clear the search field.',
+  );
+  await search.fill('agentic-security-reviewer');
+  await expect(page.getByRole('region', { name: 'Agent definitions' })).toContainText('agentic-security-reviewer');
+});
+
+test('Library explains a missing Skill catalog and offers retry', async () => {
+  const { page } = desktop;
+  await page.route('**/api/v1/skills/catalog', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: false,
+        count: 0,
+        message: 'Skill capability registry could not be read: unavailable',
+        skills: [],
+      }),
+    }),
+  );
+  await page.reload();
+  await waitForBackend(page);
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
+  const alert = page.getByRole('alert').filter({ hasText: 'Skill capability registry could not be read: unavailable' });
+  await expect(alert).toBeVisible();
+  await expect(alert.getByRole('button', { name: /try again/i })).toBeVisible();
+  await page.unroute('**/api/v1/skills/catalog');
+  await page.route('**/api/v1/skills/catalog', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, count: 0, message: 'The catalog is empty.', skills: [] }),
+    }),
+  );
+  await page.reload();
+  await waitForBackend(page);
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
+  const search = page.getByRole('searchbox', { name: 'Find a capability' });
+  await search.fill('review');
+  const emptySkills = page.getByRole('region', { name: 'Skills catalog' });
+  await expect(emptySkills).toContainText('No Skills match this search.');
+  await expect(emptySkills).toContainText('Try another name, domain, or description, or clear the search field.');
+  await page.unroute('**/api/v1/skills/catalog');
+  await page.reload();
+  await waitForBackend(page);
+});
+
 test('Library configures MCP providers with secret-free previews and explicit checks', async () => {
   const { page } = desktop;
   let enabled = false;

@@ -3,6 +3,7 @@ import type {
   Job,
   JobCreateRequest,
   JobRegistry,
+  LibrarySkillsResponse,
   InstallPreviewResponse,
   InstallReceiptsResponse,
   CopilotProjectInstallResponse,
@@ -412,6 +413,10 @@ export class ApiClient {
 
   agents(): Promise<ResponseOf<OperationOf<'/api/v1/agents', 'get'>, AgentsResponse>> {
     return this.json('GET', '/api/v1/agents' satisfies PathWith<'get'>);
+  }
+
+  librarySkills(): Promise<ResponseOf<OperationOf<'/api/v1/skills/catalog', 'get'>, LibrarySkillsResponse>> {
+    return this.json('GET', '/api/v1/skills/catalog' satisfies PathWith<'get'>);
   }
 
   people(workspace: string): Promise<PeopleResponse> {

@@ -752,3 +752,25 @@ still dense. No session is started until the user confirms.
 
 Reviewed captures: [compact](assets/electron/people/person-start-again-compact.png)
 and [large](assets/electron/people/person-start-again-large.png).
+
+## Typed Library catalog review — 2026-10-09
+
+The Library now searches Skills and Agent Definitions from one field. Skill
+catalog metadata comes from `GET /api/v1/skills/catalog`; the result shows
+origin and source path, declared requirements, and compatibility separately
+from the Toolkit receipt state. I opened the focused Skills card captures at
+[compact](assets/electron/library/catalog-search-details-compact.png) and
+[large](assets/electron/library/catalog-search-details-large.png). They show
+the real `mcp-audit` entry, its first-party source path, no Toolkit receipt,
+and the target registry summary (10 supported, 1 partial). The detailed target
+list stays collapsed until opened. The compact ID now remains on one line;
+the E2E asserts the applied no-wrap style as well as the metadata and
+compatibility details.
+
+These are cropped catalog-card captures rather than full-window screenshots so
+the provenance and compatibility remain legible in documentation. The card is
+compact and consistent with the indigo-and-gold menu language, though the
+description still takes several lines on compact screens. Broader Library
+layout, repository-scoped Skills/Agent Definitions, and capability-pack
+discovery remain open work; this card review is not a visual sign-off for the
+whole Desktop.

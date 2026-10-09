@@ -808,6 +808,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/skills/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Typed skill catalog with dependencies, provenance and target support */
+        get: operations["list_library_skills"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tools": {
         parameters: {
             query?: never;
@@ -1410,6 +1427,32 @@ export interface components {
         AgentsResponse: {
             ok: boolean;
             agents: components["schemas"]["AgentInfo"][];
+        };
+        /** @description Target-registry support for the portable Agent Skills format. */
+        LibraryCompatibility: {
+            target: string;
+            display_name: string;
+            /** @enum {string} */
+            status: "supported" | "partial" | "unsupported" | "unknown";
+        };
+        /** @description Catalog metadata for one reusable skill. This does not claim that the skill is installed or available on the current machine. */
+        LibrarySkill: {
+            id: string;
+            name: string;
+            domain: string;
+            description: string;
+            origin: string;
+            source_file: string;
+            requires: string[];
+            prerequisites: string[];
+            mcp_required: string[];
+            compatibility: components["schemas"]["LibraryCompatibility"][];
+        };
+        LibrarySkillsResponse: {
+            ok: boolean;
+            count: number;
+            message: string;
+            skills: components["schemas"]["LibrarySkill"][];
         };
         /** @description Coding-agent CLI discovery. detected = binary on PATH; configured = a known settings sentinel exists; enabled is `unknown` until serve owns an enablement store; verified = `--version` exited 0. install_hint is empty unless a real first-party install argv exists. */
         ToolInfo: {
@@ -3755,6 +3798,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentsResponse"];
+                };
+            };
+        };
+    };
+    list_library_skills: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibrarySkillsResponse"];
                 };
             };
         };
