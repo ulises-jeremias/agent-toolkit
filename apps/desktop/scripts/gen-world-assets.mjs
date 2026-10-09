@@ -1148,39 +1148,62 @@ function dirtTiles() {
     'cross',
   ];
   pathNames.forEach((name, mask) => {
-    const img = new Img(16, 16);
-    const body = Array.from({ length: 16 }, () => new Array(16).fill(false));
-    const fill = (x0, y0, x1, y1) => {
-      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) body[y][x] = true;
-    };
-    fill(5, 5, 10, 10);
-    if (mask & 1) fill(5, 0, 10, 7);
-    if (mask & 2) fill(5, 8, 10, 15);
-    if (mask & 4) fill(0, 5, 7, 10);
-    if (mask & 8) fill(8, 5, 15, 10);
-    const neighborIsPath = (x, y, dx, dy) => {
-      const nx = x + dx;
-      const ny = y + dy;
-      if (nx >= 0 && ny >= 0 && nx < 16 && ny < 16) return body[ny][nx];
-      if (nx < 0) return Boolean(mask & 4) && y >= 5 && y <= 10;
-      if (nx >= 16) return Boolean(mask & 8) && y >= 5 && y <= 10;
-      if (ny < 0) return Boolean(mask & 1) && x >= 5 && x <= 10;
-      return Boolean(mask & 2) && x >= 5 && x <= 10;
-    };
-    for (let y = 0; y < 16; y++) {
-      for (let x = 0; x < 16; x++) {
-        if (!body[y][x]) continue;
-        const edge = [
-          [0, -1],
-          [0, 1],
-          [-1, 0],
-          [1, 0],
-        ].some(([dx, dy]) => !neighborIsPath(x, y, dx, dy));
-        img.set(x, y, edge ? 'dd' : 'd');
+    // Four deterministic variants make long routes feel worn into the grass
+    // instead of repeating as a ruler-straight brown ribbon. Connected tile
+    // edges keep a fixed 5..10px throat so adjacent variants always join.
+    for (let variant = 0; variant < 4; variant += 1) {
+      const img = new Img(16, 16);
+      const body = Array.from({ length: 16 }, () => new Array(16).fill(false));
+      const jitter = (along) => ((along * 7 + variant * 5 + mask * 3) % 3) - 1;
+      for (let y = 0; y < 16; y += 1) {
+        for (let x = 0; x < 16; x += 1) {
+          const dx = Math.abs(x - 7.5);
+          const dy = Math.abs(y - 7.5);
+          const horizontal =
+            ((mask & 4) !== 0 && x <= 8 && dy <= 2.5 + (x === 0 || x === 7 ? 0 : jitter(x)) * 0.45) ||
+            ((mask & 8) !== 0 && x >= 7 && dy <= 2.5 + (x === 15 || x === 8 ? 0 : jitter(x)) * 0.45);
+          const vertical =
+            ((mask & 1) !== 0 && y <= 8 && dx <= 2.5 + (y === 0 || y === 7 ? 0 : jitter(y + 11)) * 0.45) ||
+            ((mask & 2) !== 0 && y >= 7 && dx <= 2.5 + (y === 15 || y === 8 ? 0 : jitter(y + 11)) * 0.45);
+          const heart = dx <= 3.2 && dy <= 3.2;
+          body[y][x] = horizontal || vertical || heart;
+        }
       }
+
+      const neighborIsPath = (x, y) => {
+        if (x >= 0 && y >= 0 && x < 16 && y < 16) return body[y][x];
+        if (x < 0) return (mask & 4) !== 0 && y >= 5 && y <= 10;
+        if (x >= 16) return (mask & 8) !== 0 && y >= 5 && y <= 10;
+        if (y < 0) return (mask & 1) !== 0 && x >= 5 && x <= 10;
+        return (mask & 2) !== 0 && x >= 5 && x <= 10;
+      };
+      for (let y = 0; y < 16; y += 1) {
+        for (let x = 0; x < 16; x += 1) {
+          if (!body[y][x]) continue;
+          const edge = [
+            [0, -1],
+            [0, 1],
+            [-1, 0],
+            [1, 0],
+          ].some(([ox, oy]) => !neighborIsPath(x + ox, y + oy));
+          const texture = (x * 17 + y * 29 + variant * 13 + mask * 7) % 31;
+          const color = edge ? 'dd' : texture < 3 ? 'dl' : texture < 6 ? 'dd' : 'd';
+          img.set(x, y, color);
+        }
+      }
+      // A couple of small, sunlit pebbles and leaf flecks vary by tile variant.
+      const flecks = [
+        [[6, 7], [10, 9], [8, 5]],
+        [[5, 8], [9, 6], [11, 10]],
+        [[7, 10], [10, 7], [4, 6]],
+        [[5, 5], [8, 10], [11, 7]],
+      ][variant];
+      for (const [x, y] of flecks) {
+        if (!body[y][x]) continue;
+        img.set(x, y, (x + y + mask) % 2 === 0 ? 'dl' : 'paverDark');
+      }
+      out.push({ name: `trail-${name}-${variant}`, img });
     }
-    img.set(6, 6, 'dl').set(9, 9, 'dd');
-    out.push({ name: `trail-${name}`, img });
   });
   const edge = (dir) => {
     const img = base();
