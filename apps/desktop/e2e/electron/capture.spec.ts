@@ -72,6 +72,7 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
   const { app, page } = desktop;
   await waitForBackend(page);
   let createdPerson = false;
+  let terminalPrimed = false;
 
   if (!WORLD_ONLY) {
     await startJob(page, 'version');
@@ -87,10 +88,6 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
     await session.getByRole('textbox', { name: 'Label', exact: true }).fill('shell');
     await session.getByRole('button', { name: 'Open session' }).click();
     terminal = page.getByLabel('Terminal for shell');
-    await terminal.click();
-    await page.keyboard.type('agent-toolkit version');
-    await page.keyboard.press('Enter');
-    await expect(terminal.locator('.xterm-rows')).toContainText(/\d+\.\d+/);
     await expect(page.getByRole('region', { name: 'Receipts' }).getByRole('listitem')).toHaveCount(0, {
       timeout: 20_000,
     });
@@ -174,13 +171,14 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
           await page.getByRole('button', { name: /^agent-toolkit version/ }).click();
         }
         await settle(page);
-        if (!WORLD_ONLY && destination === 'Terminal') {
+        if (!WORLD_ONLY && destination === 'Terminal' && !terminalPrimed) {
           await terminal.click();
           // Keep the published visual evidence useful as a real workstation:
           // show the actual workspace directory and bundled backend version.
           await page.keyboard.type('pwd && agent-toolkit version');
           await page.keyboard.press('Enter');
           await expect(terminal.locator('.xterm-rows')).toContainText(/agent-toolkit \d+\.\d+\.\d+/);
+          terminalPrimed = true;
         }
         await page.mouse.move(size.width - 1, size.height - 1);
         await page.screenshot({
