@@ -545,7 +545,9 @@ What worked on Linux/Hyprland (Wayland) with no Xvfb installed:
 4. Backend: the supervisor probes `ATK_BACKEND_BIN` → bundled → staged → PATH (version pin + `serve` capability). Put a gate-capable build first on `PATH` for dev; for packaged runs set `ATK_BACKEND_BIN=<binary>` before `pnpm dist:dir` (no V build needed if a binary exists). A stale PATH binary is `failed`/`binary-rejected` (path, version, reason), not "crashed".
 5. Stop by exact PID of the Electron main process (`SIGTERM`); the supervisor stops its `serve` child. Verify no `agent-toolkit serve --host 127.0.0.1` remains.
 
-Screenshots from that baseline live in [`assets/electron/baseline/`](assets/electron/baseline/).
+The baseline screenshots were removed from the checked-in capture tree during
+the cleanup in commit `7a4d32d8`; the dated critique and implementation history
+remain in this document and in Git history.
 Munder screenshots were reviewed but are intentionally **not** committed.
 
 The detailed 2026-09-29 per-destination UX critique (Office quiet-after-fail,
