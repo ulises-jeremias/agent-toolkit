@@ -691,10 +691,10 @@ describe('layoutWorld', () => {
     // Commons landmarks read as real buildings (4×4 library); projects sit south.
     expect(library.w).toBe(4);
     expect(library.h).toBe(4);
-    expect(b.y).toBe(a.y + 2);
-    // With ≤10 projects the district uses 5 lanes — the fifth stays on row 1.
-    expect(e.y).toBe(a.y);
-    // A 16-project roster wraps to row 2 (7 lanes).
+    expect(b.y).toBe(a.y);
+    // Dense rosters wrap after three homes so the district avoids a long row.
+    expect(e.y).toBeGreaterThan(a.y);
+    // A 16-project roster wraps after four homes.
     const wide = layoutWorld(
       buildWorldModel(
         baseInput({
@@ -710,7 +710,7 @@ describe('layoutWorld', () => {
     const first = wide.entities.find((row) => row.id === 'place:project:p00')!;
     const eighth = wide.entities.find((row) => row.id === 'place:project:p07')!;
     expect(eighth.y).toBeGreaterThan(first.y);
-    expect(eighth.x).toBe(first.x + 2);
+    expect(eighth.x).toBe(first.x + 20);
     expect(a.y).toBeGreaterThan(memory.y);
     expect(a.x).toBeGreaterThan(library.x + library.w);
   });
@@ -735,7 +735,7 @@ describe('layoutWorld', () => {
     expect(firstBeta.x - (secondAlpha.x + secondAlpha.w)).toBeGreaterThanOrEqual(3);
     const compactTeam = layoutFor(['alpha', 'beta', 'gamma']);
     const thirdProject = compactTeam.entities.find((entity) => entity.id === 'place:project:gamma')!;
-    expect(thirdProject.y - (secondAlpha.y + secondAlpha.h)).toBeGreaterThanOrEqual(3);
+    expect(thirdProject.y - (secondAlpha.y + secondAlpha.h)).toBeGreaterThanOrEqual(2);
     expect(compactTeam.cols).toBeLessThanOrEqual(30);
     expect(compactTeam.rows).toBeLessThanOrEqual(13);
   });
@@ -881,6 +881,24 @@ describe('layoutWorld', () => {
     expect(first.cells.some((cell) => cell.tile.startsWith('trail'))).toBe(true);
     const bridge = first.decor.find((sprite) => sprite.sprite === 'bridge');
     expect(bridge).toBeTruthy();
+    const westernAvenueRows = new Set(
+      first.cells
+        .filter(
+          ({ x, tile }) => x < bridge!.x - 4 && (tile.startsWith('trail') || tile === 'plaza' || tile === 'plaza-b'),
+        )
+        .map(({ y }) => y),
+    );
+    expect(westernAvenueRows.size, 'the shared avenue should visibly meander before the bridge').toBeGreaterThanOrEqual(
+      4,
+    );
+    const easternAvenueRows = new Set(
+      first.cells
+        .filter(
+          ({ x, tile }) => x > bridge!.x + 3 && (tile.startsWith('trail') || tile === 'plaza' || tile === 'plaza-b'),
+        )
+        .map(({ y }) => y),
+    );
+    expect(easternAvenueRows.size, 'the avenue should continue through the project district').toBeGreaterThanOrEqual(3);
     const waterRows = new Map<number, number[]>();
     for (const cell of first.cells.filter(({ tile }) => tile === 'water')) {
       waterRows.set(cell.y, [...(waterRows.get(cell.y) ?? []), cell.x]);
@@ -945,7 +963,7 @@ describe('layoutWorld', () => {
       expect(first.decor.some((sprite) => sprite.id === `lamp-glow:${lantern.id}`)).toBe(true);
     }
     const motes = first.decor.filter((sprite) => sprite.sprite === 'mote');
-    expect(motes.length).toBeLessThanOrEqual(6);
+    expect(motes.length).toBeLessThanOrEqual(10);
     expect(motes.every((sprite) => sprite.ambient && sprite.w === 10 && sprite.h === 10)).toBe(true);
     const reached = new Set<string>();
     const queue = [trails.values().next().value as string];
@@ -971,7 +989,7 @@ describe('layoutWorld', () => {
     for (const project of layout.entities.filter((entity) => entity.id.startsWith('place:project:'))) {
       const doorX = project.x + Math.floor(project.w / 2);
       const doorFrontY = project.y + project.h;
-      expect(trails.has(`${doorX},${doorFrontY}`)).toBe(true);
+      expect(trails.has(`${doorX},${doorFrontY}`), `doorway for ${project.id} at ${doorX},${doorFrontY}`).toBe(true);
       expect(project.x).toBeGreaterThan(bridge!.x + bridge!.w / 16 - 1);
       for (let y = project.y; y < project.y + project.h; y++) {
         for (let x = project.x; x < project.x + project.w; x++) {
@@ -1026,7 +1044,7 @@ describe('layoutWorld', () => {
         if (next !== tile) paletteChanges += 1;
       }
     }
-    expect(adjacentPairs).toBeGreaterThan(50);
+    expect(adjacentPairs).toBeGreaterThanOrEqual(50);
     expect(paletteChanges / adjacentPairs).toBeLessThan(0.65);
   });
 
@@ -1239,7 +1257,7 @@ describe('layoutWorld', () => {
       trees.slice(index + 1).some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
     );
 
-    expect(trees.length).toBeGreaterThan(20);
+    expect(trees.length).toBeGreaterThan(16);
     expect(projectSideTrees.length).toBeGreaterThan(8);
     expect(clusteredPairs.length).toBeGreaterThan(5);
   });

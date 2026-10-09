@@ -243,11 +243,8 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number, startX:
     // Keep a short bank approach and the three bridge tiles level. The road's
     // wider meadow bend must not overwrite water on neighboring stream rows.
     const crossing = x >= bridgeX - 4 && x < bridgeX + 4;
-    // The old shallow bend disappeared at fitted map zoom and made the shared
-    // route read as a ruler-straight service road. Give the footpath enough
-    // room to wander through the meadow while keeping its bridge approach
-    // level and the southern service lane clear.
-    const bank = x < bridgeX - 1 ? Math.round(bend * 2.75) : Math.max(0, Math.round(bend * 2.75));
+    // The road winds through both districts, then eases onto a level bridge.
+    const bank = Math.round(bend * 4.25 * (Math.min(4, Math.abs(bridgeX - x)) / 4));
     const current = { x, y: crossing ? y : y + bank };
     rasterLine(p, previous.x, previous.y, current.x, current.y);
     previous = current;
@@ -1335,23 +1332,20 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const plannedCreekX = creek(p, riverX, new Set([roadY]), riverAnchorX - 3, workshop ? workshop.x + workshop.w : 6);
   const creekX = plannedCreekX ?? Math.max(4, Math.min(cols - 5, riverX));
   (p as unknown as { creekX: number }).creekX = creekX;
-  const routeEndX = Math.min(
-    creekX + 3,
-    projects.length
-      ? Math.max(...projects.map((project) => project.x + Math.floor(project.w / 2)))
-      : marker
-        ? marker.x + Math.floor(marker.w / 2)
-        : cols - 4,
-  );
+  const routeEndX = projects.length
+    ? Math.min(cols - 2, Math.max(...projects.map((project) => project.x + Math.floor(project.w / 2))))
+    : marker
+      ? Math.min(creekX + 3, marker.x + Math.floor(marker.w / 2))
+      : creekX + 3;
   road(p, roadY, creekX, routeEndX, 3);
   // Each real doorway finds its own safe, short approach to the public street.
   // This keeps the village from acquiring a second ruler-straight service lane.
   const street = new Set(p.paths);
-  if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h, street, false);
+  if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h, street);
   for (const place of commons) {
     const doorX = place.x + Math.floor(place.w / 2);
     const doorY = place.y + place.h;
-    connectEntrance(p, doorX, doorY, street, false);
+    connectEntrance(p, doorX, doorY, street);
   }
   for (const project of projects) {
     const doorX = project.x + Math.floor(project.w / 2);
