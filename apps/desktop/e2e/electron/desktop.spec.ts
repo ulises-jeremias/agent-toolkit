@@ -1155,6 +1155,7 @@ test('an exited session keeps its output and can restart', async () => {
   await runField.fill('e2e-run');
   await runField.press('Enter');
   await expect(page).toHaveURL(/run=e2e-run/);
+  await expect(page).toHaveURL(/#\/terminal\?/);
   await page.getByRole('main').getByRole('button', { name: 'New session' }).click();
   const dialog = page.getByRole('dialog', { name: 'New terminal session' });
   await dialog.getByRole('textbox', { name: 'Command', exact: true }).fill('/bin/sh');
