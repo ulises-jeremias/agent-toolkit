@@ -6,6 +6,7 @@ import { entityActivateLabel, entityActivateVerb, entityHasInspector } from './i
 import { paintInterior, paintTerrain, type DecorSprite, type LaidOutEntity } from './model';
 import spriteManifest from '../../../public/world/manifest.json';
 import { TerrainCanvas } from './TerrainRenderer';
+import { nearestWorldNeighbor, type WorldDirection } from './spatialNavigation';
 import { resolveEntityAsset, type WorldThemePack } from './theme/cozyValley';
 import styles from './world.module.css';
 
@@ -223,6 +224,15 @@ export function WorldEntityMap({
     }
   };
 
+  const moveEntityFocus = (currentId: string, direction: WorldDirection) => {
+    const nextId = nearestWorldNeighbor(entities, currentId, direction);
+    if (!nextId) return;
+    const next = [...(regionRef.current?.querySelectorAll<HTMLButtonElement>('[data-activates="true"]') ?? [])].find(
+      (button) => button.dataset.entityId === nextId,
+    );
+    next?.focus();
+  };
+
   const changeZoom = (next: number) => {
     const region = regionRef.current;
     setCameraMode('manual');
@@ -266,7 +276,7 @@ export function WorldEntityMap({
       <button
         type="button"
         className={styles.panFocus}
-        aria-label="Pan map with arrow keys; Home fits the world"
+        aria-label="Map controls. Arrow keys pan while focused; Home fits the world. Tab to places, then use arrows to move."
         onKeyDown={onKeyDown}
       />
       <div
@@ -298,6 +308,7 @@ export function WorldEntityMap({
             onSelect={onSelect}
             onActivate={onActivate}
             onHover={setHoveredId}
+            onMoveFocus={moveEntityFocus}
           />
         ))}
         {plan.decor
@@ -378,6 +389,7 @@ function EntityTile({
   onSelect,
   onActivate,
   onHover,
+  onMoveFocus,
 }: {
   entity: LaidOutEntity;
   theme: WorldThemePack;
@@ -387,6 +399,7 @@ function EntityTile({
   onSelect: (id: string) => void;
   onActivate: (entity: LaidOutEntity) => void;
   onHover: (id: string | null) => void;
+  onMoveFocus: (id: string, direction: WorldDirection) => void;
 }) {
   const asset = resolveEntityAsset(theme, entity);
   const isCharacter = entity.kind === 'character';
@@ -412,9 +425,16 @@ function EntityTile({
   const canInspect = entityHasInspector(entity);
   const EntityControl = canInspect ? 'button' : 'span';
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    if (!canInspect || (event.key !== 'Enter' && event.key !== ' ')) return;
-    event.preventDefault();
-    activateEntity(entity, onSelect, onActivate);
+    const direction = event.key.replace('Arrow', '').toLowerCase() as WorldDirection;
+    if (canInspect && ['up', 'down', 'left', 'right'].includes(direction)) {
+      event.preventDefault();
+      onMoveFocus(entity.id, direction);
+      return;
+    }
+    if (canInspect && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      activateEntity(entity, onSelect, onActivate);
+    }
   };
   return (
     <EntityControl
@@ -432,6 +452,7 @@ function EntityTile({
       aria-hidden={!canInspect}
       tabIndex={canInspect ? 0 : undefined}
       aria-describedby={canInspect ? `world-entity-tip-${encodeURIComponent(entity.id)}` : undefined}
+      aria-keyshortcuts={canInspect ? 'ArrowUp ArrowDown ArrowLeft ArrowRight Enter' : undefined}
       style={{
         left: entity.x * tileSize,
         top: entity.y * tileSize,
@@ -476,7 +497,7 @@ function EntityTile({
             {entity.state}
             {entity.detail ? ` · ${entity.detail}` : ''}
           </span>
-          <small>Click to {entityActivateVerb(entity).toLowerCase()}</small>
+          <small>Click or press Enter to {entityActivateVerb(entity).toLowerCase()} · arrows move between places</small>
         </span>
       ) : null}
       {entity.kind === 'character' ? <VisuallyHidden>{entity.name}</VisuallyHidden> : null}

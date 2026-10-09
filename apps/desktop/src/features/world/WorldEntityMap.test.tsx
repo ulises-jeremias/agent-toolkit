@@ -6,6 +6,7 @@ import { entityAccessibleName, entityHasInspector } from './inspectors';
 import { buildWorldModel, layoutWorld } from './model';
 import type { MemoryEntryRecord, WorldDomainInput } from './model/types';
 import { cozyValleyTheme } from './theme/cozyValley';
+import { nearestWorldNeighbor } from './spatialNavigation';
 import { WorldEntityList, WorldEntityMap } from './WorldEntityMap';
 
 function entry(
@@ -222,6 +223,23 @@ describe('WorldEntityMap activation', () => {
     expect(document.querySelector('[data-label-kind]')).toBeNull();
   });
 
+  it('uses arrow keys to move between nearby places and Enter to open the same destination', async () => {
+    const { layout, onActivate, user } = renderMap();
+    const library = screen.getByRole('button', { name: /^Library · Capability library/i });
+    const neighborId = nearestWorldNeighbor(layout.entities, 'object:library', 'right');
+    expect(neighborId).not.toBeNull();
+    const neighbor = document.querySelector<HTMLButtonElement>(`[data-entity-id="${neighborId}"]`);
+    expect(neighbor).not.toBeNull();
+
+    library.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(document.activeElement).toBe(neighbor);
+    expect(neighbor?.getAttribute('aria-keyshortcuts')).toContain('ArrowRight');
+
+    await user.keyboard('{Enter}');
+    expect(onActivate).toHaveBeenLastCalledWith(expect.objectContaining({ id: neighborId }));
+  });
+
   it('activates project memory records via click and keyboard on /world', async () => {
     const { onActivate, user } = renderMap(baseInput({ focusProjectId: 'alpha' }));
 
@@ -272,7 +290,8 @@ describe('WorldEntityMap activation', () => {
     expect(tooltip).toHaveTextContent('Library');
     expect(tooltip).toHaveTextContent('Capability library');
     expect(tooltip).toHaveTextContent('catalog');
-    expect(tooltip).toHaveTextContent('Click to open library');
+    expect(tooltip).toHaveTextContent('Click or press Enter to open library');
+    expect(tooltip).toHaveTextContent('arrows move between places');
   });
 
   it('gives every entity accessible name and state text independent of color', () => {
