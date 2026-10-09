@@ -50,7 +50,7 @@ function sizeFor(entity: SemanticEntity): { w: number; h: number } {
 /** Project district columns adapt to roster size without making long house rows. */
 export function projectDistrictCols(count: number): number {
   if (count <= 1) return 1;
-  if (count <= 3) return 2;
+  if (count <= 4) return 2;
   if (count <= 8) return 3;
   if (count <= 18) return 4;
   return 5;
@@ -189,9 +189,8 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // previous reservation made one house inherit the width of a five-lot
   // district, which turned a small workspace into a mostly empty panorama.
   // Lot coordinates remain stable as projects are added.
-  // Leave a three-tile grove clearing between neighboring project houses. A
-  // full tree canopy can sit between façades while three-house maps still fit
-  // the crisp 32px zoom at compact desktop sizes.
+  // Leave a three-tile grove clearing between houses in one lane. Alternate
+  // lanes step diagonally, keeping compact workspaces inside the 32px fit.
   const projectLaneGap = 6;
   const districtW = projects.length ? (Math.min(projects.length, districtCols) - 1) * projectLaneGap + 3 : 0;
   // Put project homes across a visible creek crossing from the shared
@@ -252,7 +251,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     const x = districtX + col * projectLaneGap + (row % 2 === 1 ? 2 : 0);
     // Offset the next street and leave enough land for a path verge or tree
     // canopy between its houses and the previous row.
-    const y = districtY + row * 6 + (col % 2) * 2;
+    const y = districtY + row * 5;
     place(project, x, y);
     if (project.projectId) projectSlots.set(project.projectId, { x, y });
   });
@@ -282,7 +281,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   const districtRows = Math.ceil(projects.length / Math.max(1, districtCols));
   // Reserve the front-porch tile after the southernmost house as well as its
   // footprint; without it, wrapped project lanes could sit on the map edge.
-  const projectRows = districtY + Math.max(0, districtRows - 1) * 6 + 4;
+  const projectRows = districtY + Math.max(0, districtRows - 1) * 5 + 4;
   // Give every civic front door at least one walkable tile inside the camera
   // bounds, including the southern workshop lane on empty workspaces.
   const landmarkRows = Math.max(

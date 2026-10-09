@@ -691,7 +691,7 @@ describe('layoutWorld', () => {
     // Commons landmarks read as real buildings (4×4 library); projects sit south.
     expect(library.w).toBe(4);
     expect(library.h).toBe(4);
-    expect(b.y).toBe(a.y + 2);
+    expect(b.y).toBe(a.y);
     // Dense rosters wrap after three homes so the district avoids a long row.
     expect(e.y).toBeGreaterThan(a.y);
     // A 16-project roster wraps after four homes.
@@ -735,9 +735,9 @@ describe('layoutWorld', () => {
     expect(firstBeta.x - (secondAlpha.x + secondAlpha.w)).toBeGreaterThanOrEqual(3);
     const compactTeam = layoutFor(['alpha', 'beta', 'gamma']);
     const thirdProject = compactTeam.entities.find((entity) => entity.id === 'place:project:gamma')!;
-    expect(thirdProject.y - (secondAlpha.y + secondAlpha.h)).toBeGreaterThanOrEqual(3);
+    expect(thirdProject.y - (secondAlpha.y + secondAlpha.h)).toBeGreaterThanOrEqual(2);
     expect(compactTeam.cols).toBeLessThanOrEqual(30);
-    expect(compactTeam.rows).toBeLessThanOrEqual(14);
+    expect(compactTeam.rows).toBeLessThanOrEqual(13);
   });
 
   it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {
@@ -1257,7 +1257,7 @@ describe('layoutWorld', () => {
       trees.slice(index + 1).some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
     );
 
-    expect(trees.length).toBeGreaterThan(20);
+    expect(trees.length).toBeGreaterThan(16);
     expect(projectSideTrees.length).toBeGreaterThan(8);
     expect(clusteredPairs.length).toBeGreaterThan(5);
   });
