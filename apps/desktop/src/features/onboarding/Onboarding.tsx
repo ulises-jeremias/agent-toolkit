@@ -109,7 +109,7 @@ function ReadyStep({
         <PageHeader
           eyebrow="Welcome desk"
           title="A world for coding agents"
-          lede="Sit at the desk. The backend is real. Next you choose a folder, then you enter the world: each project is a house, shared knowledge and tools live as places — never fake scenery."
+          lede="Choose where your workspace lives, then explore it as a valley: each project has a house, and shared capabilities have places of their own."
         />
         <Stack>
           <Panel tone="notice" title="Backend" meta={unavailable ? 'Needs restart' : ready ? 'Ready' : 'Starting'}>
@@ -176,8 +176,8 @@ function ReadyStep({
         </Stack>
       </div>
       <aside className={styles.pixelWrap}>
-        <PixelDesk />
-        <p className={styles.caption}>Desk · lamp · folder</p>
+        <WelcomeValley />
+        <p className={styles.caption}>Projects are houses · shared tools have a home</p>
       </aside>
     </div>
   );
@@ -263,12 +263,12 @@ function HarnessStep({
           {needsCreate ? (
             <>
               <p>
-                No harness folder is present. Creating it writes an empty directory, restarts the backend there, then
-                runs <Mono>agent-toolkit workspace init</Mono>.
+                No harness folder is present. Desktop creates the folder after confirmation and prepares it as your
+                workspace. Existing files are left in place.
               </p>
               <p className={styles.preview}>
-                <span className={styles.previewLabel}>Command</span>
-                <Mono>agent-toolkit workspace init --dir {defaultPath}</Mono>
+                <span className={styles.previewLabel}>Workspace folder</span>
+                <Mono>{defaultPath}</Mono>
               </p>
               <ConfirmAction
                 label="Create harness"
@@ -328,27 +328,26 @@ function HarnessStep({
   );
 }
 
-/** Original 32×32 pixel tools: desk, sage plant, lantern, workspace board. No characters. */
-function PixelDesk() {
+/** A quiet preview of real world assets; no projects or runtime activity are implied. */
+function WelcomeValley() {
   return (
-    <svg className={styles.pixelDesk} viewBox="0 0 32 32" width="160" height="160" aria-hidden="true">
-      <rect width="32" height="32" fill="var(--surface-sunken)" />
-      <rect x="4" y="3" width="24" height="14" fill="var(--surface-panel)" />
-      <rect x="6" y="5" width="3" height="5" fill="var(--status-ok-fg)" />
-      <rect x="5" y="10" width="5" height="2" fill="var(--status-ok-bg)" />
-      <rect x="6" y="12" width="3" height="2" fill="var(--border-strong)" />
-      <rect x="22" y="4" width="2" height="6" fill="var(--accent-gold-strong)" />
-      <rect x="21" y="3" width="4" height="2" fill="var(--accent-gold)" />
-      <rect x="20" y="10" width="6" height="2" fill="var(--accent-gold)" />
-      <rect x="10" y="11" width="10" height="6" fill="var(--surface-notice)" />
-      <rect x="10" y="10" width="4" height="2" fill="var(--status-warn-fg)" />
-      <rect x="12" y="13" width="6" height="1" fill="var(--border-default)" />
-      <rect x="2" y="18" width="28" height="10" fill="var(--surface-notice-strong)" />
-      <rect x="4" y="19" width="24" height="6" fill="var(--surface-notice)" />
-      <rect x="23" y="20" width="4" height="1" fill="var(--accent-gold)" />
-      <rect x="23" y="21" width="1" height="4" fill="var(--accent-gold-strong)" />
-      <rect x="0" y="28" width="32" height="4" fill="var(--border-strong)" />
-    </svg>
+    <div
+      className={styles.valleyScene}
+      role="img"
+      aria-label="A small preview of the pixel valley with a workspace hall, library, creek, bridge and trees"
+    >
+      <div className={styles.creek} />
+      <img className={`${styles.sceneSprite} ${styles.sceneTreeWest}`} src="/world/tree-rune.png" alt="" />
+      <img className={`${styles.sceneSprite} ${styles.sceneBlossom}`} src="/world/tree-blossom.png" alt="" />
+      <img className={`${styles.sceneSprite} ${styles.sceneWorkspace}`} src="/world/landmark-workspace.png" alt="" />
+      <img className={`${styles.sceneSprite} ${styles.sceneLibrary}`} src="/world/landmark-library.png" alt="" />
+      <img className={`${styles.sceneSprite} ${styles.sceneBridge}`} src="/world/bridge.png" alt="" />
+      <img className={`${styles.sceneSprite} ${styles.sceneTreeEast}`} src="/world/tree-round.png" alt="" />
+      <img className={`${styles.sceneSprite} ${styles.sceneLantern}`} src="/world/lamp.png" alt="" />
+      <span className={`${styles.sceneLabel} ${styles.sceneProjectLabel}`}>Workspace</span>
+      <span className={`${styles.sceneLabel} ${styles.sceneLibraryLabel}`}>Library</span>
+      <span className={styles.sceneLegend}>A semantic workspace, ready to explore</span>
+    </div>
   );
 }
 

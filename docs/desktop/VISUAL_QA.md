@@ -99,6 +99,27 @@ Person creation and Start, Munder import review, MCP configuration, and
 Settings; these were not all opened in this review and are not claimed as
 visual sign-off.
 
+## First-run welcome review — v1.43.0 follow-up, 2026-10-09
+
+I opened the real Electron first-run screen at 1440×900 and 1024×640 after the
+v1.43.0 release. Its first pass showed a tiny desk icon and unexplained empty
+space, so the welcome illustration now composes the shipped workspace-hall,
+Library, creek, bridge, tree and lantern sprites. It is explicitly an
+illustration: the screen creates no sample projects, People, or runtime state.
+The setup copy also no longer shows a CLI command for workspace initialization;
+the user stays in the GUI flow.
+
+The first screenshot review exposed a too-dense repeating grass texture and a
+bridge drawn over the Library roof. I scaled the grass to the in-world tile
+size and moved the bridge crossing above the building entrances, then rebuilt
+and recaptured. The final opened files are
+[`onboarding.png`](../../static/screenshots/onboarding.png) and
+[`onboarding-compact.png`](../../static/screenshots/onboarding-compact.png).
+The compact capture keeps the backend status and Continue action visible. This
+is a better first impression and a truthful preview, but it does not replace
+the full semantic world as the product home or close the open terrain/path
+composition findings above.
+
 ## Creek, landmark and room review — 2026-10-07
 
 The Electron capture workflow ran against the real 1.42.0 backend and a

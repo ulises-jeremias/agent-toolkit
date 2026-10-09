@@ -24,6 +24,11 @@ The larger world and inspector gallery is in the [repository README](../../READM
 | Library | Operations |
 | ![Library of reusable Agent Toolkit capabilities](../../static/screenshots/library.png) | ![Operations with actual jobs, loops and runtime state](../../static/screenshots/operations.png) |
 
+The first-run welcome uses the same pixel sprites as World without implying
+that example projects or workers already exist:
+
+![Compact first-run setup with the workspace hall, Library, creek and bridge](../../static/screenshots/onboarding-compact.png)
+
 The current screenshots show real behavior, but do not imply visual sign-off.
 The [visual QA log](VISUAL_QA.md) records the exact captures opened, remaining
 composition issues, and what changed after review.
