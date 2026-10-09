@@ -2,7 +2,7 @@
 // Bump all version sources atomically.
 // Usage: ./scripts/bump-version.vsh [--check] X.Y.Z
 
-import json
+import json2
 import regex
 import crypto.sha256
 
@@ -107,7 +107,7 @@ fn main() {
 				continue
 			}
 			raw := read_file(pkg_path) or { continue }
-			mut data := json.decode(NpmPkg, raw) or { continue }
+			mut data := json2.decode[NpmPkg](raw) or { continue }
 			mut dirty := false
 			if data.version != version {
 				data.version = version

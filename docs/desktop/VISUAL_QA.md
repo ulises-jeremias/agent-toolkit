@@ -53,6 +53,52 @@ The [workflow ledger](workflows.yaml) records functional evidence separately;
 a passing screenshot does not establish an end-to-end journey, and a passing
 test does not establish visual quality.
 
+## Release-candidate capture — v1.43.0, 2026-10-09
+
+The packaged Desktop capture workflow ran against PR #1501 at source
+`7a4d32d8cc9b108d8e2bd61255474804916886a7` in [run
+37898953188](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/37898953188).
+I opened the post-fix workspace at compact and large sizes, the compact real
+PTY terminal, the populated Meadow and Dusk worlds, the project interior, the
+large People roster, Library, and Operations. The README gallery now leads
+with the actual valley and uses current packaged Electron captures rather
+than illustrative SVGs.
+
+The workspace initialization fix adds the required `knowledge/processes/`
+directory; the fresh-workspace validation panel now reports all context areas
+valid. The terminal page can scroll independently above its persistent PTY
+dock at compact size; the captured prompt runs `agent-toolkit version` and
+shows the real `1.43.0` backend. The capture-tour terminal commands no longer
+inject a synthetic failure, and xterm is allowed to settle after route
+remounts before capture. The release branch also removes 234 Electron PNGs
+that had no references from tracked files (about 23 MB); screenshots linked
+from documentation remain.
+
+This is a functional/current-state review, not visual sign-off. The world has
+distinct project houses, landmarks, creek, bridge and colorful canopy, but its
+paths still form conspicuous right angles and the map leaves broad flat lawn.
+Meadow and Dusk differ mainly by lighting; neither yet reaches the intended
+enchanted, lantern-lit atmosphere. People and Library are truthful and
+readable but leave substantial unused space at large sizes. The compact
+workspace and terminal remain vertically dense. Keep world composition,
+ambient magic, and compact inspector density as important follow-up work; do
+not mask them with decorative sprites or describe this release as the final
+art direction.
+
+The exact opened files from the run artifact were `meadow-1024x640-workspace.png`,
+`meadow-1920x1080-workspace.png`, `meadow-1024x640-terminal.png`,
+`world-several-projects-meadow-large.png`,
+`world-several-projects-dusk-large.png`, `project-files-room-large.png`,
+`people-roster-large.png`, `meadow-1920x1080-library.png`, and
+`meadow-1920x1080-operations.png`. The README uses current copies of the world,
+interior, People, Library, Operations, and terminal capture files from this
+same run.
+
+The capture workflow also produced compact/large empty and one-project states,
+Person creation and Start, Munder import review, MCP configuration, and
+Settings; these were not all opened in this review and are not claimed as
+visual sign-off.
+
 ## Creek, landmark and room review — 2026-10-07
 
 The Electron capture workflow ran against the real 1.42.0 backend and a
@@ -223,8 +269,9 @@ and the original-size files `meadow-1920x1080-world.png`,
 `world-several-projects-compact.png`, `project-files-room-compact.png`,
 `people-roster-compact.png`, `person-start-compact.png`,
 `meadow-1024x640-library.png`, and compact MCP configuration/credential review.
-The 54-image artifact is archived at
-[`assets/electron/final-main-2026-10-06/`](assets/electron/final-main-2026-10-06/).
+The former 54-image copy has been removed from the repository screenshot
+tree as part of the unreferenced-capture cleanup in commit `7a4d32d8`; the
+capture remains available through the linked workflow run.
 
 The final captures confirm crisp pixel scaling, distinct shared landmarks,
 three individually named project buildings, a bridge across the creek, and
@@ -355,18 +402,19 @@ pictured product changes, and keep the README gallery to a small set that
 explains the current experience. The README uses genuine PNG captures and
 plain-text links; do not use illustrative SVG mockups as product screenshots.
 Keep operational links out of the product gallery.
-The complete compact/large and edge-case capture sets stay under
-`docs/desktop/assets/electron/` and are linked from review evidence.
+Only reviewed, referenced screenshots are kept in the repository. Other
+compact/large and edge-case capture sets belong to their linked workflow
+artifacts rather than an ever-growing checked-in screenshot archive.
 Inspiration boards must never be copied into product art or presented as
 screenshots.
 
 ## Product polish review — 2026-10-06
 
 I captured the Electron app against its disposable workspace and the real
-1.42.0 backend. The full 38-image route/theme/size set is in
-[`assets/electron/product-review-2026-10-06/`](assets/electron/product-review-2026-10-06/);
-the project-link E2E also captured empty, one-project, three-project, and
-project-interior scenes there. These are actual GUI flows, not concept art.
+1.42.0 backend. CI captured the full 38-image route/theme/size set; its
+redundant copy has since been removed from the repository screenshot tree.
+The project-link E2E also captured empty, one-project, three-project, and
+project-interior scenes. These were actual GUI flows, not concept art.
 
 I opened `meadow-1920x1080-world.png`, `dusk-1920x1080-world.png`,
 `meadow-1024x640-world.png`, `dusk-1024x640-world.png`,

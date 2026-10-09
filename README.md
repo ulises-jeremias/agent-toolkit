@@ -49,19 +49,17 @@ flowchart LR
 
 Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installer on Windows from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest). The Electron app bundles its backend; normal workspace setup does not require a separate CLI, source checkout, or manual configuration files. Start with the [Desktop guide](docs/desktop/README.md) for supported workflows and current limits.
 
-| Project interior | Dusk valley |
+| Meadow valley | Dusk valley |
 | --- | --- |
-| <img src="static/screenshots/project-interior.png" width="100%" alt="A project house with real file, memory, terminal and project stations" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The workspace valley, project houses and forest framing under Dusk lighting" /> |
-| Capability Library | People roster |
-| <img src="static/screenshots/library.png" width="100%" alt="Library showing reusable capabilities and installation evidence" /> | <img src="static/screenshots/people.png" width="100%" alt="Configured offline People in the durable collaborator roster" /> |
-| Operations | Real PTY terminal |
-| <img src="static/screenshots/operations.png" width="100%" alt="Operations showing actual jobs, outcomes and loop templates" /> | <img src="static/screenshots/terminal.png" width="100%" alt="Live shell session with real command output in the integrated terminal" /> |
+| <img src="static/screenshots/world.png" width="100%" alt="The workspace as a pixel valley, with project houses, shared landmarks, a creek and a bridge" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The same semantic workspace valley at dusk, with warm landmark windows" /> |
+| Project interior | Capability Library |
+| <img src="static/screenshots/project-interior.png" width="100%" alt="A project house with its real overview board, files, records and terminal stations" /> | <img src="static/screenshots/library.png" width="100%" alt="The reusable capability Library with truthful detection and installation evidence" /> |
+| People roster | Operations |
+| <img src="static/screenshots/people.png" width="100%" alt="A configured offline Person in the durable collaborator roster, with no fake world character" /> | <img src="static/screenshots/operations.png" width="100%" alt="Operations showing real jobs, outcomes and available loop templates" /> |
+| Real PTY terminal | Reviewed Person import |
+| <img src="static/screenshots/terminal.png" width="100%" alt="A live shell session with real command output in the integrated terminal" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder hire import review showing mapped and ignored fields before saving" /> |
 
-<p align="center">
-  <img src="static/screenshots/people-import.png" width="72%" alt="Munder hire import review showing mapped and ignored fields before saving" />
-</p>
-
-<p align="center"><sub>Import is a review step; saving a Person never starts a session.</sub></p>
+<p align="center"><sub>These are real Electron captures from a disposable workspace. Import is a review step; saving a Person never starts a session.</sub></p>
 
 These PNGs are captures from Electron with the real backend and a disposable workspace: offline People stay off the map, and the terminal is a live PTY. Project and landmark names appear when you hover, focus, or select a place, keeping the resting valley clear while preserving keyboard discovery. The links above go directly to CI, licensing, and release information. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
 
