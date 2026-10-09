@@ -216,7 +216,9 @@
 }
 
 .shell[data-destination='/terminal'] .content {
-  flex: none;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding-bottom: var(--space-4);
 }
 
