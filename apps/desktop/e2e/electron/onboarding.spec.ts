@@ -44,6 +44,10 @@ test.describe('first-run happy path', () => {
       name: 'A small preview of the pixel valley with a workspace hall, library, creek, bridge and trees',
     });
     await expect(valley).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Destinations' })).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(
+      await page.evaluate(() => window.innerHeight),
+    );
     await expect(page.getByText('Projects are houses · shared tools have a home')).toBeVisible();
     await expect(page.getByText(/agent-toolkit workspace init/)).toHaveCount(0);
     await expect
