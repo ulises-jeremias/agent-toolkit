@@ -46,7 +46,6 @@ function Field({
         onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
           if (event.key === 'Enter') {
             event.preventDefault();
-            commit();
             event.currentTarget.blur();
           }
           if (event.key === 'Escape') {

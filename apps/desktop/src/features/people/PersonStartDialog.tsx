@@ -4,14 +4,22 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useModels, useProviders } from '../../data/catalog';
 import { requireClient, useBackend } from '../../data/backend';
 import { useProjects } from '../../data/projects';
-import { errorMessage, type Person } from '../../lib/api';
+import { errorMessage, type Person, type PersonSession } from '../../lib/api';
 import { useTerminalSessions } from '../../data/terminal';
 import { useSessionContext } from '../../shell/useSessionContext';
 import { Button, ButtonRow, Dialog, ErrorState, Field, Panel, Select } from '../../ui';
 import { initialPromptMode, personInitialPrompt, personSessionOptions } from './personRunner';
 import styles from './people.module.css';
 
-export function PersonStartDialog({ person, onClose }: { person: Person | null; onClose: () => void }) {
+export function PersonStartDialog({
+  person,
+  previousSession,
+  onClose,
+}: {
+  person: Person | null;
+  previousSession: PersonSession | null;
+  onClose: () => void;
+}) {
   const { backend, client } = useBackend();
   const { context, href } = useSessionContext();
   const navigate = useNavigate();
@@ -33,8 +41,8 @@ export function PersonStartDialog({ person, onClose }: { person: Person | null; 
 
   const projects = useMemo(() => projectsQuery.data?.projects ?? [], [projectsQuery.data]);
   const providers = useMemo(() => providersQuery.data?.providers ?? [], [providersQuery.data]);
-  const models = modelsQuery.data?.models ?? [];
-  const matchingModels = models.filter((model) => model.runner === providerId);
+  const models = useMemo(() => modelsQuery.data?.models ?? [], [modelsQuery.data]);
+  const matchingModels = useMemo(() => models.filter((model) => model.runner === providerId), [models, providerId]);
   const chosenProvider = providers.find((provider) => provider.id === providerId);
   const hasInstalledRunner = providers.some((provider) => provider.available && provider.id !== 'skeleton');
   const chosenModel = matchingModels.find((model) => model.model === modelName);
@@ -52,23 +60,37 @@ export function PersonStartDialog({ person, onClose }: { person: Person | null; 
 
   useEffect(() => {
     if (!person) return;
-    setProjectName('');
-    setProviderId(person.preferred_provider || '');
-    setModelName(person.preferred_model || '');
+    setProjectName(previousSession?.project_id || '');
+    setProviderId(previousSession?.provider || person.preferred_provider || '');
+    setModelName(previousSession?.model || person.preferred_model || '');
     setTask(person.goal);
     setTaskCopied(false);
     setTaskCopyError(null);
     setAcknowledgeUnenforcedPolicy(false);
     setError(null);
-  }, [person]);
+  }, [person, previousSession]);
 
   useEffect(() => {
-    if (!person) return;
-    setProjectName((current) => current || projects.find((project) => project.status === 'ok')?.name || '');
-    setProviderId(
-      (current) => current || providers.find((provider) => provider.available && provider.id !== 'skeleton')?.id || '',
+    if (!person || !projectsQuery.isSuccess || !providersQuery.isSuccess) return;
+    setProjectName((current) =>
+      projects.some((project) => project.name === current && project.status === 'ok')
+        ? current
+        : projects.find((project) => project.status === 'ok')?.name || '',
     );
-  }, [person, projects, providers]);
+    setProviderId((current) =>
+      providers.some((provider) => provider.id === current && provider.available && provider.id !== 'skeleton')
+        ? current
+        : providers.find((provider) => provider.available && provider.id !== 'skeleton')?.id || '',
+    );
+  }, [person, projects, providers, projectsQuery.isSuccess, providersQuery.isSuccess]);
+
+  const previousProjectAvailable = Boolean(
+    previousSession &&
+    projects.some((project) => project.name === previousSession.project_id && project.status === 'ok'),
+  );
+  const previousProviderAvailable = Boolean(
+    previousSession && providers.some((provider) => provider.id === previousSession.provider && provider.available),
+  );
 
   const begin = async () => {
     if (!person || !chosenProvider || !chosenProject || busy) return;
@@ -148,8 +170,12 @@ export function PersonStartDialog({ person, onClose }: { person: Person | null; 
     <Dialog
       open={person !== null}
       onClose={onClose}
-      title={person ? `Start ${person.name}` : 'Start Person'}
-      description="Reviews a real local runner session before it starts. The Person stays durable; this task belongs only to the new session. Max runtime is enforced; token/cost limits and worktree/session isolation are not supported by this interactive PTY yet."
+      title={person ? `Start ${person.name}${previousSession ? ' again' : ''}` : 'Start Person'}
+      description={
+        previousSession
+          ? 'Starts a fresh PTY with the previous project and runner settings as a starting point. It does not restore a transcript or continue the prior conversation. Review every choice before starting.'
+          : 'Reviews a real local runner session before it starts. The Person stays durable; this task belongs only to the new session. Max runtime is enforced; token/cost limits and worktree/session isolation are not supported by this interactive PTY yet.'
+      }
       size="wide"
       footer={
         <div className={styles.startFooter}>
@@ -188,6 +214,23 @@ export function PersonStartDialog({ person, onClose }: { person: Person | null; 
     >
       {person ? (
         <div className={styles.form}>
+          {previousSession ? (
+            <p className={styles.recoveryNote} role="note">
+              Previous setup: {previousSession.project_id} with {previousSession.provider}
+              {previousSession.model ? ` · ${previousSession.model}` : ''}. This opens a fresh session; conversation
+              state is not restored. Review the selected settings below.
+            </p>
+          ) : null}
+          {previousSession && projectsQuery.isSuccess && !previousProjectAvailable ? (
+            <p role="status" className={styles.recoveryNote}>
+              The previous project is no longer linked or healthy. Choose another project before starting.
+            </p>
+          ) : null}
+          {previousSession && providersQuery.isSuccess && !previousProviderAvailable ? (
+            <p role="status" className={styles.recoveryNote}>
+              The previous runner is unavailable. Choose an installed runner before starting.
+            </p>
+          ) : null}
           {providersQuery.isError ? (
             <ErrorState title="Could not discover runners" error={providersQuery.error} />
           ) : null}
@@ -291,8 +334,7 @@ export function PersonStartDialog({ person, onClose }: { person: Person | null; 
             </p>
             {modelName && !chosenModel ? (
               <p role="status">
-                Preferred model “{modelName}” is not in this runner&apos;s discovered catalog; the runner default will
-                be used.
+                Model “{modelName}” is not in this runner&apos;s discovered catalog; the runner default will be used.
               </p>
             ) : null}
             <p>

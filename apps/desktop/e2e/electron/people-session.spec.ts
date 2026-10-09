@@ -162,6 +162,20 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
     await expect(page.getByText('Review changes in this project', { exact: true })).toBeVisible();
     await expect(page.getByText('Recent sessions')).toBeVisible();
     await expect(page.getByText('Stopped', { exact: true })).toBeVisible();
+    const history = page.getByRole('region', { name: 'Lina session history' });
+    await history.getByRole('button', { name: 'Start again' }).click();
+    const startAgain = page.getByRole('dialog', { name: 'Start Lina again' });
+    await expect(startAgain).toContainText('fresh PTY');
+    await expect(startAgain).toContainText('does not restore a transcript or continue the prior conversation');
+    await expect(startAgain.getByRole('combobox', { name: 'Project and working folder' })).toHaveValue('agent-toolkit');
+    await expect(startAgain.getByRole('combobox', { name: 'Runner' })).toHaveValue(runnerId);
+    if (CAPTURE) {
+      await setViewport(desktop.app, 1024, 640);
+      await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-again-compact.png') });
+      await setViewport(desktop.app, 1920, 1080);
+      await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-again-large.png') });
+    }
+    await startAgain.getByRole('button', { name: 'Cancel' }).click();
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
     await page.getByRole('button', { name: 'Restart' }).click();
     await expect(page.getByRole('tab', { name: /Lina.*agent-toolkit.*running/i })).toBeVisible({

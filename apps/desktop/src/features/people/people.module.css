@@ -103,6 +103,10 @@
   grid-column: 1 / -1;
   color: var(--text-muted);
 }
+.sessionHistory li > button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
 .form {
   display: grid;
   gap: var(--space-4);

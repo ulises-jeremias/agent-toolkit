@@ -599,6 +599,22 @@ journeys:
           - assets/electron/people/world-person-compact.png
           - assets/electron/people/world-person-large.png
           - assets/electron/people/people-offline-after-stop.png
+      - note: >-
+          Session history now offers Start again for stopped/finished sessions.
+          It uses the previous project, runner and model as review defaults,
+          validates project health and runner availability, and opens the
+          existing Person start flow. This always creates a new PTY; it does
+          not resume a process or restore conversation history. The lifecycle
+          Electron test verifies project and runner prefill and the explicit
+          fresh-session disclosure. Validation: type-check, 394 Desktop unit
+          tests, ESLint on touched TypeScript, and the real-runner Electron
+          lifecycle test passed.
+        build: "4d2df455 (feat/people-start-again; pre-merge)"
+        tests:
+          - apps/desktop/e2e/electron/people-session.spec.ts
+        screenshots:
+          - assets/electron/people/person-start-again-compact.png
+          - assets/electron/people/person-start-again-large.png
     blockers:
       - provider conversation IDs, transcript continuity and safe runner-specific resume are not available yet
       - initial-task submission is not supported for Cursor or Muse; no runner-specific argument contract is assumed

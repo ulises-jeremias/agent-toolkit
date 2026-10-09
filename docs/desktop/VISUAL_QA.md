@@ -736,3 +736,19 @@ sizes, while the valley remains the dominant surface. On compact windows the
 plaque sits close to neighboring art, so this is an interaction/accessibility
 improvement rather than a claim that the map composition is finished. The
 existing geometric path network and open lawns remain visible in both captures.
+
+## Person session restart review — 2026-10-09
+
+The People session lifecycle now offers **Start again** for a completed
+session. This opens the normal start review with the prior project, runner,
+and model as starting values, but validates those choices against current
+workspace and runner availability. It explicitly starts a fresh PTY and does
+not claim to restore conversation history. In compact and large Electron
+captures, the previous setup summary and recovery warning remain visible; the
+fixed action bar keeps Cancel and Start reachable while the detailed preview
+scrolls. The compact dialog uses most of the viewport, which is appropriate
+for reviewing a potentially destructive runner launch, though the form is
+still dense. No session is started until the user confirms.
+
+Reviewed captures: [compact](assets/electron/people/person-start-again-compact.png)
+and [large](assets/electron/people/person-start-again-large.png).
