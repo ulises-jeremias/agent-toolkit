@@ -1356,10 +1356,10 @@ describe('layoutWorld', () => {
     expect(exit!.x).toBe(1);
     expect(room!.x).toBeGreaterThan(exit!.x);
     expect(records?.x).toBe(9);
-    expect(terminal?.y).toBe(6);
+    expect(terminal?.y).toBe(5);
     expect(files?.y).toBe(6);
     expect(files!.x - terminal!.x).toBeGreaterThanOrEqual(4);
-    expect(layout.cols).toBe(14);
-    expect(layout.rows).toBe(10);
+    expect(layout.cols).toBe(13);
+    expect(layout.rows).toBe(9);
   });
 });

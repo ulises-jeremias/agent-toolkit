@@ -1546,14 +1546,15 @@ function floorPlank() {
   for (let course = 0; course < 2; course++) {
     const y = course * 8;
     const tone = course === 0 ? 'floorWood' : 'floorWoodLight';
-    const joints = course === 0 ? [4, 12] : [8];
     img.rect(0, y, 15, y + 6, tone);
     img.hline(0, 15, y, 'floorWoodEdge');
     img.hline(0, 15, y + 7, 'floorWoodShade');
-    for (const joint of joints) img.vline(joint, y + 1, y + 6, 'floorWoodShade');
-    // A few short grain marks keep the broad boards from looking synthetic.
-    img.hline(1 + course, 3 + course, y + 2, 'floorWoodLight');
-    img.hline(10 - course, 11 - course, y + 5, 'floorWood');
+    // Long staggered boards read as a timber floor at game zoom; short joints
+    // made the room look like brickwork. The second course carries no inner
+    // seam, so repeating 16px tiles still form a longer plank.
+    if (course === 0) img.vline(8, y + 1, y + 6, 'floorWoodShade');
+    img.hline(1 + course, 5 + course, y + 2, 'floorWoodLight');
+    img.hline(10 - course, 14 - course, y + 5, 'floorWood');
   }
   return [{ name: 'floor-wood', img }];
 }

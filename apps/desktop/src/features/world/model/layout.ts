@@ -88,7 +88,7 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   if (exit) place(exit, 0, 4);
   if (room) place(room, 3, 0);
   if (memory) place(memory, 8, 0);
-  if (terminal) place(terminal, 3, 5);
+  if (terminal) place(terminal, 3, 4);
   if (files) place(files, 8, 5);
 
   let entryX = 8;
@@ -118,8 +118,11 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   return {
     // Keep the real project stations close enough to read as one room. Only
     // actual records or active sessions expand the space beyond this footprint.
-    cols: Math.max(maxX, 14),
-    rows: Math.max(maxY, 10),
+    // Fit the room to its actual stations rather than reserving two empty
+    // columns and rows. On a compact window this lets the camera render one
+    // crisp zoom step larger, so the furniture reads as useful destinations.
+    cols: Math.max(maxX, 13),
+    rows: Math.max(maxY, 9),
     entities: laid,
   };
 }
