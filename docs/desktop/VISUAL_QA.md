@@ -120,6 +120,29 @@ is a better first impression and a truthful preview, but it does not replace
 the full semantic world as the product home or close the open terrain/path
 composition findings above.
 
+## Worn footpath pass — source `4698ce3f`, 2026-10-09
+
+I opened the fresh Electron captures at compact and large sizes after the
+terrain change: the empty compact valley is
+[`world-empty-compact.png`](assets/electron/world-review-2026-10-09/world-empty-compact.png),
+and the large populated valley is the current
+[`README world capture`](../../static/screenshots/world.png). The capture tour
+used the real Electron renderer and installed `agent-toolkit` 1.43.0 backend
+with a disposable workspace. Both screenshots were opened after the change.
+
+The old path atlas repeated solid rectangular brown bands. The generator now
+creates four deterministic, edge-compatible variants for each path connection
+shape, with narrower worn-earth silhouettes and small flecks. The model still
+connects every real entrance, and the 45 world-model tests plus the real
+project-link Electron journey pass. At the normal compact and large zooms, the
+new paths break up the uniform fill without obscuring doors or crossings.
+
+This is a measured terrain improvement, not a composition sign-off. The main
+route still has conspicuous right-angle branches, some civic paths still meet
+in grid-like junctions, and large grass clearings remain. Dusk lighting and
+the top navigation also still need a stronger world-first treatment. Keep
+those findings open; do not describe this pass as a complete world redesign.
+
 ## Creek, landmark and room review — 2026-10-07
 
 The Electron capture workflow ran against the real 1.42.0 backend and a

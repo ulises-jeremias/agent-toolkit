@@ -51,7 +51,7 @@ Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installe
 
 | Meadow valley | Dusk valley |
 | --- | --- |
-| <img src="static/screenshots/world.png" width="100%" alt="The workspace as a pixel valley, with project houses, shared landmarks, a creek and a bridge" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The same semantic workspace valley at dusk, with warm landmark windows" /> |
+| <img src="static/screenshots/world.png" width="100%" alt="The workspace as a pixel valley, with project houses, shared landmarks, varied footpaths, a creek and a bridge" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The same semantic workspace valley at dusk, with warm landmark windows" /> |
 | First-run welcome | Project interior |
 | <img src="static/screenshots/onboarding.png" width="100%" alt="First-run welcome with a preview made from the real workspace hall, library, creek and bridge sprites" /> | <img src="static/screenshots/project-interior.png" width="100%" alt="A project house with its real overview board, files, records and terminal stations" /> |
 | Capability Library | People roster |
