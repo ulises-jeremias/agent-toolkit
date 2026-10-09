@@ -15,6 +15,16 @@ export function useAgents() {
   });
 }
 
+export function useLibrarySkills() {
+  const { client } = useBackend();
+  return useQuery({
+    queryKey: qk.catalog.librarySkills(),
+    queryFn: () => requireClient(client).librarySkills(),
+    enabled: client !== null,
+    staleTime: 5 * 60_000,
+  });
+}
+
 export function useTools() {
   const { client } = useBackend();
   return useQuery({

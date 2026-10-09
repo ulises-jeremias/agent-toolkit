@@ -17,7 +17,7 @@ agent-toolkit serve --port 8080 --no-browser
 ## Machine-readable contract
 
 | Artifact | Purpose |
-|---|---|
+| --- | --- |
 | `/api/v1/openapi.json` | OpenAPI 3.1 spec — every capability, scope and confirmation flag |
 | `docs/surface/openapi.json` | same file, generated from `docs/compatibility/cli-contract.yaml` |
 | `docs/compatibility/cli-contract.yaml` | canonical capability contract (SSOT) |
@@ -120,7 +120,7 @@ Desktop does this for its default harness; see
 meaningful for `job.*` and `loop.*`.
 
 | Type | `subject` | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `backend.ready` | `serve` | once per server process; `message` = version |
 | `backend.resync` | `serve` | cursor too old or from an earlier process — refetch state; carries no `id:` |
 | `job.created` / `job.updated` / `job.deleted` | job id | `status`, `exit_code`; `ref` = `retry_of` |
@@ -145,6 +145,10 @@ meaningful for `job.*` and `loop.*`.
 
 ## Agents and tools
 
+- `GET /api/v1/skills/catalog` — typed skill metadata with provenance,
+  declared skill/MCP prerequisites, and Agent Skills target-registry support.
+  This is catalog metadata only; it does not imply installation or local
+  availability.
 - `GET /api/v1/agents` — personas from `agents/<id>/AGENT.md` (`id`,
   `name`, `kind`, `description`, `source_file`). Empty when the toolkit
   root has no `agents/` tree.

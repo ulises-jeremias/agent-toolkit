@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Library now searches Skills and Agent Definitions together and exposes typed Skill provenance, declared dependencies, MCP requirements, and target compatibility separately from receipt-backed installation evidence.
+- `GET /api/v1/skills/catalog` provides the Desktop Library's typed read-only catalog metadata.
+
 ## [1.43.0] — 2026-10-09
 
 ### Changed

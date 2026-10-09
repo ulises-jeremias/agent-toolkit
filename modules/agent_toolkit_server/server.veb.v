@@ -610,6 +610,7 @@ const registered_api_routes = [
 	'/api/v1/jobs/:id',
 	'/api/v1/events',
 	'/api/v1/agents',
+	'/api/v1/skills/catalog',
 	'/api/v1/tools',
 	'/api/v1/mcp/providers',
 	'/api/v1/providers',
@@ -761,6 +762,15 @@ pub fn (app &App) agents(mut ctx Ctx) veb.Result {
 		ok: true
 		agents: agent_toolkit_core.list_agents()
 	})
+}
+
+@['/api/v1/skills/catalog'; get]
+pub fn (app &App) skill_catalog(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	return ctx.json(agent_toolkit_core.list_library_skills())
 }
 
 @['/api/v1/tools'; get]

@@ -661,6 +661,51 @@ test('Library installs Skills and preserves user changes during reviewed removal
   );
 });
 
+test('Library searches typed catalog metadata and reveals provenance and compatibility', async () => {
+  const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+  await expect(page.getByText('Loading the skills catalog')).toBeHidden();
+  const search = page.getByRole('searchbox', { name: 'Find a capability' });
+  await search.fill('mcp-audit');
+  const skill = page.getByRole('row').filter({ hasText: /mcp.audit/ });
+  await expect(skill).toHaveCount(1);
+  await expect(skill.locator('th[scope="row"] span')).toHaveCSS('white-space', 'nowrap');
+  await expect(skill).toContainText('agentic-security');
+  await skill.getByText('Targets').click();
+  await skill.getByText('Provenance and requirements').click();
+  await expect(skill).toContainText('Claude Code: supported');
+  await expect(skill).toContainText('Windsurf: partial');
+  await expect(skill).toContainText('skills/agentic-security/mcp-audit/SKILL.md');
+  await expect(skill).toContainText('None declared');
+  await skill.getByText('Targets').click();
+  await skill.scrollIntoViewIfNeeded();
+  const skillsPanel = page.getByRole('region', { name: 'Skills catalog' });
+
+  if (CAPTURE) {
+    fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
+    for (const size of [
+      { width: 1024, height: 768, key: 'compact' },
+      { width: 1440, height: 900, key: 'large' },
+    ]) {
+      await setViewport(desktop.app, size.width, size.height);
+      await skillsPanel.evaluate((element) => element.scrollIntoView({ block: 'start' }));
+      await skillsPanel.screenshot({
+        path: path.join(LIBRARY_CAPTURE_DIR, `catalog-search-details-${size.key}.png`),
+      });
+    }
+    await setViewport(desktop.app, 1280, 800);
+  }
+
+  await search.fill('no-such-library-entry-72914');
+  await expect(page.getByRole('region', { name: 'Agent definitions' })).toContainText(
+    'No definitions match this search.',
+  );
+  await expect(page.getByRole('region', { name: 'Skills catalog' })).toContainText('No Skills match this search.');
+  await search.fill('agentic-security-reviewer');
+  await expect(page.getByRole('region', { name: 'Agent definitions' })).toContainText('agentic-security-reviewer');
+});
+
 test('Library configures MCP providers with secret-free previews and explicit checks', async () => {
   const { page } = desktop;
   let enabled = false;

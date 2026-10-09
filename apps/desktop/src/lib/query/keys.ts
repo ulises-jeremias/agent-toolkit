@@ -60,6 +60,7 @@ export const qk = {
 
   catalog: {
     agents: () => ['agents', 'list'] as const,
+    librarySkills: () => ['skills', 'catalog'] as const,
     tools: () => ['tools', 'list'] as const,
     providers: () => ['providers', 'list'] as const,
     models: () => ['models', 'list'] as const,

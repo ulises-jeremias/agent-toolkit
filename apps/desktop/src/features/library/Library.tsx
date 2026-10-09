@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAgents, useInstallReceipts, useProviders, useTools } from '../../data/catalog';
+import { useAgents, useInstallReceipts, useLibrarySkills, useProviders, useTools } from '../../data/catalog';
 import { useReport, useSubQuery } from '../../data/commands';
 import { requireClient, useBackend } from '../../data/backend';
 import { useProjects } from '../../data/projects';
@@ -17,7 +17,7 @@ import {
   type ToolInfo,
 } from '../../lib/api';
 import { invalidateDomains, OPERATION_EFFECTS } from '../../lib/query/invalidation';
-import { parsePluginBundles, parseSkillCatalog } from '../../lib/reports';
+import { parsePluginBundles } from '../../lib/reports';
 import { libraryResourceEvidence, type LibraryResourceKind } from './resourceEvidence';
 import {
   Button,
@@ -179,7 +179,7 @@ export default function Library() {
   const projectsQuery = useProjects(workspacePath);
   const projects = projectsQuery.data?.projects ?? [];
   const queryClient = useQueryClient();
-  const skills = useSubQuery('skills', 'list');
+  const skills = useLibrarySkills();
   const plugins = useSubQuery('plugin', 'check', undefined, { failureIsData: true });
   const install = useMutation({
     mutationFn: async (targets: string[]) => requireOk(await requireClient(client).installReviewed(targets)),
@@ -193,6 +193,7 @@ export default function Library() {
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
   const [uninstallPreview, setUninstallPreview] = useState<CommandEnvelope | null>(null);
   const [copilotProject, setCopilotProject] = useState('');
+  const [catalogSearch, setCatalogSearch] = useState('');
   const [copilotAction, setCopilotAction] = useState<'install' | 'remove'>('install');
   const [copilotReview, setCopilotReview] = useState<CopilotProjectInstallResponse | null>(null);
   const [copilotError, setCopilotError] = useState<string | null>(null);
@@ -294,7 +295,19 @@ export default function Library() {
   const uninstallReceipt = useActionReceipt('Toolkit files removed');
 
   const drift = plugins.data?.ok ? plugins.data.data['drift'] : undefined;
-  const skillRows = skills.data ? parseSkillCatalog(envelopeText(skills.data)) : [];
+  const catalogNeedle = catalogSearch.trim().toLocaleLowerCase();
+  const skillRows = (skills.data?.skills ?? []).filter((skill) =>
+    [skill.id, skill.name, skill.domain, skill.description, skill.origin, skill.source_file]
+      .join(' ')
+      .toLocaleLowerCase()
+      .includes(catalogNeedle),
+  );
+  const agentRows = (agents.data?.agents ?? []).filter((agent) =>
+    [agent.id, agent.name, agent.kind, agent.description, agent.source_file]
+      .join(' ')
+      .toLocaleLowerCase()
+      .includes(catalogNeedle),
+  );
   const installReceipts = receipts.data?.receipts ?? [];
   const pluginRows = plugins.data ? parsePluginBundles(envelopeText(plugins.data)) : [];
   const selectedCopilotProject = projects.find((project) => project.name === copilotProject && project.status === 'ok');
@@ -358,6 +371,18 @@ export default function Library() {
           </ButtonRow>
         }
       />
+      <div className={styles.catalogSearch}>
+        <label htmlFor="library-catalog-search">Find a capability</label>
+        <input
+          id="library-catalog-search"
+          type="search"
+          value={catalogSearch}
+          onChange={(event) => setCatalogSearch(event.target.value)}
+          placeholder="Search Skills and Agent Definitions"
+          autoComplete="off"
+        />
+        <small>Searches names, descriptions, domains, and source paths.</small>
+      </div>
       <Dialog
         open={copilotReview !== null || previewCopilot.isPending || previewCopilot.isError}
         closeDisabled={applyCopilot.isPending}
@@ -863,9 +888,17 @@ export default function Library() {
                 errorTitle="Could not list agent definitions"
               >
                 {(response) =>
-                  response.agents.length === 0 ? (
-                    <EmptyState title="No agent definitions in the catalog.">
-                      The agents tree was empty or unavailable.
+                  agentRows.length === 0 ? (
+                    <EmptyState
+                      title={
+                        response.agents.length === 0
+                          ? 'No agent definitions in the catalog.'
+                          : 'No definitions match this search.'
+                      }
+                    >
+                      {response.agents.length === 0
+                        ? 'The agents tree was empty or unavailable.'
+                        : 'Try a different name, role, description, or source path.'}
                     </EmptyState>
                   ) : (
                     <Table>
@@ -878,7 +911,7 @@ export default function Library() {
                         </tr>
                       </thead>
                       <tbody>
-                        {response.agents.map((agent) => (
+                        {agentRows.map((agent) => (
                           <tr key={agent.id}>
                             <th scope="row">
                               <Mono>{agent.id}</Mono>
@@ -887,7 +920,13 @@ export default function Library() {
                             <td>
                               <ResourceReceipt kind="agent" name={agent.id} receipts={installReceipts} />
                             </td>
-                            <td>{agent.description || agent.name}</td>
+                            <td>
+                              {agent.description || agent.name}
+                              <details className={styles.resourceDetails}>
+                                <summary>Source</summary>
+                                <Mono>{agent.source_file || 'Source path unavailable'}</Mono>
+                              </details>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -993,8 +1032,8 @@ export default function Library() {
           <Panel
             title="Skills catalog"
             meta={
-              skills.data?.data['count']
-                ? `${skills.data.data['count']} in catalog · Toolkit receipts shown per resource`
+              skills.data?.count
+                ? `${skillRows.length} of ${skills.data.count} shown · catalog and receipts are separate`
                 : 'Toolkit receipts shown per resource'
             }
           >
@@ -1005,9 +1044,9 @@ export default function Library() {
             >
               {() =>
                 skillRows.length === 0 ? (
-                  <EmptyState title="Skills catalog is not a table yet.">
-                    Count is {skills.data?.data['count'] ?? 'unknown'}. Receipt evidence appears when a catalog resource
-                    matches a Toolkit-owned file.
+                  <EmptyState title={skills.data?.count ? 'No Skills match this search.' : 'No Skills are available.'}>
+                    {skills.data?.message ||
+                      'Catalog details are unavailable. Receipt evidence remains separate from catalog membership.'}
                   </EmptyState>
                 ) : (
                   <Table>
@@ -1015,26 +1054,72 @@ export default function Library() {
                       <tr>
                         <th scope="col">Skill</th>
                         <th scope="col">Domain</th>
-                        <th scope="col">Catalog / Toolkit receipt</th>
-                        <th scope="col">Description</th>
+                        <th scope="col">Installation evidence</th>
+                        <th scope="col">Compatibility</th>
+                        <th scope="col">About this Skill</th>
                       </tr>
                     </thead>
                     <tbody>
                       {skillRows.map((row) => {
-                        const catalog = yesNo(row.inCatalog);
+                        const supportCounts = row.compatibility.reduce(
+                          (counts, item) => ({ ...counts, [item.status]: (counts[item.status] ?? 0) + 1 }),
+                          {} as Record<string, number>,
+                        );
                         return (
-                          <tr key={`${row.domain}/${row.name}`}>
+                          <tr key={row.id}>
                             <th scope="row">
-                              <Mono>{row.name}</Mono>
+                              <Mono className={styles.resourceName}>{row.name}</Mono>
                             </th>
                             <td>{row.domain}</td>
                             <td>
                               <span className={styles.resourceEvidence}>
-                                <StatusBadge tone={catalog.tone} label={catalog.label} />
+                                <StatusBadge tone="ok" label="In catalog" />
                                 <ResourceReceipt kind="skill" name={row.name} receipts={installReceipts} />
                               </span>
                             </td>
-                            <td>{row.description || '—'}</td>
+                            <td>
+                              <span className={styles.compatibilitySummary}>
+                                {(['supported', 'partial', 'unsupported', 'unknown'] as const).map((status) =>
+                                  supportCounts[status] ? (
+                                    <StatusBadge
+                                      key={status}
+                                      tone={status === 'supported' ? 'ok' : status === 'partial' ? 'warn' : 'idle'}
+                                      label={`${supportCounts[status]} ${status}`}
+                                    />
+                                  ) : null,
+                                )}
+                              </span>
+                              <details className={styles.resourceDetails}>
+                                <summary>Targets</summary>
+                                <ul>
+                                  {row.compatibility.map((item) => (
+                                    <li key={item.target}>
+                                      {item.display_name}: {item.status}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </details>
+                            </td>
+                            <td>
+                              {row.description || 'Description unavailable.'}
+                              <details className={styles.resourceDetails}>
+                                <summary>Provenance and requirements</summary>
+                                <dl>
+                                  <dt>Origin</dt>
+                                  <dd>{row.origin || 'Unspecified'}</dd>
+                                  <dt>Source</dt>
+                                  <dd>
+                                    <Mono>{row.source_file}</Mono>
+                                  </dd>
+                                  <dt>Requires</dt>
+                                  <dd>{row.requires.length ? row.requires.join(', ') : 'None declared'}</dd>
+                                  <dt>Prerequisites</dt>
+                                  <dd>{row.prerequisites.length ? row.prerequisites.join(', ') : 'None declared'}</dd>
+                                  <dt>MCP</dt>
+                                  <dd>{row.mcp_required.length ? row.mcp_required.join(', ') : 'None declared'}</dd>
+                                </dl>
+                              </details>
+                            </td>
                           </tr>
                         );
                       })}

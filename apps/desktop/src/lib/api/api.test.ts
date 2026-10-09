@@ -314,6 +314,14 @@ describe('ApiClient', () => {
     expect(calls[0]?.init?.method).toBe('GET');
   });
 
+  it('reads the typed skill catalog with target compatibility and dependencies', async () => {
+    const api = client({ ok: true, count: 0, message: 'catalog metadata', skills: [] });
+    const catalog = await api.librarySkills();
+    expect(catalog.count).toBe(0);
+    expect(calls[0]?.url).toBe('http://127.0.0.1:9/api/v1/skills/catalog');
+    expect(calls[0]?.init?.method).toBe('GET');
+  });
+
   it('lists swarm runs and posts typed run actions', async () => {
     const api = client({ ok: true, runs: [], message: 'ok', run_id: 'run_1', status: 'stopped' });
     await api.swarms();

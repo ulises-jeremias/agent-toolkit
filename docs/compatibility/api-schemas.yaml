@@ -181,6 +181,39 @@ schemas:
       - ok:boolean
       - 'agents:#AgentInfo[]'
 
+  - name: LibraryCompatibility
+    v_struct: LibraryCompatibility
+    description: Target-registry support for the portable Agent Skills format.
+    fields:
+      - target:string
+      - display_name:string
+      - status:string=supported|partial|unsupported|unknown
+
+  - name: LibrarySkill
+    v_struct: LibrarySkill
+    description: >-
+      Catalog metadata for one reusable skill. This does not claim that the
+      skill is installed or available on the current machine.
+    fields:
+      - id:string
+      - name:string
+      - domain:string
+      - description:string
+      - origin:string
+      - source_file:string
+      - requires:string[]
+      - prerequisites:string[]
+      - mcp_required:string[]
+      - 'compatibility:#LibraryCompatibility[]'
+
+  - name: LibrarySkillsResponse
+    v_struct: LibrarySkillsResponse
+    fields:
+      - ok:boolean
+      - count:integer
+      - message:string
+      - 'skills:#LibrarySkill[]'
+
   - name: ToolInfo
     description: >-
       Coding-agent CLI discovery. detected = binary on PATH;
@@ -846,6 +879,11 @@ native:
     op: list_agents
     summary: Persona catalog from agents/*/AGENT.md
     response: '#AgentsResponse'
+  - path: /api/v1/skills/catalog
+    method: get
+    op: list_library_skills
+    summary: Typed skill catalog with dependencies, provenance and target support
+    response: '#LibrarySkillsResponse'
   - path: /api/v1/tools
     method: get
     op: list_tools

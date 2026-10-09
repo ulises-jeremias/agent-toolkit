@@ -156,8 +156,8 @@ export function StatusBadge({ tone, label, live = false }: { tone: Tone; label: 
   );
 }
 
-export function Mono({ children }: { children: ReactNode }) {
-  return <span className={styles.mono}>{children}</span>;
+export function Mono({ children, className }: { children: ReactNode; className?: string }) {
+  return <span className={[styles.mono, className].filter(Boolean).join(' ')}>{children}</span>;
 }
 
 /**

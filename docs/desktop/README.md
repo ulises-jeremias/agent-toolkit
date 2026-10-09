@@ -24,6 +24,14 @@ The larger world and inspector gallery is in the [repository README](../../READM
 | Library | Operations |
 | ![Library of reusable Agent Toolkit capabilities](../../static/screenshots/library.png) | ![Operations with actual jobs, loops and runtime state](../../static/screenshots/operations.png) |
 
+The Library's Skill catalog also exposes real provenance, prerequisites,
+compatibility, and a separate Toolkit installation receipt. These close crops
+keep the detail readable at both window sizes:
+
+| Compact | Large |
+| --- | --- |
+| ![Compact Skill catalog detail showing source, declared requirements, target support, and a separate no-receipt state](assets/electron/library/catalog-search-details-compact.png) | ![Large Skill catalog detail showing source, declared requirements, target support, and a separate no-receipt state](assets/electron/library/catalog-search-details-large.png) |
+
 The first-run welcome uses the same pixel sprites as World without implying
 that example projects or workers already exist:
 
@@ -95,7 +103,7 @@ still missing; it does not mean the user should substitute a CLI command.
 | First-run workspace creation | Onboarding | **Ready** | Creates or reuses a workspace through the GUI; a real supervised-backend crash/restart is verified before entering the world. |
 | Switch and inspect workspaces | Settings → Workspace | **Ready** | The GUI rejects a missing destination without changing the active workspace, switches to a second workspace, links a project there, verifies its World building, then switches back without changing the original workspace. Backend recovery after a successful switch is exercised as part of the same flow. |
 | Enter a project and open its real files | World project house, Workspace | **Ready** | Files are read from the linked project through the typed backend. |
-| Discover and install capabilities | Library | Partial | Skills and Agent Definitions now show receipt-backed verified, partial and needs-attention states beside catalog membership; no receipt stays distinct from a user-managed install. Compiled Copilot resources, catalog provenance, dependencies and compatibility review still need coverage. |
+| Discover and install capabilities | Library | Partial | A shared search filters Skills and Agent Definitions. Skills show typed provenance, declared requirements and target compatibility separately from receipt-backed install evidence. Workspace packs are not browsable, compiled Copilot Skills and Agent Definitions are outside installation, and Agent Definition compatibility is not declared here. |
 | Configure and probe MCP | Library → MCP | **Ready** | The probe checks the local executable, not a live model connection. |
 | Start and inspect jobs | Operations; World presence | **Ready** | Only backend-confirmed active work appears in the World. |
 | Use and recover a real terminal | Terminal or terminal dock | **Ready** | PTY lifecycle is real and covered through close, exit and restart recovery. |
