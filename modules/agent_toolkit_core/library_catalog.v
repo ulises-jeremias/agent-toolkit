@@ -1,6 +1,5 @@
 module agent_toolkit_core
 
-import x.json2
 import os
 import yaml
 
@@ -63,7 +62,7 @@ struct TargetCapabilityRegistry {
 struct TargetCapabilityEntry {
 	id           string
 	display_name string
-	capabilities map[string]json2.Any
+	capabilities map[string]string
 }
 
 // list_library_skills exposes the generated capability registries through a
@@ -193,7 +192,8 @@ fn project_target_registry(text string) string {
 			lines << '    capabilities:'
 			inside_capabilities = true
 		} else if inside_capabilities && trimmed.starts_with('agent_skills:') {
-			lines << '      ${trimmed}'
+			support := trimmed.all_after(':').trim_space().trim('"').trim("'")
+			lines << "      agent_skills: '${support}'"
 		} else if trimmed.len > 0 && line.starts_with('  ') && !line.starts_with('    ') {
 			inside_capabilities = false
 		}
@@ -204,17 +204,12 @@ fn project_target_registry(text string) string {
 fn library_skill_compatibility(targets []TargetCapabilityEntry) []LibraryCompatibility {
 	mut out := []LibraryCompatibility{}
 	for target in targets {
-		support := target.capabilities['agent_skills'] or { json2.Any('unknown') }
-		mut status := 'unknown'
-		if support is bool {
-			status = if support { 'supported' } else { 'unsupported' }
-		} else if support is string {
-			status = match support {
-				'true' { 'supported' }
-				'partial' { 'partial' }
-				'false', 'none' { 'unsupported' }
-				else { 'unknown' }
-			}
+		support := target.capabilities['agent_skills'] or { 'unknown' }
+		status := match support {
+			'true' { 'supported' }
+			'partial' { 'partial' }
+			'false', 'none' { 'unsupported' }
+			else { 'unknown' }
 		}
 		out << LibraryCompatibility{
 			target: target.id
