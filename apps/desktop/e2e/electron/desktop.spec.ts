@@ -135,6 +135,9 @@ test('the context bar shows the default ~/.ai-workspace harness', async () => {
   const { page, workspace } = desktop;
   const bar = page.getByRole('form', { name: 'Session context' });
   const workspaceField = bar.getByLabel('Workspace');
+  await expect(bar.getByRole('textbox', { name: 'Agent' })).toHaveCount(0);
+  await expect(bar.getByRole('textbox', { name: 'Run' })).toHaveCount(0);
+  await expect(bar.getByRole('button', { name: /Commands/ })).toBeVisible();
   await expect(workspaceField).toHaveValue('AI Workspace');
   await workspaceField.focus();
   await expect(workspaceField).toHaveValue(workspace);
@@ -1147,11 +1150,11 @@ test('the world focuses a real PTY and does not invent one', async () => {
 test('an exited session keeps its output and can restart', async () => {
   const { page } = desktop;
   // Bind a real run identity so the dock tab (and restart) carry it — do not invent labels in asserts.
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
   const runField = page.getByRole('form', { name: 'Session context' }).getByRole('textbox', { name: 'Run' });
   await runField.fill('e2e-run');
   await runField.press('Enter');
   await expect(page).toHaveURL(/run=e2e-run/);
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
   await page.getByRole('main').getByRole('button', { name: 'New session' }).click();
   const dialog = page.getByRole('dialog', { name: 'New terminal session' });
   await dialog.getByRole('textbox', { name: 'Command', exact: true }).fill('/bin/sh');

@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { useBackend } from '../data/backend';
 import { Kbd } from '../ui';
 import { openCommandPalette } from './CommandPalette';
@@ -59,8 +59,10 @@ function Field({
   );
 }
 
-/** Persistent workspace / agent / run bar. Values are URL search params. */
+/** Persistent context strip; World keeps workspace and commands, values stay in the URL. */
 export function ContextBar() {
+  const { pathname } = useLocation();
+  const isWorld = pathname === '/world';
   const { backend } = useBackend();
   const { context, setContext, href } = useSessionContext();
   const harness = backend?.harness ?? null;
@@ -94,8 +96,17 @@ export function ContextBar() {
           ) : null}
         </span>
       ) : null}
-      <Field label="Agent" value={context.agent} placeholder="Any agent" onCommit={(agent) => setContext({ agent })} />
-      <Field label="Run" value={context.run} placeholder="No run" mono onCommit={(run) => setContext({ run })} />
+      {!isWorld ? (
+        <Field
+          label="Agent"
+          value={context.agent}
+          placeholder="Any agent"
+          onCommit={(agent) => setContext({ agent })}
+        />
+      ) : null}
+      {!isWorld ? (
+        <Field label="Run" value={context.run} placeholder="No run" mono onCommit={(run) => setContext({ run })} />
+      ) : null}
       <button type="button" className={styles.contextHint} onClick={openCommandPalette} aria-haspopup="dialog">
         <Kbd keys={['Ctrl', 'K']} />
         <span>Commands</span>
