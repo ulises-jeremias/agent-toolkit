@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- People session history can open a reviewed fresh-session flow prefilled with the prior project, runner and model; the UI explicitly states that conversation history is not restored.
 - The shared valley avenue continues into the project quarter, while civic doors use shorter paths to the commons.
 - Replaced the five procedural tree silhouettes with a cohesive original six-variant tree set, including flowering, autumn, pine, creek willow and rune-lit forms; the source atlas, crops, prompt and asset hashes are versioned for offline generation and review.
 - Project roster tests now compare canonical symlink targets so temporary-directory aliases behave consistently on macOS.
