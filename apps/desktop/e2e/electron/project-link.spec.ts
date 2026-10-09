@@ -22,6 +22,12 @@ test('links an existing project from the GUI and places it in the world', async 
       await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
       await expect(page.getByRole('button', { name: /Add project/ })).toBeVisible();
       await expect(page.locator('[data-entity-id="object:workshop"]')).toHaveCount(1);
+      await expect(
+        page
+          .getByRole('status')
+          .filter({ hasText: /^(Loading|Checking|Listing|Counting|Discovering|Reading|Probing)/ }),
+      ).toHaveCount(0, { timeout: 30_000 });
+      await expect(page.locator('[data-entity-id="place:projects-empty"]')).toBeVisible();
       for (const size of [
         { width: 1024, height: 640, key: 'compact' },
         { width: 1920, height: 1080, key: 'large' },
