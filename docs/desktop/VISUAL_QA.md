@@ -143,6 +143,30 @@ in grid-like junctions, and large grass clearings remain. Dusk lighting and
 the top navigation also still need a stronger world-first treatment. Keep
 those findings open; do not describe this pass as a complete world redesign.
 
+## World context focus — 2026-10-09
+
+On `/world`, the persistent context strip now keeps the active workspace and
+the command-palette shortcut, while hiding the manual Agent and Run filters.
+The map already derives active characters and work from backend evidence, so
+those filters were visually noisy and did not control the world. The full
+context remains on other destinations, and the workspace field remains
+editable on the World route. A focused Electron E2E checks both the reduced
+World strip and continued workspace visibility; typecheck, lint, production
+build, and the real project-link Electron journey passed.
+
+I opened the current Electron captures at compact and large sizes:
+[Meadow compact](assets/electron/world-review-2026-10-09/world-several-projects-meadow-compact.png),
+[Meadow large](../../static/screenshots/world.png),
+[Dusk compact](assets/electron/world-review-2026-10-09/world-several-projects-dusk-compact.png),
+[Dusk large](assets/electron/world-review-2026-10-09/world-several-projects-dusk-large.png),
+an empty compact workspace, and a selected project. The smaller context strip
+gives the map slightly more vertical space and reduces dashboard-like filter
+chrome. The selected-project plaque and world index remain visible. This is a
+small hierarchy improvement; the broad grass clearings, geometric path
+junctions, conventional top navigation, and underdeveloped enchanted lighting
+remain visible and are not signed off. The README world and Dusk images now
+use these exact real Electron captures from the installed 1.43.0 backend.
+
 ## Creek, landmark and room review — 2026-10-07
 
 The Electron capture workflow ran against the real 1.42.0 backend and a

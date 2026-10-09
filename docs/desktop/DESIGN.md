@@ -261,8 +261,10 @@ The shell is a minimal game HUD, not a dashboard frame:
 - **Top HUD bar** (single slim row): hornero mark + product name; chunky
   destination buttons (World first); live connection lamp; workspace chip;
   command-palette affordance (Ctrl/Cmd+K).
-- **Context strip**: session context (workspace / agent / run) as compact
-  fields — a real productivity rail, kept slim.
+- **Context strip**: workspace remains visible and switchable on every route.
+  The World hides agent/run filters because its characters and activity come
+  from live backend evidence, not those manual filters; other destinations
+  keep the full workspace / agent / run context.
 - **Terminal dock**: persistent xterm host below content; dark, crisp,
   pixel-framed tabs; unchanged real PTY behavior.
 - **Content surface**: `/world` fills it edge-to-edge (world is the screen);
