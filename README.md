@@ -93,9 +93,9 @@ These PNGs are captures from Electron with the real backend and a disposable wor
     </td>
     <td width="50%" valign="top">
       <h3>📦 Packs</h3>
-      <sub>Solution bundles that combine skills, agents, and loops for a team context (OSS maintenance, engineering workflow, delivery discipline).</sub>
+      <sub>Repository solution packs are docs-only workflow guides. They are distinct from workspace context packs and loop runtime overrides; none are installation bundles.</sub>
       <br><br>
-      <sub>Declared under <code>packs/</code>; load with your workspace tooling.</sub>
+      <sub>See <a href="docs/CONCEPTS.md#three-kinds-of-packs">the three pack types</a> and <a href="packs/README.md">solution pack guides</a>.</sub>
     </td>
   </tr>
   <tr>

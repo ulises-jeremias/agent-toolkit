@@ -16,7 +16,7 @@ as a drive-by fix.
 - **V** matching [`.v-version`](.v-version) (**0.5.2**) for the canonical CLI — `import json`, not `json2`. See [`docs/HOW_TO_DEVELOP_V.md`](docs/HOW_TO_DEVELOP_V.md)
 - **Python** 3.10 or later (validation scripts, PyPI launcher tests, pre-commit); CI primary is **3.14**
 - **Node.js** 18+ for the npm trampoline tests (`packages/npm/agent-toolkit-cli`); CI uses **22** (LTS) and **24** (Current)
-- **uv** for the PyPI adapter under `packages/pypi/` only — see https://docs.astral.sh/uv/getting-started/installation/
+- **uv** for the PyPI adapter under `packages/pypi/` only — see the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/).
 - A GitHub account and a fork of this repository
 
 The repo is **not** a uv workspace. The product CLI is `./make.vsh build-cli` → `build/agent-toolkit`.
@@ -256,13 +256,13 @@ Profiles translate toolkit skills into tool-specific configuration.
 
 ## Branch Naming
 
-| Prefix | When to use |
+|Prefix|When to use|
 |---|---|
-| `feat/` | New skill, loop template, agent persona, or major profile addition |
-| `fix/` | Bug fix in an existing skill, loop, or profile |
-| `docs/` | Documentation-only change |
-| `chore/` | Maintenance: dependency update, script fix, catalog regeneration |
-| `schema/` | Changes to JSON schemas |
+|`feat/`|New skill, loop template, agent persona, or major profile addition|
+|`fix/`|Bug fix in an existing skill, loop, or profile|
+|`docs/`|Documentation-only change|
+|`chore/`|Maintenance: dependency update, script fix, catalog regeneration|
+|`schema/`|Changes to JSON schemas|
 
 Examples:
 
@@ -314,9 +314,6 @@ Format: `<type>(<scope>): <short imperative description>`
 ## Code of Conduct
 
 This project follows the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/). By participating, you agree to uphold its standards. Report unacceptable behavior by opening a private GitHub security advisory or contacting the maintainer directly.
-
----
-
 
 ## V modules (canonical consumer CLI)
 
