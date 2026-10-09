@@ -223,7 +223,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     'object:library': { x: 1, y: 4 },
     // Services sit on distinct garden lots around the commons rather than a
     // single storefront row. Their separate door heights shape short paths.
-    'object:workshop': { x: 12, y: 8 },
+    'object:workshop': { x: 12, y: 7 },
     'object:operations': { x: 5, y: 3 },
     'object:terminal': { x: 11, y: 2 },
     'object:attention': { x: 0, y: 8 },
