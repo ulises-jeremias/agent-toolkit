@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAgents, useProviders } from '../../data/catalog';
 import { requireClient, useBackend } from '../../data/backend';
-import { errorMessage, type Person } from '../../lib/api';
+import { errorMessage, type Person, type PersonSession } from '../../lib/api';
 import { useTerminalSessions } from '../../data/terminal';
 import { useSessionContext } from '../../shell/useSessionContext';
 import {
@@ -329,6 +329,7 @@ export default function People() {
   const [importPromptOpen, setImportPromptOpen] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [starting, setStarting] = useState<Person | null>(null);
+  const [startingFrom, setStartingFrom] = useState<PersonSession | null>(null);
   const [stoppingSessionId, setStoppingSessionId] = useState<string | null>(null);
   const [sessionActionError, setSessionActionError] = useState<string | null>(null);
   const importInput = useRef<HTMLInputElement>(null);
@@ -432,7 +433,10 @@ export default function People() {
     if (params.get('start') !== '1' || !list.isSuccess) return;
     const personId = params.get('person');
     const person = list.data?.people.find((candidate) => candidate.id === personId);
-    if (person && !person.archived) setStarting(person);
+    if (person && !person.archived) {
+      setStartingFrom(null);
+      setStarting(person);
+    }
     const next = new URLSearchParams(params);
     next.delete('start');
     setParams(next, { replace: true });
@@ -611,6 +615,18 @@ export default function People() {
                               {session.provider}
                               {session.model ? ` · ${session.model}` : ''}
                             </small>
+                            {session.status !== 'running' ? (
+                              <Button
+                                variant="secondary"
+                                disabled={!terminals.available || Boolean(selectedSession) || selected.archived}
+                                onClick={() => {
+                                  setStartingFrom(session);
+                                  setStarting(selected);
+                                }}
+                              >
+                                Start again
+                              </Button>
+                            ) : null}
                           </li>
                         ))}
                       </ul>
@@ -676,7 +692,14 @@ export default function People() {
                         />
                       </>
                     ) : !selected.archived ? (
-                      <Button variant="primary" disabled={!terminals.available} onClick={() => setStarting(selected)}>
+                      <Button
+                        variant="primary"
+                        disabled={!terminals.available}
+                        onClick={() => {
+                          setStartingFrom(null);
+                          setStarting(selected);
+                        }}
+                      >
                         Start {selected.name}
                       </Button>
                     ) : null}
@@ -736,7 +759,14 @@ export default function People() {
           error={save.error}
         />
       </Dialog>
-      <PersonStartDialog person={starting} onClose={() => setStarting(null)} />
+      <PersonStartDialog
+        person={starting}
+        previousSession={startingFrom}
+        onClose={() => {
+          setStarting(null);
+          setStartingFrom(null);
+        }}
+      />
       <Dialog
         open={importReview !== null}
         onClose={() => setImportReview(null)}
