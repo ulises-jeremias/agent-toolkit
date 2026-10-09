@@ -76,7 +76,6 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
   if (!WORLD_ONLY) {
     await startJob(page, 'version');
     await startJob(page, 'workspace');
-    await startJob(page, 'no-such-command');
   }
 
   let terminal = page.getByLabel('Terminal for shell');
@@ -176,13 +175,12 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
         }
         await settle(page);
         if (!WORLD_ONLY && destination === 'Terminal') {
-          const marker = `capture-${theme}-${size.width}`;
           await terminal.click();
-          // Split the visible marker with adjacent shell strings so the PTY's
-          // input echo cannot satisfy the output assertion by itself.
-          await page.keyboard.type(`printf '%s\\n' 'cap''${marker.slice(3)}'`);
+          // Keep the published visual evidence useful as a real workstation:
+          // show the actual workspace directory and bundled backend version.
+          await page.keyboard.type('pwd && agent-toolkit version');
           await page.keyboard.press('Enter');
-          await expect(terminal.locator('.xterm-rows')).toContainText(marker);
+          await expect(terminal.locator('.xterm-rows')).toContainText(/agent-toolkit \d+\.\d+\.\d+/);
         }
         await page.mouse.move(size.width - 1, size.height - 1);
         await page.screenshot({
