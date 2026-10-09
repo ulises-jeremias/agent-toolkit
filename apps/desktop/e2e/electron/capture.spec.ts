@@ -72,7 +72,6 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
   const { app, page } = desktop;
   await waitForBackend(page);
   let createdPerson = false;
-  let terminalPrimed = false;
 
   if (!WORLD_ONLY) {
     await startJob(page, 'version');
@@ -171,14 +170,15 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
           await page.getByRole('button', { name: /^agent-toolkit version/ }).click();
         }
         await settle(page);
-        if (!WORLD_ONLY && destination === 'Terminal' && !terminalPrimed) {
+        if (!WORLD_ONLY && destination === 'Terminal') {
           await terminal.click();
           // Keep the published visual evidence useful as a real workstation:
           // show the actual workspace directory and bundled backend version.
-          await page.keyboard.type('pwd && agent-toolkit version');
+          // Clear the terminal on each size/theme capture because the renderer
+          // can remount xterm when its viewport or color scheme changes.
+          await page.keyboard.type('clear && pwd && agent-toolkit version');
           await page.keyboard.press('Enter');
           await expect(terminal.locator('.xterm-rows')).toContainText(/agent-toolkit \d+\.\d+\.\d+/);
-          terminalPrimed = true;
         }
         await page.mouse.move(size.width - 1, size.height - 1);
         await page.screenshot({
