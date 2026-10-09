@@ -45,8 +45,11 @@
 }
 
 .board {
+  display: flex;
   flex: 1;
-  width: min(56rem, 100%);
+  flex-direction: column;
+  justify-content: center;
+  width: min(82rem, 100%);
   margin: 0 auto;
   padding: var(--space-8) var(--space-6) var(--space-10);
 }
@@ -75,7 +78,7 @@
 
 .desk {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 12.5rem;
+  grid-template-columns: minmax(0, 1fr) minmax(24rem, 0.9fr);
   gap: var(--space-6);
   align-items: start;
 }
@@ -85,28 +88,180 @@
 }
 
 .pixelWrap {
-  justify-self: end;
-  width: 12.5rem;
-  padding: var(--space-4);
-  background: var(--surface-raised);
-  border: 2px solid var(--border-default);
-  box-shadow: var(--shadow-panel);
+  min-width: 0;
 }
 
-.pixelDesk {
+.valleyScene {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: clamp(16rem, 25vw, 27rem);
+  overflow: hidden;
+  border: 3px solid var(--border-chrome);
+  background-color: #668c50;
+  background-image: url('/world/grass-n.png');
+  background-size: 48px 48px;
+  background-repeat: repeat;
+  box-shadow: var(--shadow-panel), inset 0 0 0 2px rgb(246 215 142 / 22%);
+  image-rendering: pixelated;
+}
+
+.valleyScene::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 22% 78%, rgb(255 222 119 / 14%), transparent 35%),
+    linear-gradient(180deg, rgb(22 37 48 / 7%), transparent 42%, rgb(19 34 31 / 20%));
+  content: '';
+  pointer-events: none;
+}
+
+.valleyScene::after {
+  position: absolute;
+  z-index: 2;
+  right: 9%;
+  bottom: 48%;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #f9dc8e;
+  box-shadow: 0 0 0 0.3rem rgb(249 220 142 / 20%), 0 0 1.2rem 0.35rem rgb(249 220 142 / 60%);
+  content: '';
+  animation: welcome-mote-drift 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes welcome-mote-drift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-0.4rem);
+  }
+}
+
+.creek {
+  position: absolute;
+  z-index: 0;
+  top: -10%;
+  right: 22%;
+  width: 17%;
+  height: 120%;
+  border-inline: 2px solid rgb(193 234 205 / 62%);
+  background-color: #459ec1;
+  background-image: url('/world/water.png');
+  background-position: center;
+  background-size: 48px 48px;
+  box-shadow: inset 5px 0 rgb(39 121 160 / 35%), inset -5px 0 rgb(39 121 160 / 35%);
+  transform: rotate(3deg);
+}
+
+.sceneSprite {
+  position: absolute;
+  z-index: 1;
   display: block;
   width: 100%;
   height: auto;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.sceneTreeWest {
+  top: -10%;
+  left: -3%;
+  width: 31%;
+}
+
+.sceneBlossom {
+  top: -8%;
+  right: -3%;
+  width: 24%;
+}
+
+.sceneWorkspace {
+  bottom: 13%;
+  left: 8%;
+  width: 29%;
+  filter: drop-shadow(0 0.5rem 0 rgb(29 48 32 / 48%));
+}
+
+.sceneLibrary {
+  right: 2%;
+  bottom: 14%;
+  width: 29%;
+  filter: drop-shadow(0 0.5rem 0 rgb(29 48 32 / 48%));
+}
+
+.sceneBridge {
+  z-index: 2;
+  top: 0;
+  right: 17%;
+  width: 26%;
+  filter: drop-shadow(0 0.25rem 0 rgb(29 48 32 / 42%));
+}
+
+.sceneTreeEast {
+  right: 35%;
+  bottom: -13%;
+  width: 29%;
+}
+
+.sceneLantern {
+  z-index: 3;
+  right: 6%;
+  bottom: 28%;
+  width: 8%;
+  filter: drop-shadow(0 0 0.4rem rgb(255 217 122 / 75%));
+}
+
+.sceneLabel {
+  position: absolute;
+  z-index: 4;
+  padding: 0.2rem 0.4rem;
+  border: 2px solid #493d2f;
+  background: #f4dda6;
+  box-shadow: 0.2rem 0.2rem 0 rgb(30 38 38 / 40%);
+  color: #2c382f;
+  font-family: var(--font-display);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sceneProjectLabel {
+  left: 9%;
+  bottom: 8%;
+}
+
+.sceneLibraryLabel {
+  right: 3%;
+  bottom: 8%;
+}
+
+.sceneLegend {
+  position: absolute;
+  z-index: 4;
+  top: var(--space-3);
+  left: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 2px solid rgb(30 38 38 / 68%);
+  background: rgb(25 37 41 / 90%);
+  color: #fff0c6;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  box-shadow: var(--shadow-panel);
 }
 
 .caption {
-  margin: var(--space-2) 0 0;
+  margin: var(--space-3) 0 0;
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   text-align: center;
 }
 
@@ -148,17 +303,26 @@
 }
 
 @media (max-width: 40rem) {
+  .board {
+    justify-content: flex-start;
+  }
+
   .desk {
     grid-template-columns: 1fr;
   }
 
   .pixelWrap {
-    justify-self: start;
+    order: -1;
+  }
+
+  .valleyScene {
+    height: min(54vw, 19rem);
+    min-height: 14rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pixelDesk {
+  .valleyScene::after {
     animation: none;
   }
 }

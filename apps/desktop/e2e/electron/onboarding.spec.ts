@@ -40,11 +40,38 @@ test.describe('first-run happy path', () => {
   test('existing ~/.ai-workspace: confirm harness then enter the world', async () => {
     const { page, workspace } = desktop;
     await expect(page.getByRole('heading', { level: 1, name: 'A world for coding agents' })).toBeVisible();
+    const valley = page.getByRole('img', {
+      name: 'A small preview of the pixel valley with a workspace hall, library, creek, bridge and trees',
+    });
+    await expect(valley).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Destinations' })).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(
+      await page.evaluate(() => window.innerHeight),
+    );
+    await expect(page.getByText('Projects are houses · shared tools have a home')).toBeVisible();
+    await expect(page.getByText(/agent-toolkit workspace init/)).toHaveCount(0);
+    await expect
+      .poll(() =>
+        valley
+          .locator('img[src^="/world/"]')
+          .evaluateAll(
+            (images) =>
+              images.length === 7 &&
+              images.every((image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0),
+          ),
+      )
+      .toBe(true);
     await expect(page.getByText('ready', { exact: true })).toBeVisible({ timeout: 30_000 });
     await capture(page, '01-ready');
+    await setViewport(desktop.app, 1024, 640);
+    await expect(valley).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Continue' })).toBeVisible();
+    await capture(page, '01-ready-compact');
+    await setViewport(desktop.app, 1440, 900);
 
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Where should work live?' })).toBeVisible();
+    await expect(page.getByText(/agent-toolkit workspace init/)).toHaveCount(0);
     await expect(page.getByText(workspace, { exact: false }).first()).toBeVisible();
     await expect(page.getByText('This folder already exists.')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Create harness' })).toHaveCount(0);
@@ -74,6 +101,7 @@ test.describe('first-run missing harness', () => {
 
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Where should work live?' })).toBeVisible();
+    await expect(page.getByText(/agent-toolkit workspace init/)).toHaveCount(0);
     await expect(page.getByText(/No harness folder is present/)).toBeVisible();
     await expect(page.getByRole('button', { name: 'Choose folder' })).toBeVisible();
     await capture(page, 'fallback-01-missing');
