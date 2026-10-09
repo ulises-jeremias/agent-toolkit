@@ -3,6 +3,8 @@ import { buildWorldModel, jobBelongsToProject, pathIsWithin, resolveProjectTarge
 import { layoutWorld } from './layout';
 import { paintInterior, paintTerrain } from './terrain';
 import type { MemoryEntryRecord, MemorySummary, ToolRecord, WorldDomainInput } from './types';
+import { cozyValleyTheme } from '../theme/cozyValley';
+import { resolveDecor } from '../theme/types';
 
 function emptyMemory(available: boolean, entries: MemoryEntryRecord[] = []): MemorySummary {
   const projectKeys = [...new Set(entries.map((entry) => entry.provenance.project).filter(Boolean))];
@@ -511,6 +513,9 @@ describe('buildWorldModel', () => {
         .filter((cell) => cell.tile.startsWith('trail-') || cell.tile.startsWith('plaza'))
         .map((cell) => `${cell.x},${cell.y}`),
     );
+    for (const cell of terrain.cells.filter(({ tile }) => tile.startsWith('trail-'))) {
+      expect(resolveDecor(cozyValleyTheme, cell.tile), `missing world sprite for ${cell.tile}`).toBeDefined();
+    }
     for (const landmark of landmarks) {
       const doorX = landmark.x + Math.floor(landmark.w / 2);
       const doorY = landmark.y + landmark.h;

@@ -623,98 +623,386 @@
       "h": 16,
       "frames": 1
     },
-    "trail-dot": {
-      "file": "trail-dot.png",
+    "trail-dot-0": {
+      "file": "trail-dot-0.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-end-n": {
-      "file": "trail-end-n.png",
+    "trail-dot-1": {
+      "file": "trail-dot-1.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-end-s": {
-      "file": "trail-end-s.png",
+    "trail-dot-2": {
+      "file": "trail-dot-2.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-v": {
-      "file": "trail-v.png",
+    "trail-dot-3": {
+      "file": "trail-dot-3.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-end-w": {
-      "file": "trail-end-w.png",
+    "trail-end-n-0": {
+      "file": "trail-end-n-0.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-turn-nw": {
-      "file": "trail-turn-nw.png",
+    "trail-end-n-1": {
+      "file": "trail-end-n-1.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-turn-sw": {
-      "file": "trail-turn-sw.png",
+    "trail-end-n-2": {
+      "file": "trail-end-n-2.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-tee-e": {
-      "file": "trail-tee-e.png",
+    "trail-end-n-3": {
+      "file": "trail-end-n-3.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-end-e": {
-      "file": "trail-end-e.png",
+    "trail-end-s-0": {
+      "file": "trail-end-s-0.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-turn-ne": {
-      "file": "trail-turn-ne.png",
+    "trail-end-s-1": {
+      "file": "trail-end-s-1.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-turn-se": {
-      "file": "trail-turn-se.png",
+    "trail-end-s-2": {
+      "file": "trail-end-s-2.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-tee-w": {
-      "file": "trail-tee-w.png",
+    "trail-end-s-3": {
+      "file": "trail-end-s-3.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-h": {
-      "file": "trail-h.png",
+    "trail-v-0": {
+      "file": "trail-v-0.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-tee-s": {
-      "file": "trail-tee-s.png",
+    "trail-v-1": {
+      "file": "trail-v-1.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-tee-n": {
-      "file": "trail-tee-n.png",
+    "trail-v-2": {
+      "file": "trail-v-2.png",
       "w": 16,
       "h": 16,
       "frames": 1
     },
-    "trail-cross": {
-      "file": "trail-cross.png",
+    "trail-v-3": {
+      "file": "trail-v-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-end-w-0": {
+      "file": "trail-end-w-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-end-w-1": {
+      "file": "trail-end-w-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-end-w-2": {
+      "file": "trail-end-w-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-end-w-3": {
+      "file": "trail-end-w-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-nw-0": {
+      "file": "trail-turn-nw-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-nw-1": {
+      "file": "trail-turn-nw-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-nw-2": {
+      "file": "trail-turn-nw-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-nw-3": {
+      "file": "trail-turn-nw-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-sw-0": {
+      "file": "trail-turn-sw-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-sw-1": {
+      "file": "trail-turn-sw-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-sw-2": {
+      "file": "trail-turn-sw-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-sw-3": {
+      "file": "trail-turn-sw-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-e-0": {
+      "file": "trail-tee-e-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-e-1": {
+      "file": "trail-tee-e-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-e-2": {
+      "file": "trail-tee-e-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-e-3": {
+      "file": "trail-tee-e-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-end-e-0": {
+      "file": "trail-end-e-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-end-e-1": {
+      "file": "trail-end-e-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-end-e-2": {
+      "file": "trail-end-e-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-end-e-3": {
+      "file": "trail-end-e-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-ne-0": {
+      "file": "trail-turn-ne-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-ne-1": {
+      "file": "trail-turn-ne-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-ne-2": {
+      "file": "trail-turn-ne-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-ne-3": {
+      "file": "trail-turn-ne-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-se-0": {
+      "file": "trail-turn-se-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-se-1": {
+      "file": "trail-turn-se-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-se-2": {
+      "file": "trail-turn-se-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-se-3": {
+      "file": "trail-turn-se-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-w-0": {
+      "file": "trail-tee-w-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-w-1": {
+      "file": "trail-tee-w-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-w-2": {
+      "file": "trail-tee-w-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-w-3": {
+      "file": "trail-tee-w-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-h-0": {
+      "file": "trail-h-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-h-1": {
+      "file": "trail-h-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-h-2": {
+      "file": "trail-h-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-h-3": {
+      "file": "trail-h-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-s-0": {
+      "file": "trail-tee-s-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-s-1": {
+      "file": "trail-tee-s-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-s-2": {
+      "file": "trail-tee-s-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-s-3": {
+      "file": "trail-tee-s-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-n-0": {
+      "file": "trail-tee-n-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-n-1": {
+      "file": "trail-tee-n-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-n-2": {
+      "file": "trail-tee-n-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-n-3": {
+      "file": "trail-tee-n-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-cross-0": {
+      "file": "trail-cross-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-cross-1": {
+      "file": "trail-cross-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-cross-2": {
+      "file": "trail-cross-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-cross-3": {
+      "file": "trail-cross-3.png",
       "w": 16,
       "h": 16,
       "frames": 1

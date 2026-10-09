@@ -155,7 +155,7 @@ authority; this section defines intent. Two appearances, one world.
 ### Palette (directional anchors; code tokens are canonical)
 
 | Group | Roles | Anchor hexes |
-|---|---|---|
+| --- | --- | --- |
 | Meadow grass | base / dark / light / tuft | `#5FB454` `#4E9C43` `#72C264` `#8AD478` |
 | Foliage | tree / deep / highlight | `#3E7D3A` `#2F6230` `#58A34E` |
 | Earth | dirt / edge / sand | `#C9A066` `#A87F4C` `#E7D7A8` |
@@ -180,7 +180,7 @@ stay colorful — a washed-out beige world is a regression by definition.
 Three roles, no more:
 
 | Role | Family | Use |
-|---|---|---|
+| --- | --- | --- |
 | **Display** | Silkscreen (OFL, 400/700) — bundled via `@fontsource/silkscreen` | Destination titles, panel titles, buttons, HUD labels, world plaques, numeric chips. Integer pixel sizes (8–16px equivalents). |
 | **UI body** | IBM Plex Sans (400/500/600) | Dense tables, forms, paragraphs, descriptions. Never pixelated. |
 | **Mono** | IBM Plex Mono (400/500) | Terminal, logs, commands, paths, IDs, hashes. |
@@ -227,8 +227,9 @@ executable form of these rules.
 
 ### Asset classes
 
-- **Terrain** — grass variants, dirt road, plaza stone, sand, water
-  (2-frame), shore foam, bridge planks.
+- **Terrain** — grass variants, deterministic worn footpaths with four
+  edge-compatible texture variants per connection shape, plaza stone, sand,
+  water (2-frame), shore foam, bridge planks.
 - **Nature/decor** — trees (round, pine), bushes, flowers, rocks, reeds,
   fences, lamps, signs, stumps, mushrooms, lily pads, garden plots, nest.
 - **Buildings** — workspace hall, records house (memory), library, workshop

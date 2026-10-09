@@ -414,7 +414,12 @@ function renderPaths(p: Painter) {
     if (p.paths.has(key(x, y + 1))) mask |= 2;
     if (p.paths.has(key(x - 1, y))) mask |= 4;
     if (p.paths.has(key(x + 1, y))) mask |= 8;
-    p.set(x, y, `trail-${names[mask] ?? 'dot'}`, true);
+    // Keep the path mask responsible for connectivity while rotating through
+    // hand-authored, edge-compatible terrain variants. The seed is spatial,
+    // so a given world remains stable and neighboring tiles avoid a stamped
+    // repeating stripe.
+    const variant = h2(x, y, 269) % 4;
+    p.set(x, y, `trail-${names[mask] ?? 'dot'}-${variant}`, true);
   }
 }
 
