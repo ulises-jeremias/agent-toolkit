@@ -1045,8 +1045,10 @@ export default function Library() {
               {() =>
                 skillRows.length === 0 ? (
                   <EmptyState title={skills.data?.count ? 'No Skills match this search.' : 'No Skills are available.'}>
-                    {skills.data?.message ||
-                      'Catalog details are unavailable. Receipt evidence remains separate from catalog membership.'}
+                    {skills.data?.count
+                      ? 'Try another name, domain, or description, or clear the search field.'
+                      : skills.data?.message ||
+                        'The catalog returned no Skills. Local installation receipts remain a separate record.'}
                   </EmptyState>
                 ) : (
                   <Table>

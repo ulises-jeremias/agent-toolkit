@@ -701,9 +701,38 @@ test('Library searches typed catalog metadata and reveals provenance and compati
   await expect(page.getByRole('region', { name: 'Agent definitions' })).toContainText(
     'No definitions match this search.',
   );
-  await expect(page.getByRole('region', { name: 'Skills catalog' })).toContainText('No Skills match this search.');
+  const skillSearchResults = page.getByRole('region', { name: 'Skills catalog' });
+  await expect(skillSearchResults).toContainText('No Skills match this search.');
+  await expect(skillSearchResults).toContainText(
+    'Try another name, domain, or description, or clear the search field.',
+  );
   await search.fill('agentic-security-reviewer');
   await expect(page.getByRole('region', { name: 'Agent definitions' })).toContainText('agentic-security-reviewer');
+});
+
+test('Library explains a missing Skill catalog and offers retry', async () => {
+  const { page } = desktop;
+  await page.route('**/api/v1/skills/catalog', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: false,
+        count: 0,
+        message: 'Skill capability registry could not be read: unavailable',
+        skills: [],
+      }),
+    }),
+  );
+  await page.reload();
+  await waitForBackend(page);
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
+  const alert = page.getByRole('alert').filter({ hasText: 'Skill capability registry could not be read: unavailable' });
+  await expect(alert).toBeVisible();
+  await expect(alert.getByRole('button', { name: /try again/i })).toBeVisible();
+  await page.unroute('**/api/v1/skills/catalog');
+  await page.reload();
+  await waitForBackend(page);
 });
 
 test('Library configures MCP providers with secret-free previews and explicit checks', async () => {
