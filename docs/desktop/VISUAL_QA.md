@@ -720,3 +720,19 @@ also confirmed that this is only a small improvement: entrance routes still
 form right-angle runs, and the empty valley still has a broad lawn. Those are
 composition work, not visual sign-off. No runtime characters appear in these
 idle captures.
+
+## Spatial keyboard navigation — 2026-10-09
+
+Focusable World entities now respond to arrow keys by moving focus to the
+nearest inspectable place in that direction; the focused plaque explains the
+place and its action, and Enter opens the same canonical route as a click. The
+separate map control retains arrow-key camera panning and Home-to-fit. This
+keeps navigation direct without adding an avatar or fabricated activity.
+
+I opened the real Electron captures at [1024×640](assets/electron/world/world-spatial-focus-compact.png)
+and [1920×1080](assets/electron/world/world-spatial-focus-large.png). The gold
+selection frame and semantic plaque make the keyboard location visible at both
+sizes, while the valley remains the dominant surface. On compact windows the
+plaque sits close to neighboring art, so this is an interaction/accessibility
+improvement rather than a claim that the map composition is finished. The
+existing geometric path network and open lawns remain visible in both captures.

@@ -436,8 +436,8 @@ The world must feel right from 1024×640 to 2560×1440 (see
 ## 16. Accessibility and localization
 
 - visible gold focus ring; full keyboard operation (world included: list
-  fallback, focusable entities, Enter activates, arrows pan, Escape backs
-  out);
+  fallback, focusable places, arrows move focus spatially, Enter activates,
+  the dedicated map control pans with arrows, Escape backs out);
 - contrast meets theVISUAL_QA gate in both Meadow and Dusk; status is
   color + text/shape;
 - reduced motion freezes ambient animation;

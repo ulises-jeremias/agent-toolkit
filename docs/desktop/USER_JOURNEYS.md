@@ -7,6 +7,7 @@ outcomes, not claims that every step is implemented.
 | Journey | Required path and outcome |
 |---|---|
 | Clean first-time user | Open installed app → understand purpose → create workspace → detect tools → choose useful skills → review destinations → install → validate → useful Attention view. No terminal setup or sibling repo. |
+| Spatial world exploration | Open World → inspect semantic places by sight and hover/focus → use arrow keys to move between nearby places → press Enter to open the same canonical destination as a click → use the dedicated map control to pan and fit. |
 | Existing Agent Toolkit user | Find existing setup → explain detected configuration and installed artifacts → use in place → validate. Preserve customization. |
 | Existing workspace/harness user | Classify environment → explain compatibility and proposed adapter changes → preview → explicitly use in place or copy/import → validate without overwriting user files. |
 | Capability discovery | Search by task/tool → filter actual catalog → inspect description, provenance, dependencies and verified compatibility → choose relevant action. |
