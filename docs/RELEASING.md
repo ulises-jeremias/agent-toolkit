@@ -10,15 +10,23 @@ The **canonical artifact** is the native V binary from a GitHub Release (`agent-
 
 > **Definitions (ADR-021/ADR-025):** **canonical artifact** = native V binary from GitHub Release (what `SHA256SUMS` covers). **distribution adapter** = PyPI wheel / npm wrapper / marketplace plugin that wraps the canonical artifact. **downstream package** = Homebrew Formula / AUR PKGBUILD that fetches the canonical artifact from the Release. Never publish adapters/downstream without a published canonical artifact.
 
-## Bump → validate → tag → watch → verify
+## Prepare → review → release → verify
 
 ```bash
-# 1. Bump all version sources atomically
-./scripts/bump-version.vsh 1.3.0
+# 1. Create an isolated release-preparation branch before changing versions.
+git switch main
+git pull --ff-only
+export RELEASE_VERSION=1.43.0  # replace with the reviewed next version
+git switch -c "chore/release-${RELEASE_VERSION}"
+export VJOBS=2  # keep local V compilation bounded on memory-constrained hosts
+
+# 2. Bump all version sources atomically and update CHANGELOG.md.
+./scripts/bump-version.vsh "$RELEASE_VERSION"
 ./make.vsh gen-surface  # regenerate docs/surface/openapi.json (reads VERSION)
 git diff --stat  # VERSION, packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py, package.json, packages/npm/*/package.json, .claude-plugin/marketplace.json, .cursor-plugin/marketplace.json, docs/surface/openapi.json
 
-# 2. Validate (CI parity)
+# 3. Validate (CI parity), then open a release-preparation PR.
+# Never push a release commit or tag directly to main.
 ./make.vsh test && ./make.vsh build-cli
 AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit --version
 uv sync --project packages/pypi/agent-toolkit-cli --all-extras
@@ -28,22 +36,30 @@ AGENT_TOOLKIT_ROOT="$PWD" uv run --project packages/pypi/agent-toolkit-cli --dir
 ./scripts/generate-catalogs.vsh
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 
-# 3. Commit + tag
-git add -A && git commit -m "chore(release): bump to v1.3.0"
-git tag -a v1.3.0 -m "v1.3.0"
-git push origin main --follow-tags
+# 4. Commit and create the PR.
+git add VERSION CHANGELOG.md packages/pypi packages/npm package.json \
+  .claude-plugin .cursor-plugin docs/surface/openapi.json
+git commit -m "chore(release): prepare v${RELEASE_VERSION}"
+git push -u origin "chore/release-${RELEASE_VERSION}"
+gh pr create --title "chore(release): prepare v${RELEASE_VERSION}" --body "Prepare v${RELEASE_VERSION} release metadata and changelog."
 
-# 4. Watch Release + downstream
-gh run list --repo ulises-jeremias/agent-toolkit --limit 5  # Release v1.3.0 should be completed success
-gh release view v1.3.0 --repo ulises-jeremias/agent-toolkit
+# 5. After review, green required checks and merge, tag the exact merged main commit.
+git switch main
+git pull --ff-only
+git tag -a "v${RELEASE_VERSION}" -m "v${RELEASE_VERSION}"
+git push origin "v${RELEASE_VERSION}"
+
+# 6. Watch Release + downstream
+gh run list --repo ulises-jeremias/agent-toolkit --limit 5  # release should be completed success
+gh release view "v${RELEASE_VERSION}" --repo ulises-jeremias/agent-toolkit
 # Docker is a reusable job on Release after upload-assets (do not rely on `on: release`;
 # GITHUB_TOKEN-created releases do not start sibling workflows). Manual fallback:
-#   gh workflow run Docker --ref v1.3.0
+#   gh workflow run Docker --ref "v${RELEASE_VERSION}"
 # Homebrew/AUR notifies wait for V binaries then repository_dispatch; check their repos
 gh run list --repo ulises-jeremias/homebrew-tap --limit 3
 gh run list --repo ulises-jeremias/aur-packages --limit 3
 
-# 5. Verify PyPI / npm / AUR / formula
+# 7. Verify PyPI / npm / AUR / formula
 curl -sS https://pypi.org/pypi/agent-toolkit-cli/json | python3 -c "import json,urllib.request; print(json.load(urllib.request.urlopen('https://pypi.org/pypi/agent-toolkit-cli/json'))['info']['version'])"
 npm view agent-toolkit-cli version
 npm view agent-toolkit-cli optionalDependencies
@@ -66,8 +82,8 @@ curl -sS 'https://aur.archlinux.org/rpc/?v=5&type=info&arg[]=agent-toolkit-bin' 
 Usage:
 
 ```bash
-./scripts/bump-version.vsh --check 1.3.0  # dry-run, exits 1 if would change
-./scripts/bump-version.vsh 1.3.0         # writes files
+./scripts/bump-version.vsh --check "$RELEASE_VERSION"  # dry-run, exits 1 if would change
+./scripts/bump-version.vsh "$RELEASE_VERSION"         # writes files
 ```
 
 ## Rollback / republish
@@ -81,10 +97,10 @@ Usage:
   ```bash
   npm trust github agent-toolkit-cli --file publish-npm.yml --repository ulises-jeremias/agent-toolkit --allow-publish -y
   ```
-* **GitHub Release:** delete tag locally + remote + release, fix, re-tag. Prefer `gh release delete v1.3.0 --yes && git tag -d v1.3.0 && git push origin :v1.3.0`.
+* **GitHub Release:** delete tag locally + remote + release, fix, re-tag. Prefer `gh release delete "v${RELEASE_VERSION}" --yes && git tag -d "v${RELEASE_VERSION}" && git push origin ":v${RELEASE_VERSION}"`.
 * **Homebrew/AUR:** downstream repos are notified via `repository_dispatch` from `release.yml` `create-release`. If they missed, replay per `docs/AUR_PLAYBOOK.md`:
   ```bash
-  gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit-bin' -f 'client_payload[version]=v1.3.0'
+  gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit-bin' -f "client_payload[version]=v${RELEASE_VERSION}"
   ```
 
 ## Asset naming
@@ -136,14 +152,12 @@ Failure visibility on the releasing repo:
 
 * Homebrew PR-create 403 (`not permitted to create or approve pull requests`): enable **Allow GitHub Actions to create and approve pull requests** on `homebrew-tap`, and/or ensure `HOMEBREW_TAP_TOKEN` has **Pull requests: Write**. See [`distribution/homebrew/README.md`](../distribution/homebrew/README.md#maintainer-formula-pr-must-open-automatically).
 
-
-
 ## Downstream install source (GitHub Release V binaries)
 
 Homebrew (`homebrew-tap`) and AUR (`aur-packages`) install **GitHub Release V binaries** (ADR-018 floating names + `SHA256SUMS`), not a Python wheel. PyPI `agent-toolkit-cli` remains a thin launcher for `uv`/`pip` users ([ADR-021](adrs/ADR-021-pypi-binary.md)). npm `agent-toolkit-cli` + `agent-toolkit-cli-{linux-x64,linux-arm64,darwin-arm64,darwin-x64,win32-x64}` wrap the same binaries ([ADR-025](adrs/ADR-025-npm-binary.md)).
 
-- **Homebrew:** Formula `agent-toolkit.rb` `url`s `agent-toolkit-macos-*` / `agent-toolkit-linux-*` from the GitHub Release. Verify `brew install` then `agent-toolkit version`.
-- **AUR:** `agent-toolkit-bin` PKGBUILD sources the linux ELF + `SHA256SUMS`. Verify `yay -S agent-toolkit-bin` then `agent-toolkit version`.
+* **Homebrew:** Formula `agent-toolkit.rb` `url`s `agent-toolkit-macos-*` / `agent-toolkit-linux-*` from the GitHub Release. Verify `brew install` then `agent-toolkit version`.
+* **AUR:** `agent-toolkit-bin` PKGBUILD sources the linux ELF + `SHA256SUMS`. Verify `yay -S agent-toolkit-bin` then `agent-toolkit version`.
 
 See `docs/AUR_PLAYBOOK.md` for re-dispatch; downstream repos are the source of truth for their formulas.
 
@@ -154,6 +168,6 @@ See `docs/AUR_PLAYBOOK.md` for re-dispatch when AUR leaves maintenance.
 Re-dispatch example:
 
 ```bash
-gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit-bin' -f 'client_payload[version]=v1.3.0'
-gh api repos/ulises-jeremias/homebrew-tap/dispatches -f event_type=new-release -f 'client_payload[formula_name]=agent-toolkit' -f 'client_payload[version]=1.3.0'
+gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit-bin' -f "client_payload[version]=v${RELEASE_VERSION}"
+gh api repos/ulises-jeremias/homebrew-tap/dispatches -f event_type=new-release -f 'client_payload[formula_name]=agent-toolkit' -f "client_payload[version]=${RELEASE_VERSION}"
 ```
