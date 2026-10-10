@@ -49,15 +49,15 @@ flowchart LR
 
 Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installer on Windows from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest). The Electron app bundles its backend; normal workspace setup does not require a separate CLI, source checkout, or manual configuration files. Start with the [Desktop guide](docs/desktop/README.md) for supported workflows and current limits.
 
-| Dusk valley | Project interior |
+| Meadow valley | Dusk valley |
 | --- | --- |
-| <img src="static/screenshots/world-dusk.png" width="100%" alt="Agent Toolkit workspace at dusk, with distinct project houses, shared landmarks, a creek, footpaths, warm windows, and woodland" /> | <img src="static/screenshots/project-interior.png" width="100%" alt="A project room with its overview board, real files, memory records, and terminal stations" /> |
-| Capability Library | Skill catalog detail |
-| <img src="static/screenshots/library.png" width="100%" alt="The reusable capability Library with truthful detection and installation evidence" /> | <img src="docs/desktop/assets/electron/library/catalog-search-details-large.png" width="100%" alt="A searched Skill with catalog provenance, requirements and target support separated from installation evidence" /> |
-| People roster | Operations |
-| <img src="static/screenshots/people.png" width="100%" alt="A configured offline Person in the durable collaborator roster, with no fake world character" /> | <img src="static/screenshots/operations.png" width="100%" alt="Operations showing real jobs, outcomes and available loop templates" /> |
-| Real PTY terminal | Reviewed Person import |
-| <img src="static/screenshots/terminal.png" width="100%" alt="A live shell session with real command output in the integrated terminal" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder hire import review showing mapped and ignored fields before saving" /> |
+| <img src="static/screenshots/world.png" width="100%" alt="Agent Toolkit workspace valley in Meadow light, with real project houses, shared landmarks, creek and woodland" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The workspace valley, project houses and forest framing under Dusk lighting" /> |
+| Project interior | Capability Library |
+| <img src="static/screenshots/project-interior.png" width="100%" alt="A project room with its overview board, real files, memory records, and terminal stations" /> | <img src="static/screenshots/library.png" width="100%" alt="The reusable capability Library with truthful detection and installation evidence" /> |
+| Skill catalog detail | People roster |
+| <img src="docs/desktop/assets/electron/library/catalog-search-details-large.png" width="100%" alt="A searched Skill with catalog provenance, requirements and target support separated from installation evidence" /> | <img src="static/screenshots/people.png" width="100%" alt="A configured offline Person in the durable collaborator roster, with no fake world character" /> |
+| Operations | Real PTY terminal |
+| <img src="static/screenshots/operations.png" width="100%" alt="Operations showing real jobs, outcomes and available loop templates" /> | <img src="static/screenshots/terminal.png" width="100%" alt="A live shell session with real command output in the integrated terminal" /> |
 | First-run welcome | First-run welcome, compact |
 | <img src="static/screenshots/onboarding.png" width="100%" alt="First-run welcome with a preview made from the real workspace hall, Library, creek and bridge sprites" /> | <img src="static/screenshots/onboarding-compact.png" width="100%" alt="Compact first-run setup with the workspace hall, Library, creek and bridge sprites" /> |
 

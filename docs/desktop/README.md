@@ -18,8 +18,10 @@ real backend. They show product behavior; visual approval and remaining
 composition work are tracked separately in the [visual QA log](VISUAL_QA.md).
 The larger world and inspector gallery is in the [repository README](../../README.md#desktop-app-gui).
 
-| Project interior | People roster |
+| Meadow valley | Dusk valley |
 | --- | --- |
+| ![The workspace valley in Meadow light, with actual projects, shared places, creek and woodland](../../static/screenshots/world.png) | ![The workspace valley at dusk, with project houses, shared places, creek and forest](../../static/screenshots/world-dusk.png) |
+| Project interior | People roster |
 | ![Project interior with real Files, Memory, Terminal and project context destinations](../../static/screenshots/project-interior.png) | ![Configured collaborators in the People roster; offline People are not shown as active world characters](../../static/screenshots/people.png) |
 | Library | Operations |
 | ![Library of reusable Agent Toolkit capabilities](../../static/screenshots/library.png) | ![Operations with actual jobs, loops and runtime state](../../static/screenshots/operations.png) |
