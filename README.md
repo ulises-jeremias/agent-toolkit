@@ -58,6 +58,8 @@ Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installe
 | <img src="docs/desktop/assets/electron/library/catalog-search-details-large.png" width="100%" alt="A searched Skill with catalog provenance, requirements and target support separated from installation evidence" /> | <img src="static/screenshots/people.png" width="100%" alt="A configured offline Person in the durable collaborator roster, with no fake world character" /> |
 | Operations | Real PTY terminal |
 | <img src="static/screenshots/operations.png" width="100%" alt="Operations showing real jobs, outcomes and available loop templates" /> | <img src="static/screenshots/terminal.png" width="100%" alt="A live shell session with real command output in the integrated terminal" /> |
+| A real Person session in its project | Reviewed Munder import |
+| <img src="docs/desktop/assets/electron/people/world-person-large.png" width="100%" alt="Lina appears in a project house only while her real local PTY session is running" /> | <img src="static/screenshots/people-import.png" width="100%" alt="A Munder hire review showing mapped identity and ignored command fields before saving" /> |
 | First-run welcome | First-run welcome, compact |
 | <img src="static/screenshots/onboarding.png" width="100%" alt="First-run welcome with a preview made from the real workspace hall, Library, creek and bridge sprites" /> | <img src="static/screenshots/onboarding-compact.png" width="100%" alt="Compact first-run setup with the workspace hall, Library, creek and bridge sprites" /> |
 

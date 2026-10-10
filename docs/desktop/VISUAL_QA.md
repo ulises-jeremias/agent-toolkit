@@ -53,6 +53,53 @@ The [workflow ledger](workflows.yaml) records functional evidence separately;
 a passing screenshot does not establish an end-to-end journey, and a passing
 test does not establish visual quality.
 
+## Packaged-product visual review — v1.43.0, 2026-10-10
+
+I captured the current Electron renderer against the locally built v1.43.0
+backend and disposable workspaces, then opened the empty, one-project,
+multi-project Meadow and Dusk, spatial-focus, project-room, People, Library,
+Operations, Terminal, Settings, Attention, and live-Person views. The map
+captures cover 1024×640 and 1920×1080; People and inspector captures include
+compact and large layouts where the host display allowed it. The refreshed
+gallery now leads with the valley, adds a real Person-session example, and
+uses current captures for the world, room, roster, import review, Library, and
+Operations. Pure-V font files and an unused golden app log were removed in a
+separate cleanup; historical migration and ADR records remain historical.
+
+The actual opened world evidence is
+[`world-empty-compact.png`](assets/electron/world/world-empty-compact.png),
+[`world-empty-large.png`](assets/electron/world/world-empty-large.png),
+[`world-one-project-compact.png`](assets/electron/world/world-one-project-compact.png),
+[`world-one-project-large.png`](assets/electron/world/world-one-project-large.png),
+[`world-several-projects-compact.png`](assets/electron/world/world-several-projects-compact.png),
+[`world-several-projects-large.png`](assets/electron/world/world-several-projects-large.png),
+[`world-several-projects-dusk-compact.png`](assets/electron/world/world-several-projects-dusk-compact.png),
+[`world-several-projects-dusk-large.png`](assets/electron/world/world-several-projects-dusk-large.png),
+[`world-spatial-focus-large.png`](assets/electron/world/world-spatial-focus-large.png),
+and [`project-files-room-large.png`](assets/electron/world/project-files-room-large.png).
+The updated roster, real active Person presence, and inert import review are
+[`people.png`](../../static/screenshots/people.png),
+[`world-person-large.png`](assets/electron/people/world-person-large.png),
+and [`munder-import-collision-compact.png`](assets/electron/people/munder-import-collision-compact.png).
+I also opened the current Library, Operations, Terminal, Settings, and
+Attention captures in `static/screenshots/` and the Electron capture set; the
+README and Desktop guide link to the refreshed images.
+
+The review confirmed that project silhouettes are distinct, the room objects
+open real Files, Memory, and Terminal destinations, offline People stay off
+the map, and Lina appears only during her real PTY session. Meadow and Dusk
+remain crisp at the tested sizes, and Dusk's window/lantern glow adds warmth.
+After seeing the screens, I reordered the README and Desktop gallery so the
+world leads, refreshed the screenshots from the running app, and added the
+live-Person/import pairing. I did not make a visual sign-off: the map still
+has broad empty grass and conspicuously orthogonal routes, shared landmarks
+are not named until focus, and the room occupies too little of the large
+viewport. The host display rejected a few 1600×1000 resize requests in the
+People capture tour; those interactions reached the capture point, but only
+the real Person-session Electron journey completed as a passing test in that
+run. Those limits remain visible and must be addressed before calling the art
+direction finished.
+
 ## Release-candidate capture — v1.43.0, 2026-10-09
 
 The packaged Desktop capture workflow ran against PR #1501 at source
