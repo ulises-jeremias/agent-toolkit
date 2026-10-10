@@ -167,6 +167,45 @@ junctions, conventional top navigation, and underdeveloped enchanted lighting
 remain visible and are not signed off. The README world and Dusk images now
 use these exact real Electron captures from the installed 1.43.0 backend.
 
+## Original settlement facades — 2026-10-09
+
+After the landmark and project-home atlas was integrated, I ran the Electron
+capture tour against a disposable workspace using the 1.43.0
+backend. I opened the empty world at compact and large sizes; a one-project
+world and a multi-project Meadow world at compact and large sizes; the
+multi-project Dusk world at compact and large sizes; and the project interior
+at compact and large sizes. These captures
+are checked in under
+[`world-review-2026-10-09/`](assets/electron/world-review-2026-10-09/), and
+the README's Meadow, Dusk, and interior images now use those real captures.
+
+The six project homes and seven shared landmarks now have distinct silhouettes
+and semantic roles. The empty-project board is a clickable directory action,
+and its 4×3-tile hit area matches the 64×50 source sprite. Review of the first
+captured version showed soft, crowded sprite edges, so I reduced the art to a
+small palette and hard alpha edges before recapturing. The route pass keeps
+entrances connected and grows the shared paving only from the real walking
+network; model tests cover that connectivity.
+
+The new facades make the settlement easier to scan and Dusk carries a warmer
+atmosphere. The same opened screenshots still show broad flat meadow, several
+right-angle path junctions, and projects with little garden structure between
+their houses. The large interior also leaves wide side margins around its
+compact room footprint. Those are still visible product-design gaps; this art
+pass improves the assets and the empty-project invitation without claiming the
+world composition is finished.
+
+Opened captures: [empty compact](assets/electron/world-review-2026-10-09/empty-compact.png),
+[empty large](assets/electron/world-review-2026-10-09/empty-large.png),
+[one project compact](assets/electron/world-review-2026-10-09/one-project-compact.png),
+[one project large](assets/electron/world-review-2026-10-09/one-project-large.png),
+[Meadow compact](assets/electron/world-review-2026-10-09/meadow-several-compact.png),
+[Meadow large](assets/electron/world-review-2026-10-09/meadow-several-large.png),
+[Dusk compact](assets/electron/world-review-2026-10-09/dusk-several-compact.png),
+[Dusk large](assets/electron/world-review-2026-10-09/dusk-several-large.png),
+[interior compact](assets/electron/world-review-2026-10-09/project-interior-compact.png),
+and [interior large](assets/electron/world-review-2026-10-09/project-interior-large.png).
+
 ## Creek, landmark and room review — 2026-10-07
 
 The Electron capture workflow ran against the real 1.42.0 backend and a

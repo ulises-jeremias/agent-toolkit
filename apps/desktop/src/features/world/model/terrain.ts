@@ -431,7 +431,7 @@ function softenPathVerge(p: Painter) {
   for (const [x = 0, y = 0] of pathCells) {
     // Sparse seed points become little shoulder clusters. This keeps paths
     // legible and walkable while breaking the ruler-straight edges at game zoom.
-    if (h2(x, y, 211) % 37 !== 0) continue;
+    if (h2(x, y, 211) % 19 !== 0) continue;
     const side = h2(x, y, 223) % 2 === 0 ? -1 : 1;
     for (const [dx, dy] of [
       [side, 0],
@@ -1138,17 +1138,54 @@ function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonl
     const right = Math.max(...publicPlaces.map((place) => place.x + place.w - 1));
     const centerX = Math.round((left + right) / 2);
     const frontY = Math.max(...publicPlaces.map((place) => place.y + place.h));
+    const insidePlaza = (x: number, y: number) => {
+      const dx = x - centerX;
+      const dy = y - frontY;
+      return (dx * dx) / 40 + (dy * dy) / 4 <= 1;
+    };
+    const plaza = new Set<string>();
+    const queue: { x: number; y: number }[] = [];
     for (let dy = -1; dy <= 2; dy++) {
-      for (let dx = -5; dx <= 5; dx++) {
-        const inside = (dx * dx) / 30 + (dy * dy) / 4 <= 1;
+      for (let dx = -6; dx <= 6; dx++) {
         const x = centerX + dx;
         const y = frontY + dy;
-        // Stone belongs on the real connected approach, not as a decorative
-        // patch on otherwise empty grass beside a building.
-        if (inside && p.paths.has(key(x, y)) && !p.isBlocked(x, y)) {
-          p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b', true);
+        if (insidePlaza(x, y) && p.paths.has(key(x, y))) {
+          plaza.add(key(x, y));
+          queue.push({ x, y });
         }
       }
+    }
+    // Grow only from the connected walking network. This turns its junction
+    // into a broad irregular stone commons without creating isolated paving
+    // that looks like an unfinished floor tile or breaks path connectivity.
+    for (let head = 0; head < queue.length; head += 1) {
+      const { x, y } = queue[head]!;
+      for (const [dx, dy] of [
+        [0, -1],
+        [-1, 0],
+        [1, 0],
+        [0, 1],
+      ] as const) {
+        const nx = x + dx;
+        const ny = y + dy;
+        const at = key(nx, ny);
+        const ground = p.get(nx, ny);
+        if (
+          plaza.has(at) ||
+          !insidePlaza(nx, ny) ||
+          p.isBlocked(nx, ny) ||
+          (!ground.startsWith('grass') && !ground.startsWith('trail'))
+        ) {
+          continue;
+        }
+        plaza.add(at);
+        queue.push({ x: nx, y: ny });
+      }
+    }
+    for (const at of plaza) {
+      const [x = 0, y = 0] = at.split(',').map(Number);
+      p.paths.add(at);
+      p.set(x, y, (x + y) % 3 === 0 ? 'plaza-b' : 'plaza', true);
     }
     // Keep a visible stone landing on each canonical public entrance even
     // when a compact map's curved approach falls outside the shared ellipse.
@@ -1346,11 +1383,11 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   // Each real doorway finds its own safe, short approach to the public street.
   // This keeps the village from acquiring a second ruler-straight service lane.
   const street = new Set(p.paths);
-  if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h, street);
+  if (hall) connectEntrance(p, hall.x + Math.floor(hall.w / 2), hall.y + hall.h, street, false);
   for (const place of commons) {
     const doorX = place.x + Math.floor(place.w / 2);
     const doorY = place.y + place.h;
-    connectEntrance(p, doorX, doorY, street);
+    connectEntrance(p, doorX, doorY, street, false);
   }
   for (const project of projects) {
     const doorX = project.x + Math.floor(project.w / 2);
@@ -1362,7 +1399,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     if (marker) {
       const doorX = marker.x + Math.floor(marker.w / 2);
       const doorY = marker.y + marker.h;
-      connectEntrance(p, doorX, doorY, street);
+      connectEntrance(p, doorX, doorY, street, false);
     }
   }
   connectPathIslands(p);

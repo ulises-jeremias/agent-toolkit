@@ -51,7 +51,7 @@ Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installe
 
 | Dusk valley | Project interior |
 | --- | --- |
-| <img src="static/screenshots/world-dusk.png" width="100%" alt="The semantic workspace valley at dusk, with project houses, shared landmarks, creek, bridge and warm windows" /> | <img src="static/screenshots/project-interior.png" width="100%" alt="A project house with its real overview board, files, records and terminal stations" /> |
+| <img src="static/screenshots/world-dusk.png" width="100%" alt="Agent Toolkit workspace at dusk, with distinct project houses, shared landmarks, a creek, footpaths, warm windows, and woodland" /> | <img src="static/screenshots/project-interior.png" width="100%" alt="A project room with its overview board, real files, memory records, and terminal stations" /> |
 | Capability Library | Skill catalog detail |
 | <img src="static/screenshots/library.png" width="100%" alt="The reusable capability Library with truthful detection and installation evidence" /> | <img src="docs/desktop/assets/electron/library/catalog-search-details-large.png" width="100%" alt="A searched Skill with catalog provenance, requirements and target support separated from installation evidence" /> |
 | People roster | Operations |

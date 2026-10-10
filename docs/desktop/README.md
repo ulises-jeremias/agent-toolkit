@@ -8,7 +8,7 @@ inspectors provide precise control without requiring the user to walk an avatar
 or run CLI commands.
 
 <p align="center">
-  <img src="../../static/screenshots/world.png" width="100%" alt="The current Agent Toolkit workspace valley, with separate project houses, shared landmarks, varied footpaths, a creek and connected paths" />
+  <img src="../../static/screenshots/world.png" width="100%" alt="A real Agent Toolkit workspace, showing separate project buildings, shared landmarks, creek, bridge, footpaths, and woodland" />
 </p>
 
 ## See the product
@@ -38,8 +38,11 @@ that example projects or workers already exist:
 ![Compact first-run setup with the workspace hall, Library, creek and bridge](../../static/screenshots/onboarding-compact.png)
 
 The current screenshots show real behavior, but do not imply visual sign-off.
-The [visual QA log](VISUAL_QA.md) records the exact captures opened, remaining
-composition issues, and what changed after review.
+The [visual QA guide](VISUAL_QA.md) records the exact captures opened,
+remaining composition issues, and what changed after review. The latest world
+captures include an empty workspace, one project, multiple projects in
+Meadow and Dusk, and the project interior at compact and large sizes in
+[`world-review-2026-10-09/`](assets/electron/world-review-2026-10-09/).
 
 ## Navigate by place or by action
 

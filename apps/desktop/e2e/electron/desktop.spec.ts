@@ -1241,6 +1241,8 @@ test('an exited session keeps its output and can restart', async () => {
   const { page } = desktop;
   // Bind a real run identity so the dock tab (and restart) carry it — do not invent labels in asserts.
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
+  await expect(page).toHaveURL(/#\/terminal\?/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Workstation' })).toBeVisible();
   const runField = page.getByRole('form', { name: 'Session context' }).getByRole('textbox', { name: 'Run' });
   await runField.fill('e2e-run');
   await runField.press('Enter');
@@ -1261,7 +1263,7 @@ test('an exited session keeps its output and can restart', async () => {
   await expect(page.getByRole('status').filter({ hasText: 'exit code 7' })).toBeVisible();
   await page.getByRole('button', { name: 'Restart' }).click();
   await expect(page.getByRole('tab', { name: /e2e-exit · e2e-run · AI Workspace · running/ })).toBeVisible();
-  await page.getByRole('button', { name: 'Close' }).click();
+  await page.getByRole('tabpanel', { name: 'e2e-exit' }).getByRole('button', { name: 'Close' }).click();
   const closeDialog = page.getByRole('dialog', { name: 'Close this session?' });
   await expect(closeDialog).toContainText('The process is killed and its scrollback is discarded.');
   await closeDialog.getByRole('button', { name: 'Kill and close' }).click();

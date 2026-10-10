@@ -338,12 +338,27 @@ describe('WorldEntityMap activation', () => {
       10,
     );
     expect(zoom).toBeGreaterThan(0);
-    // Current original Workspace Hall art is 48x64 source px.
+    // Workspace Hall art keeps its authored 48x72 source dimensions.
     expect(parseInt(sprite!.style.width, 10)).toBe((48 * zoom) / 16);
-    expect(parseInt(sprite!.style.height, 10)).toBe((64 * zoom) / 16);
+    expect(parseInt(sprite!.style.height, 10)).toBe((72 * zoom) / 16);
     // Hit box keeps the footprint size (5x4 tiles), independent of sprite anchoring.
     expect(parseInt(hall.style.width, 10)).toBe(5 * zoom);
     expect(parseInt(hall.style.height, 10)).toBe(4 * zoom);
+  });
+
+  it('renders the empty project action as a leafy sign with a matching clickable footprint', () => {
+    renderMap(baseInput({ projects: [] }));
+    const marker = document.querySelector('[data-entity-id="place:projects-empty"]') as HTMLElement;
+    const sprite = marker?.querySelector('span[style*="background-image"]') as HTMLElement | null;
+    expect(sprite?.style.backgroundImage).toContain('/world/project-board.png');
+    const zoom = parseInt(
+      document.querySelector('[role="application"][aria-label="test world"]')!.getAttribute('data-zoom')!,
+      10,
+    );
+    expect(parseInt(sprite!.style.width, 10)).toBe((64 * zoom) / 16);
+    expect(parseInt(sprite!.style.height, 10)).toBe((50 * zoom) / 16);
+    expect(parseInt(marker.style.width, 10)).toBe(4 * zoom);
+    expect(parseInt(marker.style.height, 10)).toBe(3 * zoom);
   });
 
   it('registers the rune-lit woodland sprite as original decor art', () => {

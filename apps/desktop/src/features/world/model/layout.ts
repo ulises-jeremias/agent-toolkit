@@ -14,7 +14,7 @@ const CHAR_H = 2;
 
 /** Facade-aware footprints (tile units) — one art direction, varied lots. */
 export const FOOTPRINTS: Record<string, { w: number; h: number }> = {
-  'project-board': { w: 3, h: 3 },
+  'project-board': { w: 4, h: 3 },
   'door-exit': { w: 1, h: 2 },
   'landmark-workspace': { w: 5, h: 4 },
   'landmark-archive': { w: 4, h: 4 },
@@ -192,10 +192,11 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // previous reservation made one house inherit the width of a five-lot
   // district, which turned a small workspace into a mostly empty panorama.
   // Lot coordinates remain stable as projects are added.
-  // Leave a three-tile grove clearing between houses in one lane. Alternate
-  // lanes step diagonally, keeping compact workspaces inside the 32px fit.
+  // Leave a two-tile garden gap between houses in one lane. Alternate lanes
+  // step diagonally, keeping compact workspaces inside the 32px fit.
   const projectLaneGap = 6;
-  const districtW = projects.length ? (Math.min(projects.length, districtCols) - 1) * projectLaneGap + 3 : 0;
+  const projectWidth = projects.length ? sizeFor(projects[0]!).w : 0;
+  const districtW = projects.length ? (Math.min(projects.length, districtCols) - 1) * projectLaneGap + projectWidth : 0;
   // Put project homes across a visible creek crossing from the shared
   // services. Keep the bank gap compact enough that the project district
   // still reads as part of the same settlement at small window sizes.
