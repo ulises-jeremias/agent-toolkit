@@ -1,23 +1,23 @@
 ---
 name: brag
-description: >-
-  Turn the current project website into a short, polished, shareable launch video using Hyperframes. Use when someone says "/brag", "let's brag about this", "make a launch video", "turn this into a video", or wants to share what they built. Reads the project code directly — no live URL or screenshots needed.
+description: Turn the current project website into a short, polished, shareable launch video using Hyperframes.
+  Use when someone says "/brag", "let's brag about this", "make a launch video", "turn this into a video",
+  or wants to share what they built. Reads the project code directly — no live URL or screenshots needed.
 origin:
   type: upstream
 upstream:
   repository: latent-spaces/brag
   path: skills/brag
-  ref: c893c5ed52aed84e3e2ee56787de869fccdae6b0
+  ref: fd7de7e418334876b3ea4e9258231a66a2c2a38d
   license: MIT
-  version: c893c5e
+  version: fd7de7e
 trust:
   tier: experimental
-  reviewed_at: '2026-09-30'
+  reviewed_at: '2026-10-05'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:73e297c0d8ebeb43d95e669b65efde9560e1d80654026e1307841fbcbd47d7f1
 maintenance:
   status: active
-  last_checked: '2026-09-30'
+  last_checked: '2026-10-05'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -189,7 +189,7 @@ Always allow a freeform creative direction to refine or override the preset.
 
 These apply to every brag video regardless of tone.
 
-**Short.** 15–25 seconds. Not one second more without a reason.
+**Short.** 15–25 seconds. Not one second more without a reason. This holds whether or not narration is on; narration does not extend the window.
 
 **Readable.** Keep the pace high through motion and cuts, never by flashing text. Every line a viewer must read holds long enough to read it (short label ~0.8s settled; a sentence ~0.3s per word). Fast-in, then hold — never fast-in, then gone.
 

@@ -1,23 +1,25 @@
 ---
 name: brag-slim
-description: >-
-  Turn a project directory or a website URL into a short, shareable launch video with music, motion, and share copy. One file, no bundled assets — built entirely by the model with the tools already on the machine. Use when someone says "/brag-slim", "let's /brag about this", "brag about <url>", "make a launch video", or wants to show off what they built. If the /brag skill is also installed, let /brag handle those phrases; it hands off here on Opus 5.5.
+description: Turn a project directory or a website URL into a short, shareable launch video with music,
+  motion, and share copy. One file, no bundled assets — built entirely by the model with the tools already
+  on the machine. Use when someone says "/brag-slim", "let's /brag about this", "brag about a website",
+  "make a launch video", or wants to show off what they built. If the /brag skill is also installed, let
+  /brag handle those phrases; it hands off here on Opus 5.5.
 origin:
   type: upstream
 upstream:
   repository: latent-spaces/brag
   path: skills/brag-slim
-  ref: c893c5ed52aed84e3e2ee56787de869fccdae6b0
+  ref: fd7de7e418334876b3ea4e9258231a66a2c2a38d
   license: MIT
-  version: c893c5e
+  version: fd7de7e
 trust:
   tier: experimental
-  reviewed_at: '2026-09-30'
+  reviewed_at: '2026-10-05'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:baacba6055c7792bc1726fcfe9c92e70d063f1030f0b2c1b49fb7c22b24dda5e
 maintenance:
   status: active
-  last_checked: '2026-09-30'
+  last_checked: '2026-10-05'
 distribution:
   mode: vendored
   redistribution_allowed: true
