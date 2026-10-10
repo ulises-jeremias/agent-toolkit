@@ -7,7 +7,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art/house-cottage.png",
-      "sha256": "1040d9d12b92a259d996b9cbe034bb9fe619701e6e71beb36b5f9b3107e5e098"
+      "sha256": "4632cb66210373de46a79586bd11661ff89c316d83e915a11b7d08eed7f08800"
     },
     "house-studio": {
       "file": "house-studio.png",
@@ -15,7 +15,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art/house-studio.png",
-      "sha256": "c73b1b1958b5e1d61c949182a6eb839c945fb9604b6e0503815d05ecb216b982"
+      "sha256": "57e1dafea8ce4366ca3dede46d1c39bc6c7b505e1d6715e00770b22839bc784e"
     },
     "house-workshop": {
       "file": "house-workshop.png",
@@ -23,7 +23,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art/house-workshop.png",
-      "sha256": "a70b1ec1b1ea5f66792eb755c2b61cd7fa3d1d4b773707b5ffd6b7c984539954"
+      "sha256": "da0644b2e456fff2dbf7bf690d57f4021691b4f074e9660b9cdaa8cfa683994b"
     },
     "house-tower": {
       "file": "house-tower.png",
@@ -31,7 +31,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art/house-tower.png",
-      "sha256": "7ddf30905ecfee3573e402f86ba5c594ffbf5504b3a66213ed7504bd63f87292"
+      "sha256": "42c7d9b79624bcdfcc672de40f5e65c2c5cf4f2ec4cfaceb54b07a5fd383f89b"
     },
     "house-cabin": {
       "file": "house-cabin.png",
@@ -39,7 +39,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art/house-cabin.png",
-      "sha256": "b7520ecc2e73946ff9c82acebd4eb760f447d46734548923ecc74e3a4ff50b73"
+      "sha256": "e5bfa23c8dbf3710932488632dd076c00432828e0162487bdf53aa0c885bc6ed"
     },
     "house-brick": {
       "file": "house-brick.png",
@@ -47,7 +47,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art/house-brick.png",
-      "sha256": "7a86ca17d2afd45434c31d7be9ba78d1b8e4b775cbe4ca9a966f56a6dc34c66f"
+      "sha256": "ee7fae50a255be19c7c9e5bd3e632fe9bbf0e2a73c6f22871343e37dc990619a"
     },
     "landmark-workspace": {
       "file": "landmark-workspace.png",
@@ -55,7 +55,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art/landmark-workspace.png",
-      "sha256": "482fd9c6d190a55a6349b3dcd027c8f4b573db51588f1f2267aff2afa6bfb610"
+      "sha256": "63910e5524c175cfc868b86b84f6d673b9e2a7707c5eed926e4e3f264a2383d1"
     },
     "landmark-archive": {
       "file": "landmark-archive.png",
@@ -63,7 +63,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art/landmark-archive.png",
-      "sha256": "9d193df9aa03c0b1f795e3e4761297fc55e4bb5e9d7b3b41a9de542393c0e646"
+      "sha256": "8d36ba709d66e98f4415df36aad711ba5e2a58a8e9198a37b337590150b5d219"
     },
     "landmark-library": {
       "file": "landmark-library.png",
@@ -71,7 +71,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art/landmark-library.png",
-      "sha256": "b51f84fa4691c9751bc2c90013dc6abbcbf09f2650d12737e5e515a44caf0f0b"
+      "sha256": "043059cfbd2f6615d7ea5db63e27c5f1e3446748f8700509dc556f92eab4eed8"
     },
     "landmark-workshop": {
       "file": "landmark-workshop.png",
@@ -79,7 +79,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art/landmark-workshop.png",
-      "sha256": "f0ff37764e9a368289b0d1a21c5091782156984770ce6109b1e8b7915f4b2ccf"
+      "sha256": "a1536b975647efbf0bfe68e8eecdf79aac64a4b4ffe805e49cd31645445385cb"
     },
     "landmark-operations": {
       "file": "landmark-operations.png",
@@ -87,7 +87,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art/landmark-operations.png",
-      "sha256": "8d179fad1d6ee26364250201f415fe85d5ae14dc771d1f3c0401303335c0d5f2"
+      "sha256": "d11da219b8d287b5e339c81f530d098aef17daaeaf02ab797333bcd89c6f7418"
     },
     "landmark-terminal": {
       "file": "landmark-terminal.png",
@@ -95,7 +95,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art/landmark-terminal.png",
-      "sha256": "90d5d80c18e0aab9197a1a1404657e50a2476a7fcdb2287a1f40dbfa021149d7"
+      "sha256": "16f6529bf05ee046284c7aeedad9c9f9effc05b9ce260b0edefe7b90b98f9a94"
     },
     "landmark-files": {
       "file": "landmark-files.png",
@@ -115,7 +115,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art/landmark-attention.png",
-      "sha256": "f87b811c8e086249c76162c4e33591eb725ee06cb8476b82a6e0ab8bb2202b33"
+      "sha256": "0d5aca75de47baca5826771a364cdd8899b057fe87b58d42a3367ad56a49e777"
     },
     "memory-index": {
       "file": "memory-index.png",
@@ -201,7 +201,7 @@
       "h": 48,
       "frames": 1,
       "source": "scripts/world-art/tree-round.png",
-      "sha256": "1e1d86b77ae340c2ceebaf4e784573d8cb4818f57e8162bd27f41d92c8bf0b0a"
+      "sha256": "d337bf937b772a4cc3c67f45625407e7c05b643e427b35fdd266f53ccfd6f59c"
     },
     "tree-blossom": {
       "file": "tree-blossom.png",
@@ -225,7 +225,7 @@
       "h": 48,
       "frames": 1,
       "source": "scripts/world-art/tree-rune.png",
-      "sha256": "1d107d5d304b3a17e679271c152eff34b127b99434da83579a3333c29e622d9e"
+      "sha256": "e32577b828c73f63e79e4dce6e5da6a9364abc97b37cc5734617cca2a1bc46f1"
     },
     "tree-pine": {
       "file": "tree-pine.png",
@@ -233,7 +233,7 @@
       "h": 48,
       "frames": 1,
       "source": "scripts/world-art/tree-pine.png",
-      "sha256": "372e408a22ca3473a93b9da8396ea2cfaab22ea20298763bbbad09560463bda3"
+      "sha256": "1b0902384b48f1acca0f3f8a0f0b860fa8d4b53227888204f2a7ab8ced20c4f5"
     },
     "tree-willow": {
       "file": "tree-willow.png",
@@ -399,7 +399,7 @@
       "h": 50,
       "frames": 1,
       "source": "scripts/world-art/project-board.png",
-      "sha256": "ac171bd52edf78282f2481025d365a68a75b9bfe975527ea581bbb94cd674b53"
+      "sha256": "9b92574156b39c2c15a1c0dbffe56237884b0514c21aea4a91bd66b369b8185f"
     },
     "crate": {
       "file": "crate.png",
