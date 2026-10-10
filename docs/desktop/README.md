@@ -18,11 +18,15 @@ real backend. They show product behavior; visual approval and remaining
 composition work are tracked separately in the [visual QA log](VISUAL_QA.md).
 The larger world and inspector gallery is in the [repository README](../../README.md#desktop-app-gui).
 
-| Project interior | People roster |
+| Meadow valley | Dusk valley |
 | --- | --- |
-| ![Project interior with real Files, Memory, Terminal and project context destinations](../../static/screenshots/project-interior.png) | ![Configured collaborators in the People roster; offline People are not shown as active world characters](../../static/screenshots/people.png) |
-| Library | Operations |
-| ![Library of reusable Agent Toolkit capabilities](../../static/screenshots/library.png) | ![Operations with actual jobs, loops and runtime state](../../static/screenshots/operations.png) |
+| ![The workspace valley in Meadow light, with actual projects, shared places, creek and woodland](../../static/screenshots/world.png) | ![The workspace valley at dusk, with project houses, shared places, creek and forest](../../static/screenshots/world-dusk.png) |
+| Project interior | Live Person presence |
+| ![Project interior with real Files, Memory, Terminal and project context destinations](../../static/screenshots/project-interior.png) | ![Lina appears in the project house only while her real local PTY session is running](assets/electron/people/world-person-large.png) |
+| People roster | Capability Library |
+| ![Configured collaborators in the People roster; offline People are not shown as active world characters](../../static/screenshots/people.png) | ![Library of reusable Agent Toolkit capabilities](../../static/screenshots/library.png) |
+| Operations | Real PTY terminal |
+| ![Operations with actual jobs, loops and runtime state](../../static/screenshots/operations.png) | ![A live shell session in the integrated terminal](../../static/screenshots/terminal.png) |
 
 The Library's Skill catalog also exposes real provenance, prerequisites,
 compatibility, and a separate Toolkit installation receipt. These close crops
