@@ -10,17 +10,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.44.0] — 2026-10-10
+
 ### Added
 
-- Library now searches Skills and Agent Definitions together and exposes typed Skill provenance, declared dependencies, MCP requirements, and target compatibility separately from receipt-backed installation evidence.
-- `GET /api/v1/skills/catalog` provides the Desktop Library's typed read-only catalog metadata.
+- The Library searches Skills and Agent Definitions together. The typed
+  `GET /api/v1/skills/catalog` operation supplies provenance, dependencies,
+  MCP requirements, and target compatibility separately from receipt-backed
+  installation evidence.
+- World places support arrow-key focus and Enter activation, with the same
+  canonical destinations as pointer navigation and the command palette.
+- First-run Desktop welcome opens into the semantic valley without creating
+  sample projects, People, or runtime activity.
+- People history offers a reviewed fresh-session flow prefilled with the last
+  project, runner, and model; it makes clear that conversation history is not
+  resumed.
+
+### Changed
+
+- Replaced procedural building facades with original project homes and distinct
+  shared landmarks, and refined the deterministic creek, paths, woodland, and
+  project district composition.
+- Reduced World header controls to workspace context and the palette shortcut,
+  giving the map more of the `/world` screen while preserving direct actions.
+- README and Desktop documentation now lead with genuine Electron screenshots,
+  including a real Person session and reviewed Munder import. Removed obsolete
+  unused native-GUI font assets and a stale test log.
 
 ## [1.43.0] — 2026-10-09
 
 ### Changed
 
-- People session history can open a reviewed fresh-session flow prefilled with the prior project, runner and model; the UI explicitly states that conversation history is not restored.
-- Pressing Enter in a session-context field now commits once on blur, preventing the URL update from racing with immediate destination navigation.
 - The shared valley avenue continues into the project quarter, while civic doors use shorter paths to the commons.
 - Replaced the five procedural tree silhouettes with a cohesive original six-variant tree set, including flowering, autumn, pine, creek willow and rune-lit forms; the source atlas, crops, prompt and asset hashes are versioned for offline generation and review.
 - Project roster tests now compare canonical symlink targets so temporary-directory aliases behave consistently on macOS.
@@ -1249,7 +1269,9 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.42.0...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.44.0...HEAD
+[1.44.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.43.0...v1.44.0
+[1.43.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.42.0...v1.43.0
 [1.42.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.41.0...v1.42.0
 [1.41.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.40.0...v1.41.0
 [1.40.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.39.0...v1.40.0
