@@ -156,8 +156,12 @@ export async function setViewport(app: ElectronApplication, width: number, heigh
       const [win] = BrowserWindow.getAllWindows();
       if (!win) throw new Error('Desktop window is unavailable while resizing.');
       if (win.isMaximized()) {
-        await new Promise<void>((resolve) => {
-          win.once('unmaximize', () => resolve());
+        await new Promise<void>((resolve, reject) => {
+          const timer = setTimeout(() => reject(new Error('Desktop window did not unmaximize within 5s.')), 5000);
+          win.once('unmaximize', () => {
+            clearTimeout(timer);
+            resolve();
+          });
           win.unmaximize();
         });
         // Give the compositor one frame to apply the restored bounds before

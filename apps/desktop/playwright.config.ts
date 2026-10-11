@@ -24,11 +24,11 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: `pnpm --dir "${APP_DIR}" preview --host 127.0.0.1 --port ${PORT}`,
+    command: `pnpm --dir "${APP_DIR}" build && pnpm --dir "${APP_DIR}" preview --host 127.0.0.1 --port ${PORT}`,
     cwd: APP_DIR,
     url: `http://127.0.0.1:${PORT}`,
     reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
+    timeout: 180_000,
   },
   projects: [
     {

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 /**
- * Renderer smoke tests against vite dev.
+ * Renderer smoke tests against vite preview.
  * Backend-independent: asserts the app shell (nav, headings, fallbacks)
  * renders with no backend running. Live-backend behavior (queries,
  * mutations, SSE, terminals) is covered by unit tests, the packaged-app CDP

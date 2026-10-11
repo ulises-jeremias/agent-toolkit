@@ -132,6 +132,7 @@ export function WorldEntityMap({
   const [nearbyId, setNearbyId] = useState<string | null>(null);
   const panFocusRef = useRef<HTMLButtonElement>(null);
   const playerPositionRef = useRef(playerPosition);
+  const restoredKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     const update = () => setTabVisible(document.visibilityState !== 'hidden');
@@ -155,6 +156,8 @@ export function WorldEntityMap({
     () => ({ cols, rows, blocked: new Set(plan.collisionCells) }),
     [cols, rows, plan.collisionCells],
   );
+  const movementStateRef = useRef({ collisionMap, entities, zoom, viewW, viewH });
+  movementStateRef.current = { collisionMap, entities, zoom, viewW, viewH };
   const pathCells = useMemo(
     () =>
       new Set(
@@ -187,7 +190,9 @@ export function WorldEntityMap({
     } catch {
       // Browser storage can be disabled; exploration remains available.
     }
-    const restored = restoreWorldPosition(stored, spawnPoint, collisionMap);
+    const currentPosition = restoredKeyRef.current === persistKey ? JSON.stringify(playerPositionRef.current) : stored;
+    const restored = restoreWorldPosition(currentPosition, spawnPoint, collisionMap);
+    restoredKeyRef.current = persistKey;
     playerPositionRef.current = restored;
     setPlayerPosition(restored);
     setNearbyId(null);
@@ -245,6 +250,7 @@ export function WorldEntityMap({
       }
       const elapsed = previousFrame ? Math.min(50, now - previousFrame) : 16;
       previousFrame = now;
+      const { collisionMap, entities, zoom, viewW, viewH } = movementStateRef.current;
       const directions = [...held.values()];
       const input = {
         north: directions.includes('north'),
@@ -332,7 +338,7 @@ export function WorldEntityMap({
       window.removeEventListener('blur', onBlur);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [collisionMap, entities, persistKey, viewH, viewW, zoom]);
+  }, [persistKey]);
 
   const fitWorld = useCallback(() => {
     const region = regionRef.current;

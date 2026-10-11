@@ -192,7 +192,15 @@ const scenes = [
     };
 
     let updatePending = false;
+    let routeNavigationInProgress = false;
+    let routeNavigationTimer = 0;
+    const finishRouteNavigation = () => {
+      routeNavigationInProgress = false;
+      window.clearTimeout(routeNavigationTimer);
+      updateScene();
+    };
     const updateScene = () => {
+      if (routeNavigationInProgress) return;
       if (updatePending) return;
       updatePending = true;
       requestAnimationFrame(() => {
@@ -223,10 +231,18 @@ const scenes = [
           (stop) => stop.dataset.journeyStop === link.dataset.journeyLink,
         );
         const id = link.dataset.journeyLink;
-        if (id && index >= 0) setScene(id, index);
+        if (id && index >= 0) {
+          setScene(id, index);
+          routeNavigationInProgress = true;
+          window.clearTimeout(routeNavigationTimer);
+          routeNavigationTimer = window.setTimeout(finishRouteNavigation, 2500);
+        }
       });
     });
     window.addEventListener("scroll", updateScene, { passive: true });
+    window.addEventListener("scrollend", finishRouteNavigation, {
+      passive: true,
+    });
     window.addEventListener("resize", updateScene, { passive: true });
     updateScene();
   }
