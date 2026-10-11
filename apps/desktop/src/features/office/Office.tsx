@@ -65,16 +65,21 @@ export default function Office() {
           }
         >
           {vacancy.kind === 'gathering' && model.items.length === 0 ? (
-            <LoadingState label="Checking jobs and self-checks" />
+            <LoadingState label="Checking jobs, swarm gates and self-checks" />
           ) : vacancy.kind === 'unknown' && model.items.length === 0 ? (
             <ErrorState
               title="Could not prove that nothing needs you"
-              error={model.jobs.error ?? model.selfcheck.error ?? new Error(vacancy.reason)}
-              onRetry={() => void model.jobs.refetch()}
+              error={model.jobs.error ?? model.swarms.error ?? model.selfcheck.error ?? new Error(vacancy.reason)}
+              onRetry={() => {
+                void model.jobs.refetch();
+                void model.swarms.refetch();
+                void model.selfcheck.refetch();
+              }}
             />
           ) : model.items.length === 0 ? (
             <EmptyState title="Nothing needs you.">
-              No failed jobs and every self-check passes. Running work is listed below, not here.
+              No pending swarm approvals or failed jobs; every self-check passes. Running work is listed below, not
+              here.
             </EmptyState>
           ) : (
             <Table>

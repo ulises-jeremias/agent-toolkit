@@ -60,6 +60,32 @@ journeys:
       Settings keeps harness selection available; wait for backend live status
       before workspace operations, then retry or switch back to the previous
       workspace.
+  - id: workspace-context-packs
+    title: Review and select workspace context for future sessions
+    destinations: [workspace]
+    status: partial
+    evidence:
+      - note: >-
+          Workspace Hall lists locally defined packs with backend validation,
+          project scope, and current selection. A valid pack can be selected for
+          future sessions or cleared; this does not install or execute any
+          capability. Electron E2E covers valid and invalid packs, selection
+          persistence after reload, and clearing. Compact and large screenshots
+          were opened after the workflow passed on main 6a20cf0.
+        build: "6a20cf0172bf2cade5e21b5a890ad04fd95efbda (Linux Electron E2E; workflow 38101781841)"
+        tests:
+          - apps/desktop/e2e/electron/workspace-packs.spec.ts
+          - modules/agent_toolkit_core/workspace_packs_test.v
+        screenshots:
+          - assets/electron/workspace/workspace-packs-compact.png
+          - assets/electron/workspace/workspace-packs-large.png
+    blockers:
+      - >-
+          Creating and editing workspace packs is not yet available in the GUI;
+          current bundles must already exist on disk.
+    recovery: >-
+      Invalid packs remain visible with backend validation details and cannot
+      be selected; clear a stale selection when its file has been removed.
   - id: project-spatial-files
     title: Enter a project and inspect its real files in the World
     destinations: [world, workspace]
@@ -391,8 +417,9 @@ journeys:
           - ../../static/screenshots/library.png
     blockers:
       - >-
-          Workspace capability packs are not yet browsable from the Library,
-          and target compatibility is currently declared for Skills only.
+          Workspace context bundles are managed in Workspace Hall, separate
+          from installable Library capabilities. Target compatibility is
+          currently declared for Skills only.
   - id: install-capabilities
     title: Install skills/agents from the Library
     destinations: [library]

@@ -60,6 +60,8 @@ function input(patch: Partial<AttentionInput> = {}): AttentionInput {
     connection: 'online',
     jobs: [],
     jobsStatus: 'success',
+    swarms: [],
+    swarmsStatus: 'success',
     selfcheck: selfcheckOk,
     selfcheckStatus: 'success',
     href,
@@ -143,6 +145,65 @@ describe('collectAttention', () => {
     expect(officeLede(clear, items)).toMatch(/Nothing needs you/);
     expect(officeLede(clear, items)).not.toMatch(/quiet/i);
   });
+
+  it('surfaces real swarm gates and recovery states with direct Operations links', () => {
+    const items = collectAttention(
+      input({
+        swarms: [
+          {
+            run_id: 'run-plan',
+            recipe: 'team',
+            backend: 'tmux',
+            run_state: 'awaiting_plan_approval',
+            created_at: '2026-10-10T10:00:00Z',
+            task: 'Review world layout',
+          },
+          {
+            run_id: 'run-budget',
+            recipe: 'pair',
+            backend: 'headless',
+            run_state: 'budget_exhausted',
+            created_at: '2026-10-10T10:00:00Z',
+            task: 'Fix terminal recovery',
+          },
+          {
+            run_id: 'run-done',
+            recipe: 'pair',
+            backend: 'headless',
+            run_state: 'completed',
+            created_at: '2026-10-10T10:00:00Z',
+            task: 'Completed work is not a gate',
+          },
+        ],
+      }),
+    );
+    expect(items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: 'swarm-run-plan',
+          kind: 'swarm-gate',
+          title: 'Swarm plan needs approval',
+          detail: 'Review world layout',
+          href: '/operations?swarm=run-plan',
+          label: 'Review swarm',
+        }),
+        expect.objectContaining({
+          key: 'swarm-run-budget',
+          kind: 'swarm-recovery',
+          href: '/operations?swarm=run-budget',
+        }),
+      ]),
+    );
+    expect(items.map((item) => item.key)).not.toContain('swarm-run-done');
+  });
+
+  it('does not call attention clear if swarm runs failed to load', () => {
+    const unknown = input({ swarmsStatus: 'error' });
+    expect(attentionVacancy(unknown, collectAttention(unknown))).toEqual({
+      kind: 'unknown',
+      reason: 'Swarm runs did not load, so approval gates may be hidden.',
+    });
+  });
 });
 
 describe('collectNeedsMe / takeNextNeedsMe', () => {
@@ -162,6 +223,30 @@ describe('collectNeedsMe / takeNextNeedsMe', () => {
     expect(takeNextNeedsMe(targets)?.kind).toBe('failed-job');
     expect(takeNextNeedsMe(targets)?.href).toBe('/operations?job=job_run');
     expect(takeNextNeedsMe(targets)?.kind).toBe('crash');
+  });
+
+  it('prioritizes human swarm gates before failed and active jobs', () => {
+    const targets = collectNeedsMe(
+      input({
+        jobs: [job({ id: 'job_fail', status: 'failed', exit_code: 1 }), job({ id: 'job_run', status: 'running' })],
+        swarms: [
+          {
+            run_id: 'run-human',
+            recipe: 'team',
+            backend: 'tmux',
+            run_state: 'awaiting_human',
+            created_at: '2026-10-10T10:00:00Z',
+            task: 'Review patch',
+          },
+        ],
+      }),
+    );
+    expect(targets.map((target) => target.kind)).toEqual(['swarm-gate', 'failed-job', 'running-job']);
+    expect(takeNextNeedsMe(targets)).toEqual({
+      key: 'swarm-run-human',
+      kind: 'swarm-gate',
+      href: '/operations?swarm=run-human',
+    });
   });
 
   it('does not invent a completed-review queue', () => {

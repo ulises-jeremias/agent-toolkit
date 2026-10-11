@@ -1,5 +1,11 @@
 import type { ConnectionState } from '../../data/live';
-import { isTerminalJobStatus, type Job, type SelfcheckCheck, type SelfcheckResponse } from '../../lib/api';
+import {
+  isTerminalJobStatus,
+  type Job,
+  type SelfcheckCheck,
+  type SelfcheckResponse,
+  type SwarmRunInfo,
+} from '../../lib/api';
 import { backendBannerCopy } from '../../lib/backend-copy';
 import { jobCommandLine } from '../../lib/format';
 import type { BackendState } from '../../types/electron';
@@ -27,13 +33,14 @@ export function matchesInspect(key: string, inspect: string | null | undefined):
 }
 
 function inspectTail(value: string): string {
-  for (const prefix of ['job-', 'failed-', 'running-', 'check-']) {
+  for (const prefix of ['job-', 'failed-', 'running-', 'check-', 'swarm-']) {
     if (value.startsWith(prefix)) return value.slice(prefix.length);
   }
   return value;
 }
 
-export type AttentionKind = 'crash' | 'mismatch' | 'offline' | 'harness' | 'failed-job' | 'selfcheck';
+export type AttentionKind =
+  'crash' | 'mismatch' | 'offline' | 'harness' | 'failed-job' | 'swarm-gate' | 'swarm-recovery' | 'selfcheck';
 
 export interface AttentionItem {
   key: string;
@@ -45,7 +52,8 @@ export interface AttentionItem {
   label: string;
 }
 
-export type NeedsMeKind = 'crash' | 'mismatch' | 'failed-job' | 'running-job' | 'completed-review';
+export type NeedsMeKind =
+  'crash' | 'mismatch' | 'swarm-gate' | 'swarm-recovery' | 'failed-job' | 'running-job' | 'completed-review';
 
 export interface NeedsMeTarget {
   key: string;
@@ -71,6 +79,8 @@ export interface AttentionInput {
   connection: ConnectionState;
   jobs: readonly Job[] | undefined;
   jobsStatus: QueryStatus;
+  swarms: readonly SwarmRunInfo[] | undefined;
+  swarmsStatus: QueryStatus;
   selfcheck: SelfcheckResponse | undefined;
   selfcheckStatus: QueryStatus;
   href: HrefFn;
@@ -183,6 +193,35 @@ export function collectAttention(input: AttentionInput): AttentionItem[] {
     });
   }
 
+  for (const run of input.swarms ?? []) {
+    const runHref = href('/operations', { swarm: run.run_id });
+    if (run.run_state === 'awaiting_human' || run.run_state === 'awaiting_plan_approval') {
+      items.push({
+        key: `swarm-${run.run_id}`,
+        kind: 'swarm-gate',
+        tone: 'warn',
+        title: run.run_state === 'awaiting_plan_approval' ? 'Swarm plan needs approval' : 'Swarm needs your input',
+        detail: run.task || `${run.recipe} swarm · ${run.run_id}`,
+        href: runHref,
+        label: 'Review swarm',
+      });
+    } else if (
+      run.run_state === 'failed' ||
+      run.run_state === 'budget_exhausted' ||
+      run.run_state === 'cleanup_pending'
+    ) {
+      items.push({
+        key: `swarm-${run.run_id}`,
+        kind: 'swarm-recovery',
+        tone: run.run_state === 'failed' ? 'err' : 'warn',
+        title: `Swarm ${run.run_state.replaceAll('_', ' ')}`,
+        detail: run.task || `${run.recipe} swarm · ${run.run_id}`,
+        href: runHref,
+        label: 'Review swarm',
+      });
+    }
+  }
+
   for (const check of failingChecks(input.selfcheck)) {
     items.push({
       key: `check-${check.name}`,
@@ -198,10 +237,7 @@ export function collectAttention(input: AttentionInput): AttentionItem[] {
   return items;
 }
 
-/**
- * Palette cycle: crash/mismatch → failed jobs → running jobs → completed
- * needing review when that is distinguishable. Current harness only.
- */
+/** Route run gates and recoverable swarm failures into the shared attention queue. */
 export function collectNeedsMe(input: AttentionInput): NeedsMeTarget[] {
   const targets: NeedsMeTarget[] = [];
   const { backend, connection, href } = input;
@@ -217,6 +253,25 @@ export function collectNeedsMe(input: AttentionInput): NeedsMeTarget[] {
   for (const job of failedJobs(input.jobs ?? [])) {
     targets.push({ key: `failed-${job.id}`, kind: 'failed-job', href: href('/operations', { job: job.id }) });
   }
+  for (const run of input.swarms ?? []) {
+    if (run.run_state === 'awaiting_human' || run.run_state === 'awaiting_plan_approval') {
+      targets.push({
+        key: `swarm-${run.run_id}`,
+        kind: 'swarm-gate',
+        href: href('/operations', { swarm: run.run_id }),
+      });
+    } else if (
+      run.run_state === 'failed' ||
+      run.run_state === 'budget_exhausted' ||
+      run.run_state === 'cleanup_pending'
+    ) {
+      targets.push({
+        key: `swarm-${run.run_id}`,
+        kind: 'swarm-recovery',
+        href: href('/operations', { swarm: run.run_id }),
+      });
+    }
+  }
   for (const job of runningJobs(input.jobs ?? [])) {
     targets.push({ key: `running-${job.id}`, kind: 'running-job', href: href('/operations', { job: job.id }) });
   }
@@ -227,7 +282,16 @@ export function collectNeedsMe(input: AttentionInput): NeedsMeTarget[] {
       href: href('/operations', { job: job.id }),
     });
   }
-  return targets;
+  const priority: Record<NeedsMeKind, number> = {
+    crash: 0,
+    mismatch: 0,
+    'swarm-gate': 1,
+    'swarm-recovery': 2,
+    'failed-job': 3,
+    'running-job': 4,
+    'completed-review': 5,
+  };
+  return targets.sort((left, right) => priority[left.kind] - priority[right.kind]);
 }
 
 export type AttentionVacancy = { kind: 'gathering' } | { kind: 'unknown'; reason: string } | { kind: 'clear' };
@@ -247,6 +311,10 @@ export function attentionVacancy(input: AttentionInput, items: readonly Attentio
   }
   if (input.selfcheckStatus === 'error') {
     return { kind: 'unknown', reason: 'Self-check did not load.' };
+  }
+  if (input.swarmsStatus === 'pending') return { kind: 'gathering' };
+  if (input.swarmsStatus === 'error') {
+    return { kind: 'unknown', reason: 'Swarm runs did not load, so approval gates may be hidden.' };
   }
   return { kind: 'clear' };
 }
@@ -277,6 +345,11 @@ export function officeLede(input: AttentionInput, items: readonly AttentionItem[
     if (failed) parts.push(`${failed} ${failed === 1 ? 'job failed' : 'jobs failed'}.`);
     if (completed) parts.push(`${completed} completed.`);
   }
+  const waitingSwarms = (input.swarms ?? []).filter(
+    (run) => run.run_state === 'awaiting_human' || run.run_state === 'awaiting_plan_approval',
+  ).length;
+  if (waitingSwarms > 0)
+    parts.push(`${waitingSwarms} swarm ${waitingSwarms === 1 ? 'needs' : 'need'} approval or input.`);
   if (items.length === 0 && attentionVacancy(input, items).kind === 'clear' && failed === 0) {
     parts.push('Nothing needs you. No failed jobs and every self-check passes.');
   } else if (items.length > 0 && !parts.some((part) => part.includes('failed') || part.includes('backend'))) {

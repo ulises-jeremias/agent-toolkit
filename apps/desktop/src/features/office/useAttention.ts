@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useBackend, useSelfcheck } from '../../data/backend';
 import { sortJobs, useJobs } from '../../data/jobs';
+import { useSwarms } from '../../data/swarms';
 import { useLiveStatus } from '../../data/live';
 import { useSessionContext } from '../../shell/useSessionContext';
 import {
@@ -22,6 +23,7 @@ export function useAttention() {
   const live = useLiveStatus();
   const jobs = useJobs();
   const selfcheck = useSelfcheck();
+  const swarms = useSwarms();
   const list = useMemo(() => sortJobs(jobs.data), [jobs.data]);
 
   const input: AttentionInput = useMemo(
@@ -30,6 +32,8 @@ export function useAttention() {
       connection: live.connection,
       jobs: jobs.data ? list : undefined,
       jobsStatus: queryAttentionStatus(jobs.isError, Boolean(jobs.data), jobs.isPending),
+      swarms: swarms.data?.runs,
+      swarmsStatus: queryAttentionStatus(swarms.isError, Boolean(swarms.data), swarms.isPending),
       selfcheck: selfcheck.data,
       selfcheckStatus: queryAttentionStatus(selfcheck.isError, Boolean(selfcheck.data), selfcheck.isPending),
       href,
@@ -40,6 +44,9 @@ export function useAttention() {
       jobs.data,
       jobs.isError,
       jobs.isPending,
+      swarms.data,
+      swarms.isError,
+      swarms.isPending,
       list,
       live.connection,
       selfcheck.data,
@@ -62,6 +69,7 @@ export function useAttention() {
     href,
     live,
     jobs,
+    swarms,
     selfcheck,
     all: list,
     running: runningJobs(list),
