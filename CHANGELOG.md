@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The homepage now guides visitors through a responsive, scene-based journey
   across the Agent Toolkit valley while keeping product screenshots truthful.
+- The human World navigator now has separate idle and alternating directional
+  walk frames, with reduced-motion and suspended-window support.
 
 ## [1.44.0] — 2026-10-10
 

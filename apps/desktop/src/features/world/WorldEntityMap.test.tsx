@@ -153,6 +153,7 @@ describe('WorldEntityMap activation', () => {
     const { rerender, user } = renderMap();
     const avatar = screen.getByRole('img', { name: 'You, exploring the workspace' });
     const select = screen.getByRole('combobox', { name: 'Your appearance' });
+    expect(avatar).toHaveStyle({ '--frames': '4' });
 
     await user.selectOptions(select, 'grove');
     expect(avatar).toHaveStyle({ backgroundImage: "url('/world/char-player-grove-south.png')" });

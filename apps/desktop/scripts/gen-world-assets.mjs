@@ -1872,15 +1872,18 @@ const PLAYER_OUTFITS = {
 /** Human world navigator: distinct from runtime People, with clear facings and authored outfits. */
 function playerCharacter(direction, outfitName = 'river') {
   const outfit = PLAYER_OUTFITS[outfitName] ?? PLAYER_OUTFITS.river;
-  const frame = (walking) => {
+  const frame = (pose, step = 0) => {
     const img = new Img(16, 24);
-    const bob = walking ? 0 : 0;
-    const stride = walking ? 1 : 0;
+    const walking = pose === 'walk';
+    const blinking = pose === 'blink';
+    const stride = walking ? step : 0;
     if (direction === 'south') {
       img.rect(6, 2, 9, 3, 'k').rect(5, 4, 10, 6, 'k');
       img.rect(6, 2, 9, 4, 'od').set(5, 5, 'od').set(10, 5, 'od');
       img.rect(6, 5, 9, 9, 'k').rect(6, 5, 9, 8, 'sk');
-      img.set(7, 7, 'k').set(9, 7, 'k').set(8, 9, 'iv');
+      if (blinking) img.hline(7, 9, 7, 'od');
+      else img.set(7, 7, 'k').set(9, 7, 'k');
+      img.set(8, 9, 'iv');
     } else if (direction === 'north') {
       img.rect(5, 2, 10, 8, 'k').rect(6, 2, 9, 7, 'od');
       img.hline(5, 10, 7, 'ol').set(4, 6, 'od').set(11, 6, 'od');
@@ -1888,20 +1891,25 @@ function playerCharacter(direction, outfitName = 'river') {
     } else {
       img.rect(6, 2, 10, 4, 'k').rect(5, 4, 11, 6, 'k');
       img.rect(6, 2, 10, 4, 'od').rect(direction === 'east' ? 8 : 6, 5, direction === 'east' ? 11 : 9, 8, 'sk');
-      img.set(direction === 'east' ? 10 : 7, 7, 'k').set(8, 9, 'iv');
+      img.set(direction === 'east' ? 10 : 7, 7, blinking ? 'od' : 'k').set(8, 9, 'iv');
       img.set(direction === 'east' ? 11 : 4, 6, 'ol');
     }
     // The human navigator's coat palette is durable; no role, activity or runtime state is implied.
-    img.rect(4, 10 + bob, 11, 19, 'k').rect(5, 11 + bob, 10, 18, outfit.coat);
-    img.hline(5, 10, 11 + bob, outfit.highlight).hline(5, 10, 14, outfit.shade);
+    img.rect(4, 10, 11, 19, 'k').rect(5, 11, 10, 18, outfit.coat);
+    img.hline(5, 10, 11, outfit.highlight).hline(5, 10, 14, outfit.shade);
     img.set(8, 13, outfit.accent).vline(5, 15, 18, outfit.shade).vline(10, 15, 18, outfit.shade);
-    img.rect(3, 12 + bob, 4, 16, 'k').rect(3, 13 + bob, 4, 15, 'ol');
+    img.rect(3, 12, 4, 16, 'k').rect(3, 13, 4, 15, 'ol');
     img.rect(5 - stride, 19, 6, 21, 'k').rect(9 + stride, 19, 10, 21, 'k');
     img.set(5 - stride, 20, 'od').set(9 + stride, 20, 'od');
-    if (walking) img.set(2, 17, outfit.accent);
+    if (pose === 'breath') {
+      // A tiny scarf glint gives the idle cycle life without implying work.
+      img.set(8, 12, outfit.highlight);
+    }
+    if (walking) img.set(step > 0 ? 2 : 13, 17, outfit.accent);
     return img;
   };
-  let frames = [frame(false), frame(true)];
+  // Four horizontal frames: calm, blink/breath, left stride, right stride.
+  let frames = [frame('idle'), frame(direction === 'north' ? 'breath' : 'blink'), frame('walk', 1), frame('walk', -1)];
   if (direction === 'west') {
     frames = frames.map((source) => {
       const mirrored = new Img(source.w, source.h);
