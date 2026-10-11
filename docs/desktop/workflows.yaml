@@ -728,13 +728,18 @@ journeys:
         screenshots:
           - assets/electron/people/person-start-again-compact.png
           - assets/electron/people/person-start-again-large.png
+      - note: >-
+          Packaged Electron acceptance with a fresh HOME verifies that a Person
+          configured for worktree isolation and a token budget sees those
+          limits marked as unenforced, sees the warning that the runner can
+          modify project files, and cannot start until explicitly acknowledging
+          the limitation.
+        build: "0bc0449a (#1533; Packaged Electron with fresh HOME, run 38164996571)"
+        tests:
+          - apps/desktop/e2e/electron/people-session.spec.ts
     blockers:
       - provider conversation IDs, transcript continuity and safe runner-specific resume are not available yet
       - initial-task submission is not supported for Cursor or Muse; no runner-specific argument contract is assumed
-      - >-
-          max_seconds is enforced by Desktop; token/cost limits and non-inherited
-          isolation still require explicit acknowledgement because the
-          interactive PTY cannot enforce them.
   - id: swarm-role-picker
     title: Choose People for swarm roles before start
     destinations: [operations, people]

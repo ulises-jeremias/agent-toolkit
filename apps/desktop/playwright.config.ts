@@ -2,6 +2,7 @@ import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
 const APP_DIR = path.resolve(__dirname);
+const packagedApp = Boolean(process.env.ATK_E2E_APP_PATH);
 // Avoid colliding with sibling worktrees that reuse :3000 (reuseExistingServer
 // would then smoke-test a different Office).
 const PORT = process.env.PORT ?? '3177';
@@ -23,19 +24,27 @@ export default defineConfig({
     baseURL: `http://127.0.0.1:${PORT}`,
     trace: 'on-first-retry',
   },
-  webServer: {
-    command: `pnpm --dir "${APP_DIR}" build && pnpm --dir "${APP_DIR}" preview --host 127.0.0.1 --port ${PORT}`,
-    cwd: APP_DIR,
-    url: `http://127.0.0.1:${PORT}`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-  },
+  // A packaged app serves its own renderer, so acceptance against it must not
+  // rebuild the source renderer or depend on a local Vite server.
+  webServer: packagedApp
+    ? undefined
+    : {
+        command: `pnpm --dir "${APP_DIR}" build && pnpm --dir "${APP_DIR}" preview --host 127.0.0.1 --port ${PORT}`,
+        cwd: APP_DIR,
+        url: `http://127.0.0.1:${PORT}`,
+        reuseExistingServer: !process.env.CI,
+        timeout: 180_000,
+      },
   projects: [
-    {
-      name: 'renderer',
-      testIgnore: ['electron/**'],
-      use: { ...devices['Desktop Chrome'] },
-    },
+    ...(packagedApp
+      ? []
+      : [
+          {
+            name: 'renderer',
+            testIgnore: ['electron/**'],
+            use: { ...devices['Desktop Chrome'] },
+          },
+        ]),
     {
       name: 'electron',
       testMatch: ['electron/**/*.spec.ts'],
