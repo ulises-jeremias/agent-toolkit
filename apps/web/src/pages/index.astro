@@ -1,53 +1,55 @@
 ---
 import SiteLayout from "@/layouts/SiteLayout.astro";
-import world from "../../../../static/screenshots/world.png";
 import WorldJourney from "@/components/WorldJourney.astro";
 ---
 
 <SiteLayout>
   <section class="hero">
     <div class="wrap hero-inner">
-      <p class="eyebrow">A semantic workspace for real agent work</p>
-      <h1>Your AI agents finally have a place to work.</h1>
-      <p class="lede">
-        Projects become places. People become reusable collaborators. Skills,
-        memory and real agent sessions come together in one workspace you can
-        understand at a glance.
-      </p>
-      <div class="button-row">
-        <a class="button" href="/download/">
-          Explore Desktop{" "}
-          <span class="arrow" aria-hidden="true">
-            →
-          </span>
-        </a>
-        <a class="button secondary" href="/world/">
-          Walk through the world{" "}
-          <span class="arrow" aria-hidden="true">
-            ↗
-          </span>
-        </a>
+      <div class="hero-copy">
+        <p class="eyebrow">A semantic workspace for real agent work</p>
+        <h1>Your AI agents finally have a place to work.</h1>
+        <p class="lede">
+          Projects become places. People become reusable collaborators. Skills,
+          memory and real agent sessions come together in one workspace you can
+          understand at a glance.
+        </p>
+        <div class="button-row">
+          <a class="button" href="/download/">
+            Explore Desktop{" "}
+            <span class="arrow" aria-hidden="true">
+              →
+            </span>
+          </a>
+          <a class="button secondary" href="/world/">
+            Walk through the world{" "}
+            <span class="arrow" aria-hidden="true">
+              ↗
+            </span>
+          </a>
+        </div>
+        <p class="hero-footnote">
+          <strong>No pretend workers.</strong> In Desktop, a Person appears in
+          the world only while a real session is running.
+        </p>
       </div>
-      <p class="hero-footnote">
-        <strong>No pretend workers.</strong> A character appears only when a
-        real session is running.
-      </p>
       <figure class="hero-art">
         <div class="pixel-frame hero-screen">
           <img
-            src={world.src}
-            alt="Agent Toolkit Desktop's actual pixel valley: project houses, shared Library and Operations landmarks, paths, creek and woods"
+            src="/site/valley-journey.webp"
+            alt="Original Agent Toolkit valley illustration: a lantern-lit path crosses a bright creek between a project cottage, a grand library and an observatory"
             fetchpriority="high"
+            width="1536"
+            height="1024"
           />
         </div>
         <figcaption class="hero-caption">
-          <span>The workspace is the map.</span>
-          <span>Projects · People · Operations</span>
+          <span>An original vision of the workspace.</span>
+          <span>Actual Desktop screens in the journey below</span>
         </figcaption>
         <div class="hero-sign">
-          <span>REAL PROJECTS</span>
-          <br />
-          real places to work
+          <span>THE TOOLKIT VALLEY</span>
+          <br />a world for real work
         </div>
       </figure>
     </div>
