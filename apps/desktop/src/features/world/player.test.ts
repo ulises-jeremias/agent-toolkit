@@ -5,9 +5,11 @@ import { paintTerrain } from './model/terrain';
 import type { LaidOutEntity } from './model/types';
 import {
   findWorldSpawn,
+  findWorldPath,
   nearbyWorldTarget,
   restoreWorldPosition,
   stepWorldPlayer,
+  stepWorldPlayerToward,
   worldCellKey,
   type CollisionMap,
   type WorldInput,
@@ -34,6 +36,35 @@ describe('world player movement', () => {
     expect(stepWorldPlayer(hit, { north: false, south: false, east: true, west: false }, 50, map).x).toBe(hit.x);
     expect(slide.x).toBeLessThan(3.78);
     expect(slide.y).toBeGreaterThan(start.y);
+  });
+
+  it('routes to the closest reachable ground point without crossing blocked cells', () => {
+    const map = {
+      ...openMap,
+      blocked: new Set([1, 2, 3, 4].map((y) => worldCellKey(3, y))),
+    };
+    const route = findWorldPath({ x: 2.5, y: 2.5 }, { x: 5.5, y: 2.5 }, map);
+    expect(route.length).toBeGreaterThan(0);
+    expect(route.at(-1)).toEqual({ x: 5.5, y: 2.5 });
+    expect(route.some((point) => point.y <= 0.5 || point.y >= 5.5)).toBe(true);
+    for (const point of route) {
+      expect(map.blocked.has(worldCellKey(Math.floor(point.x), Math.floor(point.y)))).toBe(false);
+    }
+
+    const sealed = { ...openMap, blocked: new Set(Array.from({ length: openMap.rows }, (_, y) => worldCellKey(3, y))) };
+    expect(findWorldPath({ x: 2.5, y: 3.5 }, { x: 5.5, y: 3.5 }, sealed)).toEqual([]);
+  });
+
+  it('follows a path waypoint exactly without overshooting or entering a blocked tile', () => {
+    const start = { x: 2.5, y: 2.5 };
+    const target = { x: 3.5, y: 2.5 };
+    const map = { ...openMap, blocked: new Set([worldCellKey(4, 2)]) };
+    let current = start;
+    for (let frame = 0; frame < 20; frame += 1) current = stepWorldPlayerToward(current, target, 50, map);
+    expect(current).toEqual(target);
+    const blocked = stepWorldPlayerToward(current, { x: 4.5, y: 2.5 }, 50, map);
+    expect(blocked.x).toBeLessThan(3.78);
+    expect(blocked.y).toBe(current.y);
   });
 
   it('keeps the player inside map boundaries and rejects blocked restored coordinates', () => {

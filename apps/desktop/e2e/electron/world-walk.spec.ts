@@ -11,6 +11,15 @@ test('walks in the world only while it has focus and keeps typing local to the c
     const world = page.getByRole('application', { name: 'Semantic workspace world' });
     const player = world.getByRole('img', { name: 'You, exploring the workspace' });
     const position = () => player.evaluate((element) => [element.style.left, element.style.top]);
+    const initialZoom = Number(await world.getAttribute('data-zoom'));
+
+    const bounds = await world.boundingBox();
+    expect(bounds).toBeTruthy();
+    const beforePointerWalk = await position();
+    await world.click({ position: { x: bounds!.width * 0.88, y: bounds!.height * 0.78 } });
+    await expect.poll(position, { timeout: 3_000 }).not.toEqual(beforePointerWalk);
+    await expect.poll(() => world.getAttribute('data-zoom')).not.toBe(String(initialZoom));
+    await expect(player).not.toHaveAttribute('data-walking', { timeout: 15_000 });
 
     const appearance = page.getByRole('combobox', { name: 'Your appearance' });
     await appearance.selectOption('grove');
@@ -23,15 +32,15 @@ test('walks in the world only while it has focus and keeps typing local to the c
         ),
       )
       .toBe('grove');
-    if (process.env['ATK_CAPTURE_WORLD_PLAYER'] === '1') {
-      const outputDir = process.env['ATK_CAPTURE_WORLD_PLAYER_DIR'] ?? '/tmp/agent-toolkit-world-player';
+    if (process.env['ATK_CAPTURE_WORLD_EXPLORATION'] === '1') {
+      const outputDir = process.env['ATK_CAPTURE_WORLD_EXPLORATION_DIR'] ?? '/tmp/agent-toolkit-world-exploration';
       fs.mkdirSync(outputDir, { recursive: true });
       for (const viewport of [
         { name: 'compact', width: 1024, height: 640 },
         { name: 'large', width: 1920, height: 1080 },
       ]) {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        const output = path.join(outputDir, `world-player-appearance-${viewport.name}.png`);
+        const output = path.join(outputDir, `world-player-click-to-move-${viewport.name}.png`);
         await page.screenshot({ path: path.resolve(output) });
       }
     }

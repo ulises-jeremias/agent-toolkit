@@ -19,7 +19,9 @@ import {
   findWorldSpawn,
   nearbyWorldTarget,
   restoreWorldPosition,
+  findWorldPath,
   stepWorldPlayer,
+  stepWorldPlayerToward,
   worldCellKey,
   type WorldPoint,
 } from './player';
@@ -141,8 +143,11 @@ export function WorldEntityMap({
   const [playerAppearance, setPlayerAppearance] = useState<PlayerAppearance>('river');
   const [nearbyId, setNearbyId] = useState<string | null>(null);
   const panFocusRef = useRef<HTMLButtonElement>(null);
+  const startPathRef = useRef<() => void>(() => {});
+  const followCameraRef = useRef<() => void>(() => {});
   const playerPositionRef = useRef(playerPosition);
   const restoredKeyRef = useRef<string | null>(null);
+  const pathRef = useRef<WorldPoint[]>([]);
 
   useEffect(() => {
     let stored: string | null = null;
@@ -176,8 +181,15 @@ export function WorldEntityMap({
     () => ({ cols, rows, blocked: new Set(plan.collisionCells) }),
     [cols, rows, plan.collisionCells],
   );
-  const movementStateRef = useRef({ collisionMap, entities, zoom, viewW, viewH });
-  movementStateRef.current = { collisionMap, entities, zoom, viewW, viewH };
+  const movementStateRef = useRef({ collisionMap, entities, zoom, viewW, viewH, cameraMode });
+  movementStateRef.current = { collisionMap, entities, zoom, viewW, viewH, cameraMode };
+  followCameraRef.current = () => {
+    const current = movementStateRef.current;
+    if (current.cameraMode === 'follow') return;
+    const closerZoom = ZOOMS.find((step) => step > current.zoom);
+    if (closerZoom !== undefined) setZoom(closerZoom);
+    setCameraMode('follow');
+  };
   const pathCells = useMemo(
     () =>
       new Set(
@@ -258,6 +270,7 @@ export function WorldEntityMap({
     };
     const cancelMovement = () => {
       held.clear();
+      pathRef.current = [];
       writePosition(playerPositionRef.current);
       if (animationFrame !== null) cancelAnimationFrame(animationFrame);
       animationFrame = null;
@@ -278,7 +291,27 @@ export function WorldEntityMap({
         east: directions.includes('east'),
         west: directions.includes('west'),
       };
-      const next = stepWorldPlayer(playerPositionRef.current, input, elapsed, collisionMap);
+      let next: WorldPoint;
+      if (held.size > 0) {
+        next = stepWorldPlayer(playerPositionRef.current, input, elapsed, collisionMap);
+      } else {
+        let waypoint = pathRef.current[0];
+        while (
+          waypoint &&
+          Math.hypot(waypoint.x - playerPositionRef.current.x, waypoint.y - playerPositionRef.current.y) < 0.03
+        ) {
+          pathRef.current.shift();
+          waypoint = pathRef.current[0];
+        }
+        next = waypoint
+          ? stepWorldPlayerToward(playerPositionRef.current, waypoint, elapsed, collisionMap)
+          : playerPositionRef.current;
+        if (waypoint) {
+          const dx = waypoint.x - playerPositionRef.current.x;
+          const dy = waypoint.y - playerPositionRef.current.y;
+          setPlayerDirection(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'east' : 'west') : dy > 0 ? 'south' : 'north');
+        }
+      }
       const moved = next.x !== playerPositionRef.current.x || next.y !== playerPositionRef.current.y;
       setPlayerWalking(moved);
       if (moved) {
@@ -296,7 +329,6 @@ export function WorldEntityMap({
             { x: region.clientWidth, y: region.clientHeight },
             { x: viewW, y: viewH },
           );
-          setCameraMode('follow');
           setPan(cameraPan);
         }
         if (now - lastPersist > 750) {
@@ -308,8 +340,16 @@ export function WorldEntityMap({
           }
         }
       }
-      if (held.size > 0) animationFrame = requestAnimationFrame(tick);
-      else animationFrame = null;
+      if (held.size > 0 || pathRef.current.length > 0) animationFrame = requestAnimationFrame(tick);
+      else {
+        animationFrame = null;
+        setPlayerWalking(false);
+      }
+    };
+    startPathRef.current = () => {
+      if (animationFrame !== null || pathRef.current.length === 0) return;
+      previousFrame = 0;
+      animationFrame = requestAnimationFrame(tick);
     };
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
       if (!isFocused() || isTyping(event.target) || event.altKey || event.ctrlKey || event.metaKey) return;
@@ -318,6 +358,8 @@ export function WorldEntityMap({
       const direction = controls.get(event.key.toLowerCase());
       if (direction) {
         event.preventDefault();
+        pathRef.current = [];
+        followCameraRef.current();
         setPlayerDirection(direction);
         held.set(event.key.toLowerCase(), direction);
         if (animationFrame === null) {
@@ -352,6 +394,7 @@ export function WorldEntityMap({
     window.addEventListener('blur', onBlur);
     document.addEventListener('visibilitychange', onVisibilityChange);
     return () => {
+      startPathRef.current = () => {};
       cancelMovement();
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
@@ -385,16 +428,23 @@ export function WorldEntityMap({
     if (!region) return;
     const observer = new ResizeObserver(() => {
       if (cameraMode === 'follow') {
-        setPan(
-          clampCamera(
-            {
-              x: region.clientWidth / 2 - playerPositionRef.current.x * zoom,
-              y: region.clientHeight / 2 - playerPositionRef.current.y * zoom,
-            },
-            { x: region.clientWidth, y: region.clientHeight },
-            { x: viewW, y: viewH },
-          ),
-        );
+        const viewport = { x: region.clientWidth, y: region.clientHeight };
+        if (viewW < viewport.x && viewH < viewport.y) {
+          const camera = fitCamera(viewport, { x: cols, y: rows });
+          setZoom(camera.zoom);
+          setPan(camera.pan);
+        } else {
+          setPan(
+            clampCamera(
+              {
+                x: viewport.x / 2 - playerPositionRef.current.x * zoom,
+                y: viewport.y / 2 - playerPositionRef.current.y * zoom,
+              },
+              viewport,
+              { x: viewW, y: viewH },
+            ),
+          );
+        }
       } else if (cameraMode !== 'manual') {
         fitWorld();
       } else {
@@ -403,7 +453,7 @@ export function WorldEntityMap({
     });
     observer.observe(region);
     return () => observer.disconnect();
-  }, [cameraMode, fitWorld, viewW, viewH, zoom]);
+  }, [cameraMode, cols, fitWorld, rows, viewW, viewH, zoom]);
 
   const clampPan = useCallback(
     (x: number, y: number) => {
@@ -423,6 +473,22 @@ export function WorldEntityMap({
     suppressClick.current = false;
     drag.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y, moved: false };
   };
+  const walkToPoint = (clientX: number, clientY: number, target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return;
+    if (target.closest('[data-activates="true"], [aria-label="Map view controls"]')) return;
+    const region = regionRef.current;
+    if (!region) return;
+    const rect = region.getBoundingClientRect();
+    const worldTarget = {
+      x: (clientX - rect.left - pan.x) / zoom,
+      y: (clientY - rect.top - pan.y) / zoom,
+    };
+    pathRef.current = findWorldPath(playerPositionRef.current, worldTarget, collisionMap);
+    if (pathRef.current.length === 0) return;
+    panFocusRef.current?.focus();
+    followCameraRef.current();
+    startPathRef.current();
+  };
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!drag.current) return;
     const { x, y, panX, panY } = drag.current;
@@ -437,10 +503,12 @@ export function WorldEntityMap({
     setPan(clampPan(panX + event.clientX - x, panY + event.clientY - y));
   };
   const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    const shouldWalk = event.type === 'pointerup' && event.button === 0 && drag.current !== null && !drag.current.moved;
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
     drag.current = null;
+    if (shouldWalk) walkToPoint(event.clientX, event.clientY, event.target);
   };
 
   const onKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
@@ -638,8 +706,8 @@ export function WorldEntityMap({
           </>
         ) : (
           <span>
-            <kbd>WASD</kbd> / <kbd>←↑↓→</kbd> walk <i aria-hidden="true">·</i> move close and press <kbd>E</kbd> to
-            interact
+            Click ground or use <kbd>WASD</kbd> / <kbd>←↑↓→</kbd> to walk <i aria-hidden="true">·</i> move close and
+            press <kbd>E</kbd> to interact
           </span>
         )}
       </div>
