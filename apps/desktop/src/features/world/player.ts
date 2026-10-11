@@ -62,6 +62,68 @@ export function stepWorldPlayer(
   return next;
 }
 
+/** Move directly toward a path waypoint without overshooting it. */
+export function stepWorldPlayerToward(
+  current: WorldPoint,
+  target: WorldPoint,
+  elapsedMs: number,
+  map: CollisionMap,
+): WorldPoint {
+  const dx = target.x - current.x;
+  const dy = target.y - current.y;
+  const distance = Math.hypot(dx, dy);
+  if (distance === 0) return current;
+  const travel = Math.min(distance, (PLAYER_SPEED_TILES_PER_SECOND * Math.min(50, Math.max(0, elapsedMs))) / 1000);
+  const next = { x: current.x + (dx / distance) * travel, y: current.y + (dy / distance) * travel };
+  return canOccupy(next, map) ? next : current;
+}
+
+/** Find the closest reachable tile to a pointer target, routing around terrain and buildings. */
+export function findWorldPath(start: WorldPoint, target: WorldPoint, map: CollisionMap): WorldPoint[] {
+  const startCell = { x: Math.floor(start.x), y: Math.floor(start.y) };
+  const startKey = worldCellKey(startCell.x, startCell.y);
+  const startCenter = { x: startCell.x + 0.5, y: startCell.y + 0.5 };
+  if (!canOccupy(start, map) || !canOccupy(startCenter, map)) return [];
+
+  const queue = [startCell];
+  const previous = new Map<string, string | null>([[startKey, null]]);
+  const cells = new Map<string, { x: number; y: number }>([[startKey, startCell]]);
+  const directions = [
+    { x: 0, y: -1 },
+    { x: 1, y: 0 },
+    { x: 0, y: 1 },
+    { x: -1, y: 0 },
+  ];
+  for (let cursor = 0; cursor < queue.length; cursor += 1) {
+    const cell = queue[cursor]!;
+    for (const direction of directions) {
+      const next = { x: cell.x + direction.x, y: cell.y + direction.y };
+      const key = worldCellKey(next.x, next.y);
+      if (previous.has(key) || !canOccupy({ x: next.x + 0.5, y: next.y + 0.5 }, map)) continue;
+      previous.set(key, worldCellKey(cell.x, cell.y));
+      cells.set(key, next);
+      queue.push(next);
+    }
+  }
+
+  const destination = [...cells.entries()].reduce((best, candidate) => {
+    const point = { x: candidate[1].x + 0.5, y: candidate[1].y + 0.5 };
+    const bestPoint = { x: best[1].x + 0.5, y: best[1].y + 0.5 };
+    return Math.hypot(point.x - target.x, point.y - target.y) <
+      Math.hypot(bestPoint.x - target.x, bestPoint.y - target.y)
+      ? candidate
+      : best;
+  });
+  const route: WorldPoint[] = [];
+  let cursor: string | null = destination[0];
+  while (cursor && cursor !== startKey) {
+    const cell = cells.get(cursor);
+    if (cell) route.push({ x: cell.x + 0.5, y: cell.y + 0.5 });
+    cursor = previous.get(cursor) ?? null;
+  }
+  return route.reverse();
+}
+
 /** Pick the nearest safe tile, preferring a path tile when available. */
 export function findWorldSpawn(
   collision: CollisionMap,

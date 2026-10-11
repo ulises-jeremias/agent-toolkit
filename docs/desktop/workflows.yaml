@@ -92,6 +92,22 @@ journeys:
     status: ok
     evidence:
       - note: >-
+          Ground clicks now route the human player around blocked cells and
+          semantic landmarks, while clicking a real entity keeps its canonical
+          action. The camera follows during exploration and reframes at crisp
+          integer zoom when the viewport changes. Electron E2E walks to a
+          pointer destination, waits for arrival, then checks keyboard walking
+          and that typing stays local to the command palette. Captures were
+          opened at compact and large sizes; the local backend was 1.43 with
+          source renderer 1.44.
+        build: "feat/world-click-to-move (Linux Electron E2E; world-walk.spec.ts)"
+        tests:
+          - apps/desktop/e2e/electron/world-walk.spec.ts
+          - apps/desktop/src/features/world/player.test.ts
+        screenshots:
+          - assets/electron/world-player-click-to-move/compact.png
+          - assets/electron/world-player-click-to-move/large.png
+      - note: >-
           The human navigator now offers River, Grove and Ember coats with
           workspace-scoped persistence shared between grounds and interiors.
           The existing walk E2E verifies the selected sprite, stored preference,
