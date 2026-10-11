@@ -27,6 +27,7 @@ import { reviewMunderHire, type MunderReview } from './importMunder';
 import { PersonStartDialog } from './PersonStartDialog';
 import { personCharacter } from './avatar';
 import { personSessionStatusLabel } from '../../data/personSessionStatus';
+import { activePersonSessionsForWorkspace } from '../../data/personSessionScope';
 
 const blank: Person = {
   spec: 'agent-toolkit/person@1',
@@ -381,12 +382,16 @@ export default function People() {
   });
   const people = list.data?.people ?? [];
   const selected = people.find((person) => person.id === selectedId) ?? people[0];
+  const workspacePersonSessions = useMemo(
+    () => activePersonSessionsForWorkspace(terminals.sessions, workspace),
+    [terminals.sessions, workspace],
+  );
   const selectedSession = selected
-    ? terminals.sessions.find((session) => session.personId === selected.id && session.exitCode === null)
+    ? workspacePersonSessions.find((session) => session.personId === selected.id)
     : undefined;
   const selectedRecentSession = selected
     ? terminals.sessions
-        .filter((session) => session.personId === selected.id)
+        .filter((session) => session.personId === selected.id && session.sessionWorkspace === workspace)
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
     : undefined;
   const selectedSessionHistory = selected
@@ -394,13 +399,8 @@ export default function People() {
     : [];
   const displaySession = selectedSession ?? selectedRecentSession;
   const activePersonIds = useMemo(
-    () =>
-      new Set(
-        terminals.sessions.flatMap((session) =>
-          session.personId && session.exitCode === null ? [session.personId] : [],
-        ),
-      ),
-    [terminals.sessions],
+    () => new Set(workspacePersonSessions.flatMap((session) => (session.personId ? [session.personId] : []))),
+    [workspacePersonSessions],
   );
   const formOpen = creating || editing !== null || importDraft !== null;
 
