@@ -1,0 +1,28 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { WorkspacePacksResponse } from '../lib/api';
+import { qk } from '../lib/query/keys';
+import { requireClient, useBackend } from './backend';
+
+export function useWorkspacePacks(workspace: string) {
+  const { client } = useBackend();
+  return useQuery<WorkspacePacksResponse>({
+    queryKey: qk.workspacePacks.list(workspace),
+    queryFn: () => requireClient(client).workspacePacks(workspace),
+    enabled: client !== null && workspace.trim().length > 0,
+    staleTime: 15_000,
+    refetchOnMount: 'always',
+  });
+}
+
+export function useActivateWorkspacePack(workspace: string) {
+  const { client } = useBackend();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (packPath: string) => requireClient(client).activateWorkspacePack(workspace, packPath),
+    onSettled: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: qk.workspacePacks.list(workspace) }),
+        queryClient.invalidateQueries({ queryKey: qk.domain('workspace') }),
+      ]),
+  });
+}

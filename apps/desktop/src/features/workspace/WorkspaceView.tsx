@@ -20,6 +20,7 @@ import {
   useActionReceipt,
 } from '../../ui';
 import { FilesPanel } from './FilesPanel';
+import { WorkspacePacksPanel } from './WorkspacePacksPanel';
 import { displayLocationName } from '../../shell/sessionContext';
 import { useSessionContext } from '../../shell/useSessionContext';
 import styles from './workspace.module.css';
@@ -163,6 +164,7 @@ export default function WorkspaceView() {
             </QueryView>
           </Panel>
         </Grid>
+        {path ? <WorkspacePacksPanel workspace={path} /> : null}
         {!focusFiles ? <FilesPanel key={filesProject ?? 'workspace'} project={filesProject} /> : null}
         <Panel tone="notice" title="Agent start context" meta="What an agent sees when it starts here">
           <QueryView query={context} loading="Reading start context" errorTitle="Could not read the start context">

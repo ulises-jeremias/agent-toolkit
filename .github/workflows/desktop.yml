@@ -99,6 +99,15 @@ jobs:
         run: >-
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
           pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/people-session.spec.ts
+      - name: Capture workspace context pack review
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
+        env:
+          ATK_E2E_BACKEND_BIN: ${{ github.workspace }}/dist/agent-toolkit
+          ATK_CAPTURE: '1'
+          ATK_CAPTURE_DIR: ${{ runner.temp }}/atk-workspace-packs-review
+        run: >-
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
+          pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/workspace-packs.spec.ts
       - name: Verify world review screenshots
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
         run: |
@@ -121,6 +130,9 @@ jobs:
           for screenshot in people-roster-compact.png people-roster-large.png person-start-compact.png person-start-large.png; do
             test -s "${{ runner.temp }}/atk-people-review/$screenshot"
           done
+          for screenshot in workspace-packs-compact.png workspace-packs-large.png; do
+            test -s "${{ runner.temp }}/atk-workspace-packs-review/$screenshot"
+          done
       - name: Capture MCP credential review
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
         env:
@@ -137,8 +149,9 @@ jobs:
           mkdir -p apps/desktop/test-results/review
           for directory in \
             "${{ runner.temp }}/atk-world-review" \
-            "${{ runner.temp }}/atk-destination-review" \
-            "${{ runner.temp }}/atk-people-review"; do
+          "${{ runner.temp }}/atk-destination-review" \
+            "${{ runner.temp }}/atk-people-review" \
+            "${{ runner.temp }}/atk-workspace-packs-review"; do
             for screenshot in "$directory"/*.png; do
               if test -s "$screenshot"; then
                 cp "$screenshot" apps/desktop/test-results/review/

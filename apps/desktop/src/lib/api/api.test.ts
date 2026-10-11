@@ -222,6 +222,17 @@ describe('ApiClient', () => {
     expect(calls[0]?.init?.method).toBe('GET');
   });
 
+  it('lists and explicitly selects workspace context packs through typed operations', async () => {
+    const api = client({ ok: true, workspace: '/workspace', active_pack: '', packs: [] });
+    await api.workspacePacks('/workspace');
+    await api.activateWorkspacePack('/workspace', 'packs/team.yaml');
+    expect(calls.map((call) => `${call.init?.method} ${call.url}`)).toEqual([
+      'GET http://127.0.0.1:9/api/v1/workspace/packs/list?workspace=%2Fworkspace',
+      'POST http://127.0.0.1:9/api/v1/workspace/packs/activate',
+    ]);
+    expect(calls[1]?.init?.body).toBe('{"workspace":"/workspace","pack_path":"packs/team.yaml"}');
+  });
+
   it('deletes with ?force=true only when forced', async () => {
     const api = client({ ok: true, message: 'deleted' });
     await api.deleteJob('job_x');

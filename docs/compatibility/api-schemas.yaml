@@ -657,6 +657,40 @@ schemas:
       - ok:boolean
       - 'projects:#ProjectListEntry[]'
 
+  - name: WorkspacePackSummary
+    v_struct: WorkspacePackSummary
+    description: A workspace context pack; this is not a reusable Library capability.
+    fields:
+      - path:string
+      - name:string
+      - description:string
+      - projects:string[]
+      - validation_errors:string[]
+      - active:boolean
+
+  - name: WorkspacePacksResponse
+    v_struct: WorkspacePacksResponse
+    fields:
+      - ok:boolean
+      - workspace:string
+      - active_pack:string
+      - marker_issue:string
+      - 'packs:#WorkspacePackSummary[]'
+
+  - name: WorkspacePackActivateRequest
+    v_struct: WorkspacePackActivateReq
+    fields:
+      - workspace:string
+      - pack_path:string
+
+  - name: WorkspacePackActivateResponse
+    v_struct: WorkspacePackActivateResponse
+    fields:
+      - ok:boolean
+      - workspace:string
+      - active_pack:string
+      - message:string
+
 # Server-native endpoints (ADR-030): capabilities of the API itself, not
 # mirrors of CLI contract commands. `response` is a field type (see grammar),
 # `text` (text/plain) or `sse` (text/event-stream of `event_schema`).
@@ -669,6 +703,24 @@ native:
     summary: List registered workspace projects with link health as typed rows
     query_params: ['workspace?:string']
     response: '#ProjectListResponse'
+  - path: /api/v1/workspace/packs/list
+    method: get
+    op: workspace_packs_list
+    summary: List local workspace context packs with validation and active selection
+    query_params: ['workspace?:string']
+    response: '#WorkspacePacksResponse'
+    errors:
+      - '403:workspace is outside allowed roots or uses a symlinked pack directory'
+  - path: /api/v1/workspace/packs/activate
+    method: post
+    op: workspace_packs_activate
+    summary: Select a validated workspace context pack for future sessions or clear it
+    request_body: WorkspacePackActivateRequest
+    response: '#WorkspacePackActivateResponse'
+    errors:
+      - '400:request body or selected pack is invalid'
+      - '403:workspace is outside allowed roots or the active marker is a symlink'
+      - '404:workspace or pack is not found'
   - path: /api/v1/mcp/providers
     method: get
     op: mcp_providers

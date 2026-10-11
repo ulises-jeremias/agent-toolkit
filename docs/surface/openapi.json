@@ -1081,6 +1081,106 @@
         }
       }
     },
+    "/api/v1/workspace/packs/list": {
+      "get": {
+        "operationId": "workspace_packs_list",
+        "summary": "List local workspace context packs with validation and active selection",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspacePacksResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "workspace is outside allowed roots or uses a symlinked pack directory",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/packs/activate": {
+      "post": {
+        "operationId": "workspace_packs_activate",
+        "summary": "Select a validated workspace context pack for future sessions or clear it",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspacePackActivateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspacePackActivateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "request body or selected pack is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "workspace is outside allowed roots or the active marker is a symlink",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "workspace or pack is not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/mcp/providers": {
       "get": {
         "operationId": "mcp_providers",
@@ -5845,6 +5945,112 @@
         "required": [
           "ok",
           "projects"
+        ]
+      },
+      "WorkspacePackSummary": {
+        "type": "object",
+        "description": "A workspace context pack; this is not a reusable Library capability.",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "validation_errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path",
+          "name",
+          "description",
+          "projects",
+          "validation_errors",
+          "active"
+        ]
+      },
+      "WorkspacePacksResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "workspace": {
+            "type": "string"
+          },
+          "active_pack": {
+            "type": "string"
+          },
+          "marker_issue": {
+            "type": "string"
+          },
+          "packs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkspacePackSummary"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "workspace",
+          "active_pack",
+          "marker_issue",
+          "packs"
+        ]
+      },
+      "WorkspacePackActivateRequest": {
+        "type": "object",
+        "properties": {
+          "workspace": {
+            "type": "string"
+          },
+          "pack_path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace",
+          "pack_path"
+        ]
+      },
+      "WorkspacePackActivateResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "workspace": {
+            "type": "string"
+          },
+          "active_pack": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "workspace",
+          "active_pack",
+          "message"
         ]
       }
     }
