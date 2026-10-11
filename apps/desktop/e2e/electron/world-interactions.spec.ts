@@ -25,7 +25,19 @@ test('uses the project workbench to review and open a real terminal session', as
     await expect(projectReview).toBeHidden();
     await nav.getByRole('link', { name: 'World' }).click();
 
-    await page.getByRole('button', { name: /garden-api · Project/ }).click();
+    const world = page.getByRole('application', { name: 'Semantic workspace world' });
+    await world.getByRole('button', { name: 'Explore by walking' }).click();
+    const house = world.getByRole('button', { name: /garden-api · Project ·/ });
+    await expect(house).toBeVisible();
+    const approach = await house.evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      const tileSize = Number.parseFloat(getComputedStyle(element).getPropertyValue('--world-tile-size'));
+      return { x: bounds.left + bounds.width / 2, y: bounds.bottom + tileSize * 0.5 };
+    });
+    await page.mouse.click(approach.x, approach.y);
+    await expect(world.getByText('Press E to enter garden-api house')).toBeVisible({ timeout: 20_000 });
+    await page.keyboard.press('E');
+
     const interior = page.getByRole('application', { name: 'Interior of garden-api' });
     await expect(interior).toBeVisible();
     await interior.getByRole('button', { name: 'Explore by walking' }).click();
