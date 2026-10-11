@@ -141,6 +141,7 @@ export function WorldEntityMap({
   const [playerDirection, setPlayerDirection] = useState<'north' | 'south' | 'east' | 'west'>('south');
   const [playerWalking, setPlayerWalking] = useState(false);
   const [playerAppearance, setPlayerAppearance] = useState<PlayerAppearance>('river');
+  const [playerReadyKey, setPlayerReadyKey] = useState('');
   const [nearbyId, setNearbyId] = useState<string | null>(null);
   const panFocusRef = useRef<HTMLButtonElement>(null);
   const startPathRef = useRef<() => void>(() => {});
@@ -187,7 +188,18 @@ export function WorldEntityMap({
     const current = movementStateRef.current;
     if (current.cameraMode === 'follow') return;
     const closerZoom = ZOOMS.find((step) => step > current.zoom);
-    if (closerZoom !== undefined) setZoom(closerZoom);
+    if (closerZoom !== undefined) {
+      movementStateRef.current = {
+        ...current,
+        zoom: closerZoom,
+        viewW: cols * closerZoom,
+        viewH: rows * closerZoom,
+        cameraMode: 'follow',
+      };
+      setZoom(closerZoom);
+    } else {
+      movementStateRef.current = { ...current, cameraMode: 'follow' };
+    }
     setCameraMode('follow');
   };
   const pathCells = useMemo(
@@ -209,6 +221,11 @@ export function WorldEntityMap({
           : { x: cols / 2, y: rows / 2 };
     return findWorldSpawn(collisionMap, preferred, pathCells);
   }, [collisionMap, cols, entities, mode, pathCells, rows]);
+  const playerStartKey = useMemo(
+    () => `${persistKey}:${cols}x${rows}:${spawnPoint.x},${spawnPoint.y}:${plan.collisionCells.join('|')}`,
+    [cols, persistKey, plan.collisionCells, rows, spawnPoint.x, spawnPoint.y],
+  );
+  const playerReady = playerReadyKey === playerStartKey;
   const nearbyEntity = useMemo(() => entities.find((entity) => entity.id === nearbyId) ?? null, [entities, nearbyId]);
   const nearbyEntityRef = useRef(nearbyEntity);
   const activateRef = useRef({ onSelect, onActivate });
@@ -228,7 +245,8 @@ export function WorldEntityMap({
     playerPositionRef.current = restored;
     setPlayerPosition(restored);
     setNearbyId(null);
-  }, [collisionMap, persistKey, spawnPoint]);
+    setPlayerReadyKey(playerStartKey);
+  }, [collisionMap, persistKey, playerStartKey, spawnPoint]);
 
   useEffect(() => {
     const target = nearbyWorldTarget(playerPosition, entities, entityHasInspector);
@@ -427,9 +445,13 @@ export function WorldEntityMap({
     const region = regionRef.current;
     if (!region) return;
     const observer = new ResizeObserver(() => {
-      if (cameraMode === 'follow') {
+      // ResizeObserver may deliver a queued notification after walking switches
+      // the camera to follow mode. Read the latest geometry and mode so a stale
+      // frame-mode measurement cannot snap the camera back out of player follow.
+      const current = movementStateRef.current;
+      if (current.cameraMode === 'follow') {
         const viewport = { x: region.clientWidth, y: region.clientHeight };
-        if (viewW < viewport.x && viewH < viewport.y) {
+        if (current.viewW < viewport.x && current.viewH < viewport.y) {
           const camera = fitCamera(viewport, { x: cols, y: rows });
           setZoom(camera.zoom);
           setPan(camera.pan);
@@ -437,18 +459,20 @@ export function WorldEntityMap({
           setPan(
             clampCamera(
               {
-                x: viewport.x / 2 - playerPositionRef.current.x * zoom,
-                y: viewport.y / 2 - playerPositionRef.current.y * zoom,
+                x: viewport.x / 2 - playerPositionRef.current.x * current.zoom,
+                y: viewport.y / 2 - playerPositionRef.current.y * current.zoom,
               },
               viewport,
-              { x: viewW, y: viewH },
+              { x: current.viewW, y: current.viewH },
             ),
           );
         }
-      } else if (cameraMode !== 'manual') {
+      } else if (current.cameraMode !== 'manual') {
         fitWorld();
       } else {
-        setPan((p) => clampCamera(p, { x: region.clientWidth, y: region.clientHeight }, { x: viewW, y: viewH }));
+        setPan((p) =>
+          clampCamera(p, { x: region.clientWidth, y: region.clientHeight }, { x: current.viewW, y: current.viewH }),
+        );
       }
     });
     observer.observe(region);
@@ -499,6 +523,7 @@ export function WorldEntityMap({
       suppressClick.current = true;
       event.currentTarget.setPointerCapture?.(event.pointerId);
     }
+    movementStateRef.current = { ...movementStateRef.current, cameraMode: 'manual' };
     setCameraMode('manual');
     setPan(clampPan(panX + event.clientX - x, panY + event.clientY - y));
   };
@@ -513,6 +538,7 @@ export function WorldEntityMap({
 
   const onKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
     if (event.key === 'Home') {
+      movementStateRef.current = { ...movementStateRef.current, cameraMode: 'fit' };
       setCameraMode('fit');
       event.preventDefault();
     }
@@ -529,6 +555,13 @@ export function WorldEntityMap({
 
   const changeZoom = (next: number) => {
     const region = regionRef.current;
+    movementStateRef.current = {
+      ...movementStateRef.current,
+      zoom: next,
+      viewW: cols * next,
+      viewH: rows * next,
+      cameraMode: 'manual',
+    };
     setCameraMode('manual');
     if (region) {
       setPan(zoomCamera(pan, zoom, next, { x: region.clientWidth, y: region.clientHeight }, { x: cols, y: rows }));
@@ -552,6 +585,7 @@ export function WorldEntityMap({
       data-theme={theme.id}
       data-mode={mode}
       data-zoom={zoom}
+      data-player-ready={playerReady ? 'true' : 'false'}
       data-suspended={!animate ? 'true' : undefined}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -618,6 +652,7 @@ export function WorldEntityMap({
             width: zoom,
             height: zoom * 1.5,
             backgroundImage: `url('/world/char-player-${playerAppearance}-${playerDirection}.png')`,
+            visibility: playerReady ? 'visible' : 'hidden',
             ['--frames' as string]: 2,
           }}
         />

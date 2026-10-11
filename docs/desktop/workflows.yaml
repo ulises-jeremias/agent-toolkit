@@ -110,6 +110,28 @@ journeys:
           - assets/electron/world-player-click-to-move/compact.png
           - assets/electron/world-player-click-to-move/large.png
       - note: >-
+          Fresh Electron acceptance exposed an initialization race that could
+          show the player at provisional coordinates before the real spawn was
+          resolved; the test had mistaken that jump for click-to-move. The actor
+          now remains hidden until its workspace/map-specific spawn is restored,
+          and Electron waits for that ready state before testing click movement.
+          Camera transitions synchronously publish their target geometry so a
+          queued ResizeObserver cannot restore the previous zoom or mode. The
+          source renderer build passed and the real Electron walk/door/terminal
+          flows passed with the installed 1.44.0 backend binary. Compact and large
+          captures were opened after the fix.
+        build: "fix/world-player-camera-follow (source Electron; backend 1.44.0; world-walk + world-interactions)"
+        tests:
+          - apps/desktop/e2e/electron/world-walk.spec.ts
+          - apps/desktop/e2e/electron/world-interactions.spec.ts
+          - apps/desktop/src/features/world/WorldEntityMap.test.tsx
+          - apps/desktop/src/features/world/camera.test.ts
+        screenshots:
+          - assets/electron/world-player-click-to-move/compact.png
+          - assets/electron/world-player-click-to-move/large.png
+          - assets/electron/world-player-exit/compact.png
+          - assets/electron/world-player-exit/large.png
+      - note: >-
           The project's interior door now describes its real action as returning
           to the workspace grounds. Electron E2E walks to that door, checks the
           proximity prompt, presses E, and verifies the valley is restored.

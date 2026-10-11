@@ -9,6 +9,7 @@ test('walks in the world only while it has focus and keeps typing local to the c
     const { page } = desktop;
     await waitForBackend(page);
     const world = page.getByRole('application', { name: 'Semantic workspace world' });
+    await expect(world).toHaveAttribute('data-player-ready', 'true');
     const player = world.getByRole('img', { name: 'You, exploring the workspace' });
     const position = () => player.evaluate((element) => [element.style.left, element.style.top]);
     const initialZoom = Number(await world.getAttribute('data-zoom'));
