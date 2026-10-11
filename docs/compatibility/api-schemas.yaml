@@ -703,7 +703,7 @@ native:
     summary: List registered workspace projects with link health as typed rows
     query_params: ['workspace?:string']
     response: '#ProjectListResponse'
-  - path: /api/v1/workspace/packs
+  - path: /api/v1/workspace/packs/list
     method: get
     op: workspace_packs_list
     summary: List local workspace context packs with validation and active selection

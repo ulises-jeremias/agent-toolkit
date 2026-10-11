@@ -8,7 +8,7 @@ struct WorkspacePackActivateReq {
 	pack_path string
 }
 
-@['/api/v1/workspace/packs'; get]
+@['/api/v1/workspace/packs/list'; get]
 pub fn (app &App) workspace_packs_list(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none { return respond_deny(mut ctx, deny) }

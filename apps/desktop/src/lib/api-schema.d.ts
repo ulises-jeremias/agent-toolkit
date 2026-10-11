@@ -360,7 +360,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/workspace/packs": {
+    "/api/v1/workspace/packs/list": {
         parameters: {
             query?: never;
             header?: never;

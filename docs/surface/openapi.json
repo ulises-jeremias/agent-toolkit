@@ -1081,7 +1081,7 @@
         }
       }
     },
-    "/api/v1/workspace/packs": {
+    "/api/v1/workspace/packs/list": {
       "get": {
         "operationId": "workspace_packs_list",
         "summary": "List local workspace context packs with validation and active selection",

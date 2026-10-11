@@ -430,7 +430,7 @@ export class ApiClient {
   }
 
   workspacePacks(workspace: string): Promise<WorkspacePacksResponse> {
-    return this.json('GET', '/api/v1/workspace/packs' satisfies PathWith<'get'>, { query: { workspace } });
+    return this.json('GET', '/api/v1/workspace/packs/list' satisfies PathWith<'get'>, { query: { workspace } });
   }
 
   activateWorkspacePack(workspace: string, pack_path: string): Promise<WorkspacePackActivateResponse> {

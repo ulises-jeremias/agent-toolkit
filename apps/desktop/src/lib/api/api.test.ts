@@ -227,7 +227,7 @@ describe('ApiClient', () => {
     await api.workspacePacks('/workspace');
     await api.activateWorkspacePack('/workspace', 'packs/team.yaml');
     expect(calls.map((call) => `${call.init?.method} ${call.url}`)).toEqual([
-      'GET http://127.0.0.1:9/api/v1/workspace/packs?workspace=%2Fworkspace',
+      'GET http://127.0.0.1:9/api/v1/workspace/packs/list?workspace=%2Fworkspace',
       'POST http://127.0.0.1:9/api/v1/workspace/packs/activate',
     ]);
     expect(calls[1]?.init?.body).toBe('{"workspace":"/workspace","pack_path":"packs/team.yaml"}');
