@@ -53,6 +53,20 @@ pnpm --filter agent-toolkit-desktop test:e2e     # Playwright vs live backend
 pnpm --filter agent-toolkit-desktop dist:dir     # electron-builder, unpacked (Linux verified)
 ```
 
+For Electron acceptance against an already packaged app, set
+`ATK_E2E_APP_PATH` to its executable and `ATK_E2E_BACKEND_BIN` to the backend
+binary to use:
+
+```bash
+ATK_E2E_APP_PATH=/path/to/agent-toolkit-desktop \
+ATK_E2E_BACKEND_BIN=/path/to/agent-toolkit \
+pnpm --filter agent-toolkit-desktop test:e2e --project=electron
+```
+
+Playwright then runs only Electron tests and skips the renderer build and Vite
+preview server; the packaged application serves its own renderer. The tests
+still create a throwaway HOME and workspace for every run.
+
 ## Decisions that differ from the template (documented, not accidental)
 
 - `tsconfig.json` has no project `references`; renderer and electron/node

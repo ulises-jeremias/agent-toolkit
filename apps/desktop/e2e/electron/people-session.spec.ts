@@ -94,6 +94,14 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
     const runnerId = await installedOptions.first().getAttribute('value');
     if (!runnerId) throw new Error('Discovered runner option is missing its id.');
     await runner.selectOption(runnerId);
+    const policyAcknowledgement = start.getByRole('checkbox', {
+      name: /Start without enforcing Isolation: worktree, Token limit: 1,000/,
+    });
+    await expect(policyAcknowledgement).toBeVisible();
+    await expect(start).toContainText(
+      'This session will use the selected project folder; its files may be changed by the runner.',
+    );
+    await expect(startButton).toBeDisabled();
     const taskField = start.getByRole('textbox', { name: 'Task for this session' });
     await expect(taskField).toHaveValue('Review changes in this project');
     await taskField.fill('Check this project for release blockers.');
