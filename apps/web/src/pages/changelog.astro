@@ -1,0 +1,40 @@
+---
+import { getCollection, render } from "astro:content";
+import SiteLayout from "@/layouts/SiteLayout.astro";
+
+const entries = await getCollection("changelog");
+const changelog = entries.find(
+  (entry) => entry.id.toLocaleLowerCase() === "changelog",
+);
+if (!changelog) throw new Error("Canonical CHANGELOG.md was not loaded.");
+const { Content } = await render(changelog);
+---
+
+<SiteLayout
+  title="Changelog — Agent Toolkit"
+  description="Release history for Agent Toolkit, generated from the canonical repository changelog."
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow">How the Toolkit grows</p>
+      <h1>Notes from the valley.</h1>
+      <p class="lede">
+        The release history below is rendered directly from the repository's
+        canonical changelog.
+      </p>
+      <p>
+        <a
+          class="quiet-link"
+          href="https://github.com/ulises-jeremias/agent-toolkit/blob/main/CHANGELOG.md"
+        >
+          View the source changelog <span aria-hidden="true">↗</span>
+        </a>
+      </p>
+    </div>
+  </section>
+  <section class="section section--deep" style="padding-top: 12px">
+    <article class="wrap prose">
+      <Content />
+    </article>
+  </section>
+</SiteLayout>

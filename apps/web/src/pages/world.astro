@@ -1,0 +1,147 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import world from "../../../../static/screenshots/world.png";
+import room from "../../../../docs/desktop/assets/electron/world-review-2026-10-09/project-interior-large.png";
+---
+
+<SiteLayout
+  title="The Agent Toolkit World — a workspace you can understand"
+  description="Projects, Library, Memory and Operations have semantic places in the Agent Toolkit pixel valley. The world is navigation, not decoration."
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow">A map that explains the system</p>
+      <h1>The world is the workspace.</h1>
+      <p class="lede">
+        This isn't a game layer painted over a dashboard. The valley is Agent
+        Toolkit's information architecture: each place represents a real domain
+        and opens its canonical workflow.
+      </p>
+      <figure class="pixel-frame page-hero-art">
+        <img
+          src={world.src}
+          alt="Actual Agent Toolkit Desktop workspace map, with projects represented by separate buildings and shared concepts gathered around the valley"
+          fetchpriority="high"
+        />
+        <figcaption class="screen-caption">
+          <span>ONE WORKSPACE · ONE MAP</span>
+          <span>real project roster</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+  <section class="section section--deep">
+    <div class="wrap">
+      <div class="section-intro">
+        <p class="section-kicker">Landmarks have meaning</p>
+        <h2>Learn the landscape once. Find things where they belong.</h2>
+        <p>
+          Hover, focus or select a place to understand it. Spatial navigation
+          and direct navigation use the same destinations; no one has to walk an
+          avatar to get work done.
+        </p>
+      </div>
+      <div class="semantic-list">
+        <div class="semantic-item">
+          <span class="term">PROJECT HOUSES</span>
+          <p>
+            <strong>Project</strong>
+            <br />A registered repository and its own files, knowledge and
+            terminal.
+          </p>
+        </div>
+        <div class="semantic-item">
+          <span class="term">LIBRARY</span>
+          <p>
+            <strong>Reusable capabilities</strong>
+            <br />
+            Skills, Agent Definitions, MCP providers and discovery.
+          </p>
+        </div>
+        <div class="semantic-item">
+          <span class="term">ARCHIVE</span>
+          <p>
+            <strong>Memory</strong>
+            <br />
+            Durable workspace or project records, separate from files.
+          </p>
+        </div>
+        <div class="semantic-item">
+          <span class="term">OPERATIONS</span>
+          <p>
+            <strong>Real runs</strong>
+            <br />
+            Jobs, Loops, Swarms, human gates and recovery.
+          </p>
+        </div>
+        <div class="semantic-item">
+          <span class="term">TERMINAL STATION</span>
+          <p>
+            <strong>Direct control</strong>
+            <br />A real PTY session tied to a project or Person.
+          </p>
+        </div>
+        <div class="semantic-item">
+          <span class="term">WORKSHOP</span>
+          <p>
+            <strong>Tools and integrations</strong>
+            <br />
+            Configured providers and installation evidence.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section section--glow">
+    <div class="wrap scene-grid">
+      <div class="scene-copy">
+        <p class="section-kicker">Inside a project house</p>
+        <h2>Furniture is a shortcut to a real resource.</h2>
+        <p>
+          Files open the project tree; a shelf opens project knowledge; the
+          archive opens recorded memory; the workstation opens its actual shell.
+          Each one reflects live product data.
+        </p>
+        <p>
+          Ambient water, birds and fireflies make the valley warm while staying
+          visually separate from agent presence.
+        </p>
+        <a class="quiet-link" href="/docs/desktop/">
+          Read the Desktop guide <span aria-hidden="true">→</span>
+        </a>
+      </div>
+      <figure class="pixel-frame scene-image">
+        <img
+          src={room.src}
+          alt="Actual project interior in Agent Toolkit Desktop, with separate files, knowledge, memory and terminal points"
+          loading="lazy"
+        />
+        <figcaption class="screen-caption">
+          <span>EVERY OBJECT OPENS SOMETHING REAL</span>
+          <span>project context</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+  <section class="section section--deep">
+    <div class="wrap closing-banner">
+      <p class="section-kicker">Find your place</p>
+      <h2>Start with the whole valley.</h2>
+      <p>
+        Projects and landmarks stay one click away through the map, app
+        navigation and command palette.
+      </p>
+      <div class="button-row">
+        <a class="button" href="/download/">
+          Explore Desktop{" "}
+          <span class="arrow" aria-hidden="true">
+            →
+          </span>
+        </a>
+        <a class="button secondary" href="/docs/concepts/">
+          Understand the concepts
+        </a>
+      </div>
+    </div>
+  </section>
+</SiteLayout>

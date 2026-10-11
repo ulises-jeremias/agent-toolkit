@@ -8,7 +8,7 @@ inspectors provide precise control without requiring the user to walk an avatar
 or run CLI commands.
 
 <p align="center">
-  <img src="../../static/screenshots/world.png" width="100%" alt="A real Agent Toolkit workspace, showing separate project buildings, shared landmarks, creek, bridge, footpaths, and woodland" />
+  <img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/world.png" width="100%" alt="A real Agent Toolkit workspace, showing separate project buildings, shared landmarks, creek, bridge, footpaths, and woodland" />
 </p>
 
 ## See the product

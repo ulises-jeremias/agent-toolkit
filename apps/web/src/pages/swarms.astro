@@ -1,0 +1,154 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import swarmStart from "../../../../docs/desktop/assets/electron/swarms/swarm-start-large.png";
+import swarmWatch from "../../../../docs/desktop/assets/electron/swarms/swarm-run-watch-large.png";
+---
+
+<SiteLayout
+  title="Swarms — coordinate real agent sessions"
+  description="Configure a swarm, review role assignments and approvals, then observe real runs, handoffs and artifacts in Agent Toolkit Operations."
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow">Temporary roles · real sessions</p>
+      <h1>Give a team one task. Keep every role in view.</h1>
+      <p class="lede">
+        Swarms coordinate reusable People through temporary responsibilities.
+        Choose a recipe, review the topology and model choices, approve the
+        plan, then follow what actually happens in Operations.
+      </p>
+      <figure class="pixel-frame page-hero-art">
+        <img
+          src={swarmStart.src}
+          alt="Actual Agent Toolkit Swarm start review with recipe, role assignments, People bindings and model choices"
+          fetchpriority="high"
+        />
+        <figcaption class="screen-caption">
+          <span>REVIEW BEFORE START</span>
+          <span>role · person · runner · model</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+  <section class="section section--deep">
+    <div class="wrap">
+      <div class="section-intro">
+        <p class="section-kicker">A role is not a Person</p>
+        <h2>Recipes define the responsibility. You choose who takes it.</h2>
+        <p>
+          Planner, implementer, reviewer, architect and QA remain ephemeral
+          Swarm roles. Bind them to a compatible Person when you want a familiar
+          collaborator, or choose Auto and let the canonical resolver create an
+          ephemeral session.
+        </p>
+      </div>
+      <div class="semantic-list">
+        <div class="semantic-item">
+          <span class="term">01 · SHAPE</span>
+          <p>
+            <strong>Inspect the recipe</strong>
+            <br />
+            Read the planned topology and its canonical role requirements.
+          </p>
+        </div>
+        <div class="semantic-item">
+          <span class="term">02 · BIND</span>
+          <p>
+            <strong>Choose the team</strong>
+            <br />
+            Override runner, model profile and optional Person per role.
+          </p>
+        </div>
+        <div class="semantic-item">
+          <span class="term">03 · REVIEW</span>
+          <p>
+            <strong>Check the gates</strong>
+            <br />
+            Review isolation, budgets, approval points and cleanup scope.
+          </p>
+        </div>
+        <div class="semantic-item">
+          <span class="term">04 · START</span>
+          <p>
+            <strong>Create actual sessions</strong>
+            <br />
+            The configured runner, backend and workspace determine runtime.
+          </p>
+        </div>
+        <div class="semantic-item">
+          <span class="term">05 · OBSERVE</span>
+          <p>
+            <strong>Follow the run</strong>
+            <br />
+            Inspect handoffs, artifacts, events and logs in Operations.
+          </p>
+        </div>
+        <div class="semantic-item">
+          <span class="term">06 · RECOVER</span>
+          <p>
+            <strong>Act on real state</strong>
+            <br />
+            Approve, pause, resume, stop or clean up with a review.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section section--glow">
+    <div class="wrap scene-grid">
+      <div class="scene-copy">
+        <p class="section-kicker">
+          Operations shows what. The World shows where.
+        </p>
+        <h2>Observe the run without turning the map into a graph.</h2>
+        <p>
+          Operations is the detailed view: it explains role state, human gates
+          and recovery. The World provides a spatial overview of where live
+          project work happens. A Person appears in a house only when backend
+          evidence connects a real session to that project.
+        </p>
+        <ul>
+          <li>Approvals and human input surface in Attention</li>
+          <li>Artifacts and handoffs stay attached to the run</li>
+          <li>Completed work isn't falsely queued for review</li>
+          <li>A headless record is never presented as a live agent</li>
+        </ul>
+        <a class="quiet-link" href="/docs/swarms/">
+          Read the Swarm guide <span aria-hidden="true">→</span>
+        </a>
+      </div>
+      <figure class="pixel-frame scene-image">
+        <img
+          src={swarmWatch.src}
+          alt="Actual Agent Toolkit Swarm run inspector showing live state, roles and recoverable operations"
+          loading="lazy"
+        />
+        <figcaption class="screen-caption">
+          <span>RUN INSPECTOR</span>
+          <span>the exact run · actual state</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+  <section class="section section--deep">
+    <div class="wrap closing-banner">
+      <p class="section-kicker">No People required to begin</p>
+      <h2>Start with Auto. Add your team over time.</h2>
+      <p>
+        Swarms remain useful even when your roster is empty. Bind durable People
+        when those collaborators add real value.
+      </p>
+      <div class="button-row">
+        <a class="button" href="/download/">
+          Explore Desktop{" "}
+          <span class="arrow" aria-hidden="true">
+            →
+          </span>
+        </a>
+        <a class="button secondary" href="/docs/swarm-roles/">
+          Explore role taxonomy
+        </a>
+      </div>
+    </div>
+  </section>
+</SiteLayout>

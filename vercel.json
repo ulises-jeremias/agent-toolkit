@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "astro",
+  "installCommand": "pnpm install --frozen-lockfile --filter agent-toolkit-web",
+  "buildCommand": "pnpm --filter agent-toolkit-web build",
+  "outputDirectory": "apps/web/dist"
+}

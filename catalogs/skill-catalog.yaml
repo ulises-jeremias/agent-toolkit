@@ -305,8 +305,7 @@ skills:
   - id: integrations/confluence-admin
     name: confluence-admin
     domain: integrations
-    description: 'Confluence administration including users, groups, space settings, and permission diagnostics. Use when managing user access, group membership, viewing space configuration, or checking permissions.
-'
+    description: 'Confluence administration including users, groups, space settings, and permission diagnostics. Use when managing user access, group membership, viewing space configuration, or checking permissions.'
     stability: stable
   - id: integrations/confluence-analytics
     name: confluence-analytics

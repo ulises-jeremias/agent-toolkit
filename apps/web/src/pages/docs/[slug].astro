@@ -1,0 +1,63 @@
+---
+import { getCollection, render } from "astro:content";
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import { publicDocs } from "@/data/docs-nav.mjs";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("docs");
+  return publicDocs.map((document) => {
+    const expected = document.source.replace(/\.md$/i, "").toLocaleLowerCase();
+    const entry = entries.find(
+      (candidate) => candidate.id.toLocaleLowerCase() === expected,
+    );
+    if (!entry)
+      throw new Error(
+        `Canonical public doc not found: docs/${document.source}`,
+      );
+    return { params: { slug: document.slug }, props: { document, entry } };
+  });
+}
+
+const { document, entry } = Astro.props;
+const { Content } = await render(entry);
+const currentGroup = document.group;
+const navGroups = [...new Set(publicDocs.map((item) => item.group))];
+const sourceUrl = `https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/${document.source}`;
+---
+
+<SiteLayout
+  title={`${document.title} — Agent Toolkit Docs`}
+  description={document.description}
+>
+  <div class="wrap docs-shell">
+    <aside class="docs-sidebar" aria-label="Documentation navigation">
+      {navGroups.map((group) => (
+        <div>
+          <h2>{group}</h2>
+          {publicDocs
+            .filter((item) => item.group === group)
+            .map((item) => (
+              <a
+                href={`/docs/${item.slug}/`}
+                aria-current={item.slug === document.slug ? "page" : undefined}
+              >
+                {item.title}
+              </a>
+            ))}
+        </div>
+      ))}
+    </aside>
+    <article class="docs-main">
+      <p class="eyebrow">{currentGroup}</p>
+      <h1>{document.title}</h1>
+      <p class="docs-summary">{document.description}</p>
+      <p class="screen-caption" style="margin-bottom: 30px">
+        <span>CANONICAL SOURCE</span>
+        <a href={sourceUrl}>View this guide in GitHub ↗</a>
+      </p>
+      <div class="prose">
+        <Content />
+      </div>
+    </article>
+  </div>
+</SiteLayout>

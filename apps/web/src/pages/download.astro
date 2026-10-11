@@ -1,0 +1,278 @@
+---
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { parse } from "yaml";
+import SiteLayout from "@/layouts/SiteLayout.astro";
+
+const repoRoot = path.resolve(process.cwd(), "../..");
+const version = (await readFile(path.join(repoRoot, "VERSION"), "utf8")).trim();
+const releaseWorkflow = parse(
+  await readFile(path.join(repoRoot, ".github/workflows/release.yml"), "utf8"),
+) as {
+  jobs?: {
+    "build-desktop"?: {
+      strategy?: {
+        matrix?: { include?: Array<{ os: string; artifact: string }> };
+      };
+    };
+  };
+};
+const targets =
+  releaseWorkflow.jobs?.["build-desktop"]?.strategy?.matrix?.include ?? [];
+const targetNames: Record<string, string> = {
+  linux: "Linux",
+  macos: "macOS",
+  windows: "Windows",
+};
+---
+
+<SiteLayout
+  title="Download Agent Toolkit Desktop and CLI"
+  description="Get Agent Toolkit Desktop for Linux, macOS or Windows. The page reads the latest published release and its real assets; CLI install options are one click away."
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow">A workspace you can open</p>
+      <h1>Bring the valley to your machine.</h1>
+      <p class="lede">
+        Desktop is the easiest way to get started. Its packaged backend handles
+        normal workspace setup from the GUI. The CLI stays ready for scripts, CI
+        and headless workflows.
+      </p>
+      <p
+        class="release-status"
+        id="release-status"
+        data-state="loading"
+        aria-live="polite"
+      >
+        Checking the latest published Desktop build…
+      </p>
+    </div>
+  </section>
+  <section class="section section--deep" style="padding-top: 8px">
+    <div class="wrap">
+      <div class="section-intro">
+        <p class="section-kicker">
+          Agent Toolkit Desktop · source version {version}
+        </p>
+        <h2>Choose your platform.</h2>
+        <p>
+          The download list loads directly from the latest GitHub Release, so
+          links only appear for assets that were actually published.
+        </p>
+      </div>
+      <div class="platform-tabs" aria-label="Filter downloads by platform">
+        <a href="#release-assets" data-platform="all" aria-current="true">
+          All
+        </a>
+        {["linux", "macos", "windows"].map((platform) => (
+          <a
+            href="#release-assets"
+            data-platform={platform}
+            aria-current="false"
+          >
+            {targetNames[platform]}
+          </a>
+        ))}
+      </div>
+      <div
+        class="release-assets"
+        id="release-assets"
+        data-version={version}
+        data-targets={JSON.stringify(targets)}
+      >
+        <div class="download-option">
+          <div>
+            <h3>Latest Desktop release</h3>
+            <p id="release-detail">
+              No release assets have been confirmed in this browser session yet.
+            </p>
+          </div>
+          <a
+            href="https://github.com/ulises-jeremias/agent-toolkit/releases/latest"
+            rel="external"
+          >
+            Open latest release <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </div>
+      <noscript>
+        <p class="capability-empty">
+          JavaScript is disabled. The GitHub link above opens the official
+          latest release page.
+        </p>
+      </noscript>
+      <div class="section-intro" style="margin-top: 82px">
+        <p class="section-kicker">For scripts and automation</p>
+        <h2>Prefer the terminal?</h2>
+        <p>
+          The native V binary is the canonical CLI. Package-manager launchers
+          remain convenient adapters; the Desktop app does not require a
+          separate CLI install.
+        </p>
+      </div>
+      <div class="download-option">
+        <div>
+          <h3>Native release binaries</h3>
+          <p>
+            Linux, macOS and Windows · checksums and release manifest included.
+          </p>
+        </div>
+        <a href="https://github.com/ulises-jeremias/agent-toolkit/releases/latest">
+          Browse CLI assets <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+      <pre class="cli-command"><code>uv tool install agent-toolkit-cli</code></pre>
+      <p style="color: var(--muted)">
+        Or use <code>uvx --from agent-toolkit-cli agent-toolkit --help</code>,
+        install from npm, or use Homebrew/AUR. See the full{" "}
+        <a href="/docs/installation/">installation guide</a>.
+      </p>
+      <div class="capability-empty" style="margin-top: 34px">
+        <strong>Trust the artifact.</strong> Official downloads publish SHA256
+        checksums, a manifest and an SBOM. Review{" "}
+        <a href="/docs/trust/">Trust and security</a> for verification
+        instructions.
+      </div>
+    </div>
+  </section>
+  <script>
+    const releaseNode = document.querySelector<HTMLElement>("#release-assets");
+    const statusNode = document.querySelector<HTMLElement>("#release-status");
+    const detailNode = document.querySelector<HTMLElement>("#release-detail");
+    const platformLinks = Array.from(
+      document.querySelectorAll<HTMLAnchorElement>("[data-platform]"),
+    );
+    const releaseTargets = JSON.parse(
+      releaseNode?.dataset.targets ?? "[]",
+    ) as Array<{ os: string; artifact: string }>;
+    let activePlatform = "all";
+    let releaseRows: HTMLElement[] = [];
+
+    function targetInfo(artifactName: string) {
+      const parts = artifactName
+        .toLowerCase()
+        .replace(/\.exe$/, "")
+        .split("-");
+      return { platform: parts.at(-2) ?? "", arch: parts.at(-1) ?? "" };
+    }
+
+    function assetsFor(
+      target: { os: string; artifact: string },
+      assets: Array<{ name: string; browser_download_url: string }>,
+    ) {
+      const { platform, arch } = targetInfo(target.artifact);
+      const archAliases =
+        arch === "x86_64" ? ["x86_64", "x64", "amd64"] : [arch];
+      const platformAliases =
+        platform === "macos"
+          ? ["macos", "mac-"]
+          : platform === "windows"
+            ? ["windows", "win-"]
+            : ["linux"];
+      const candidates = assets.filter((asset) => {
+        const name = asset.name.toLowerCase();
+        return (
+          name.startsWith("agent-toolkit-desktop-") &&
+          platformAliases.some((alias) => name.includes(alias)) &&
+          archAliases.some((alias) => name.includes(alias))
+        );
+      });
+      return candidates.filter((asset) =>
+        /\.(appimage|deb|dmg|exe)$/i.test(asset.name),
+      );
+    }
+
+    function renderRelease(release: {
+      tag_name: string;
+      html_url: string;
+      assets: Array<{ name: string; browser_download_url: string }>;
+    }) {
+      if (!releaseNode) return;
+      releaseRows = [];
+      const rows: HTMLElement[] = [];
+      for (const target of releaseTargets) {
+        const files = assetsFor(target, release.assets);
+        const { platform, arch } = targetInfo(target.artifact);
+        if (files.length === 0) continue;
+        const row = document.createElement("section");
+        row.className = "download-option";
+        row.dataset.platform = platform;
+        const info = document.createElement("div");
+        const title = document.createElement("h3");
+        title.textContent = `${platform === "macos" ? "macOS" : platform === "windows" ? "Windows" : "Linux"} · ${arch}`;
+        const detail = document.createElement("p");
+        detail.textContent = `${release.tag_name} · official Desktop installer`;
+        info.append(title, detail);
+        const links = document.createElement("div");
+        links.className = "download-links";
+        links.setAttribute("aria-label", `Downloads for ${platform} ${arch}`);
+        for (const asset of files) {
+          const link = document.createElement("a");
+          link.href = asset.browser_download_url;
+          const extension = asset.name.split(".").at(-1)?.toLowerCase();
+          const label =
+            extension === "appimage"
+              ? "AppImage"
+              : extension === "deb"
+                ? ".deb package"
+                : extension === "dmg"
+                  ? "DMG installer"
+                  : "Windows installer";
+          link.textContent = `Download ${label}`;
+          link.title = asset.name;
+          link.setAttribute("download", "");
+          links.append(link);
+        }
+        row.append(info, links);
+        rows.push(row);
+      }
+      const fallback = releaseNode.querySelector(".download-option");
+      if (rows.length > 0) fallback?.remove();
+      for (const row of rows) releaseNode.append(row);
+      releaseRows = rows;
+      if (detailNode)
+        detailNode.textContent = `${release.tag_name} · ${rows.length} platform builds found in the official release.`;
+      if (statusNode) {
+        statusNode.textContent = rows.length
+          ? `Latest release: ${release.tag_name}. Choose an installer below.`
+          : `Release ${release.tag_name} is available, but its Desktop installers were not found.`;
+        statusNode.dataset.state = rows.length ? "ready" : "error";
+      }
+      filterPlatform(activePlatform);
+    }
+
+    function filterPlatform(platform: string) {
+      activePlatform = platform;
+      for (const link of platformLinks)
+        link.setAttribute(
+          "aria-current",
+          String(link.dataset.platform === platform),
+        );
+      for (const row of releaseRows)
+        row.hidden = platform !== "all" && row.dataset.platform !== platform;
+    }
+
+    for (const link of platformLinks)
+      link.addEventListener("click", () =>
+        filterPlatform(link.dataset.platform ?? "all"),
+      );
+    fetch(
+      "https://api.github.com/repos/ulises-jeremias/agent-toolkit/releases/latest",
+      { headers: { Accept: "application/vnd.github+json" } },
+    )
+      .then((response) => {
+        if (!response.ok)
+          throw new Error("The release service did not respond.");
+        return response.json();
+      })
+      .then((release) => renderRelease(release))
+      .catch(() => {
+        if (statusNode) {
+          statusNode.textContent =
+            "The live release list could not load. Use the official latest-release link below.";
+          statusNode.dataset.state = "error";
+        }
+      });
+  </script>
+</SiteLayout>

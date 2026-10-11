@@ -1,0 +1,130 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import roster from "../../../../static/screenshots/people.png";
+import livePerson from "../../../../docs/desktop/assets/electron/people/world-person-large.png";
+---
+
+<SiteLayout
+  title="People — reusable collaborators in Agent Toolkit"
+  description="Create and configure durable AI collaborators, then start real sessions when you're ready. People remain themselves while sessions come and go."
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow">A team that survives between runs</p>
+      <h1>Configure a collaborator once. Bring them back when it matters.</h1>
+      <p class="lede">
+        A Person is durable identity and configuration. A session is a real
+        process. Agent Toolkit keeps those concepts separate so an offline
+        Person never becomes a fake worker on your map.
+      </p>
+      <figure class="pixel-frame page-hero-art">
+        <img
+          src={roster.src}
+          alt="Real Agent Toolkit People roster showing saved, offline collaborators and their configured roles"
+          fetchpriority="high"
+        />
+        <figcaption class="screen-caption">
+          <span>PEOPLE ROSTER</span>
+          <span>offline means offline</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+  <section class="section section--deep">
+    <div class="wrap">
+      <div class="section-intro">
+        <p class="section-kicker">Four connected concepts</p>
+        <h2>Identity, behavior, responsibility and runtime.</h2>
+        <p>They work together without collapsing into one object.</p>
+      </div>
+      <div class="definition-rail">
+        <div class="definition">
+          <b>Agent Definition</b>
+          <p>Reusable Toolkit behavior, such as reviewer or architect.</p>
+        </div>
+        <span class="definition-arrow" aria-hidden="true">
+          →
+        </span>
+        <div class="definition">
+          <b>Person</b>
+          <p>
+            Your durable collaborator: identity, goal, preferences and
+            appearance.
+          </p>
+        </div>
+        <span class="definition-arrow" aria-hidden="true">
+          →
+        </span>
+        <div class="definition">
+          <b>Agent Session</b>
+          <p>A real local runner, process and terminal bound to a project.</p>
+        </div>
+        <span class="definition-arrow" aria-hidden="true">
+          →
+        </span>
+        <div class="definition">
+          <b>Swarm Role</b>
+          <p>A temporary job such as planner, implementer or reviewer.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section section--glow">
+    <div class="wrap scene-grid">
+      <div class="scene-copy">
+        <p class="section-kicker">Real presence, real identity</p>
+        <h2>When Lina works, you can find Lina.</h2>
+        <p>
+          Starting a Person creates a real session after you review project,
+          runner, model, directory and budget. That session stays connected to
+          its terminal. When it ends, the character leaves the project house;
+          the configured Person remains in the roster.
+        </p>
+        <ul>
+          <li>Choose a durable avatar and appearance</li>
+          <li>Inspect project, model, runner and actual session state</li>
+          <li>Open or stop the real PTY-backed session</li>
+          <li>
+            Import a Munder hire as a reviewable starting point; import never
+            starts work
+          </li>
+        </ul>
+        <a class="quiet-link" href="/docs/people/">
+          Explore People in the docs <span aria-hidden="true">→</span>
+        </a>
+      </div>
+      <figure class="pixel-frame scene-image">
+        <img
+          src={livePerson.src}
+          alt="A Person appears inside a project only while their real PTY session is running"
+          loading="lazy"
+        />
+        <figcaption class="screen-caption">
+          <span>LIVE SESSION</span>
+          <span>actual project · actual process</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+  <section class="section section--deep">
+    <div class="wrap closing-banner">
+      <p class="section-kicker">Build your crew</p>
+      <h2>Make your collaborators yours.</h2>
+      <p>
+        Start with People, then choose which temporary roles they take when you
+        configure a Swarm.
+      </p>
+      <div class="button-row">
+        <a class="button" href="/download/">
+          Explore Desktop{" "}
+          <span class="arrow" aria-hidden="true">
+            →
+          </span>
+        </a>
+        <a class="button secondary" href="/swarms/">
+          How Swarms work
+        </a>
+      </div>
+    </div>
+  </section>
+</SiteLayout>
