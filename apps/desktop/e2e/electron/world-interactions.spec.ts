@@ -3,28 +3,33 @@ import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { openDesktop, waitForBackend } from './fixtures';
 
-test('uses the project workbench to review and open a real terminal session', async () => {
+async function linkGardenApiProject(desktop: Awaited<ReturnType<typeof openDesktop>>): Promise<string> {
+  const { app, page, home } = desktop;
+  const projectPath = path.join(home, '.ai-workspace', 'repos', 'local', 'garden-api');
+  fs.mkdirSync(projectPath, { recursive: true });
+  fs.writeFileSync(path.join(projectPath, 'README.md'), '# Garden API\n');
+
+  await app.evaluate(({ dialog }, folder) => {
+    dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] });
+  }, projectPath);
+
+  const nav = page.getByRole('navigation', { name: 'Destinations' });
+  await nav.getByRole('link', { name: 'World' }).click();
+  await page.getByRole('button', { name: /Add project/ }).click();
+  await page.getByRole('button', { name: 'Link existing folder' }).click();
+  const projectReview = page.getByRole('dialog', { name: 'Review project link' });
+  await projectReview.getByRole('button', { name: 'Link garden-api' }).click();
+  await expect(projectReview).toBeHidden();
+  await nav.getByRole('link', { name: 'World' }).click();
+  return projectPath;
+}
+
+test('walks into a project house and opens its real terminal', async () => {
   const desktop = await openDesktop();
   try {
-    const { app, page, home } = desktop;
+    const { page } = desktop;
     await waitForBackend(page);
-    const projectPath = path.join(home, '.ai-workspace', 'repos', 'local', 'garden-api');
-    fs.mkdirSync(projectPath, { recursive: true });
-    fs.writeFileSync(path.join(projectPath, 'README.md'), '# Garden API\n');
-
-    await app.evaluate(({ dialog }, folder) => {
-      dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] });
-    }, projectPath);
-
-    const nav = page.getByRole('navigation', { name: 'Destinations' });
-    await nav.getByRole('link', { name: 'World' }).click();
-    await page.getByRole('button', { name: /Add project/ }).click();
-    await page.getByRole('button', { name: 'Link existing folder' }).click();
-    const projectReview = page.getByRole('dialog', { name: 'Review project link' });
-    await projectReview.getByRole('button', { name: 'Link garden-api' }).click();
-    await expect(projectReview).toBeHidden();
-    await nav.getByRole('link', { name: 'World' }).click();
-
+    const projectPath = await linkGardenApiProject(desktop);
     const world = page.getByRole('application', { name: 'Semantic workspace world' });
     await world.getByRole('button', { name: 'Explore by walking' }).click();
     const house = world.getByRole('button', { name: /garden-api · Project ·/ });
@@ -57,6 +62,53 @@ test('uses the project workbench to review and open a real terminal session', as
     await expect(terminalReview).toBeHidden();
     await expect(page.getByRole('tablist', { name: 'Sessions' }).getByRole('tab')).toHaveCount(1);
     await expect(page.getByRole('tab', { name: /garden-api.*running/i })).toBeVisible();
+  } finally {
+    await desktop.close();
+  }
+});
+
+test('walks back through the interior door to the workspace grounds', async () => {
+  const desktop = await openDesktop();
+  try {
+    const { page } = desktop;
+    await waitForBackend(page);
+    await linkGardenApiProject(desktop);
+    const world = page.getByRole('application', { name: 'Semantic workspace world' });
+    await world.getByRole('button', { name: /garden-api · Project ·/ }).click();
+
+    const interior = page.getByRole('application', { name: 'Interior of garden-api' });
+    await expect(interior).toBeVisible();
+    await interior.getByRole('button', { name: 'Explore by walking' }).click();
+    const exitDoor = interior.getByRole('button', { name: /Exit · Return to workspace grounds/ });
+    const exitApproach = await exitDoor.evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      const tileSize = Number.parseFloat(getComputedStyle(element).getPropertyValue('--world-tile-size'));
+      return { x: bounds.right + tileSize * 0.5, y: bounds.top + bounds.height / 2 };
+    });
+    await page.mouse.click(exitApproach.x, exitApproach.y);
+    await expect(interior.getByText('Press E to return to workspace grounds')).toBeVisible({ timeout: 20_000 });
+    if (process.env['ATK_CAPTURE_WORLD_DOOR'] === '1') {
+      const outputDir = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/world-player-exit');
+      fs.mkdirSync(outputDir, { recursive: true });
+      const receipts = page.locator('button[aria-label^="Dismiss:"]');
+      while ((await receipts.count()) > 0) await receipts.first().click();
+      for (const viewport of [
+        { name: 'compact', width: 1024, height: 640 },
+        { name: 'large', width: 1920, height: 1080 },
+      ]) {
+        await page.setViewportSize({ width: viewport.width, height: viewport.height });
+        await interior.getByRole('button', { name: viewport.name === 'compact' ? 'Fit world' : 'Zoom in' }).click();
+        await page.evaluate(() => document.fonts.ready.then(() => undefined));
+        await page.evaluate(() => {
+          if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+        });
+        await page.mouse.move(viewport.width - 24, viewport.height - 24);
+        await page.screenshot({ path: path.join(outputDir, `${viewport.name}.png`) });
+      }
+    }
+    await interior.getByRole('button', { name: 'Explore by walking' }).click();
+    await page.keyboard.press('E');
+    await expect(page.getByText('workspace valley')).toBeVisible();
   } finally {
     await desktop.close();
   }

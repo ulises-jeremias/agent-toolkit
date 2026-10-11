@@ -25,6 +25,7 @@ export function entityActivateVerb(
   entity: Pick<SemanticEntity, 'id' | 'hrefPath' | 'name' | 'concept' | 'themeKey' | 'kind'>,
 ): string {
   if (!entityHasInspector(entity)) return 'No action available';
+  if (entity.id === 'object:exit-grounds') return 'Return to workspace grounds';
   if (entity.concept === 'Project overview board') return `Open ${entity.name} project overview`;
   if (entity.id.startsWith('place:project:')) return `Enter ${entity.name} house`;
   if (entity.id.startsWith('character:person:')) return `Inspect ${entity.name}'s active session`;
