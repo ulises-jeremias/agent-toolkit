@@ -27,11 +27,14 @@ fn test_workspace_packs_list_validate_activate_and_clear() {
 	active_list := list_workspace_packs(base) or { assert false, err.msg(); return }
 	assert active_list.packs[1].active
 
-	invalid := activate_workspace_pack(WorkspacePackActivateRequest{
+	activate_workspace_pack(WorkspacePackActivateRequest{
 		workspace: base
 		pack_path: 'packs/broken.yaml'
-	})
-	assert invalid == none
+	}) or {
+		assert err.msg().contains('workspace pack is invalid')
+		return
+	}
+	assert false, 'an invalid workspace pack must not be activated'
 
 	cleared := activate_workspace_pack(WorkspacePackActivateRequest{ workspace: base }) or {
 		assert false, err.msg()
