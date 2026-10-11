@@ -110,6 +110,20 @@ journeys:
           - assets/electron/world-player-click-to-move/compact.png
           - assets/electron/world-player-click-to-move/large.png
       - note: >-
+          The project's interior door now describes its real action as returning
+          to the workspace grounds. Electron E2E walks to that door, checks the
+          proximity prompt, presses E, and verifies the valley is restored.
+          Compact and large captures were opened after dismissing the project
+          receipt and fitting the room to the compact view. The local backend
+          was 1.43 while the renderer source was 1.44.
+        build: "feat/world-door-return (Linux Electron E2E; 1.43 backend, 1.44 renderer)"
+        tests:
+          - apps/desktop/e2e/electron/world-interactions.spec.ts
+          - apps/desktop/src/features/world/inspectors.test.ts
+        screenshots:
+          - assets/electron/world-player-exit/compact.png
+          - assets/electron/world-player-exit/large.png
+      - note: >-
           The human navigator now offers River, Grove and Ember coats with
           workspace-scoped persistence shared between grounds and interiors.
           The existing walk E2E verifies the selected sprite, stored preference,
