@@ -27,6 +27,9 @@ export function useSwarms() {
     queryKey: qk.swarms.list(),
     queryFn: () => requireClient(client).swarms(),
     enabled: client !== null,
+    // A cached empty list has no state-driven polling interval. Always refresh
+    // on entry so external CLI runs and newly started runs reach Attention.
+    refetchOnMount: 'always',
     refetchInterval: (query) => swarmRefreshInterval(query.state.data?.runs.map((run) => run.run_state) ?? []),
     refetchIntervalInBackground: false,
   });

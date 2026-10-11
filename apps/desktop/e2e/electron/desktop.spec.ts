@@ -1107,9 +1107,10 @@ test('swarm plan approval gates appear in Attention and Next that needs me opens
   await dialog.getByRole('button', { name: 'Start swarm' }).click();
   await expect(dialog).toBeHidden();
 
-  const runRow = page.getByRole('button', { name: /Review the semantic project valley/ });
-  await expect(runRow).toBeVisible();
-  await expect(runRow).toContainText('awaiting_plan_approval');
+  const swarmRow = page.getByRole('row').filter({ hasText: 'Review the semantic project valley' });
+  await expect(swarmRow).toBeVisible();
+  await expect(swarmRow).toContainText('awaiting_plan_approval');
+  const runRow = swarmRow.getByRole('button', { name: /Review the semantic project valley/ });
   const runId = (await runRow.innerText()).trim().split(/\s+/)[0];
   if (!runId) throw new Error('The gated swarm did not expose its run ID');
 
