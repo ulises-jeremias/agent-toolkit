@@ -69,3 +69,72 @@
 .detailDisclosure[open] summary {
   margin-bottom: var(--space-3);
 }
+
+.packIntro,
+.packEmpty {
+  max-width: 78ch;
+  color: var(--text-secondary);
+}
+
+.packList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.packCard {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 2px solid var(--border-default);
+  background: var(--surface-sunken);
+  box-shadow: var(--shadow-panel);
+}
+
+.packCardActive {
+  border-color: var(--accent-cyan);
+  background: color-mix(in srgb, var(--accent-cyan) 8%, var(--surface-panel));
+}
+
+.packHeading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.packHeading > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.packHeading code {
+  color: var(--text-muted);
+  font: var(--text-xs) / 1.4 var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+.packCard > p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.packProjects span {
+  color: var(--text-primary);
+}
+
+.packError {
+  color: var(--status-error-text, var(--accent-red));
+}
+
+.packActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

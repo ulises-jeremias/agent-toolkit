@@ -360,6 +360,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspace/packs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List local workspace context packs with validation and active selection */
+        get: operations["workspace_packs_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspace/packs/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Select a validated workspace context pack for future sessions or clear it */
+        post: operations["workspace_packs_activate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/mcp/providers": {
         parameters: {
             query?: never;
@@ -1837,6 +1871,32 @@ export interface components {
             ok: boolean;
             projects: components["schemas"]["ProjectListEntry"][];
         };
+        /** @description A workspace context pack; this is not a reusable Library capability. */
+        WorkspacePackSummary: {
+            path: string;
+            name: string;
+            description: string;
+            projects: string[];
+            validation_errors: string[];
+            active: boolean;
+        };
+        WorkspacePacksResponse: {
+            ok: boolean;
+            workspace: string;
+            active_pack: string;
+            marker_issue: string;
+            packs: components["schemas"]["WorkspacePackSummary"][];
+        };
+        WorkspacePackActivateRequest: {
+            workspace: string;
+            pack_path: string;
+        };
+        WorkspacePackActivateResponse: {
+            ok: boolean;
+            workspace: string;
+            active_pack: string;
+            message: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -2773,6 +2833,88 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectListResponse"];
+                };
+            };
+        };
+    };
+    workspace_packs_list: {
+        parameters: {
+            query?: {
+                workspace?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspacePacksResponse"];
+                };
+            };
+            /** @description workspace is outside allowed roots or uses a symlinked pack directory */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    workspace_packs_activate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspacePackActivateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspacePackActivateResponse"];
+                };
+            };
+            /** @description request body or selected pack is invalid */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description workspace is outside allowed roots or the active marker is a symlink */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description workspace or pack is not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
                 };
             };
         };

@@ -48,7 +48,7 @@ Workspace packs are **YAML context files** inside a harness workspace `packs/` d
 agent-toolkit workspace load packs/my-client.yaml
 ```
 
-The pack content is surfaced by `agent-toolkit workspace context`. These packs are local to one workspace. They have no connection to the toolkit repository solution packs.
+The pack content is surfaced by `agent-toolkit workspace context`. These packs are local to one workspace. They have no connection to the toolkit repository solution packs. In Desktop, manage the active context from **Workspace → Workspace context packs**: review the name, description, project scope, and validation before selecting a pack for future sessions. This only changes the workspace selection marker; it does not install a capability or execute pack content. The CLI remains available for scripting and headless use.
 
 ### 3. Loop `--pack` overrides (loaded by `loop run --pack`)
 

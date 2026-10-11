@@ -37,6 +37,8 @@ import type {
   WorkspaceFileListResponse,
   WorkspaceFileReadResponse,
   WorkspaceFileSearchResponse,
+  WorkspacePacksResponse,
+  WorkspacePackActivateResponse,
 } from './contracts';
 import { toEnvelope, type CommandEnvelope } from './envelope';
 import { ApiError, kindForStatus } from './errors';
@@ -425,6 +427,16 @@ export class ApiClient {
 
   projects(workspace: string): Promise<ProjectListResponse> {
     return this.json('GET', '/api/v1/projects' satisfies PathWith<'get'>, { query: { workspace } });
+  }
+
+  workspacePacks(workspace: string): Promise<WorkspacePacksResponse> {
+    return this.json('GET', '/api/v1/workspace/packs' satisfies PathWith<'get'>, { query: { workspace } });
+  }
+
+  activateWorkspacePack(workspace: string, pack_path: string): Promise<WorkspacePackActivateResponse> {
+    return this.json('POST', '/api/v1/workspace/packs/activate' satisfies PathWith<'post'>, {
+      body: { workspace, pack_path },
+    });
   }
 
   personBindings(workspace: string): Promise<PersonBindingsResponse> {

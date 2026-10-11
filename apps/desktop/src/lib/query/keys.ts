@@ -21,6 +21,7 @@ export type Domain =
   | 'providers'
   | 'models'
   | 'projects'
+  | 'workspace-packs'
   | SubFamily;
 
 export const qk = {
@@ -54,6 +55,10 @@ export const qk = {
 
   projects: {
     list: (workspace = '') => ['projects', 'list', workspace] as const,
+  },
+
+  workspacePacks: {
+    list: (workspace = '') => ['workspace-packs', 'list', workspace] as const,
   },
 
   report: (kind: ReportKind) => [kind, 'report'] as const,
