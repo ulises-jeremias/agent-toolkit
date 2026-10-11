@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
+import { flushSync } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import { requireClient, useBackend } from '../../data/backend';
 import { useTools } from '../../data/catalog';
@@ -61,6 +62,30 @@ export default function WorldView() {
     staleTime: 15_000,
   });
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const navigateWorld = useCallback(
+    (to: string, throughProjectDoor = false) => {
+      const navigateNow = () => navigate(to);
+      if (
+        !throughProjectDoor ||
+        typeof document.startViewTransition !== 'function' ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ) {
+        navigateNow();
+        return;
+      }
+      try {
+        // HashRouter is intentionally declarative and does not consume the
+        // data-router `viewTransition` option. Wrap its real location update
+        // directly so the map snapshot changes inside the native transition.
+        document.startViewTransition(() => flushSync(navigateNow));
+      } catch {
+        // An interrupted/unavailable transition must never block the door.
+        navigateNow();
+      }
+    },
+    [navigate],
+  );
 
   const projects = useMemo(() => {
     if (!projectsQuery.isSuccess || !projectsQuery.data) return [];
@@ -198,7 +223,8 @@ export default function WorldView() {
 
   const openEntity = (entity: LaidOutEntity) => {
     if (!entity.hrefPath) return;
-    navigate(href(entity.hrefPath, entity.hrefExtra));
+    const crossesProjectDoor = entity.id.startsWith('place:project:') || entity.id === 'object:exit-grounds';
+    navigateWorld(href(entity.hrefPath, entity.hrefExtra), crossesProjectDoor);
   };
 
   const detailOpen = Boolean(memoryPath || toolId);
@@ -212,9 +238,9 @@ export default function WorldView() {
       return;
     }
     if (focusProject) {
-      navigate(href('/world'));
+      navigateWorld(href('/world'), true);
     }
-  }, [detailOpen, goBackFromDetail, focusProject, navigate, href]);
+  }, [detailOpen, goBackFromDetail, focusProject, navigateWorld, href]);
   // Escape: leave memory/tool detail first; else leave project interior to grounds.
   useWorldDetailEscape(goBackFromWorld, detailOpen || Boolean(focusProject));
 
@@ -233,7 +259,25 @@ export default function WorldView() {
             {selected.state ? ` · ${selected.state}` : ''}
           </span>
         ) : null}
-        <Link className={styles.worldHeaderLink} to={model.focusProjectId ? href('/world') : href('/workspace')}>
+        <Link
+          className={styles.worldHeaderLink}
+          to={model.focusProjectId ? href('/world') : href('/workspace')}
+          onClick={(event) => {
+            if (
+              !model.focusProjectId ||
+              event.defaultPrevented ||
+              event.button !== 0 ||
+              event.metaKey ||
+              event.ctrlKey ||
+              event.shiftKey ||
+              event.altKey
+            ) {
+              return;
+            }
+            event.preventDefault();
+            navigateWorld(href('/world'), true);
+          }}
+        >
           {model.focusProjectId ? '← grounds' : 'Workspace inspector'}
         </Link>
       </header>
