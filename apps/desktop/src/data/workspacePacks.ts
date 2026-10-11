@@ -26,3 +26,23 @@ export function useActivateWorkspacePack(workspace: string) {
       ]),
   });
 }
+
+export function useSaveWorkspacePack(workspace: string) {
+  const { client } = useBackend();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      pack_path: string;
+      revision: string;
+      name: string;
+      description: string;
+      projects: string[];
+      notes: string;
+    }) => requireClient(client).saveWorkspacePack({ ...input, workspace }),
+    onSettled: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: qk.workspacePacks.list(workspace) }),
+        queryClient.invalidateQueries({ queryKey: qk.domain('workspace') }),
+      ]),
+  });
+}

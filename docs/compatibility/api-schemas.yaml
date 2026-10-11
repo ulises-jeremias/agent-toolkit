@@ -665,6 +665,8 @@ schemas:
       - name:string
       - description:string
       - projects:string[]
+      - notes:string
+      - revision:string
       - validation_errors:string[]
       - active:boolean
 
@@ -689,6 +691,24 @@ schemas:
       - ok:boolean
       - workspace:string
       - active_pack:string
+      - message:string
+
+  - name: WorkspacePackSaveRequest
+    v_struct: WorkspacePackSaveReq
+    fields:
+      - workspace:string
+      - pack_path:string
+      - revision:string
+      - name:string
+      - description:string
+      - projects:string[]
+      - notes:string
+
+  - name: WorkspacePackSaveResponse
+    v_struct: WorkspacePackSaveResponse
+    fields:
+      - ok:boolean
+      - 'pack:#WorkspacePackSummary'
       - message:string
 
 # Server-native endpoints (ADR-030): capabilities of the API itself, not
@@ -720,6 +740,16 @@ native:
     errors:
       - '400:request body or selected pack is invalid'
       - '403:workspace is outside allowed roots or the active marker is a symlink'
+      - '404:workspace or pack is not found'
+  - path: /api/v1/workspace/packs/save
+    method: post
+    op: workspace_packs_save
+    summary: Create or update an inert workspace context pack with revision checks
+    request_body: WorkspacePackSaveRequest
+    response: '#WorkspacePackSaveResponse'
+    errors:
+      - '400:request body or pack fields are invalid'
+      - '403:workspace is outside allowed roots or uses a symlinked path'
       - '404:workspace or pack is not found'
   - path: /api/v1/mcp/providers
     method: get

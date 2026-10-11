@@ -394,6 +394,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspace/packs/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create or update an inert workspace context pack with revision checks */
+        post: operations["workspace_packs_save"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/mcp/providers": {
         parameters: {
             query?: never;
@@ -1877,6 +1894,8 @@ export interface components {
             name: string;
             description: string;
             projects: string[];
+            notes: string;
+            revision: string;
             validation_errors: string[];
             active: boolean;
         };
@@ -1895,6 +1914,20 @@ export interface components {
             ok: boolean;
             workspace: string;
             active_pack: string;
+            message: string;
+        };
+        WorkspacePackSaveRequest: {
+            workspace: string;
+            pack_path: string;
+            revision: string;
+            name: string;
+            description: string;
+            projects: string[];
+            notes: string;
+        };
+        WorkspacePackSaveResponse: {
+            ok: boolean;
+            pack: components["schemas"]["WorkspacePackSummary"];
             message: string;
         };
     };
@@ -2900,6 +2933,57 @@ export interface operations {
                 };
             };
             /** @description workspace is outside allowed roots or the active marker is a symlink */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description workspace or pack is not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    workspace_packs_save: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspacePackSaveRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspacePackSaveResponse"];
+                };
+            };
+            /** @description request body or pack fields are invalid */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description workspace is outside allowed roots or uses a symlinked path */
             403: {
                 headers: {
                     [name: string]: unknown;

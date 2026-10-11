@@ -18,6 +18,7 @@ export {
   StatusBadge,
   Table,
   TextInput,
+  TextArea,
   VisuallyHidden,
   type ButtonProps,
   type ButtonVariant,

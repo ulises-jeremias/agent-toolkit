@@ -39,6 +39,7 @@ import type {
   WorkspaceFileSearchResponse,
   WorkspacePacksResponse,
   WorkspacePackActivateResponse,
+  WorkspacePackSaveResponse,
 } from './contracts';
 import { toEnvelope, type CommandEnvelope } from './envelope';
 import { ApiError, kindForStatus } from './errors';
@@ -437,6 +438,18 @@ export class ApiClient {
     return this.json('POST', '/api/v1/workspace/packs/activate' satisfies PathWith<'post'>, {
       body: { workspace, pack_path },
     });
+  }
+
+  saveWorkspacePack(input: {
+    workspace: string;
+    pack_path: string;
+    revision: string;
+    name: string;
+    description: string;
+    projects: string[];
+    notes: string;
+  }): Promise<WorkspacePackSaveResponse> {
+    return this.json('POST', '/api/v1/workspace/packs/save' satisfies PathWith<'post'>, { body: input });
   }
 
   personBindings(workspace: string): Promise<PersonBindingsResponse> {

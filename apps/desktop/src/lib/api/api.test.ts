@@ -233,6 +233,26 @@ describe('ApiClient', () => {
     expect(calls[1]?.init?.body).toBe('{"workspace":"/workspace","pack_path":"packs/team.yaml"}');
   });
 
+  it('saves a workspace context pack through the typed review operation', async () => {
+    const api = client({ ok: true, pack: { path: 'packs/team.yaml', name: 'Team' }, message: 'saved' });
+    await api.saveWorkspacePack({
+      workspace: '/workspace',
+      pack_path: 'packs/team.yaml',
+      revision: 'a'.repeat(64),
+      name: 'Team',
+      description: 'Shared team context',
+      projects: ['agent-toolkit'],
+      notes: 'Keep the work reviewed.',
+    });
+    expect(calls[0]?.url).toBe('http://127.0.0.1:9/api/v1/workspace/packs/save');
+    expect(calls[0]?.init?.method).toBe('POST');
+    expect(calls[0]?.init?.body).toBe(
+      '{"workspace":"/workspace","pack_path":"packs/team.yaml","revision":"' +
+        'a'.repeat(64) +
+        '","name":"Team","description":"Shared team context","projects":["agent-toolkit"],"notes":"Keep the work reviewed."}',
+    );
+  });
+
   it('deletes with ?force=true only when forced', async () => {
     const api = client({ ok: true, message: 'deleted' });
     await api.deleteJob('job_x');

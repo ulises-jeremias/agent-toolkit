@@ -1181,6 +1181,66 @@
         }
       }
     },
+    "/api/v1/workspace/packs/save": {
+      "post": {
+        "operationId": "workspace_packs_save",
+        "summary": "Create or update an inert workspace context pack with revision checks",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspacePackSaveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspacePackSaveResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "request body or pack fields are invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "workspace is outside allowed roots or uses a symlinked path",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "workspace or pack is not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/mcp/providers": {
       "get": {
         "operationId": "mcp_providers",
@@ -5966,6 +6026,12 @@
               "type": "string"
             }
           },
+          "notes": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "string"
+          },
           "validation_errors": {
             "type": "array",
             "items": {
@@ -5981,6 +6047,8 @@
           "name",
           "description",
           "projects",
+          "notes",
+          "revision",
           "validation_errors",
           "active"
         ]
@@ -6050,6 +6118,63 @@
           "ok",
           "workspace",
           "active_pack",
+          "message"
+        ]
+      },
+      "WorkspacePackSaveRequest": {
+        "type": "object",
+        "properties": {
+          "workspace": {
+            "type": "string"
+          },
+          "pack_path": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace",
+          "pack_path",
+          "revision",
+          "name",
+          "description",
+          "projects",
+          "notes"
+        ]
+      },
+      "WorkspacePackSaveResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "pack": {
+            "$ref": "#/components/schemas/WorkspacePackSummary"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "pack",
           "message"
         ]
       }

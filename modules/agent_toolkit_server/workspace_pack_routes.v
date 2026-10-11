@@ -8,6 +8,16 @@ struct WorkspacePackActivateReq {
 	pack_path string
 }
 
+struct WorkspacePackSaveReq {
+	workspace string
+	pack_path string
+	revision string
+	name string
+	description string
+	projects []string
+	notes string
+}
+
 @['/api/v1/workspace/packs/list'; get]
 pub fn (app &App) workspace_packs_list(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
@@ -31,6 +41,28 @@ pub fn (app &App) workspace_packs_activate(mut ctx Ctx) veb.Result {
 	response := agent_toolkit_core.activate_workspace_pack(agent_toolkit_core.WorkspacePackActivateRequest{
 		workspace: ws
 		pack_path: req.pack_path
+	}) or {
+		return workspace_packs_error(mut ctx, err)
+	}
+	return ctx.json(response)
+}
+
+@['/api/v1/workspace/packs/save'; post]
+pub fn (app &App) workspace_packs_save(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none { return respond_deny(mut ctx, deny) }
+	req := decode_sub_body[WorkspacePackSaveReq](ctx.req.data) or {
+		return respond_sub_error(mut ctx, err)
+	}
+	ws := serve_memory_workspace(ctx, req.workspace) or { return respond_sub_error(mut ctx, err) }
+	response := agent_toolkit_core.save_workspace_pack(agent_toolkit_core.WorkspacePackSaveRequest{
+		workspace: ws
+		pack_path: req.pack_path
+		revision: req.revision
+		name: req.name
+		description: req.description
+		projects: req.projects
+		notes: req.notes
 	}) or {
 		return workspace_packs_error(mut ctx, err)
 	}
