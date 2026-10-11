@@ -51,7 +51,9 @@ test("home explains the product and uses the real world capture", async ({
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Your AI agents finally have a place to work.",
   );
-  await expect(page.getByAltText(/actual pixel valley/i)).toBeVisible();
+  await expect(
+    page.getByAltText(/original Agent Toolkit valley illustration/i),
+  ).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     "href",
     "https://agent-toolkit.io/",
@@ -61,6 +63,10 @@ test("home explains the product and uses the real world capture", async ({
     /agent-toolkit\.io\/screenshots\/world\.png/,
   );
   await expect(page.locator(".hero-screen img")).toHaveJSProperty(
+    "naturalWidth",
+    1536,
+  );
+  await expect(page.locator("[data-scene-image='valley']")).toHaveJSProperty(
     "naturalWidth",
     1920,
   );
@@ -299,6 +305,7 @@ test("mobile navigation, touch layout and reduced motion remain usable", async (
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await captureViewport(page, "home-mobile.png");
   await page
     .getByRole("navigation", { name: "Jump to a place in the workspace" })
     .getByRole("link", { name: /People/ })
