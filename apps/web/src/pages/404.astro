@@ -1,0 +1,34 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+---
+
+<SiteLayout
+  title="Not found — Agent Toolkit"
+  description="That page isn't in this valley."
+  noIndex={true}
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow">A path that doesn't lead anywhere</p>
+      <h1>This trail ends here.</h1>
+      <p class="lede">
+        The page may have moved. Start from the map, browse the guides or return
+        to the latest download.
+      </p>
+      <div class="button-row">
+        <a class="button" href="/">
+          Return to the valley{" "}
+          <span class="arrow" aria-hidden="true">
+            →
+          </span>
+        </a>
+        <a class="button secondary" href="/docs/">
+          Open the field guide
+        </a>
+        <a class="button secondary" href="/download/">
+          Download Desktop
+        </a>
+      </div>
+    </div>
+  </section>
+</SiteLayout>

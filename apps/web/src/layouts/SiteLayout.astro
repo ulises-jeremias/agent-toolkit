@@ -1,0 +1,81 @@
+---
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/600.css";
+import "@fontsource/ibm-plex-sans/400.css";
+import "@fontsource/ibm-plex-sans/500.css";
+import "@fontsource/ibm-plex-sans/600.css";
+import "@fontsource/ibm-plex-sans/700.css";
+import "@fontsource/silkscreen/400.css";
+import "@/styles/global.css";
+import SiteHeader from "@/components/SiteHeader.astro";
+import SiteFooter from "@/components/SiteFooter.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  noIndex?: boolean;
+}
+
+const {
+  title = "Agent Toolkit — a place for real agent work",
+  description = "A semantic AI developer workspace. Projects become places, People are reusable collaborators, and real sessions make work visible.",
+  image = "/screenshots/world.png",
+  noIndex = false,
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, "https://agenttoolkit.dev").href;
+const socialImage = new URL(image, "https://agenttoolkit.dev").href;
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Agent Toolkit Desktop",
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Linux, macOS, Windows",
+  url: "https://agenttoolkit.dev/",
+  downloadUrl:
+    "https://github.com/ulises-jeremias/agent-toolkit/releases/latest",
+  description,
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#10252a" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="description" content={description} />
+    {!noIndex && <link rel="canonical" href={canonical} />}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://github.com" />
+    <link rel="preconnect" href="https://raw.githubusercontent.com" />
+    <title>{title}</title>
+    {noIndex && <meta name="robots" content="noindex,follow" />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Agent Toolkit" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {!noIndex && <meta property="og:url" content={canonical} />}
+    <meta property="og:image" content={socialImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImage} />
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(structuredData)}
+    />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">
+      Skip to content
+    </a>
+    <SiteHeader />
+    <main id="main">
+      <slot />
+    </main>
+    <SiteFooter />
+  </body>
+</html>

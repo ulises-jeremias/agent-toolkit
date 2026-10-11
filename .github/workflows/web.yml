@@ -1,0 +1,76 @@
+name: web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'apps/desktop/public/world/**'
+      - 'docs/**'
+      - 'catalogs/**'
+      - 'mcp/registry/**'
+      - 'distributions/products.yaml'
+      - 'static/**'
+      - 'VERSION'
+      - 'CHANGELOG.md'
+      - '.node-version'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'vercel.json'
+      - '.github/workflows/web.yml'
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'apps/desktop/public/world/**'
+      - 'docs/**'
+      - 'catalogs/**'
+      - 'mcp/registry/**'
+      - 'distributions/products.yaml'
+      - 'static/**'
+      - 'VERSION'
+      - 'CHANGELOG.md'
+      - '.node-version'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'vercel.json'
+      - '.github/workflows/web.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.node-version'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter agent-toolkit-web
+      - run: pnpm --filter agent-toolkit-web format:check
+      - run: pnpm --filter agent-toolkit-web lint
+      - run: pnpm --filter agent-toolkit-web check
+      - run: pnpm --filter agent-toolkit-web test
+      - run: pnpm --filter agent-toolkit-web build
+      - run: pnpm --filter agent-toolkit-web exec playwright install chromium --with-deps
+      - name: Browser smoke, responsive and accessibility review
+        env:
+          CI: '1'
+          ATK_WEB_CAPTURE: '1'
+          ATK_WEB_CAPTURE_DIR: ${{ github.workspace }}/apps/web/test-results/review
+        run: pnpm --filter agent-toolkit-web test:visual
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: agent-toolkit-web-review
+          path: apps/web/test-results/review
+          if-no-files-found: ignore
+          retention-days: 7

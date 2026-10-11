@@ -1,0 +1,64 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import { publicDocs } from "@/data/docs-nav.mjs";
+
+const groups = [...new Set(publicDocs.map((document) => document.group))];
+---
+
+<SiteLayout
+  title="Documentation — Agent Toolkit"
+  description="A curated guide to Agent Toolkit Desktop, the CLI, People, capabilities and real agent operations. Content is rendered from canonical repository documentation."
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow">The field guide</p>
+      <h1>Clear paths into the Toolkit.</h1>
+      <p class="lede">
+        These guides use the canonical Markdown in the Agent Toolkit repository.
+        The navigation is curated for people using and contributing to the
+        product; implementation research remains in GitHub.
+      </p>
+    </div>
+  </section>
+  <section class="section section--deep" style="padding-top: 24px">
+    <div class="wrap">
+      {groups.map((group) => (
+        <section
+          class="capability-group"
+          aria-label={group}
+          style="margin-bottom: 34px"
+        >
+          <h2>{group}</h2>
+          <div class="capability-list">
+            {publicDocs
+              .filter((document) => document.group === group)
+              .map((document) => (
+                <article class="capability-item">
+                  <div>
+                    <h3>
+                      <a href={`/docs/${document.slug}/`}>{document.title}</a>
+                    </h3>
+                    <p>{document.description}</p>
+                  </div>
+                  <a
+                    class="quiet-link"
+                    href={`/docs/${document.slug}/`}
+                    aria-label={`Read ${document.title}`}
+                  >
+                    Read <span aria-hidden="true">→</span>
+                  </a>
+                </article>
+              ))}
+          </div>
+        </section>
+      ))}
+      <p style="color: var(--muted)">
+        Contributing rules, internal RFCs and historical research stay in the{" "}
+        <a href="https://github.com/ulises-jeremias/agent-toolkit/tree/main/docs">
+          repository docs index
+        </a>
+        .
+      </p>
+    </div>
+  </section>
+</SiteLayout>

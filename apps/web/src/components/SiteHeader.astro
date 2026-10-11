@@ -1,0 +1,50 @@
+---
+import worldMark from "../../../desktop/public/world/landmark-workspace.png";
+
+const navigation = [
+  { href: "/world/", label: "The World" },
+  { href: "/people/", label: "People" },
+  { href: "/swarms/", label: "Swarms" },
+  { href: "/capabilities/", label: "Capabilities" },
+  { href: "/docs/", label: "Docs" },
+];
+const pathname = Astro.url.pathname;
+---
+
+<header class="site-header">
+  <a class="brand" href="/" aria-label="Agent Toolkit home">
+    <img src={worldMark.src} width="40" height="40" alt="" />
+    <span>Agent Toolkit</span>
+  </a>
+  <nav class="desktop-nav" aria-label="Main navigation">
+    {navigation.map((item) => (
+      <a
+        href={item.href}
+        aria-current={pathname.startsWith(item.href) ? "page" : undefined}
+      >
+        {item.label}
+      </a>
+    ))}
+    <a class="nav-download" href="/download/">
+      Download <span aria-hidden="true">↗</span>
+    </a>
+  </nav>
+  <details class="mobile-nav">
+    <summary aria-label="Open navigation">
+      <span></span>
+      <span></span>
+      <span></span>
+    </summary>
+    <nav aria-label="Mobile navigation">
+      {navigation.map((item) => (
+        <a
+          href={item.href}
+          aria-current={pathname.startsWith(item.href) ? "page" : undefined}
+        >
+          {item.label}
+        </a>
+      ))}
+      <a href="/download/">Download Desktop</a>
+    </nav>
+  </details>
+</header>

@@ -1,0 +1,124 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import {
+  getCapabilities,
+  countByKind,
+  type CapabilityEntry,
+} from "@/lib/catalog";
+
+const capabilities = await getCapabilities();
+const counts = countByKind(capabilities);
+const kinds: CapabilityEntry["kind"][] = [
+  "Skill",
+  "Agent Definition",
+  "Loop",
+  "MCP provider",
+  "Distribution",
+];
+---
+
+<SiteLayout
+  title="Capabilities — the Agent Toolkit catalog"
+  description="Search the current Agent Toolkit catalog of Skills, Agent Definitions, Loops, MCP providers and distributions, generated from canonical repository data."
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow">The shared Library, from the outside</p>
+      <h1>Find the capability that fits this job.</h1>
+      <p class="lede">
+        This catalog is generated from Agent Toolkit's current capability
+        sources. A catalog entry describes what exists; it does not claim you
+        installed it or that a provider is connected.
+      </p>
+    </div>
+  </section>
+  <section class="section section--deep" style="padding-top: 12px">
+    <div class="wrap">
+      <div class="capability-tools">
+        <label class="search-label" for="capability-search">
+          Search by name, domain or purpose
+          <input
+            id="capability-search"
+            type="search"
+            placeholder="Try ‘review’, ‘MCP’ or ‘planning’"
+            autocomplete="off"
+          />
+        </label>
+        <p class="result-count" id="capability-count" aria-live="polite">
+          {capabilities.length} entries · refreshed from source at build
+        </p>
+      </div>
+      <div class="capability-groups" id="capability-groups">
+        {kinds.map((kind) => {
+          const entries = capabilities.filter((entry) => entry.kind === kind);
+          return (
+            <section
+              class="capability-group"
+              aria-label={kind}
+              data-group={kind}
+            >
+              <h2>
+                {kind}s <span>· {counts.get(kind) ?? 0}</span>
+              </h2>
+              <div class="capability-list">
+                {entries.map((entry) => (
+                  <article
+                    class="capability-item"
+                    data-search={`${entry.id} ${entry.name} ${entry.description} ${entry.detail ?? ""}`.toLowerCase()}
+                  >
+                    <div>
+                      <h3>{entry.name}</h3>
+                      <p>{entry.description}</p>
+                    </div>
+                    <span class="capability-kind">
+                      {entry.detail || entry.kind}
+                    </span>
+                  </article>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+      <p class="capability-empty" id="capability-empty" hidden>
+        No catalog entries match that search. Try a shorter term.
+      </p>
+      <p style="margin-top: 26px; color: var(--muted)">
+        Catalog metadata comes from <code>catalogs/</code>,{" "}
+        <code>mcp/registry/</code> and <code>distributions/products.yaml</code>{" "}
+        in the{" "}
+        <a href="https://github.com/ulises-jeremias/agent-toolkit">
+          Agent Toolkit repository
+        </a>
+        . Installation state is intentionally not shown here.
+      </p>
+    </div>
+  </section>
+  <script>
+    const search =
+      document.querySelector<HTMLInputElement>("#capability-search");
+    const count = document.querySelector<HTMLElement>("#capability-count");
+    const empty = document.querySelector<HTMLElement>("#capability-empty");
+    const groups = Array.from(
+      document.querySelectorAll<HTMLElement>(".capability-group"),
+    );
+    const entries = Array.from(
+      document.querySelectorAll<HTMLElement>(".capability-item"),
+    );
+
+    search?.addEventListener("input", () => {
+      const query = search.value.trim().toLocaleLowerCase();
+      let visible = 0;
+      for (const entry of entries) {
+        const matches = entry.dataset.search?.includes(query) ?? false;
+        entry.hidden = !matches;
+        if (matches) visible += 1;
+      }
+      for (const group of groups) {
+        group.hidden = !group.querySelector(".capability-item:not([hidden])");
+      }
+      if (count) count.textContent = `${visible} of ${entries.length} entries`;
+      if (empty) empty.hidden = visible > 0;
+    });
+  </script>
+</SiteLayout>

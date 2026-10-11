@@ -105,10 +105,14 @@ fn fm_list(fm string, key string) []string {
 }
 
 fn truncate(s string, n int) string {
-	if s.len <= n {
-		return s
+	// Frontmatter permits folded and indented multiline descriptions. Catalog
+	// scalars are emitted as single-line quoted strings, so normalize whitespace
+	// before applying the byte limit to keep those generated scalars valid YAML.
+	clean := s.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ').replace('\t', ' ').trim_space()
+	if clean.len <= n {
+		return clean
 	}
-	return s[..n]
+	return clean[..n]
 }
 
 fn yaml_escape_scalar(s string) string {
