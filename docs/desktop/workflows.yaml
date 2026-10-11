@@ -97,12 +97,14 @@ journeys:
           action. The camera follows during exploration and reframes at crisp
           integer zoom when the viewport changes. Electron E2E walks to a
           pointer destination, waits for arrival, then checks keyboard walking
-          and that typing stays local to the command palette. Captures were
-          opened at compact and large sizes; the local backend was 1.43 with
-          source renderer 1.44.
+          up to a project's actual door, presses E to enter that house, then
+          uses the real terminal workstation inside. It also checks that typing
+          stays local to the command palette. Captures were opened at compact
+          and large sizes; the local backend was 1.43 with source renderer 1.44.
         build: "feat/world-click-to-move (Linux Electron E2E; world-walk.spec.ts)"
         tests:
           - apps/desktop/e2e/electron/world-walk.spec.ts
+          - apps/desktop/e2e/electron/world-interactions.spec.ts
           - apps/desktop/src/features/world/player.test.ts
         screenshots:
           - assets/electron/world-player-click-to-move/compact.png
