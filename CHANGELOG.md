@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Changed
+
+- The homepage now guides visitors through a responsive, scene-based journey
+  across the Agent Toolkit valley while keeping product screenshots truthful.
+
 ## [1.44.0] — 2026-10-10
 
 ### Added
