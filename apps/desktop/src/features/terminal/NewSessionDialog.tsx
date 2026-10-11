@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { useTerminalSessions } from '../../data/terminal';
 import { useSessionContext } from '../../shell/useSessionContext';
 import { Button, Dialog, Field, TextInput } from '../../ui';
@@ -7,6 +8,9 @@ import styles from './terminal.module.css';
 export function NewSessionDialog() {
   const { creating, setCreating, create } = useTerminalSessions();
   const { context } = useSessionContext();
+  const [params, setParams] = useSearchParams();
+  const requestedCwd = useRef<string | null>(null);
+  const handledTerminalRequest = useRef(false);
   const [form, setForm] = useState({
     agent: context.agent || 'shell',
     cmd: '/bin/bash',
@@ -16,13 +20,41 @@ export function NewSessionDialog() {
   const cmdRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (params.get('create') !== 'terminal') {
+      handledTerminalRequest.current = false;
+      return;
+    }
+    if (handledTerminalRequest.current) return;
+    handledTerminalRequest.current = true;
+    const cwd = params.get('cwd')?.trim() || null;
+    if (creating) {
+      requestedCwd.current = null;
+      setForm((current) => ({ ...current, cwd: cwd ?? context.workspace }));
+    } else {
+      requestedCwd.current = cwd;
+      setCreating(true);
+    }
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        next.delete('create');
+        next.delete('cwd');
+        next.delete('project');
+        return next;
+      },
+      { replace: true },
+    );
+  }, [params, context.workspace, creating, setCreating, setParams]);
+
+  useEffect(() => {
     if (!creating) return;
     setForm({
       agent: context.agent || 'shell',
       cmd: '/bin/bash',
       args: '',
-      cwd: context.workspace,
+      cwd: requestedCwd.current ?? context.workspace,
     });
+    requestedCwd.current = null;
   }, [creating, context.agent, context.workspace]);
 
   const submit = () => {
