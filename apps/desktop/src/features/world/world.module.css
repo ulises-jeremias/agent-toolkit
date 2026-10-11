@@ -349,8 +349,12 @@
 }
 
 @keyframes player-walk {
-  from { background-position-x: 0%; }
-  to { background-position-x: 100%; }
+  from {
+    background-position-x: 0%;
+  }
+  to {
+    background-position-x: 100%;
+  }
 }
 
 .entityTooltip {
@@ -507,6 +511,42 @@
 .hudButton:focus-visible {
   outline: var(--focus-ring);
   outline-offset: 2px;
+}
+
+.appearanceControl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding-inline: 6px;
+  color: var(--world-plaque-fg, #f3edda);
+  background: var(--world-plaque-bg, rgba(26, 22, 38, 0.9));
+  border: 2px solid var(--world-plaque-border, #55486b);
+}
+
+.appearanceLabel {
+  font: 10px / 1 var(--font-display);
+  color: var(--text-on-chrome-muted);
+}
+
+.appearanceSelect {
+  max-width: 72px;
+  padding: 2px 3px;
+  color: var(--world-plaque-fg, #f3edda);
+  background: transparent;
+  border: 0;
+  font: 11px / 1 var(--font-display);
+  cursor: pointer;
+}
+
+.appearanceSelect:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.appearanceSelect option {
+  color: #f3edda;
+  background: #211d31;
 }
 
 /* The structured list lives in a menu panel under the map. */

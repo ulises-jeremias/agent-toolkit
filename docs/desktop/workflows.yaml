@@ -92,6 +92,20 @@ journeys:
     status: ok
     evidence:
       - note: >-
+          The human navigator now offers River, Grove and Ember coats with
+          workspace-scoped persistence shared between grounds and interiors.
+          The existing walk E2E verifies the selected sprite, stored preference,
+          keyboard movement and command-palette typing. Compact and large Linux
+          Electron captures were opened and reviewed; this local capture used
+          the installed 1.43 backend while the renderer source was 1.44.
+        build: "feat/world-player-appearance (Linux Electron E2E; world-walk.spec.ts)"
+        tests:
+          - apps/desktop/e2e/electron/world-walk.spec.ts
+          - apps/desktop/src/features/world/WorldEntityMap.test.tsx
+        screenshots:
+          - assets/electron/world-player-appearance/compact.png
+          - assets/electron/world-player-appearance/large.png
+      - note: >-
           Released main v1.42.0 capture at ea154c2f (workflow 37445405836)
           opened compact and large empty, one-project, and three-project valleys,
           both project interiors, People roster and start review, Person creation,

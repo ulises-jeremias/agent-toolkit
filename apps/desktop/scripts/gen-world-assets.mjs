@@ -1863,8 +1863,15 @@ function character(robe, robeDark, accent, hair = 'od', skin = 'sk') {
   return { w: 16, h: 24, frames };
 }
 
-/** Human world navigator: distinct from runtime People, with four clear facings. */
-function playerCharacter(direction) {
+const PLAYER_OUTFITS = {
+  river: { coat: 'rs', shade: 'rsd', highlight: 'rsl', accent: 'gg' },
+  grove: { coat: 'rm', shade: 'rmd', highlight: 'em', accent: 'wy' },
+  ember: { coat: 'rt', shade: 'rtd', highlight: 'rtl', accent: 'gg' },
+};
+
+/** Human world navigator: distinct from runtime People, with clear facings and authored outfits. */
+function playerCharacter(direction, outfitName = 'river') {
+  const outfit = PLAYER_OUTFITS[outfitName] ?? PLAYER_OUTFITS.river;
   const frame = (walking) => {
     const img = new Img(16, 24);
     const bob = walking ? 0 : 0;
@@ -1884,15 +1891,14 @@ function playerCharacter(direction) {
       img.set(direction === 'east' ? 10 : 7, 7, 'k').set(8, 9, 'iv');
       img.set(direction === 'east' ? 11 : 4, 6, 'ol');
     }
-    // A teal trailcoat, amber clasp and small satchel are the user's durable
-    // silhouette; no role, activity or runtime state is implied.
-    img.rect(4, 10 + bob, 11, 19, 'k').rect(5, 11 + bob, 10, 18, 'rs');
-    img.hline(5, 10, 11 + bob, 'rsl').hline(5, 10, 14, 'rsd');
-    img.set(8, 13, 'gg').vline(5, 15, 18, 'rsd').vline(10, 15, 18, 'rsd');
+    // The human navigator's coat palette is durable; no role, activity or runtime state is implied.
+    img.rect(4, 10 + bob, 11, 19, 'k').rect(5, 11 + bob, 10, 18, outfit.coat);
+    img.hline(5, 10, 11 + bob, outfit.highlight).hline(5, 10, 14, outfit.shade);
+    img.set(8, 13, outfit.accent).vline(5, 15, 18, outfit.shade).vline(10, 15, 18, outfit.shade);
     img.rect(3, 12 + bob, 4, 16, 'k').rect(3, 13 + bob, 4, 15, 'ol');
     img.rect(5 - stride, 19, 6, 21, 'k').rect(9 + stride, 19, 10, 21, 'k');
     img.set(5 - stride, 20, 'od').set(9 + stride, 20, 'od');
-    if (walking) img.set(2, 17, 'gg');
+    if (walking) img.set(2, 17, outfit.accent);
     return img;
   };
   let frames = [frame(false), frame(true)];
@@ -2096,9 +2102,11 @@ function collect() {
     ['char-keeper', character('rm', 'rmd', 'wy', 'rw', 'skd')],
   ])
     put(name, ch.frames[0], ch.frames);
-  for (const direction of ['south', 'west', 'east', 'north']) {
-    const player = playerCharacter(direction);
-    put(`char-player-${direction}`, player.frames[0], player.frames);
+  for (const [outfit] of Object.entries(PLAYER_OUTFITS)) {
+    for (const direction of ['south', 'west', 'east', 'north']) {
+      const player = playerCharacter(direction, outfit);
+      put(`char-player-${outfit}-${direction}`, player.frames[0], player.frames);
+    }
   }
   return sprites;
 }
