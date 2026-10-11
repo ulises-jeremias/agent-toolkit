@@ -642,6 +642,15 @@ journeys:
           - assets/electron/people/world-person-large.png
           - assets/electron/people/people-offline-after-stop.png
       - note: >-
+          Runtime PTYs are global to the Desktop shell, but Person IDs are
+          workspace-scoped. The roster and world now require the PTY's owning
+          sessionWorkspace to match the selected workspace before showing an
+          active or recent Person session. A regression test covers duplicate
+          Person IDs across workspaces, exited PTYs, ordinary terminals and
+          legacy PTYs without an owner binding.
+        tests:
+          - apps/desktop/src/data/personSessionScope.test.ts
+      - note: >-
           Session history now offers Start again for stopped/finished sessions.
           It uses the previous project, runner and model as review defaults,
           validates project health and runner availability, and opens the

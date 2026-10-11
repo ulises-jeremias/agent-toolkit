@@ -7,6 +7,7 @@ import { sortJobs, useJobs } from '../../data/jobs';
 import { useMemoryFile, useMemoryList } from '../../data/memory';
 import { useProjects } from '../../data/projects';
 import { useTerminalSessions } from '../../data/terminal';
+import { activePersonSessionsForWorkspace } from '../../data/personSessionScope';
 import { personCharacterSprite } from '../people/avatar';
 import { useSessionContext } from '../../shell/useSessionContext';
 import { EmptyState, ErrorState } from '../../ui';
@@ -50,8 +51,8 @@ export default function WorldView() {
   const jobsQuery = useJobs();
   const toolsQuery = useTools();
   const livePersonPtys = useMemo(
-    () => terminalSessions.sessions.filter((session) => session.personId && session.exitCode === null),
-    [terminalSessions.sessions],
+    () => activePersonSessionsForWorkspace(terminalSessions.sessions, context.workspace),
+    [terminalSessions.sessions, context.workspace],
   );
   const peopleQuery = useQuery({
     queryKey: ['people', context.workspace],
