@@ -152,9 +152,18 @@ export async function waitForBackend(page: Page): Promise<void> {
 /** Resize the window's content area; Xvfb has no window manager to clamp it. */
 export async function setViewport(app: ElectronApplication, width: number, height: number): Promise<void> {
   await app.evaluate(
-    ({ BrowserWindow }, size) => {
+    async ({ BrowserWindow }, size) => {
       const [win] = BrowserWindow.getAllWindows();
       if (!win) throw new Error('Desktop window is unavailable while resizing.');
+      if (win.isMaximized()) {
+        await new Promise<void>((resolve) => {
+          win.once('unmaximize', () => resolve());
+          win.unmaximize();
+        });
+        // Give the compositor one frame to apply the restored bounds before
+        // the explicit content size is requested.
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
       win.setContentSize(size.width, size.height);
       return win.webContents.executeJavaScript(
         `new Promise((resolve, reject) => {
@@ -162,8 +171,11 @@ export async function setViewport(app: ElectronApplication, width: number, heigh
           const check = () => {
             if (window.innerWidth === ${size.width} && window.innerHeight === ${size.height}) {
               resolve(true);
-            } else if (performance.now() - started > 3000) {
-              reject(new Error('Desktop viewport did not reach ${size.width}x${size.height}.'));
+            } else if (performance.now() - started > 10000) {
+              reject(new Error(
+                'Desktop viewport did not reach ${size.width}x${size.height}; actual ' +
+                window.innerWidth + 'x' + window.innerHeight,
+              ));
             } else {
               requestAnimationFrame(check);
             }

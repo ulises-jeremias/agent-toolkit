@@ -1150,6 +1150,30 @@
       "w": 16,
       "h": 24,
       "frames": 2
+    },
+    "char-player-south": {
+      "file": "char-player-south.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-player-west": {
+      "file": "char-player-west.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-player-east": {
+      "file": "char-player-east.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-player-north": {
+      "file": "char-player-north.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
     }
   }
 }

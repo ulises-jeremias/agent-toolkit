@@ -1082,6 +1082,7 @@ test('Operations refreshes a live swarm when its state changes outside Desktop',
   const palette = page.getByRole('dialog', { name: 'Commands' });
   await palette.getByLabel('Filter commands').fill('Review paused swarm');
   await page.keyboard.press('Enter');
+  await expect(palette).toBeHidden();
   await expect(page).toHaveURL(new RegExp(`swarm=${encodeURIComponent(runId)}`));
   await expect(inspector.getByRole('button', { name: 'Resume run' })).toBeVisible();
   await inspector.getByRole('button', { name: 'Resume run' }).click();
@@ -1329,7 +1330,10 @@ test('a crashed backend is attention, while its real PTY stays available for rec
   await terminalDialog.getByRole('button', { name: 'Open session' }).click();
   const terminalTab = page.getByRole('tab', { name: /backend-independent-pty.*running/ });
   await expect(terminalTab).toBeVisible();
+  await terminalTab.click();
+  await expect(terminalTab).toHaveAttribute('aria-selected', 'true');
   const terminal = page.getByLabel('Terminal for backend-independent-pty');
+  await expect(terminal).toBeVisible();
   await terminal.click();
   await page.keyboard.type("printf 'pty-survives-backend-crash\\n'; sleep 30");
   await page.keyboard.press('Enter');

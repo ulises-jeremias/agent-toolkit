@@ -6,7 +6,7 @@ Agent Toolkit Desktop is Electron + React over `agent-toolkit serve`. The V core
 
 `/world` is the home and occupies the main canvas. A workspace is a valley; each actual project is a building. Shared capabilities are distinct landmarks: Library for reusable capabilities, Archive for memory, Operations for runtime work, Terminal for direct shells, and Workspace Hall for context. Inside a project, semantic objects open real Files, Knowledge, Memory, Tools, and Terminal resources. A building or object with no truthful click action or state relationship should not appear as a functional affordance.
 
-World click targets, navigation, contextual actions, and the command palette use the same routes and operations. No task requires walking an avatar. Inspectors open for precise control while the world retains context. Library, project knowledge, memory, and files remain separate concepts.
+World click targets, navigation, contextual actions, and the command palette use the same routes and operations. Optional Explore mode adds a human-controlled avatar for spatial movement; it calls those same world actions and does not own domain state. No task requires walking. Inspectors open for precise control while the world retains context. Library, project knowledge, memory, and files remain separate concepts.
 
 Workspace Hall owns workspace-level context packs. Desktop lists the local YAML bundles, surfaces the backend's required-field validation and project scope, and lets the user select one for future sessions or clear the selection. This remains distinct from installable Library capabilities and loop override packs; selecting a workspace context bundle never installs or executes it.
 
@@ -23,6 +23,8 @@ AgentDefinition is reusable capability; Person is durable collaborator configura
 Important mutations use a purpose-built configuration flow, backend validation, review of affected scope and paths, explicit apply, and a real receipt or result. Importing a Person never runs code or starts a session. Errors explain what happened, what remains safe, and how to retry or recover. Partial success is reported as such. Secrets are masked and not echoed in diagnostics.
 
 A palette action opens the same flow as its menu or world equivalent. Disabled actions explain why. Keyboard focus is visible, Escape closes the innermost layer, and text/terminal input takes precedence over global shortcuts. Dense operational content uses readable body and monospace text; pixel display type is reserved for small labels. Responsive compact layouts preserve primary actions and avoid clipping. Reduced motion applies to ambient effects.
+
+In the world, WASD/arrows move the human player only while the Walk control is active. E activates the nearest real, interactable place; map solids and deep water collide, and generated bridges stay passable. Blur and hidden-window state clear held movement. Text inputs, dialogs, and terminal focus suppress movement. Position is scoped to workspace/project and restored only when it remains within safe walkable bounds. The player is never an AI worker and creates no sessions or implied progress.
 
 Terminal views connect to real PTY sessions. Switching route or collapsing the dock does not kill a session; close and process exit are explicit and observable. Reattach only to a process that exists. Swarm Operations shows topology, handoffs, approvals, budget, artifacts, and logs; the world only shows where actual work is happening.
 

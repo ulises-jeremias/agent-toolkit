@@ -1,0 +1,233 @@
+---
+import world from "../../../../static/screenshots/world.png";
+import interior from "../../../../static/screenshots/project-interior.png";
+import people from "../../../../static/screenshots/people.png";
+import operations from "../../../../static/screenshots/operations.png";
+import library from "../../../../static/screenshots/library.png";
+
+const scenes = [
+  {
+    id: "valley",
+    label: "The workspace",
+    image: world,
+    alt: "Agent Toolkit Desktop's real pixel valley, with project buildings, paths and shared landmarks",
+    kicker: "Start in the valley",
+    title: "A workspace you can understand at a glance.",
+    body: "The map is the information architecture: each registered project has a place, and shared work has recognizable landmarks.",
+    link: "/world/",
+    linkLabel: "Explore the world",
+  },
+  {
+    id: "project",
+    label: "Inside a project",
+    image: interior,
+    alt: "Actual Agent Toolkit project interior with its overview and semantic work areas",
+    kicker: "Step inside a project",
+    title: "A building opens into real project context.",
+    body: "Reach project files, knowledge, memory and a real terminal from the same room. Each object leads to the canonical resource it represents.",
+    link: "/docs/desktop/",
+    linkLabel: "See the Desktop guide",
+  },
+  {
+    id: "people",
+    label: "People",
+    image: people,
+    alt: "Agent Toolkit's real People roster showing configured collaborators",
+    kicker: "Bring your team along",
+    title: "People keep their identity between sessions.",
+    body: "Configure a collaborator once, then choose where and how to start them. Offline People stay in the roster; only real sessions appear in the world.",
+    link: "/people/",
+    linkLabel: "Meet People",
+  },
+  {
+    id: "operations",
+    label: "Operations",
+    image: operations,
+    alt: "Agent Toolkit Operations showing real jobs and swarm runs with their current states",
+    kicker: "Follow real work",
+    title: "Swarms coordinate people around a task.",
+    body: "Review role bindings, handoffs, approvals and artifacts. Operations shows what a run is doing; the world shows where its live work belongs.",
+    link: "/swarms/",
+    linkLabel: "Understand Swarms",
+  },
+  {
+    id: "library",
+    label: "Library",
+    image: library,
+    alt: "Agent Toolkit Library showing real discoverable capabilities",
+    kicker: "Gather useful capabilities",
+    title: "A Library for reusable tools and behavior.",
+    body: "Explore Skills, Agent Definitions, MCP providers and Loops from generated catalogs. Review what changes before installing it.",
+    link: "/capabilities/",
+    linkLabel: "Browse capabilities",
+  },
+];
+---
+
+<section class="world-journey" aria-labelledby="journey-title">
+  <div class="wrap journey-heading">
+    <p class="section-kicker">A connected workspace, place by place</p>
+    <h2 id="journey-title">Follow the paths. Find the work.</h2>
+    <p>Scroll to explore, or jump straight to any part of the product.</p>
+  </div>
+  <div class="wrap journey-layout" data-world-journey>
+    <div class="journey-stage-wrap">
+      <div
+        class="journey-stage"
+        data-journey-stage
+        data-scene="valley"
+        role="group"
+        aria-label="A visual guide through the Agent Toolkit workspace"
+      >
+        {scenes.map((scene, index) => (
+          <img
+            class:list={["journey-image", index === 0 && "is-active"]}
+            src={index === 0 ? scene.image.src : undefined}
+            alt={scene.alt}
+            data-scene-image={scene.id}
+            data-scene-src={scene.image.src}
+            fetchpriority={index === 0 ? "high" : undefined}
+            loading={index === 0 ? "eager" : "lazy"}
+            aria-hidden={index !== 0 ? "true" : undefined}
+          />
+        ))}
+      </div>
+      <div class="journey-caption">
+        <p class="journey-location" data-journey-location aria-live="polite">
+          The workspace
+        </p>
+        <p class="journey-prompt">A real product, seen from above</p>
+      </div>
+      <div class="journey-progress" aria-hidden="true">
+        <span data-journey-progress></span>
+      </div>
+      <nav class="journey-route" aria-label="Jump to a place in the workspace">
+        {scenes.map((scene, index) => (
+          <a
+            href={`#journey-${scene.id}`}
+            data-journey-link={scene.id}
+            aria-current={index === 0 ? "step" : undefined}
+          >
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            {scene.label}
+          </a>
+        ))}
+      </nav>
+    </div>
+    <div class="journey-stops">
+      {scenes.map((scene) => (
+        <article
+          class="journey-stop"
+          id={`journey-${scene.id}`}
+          data-journey-stop={scene.id}
+          data-journey-label={scene.label}
+        >
+          <p class="section-kicker">{scene.kicker}</p>
+          <h3>{scene.title}</h3>
+          <p>{scene.body}</p>
+          <a class="quiet-link" href={scene.link}>
+            {scene.linkLabel}
+            <span aria-hidden="true">→</span>
+          </a>
+        </article>
+      ))}
+      <div class="journey-end" aria-hidden="true">
+        The path stays yours to choose.
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const roots = document.querySelectorAll<HTMLElement>("[data-world-journey]");
+
+  for (const root of roots) {
+    const stage = root.querySelector<HTMLElement>("[data-journey-stage]");
+    const images = [
+      ...root.querySelectorAll<HTMLImageElement>("[data-scene-image]"),
+    ];
+    const stops = [
+      ...root.querySelectorAll<HTMLElement>("[data-journey-stop]"),
+    ];
+    const links = [
+      ...root.querySelectorAll<HTMLAnchorElement>("[data-journey-link]"),
+    ];
+    const location = root.querySelector<HTMLElement>("[data-journey-location]");
+    const progress = root.querySelector<HTMLElement>("[data-journey-progress]");
+
+    if (!stage || !stops.length || !location) continue;
+
+    let sceneRevision = 0;
+    const setScene = (id: string, index: number) => {
+      const stop = stops[index];
+      if (!stop) return;
+      if (stage.dataset.scene === id) return;
+
+      stage.dataset.scene = id;
+      location.textContent = stop.dataset.journeyLabel ?? id;
+      const target = images.find((image) => image.dataset.sceneImage === id);
+      const revision = ++sceneRevision;
+      if (target) {
+        target.loading = "eager";
+        if (!target.getAttribute("src") && target.dataset.sceneSrc)
+          target.src = target.dataset.sceneSrc;
+        const reveal = () => {
+          if (revision !== sceneRevision) return;
+          images.forEach((image) => {
+            const active = image === target;
+            image.classList.toggle("is-active", active);
+            image.setAttribute("aria-hidden", String(!active));
+          });
+        };
+        if (target.complete && target.naturalWidth > 0) reveal();
+        else void target.decode().then(reveal).catch(reveal);
+      }
+      links.forEach((link) => {
+        if (link.dataset.journeyLink === id)
+          link.setAttribute("aria-current", "step");
+        else link.removeAttribute("aria-current");
+      });
+      if (progress)
+        progress.style.transform = `scaleX(${(index + 1) / stops.length})`;
+    };
+
+    let updatePending = false;
+    const updateScene = () => {
+      if (updatePending) return;
+      updatePending = true;
+      requestAnimationFrame(() => {
+        updatePending = false;
+        const bounds = root.getBoundingClientRect();
+        const center = window.innerHeight / 2;
+        if (bounds.top > center || bounds.bottom < center) return;
+
+        const nearest = stops
+          .map((stop, index) => ({
+            stop,
+            index,
+            distance: Math.abs(
+              stop.getBoundingClientRect().top +
+                stop.getBoundingClientRect().height / 2 -
+                center,
+            ),
+          }))
+          .sort((left, right) => left.distance - right.distance)[0];
+        const id = nearest?.stop.dataset.journeyStop;
+        if (id && nearest) setScene(id, nearest.index);
+      });
+    };
+
+    links.forEach((link) => {
+      link.addEventListener("click", () => {
+        const index = stops.findIndex(
+          (stop) => stop.dataset.journeyStop === link.dataset.journeyLink,
+        );
+        const id = link.dataset.journeyLink;
+        if (id && index >= 0) setScene(id, index);
+      });
+    });
+    window.addEventListener("scroll", updateScene, { passive: true });
+    window.addEventListener("resize", updateScene, { passive: true });
+    updateScene();
+  }
+</script>

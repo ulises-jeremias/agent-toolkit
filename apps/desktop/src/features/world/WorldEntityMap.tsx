@@ -1,12 +1,28 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
+} from 'react';
 import { Link } from 'react-router';
 import { StatusBadge, Table, VisuallyHidden, type Tone } from '../../ui';
 import { clampCamera, fitCamera, WORLD_ZOOMS, zoomCamera } from './camera';
 import { entityActivateLabel, entityActivateVerb, entityHasInspector } from './inspectors';
 import { paintInterior, paintTerrain, type DecorSprite, type LaidOutEntity } from './model';
-import spriteManifest from '../../../public/world/manifest.json';
+import spriteManifest from './manifest.json';
 import { TerrainCanvas } from './TerrainRenderer';
 import { nearestWorldNeighbor, type WorldDirection } from './spatialNavigation';
+import {
+  findWorldSpawn,
+  nearbyWorldTarget,
+  restoreWorldPosition,
+  stepWorldPlayer,
+  worldCellKey,
+  type WorldPoint,
+} from './player';
 import { resolveEntityAsset, type WorldThemePack } from './theme/cozyValley';
 import styles from './world.module.css';
 
@@ -66,6 +82,7 @@ export interface WorldEntityMapProps {
   rows: number;
   ariaLabel: string;
   mode: 'grounds' | 'interior';
+  persistKey?: string;
   /** Hidden inspector panel — pause terrain/CSS animation, keep manual zoom. */
   suspended?: boolean;
   onSelect: (id: string) => void;
@@ -96,6 +113,7 @@ export function WorldEntityMap({
   rows,
   ariaLabel,
   mode,
+  persistKey = 'workspace|grounds',
   suspended = false,
   onSelect,
   onActivate,
@@ -103,11 +121,17 @@ export function WorldEntityMap({
   const regionRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState<number>(48);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [cameraMode, setCameraMode] = useState<'frame' | 'fit' | 'manual'>('frame');
+  const [cameraMode, setCameraMode] = useState<'frame' | 'fit' | 'manual' | 'follow'>('frame');
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const drag = useRef<{ x: number; y: number; panX: number; panY: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
   const [tabVisible, setTabVisible] = useState(() => document.visibilityState !== 'hidden');
+  const [playerPosition, setPlayerPosition] = useState<WorldPoint>({ x: 1.5, y: 1.5 });
+  const [playerDirection, setPlayerDirection] = useState<'north' | 'south' | 'east' | 'west'>('south');
+  const [playerWalking, setPlayerWalking] = useState(false);
+  const [nearbyId, setNearbyId] = useState<string | null>(null);
+  const panFocusRef = useRef<HTMLButtonElement>(null);
+  const playerPositionRef = useRef(playerPosition);
 
   useEffect(() => {
     const update = () => setTabVisible(document.visibilityState !== 'hidden');
@@ -127,6 +151,188 @@ export function WorldEntityMap({
     () => (mode === 'grounds' ? paintTerrain(entities, cols, rows) : paintInterior(entities, cols, rows)),
     [mode, entities, cols, rows],
   );
+  const collisionMap = useMemo(
+    () => ({ cols, rows, blocked: new Set(plan.collisionCells) }),
+    [cols, rows, plan.collisionCells],
+  );
+  const pathCells = useMemo(
+    () =>
+      new Set(
+        plan.cells
+          .filter((cell) => cell.tile.startsWith('trail-') || cell.tile === 'bridge')
+          .map((cell) => worldCellKey(cell.x, cell.y)),
+      ),
+    [plan.cells],
+  );
+  const spawnPoint = useMemo(() => {
+    const hall = entities.find((entity) => entity.id === 'place:workspace');
+    const preferred =
+      mode === 'interior'
+        ? { x: cols / 2, y: Math.max(1, rows - 3) }
+        : hall
+          ? { x: hall.x + hall.w / 2, y: hall.y + hall.h + 2 }
+          : { x: cols / 2, y: rows / 2 };
+    return findWorldSpawn(collisionMap, preferred, pathCells);
+  }, [collisionMap, cols, entities, mode, pathCells, rows]);
+  const nearbyEntity = useMemo(() => entities.find((entity) => entity.id === nearbyId) ?? null, [entities, nearbyId]);
+  const nearbyEntityRef = useRef(nearbyEntity);
+  const activateRef = useRef({ onSelect, onActivate });
+  nearbyEntityRef.current = nearbyEntity;
+  activateRef.current = { onSelect, onActivate };
+
+  useEffect(() => {
+    let stored: string | null = null;
+    try {
+      stored = window.localStorage.getItem(`agent-toolkit:world-player:${persistKey}`);
+    } catch {
+      // Browser storage can be disabled; exploration remains available.
+    }
+    const restored = restoreWorldPosition(stored, spawnPoint, collisionMap);
+    playerPositionRef.current = restored;
+    setPlayerPosition(restored);
+    setNearbyId(null);
+  }, [collisionMap, persistKey, spawnPoint]);
+
+  useEffect(() => {
+    const target = nearbyWorldTarget(playerPosition, entities, entityHasInspector);
+    setNearbyId((current) => (current === target?.id ? current : (target?.id ?? null)));
+  }, [entities, playerPosition]);
+
+  useEffect(() => {
+    const region = regionRef.current;
+    const focusTarget = panFocusRef.current;
+    if (!region || !focusTarget) return;
+    const held = new Map<string, 'north' | 'south' | 'east' | 'west'>();
+    let animationFrame: number | null = null;
+    let previousFrame = 0;
+    let lastUiFrame = 0;
+    let lastPersist = 0;
+    const controls = new Map<string, 'north' | 'south' | 'east' | 'west'>([
+      ['w', 'north'],
+      ['arrowup', 'north'],
+      ['s', 'south'],
+      ['arrowdown', 'south'],
+      ['a', 'west'],
+      ['arrowleft', 'west'],
+      ['d', 'east'],
+      ['arrowright', 'east'],
+    ]);
+    const isFocused = () => region.contains(document.activeElement);
+    const isTyping = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false;
+      return target.isContentEditable || Boolean(target.closest('input, textarea, select, [role="dialog"], .xterm'));
+    };
+    const writePosition = (position: WorldPoint) => {
+      playerPositionRef.current = position;
+      setPlayerPosition(position);
+      try {
+        window.localStorage.setItem(`agent-toolkit:world-player:${persistKey}`, JSON.stringify(position));
+      } catch {
+        // Local persistence is optional; it must never block movement.
+      }
+    };
+    const cancelMovement = () => {
+      held.clear();
+      writePosition(playerPositionRef.current);
+      if (animationFrame !== null) cancelAnimationFrame(animationFrame);
+      animationFrame = null;
+      setPlayerWalking(false);
+    };
+    const tick = (now: number) => {
+      if (!isFocused() || (document.activeElement !== focusTarget && document.activeElement !== region)) {
+        cancelMovement();
+        return;
+      }
+      const elapsed = previousFrame ? Math.min(50, now - previousFrame) : 16;
+      previousFrame = now;
+      const directions = [...held.values()];
+      const input = {
+        north: directions.includes('north'),
+        south: directions.includes('south'),
+        east: directions.includes('east'),
+        west: directions.includes('west'),
+      };
+      const next = stepWorldPlayer(playerPositionRef.current, input, elapsed, collisionMap);
+      const moved = next.x !== playerPositionRef.current.x || next.y !== playerPositionRef.current.y;
+      setPlayerWalking(moved);
+      if (moved) {
+        playerPositionRef.current = next;
+        const target = nearbyWorldTarget(next, entities, entityHasInspector);
+        setNearbyId((current) => (current === target?.id ? current : (target?.id ?? null)));
+        if (now - lastUiFrame >= 32) {
+          lastUiFrame = now;
+          setPlayerPosition(next);
+          const cameraPan = clampCamera(
+            {
+              x: Math.floor(region.clientWidth / 2 - next.x * zoom),
+              y: Math.floor(region.clientHeight / 2 - next.y * zoom),
+            },
+            { x: region.clientWidth, y: region.clientHeight },
+            { x: viewW, y: viewH },
+          );
+          setCameraMode('follow');
+          setPan(cameraPan);
+        }
+        if (now - lastPersist > 750) {
+          lastPersist = now;
+          try {
+            window.localStorage.setItem(`agent-toolkit:world-player:${persistKey}`, JSON.stringify(next));
+          } catch {
+            // Local persistence is optional.
+          }
+        }
+      }
+      if (held.size > 0) animationFrame = requestAnimationFrame(tick);
+      else animationFrame = null;
+    };
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (!isFocused() || isTyping(event.target) || event.altKey || event.ctrlKey || event.metaKey) return;
+      // Keep spatial focus navigation and screen-reader shortcuts intact.
+      if (document.activeElement !== focusTarget && document.activeElement !== region) return;
+      const direction = controls.get(event.key.toLowerCase());
+      if (direction) {
+        event.preventDefault();
+        setPlayerDirection(direction);
+        held.set(event.key.toLowerCase(), direction);
+        if (animationFrame === null) {
+          previousFrame = 0;
+          animationFrame = requestAnimationFrame(tick);
+        }
+        return;
+      }
+      if (event.key.toLowerCase() === 'e' && nearbyEntityRef.current) {
+        event.preventDefault();
+        activateEntity(nearbyEntityRef.current, activateRef.current.onSelect, activateRef.current.onActivate);
+        setPlayerWalking(false);
+      }
+    };
+    const onKeyUp = (event: globalThis.KeyboardEvent) => {
+      const direction = controls.get(event.key.toLowerCase());
+      if (!direction) return;
+      held.delete(event.key.toLowerCase());
+      if (held.size === 0) {
+        if (animationFrame !== null) cancelAnimationFrame(animationFrame);
+        animationFrame = null;
+        writePosition(playerPositionRef.current);
+        setPlayerWalking(false);
+      }
+    };
+    const onBlur = () => cancelMovement();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') cancelMovement();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('blur', onBlur);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      cancelMovement();
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('blur', onBlur);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [collisionMap, entities, persistKey, viewH, viewW, zoom]);
 
   const fitWorld = useCallback(() => {
     const region = regionRef.current;
@@ -144,7 +350,7 @@ export function WorldEntityMap({
   }, [cols, rows]);
 
   useEffect(() => {
-    if (cameraMode === 'manual') return;
+    if (cameraMode === 'manual' || cameraMode === 'follow') return;
     fitWorld();
   }, [cameraMode, fitWorld]);
 
@@ -152,7 +358,18 @@ export function WorldEntityMap({
     const region = regionRef.current;
     if (!region) return;
     const observer = new ResizeObserver(() => {
-      if (cameraMode !== 'manual') {
+      if (cameraMode === 'follow') {
+        setPan(
+          clampCamera(
+            {
+              x: region.clientWidth / 2 - playerPositionRef.current.x * zoom,
+              y: region.clientHeight / 2 - playerPositionRef.current.y * zoom,
+            },
+            { x: region.clientWidth, y: region.clientHeight },
+            { x: viewW, y: viewH },
+          ),
+        );
+      } else if (cameraMode !== 'manual') {
         fitWorld();
       } else {
         setPan((p) => clampCamera(p, { x: region.clientWidth, y: region.clientHeight }, { x: viewW, y: viewH }));
@@ -160,7 +377,7 @@ export function WorldEntityMap({
     });
     observer.observe(region);
     return () => observer.disconnect();
-  }, [cameraMode, fitWorld, viewW, viewH]);
+  }, [cameraMode, fitWorld, viewW, viewH, zoom]);
 
   const clampPan = useCallback(
     (x: number, y: number) => {
@@ -200,25 +417,8 @@ export function WorldEntityMap({
     drag.current = null;
   };
 
-  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    const step = zoom;
-    if (event.key === 'ArrowLeft') {
-      setCameraMode('manual');
-      setPan((p) => clampPan(p.x + step, p.y));
-      event.preventDefault();
-    } else if (event.key === 'ArrowRight') {
-      setCameraMode('manual');
-      setPan((p) => clampPan(p.x - step, p.y));
-      event.preventDefault();
-    } else if (event.key === 'ArrowUp') {
-      setCameraMode('manual');
-      setPan((p) => clampPan(p.x, p.y + step));
-      event.preventDefault();
-    } else if (event.key === 'ArrowDown') {
-      setCameraMode('manual');
-      setPan((p) => clampPan(p.x, p.y - step));
-      event.preventDefault();
-    } else if (event.key === 'Home') {
+  const onKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
+    if (event.key === 'Home') {
       setCameraMode('fit');
       event.preventDefault();
     }
@@ -274,9 +474,10 @@ export function WorldEntityMap({
     >
       {/* Keyboard pan lives on a real button so the map region itself stays non-interactive. */}
       <button
+        ref={panFocusRef}
         type="button"
         className={styles.panFocus}
-        aria-label="Map controls. Arrow keys pan while focused; Home fits the world. Tab to places, then use arrows to move."
+        aria-label="Explore the world. Use WASD or arrow keys to walk, E to interact, Home to fit the world. Tab to places for direct access."
         onKeyDown={onKeyDown}
       />
       <div
@@ -311,6 +512,21 @@ export function WorldEntityMap({
             onMoveFocus={moveEntityFocus}
           />
         ))}
+        <span
+          className={styles.playerActor}
+          data-direction={playerDirection}
+          data-walking={playerWalking ? 'true' : undefined}
+          role="img"
+          aria-label="You, exploring the workspace"
+          style={{
+            left: playerPosition.x * zoom,
+            top: playerPosition.y * zoom,
+            width: zoom,
+            height: zoom * 1.5,
+            backgroundImage: `url('/world/char-player-${playerDirection}.png')`,
+            ['--frames' as string]: 2,
+          }}
+        />
         {plan.decor
           .filter((d) => d.over)
           .map((d) => (
@@ -337,6 +553,15 @@ export function WorldEntityMap({
           ))}
       </div>
       <div className={styles.cameraHud} role="group" aria-label="Map view controls">
+        <button
+          type="button"
+          className={styles.hudButton}
+          onClick={() => panFocusRef.current?.focus()}
+          aria-label="Explore by walking"
+          title="Walk with WASD or arrow keys"
+        >
+          Walk
+        </button>
         <button type="button" className={styles.hudButton} onClick={zoomOut} aria-label="Zoom out">
           −
         </button>
@@ -354,6 +579,21 @@ export function WorldEntityMap({
         >
           ⌂
         </button>
+      </div>
+      <div className={styles.exploreHint} role="status" aria-live="polite">
+        {nearbyEntity ? (
+          <>
+            <strong>{nearbyEntity.name}</strong>
+            <span>
+              Press <kbd>E</kbd> to {entityActivateVerb(nearbyEntity).toLowerCase()}
+            </span>
+          </>
+        ) : (
+          <span>
+            <kbd>WASD</kbd> / <kbd>←↑↓→</kbd> walk <i aria-hidden="true">·</i> move close and press <kbd>E</kbd> to
+            interact
+          </span>
+        )}
       </div>
     </div>
   );
@@ -424,7 +664,7 @@ function EntityTile({
   const spriteScale = tileSize / theme.sourceTile;
   const canInspect = entityHasInspector(entity);
   const EntityControl = canInspect ? 'button' : 'span';
-  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+  const onKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
     const direction = event.key.replace('Arrow', '').toLowerCase() as WorldDirection;
     if (canInspect && ['up', 'down', 'left', 'right'].includes(direction)) {
       event.preventDefault();

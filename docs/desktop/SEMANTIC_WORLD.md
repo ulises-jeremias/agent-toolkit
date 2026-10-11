@@ -1,6 +1,6 @@
 # Semantic World — Desktop spatial product contract
 
-**Status: CURRENT CONTRACT** (2026-09-30) — primary product goal for Agent
+**Status: CURRENT CONTRACT** (2026-10-11) — primary product goal for Agent
 Toolkit Desktop spatial UX. Governing ADRs:
 [ADR-034](../adrs/ADR-034-semantic-world.md) (spatial pipeline) and
 [ADR-035](../adrs/ADR-035-cozy-pixel-world.md) (visual language — Cozy Pixel
@@ -46,6 +46,24 @@ This is not pixel-art SaaS and not "game before tool".
 | Forcing Office Floor metaphor onto every workflow | **REMOVE** | World explains structure; inspectors own dense work |
 | Historical Workshop vector-sprite vocabulary as visual authority | **REMOVE** | Runtime truth and ambient motion rules are in this document and UX_ARCHITECTURE.md |
 
+## 1.1 Optional player exploration
+
+The world also supports an optional human-controlled player character. This
+avatar represents the Desktop user, never a Person, AgentDefinition, job, or
+session. It is present in an idle workspace without implying agent activity.
+Walking uses WASD or arrow keys while the **Walk** control is focused; **E**
+opens the nearest real world interaction. Map solids and deep water block
+movement, while terrain bridges remain walkable. The camera follows the player
+within the map bounds, and the last safe workspace/project position is restored
+when available.
+
+Exploration is one navigation path into existing canonical actions. Pointer
+selection, menus, direct routes, the World Index, and command-palette actions
+remain available and never require walking. Text fields, dialogs, and terminal
+input take precedence over movement keys. A project building changes the
+interior view only after the existing project action is activated; player
+coordinates do not change domain state.
+
 ## 2. Pipeline (hard rule)
 
 ```
@@ -82,6 +100,7 @@ filled with fabricated contents.
 | MCP / pack capability (catalog) | Library shelf | Installable capability, not runtime | Open Library | installed / catalog-only / unavailable | Library list | `capability.shelf` |
 | Catalog Agent (`agents/*/AGENT.md`) | Desk plate / nameplate | Definition exists; not a living character | Open Library agent | catalog | List: AgentInfo | `agent.catalog` |
 | Configured Person | Roster profile and durable portrait | Reusable collaborator identity is separate from a process | Open People to inspect, edit, start, archive, or restore | configured offline / archived / session open | People roster and profile | `person.profile` |
+| Human user | User-controlled world avatar | Optional spatial navigation; distinct from agent runtime | Walk and activate a nearby canonical world action | present when world exploration is enabled | Walk control and direct navigation remain available | `player.avatar` |
 | Live Person-bound local PTY | That Person's character at the project house / terminal | Only an actual open process creates world presence; saved identity survives exit | Hover for role/runner/model; click opens People session; Open Terminal reaches the bound PTY | session open / stopping until exit is confirmed | People profile with project and session details | `person.session` |
 | Job (serve jobs registry) | Working character / task figure | Proven runtime work | Hover tooltip; click → Operations job | queued / running / terminal statuses / unknown verbatim | List: job id, cmd, status | `agent.working` / `agent.blocked` / `agent.idle`* |
 | Swarm run | Meeting table / handoff tray | Multi-agent coordination evidence | Open Operations swarms | present / empty / unavailable | List: run ids when API provides them | `swarm.table` |
@@ -93,6 +112,9 @@ filled with fabricated contents.
 \* `agent.idle` is used only when a runtime row exists in an idle-compatible
 status, or as the theme key for a catalog nameplate that is *not* animated.
 Never spawn a walking character for an idle catalog agent alone.
+
+The human player is not covered by the worker-character rule below; it
+represents the user, not runtime evidence.
 
 ### Spatial navigation and direct actions
 

@@ -299,6 +299,60 @@
   z-index: 4;
 }
 
+.playerActor {
+  position: absolute;
+  z-index: 5;
+  display: block;
+  background-repeat: no-repeat;
+  background-size: calc(var(--frames, 2) * 100%) 100%;
+  background-position: left bottom;
+  image-rendering: pixelated;
+  pointer-events: none;
+  transform: translate(-50%, -78%);
+  filter: drop-shadow(0 2px 0 rgb(25 30 35 / 58%));
+}
+
+.playerActor[data-walking='true'] {
+  animation: player-walk 0.26s steps(2, end) infinite;
+}
+
+.exploreHint {
+  position: absolute;
+  z-index: 12;
+  left: var(--space-3);
+  bottom: var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: min(34rem, calc(100vw - 8rem));
+  padding: 0.45rem 0.65rem;
+  color: var(--text-on-chrome);
+  border: 2px solid var(--border-chrome);
+  background: var(--surface-chrome);
+  box-shadow: var(--shadow-panel);
+  font: var(--text-xs) / 1.35 var(--font-body);
+  pointer-events: none;
+}
+
+.exploreHint strong {
+  color: var(--accent-gold);
+  font-family: var(--font-display);
+}
+
+.exploreHint kbd {
+  padding: 0 0.3rem;
+  color: var(--text-on-chrome);
+  border: 1px solid var(--border-chrome);
+  background: var(--surface-chrome-raised);
+  font: inherit;
+}
+
+@keyframes player-walk {
+  from { background-position-x: 0%; }
+  to { background-position-x: 100%; }
+}
+
 .entityTooltip {
   position: absolute;
   left: 50%;
@@ -436,6 +490,12 @@
   cursor: pointer;
 }
 
+.hudButton:first-child {
+  width: auto;
+  min-width: 56px;
+  padding-inline: 5px;
+}
+
 .hudButton:hover {
   border-color: var(--accent-gold);
 }
@@ -520,6 +580,10 @@
 
 :root[data-motion='reduced'] .decorSprite,
 :root[data-motion='reduced'] .entity[data-activity='working'] .entitySprite {
+  animation: none;
+}
+
+:root[data-motion='reduced'] .playerActor[data-walking='true'] {
   animation: none;
 }
 

@@ -1,12 +1,13 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 import { entityAccessibleName, entityHasInspector } from './inspectors';
-import { buildWorldModel, layoutWorld } from './model';
+import { buildWorldModel, layoutWorld, paintTerrain } from './model';
 import type { MemoryEntryRecord, WorldDomainInput } from './model/types';
 import { cozyValleyTheme } from './theme/cozyValley';
 import { nearestWorldNeighbor } from './spatialNavigation';
+import { nearbyWorldTarget, stepWorldPlayer, type WorldInput } from './player';
 import { WorldEntityList, WorldEntityMap } from './WorldEntityMap';
 
 function entry(
@@ -321,6 +322,58 @@ describe('WorldEntityMap activation', () => {
     await user.click(terminal);
     expect(onActivate).toHaveBeenLastCalledWith(
       expect.objectContaining({ id: 'object:terminal', hrefPath: '/terminal' }),
+    );
+  });
+
+  it('walks with keyboard focus, opens a nearby real place with E, and ignores typing focus', async () => {
+    const input = baseInput();
+    const layout = layoutWorld(buildWorldModel(input));
+    window.localStorage.removeItem('agent-toolkit:world-player:workspace|grounds');
+    const { onActivate, user } = renderMap(input);
+    const actor = screen.getByRole('img', { name: 'You, exploring the workspace' });
+    const startLeft = (actor as HTMLElement).style.left;
+    const startTop = (actor as HTMLElement).style.top;
+    const textInput = document.createElement('input');
+    document.body.append(textInput);
+    textInput.focus();
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    expect((actor as HTMLElement).style.left).toBe(startLeft);
+    textInput.remove();
+
+    const region = screen.getByRole('application', { name: 'test world' });
+    const zoom = Number(region.getAttribute('data-zoom'));
+    const start = {
+      x: Number.parseFloat((actor as HTMLElement).style.left) / zoom,
+      y: Number.parseFloat((actor as HTMLElement).style.top) / zoom,
+    };
+    const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);
+    const collision = { cols: layout.cols, rows: layout.rows, blocked: new Set(terrain.collisionCells) };
+    const inputs: readonly [string, WorldInput][] = [
+      ['ArrowUp', { north: true, south: false, east: false, west: false }],
+      ['ArrowRight', { north: false, south: false, east: true, west: false }],
+      ['ArrowDown', { north: false, south: true, east: false, west: false }],
+      ['ArrowLeft', { north: false, south: false, east: false, west: true }],
+    ];
+    const movement = inputs.find(([, movementInput]) => {
+      const next = stepWorldPlayer(start, movementInput, 50, collision);
+      return next.x !== start.x || next.y !== start.y;
+    });
+    if (!movement) throw new Error('The safe spawn should have at least one walkable direction');
+    const candidate = nearbyWorldTarget(start, layout.entities, entityHasInspector);
+    if (!candidate) throw new Error('The current spawn should offer one nearby real place');
+
+    await user.click(screen.getByRole('button', { name: 'Explore by walking' }));
+    expect(screen.getByRole('status')).toHaveTextContent(candidate.name);
+    fireEvent.keyDown(screen.getByRole('application', { name: 'test world' }), { key: movement[0] });
+    await waitFor(() => {
+      expect((actor as HTMLElement).style.left !== startLeft || (actor as HTMLElement).style.top !== startTop).toBe(
+        true,
+      );
+    });
+    fireEvent.keyUp(screen.getByRole('application', { name: 'test world' }), { key: movement[0] });
+    await user.keyboard('e');
+    expect(onActivate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: candidate.id, hrefPath: candidate.hrefPath }),
     );
   });
 

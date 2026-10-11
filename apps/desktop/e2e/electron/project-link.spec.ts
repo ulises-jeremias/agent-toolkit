@@ -138,7 +138,7 @@ test('links an existing project from the GUI and places it in the world', async 
     await setViewport(desktop.app, 1024, 640);
     await page.getByRole('button', { name: 'Fit world' }).click();
     await expect(world).toHaveAttribute('data-zoom', '32');
-    await page.getByRole('button', { name: /Map controls.*Home fits the world/ }).focus();
+    await page.getByRole('button', { name: /Explore the world.*Home to fit the world/ }).focus();
     await page.keyboard.press('Home');
     await expect(world).toHaveAttribute('data-zoom', '32');
     await setViewport(desktop.app, 1920, 1080);

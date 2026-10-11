@@ -8,7 +8,7 @@ const PORT = process.env.PORT ?? '3177';
 
 /**
  * Two projects:
- * - renderer: the React app under vite dev, no backend (shell, fallbacks).
+ * - renderer: the production renderer bundle under vite preview, no backend (shell, fallbacks).
  * - electron: the built app (`pnpm build:all`) launched through Playwright's
  *   Electron driver with the real V backend (see e2e/electron/fixtures.ts).
  */
@@ -24,7 +24,7 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: `pnpm --dir "${APP_DIR}" dev --port ${PORT}`,
+    command: `pnpm --dir "${APP_DIR}" preview --host 127.0.0.1 --port ${PORT}`,
     cwd: APP_DIR,
     url: `http://127.0.0.1:${PORT}`,
     reuseExistingServer: !process.env.CI,
