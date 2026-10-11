@@ -5,25 +5,34 @@ art direction, the latest opened evidence, and unresolved findings in one place.
 The dated iteration log lives in [VISUAL_QA_HISTORY.md](VISUAL_QA_HISTORY.md);
 that archive is historical evidence, not the current art specification.
 
-## Playable world smoke — 2026-10-11
+## Packaged clean-install and world smoke — 2026-10-11
 
-I opened the actual Electron app under a fresh temporary `HOME`/`XDG_*` and
-temporary harness. The backend reached `ready`; the user-controlled avatar
-was visible in the shared valley, and the map remained the primary surface.
-With the map's **Walk** control focused, a real ArrowRight key press moved the
-avatar and changed its facing sprite. The nearby-place hint offered Library;
-pressing `E` opened the same canonical Library route as direct navigation.
-No AI worker was present because the temporary workspace had no active
-sessions. The capture is [the live empty-valley smoke](assets/electron/world/world-player-exploration-2026-10-11.png).
+I built the Electron directory package from `fix/desktop-isolate-clean-install-backend`
+at source `b46f13d` and used the Linux V binary from that PR's completed
+`Build Package` CI artifact (merge-test commit `416b55e`). Both the bundled
+binary's `--version` and `/api/v1/health` reported `1.44.0`, matching
+`backend-version.json` and the Desktop package. No local V rebuild was needed.
 
-This run used the host-installed binary from outside the checkout, and the
-backend reported `1.43.0` (commit `6576f83`) while the Desktop source is
-`1.44.0`. It therefore verifies launch, onboarding, backend readiness and
-the walking/interaction loop, but **does not verify version parity**. No
-project was registered in the temporary workspace, so project entry, interior
-furniture actions and real project-session presence were not exercised in
-this smoke. Typing-focus exclusion and real renderer keyboard movement are
-covered by the `WorldEntityMap` tests.
+Under a fresh temporary `HOME`/`XDG_*`, the backend reached `Ready` at the
+app-owned `userData/bootstrap` path. Onboarding labeled it **Setup only** and
+did not treat the Electron launch directory as the workspace. I continued
+through the explicit create confirmation, created the temporary default
+workspace from the GUI, and entered `/world`. The world showed 12 real places,
+the real workspace files and memory records, and no AI workers because no
+sessions were running. I focused **Walk**, sent a real ArrowDown key event, and
+verified the avatar moved from `top: 408px` to `411.456px` facing south. With
+Library offered as the nearby action, `E` navigated to the canonical
+`/library` route. The opened world capture is
+[the packaged clean-install valley](assets/electron/world/world-fresh-install-2026-10-11.png).
+
+The reviewed onboarding captures are
+[`fallback-01-missing.png`](assets/electron/onboarding/fallback-01-missing.png),
+[`fallback-02-confirm.png`](assets/electron/onboarding/fallback-02-confirm.png),
+and [`fallback-03-created.png`](assets/electron/onboarding/fallback-03-created.png).
+They replace older beige captures that described the fallback as running from
+the launch directory. Project entry, interior furniture actions and real
+project-session presence were not exercised in this clean empty-workspace
+smoke. Typing-focus exclusion is covered by `WorldEntityMap` tests.
 
 ## Visual north star
 
