@@ -353,12 +353,17 @@
   z-index: 5;
   display: block;
   background-repeat: no-repeat;
-  background-size: calc(var(--frames, 2) * 100%) 100%;
+  background-size: calc(var(--frames, 4) * 100%) 100%;
   background-position: left bottom;
   image-rendering: pixelated;
   pointer-events: none;
   transform: translate(-50%, -78%);
   filter: drop-shadow(0 2px 0 rgb(25 30 35 / 58%));
+  animation: player-idle 1.6s steps(1, end) infinite;
+}
+
+.playerActor:not([data-ready='true']) {
+  animation: none;
 }
 
 .playerActor[data-walking='true'] {
@@ -399,10 +404,21 @@
 
 @keyframes player-walk {
   from {
-    background-position-x: 0%;
+    background-position-x: 66.667%;
   }
   to {
     background-position-x: 100%;
+  }
+}
+
+@keyframes player-idle {
+  0%,
+  49.9% {
+    background-position-x: 0%;
+  }
+  50%,
+  100% {
+    background-position-x: 33.333%;
   }
 }
 
@@ -662,23 +678,22 @@
 
 @media (prefers-reduced-motion: reduce) {
   .decorSprite,
-  .entity[data-activity='working'] .entitySprite {
+  .entity[data-activity='working'] .entitySprite,
+  .playerActor {
     animation: none;
   }
 }
 
 :root[data-motion='reduced'] .decorSprite,
-:root[data-motion='reduced'] .entity[data-activity='working'] .entitySprite {
-  animation: none;
-}
-
-:root[data-motion='reduced'] .playerActor[data-walking='true'] {
+:root[data-motion='reduced'] .entity[data-activity='working'] .entitySprite,
+:root[data-motion='reduced'] .playerActor {
   animation: none;
 }
 
 /* Hidden tab or inspector panel: pause animation, keep manual zoom. */
 .mapRegion[data-suspended='true'] .decorSprite,
-.mapRegion[data-suspended='true'] .entitySprite {
+.mapRegion[data-suspended='true'] .entitySprite,
+.mapRegion[data-suspended='true'] .playerActor {
   animation-play-state: paused;
 }
 

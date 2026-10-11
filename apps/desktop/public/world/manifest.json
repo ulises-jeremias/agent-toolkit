@@ -1155,73 +1155,73 @@
       "file": "char-player-river-south.png",
       "w": 16,
       "h": 24,
-      "frames": 2
+      "frames": 4
     },
     "char-player-river-west": {
       "file": "char-player-river-west.png",
       "w": 16,
       "h": 24,
-      "frames": 2
+      "frames": 4
     },
     "char-player-river-east": {
       "file": "char-player-river-east.png",
       "w": 16,
       "h": 24,
-      "frames": 2
+      "frames": 4
     },
     "char-player-river-north": {
       "file": "char-player-river-north.png",
       "w": 16,
       "h": 24,
-      "frames": 2
+      "frames": 4
     },
     "char-player-grove-south": {
       "file": "char-player-grove-south.png",
       "w": 16,
       "h": 24,
-      "frames": 2
+      "frames": 4
     },
     "char-player-grove-west": {
       "file": "char-player-grove-west.png",
       "w": 16,
       "h": 24,
-      "frames": 2
+      "frames": 4
     },
     "char-player-grove-east": {
       "file": "char-player-grove-east.png",
       "w": 16,
       "h": 24,
-      "frames": 2
+      "frames": 4
     },
     "char-player-grove-north": {
       "file": "char-player-grove-north.png",
       "w": 16,
       "h": 24,
-      "frames": 2
+      "frames": 4
     },
     "char-player-ember-south": {
       "file": "char-player-ember-south.png",
       "w": 16,
       "h": 24,
-      "frames": 2
+      "frames": 4
     },
     "char-player-ember-west": {
       "file": "char-player-ember-west.png",
       "w": 16,
       "h": 24,
-      "frames": 2
+      "frames": 4
     },
     "char-player-ember-east": {
       "file": "char-player-ember-east.png",
       "w": 16,
       "h": 24,
-      "frames": 2
+      "frames": 4
     },
     "char-player-ember-north": {
       "file": "char-player-ember-north.png",
       "w": 16,
       "h": 24,
-      "frames": 2
+      "frames": 4
     }
   }
 }

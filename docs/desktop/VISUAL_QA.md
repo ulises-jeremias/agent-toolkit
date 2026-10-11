@@ -34,6 +34,24 @@ the launch directory. Project entry, interior furniture actions and real
 project-session presence were not exercised in this clean empty-workspace
 smoke. Typing-focus exclusion is covered by `WorldEntityMap` tests.
 
+## Human player idle and walk cycle — 2026-10-11
+
+The human navigator now uses four authored frames per direction and coat:
+calm, blink/scarf breath, and two alternating steps. In Electron, the idle loop
+runs at 1.6 seconds, the walking loop at 0.26 seconds, and reduced-motion
+preferences disable both. The actor pauses when the World is suspended. The
+E2E checks those styles during actual pointer movement and retains the keyboard
+movement and typing-focus checks.
+
+I opened the [compact](assets/electron/world-player-life/player-idle-compact.png)
+and [large](assets/electron/world-player-life/player-idle-large.png) Electron
+captures, plus the [walking capture](assets/electron/world-player-life/player-walk-compact.png).
+The player remains visible beside the Library approach at compact scale; at
+full-window size the four directions still read as one coherent character.
+The larger view keeps the source pixels crisp. The local CLI reported 1.44.0
+while the backend header in the captured app said 1.43.0; these captures
+document art and scale only, not package-version coherence.
+
 ## Visual north star
 
 Agent Toolkit Desktop is a semantic developer workspace represented as an

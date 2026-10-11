@@ -643,6 +643,7 @@ export function WorldEntityMap({
         <span
           className={styles.playerActor}
           data-direction={playerDirection}
+          data-ready={playerReady ? 'true' : undefined}
           data-walking={playerWalking ? 'true' : undefined}
           role="img"
           aria-label="You, exploring the workspace"
@@ -653,7 +654,7 @@ export function WorldEntityMap({
             height: zoom * 1.5,
             backgroundImage: `url('/world/char-player-${playerAppearance}-${playerDirection}.png')`,
             visibility: playerReady ? 'visible' : 'hidden',
-            ['--frames' as string]: 2,
+            ['--frames' as string]: 4,
           }}
         />
         {plan.decor
