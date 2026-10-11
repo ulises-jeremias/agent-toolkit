@@ -83,6 +83,8 @@ export interface WorldEntityMapProps {
   ariaLabel: string;
   mode: 'grounds' | 'interior';
   persistKey?: string;
+  /** Stable workspace identity shared by exterior/interior views. */
+  appearanceKey?: string;
   /** Hidden inspector panel — pause terrain/CSS animation, keep manual zoom. */
   suspended?: boolean;
   onSelect: (id: string) => void;
@@ -91,6 +93,12 @@ export interface WorldEntityMapProps {
 
 /** Integer zoom steps (display px per 16px source tile). */
 const ZOOMS = WORLD_ZOOMS;
+const PLAYER_APPEARANCES = ['river', 'grove', 'ember'] as const;
+type PlayerAppearance = (typeof PLAYER_APPEARANCES)[number];
+
+function isPlayerAppearance(value: string | null): value is PlayerAppearance {
+  return value !== null && PLAYER_APPEARANCES.includes(value as PlayerAppearance);
+}
 
 /** Sprite manifest dimensions by sprite id (generator-owned; sprites keep their authored size). */
 type SpriteManifestEntry = { file: string; w: number; h: number; frames: number };
@@ -114,6 +122,7 @@ export function WorldEntityMap({
   ariaLabel,
   mode,
   persistKey = 'workspace|grounds',
+  appearanceKey = persistKey,
   suspended = false,
   onSelect,
   onActivate,
@@ -129,10 +138,21 @@ export function WorldEntityMap({
   const [playerPosition, setPlayerPosition] = useState<WorldPoint>({ x: 1.5, y: 1.5 });
   const [playerDirection, setPlayerDirection] = useState<'north' | 'south' | 'east' | 'west'>('south');
   const [playerWalking, setPlayerWalking] = useState(false);
+  const [playerAppearance, setPlayerAppearance] = useState<PlayerAppearance>('river');
   const [nearbyId, setNearbyId] = useState<string | null>(null);
   const panFocusRef = useRef<HTMLButtonElement>(null);
   const playerPositionRef = useRef(playerPosition);
   const restoredKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    let stored: string | null = null;
+    try {
+      stored = window.localStorage.getItem(`agent-toolkit:world-player-appearance:${appearanceKey}`);
+    } catch {
+      // Appearance storage is optional; the default remains available.
+    }
+    setPlayerAppearance(isPlayerAppearance(stored) ? stored : 'river');
+  }, [appearanceKey]);
 
   useEffect(() => {
     const update = () => setTabVisible(document.visibilityState !== 'hidden');
@@ -529,7 +549,7 @@ export function WorldEntityMap({
             top: playerPosition.y * zoom,
             width: zoom,
             height: zoom * 1.5,
-            backgroundImage: `url('/world/char-player-${playerDirection}.png')`,
+            backgroundImage: `url('/world/char-player-${playerAppearance}-${playerDirection}.png')`,
             ['--frames' as string]: 2,
           }}
         />
@@ -568,6 +588,28 @@ export function WorldEntityMap({
         >
           Walk
         </button>
+        <label className={styles.appearanceControl}>
+          <span className={styles.appearanceLabel}>Coat</span>
+          <select
+            aria-label="Your appearance"
+            className={styles.appearanceSelect}
+            value={playerAppearance}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              if (!isPlayerAppearance(value)) return;
+              setPlayerAppearance(value);
+              try {
+                window.localStorage.setItem(`agent-toolkit:world-player-appearance:${appearanceKey}`, value);
+              } catch {
+                // Customization remains available for this session if storage is disabled.
+              }
+            }}
+          >
+            <option value="river">River</option>
+            <option value="grove">Grove</option>
+            <option value="ember">Ember</option>
+          </select>
+        </label>
         <button type="button" className={styles.hudButton} onClick={zoomOut} aria-label="Zoom out">
           −
         </button>

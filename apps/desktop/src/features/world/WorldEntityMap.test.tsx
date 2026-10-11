@@ -127,7 +127,7 @@ describe('WorldEntityMap activation', () => {
       return qs ? `${path}?${qs}` : path;
     };
     const user = userEvent.setup();
-    render(
+    const rendered = render(
       <MemoryRouter>
         <WorldEntityMap
           entities={layout.entities}
@@ -137,14 +137,53 @@ describe('WorldEntityMap activation', () => {
           rows={layout.rows}
           ariaLabel="test world"
           mode={input.focusProjectId ? 'interior' : 'grounds'}
+          persistKey={`${input.workspacePath}|${input.focusProjectId ?? 'grounds'}`}
+          appearanceKey={input.workspacePath}
           onSelect={onSelect}
           onActivate={onActivate}
         />
         <WorldEntityList entities={layout.entities} selectedId={null} href={href} onSelect={onSelect} />
       </MemoryRouter>,
     );
-    return { layout, onActivate, onSelect, user };
+    return { layout, onActivate, onSelect, user, ...rendered };
   }
+
+  it('persists the human player appearance per workspace and resets for another workspace', async () => {
+    window.localStorage.clear();
+    const { rerender, user } = renderMap();
+    const avatar = screen.getByRole('img', { name: 'You, exploring the workspace' });
+    const select = screen.getByRole('combobox', { name: 'Your appearance' });
+
+    await user.selectOptions(select, 'grove');
+    expect(avatar).toHaveStyle({ backgroundImage: "url('/world/char-player-grove-south.png')" });
+    expect(window.localStorage.getItem('agent-toolkit:world-player-appearance:/ws')).toBe('grove');
+
+    const model = buildWorldModel(baseInput({ workspacePath: '/other' }));
+    const layout = layoutWorld(model);
+    rerender(
+      <MemoryRouter>
+        <WorldEntityMap
+          entities={layout.entities}
+          selectedId={null}
+          theme={cozyValleyTheme}
+          cols={layout.cols}
+          rows={layout.rows}
+          ariaLabel="other world"
+          mode="grounds"
+          persistKey="/other|grounds"
+          appearanceKey="/other"
+          onSelect={vi.fn()}
+          onActivate={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+    await waitFor(() => {
+      expect(screen.getByRole('img', { name: 'You, exploring the workspace' })).toHaveStyle({
+        backgroundImage: "url('/world/char-player-river-south.png')",
+      });
+    });
+    expect(screen.getByRole('combobox', { name: 'Your appearance' })).toHaveValue('river');
+  });
 
   it('click and keyboard open the same inspector for terminal, library, and project houses', async () => {
     const { onActivate, user } = renderMap();
