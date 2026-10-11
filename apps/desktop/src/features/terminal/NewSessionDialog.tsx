@@ -11,6 +11,7 @@ export function NewSessionDialog() {
   const [params, setParams] = useSearchParams();
   const requestedCwd = useRef<string | null>(null);
   const handledTerminalRequest = useRef(false);
+  const wasCreating = useRef(false);
   const [form, setForm] = useState({
     agent: context.agent || 'shell',
     cmd: '/bin/bash',
@@ -47,7 +48,12 @@ export function NewSessionDialog() {
   }, [params, context.workspace, creating, setCreating, setParams]);
 
   useEffect(() => {
-    if (!creating) return;
+    if (!creating) {
+      wasCreating.current = false;
+      return;
+    }
+    if (wasCreating.current) return;
+    wasCreating.current = true;
     setForm({
       agent: context.agent || 'shell',
       cmd: '/bin/bash',
