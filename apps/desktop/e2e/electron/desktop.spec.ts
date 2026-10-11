@@ -1093,6 +1093,49 @@ test('Operations refreshes a live swarm when its state changes outside Desktop',
   await expect(inspector.getByText('cancelled', { exact: true })).toBeVisible({ timeout: 8_000 });
 });
 
+test('swarm plan approval gates appear in Attention and Next that needs me opens the same run', async () => {
+  const { page, workspace } = desktop;
+  await waitForBackend(page);
+  initializeTestRepository(workspace);
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
+  await page.getByRole('button', { name: 'Start swarm' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Start a swarm' });
+  await dialog.getByLabel('Team recipe').selectOption('team');
+  await dialog.getByLabel('Task').fill('Review the semantic project valley');
+  await dialog.getByText('Runtime options').click();
+  await dialog.getByLabel('Session adapter').selectOption('headless');
+  await dialog.getByRole('button', { name: 'Start swarm' }).click();
+  await expect(dialog).toBeHidden();
+
+  const runRow = page.getByRole('button', { name: /Review the semantic project valley/ });
+  await expect(runRow).toBeVisible();
+  await expect(runRow).toContainText('awaiting_plan_approval');
+  const runId = (await runRow.innerText()).trim().split(/\s+/)[0];
+  if (!runId) throw new Error('The gated swarm did not expose its run ID');
+
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Attention' }).click();
+  const attention = page.getByRole('region', { name: 'Attention inspector' });
+  const gate = attention.getByRole('row', { name: /Swarm plan needs approval/ });
+  await expect(gate).toContainText('Review the semantic project valley');
+  await expect(gate.getByRole('link', { name: 'Review swarm' })).toHaveAttribute(
+    'href',
+    new RegExp(`swarm=${encodeURIComponent(runId)}`),
+  );
+
+  if (CAPTURE) {
+    const captureDir = process.env['ATK_CAPTURE_DIR'] ?? path.join(LIBRARY_CAPTURE_DIR, '../office');
+    fs.mkdirSync(captureDir, { recursive: true });
+    await setViewport(desktop.app, 1024, 768);
+    await page.screenshot({ path: path.join(captureDir, 'attention-swarm-gate-compact.png'), fullPage: true });
+    await setViewport(desktop.app, 1600, 1000);
+    await page.screenshot({ path: path.join(captureDir, 'attention-swarm-gate-large.png'), fullPage: true });
+  }
+
+  await page.getByRole('button', { name: 'Next that needs me' }).click();
+  await expect(page).toHaveURL(new RegExp(`swarm=${encodeURIComponent(runId)}`));
+  await expect(page.getByRole('region', { name: 'team' }).getByRole('button', { name: 'Approve' })).toBeVisible();
+});
+
 test('a failed job can be retried as a new job', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
