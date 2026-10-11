@@ -24,6 +24,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(here, '..', 'public', 'world');
+const SOURCE_MANIFEST = path.resolve(here, '..', 'src', 'features', 'world', 'manifest.json');
 const WORLD_ART = path.resolve(here, 'world-art');
 
 // Original facades and pixel-quantized vegetation are kept as checked-in
@@ -1862,6 +1863,51 @@ function character(robe, robeDark, accent, hair = 'od', skin = 'sk') {
   return { w: 16, h: 24, frames };
 }
 
+/** Human world navigator: distinct from runtime People, with four clear facings. */
+function playerCharacter(direction) {
+  const frame = (walking) => {
+    const img = new Img(16, 24);
+    const bob = walking ? 0 : 0;
+    const stride = walking ? 1 : 0;
+    if (direction === 'south') {
+      img.rect(6, 2, 9, 3, 'k').rect(5, 4, 10, 6, 'k');
+      img.rect(6, 2, 9, 4, 'od').set(5, 5, 'od').set(10, 5, 'od');
+      img.rect(6, 5, 9, 9, 'k').rect(6, 5, 9, 8, 'sk');
+      img.set(7, 7, 'k').set(9, 7, 'k').set(8, 9, 'iv');
+    } else if (direction === 'north') {
+      img.rect(5, 2, 10, 8, 'k').rect(6, 2, 9, 7, 'od');
+      img.hline(5, 10, 7, 'ol').set(4, 6, 'od').set(11, 6, 'od');
+      img.rect(6, 8, 9, 10, 'od');
+    } else {
+      img.rect(6, 2, 10, 4, 'k').rect(5, 4, 11, 6, 'k');
+      img.rect(6, 2, 10, 4, 'od').rect(direction === 'east' ? 8 : 6, 5, direction === 'east' ? 11 : 9, 8, 'sk');
+      img.set(direction === 'east' ? 10 : 7, 7, 'k').set(8, 9, 'iv');
+      img.set(direction === 'east' ? 11 : 4, 6, 'ol');
+    }
+    // A teal trailcoat, amber clasp and small satchel are the user's durable
+    // silhouette; no role, activity or runtime state is implied.
+    img.rect(4, 10 + bob, 11, 19, 'k').rect(5, 11 + bob, 10, 18, 'rs');
+    img.hline(5, 10, 11 + bob, 'rsl').hline(5, 10, 14, 'rsd');
+    img.set(8, 13, 'gg').vline(5, 15, 18, 'rsd').vline(10, 15, 18, 'rsd');
+    img.rect(3, 12 + bob, 4, 16, 'k').rect(3, 13 + bob, 4, 15, 'ol');
+    img.rect(5 - stride, 19, 6, 21, 'k').rect(9 + stride, 19, 10, 21, 'k');
+    img.set(5 - stride, 20, 'od').set(9 + stride, 20, 'od');
+    if (walking) img.set(2, 17, 'gg');
+    return img;
+  };
+  let frames = [frame(false), frame(true)];
+  if (direction === 'west') {
+    frames = frames.map((source) => {
+      const mirrored = new Img(source.w, source.h);
+      for (let y = 0; y < source.h; y++) {
+        for (let x = 0; x < source.w; x++) mirrored.set(source.w - 1 - x, y, source.get(x, y));
+      }
+      return mirrored;
+    });
+  }
+  return { w: 16, h: 24, frames };
+}
+
 function bubbleAlert() {
   const img = new Img(16, 16);
   img.ellipse(8, 6, 6, 4, 'k');
@@ -2050,6 +2096,10 @@ function collect() {
     ['char-keeper', character('rm', 'rmd', 'wy', 'rw', 'skd')],
   ])
     put(name, ch.frames[0], ch.frames);
+  for (const direction of ['south', 'west', 'east', 'north']) {
+    const player = playerCharacter(direction);
+    put(`char-player-${direction}`, player.frames[0], player.frames);
+  }
   return sprites;
 }
 
@@ -2110,10 +2160,13 @@ function main() {
   const manifestJson = JSON.stringify({ generated: 'gen-world-assets.mjs', sprites: manifest }, null, 2) + '\n';
   const manifestDest = path.join(OUT, 'manifest.json');
   if (check) {
-    const prev = fs.existsSync(manifestDest) ? fs.readFileSync(manifestDest, 'utf8') : null;
-    if (prev !== manifestJson) diffs.push('manifest.json');
+    for (const file of [manifestDest, SOURCE_MANIFEST]) {
+      const prev = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
+      if (prev !== manifestJson) diffs.push(path.relative(OUT, file));
+    }
   } else {
     fs.writeFileSync(manifestDest, manifestJson);
+    fs.writeFileSync(SOURCE_MANIFEST, manifestJson);
   }
   if (check) {
     if (diffs.length) {

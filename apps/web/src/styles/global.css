@@ -439,6 +439,216 @@ h3 {
   text-align: center;
 }
 
+.world-journey {
+  position: relative;
+  overflow: clip;
+  padding: clamp(70px, 9vw, 116px) 0 clamp(80px, 10vw, 130px);
+  background:
+    radial-gradient(ellipse at 12% 35%, rgb(54 112 88 / 20%), transparent 42%),
+    linear-gradient(180deg, #10252a, #0d2027 47%, #10252a);
+}
+.journey-heading {
+  margin-bottom: clamp(38px, 6vw, 78px);
+}
+.journey-heading h2 {
+  max-width: 720px;
+  margin-bottom: 12px;
+}
+.journey-heading > p:last-child {
+  color: var(--muted);
+}
+.journey-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(310px, 0.88fr);
+  gap: clamp(36px, 7vw, 100px);
+  align-items: start;
+}
+.journey-stage-wrap {
+  position: sticky;
+  top: 92px;
+  display: grid;
+  gap: 13px;
+  min-width: 0;
+}
+.journey-stage {
+  position: relative;
+  overflow: hidden;
+  min-height: 280px;
+  aspect-ratio: 16 / 9;
+  border: 2px solid #739579;
+  background: #091a20;
+  box-shadow: 9px 9px 0 #071419;
+  isolation: isolate;
+  transform: translateZ(0);
+  transition: border-color 420ms steps(6, end);
+}
+.journey-stage::before,
+.journey-stage::after {
+  position: absolute;
+  z-index: 4;
+  content: "";
+  pointer-events: none;
+}
+.journey-stage::before {
+  inset: 7px;
+  border: 1px solid rgb(229 243 201 / 25%);
+}
+.journey-stage::after {
+  right: 17px;
+  bottom: 17px;
+  width: 8px;
+  height: 8px;
+  background: var(--sun);
+  box-shadow: 0 0 18px 6px rgb(243 216 136 / 28%);
+  animation: journey-firefly 3s steps(2, end) infinite;
+}
+.journey-stage[data-scene="people"]::after {
+  background: #84d1bd;
+  box-shadow: 0 0 18px 6px rgb(84 181 178 / 30%);
+}
+.journey-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  opacity: 0;
+  transform: scale(1.055);
+  image-rendering: auto;
+  transition:
+    opacity 500ms ease,
+    transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.journey-image.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+.journey-caption {
+  display: flex;
+  min-height: 26px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.journey-location,
+.journey-prompt {
+  margin: 0;
+}
+.journey-location {
+  color: var(--sun);
+  font: 400 11px/1.7 var(--pixel);
+}
+.journey-prompt {
+  color: #a5c1b2;
+  font: 400 10px/1.5 var(--code);
+}
+.journey-progress {
+  height: 4px;
+  overflow: hidden;
+  background: #294548;
+}
+.journey-progress span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--leaf),
+    var(--sun),
+    var(--river-light)
+  );
+  transform: scaleX(0.2);
+  transform-origin: left;
+  transition: transform 380ms steps(8, end);
+}
+.journey-route {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.journey-route a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  color: #a8beb1;
+  font-size: 0.76rem;
+  text-decoration: none;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+.journey-route a span {
+  color: #759a7f;
+  font: 400 8px var(--pixel);
+}
+.journey-route a:hover,
+.journey-route a[aria-current="step"] {
+  border-color: #658770;
+  color: var(--cream);
+  background: #19393a;
+}
+.journey-route a[aria-current="step"] span {
+  color: var(--sun);
+}
+@media (hover: none) and (pointer: coarse) {
+  .journey-route a {
+    min-height: 44px;
+  }
+}
+.journey-stops {
+  min-width: 0;
+}
+.journey-stop {
+  display: flex;
+  min-height: min(76vh, 700px);
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 36px 0;
+  scroll-margin-top: 118px;
+}
+.journey-stop + .journey-stop {
+  border-top: 1px solid rgb(135 174 145 / 18%);
+}
+.journey-stop h3 {
+  max-width: 500px;
+  margin: 0 0 16px;
+  font: 400 clamp(1.35rem, 2.4vw, 2rem)/1.45 var(--pixel);
+  letter-spacing: -0.055em;
+}
+.journey-stop > p:not(.section-kicker) {
+  max-width: 470px;
+  margin-bottom: 24px;
+  color: var(--muted);
+  font-size: 1.03rem;
+}
+.journey-stop .section-kicker {
+  margin-bottom: 17px;
+}
+.journey-end {
+  padding: 16px 0 30px;
+  color: #7fa28c;
+  font: 400 8px/1.7 var(--pixel);
+  text-align: center;
+}
+
+@keyframes journey-firefly {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.35;
+    transform: translateY(-5px);
+  }
+}
+
 .hero {
   position: relative;
   overflow: hidden;
@@ -1088,6 +1298,19 @@ h3 {
   .scene-grid {
     gap: 34px;
   }
+  .journey-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(270px, 0.82fr);
+    gap: 32px;
+  }
+  .journey-stage-wrap {
+    top: 82px;
+  }
+  .journey-stage {
+    min-height: 0;
+  }
+  .journey-stop {
+    min-height: 68vh;
+  }
   .home-story {
     grid-template-columns: 1fr;
   }
@@ -1169,6 +1392,67 @@ h3 {
   .scene-grid {
     grid-template-columns: 1fr;
     gap: 25px;
+  }
+  .journey-heading {
+    margin-bottom: 30px;
+  }
+  .journey-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .journey-stage-wrap {
+    z-index: 10;
+    top: 68px;
+    gap: 7px;
+    width: 100%;
+    padding-block: 4px;
+    background: linear-gradient(180deg, #10252a 85%, transparent);
+  }
+  .journey-stage {
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+    box-shadow: 4px 4px 0 #071419;
+  }
+  .journey-image {
+    object-fit: contain;
+    object-position: center;
+  }
+  .journey-caption {
+    min-height: 21px;
+    gap: 8px;
+  }
+  .journey-location {
+    font-size: 8px;
+  }
+  .journey-prompt {
+    font-size: 8px;
+  }
+  .journey-route {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    padding-bottom: 2px;
+  }
+  .journey-route a {
+    flex: none;
+    min-height: 32px;
+    padding-inline: 6px;
+    font-size: 0.7rem;
+  }
+  .journey-stop {
+    min-height: 62svh;
+    padding: 28px 0;
+    scroll-margin-top: 230px;
+  }
+  .journey-stop h3 {
+    font-size: clamp(1.2rem, 6.2vw, 1.7rem);
+  }
+  .journey-stop > p:not(.section-kicker) {
+    font-size: 0.96rem;
+  }
+  .journey-end {
+    padding-block: 8px 25px;
   }
   .scene-grid.reverse > :first-child {
     order: initial;
@@ -1290,5 +1574,8 @@ h3 {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  .journey-stage::after {
+    animation: none;
   }
 }

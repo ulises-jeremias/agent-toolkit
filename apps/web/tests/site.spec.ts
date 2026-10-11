@@ -14,10 +14,10 @@ async function capturePage(page: Page, filename: string) {
   await page.locator('img[loading="lazy"]').evaluateAll((images) => {
     for (const image of images) (image as HTMLImageElement).loading = "eager";
   });
-  const imageCount = await page.locator("img").count();
+  const imageCount = await page.locator("img[src]").count();
   await expect
     .poll(() =>
-      page.locator("img").evaluateAll(
+      page.locator("img[src]").evaluateAll(
         (images) =>
           images.filter((image) => {
             const imageElement = image as HTMLImageElement;
@@ -37,6 +37,12 @@ async function capturePage(page: Page, filename: string) {
   });
 }
 
+async function captureViewport(page: Page, filename: string) {
+  if (!capture) return;
+  await mkdir(captureDir, { recursive: true });
+  await page.screenshot({ path: path.join(captureDir, filename) });
+}
+
 test("home explains the product and uses the real world capture", async ({
   page,
 }) => {
@@ -54,11 +60,90 @@ test("home explains the product and uses the real world capture", async ({
     "content",
     /agent-toolkit\.io\/screenshots\/world\.png/,
   );
-  await expect(page.locator('img[fetchpriority="high"]')).toHaveJSProperty(
+  await expect(page.locator(".hero-screen img")).toHaveJSProperty(
     "naturalWidth",
     1920,
   );
   await capturePage(page, "home-desktop.png");
+});
+
+test("scroll journey follows the selected place and supports reduced motion", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+
+  const stage = page.locator("[data-journey-stage]");
+  await expect(stage).toHaveAttribute("data-scene", "valley");
+  await expect(
+    page.locator("[data-scene-image='library']"),
+  ).not.toHaveAttribute("src", /.+/);
+  await expect(
+    page
+      .getByRole("navigation", { name: "Jump to a place in the workspace" })
+      .getByRole("link", { name: /Operations/ }),
+  ).toHaveAttribute("href", "#journey-operations");
+
+  await page
+    .getByRole("navigation", { name: "Jump to a place in the workspace" })
+    .getByRole("link", { name: /Operations/ })
+    .click();
+  await expect(stage).toHaveAttribute("data-scene", "operations");
+  await expect(page.locator("[data-scene-image='operations']")).toHaveAttribute(
+    "src",
+    /\/_astro\/operations\..+\.png$/,
+  );
+  await expect(page.locator("[data-scene-image='operations']")).toHaveAttribute(
+    "aria-hidden",
+    "false",
+  );
+  await expect(page.locator("[data-journey-location]")).toHaveText(
+    "Operations",
+  );
+  await expect
+    .poll(() =>
+      page
+        .locator("[data-scene-image='operations']")
+        .evaluate((element) => getComputedStyle(element).opacity),
+    )
+    .toBe("1");
+  const transitionDuration = await page
+    .locator("[data-scene-image='operations']")
+    .evaluate((element) => getComputedStyle(element).transitionDuration);
+  expect(Number.parseFloat(transitionDuration)).toBeLessThan(0.001);
+  await captureViewport(page, "journey-operations-desktop.png");
+});
+
+test("journey copy and direct links remain available without JavaScript", async ({
+  browser,
+}) => {
+  const page = await browser.newPage({ javaScriptEnabled: false });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  await expect(
+    page.getByRole("heading", { name: /Follow the paths/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /A building opens/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /Swarms coordinate/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("navigation", { name: "Jump to a place in the workspace" }),
+  ).toBeVisible();
+  await page
+    .getByRole("navigation", { name: "Jump to a place in the workspace" })
+    .getByRole("link", { name: /People/ })
+    .click();
+  await expect(page).toHaveURL(/#journey-people$/);
+  await expect(page.locator("[data-journey-stage]")).toHaveAttribute(
+    "data-scene",
+    "valley",
+  );
+  await page.close();
 });
 
 test("the world, People and Swarms show semantic product evidence", async ({
@@ -214,6 +299,23 @@ test("mobile navigation, touch layout and reduced motion remain usable", async (
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await page
+    .getByRole("navigation", { name: "Jump to a place in the workspace" })
+    .getByRole("link", { name: /People/ })
+    .click();
+  await expect(page.locator("[data-journey-stage]")).toHaveAttribute(
+    "data-scene",
+    "people",
+  );
+  await expect
+    .poll(() =>
+      page
+        .locator("[data-scene-image='people']")
+        .evaluate((element) => getComputedStyle(element).opacity),
+    )
+    .toBe("1");
+  await captureViewport(page, "journey-people-mobile.png");
+  await page.evaluate(() => window.scrollTo(0, 0));
   await expect
     .poll(() => page.locator("html").evaluate((element) => element.scrollWidth))
     .toBe(390);

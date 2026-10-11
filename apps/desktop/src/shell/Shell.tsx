@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useEffect, useState } from 'react';
-import { HashRouter, Navigate, NavLink, Route, Routes, useLocation } from 'react-router';
+import { HashRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router';
 import { useBackend, useHealth } from '../data/backend';
 import { activeJobIds, useJobs } from '../data/jobs';
 import { LiveProvider } from '../data/live';
@@ -43,6 +43,7 @@ function AttentionNavCount() {
 }
 
 function Hud() {
+  const location = useLocation();
   const { backend } = useBackend();
   const health = useHealth();
   const { href } = useSessionContext();
@@ -58,10 +59,15 @@ function Hud() {
       <ul className={styles.navList}>
         {DESTINATIONS.map((destination) => (
           <li key={destination.path}>
-            <NavLink to={href(destination.path)} className={styles.navLink} title={destination.question} end>
+            <Link
+              to={href(destination.path)}
+              className={`${styles.navLink}${location.pathname === destination.path ? ' active' : ''}`}
+              title={destination.question}
+              aria-current={location.pathname === destination.path ? 'page' : undefined}
+            >
               <span>{destination.label}</span>
               <NavCount path={destination.path} />
-            </NavLink>
+            </Link>
           </li>
         ))}
       </ul>

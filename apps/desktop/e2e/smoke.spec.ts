@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 /**
- * Renderer smoke tests against vite dev.
+ * Renderer smoke tests against vite preview.
  * Backend-independent: asserts the app shell (nav, headings, fallbacks)
  * renders with no backend running. Live-backend behavior (queries,
  * mutations, SSE, terminals) is covered by unit tests, the packaged-app CDP
@@ -12,7 +12,7 @@ import { expect, test } from '@playwright/test';
 test.describe('desktop smoke', () => {
   test('world shell loads as home', async ({ page }) => {
     test.setTimeout(60_000);
-    await page.goto('/#/world');
+    await page.goto('/#/world', { waitUntil: 'commit' });
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 45_000 });
     await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
     await expect(page.getByRole('form', { name: 'Session context' })).toBeVisible();
@@ -36,6 +36,7 @@ test.describe('desktop smoke', () => {
   });
 
   test('destinations navigate without dead ends', async ({ page }) => {
+    await page.goto('/#/world', { waitUntil: 'commit' });
     const nav = page.getByRole('navigation', { name: 'Destinations' });
     for (const destination of [
       { label: 'World', path: 'world' },
@@ -48,7 +49,6 @@ test.describe('desktop smoke', () => {
       { label: 'Terminal', path: 'terminal' },
       { label: 'Settings', path: 'settings' },
     ]) {
-      await page.goto('/#/world');
       await nav.getByRole('link', { name: destination.label }).click();
       await expect(page).toHaveURL(new RegExp(`#/${destination.path}`));
       await expect(nav.getByRole('link', { name: destination.label })).toHaveAttribute('aria-current', 'page');

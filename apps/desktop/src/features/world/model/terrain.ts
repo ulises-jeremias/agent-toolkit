@@ -36,6 +36,8 @@ export interface DecorSprite {
 export interface TerrainPlan {
   cells: TerrainCell[];
   decor: DecorSprite[];
+  /** Collision cells use tile coordinates and stay presentation-only. */
+  collisionCells: string[];
 }
 
 /* Deterministic hash → small int (layout stability across days). */
@@ -1416,7 +1418,11 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   forest(p, projects.length === 0);
   wildlife(p, hall);
 
-  return { cells: cellsToArray(p), decor: p.decor };
+  return {
+    cells: cellsToArray(p),
+    decor: p.decor,
+    collisionCells: collisionCells(p),
+  };
 }
 
 function cellsToArray(p: Painter): TerrainCell[] {
@@ -1462,5 +1468,24 @@ export function paintInterior(entities: readonly LaidOutEntity[], cols: number, 
   p.sprite('room-plant:east', Math.max(2, cols - 3), rows - 2, 'plant', 24, 24);
   p.sprite('room-mote:west', 5, 5, 'mote', 10, 10, 4, 3, false, true);
   p.sprite('room-mote:east', 12, 5, 'mote', 10, 10, 4, 3, false, true);
-  return { cells: cellsToArray(p), decor: p.decor };
+  return {
+    cells: cellsToArray(p),
+    decor: p.decor,
+    collisionCells: collisionCells(p),
+  };
+}
+
+function collisionCells(p: Painter): string[] {
+  const blocked = new Set(p.blocked);
+  for (const [at, tile] of p.cells) {
+    if (tile === 'water') blocked.add(at);
+  }
+  // Only solid, ground-anchored scenery enters collision. Canopies remain
+  // walk-under; tiny flowers, lights and ambient creatures stay harmless.
+  for (const decor of p.decor) {
+    if (/^(tree|rock|bush|fence|project-fence|stump):/.test(decor.id)) {
+      blocked.add(key(decor.x, decor.y));
+    }
+  }
+  return [...blocked];
 }

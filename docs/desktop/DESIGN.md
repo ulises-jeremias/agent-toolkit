@@ -74,8 +74,9 @@ focus, or operational truth.
 - **Truth before animation.** Visual activity represents real catalog,
   configuration, runtime, or evidence state. Empty and calm are valid.
 - **Conventional interaction, distinctive presentation.** Direct navigation,
-  command palette, keyboard, and real terminal stay mandatory. No walking
-  required to be productive.
+  command palette, keyboard, and real terminal stay mandatory. Optional
+  player exploration adds a spatial path into canonical actions; walking is
+  never required to be productive.
 - **Handcrafted coherence.** One art direction, one light direction, one
   pixel grid, one menu system. No stylistic soup.
 - **Calm density.** Dense developer information inside compact, readable

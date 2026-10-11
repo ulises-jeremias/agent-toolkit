@@ -5,6 +5,26 @@ art direction, the latest opened evidence, and unresolved findings in one place.
 The dated iteration log lives in [VISUAL_QA_HISTORY.md](VISUAL_QA_HISTORY.md);
 that archive is historical evidence, not the current art specification.
 
+## Playable world smoke — 2026-10-11
+
+I opened the actual Electron app under a fresh temporary `HOME`/`XDG_*` and
+temporary harness. The backend reached `ready`; the user-controlled avatar
+was visible in the shared valley, and the map remained the primary surface.
+With the map's **Walk** control focused, a real ArrowRight key press moved the
+avatar and changed its facing sprite. The nearby-place hint offered Library;
+pressing `E` opened the same canonical Library route as direct navigation.
+No AI worker was present because the temporary workspace had no active
+sessions. The capture is [the live empty-valley smoke](assets/electron/world/world-player-exploration-2026-10-11.png).
+
+This run used the host-installed binary from outside the checkout, and the
+backend reported `1.43.0` (commit `6576f83`) while the Desktop source is
+`1.44.0`. It therefore verifies launch, onboarding, backend readiness and
+the walking/interaction loop, but **does not verify version parity**. No
+project was registered in the temporary workspace, so project entry, interior
+furniture actions and real project-session presence were not exercised in
+this smoke. Typing-focus exclusion and real renderer keyboard movement are
+covered by the `WorldEntityMap` tests.
+
 ## Visual north star
 
 Agent Toolkit Desktop is a semantic developer workspace represented as an
