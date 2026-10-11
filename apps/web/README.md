@@ -1,7 +1,7 @@
 # Agent Toolkit website
 
 The official public entrance to Agent Toolkit, deployed at
-[`https://agenttoolkit.dev`](https://agenttoolkit.dev). The site lives in this
+[`https://agent-toolkit.io`](https://agent-toolkit.io). The site lives in this
 monorepo so product, screenshots, catalogs and documentation remain close to
 their canonical sources.
 
@@ -37,9 +37,10 @@ is unavailable.
 The root `vercel.json` builds the `agent-toolkit-web` workspace package and
 publishes `apps/web/dist`. Connect this repository to Vercel with the
 repository root as its project root. Pull requests receive previews; `main`
-deploys production. Configure `agenttoolkit.dev` as the production domain in
-the deployment provider. Astro's production canonical origin remains fixed to
-`https://agenttoolkit.dev` for production and preview builds.
+deploys production. Configure `agent-toolkit.io` as the primary production
+domain and `www.agent-toolkit.io` as an alias that permanently redirects to the
+apex domain. Astro's canonical origin remains fixed to
+`https://agent-toolkit.io` for production and preview builds.
 
 The `web` GitHub Actions workflow runs formatting, ESLint, Astro type checks,
 Vitest, a static-link audit, and Playwright Chromium smoke/accessibility tests.

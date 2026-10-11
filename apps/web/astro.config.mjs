@@ -7,7 +7,7 @@ import { sourceLinks } from "./src/lib/remark-source-links.mjs";
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 
 export default defineConfig({
-  site: "https://agenttoolkit.dev",
+  site: "https://agent-toolkit.io",
   output: "static",
   trailingSlash: "always",
   publicDir: fileURLToPath(new URL("../../static", import.meta.url)),

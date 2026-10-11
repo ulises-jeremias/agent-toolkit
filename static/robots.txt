@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://agenttoolkit.dev/sitemap-index.xml
+Sitemap: https://agent-toolkit.io/sitemap-index.xml
