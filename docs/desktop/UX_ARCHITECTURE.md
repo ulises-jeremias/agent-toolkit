@@ -8,7 +8,7 @@ Agent Toolkit Desktop is Electron + React over `agent-toolkit serve`. The V core
 
 World click targets, navigation, contextual actions, and the command palette use the same routes and operations. Optional Explore mode adds a human-controlled avatar for spatial movement; it calls those same world actions and does not own domain state. No task requires walking. Inspectors open for precise control while the world retains context. Library, project knowledge, memory, and files remain separate concepts.
 
-Workspace Hall owns workspace-level context packs. Desktop lists the local YAML bundles, surfaces the backend's required-field validation and project scope, and lets the user select one for future sessions or clear the selection. This remains distinct from installable Library capabilities and loop override packs; selecting a workspace context bundle never installs or executes it.
+Workspace Hall owns workspace-level context packs. Desktop lists, creates and edits local bundles through a typed V operation, shows related-project references and workspace-wide notes, and lets the user select one for future session context or clear the selection. Edits carry a content revision so a stale form cannot overwrite a newer file. This remains distinct from installable Library capabilities and loop override packs; saving or selecting a workspace context bundle never installs or executes it.
 
 The recovery inspector is labeled **Attention** in navigation. Its `/office`
 route remains stable for existing links and palette queries; the visible

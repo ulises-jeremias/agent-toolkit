@@ -1394,7 +1394,7 @@ fn pack_notes(ws string, pack_ref string) string {
 	if !os.is_file(p) {
 		return ''
 	}
-	return yaml_string_field(os.read_file(p) or { '' }, 'notes')
+	return workspace_pack_notes(os.read_file(p) or { '' })
 }
 
 fn resolve_pack_abs(ws string, pack_ref string) string {

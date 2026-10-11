@@ -61,28 +61,28 @@ journeys:
       before workspace operations, then retry or switch back to the previous
       workspace.
   - id: workspace-context-packs
-    title: Review and select workspace context for future sessions
+    title: Create, edit, review and select workspace context packs
     destinations: [workspace]
-    status: partial
+    status: ok
     evidence:
       - note: >-
-          Workspace Hall lists locally defined packs with backend validation,
-          project scope, and current selection. A valid pack can be selected for
-          future sessions or cleared; this does not install or execute any
-          capability. Electron E2E covers valid and invalid packs, selection
-          persistence after reload, and clearing. Compact and large screenshots
-          were opened after the workflow passed on main 6a20cf0.
-        build: "6a20cf0172bf2cade5e21b5a890ad04fd95efbda (Linux Electron E2E; workflow 38101781841)"
+          Workspace Hall lists, creates and edits local packs through typed
+          backend validation, shows related project references and shared notes,
+          and lets the user select a pack for future session context or clear it.
+          Edits include content revisions to prevent stale overwrites. Related
+          projects are descriptive metadata; notes remain workspace-wide. The
+          backend writes inert YAML only and never installs or executes it.
+          Electron E2E covers create, edit, notes roundtrip, selection persistence
+          after reload, and clearing. Compact and large captures were opened.
+        build: "d986b71c5526a55340ef97272a8cec4610565f69 + local pack workflow (Linux Electron E2E, 2026-10-11)"
         tests:
           - apps/desktop/e2e/electron/workspace-packs.spec.ts
           - modules/agent_toolkit_core/workspace_packs_test.v
         screenshots:
-          - assets/electron/workspace/workspace-packs-compact.png
-          - assets/electron/workspace/workspace-packs-large.png
-    blockers:
-      - >-
-          Creating and editing workspace packs is not yet available in the GUI;
-          current bundles must already exist on disk.
+          - assets/electron/workspace-packs/workspace-packs-compact.png
+          - assets/electron/workspace-packs/workspace-packs-large.png
+          - assets/electron/workspace-packs/workspace-pack-editor-compact.png
+          - assets/electron/workspace-packs/workspace-pack-editor-large.png
     recovery: >-
       Invalid packs remain visible with backend validation details and cannot
       be selected; clear a stale selection when its file has been removed.

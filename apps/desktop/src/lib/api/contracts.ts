@@ -229,6 +229,7 @@ export type ProjectListResponse = components['schemas']['ProjectListResponse'];
 export type WorkspacePackSummary = components['schemas']['WorkspacePackSummary'];
 export type WorkspacePacksResponse = components['schemas']['WorkspacePacksResponse'];
 export type WorkspacePackActivateResponse = components['schemas']['WorkspacePackActivateResponse'];
+export type WorkspacePackSaveResponse = components['schemas']['WorkspacePackSaveResponse'];
 
 /** OpenAPI `ApiEvent.type` on GET /api/v1/events. Unknown types stay verbatim. */
 export type ApiEventType =

@@ -24,6 +24,37 @@ test('reviews workspace context packs and applies or clears one from the GUI', a
     await expect(panel).toContainText("Missing required field 'name'.");
     await expect(panel.getByRole('button', { name: 'Use for future sessions' }).first()).toBeDisabled();
 
+    await panel.getByRole('button', { name: 'Create workspace context pack' }).click();
+    const editor = page.getByRole('dialog', { name: 'Create a context pack' });
+    if (process.env['ATK_CAPTURE'] === '1') {
+      const captureDir =
+        process.env.ATK_CAPTURE_DIR ??
+        path.resolve(__dirname, '../../../../docs/desktop/assets/electron/workspace-packs');
+      fs.mkdirSync(captureDir, { recursive: true });
+      for (const size of [
+        { width: 1024, height: 640, key: 'workspace-pack-editor-compact' },
+        { width: 1920, height: 1080, key: 'workspace-pack-editor-large' },
+      ]) {
+        await setViewport(desktop.app, size.width, size.height);
+        await page.screenshot({ path: path.join(captureDir, `${size.key}.png`) });
+      }
+    }
+    await editor.getByLabel('Name').fill('Product Ops');
+    await editor.getByLabel('Description').fill('Release coordination notes');
+    await editor.getByLabel('Shared notes').fill('Check the release checklist.\nReview the staging report.');
+    await editor.getByRole('button', { name: 'Save pack' }).click();
+    await expect(editor).not.toBeVisible();
+    const created = panel.locator('li').filter({ hasText: 'Product Ops' });
+    await expect(created).toContainText('Release coordination notes');
+    await created.getByRole('button', { name: 'Edit' }).click();
+    const editDialog = page.getByRole('dialog', { name: 'Edit Product Ops' });
+    await expect(editDialog.getByLabel('Shared notes')).toHaveValue(
+      'Check the release checklist.\nReview the staging report.',
+    );
+    await editDialog.getByLabel('Description').fill('Updated release coordination notes');
+    await editDialog.getByRole('button', { name: 'Save pack' }).click();
+    await expect(panel).toContainText('Updated release coordination notes');
+
     await panel.getByRole('button', { name: 'Use for future sessions' }).last().click();
     await expect(panel.getByText('Context selected')).toBeVisible();
     await expect

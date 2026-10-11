@@ -5,6 +5,7 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
 } from 'react';
 import { errorMessage, recoveryHint } from '../lib/api';
 import styles from './ui.module.css';
@@ -241,6 +242,10 @@ export const TextInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLIn
     );
   },
 );
+
+export function TextArea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea className={styles.input} rows={5} {...props} />;
+}
 
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
   return <select className={styles.input} {...props} />;
