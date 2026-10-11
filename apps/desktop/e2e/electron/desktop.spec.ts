@@ -1134,7 +1134,12 @@ test('swarm plan approval gates appear in Attention and Next that needs me opens
 
   await page.getByRole('button', { name: 'Next that needs me' }).click();
   await expect(page).toHaveURL(new RegExp(`swarm=${encodeURIComponent(runId)}`));
-  await expect(page.getByRole('region', { name: 'team' }).getByRole('button', { name: 'Approve' })).toBeVisible();
+  const inspector = page.getByRole('region', { name: 'team' });
+  await expect(inspector.getByRole('button', { name: 'Approve' })).toBeVisible();
+  await inspector.getByRole('button', { name: 'Stop' }).click();
+  const stop = page.getByRole('dialog', { name: 'Stop this swarm run?' });
+  await stop.getByRole('button', { name: 'Stop run' }).click();
+  await expect(inspector.getByText('cancelled', { exact: true })).toBeVisible();
 });
 
 test('a failed job can be retried as a new job', async () => {
