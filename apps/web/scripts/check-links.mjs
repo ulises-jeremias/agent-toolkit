@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const outputDirectory = fileURLToPath(new URL("../dist/", import.meta.url));
-const origin = "https://agenttoolkit.dev";
+const origin = "https://agent-toolkit.io";
 
 async function htmlFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });

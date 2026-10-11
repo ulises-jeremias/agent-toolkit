@@ -48,11 +48,11 @@ test("home explains the product and uses the real world capture", async ({
   await expect(page.getByAltText(/actual pixel valley/i)).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     "href",
-    "https://agenttoolkit.dev/",
+    "https://agent-toolkit.io/",
   );
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
     "content",
-    /agenttoolkit\.dev\/screenshots\/world\.png/,
+    /agent-toolkit\.io\/screenshots\/world\.png/,
   );
   await expect(page.locator('img[fetchpriority="high"]')).toHaveJSProperty(
     "naturalWidth",

@@ -23,15 +23,15 @@ const {
   image = "/screenshots/world.png",
   noIndex = false,
 } = Astro.props;
-const canonical = new URL(Astro.url.pathname, "https://agenttoolkit.dev").href;
-const socialImage = new URL(image, "https://agenttoolkit.dev").href;
+const canonical = new URL(Astro.url.pathname, "https://agent-toolkit.io").href;
+const socialImage = new URL(image, "https://agent-toolkit.io").href;
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "Agent Toolkit Desktop",
   applicationCategory: "DeveloperApplication",
   operatingSystem: "Linux, macOS, Windows",
-  url: "https://agenttoolkit.dev/",
+  url: "https://agent-toolkit.io/",
   downloadUrl:
     "https://github.com/ulises-jeremias/agent-toolkit/releases/latest",
   description,

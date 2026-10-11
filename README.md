@@ -16,7 +16,7 @@
 [Latest release](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
 
 [Documentation](docs/) ·
-[Official website](https://agenttoolkit.dev) ·
+[Official website](https://agent-toolkit.io) ·
 [Desktop](#desktop-app-gui) ·
 [CLI Install](#-cli-quick-install) ·
 [Skills](#%EF%B8%8F-skills--catalog-via-agent-toolkit-inventory) ·
