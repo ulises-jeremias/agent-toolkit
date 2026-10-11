@@ -81,7 +81,13 @@ test("scroll journey follows the selected place and supports reduced motion", as
   await page.goto("/");
 
   const stage = page.locator("[data-journey-stage]");
+  const landscape = page.locator(".journey-landscape");
   await expect(stage).toHaveAttribute("data-scene", "valley");
+  const valleyCameraOrigin = await landscape.evaluate(
+    (element) => getComputedStyle(element).transformOrigin,
+  );
+  await expect(landscape).toHaveAttribute("src", "/site/valley-journey.webp");
+  await expect(landscape).toBeVisible();
   await expect(
     page.locator("[data-scene-image='library']"),
   ).not.toHaveAttribute("src", /.+/);
@@ -96,6 +102,14 @@ test("scroll journey follows the selected place and supports reduced motion", as
     .getByRole("link", { name: /Operations/ })
     .click();
   await expect(stage).toHaveAttribute("data-scene", "operations");
+  await expect
+    .poll(() =>
+      landscape.evaluate(
+        (element) => getComputedStyle(element).transformOrigin,
+      ),
+    )
+    .not.toBe(valleyCameraOrigin);
+  await expect(page.locator(".journey-proof-window")).toBeVisible();
   await expect(page.locator("[data-scene-image='operations']")).toHaveAttribute(
     "src",
     /\/_astro\/operations\..+\.png$/,

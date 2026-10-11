@@ -77,26 +77,36 @@ const scenes = [
         data-journey-stage
         data-scene="valley"
         role="group"
-        aria-label="A visual guide through the Agent Toolkit workspace"
+        aria-label="Illustrative valley with real Agent Toolkit Desktop captures"
       >
-        {scenes.map((scene, index) => (
-          <img
-            class:list={["journey-image", index === 0 && "is-active"]}
-            src={index === 0 ? scene.image.src : undefined}
-            alt={scene.alt}
-            data-scene-image={scene.id}
-            data-scene-src={scene.image.src}
-            fetchpriority={index === 0 ? "high" : undefined}
-            loading={index === 0 ? "eager" : "lazy"}
-            aria-hidden={index !== 0 ? "true" : undefined}
-          />
-        ))}
+        <img
+          class="journey-landscape"
+          src="/site/valley-journey.webp"
+          alt=""
+          aria-hidden="true"
+          width="1536"
+          height="1024"
+        />
+        <div class="journey-proof-window">
+          {scenes.map((scene, index) => (
+            <img
+              class:list={["journey-image", index === 0 && "is-active"]}
+              src={index === 0 ? scene.image.src : undefined}
+              alt={scene.alt}
+              data-scene-image={scene.id}
+              data-scene-src={scene.image.src}
+              fetchpriority={index === 0 ? "high" : undefined}
+              loading={index === 0 ? "eager" : "lazy"}
+              aria-hidden={index !== 0 ? "true" : undefined}
+            />
+          ))}
+        </div>
       </div>
       <div class="journey-caption">
         <p class="journey-location" data-journey-location aria-live="polite">
           The workspace
         </p>
-        <p class="journey-prompt">A real product, seen from above</p>
+        <p class="journey-prompt">Actual Desktop capture</p>
       </div>
       <div class="journey-progress" aria-hidden="true">
         <span data-journey-progress></span>
