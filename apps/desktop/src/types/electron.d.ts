@@ -2,7 +2,7 @@
 
 export type BackendStatus = 'starting' | 'ready' | 'version-mismatch' | 'crashed' | 'stopped' | 'failed';
 
-/** Precedence: override (env) > user (saved Desktop choice) > default (~/.ai-workspace) > fallback. */
+/** Precedence: override (env) > user (saved Desktop choice) > default (~/.ai-workspace) > isolated setup fallback. */
 export type HarnessSource = 'override' | 'user' | 'default' | 'fallback';
 
 export interface HarnessResolution {

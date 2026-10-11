@@ -50,6 +50,16 @@ describe('resolveHarness', () => {
     expect(fs.existsSync(path.join(home, '.ai-workspace'))).toBe(false);
   });
 
+  it('uses the Desktop-owned setup directory instead of the launch cwd when supplied', () => {
+    const fallbackDirectory = path.join(home, 'userData', 'bootstrap');
+    fs.mkdirSync(fallbackDirectory, { recursive: true });
+    const result = resolveHarness({ ...inputs(), fallbackDirectory });
+    expect(result).toMatchObject({ path: fallbackDirectory, source: 'fallback' });
+    expect(result.path).not.toBe(cwd);
+    expect(result.notice).toContain('not the launch directory');
+    expect(fs.existsSync(path.join(home, '.ai-workspace'))).toBe(false);
+  });
+
   it('treats a regular file at ~/.ai-workspace as missing', () => {
     fs.writeFileSync(path.join(home, '.ai-workspace'), 'not a dir');
     expect(resolveHarness(inputs()).source).toBe('fallback');
@@ -128,7 +138,9 @@ describe('resolveHarness', () => {
       const gone = path.join(home, 'gone');
       const result = resolveHarness(withChoice(gone));
       expect(result).toMatchObject({ source: 'default', path: path.join(home, '.ai-workspace') });
-      expect(result.notice).toBe(`Saved harness ${gone} is not a directory; using the default ${path.join(home, '.ai-workspace')}`);
+      expect(result.notice).toBe(
+        `Saved harness ${gone} is not a directory; using the default ${path.join(home, '.ai-workspace')}`,
+      );
       expect(fs.existsSync(gone)).toBe(false);
     });
 
@@ -211,12 +223,26 @@ describe('harnessSpawnContext', () => {
     expect(ctx).toEqual({ cwd: '/u', env: { PATH: '/bin', AGENT_TOOLKIT_WORKSPACE: '/u' } });
   });
 
-  it('leaves cwd and env untouched on fallback', () => {
+  it('keeps legacy fallback rooted at cwd when no isolated setup directory is provided', () => {
     const ctx = harnessSpawnContext(
       { path: '/c', source: 'fallback', defaultPath: '/d', overrideVar: null, notice: 'x' },
       base,
     );
-    expect(ctx).toEqual({ cwd: undefined, env: base });
+    expect(ctx).toEqual({ cwd: '/c', env: { PATH: '/bin' } });
+  });
+
+  it('removes rejected workspace overrides from an isolated fallback process', () => {
+    const ctx = harnessSpawnContext(
+      {
+        path: '/desktop/bootstrap',
+        source: 'fallback',
+        defaultPath: '/d',
+        overrideVar: 'AGENT_TOOLKIT_WORKSPACE',
+        notice: 'x',
+      },
+      { ...base, HARNESS_DIR: '/also-stale' },
+    );
+    expect(ctx).toEqual({ cwd: '/desktop/bootstrap', env: { PATH: '/bin' } });
   });
 });
 

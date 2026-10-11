@@ -10,6 +10,13 @@ World click targets, navigation, contextual actions, and the command palette use
 
 Workspace Hall owns workspace-level context packs. Desktop lists, creates and edits local bundles through a typed V operation, shows related-project references and workspace-wide notes, and lets the user select one for future session context or clear the selection. Edits carry a content revision so a stale form cannot overwrite a newer file. This remains distinct from installable Library capabilities and loop override packs; saving or selecting a workspace context bundle never installs or executes it.
 
+On a clean install with no selected or default workspace, the bundled backend
+starts from an app-owned setup directory under Desktop user data. It never
+discovers a project from the directory that happened to launch Electron. The
+user confirms creation of `~/.ai-workspace` or chooses an existing folder
+before entering the world; rejected workspace environment overrides are not
+passed to this setup-only backend.
+
 The recovery inspector is labeled **Attention** in navigation. Its `/office`
 route remains stable for existing links and palette queries; the visible
 language describes the real function rather than an office metaphor.

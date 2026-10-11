@@ -76,6 +76,23 @@ describe('HarnessController', () => {
     expect(controller.resolve()).toMatchObject({ source: 'default', path: path.join(home, '.ai-workspace') });
   });
 
+  it('keeps a missing default out of the process launch directory', () => {
+    fs.rmSync(path.join(home, '.ai-workspace'), { recursive: true, force: true });
+    const bootstrap = path.join(root, 'userData', 'bootstrap');
+    const isolated = new HarnessController({
+      store,
+      getSupervisor: () => supervisor,
+      env: () => env,
+      homeDir: home,
+      cwd: () => root,
+      fallbackDirectory: bootstrap,
+    });
+
+    expect(isolated.resolve()).toMatchObject({ path: bootstrap, source: 'fallback' });
+    expect(isolated.resolve().path).not.toBe(root);
+    expect(fs.existsSync(path.join(home, '.ai-workspace'))).toBe(false);
+  });
+
   it('persists, then restarts the backend into the chosen harness', async () => {
     const target = path.join(root, 'other');
     fs.mkdirSync(target);

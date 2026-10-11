@@ -255,7 +255,11 @@ function HarnessStep({
           <KeyValue
             items={[
               { label: 'Default', value: defaultPath, mono: true },
-              { label: 'In use', value: harness?.path ?? 'Not resolved yet', mono: Boolean(harness?.path) },
+              {
+                label: harness?.source === 'fallback' ? 'Setup only' : 'In use',
+                value: harness?.path ?? 'Not resolved yet',
+                mono: Boolean(harness?.path),
+              },
               { label: 'Source', value: harness?.source ?? '—' },
               ...(harness?.notice ? [{ label: 'Notice', value: harness.notice }] : []),
             ]}
