@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PtySessionInfo } from '../types/electron';
-import { activePersonSessionsForWorkspace } from './personSessionScope';
+import { activePersonSessionsForWorkspace, selectActivePersonSession } from './personSessionScope';
 
 function session(
   id: string,
@@ -41,5 +41,16 @@ describe('activePersonSessionsForWorkspace', () => {
     delete legacy.sessionWorkspace;
 
     expect(activePersonSessionsForWorkspace([legacy], '/workspaces/one')).toEqual([]);
+  });
+
+  it('honors a world character deep link for the selected Person only', () => {
+    const linaOne = session('lina-pty-1', '/workspaces/one', 'lina');
+    const linaTwo = session('lina-pty-2', '/workspaces/one', 'lina');
+    const maya = session('maya-pty', '/workspaces/one', 'maya');
+    const sessions = [linaOne, linaTwo, maya];
+
+    expect(selectActivePersonSession(sessions, 'lina', 'lina-pty-2')).toBe(linaTwo);
+    expect(selectActivePersonSession(sessions, 'lina', 'maya-pty')).toBe(linaOne);
+    expect(selectActivePersonSession(sessions, 'lina')).toBe(linaOne);
   });
 });
