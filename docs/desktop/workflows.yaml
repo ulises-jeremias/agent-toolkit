@@ -647,7 +647,9 @@ journeys:
           sessionWorkspace to match the selected workspace before showing an
           active or recent Person session. A regression test covers duplicate
           Person IDs across workspaces, exited PTYs, ordinary terminals and
-          legacy PTYs without an owner binding.
+          legacy PTYs without an owner binding. World character links select
+          their exact live PTY for the matching Person in the roster, so the
+          terminal action cannot silently target a different session.
         tests:
           - apps/desktop/src/data/personSessionScope.test.ts
       - note: >-

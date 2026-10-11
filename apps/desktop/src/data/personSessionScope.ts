@@ -10,3 +10,13 @@ export function activePersonSessionsForWorkspace(
     (session) => Boolean(session.personId) && session.sessionWorkspace === workspace && session.exitCode === null,
   );
 }
+
+/** Prefer the exact active PTY named by a World character deep link. */
+export function selectActivePersonSession(
+  sessions: readonly PtySessionInfo[],
+  personId: string,
+  requestedSessionId?: string | null,
+): PtySessionInfo | undefined {
+  const owned = sessions.filter((session) => session.personId === personId);
+  return (requestedSessionId ? owned.find((session) => session.id === requestedSessionId) : undefined) ?? owned[0];
+}

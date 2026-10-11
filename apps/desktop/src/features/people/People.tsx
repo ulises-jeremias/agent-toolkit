@@ -27,7 +27,7 @@ import { reviewMunderHire, type MunderReview } from './importMunder';
 import { PersonStartDialog } from './PersonStartDialog';
 import { personCharacter } from './avatar';
 import { personSessionStatusLabel } from '../../data/personSessionStatus';
-import { activePersonSessionsForWorkspace } from '../../data/personSessionScope';
+import { activePersonSessionsForWorkspace, selectActivePersonSession } from '../../data/personSessionScope';
 
 const blank: Person = {
   spec: 'agent-toolkit/person@1',
@@ -382,12 +382,13 @@ export default function People() {
   });
   const people = list.data?.people ?? [];
   const selected = people.find((person) => person.id === selectedId) ?? people[0];
+  const requestedSessionId = params.get('session');
   const workspacePersonSessions = useMemo(
     () => activePersonSessionsForWorkspace(terminals.sessions, workspace),
     [terminals.sessions, workspace],
   );
   const selectedSession = selected
-    ? workspacePersonSessions.find((session) => session.personId === selected.id)
+    ? selectActivePersonSession(workspacePersonSessions, selected.id, requestedSessionId)
     : undefined;
   const selectedRecentSession = selected
     ? terminals.sessions
