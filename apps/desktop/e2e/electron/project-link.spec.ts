@@ -177,6 +177,11 @@ test('links an existing project from the GUI and places it in the world', async 
     await expect(
       page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }),
     ).toHaveAttribute('aria-current', 'page');
+    const terminalReview = page.getByRole('dialog', { name: 'New terminal session' });
+    await expect(terminalReview).toBeVisible();
+    await expect(terminalReview.getByRole('textbox', { name: 'Working folder' })).toHaveValue(projectPath);
+    await terminalReview.getByRole('button', { name: 'Cancel' }).click();
+    await expect(terminalReview).toBeHidden();
 
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
     await page.getByLabel('Project', { exact: true }).selectOption('garden-api');

@@ -216,7 +216,8 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     themeKey: 'tool.terminal',
     availability: 'present',
     hrefPath: '/terminal',
-    detail: 'Open the Terminal destination or dock',
+    hrefExtra: { create: 'terminal', cwd: input.workspacePath || undefined },
+    detail: 'Review and open a real terminal session in this workspace',
     facade: 'landmark-terminal',
   });
 
@@ -481,9 +482,14 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
     themeKey: 'tool.terminal',
     availability: 'present',
     hrefPath: '/terminal',
+    hrefExtra: {
+      create: 'terminal',
+      cwd: resolveProjectTarget(input.workspacePath, project.target),
+      project: project.name,
+    },
     projectId: project.name,
     detail: `Open Terminal · cwd hint ${project.target}`,
-    facade: 'landmark-terminal',
+    facade: 'tool-terminal-desk',
   });
 
   entities.push({

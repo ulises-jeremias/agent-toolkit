@@ -82,6 +82,32 @@ describe('buildWorldModel', () => {
     expect(model.workspaceLabel).toBe('bright-valley');
   });
 
+  it('opens the shared terminal station with an explicit workspace session review', () => {
+    const model = buildWorldModel(baseInput({ workspacePath: '/home/me/bright-valley' }));
+    const terminal = model.entities.find((entity) => entity.id === 'object:terminal');
+
+    expect(terminal?.hrefPath).toBe('/terminal');
+    expect(terminal?.hrefExtra).toEqual({ create: 'terminal', cwd: '/home/me/bright-valley' });
+  });
+
+  it('opens a project terminal review in the resolved project folder', () => {
+    const model = buildWorldModel(
+      baseInput({
+        workspacePath: '/home/me/bright-valley',
+        projects: [{ name: 'alpha', target: '../repos/alpha', status: 'ok' }],
+        focusProjectId: 'alpha',
+      }),
+    );
+    const terminal = model.entities.find((entity) => entity.id === 'object:terminal-project:alpha');
+
+    expect(terminal?.hrefPath).toBe('/terminal');
+    expect(terminal?.hrefExtra).toEqual({
+      create: 'terminal',
+      cwd: '/home/me/bright-valley/repos/alpha',
+      project: 'alpha',
+    });
+  });
+
   it('shows only explicitly supplied live Person sessions at their real project house', () => {
     const project = { name: 'alpha', target: '/repos/alpha', status: 'ok' as const };
     const base = baseInput({
@@ -1362,6 +1388,7 @@ describe('layoutWorld', () => {
     expect(room!.x).toBeGreaterThan(exit!.x);
     expect(records?.x).toBe(9);
     expect(terminal?.y).toBe(5);
+    expect(terminal).toMatchObject({ facade: 'tool-terminal-desk', w: 2, h: 2 });
     expect(files?.y).toBe(6);
     expect(files!.x - terminal!.x).toBeGreaterThanOrEqual(4);
     expect(layout.cols).toBe(13);
