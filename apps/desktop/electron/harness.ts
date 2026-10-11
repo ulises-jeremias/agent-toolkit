@@ -28,6 +28,8 @@ export interface HarnessInputs {
   env: NodeJS.ProcessEnv;
   homeDir: string;
   cwd: string;
+  /** Isolated Desktop-owned root used only while no real harness is selected. */
+  fallbackDirectory?: string;
   isDirectory: (candidate: string) => boolean;
   /** Harness persisted by a Desktop switch (absolute), if any. */
   userChoice?: string | null;
@@ -57,12 +59,16 @@ export function isDefaultHarnessPath(raw: string, homeDir: string = os.homedir()
 /**
  * Resolve the Desktop harness: env override > persisted user choice >
  * `~/.ai-workspace` > fallback. Never creates directories: Agent Toolkit must
- * stay usable without My AI Workspace, so a missing default or a broken
- * override falls back to the pre-default behavior (serve inherits the
- * Desktop process cwd and resolves its workspace from there).
+ * stay usable without My AI Workspace, so Desktop can use an isolated setup
+ * directory while waiting for the user to choose or create a real harness.
  */
 export function resolveHarness(inputs: HarnessInputs): HarnessResolution {
   const defaultPath = path.join(inputs.homeDir, '.ai-workspace');
+  const fallbackPath = inputs.fallbackDirectory ?? inputs.cwd;
+  const fallbackNotice = (reason: string): string =>
+    inputs.fallbackDirectory
+      ? `${reason}; setup backend runs in its isolated Desktop data folder ${fallbackPath}, not the launch directory. Choose or create a workspace in Desktop.`
+      : `${reason}; serve starts in ${fallbackPath} and resolves its workspace from there`;
   const rejected: string[] = [];
   for (const name of HARNESS_OVERRIDE_VARS) {
     const raw = inputs.env[name]?.trim();
@@ -81,11 +87,11 @@ export function resolveHarness(inputs: HarnessInputs): HarnessResolution {
   }
   if (rejected.length) {
     return {
-      path: inputs.cwd,
+      path: fallbackPath,
       source: 'fallback',
       defaultPath,
       overrideVar: HARNESS_OVERRIDE_VARS.find((name) => inputs.env[name]?.trim()) ?? null,
-      notice: `Harness override ${rejected.join(', ')}; serve starts in ${inputs.cwd} and resolves its workspace by walking up from there`,
+      notice: fallbackNotice(`Harness override ${rejected.join(', ')}`),
     };
   }
   // A saved choice that vanished (unmounted drive, deleted folder) is kept on
@@ -108,18 +114,26 @@ export function resolveHarness(inputs: HarnessInputs): HarnessResolution {
     };
   }
   return {
-    path: inputs.cwd,
+    path: fallbackPath,
     source: 'fallback',
     defaultPath,
     overrideVar: null,
-    notice:
-      (staleChoice ? `${staleChoice}. ` : '') +
-      `Default harness ${defaultPath} not found; serve starts in ${inputs.cwd} and resolves its workspace by walking up from there`,
+    notice: (staleChoice ? `${staleChoice}. ` : '') + fallbackNotice(`Default harness ${defaultPath} not found`),
   };
 }
 
-export function resolveHarnessFromProcess(userChoice: string | null = null): HarnessResolution {
-  return resolveHarness({ env: process.env, homeDir: os.homedir(), cwd: process.cwd(), isDirectory, userChoice });
+export function resolveHarnessFromProcess(
+  userChoice: string | null = null,
+  fallbackDirectory?: string,
+): HarnessResolution {
+  return resolveHarness({
+    env: process.env,
+    homeDir: os.homedir(),
+    cwd: process.cwd(),
+    fallbackDirectory,
+    isDirectory,
+    userChoice,
+  });
 }
 
 /** First override var set to a non-blank value: while set, Desktop cannot switch the harness. */
@@ -223,11 +237,15 @@ export function createDefaultHarnessFromProcess(): HarnessMutationResult {
   });
 }
 
-/** cwd + env for the serve child. Fallback leaves both untouched (prior behavior). */
+/** cwd + env for the serve child. A fallback root is isolated and carries no rejected workspace override. */
 export function harnessSpawnContext(
   harness: HarnessResolution,
   baseEnv: NodeJS.ProcessEnv,
 ): { cwd: string | undefined; env: NodeJS.ProcessEnv } {
-  if (harness.source === 'fallback') return { cwd: undefined, env: { ...baseEnv } };
+  if (harness.source === 'fallback') {
+    const env = { ...baseEnv };
+    for (const name of HARNESS_OVERRIDE_VARS) delete env[name];
+    return { cwd: harness.path, env };
+  }
   return { cwd: harness.path, env: { ...baseEnv, AGENT_TOOLKIT_WORKSPACE: harness.path } };
 }

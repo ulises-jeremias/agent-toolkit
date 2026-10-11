@@ -28,12 +28,7 @@ export interface HarnessStatus {
 }
 
 export type HarnessSwitchError =
-  | HarnessPathError
-  | 'cancelled'
-  | 'env-override'
-  | 'busy'
-  | 'persist-failed'
-  | 'unavailable';
+  HarnessPathError | 'cancelled' | 'env-override' | 'busy' | 'persist-failed' | 'unavailable';
 
 export type HarnessSwitchResult =
   | { ok: true; restarted: boolean; harness: HarnessResolution; backend: BackendState }
@@ -50,6 +45,7 @@ export interface HarnessControllerDeps {
   env?: () => NodeJS.ProcessEnv;
   homeDir?: string;
   cwd?: () => string;
+  fallbackDirectory?: string;
   isDirectory?: (candidate: string) => boolean;
   /** Native folder picker; resolves null on cancel. */
   chooseDirectory?: (defaultPath: string) => Promise<string | null>;
@@ -66,12 +62,14 @@ export class HarnessController {
   private readonly env: () => NodeJS.ProcessEnv;
   private readonly homeDir: string;
   private readonly cwd: () => string;
+  private readonly fallbackDirectory: string | undefined;
   private readonly isDirectory: (candidate: string) => boolean;
 
   constructor(private readonly deps: HarnessControllerDeps) {
     this.env = deps.env ?? (() => process.env);
     this.homeDir = deps.homeDir ?? os.homedir();
     this.cwd = deps.cwd ?? (() => process.cwd());
+    this.fallbackDirectory = deps.fallbackDirectory;
     this.isDirectory = deps.isDirectory ?? isDirectory;
   }
 
@@ -80,6 +78,7 @@ export class HarnessController {
       env: this.env(),
       homeDir: this.homeDir,
       cwd: this.cwd(),
+      fallbackDirectory: this.fallbackDirectory,
       isDirectory: this.isDirectory,
       userChoice: this.deps.store.current(),
     });

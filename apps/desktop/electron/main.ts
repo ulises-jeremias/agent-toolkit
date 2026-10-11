@@ -1,4 +1,5 @@
 import { app, BrowserWindow, dialog, safeStorage, shell } from 'electron';
+import fs from 'node:fs';
 import path from 'node:path';
 import { BackendSupervisor, type BackendState } from './backend';
 import { HarnessController } from './harness-controller';
@@ -63,6 +64,7 @@ async function createWindow(): Promise<void> {
     harness = new HarnessController({
       store: new HarnessStore(path.join(app.getPath('userData'), HARNESS_STORE_FILE)),
       getSupervisor: () => backend,
+      fallbackDirectory: path.join(app.getPath('userData'), 'bootstrap'),
       chooseDirectory: chooseHarnessDirectory,
     });
   }
@@ -163,6 +165,10 @@ async function createWindow(): Promise<void> {
   if (shuttingDown || window.isDestroyed() || backend !== supervisor) return;
 
   // Start the bundled V backend after the window exists so failures are visible.
+  const startupHarness = harnessController.resolve();
+  if (startupHarness.source === 'fallback') {
+    fs.mkdirSync(startupHarness.path, { recursive: true });
+  }
   await supervisor.start();
   if (shuttingDown || window.isDestroyed() || backend !== supervisor) return;
   onBackendState(supervisor.snapshot());
