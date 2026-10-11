@@ -29,13 +29,14 @@ const holistic_owners = ['assistant', 'planner', 'architect', 'designer', 'imple
 	'qa-engineer', 'security-engineer', 'platform-engineer', 'data-engineer', 'researcher']
 
 const design_skills = ['design/frontend-design', 'design/frontend-design-review', 'design/web-design-guidelines',
-	'design/design-assessment', 'design/design-improvement', 'design/figma', 'design/figma-code-connect-components',
+	'design/design-assessment', 'design/design-improvement', 'design/scroll-world', 'design/figma', 'design/figma-code-connect-components',
 	'design/figma-create-design-system-rules', 'design/figma-create-new-file', 'design/figma-implement-design',
 	'accessibility/review']
 
 const required_routing_phrases = ['New visual direction / creative frontend', 'Existing frontend quality/design review',
 	'Concrete web-interface best-practice audit', 'Evidence-based holistic UX/UI diagnosis',
-	'Iterative browser-grounded remediation', 'Figma-driven work', 'Accessibility-sensitive UI']
+	'Iterative browser-grounded remediation', 'Immersive scroll-driven product journey', 'Figma-driven work',
+	'Accessibility-sensitive UI']
 
 // ---------------------------------------------------------------------------
 // Line parser (same core as generate-target-matrix.vsh)

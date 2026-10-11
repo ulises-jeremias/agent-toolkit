@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 105
+count: 106
 skills:
   - id: accessibility/review
     name: review
@@ -256,6 +256,11 @@ skills:
     name: frontend-design-review
     domain: design
     description: 'Review and create distinctive, production-grade frontend interfaces with high design quality and design system compliance. Evaluates using three pillars: frictionless insight-to-action, quality craft,'
+    stability: stable
+  - id: design/scroll-world
+    name: scroll-world
+    domain: design
+    description: 'Build an immersive scroll-scrubbed "fly through the world" landing page for any industry or brand using Higgsfield. As the visitor scrolls, a pre-rendered camera flies from outside each scene into its'
     stability: stable
   - id: design/web-design-guidelines
     name: web-design-guidelines

@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   across the Agent Toolkit valley while keeping product screenshots truthful.
 - The human World navigator now has separate idle and alternating directional
   walk frames, with reduced-motion and suspended-window support.
+### Added
+
+- Added the experimental, provenance-pinned `design/scroll-world` capability and its MIT-licensed resources. Landing-page strategy from Elaya Design is incorporated into first-party `design-improvement` to avoid duplicating overlapping skills. Paid media generation remains opt-in and was not used.
 
 ## [1.44.0] — 2026-10-10
 

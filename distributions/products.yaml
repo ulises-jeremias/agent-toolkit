@@ -172,6 +172,7 @@ products:
         - design/design-improvement
         - design/frontend-design
         - design/frontend-design-review
+        - design/scroll-world
         - design/web-design-guidelines
         - agentic-security/supply-chain-audit
         - forge/fix-merge-conflicts
