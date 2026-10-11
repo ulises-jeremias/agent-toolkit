@@ -62,14 +62,14 @@ export class HarnessController {
   private readonly env: () => NodeJS.ProcessEnv;
   private readonly homeDir: string;
   private readonly cwd: () => string;
-  private readonly fallbackDirectory: string;
+  private readonly fallbackDirectory: string | undefined;
   private readonly isDirectory: (candidate: string) => boolean;
 
   constructor(private readonly deps: HarnessControllerDeps) {
     this.env = deps.env ?? (() => process.env);
     this.homeDir = deps.homeDir ?? os.homedir();
     this.cwd = deps.cwd ?? (() => process.cwd());
-    this.fallbackDirectory = deps.fallbackDirectory ?? this.cwd();
+    this.fallbackDirectory = deps.fallbackDirectory;
     this.isDirectory = deps.isDirectory ?? isDirectory;
   }
 
