@@ -124,6 +124,20 @@ journeys:
           - assets/electron/world-player-exit/compact.png
           - assets/electron/world-player-exit/large.png
       - note: >-
+          Project doors now use the browser's shared-element view transition for
+          a short pixel-step dissolve when entering or leaving a project. The
+          navigation falls back to immediate routing where unsupported and
+          bypasses animation for reduced-motion preferences. The
+          existing Electron E2E exercises both door directions and the real
+          terminal interaction; compact and large interior captures were opened.
+        build: "feat/world-door-transitions (Linux Electron E2E; 1.43 backend, 1.44 renderer)"
+        tests:
+          - apps/desktop/e2e/electron/world-interactions.spec.ts
+          - apps/desktop/src/features/world/player.test.ts
+        screenshots:
+          - assets/electron/world-player-exit/compact.png
+          - assets/electron/world-player-exit/large.png
+      - note: >-
           The human navigator now offers River, Grove and Ember coats with
           workspace-scoped persistence shared between grounds and interiors.
           The existing walk E2E verifies the selected sprite, stored preference,

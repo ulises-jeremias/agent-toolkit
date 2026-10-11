@@ -26,6 +26,12 @@ A palette action opens the same flow as its menu or world equivalent. Disabled a
 
 In the world, WASD/arrows move the human player only while the Walk control is active. E activates the nearest real, interactable place; map solids and deep water collide, and generated bridges stay passable. Blur and hidden-window state clear held movement. Text inputs, dialogs, and terminal focus suppress movement. Position is scoped to workspace/project and restored only when it remains within safe walkable bounds. The player is never an AI worker and creates no sessions or implied progress.
 
+Entering or leaving a project house uses a short shared-element pixel-step
+transition on the world map. Unsupported engines fall back to normal routing,
+and reduced-motion preferences bypass the transition entirely. This feedback
+marks a real navigation change; it does not imply project activity or delay the
+underlying action.
+
 Terminal views connect to real PTY sessions. Switching route or collapsing the dock does not kill a session; close and process exit are explicit and observable. Reattach only to a process that exists. Swarm Operations shows topology, handoffs, approvals, budget, artifacts, and logs; the world only shows where actual work is happening.
 
 ## Evidence

@@ -80,11 +80,60 @@
   flex: 1;
   min-height: 26rem;
   overflow: hidden;
+  view-transition-name: toolkit-project-world;
   background: var(--world-outside, #2e4a2f);
   image-rendering: pixelated;
   cursor: grab;
   touch-action: none;
   outline: none;
+}
+
+/* Crossing a project doorway keeps the map in place while its real scene
+   changes underneath it. A brief pixel-step dissolve makes the change legible
+   without slowing down a work action or scaling the pixel art out of focus. */
+:global(::view-transition-group(toolkit-project-world)) {
+  animation-duration: 280ms;
+}
+
+:global(::view-transition-old(root)) {
+  animation-duration: 120ms;
+}
+
+:global(::view-transition-new(root)) {
+  animation-duration: 180ms;
+}
+
+:global(::view-transition-old(toolkit-project-world)) {
+  animation: world-door-leave 120ms steps(3, end) both;
+}
+
+:global(::view-transition-new(toolkit-project-world)) {
+  animation: world-door-arrive 280ms steps(5, end) both;
+}
+
+@keyframes world-door-leave {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes world-door-arrive {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(::view-transition-old(root)),
+  :global(::view-transition-new(root)),
+  :global(::view-transition-group(toolkit-project-world)),
+  :global(::view-transition-old(toolkit-project-world)),
+  :global(::view-transition-new(toolkit-project-world)) {
+    animation-duration: 1ms;
+  }
 }
 
 .mapRegion:active {

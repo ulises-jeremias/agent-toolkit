@@ -24,6 +24,39 @@ async function linkGardenApiProject(desktop: Awaited<ReturnType<typeof openDeskt
   return projectPath;
 }
 
+async function observeViewTransitions(page: Awaited<ReturnType<typeof openDesktop>>['page']): Promise<void> {
+  const supported = await page.evaluate(() => {
+    const start = document.startViewTransition;
+    if (typeof start !== 'function') return false;
+    document.documentElement.dataset['atkViewTransitionCalls'] = '0';
+    const nativeStart = start.bind(document);
+    Object.defineProperty(document, 'startViewTransition', {
+      configurable: true,
+      value: (callback: Parameters<typeof start>[0]) => {
+        const calls = Number(document.documentElement.dataset['atkViewTransitionCalls'] ?? '0');
+        document.documentElement.dataset['atkViewTransitionCalls'] = String(calls + 1);
+        return nativeStart(callback);
+      },
+    });
+    return true;
+  });
+  expect(supported, 'Electron should expose the View Transitions API').toBe(true);
+}
+
+async function expectDoorTransition(page: Awaited<ReturnType<typeof openDesktop>>['page']): Promise<void> {
+  await expect.poll(() => page.locator('html').getAttribute('data-atk-view-transition-calls')).toBe('1');
+}
+
+async function resetViewTransitionCalls(page: Awaited<ReturnType<typeof openDesktop>>['page']): Promise<void> {
+  await page.locator('html').evaluate((element) => {
+    element.setAttribute('data-atk-view-transition-calls', '0');
+  });
+}
+
+async function expectNoDoorTransition(page: Awaited<ReturnType<typeof openDesktop>>['page']): Promise<void> {
+  await expect(page.locator('html')).toHaveAttribute('data-atk-view-transition-calls', '0');
+}
+
 test('walks into a project house and opens its real terminal', async () => {
   const desktop = await openDesktop();
   try {
@@ -31,6 +64,7 @@ test('walks into a project house and opens its real terminal', async () => {
     await waitForBackend(page);
     const projectPath = await linkGardenApiProject(desktop);
     const world = page.getByRole('application', { name: 'Semantic workspace world' });
+    await observeViewTransitions(page);
     await world.getByRole('button', { name: 'Explore by walking' }).click();
     const house = world.getByRole('button', { name: /garden-api · Project ·/ });
     await expect(house).toBeVisible();
@@ -45,6 +79,7 @@ test('walks into a project house and opens its real terminal', async () => {
 
     const interior = page.getByRole('application', { name: 'Interior of garden-api' });
     await expect(interior).toBeVisible();
+    await expectDoorTransition(page);
     await interior.getByRole('button', { name: 'Explore by walking' }).click();
     const nearby = interior.getByRole('status');
     await page.keyboard.down('ArrowDown');
@@ -74,10 +109,12 @@ test('walks back through the interior door to the workspace grounds', async () =
     await waitForBackend(page);
     await linkGardenApiProject(desktop);
     const world = page.getByRole('application', { name: 'Semantic workspace world' });
+    await observeViewTransitions(page);
     await world.getByRole('button', { name: /garden-api · Project ·/ }).click();
 
     const interior = page.getByRole('application', { name: 'Interior of garden-api' });
     await expect(interior).toBeVisible();
+    await resetViewTransitionCalls(page);
     await interior.getByRole('button', { name: 'Explore by walking' }).click();
     const exitDoor = interior.getByRole('button', { name: /Exit · Return to workspace grounds/ });
     const exitApproach = await exitDoor.evaluate((element) => {
@@ -109,6 +146,16 @@ test('walks back through the interior door to the workspace grounds', async () =
     await interior.getByRole('button', { name: 'Explore by walking' }).click();
     await page.keyboard.press('E');
     await expect(page.getByText('workspace valley')).toBeVisible();
+    await expectDoorTransition(page);
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await resetViewTransitionCalls(page);
+    await page
+      .getByRole('application', { name: 'Semantic workspace world' })
+      .getByRole('button', { name: /garden-api · Project ·/ })
+      .click();
+    await expect(page.getByRole('application', { name: 'Interior of garden-api' })).toBeVisible();
+    await expectNoDoorTransition(page);
   } finally {
     await desktop.close();
   }
