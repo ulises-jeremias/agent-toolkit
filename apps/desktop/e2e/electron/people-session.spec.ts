@@ -143,11 +143,11 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
     }
     await personCharacter.click();
     await expect(page).toHaveURL(/#\/people\?[^#]*person=lina/);
-    await page.keyboard.press(process.platform === 'darwin' ? 'Meta+K' : 'Control+K');
-    const activePalette = page.getByRole('dialog', { name: 'Commands' });
-    await activePalette.getByRole('textbox', { name: 'Filter commands' }).fill("Open Lina's terminal");
-    await activePalette.getByRole('option', { name: /Open Lina's terminal/ }).click();
-    await expect(page).toHaveURL(/#\/terminal\?[^#]*pty=/);
+    const peopleQuery = new URLSearchParams(page.url().split('#/people?')[1] ?? '');
+    const linkedSessionId = peopleQuery.get('session');
+    expect(linkedSessionId).toBeTruthy();
+    await page.getByRole('button', { name: 'Open session' }).click();
+    await expect(page).toHaveURL(new RegExp(`#\\/terminal\\?[^#]*pty=${linkedSessionId}`));
 
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'People' }).click();
     await expect(page.getByRole('button', { name: /Lina.*reviewer.*Archived · session open/ })).toBeVisible();
