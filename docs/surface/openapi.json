@@ -906,6 +906,9 @@
                   "workspace": {
                     "type": "string"
                   },
+                  "project_id": {
+                    "type": "string"
+                  },
                   "run_id": {
                     "type": "string"
                   },
@@ -5034,6 +5037,9 @@
             "type": "string"
           },
           "task": {
+            "type": "string"
+          },
+          "project_id": {
             "type": "string"
           },
           "person_bindings": {

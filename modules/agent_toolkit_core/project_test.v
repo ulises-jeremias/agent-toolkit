@@ -93,6 +93,28 @@ fn test_list_project_entries_is_sorted_and_reports_broken_links() {
 	assert response.projects[1].status == 'ok'
 }
 
+fn test_resolve_project_root_requires_a_safe_registered_git_project() {
+	base := os.join_path(os.temp_dir(), 'at-proj-root-${os.getpid()}')
+	project := os.join_path(os.temp_dir(), 'at-proj-root-target-${os.getpid()}')
+	os.mkdir_all(os.join_path(base, 'projects')) or { panic(err) }
+	os.write_file(os.join_path(base, 'AGENTS.md'), '# workspace\n') or { panic(err) }
+	os.mkdir_all(os.join_path(project, '.git')) or { panic(err) }
+	os.symlink(project, os.join_path(base, 'projects', 'demo')) or { panic(err) }
+	os.symlink(os.join_path(base, 'missing'), os.join_path(base, 'projects', 'broken')) or { panic(err) }
+	defer {
+		os.rmdir_all(base) or {}
+		os.rmdir_all(project) or {}
+	}
+
+	resolved := resolve_project_root(base, 'demo') or { panic(err) }
+	assert resolved == os.real_path(project)
+	for invalid in ['../demo', 'missing', 'broken', ''] {
+		if _ := resolve_project_root(base, invalid) {
+			assert false, 'unsafe or absent project ${invalid} was accepted'
+		}
+	}
+}
+
 fn test_project_clone_already_present() {
 	base := os.join_path(os.temp_dir(), 'at-proj-cl-${os.getpid()}')
 	os.mkdir_all(base) or { assert false, err.msg() }

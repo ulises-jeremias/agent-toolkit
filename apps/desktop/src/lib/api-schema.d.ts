@@ -1649,6 +1649,7 @@ export interface components {
             run_state: string;
             created_at: string;
             task: string;
+            project_id?: string;
             person_bindings?: {
                 [key: string]: string;
             };
@@ -2739,6 +2740,7 @@ export interface operations {
             content: {
                 "application/json": {
                     workspace?: string;
+                    project_id?: string;
                     run_id?: string;
                     gate_id?: string;
                     recipe?: string;

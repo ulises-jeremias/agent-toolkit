@@ -123,6 +123,20 @@ describe('ApiClient', () => {
     expect(calls[0]?.init?.body).toBeUndefined();
   });
 
+  it('sends the selected project when previewing and starting a swarm', async () => {
+    const api = client({ ok: true, message: 'preview ready' });
+    await api.sub('swarms', 'start', {
+      workspace: '/workspace',
+      project_id: 'agent-toolkit',
+      task: 'review the selected project',
+      dry_run: true,
+    });
+    expect(calls[0]?.url).toBe('http://127.0.0.1:9/api/v1/swarms/start');
+    expect(calls[0]?.init?.body).toBe(
+      '{"workspace":"/workspace","project_id":"agent-toolkit","task":"review the selected project","dry_run":true}',
+    );
+  });
+
   it('reads project rows from the typed workspace roster endpoint', async () => {
     const response = await client({
       ok: true,

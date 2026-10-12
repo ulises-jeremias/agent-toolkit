@@ -393,6 +393,7 @@ schemas:
       - run_state:string
       - created_at:string
       - task:string
+      - project_id?:string
       - person_bindings?:map<string>
       - role_runners?:map<string>
       - role_models?:map<string>

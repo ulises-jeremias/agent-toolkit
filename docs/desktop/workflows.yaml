@@ -830,7 +830,7 @@ journeys:
   - id: swarm-start-review
     title: Review canonical recipe topology and runtime settings before starting
     destinations: [operations]
-    status: ok
+    status: partial
     evidence:
       - note: >-
           Electron uses the typed canonical recipe catalog to show actual roles,
@@ -839,11 +839,15 @@ journeys:
           the coding runner from the session adapter and default to a compact
           progressive disclosure section. A dry-run E2E
           verifies the review can be submitted without creating or spawning a run.
+          The start flow now requires a registered project, previews its canonical
+          Git root, and persists that project through immediate and deferred role
+          launches. The new project-bound Electron acceptance has not yet run.
         build: "feat/desktop-swarm-recipe-flow (Linux Electron E2E)"
         screenshots:
           - assets/electron/swarms/swarm-start-compact.png
           - assets/electron/swarms/swarm-start-large.png
-    blockers: []
+    blockers:
+      - Run and review the project-bound Electron start/watch acceptance on a current V backend.
   - id: loops-run-report
     title: Install a loop template, run once and read its report
     destinations: [operations]

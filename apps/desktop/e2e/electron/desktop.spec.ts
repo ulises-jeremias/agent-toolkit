@@ -88,6 +88,13 @@ function initializeTestRepository(workspace: string): void {
   );
 }
 
+function registerSwarmTestProject(workspace: string): void {
+  const projects = path.join(workspace, 'projects');
+  const link = path.join(projects, 'e2e-workspace');
+  fs.mkdirSync(projects, { recursive: true });
+  if (!fs.existsSync(link)) fs.symlinkSync(workspace, link, 'dir');
+}
+
 const DESTINATIONS: ReadonlyArray<{ link: string; path: string }> = [
   { link: 'World', path: '/world' },
   { link: 'Attention', path: '/office' },
@@ -955,6 +962,12 @@ test('Library configures MCP providers with secret-free previews and explicit ch
 test('swarm start reviews canonical topology and keeps runner separate from adapter', async () => {
   const { page } = desktop;
   initializeTestRepository(desktop.workspace);
+  const projectRoot = path.join(desktop.home, 'projects', 'swarm-project');
+  fs.mkdirSync(projectRoot, { recursive: true });
+  fs.writeFileSync(path.join(projectRoot, 'README.md'), '# Swarm test project\n');
+  initializeTestRepository(projectRoot);
+  fs.mkdirSync(path.join(desktop.workspace, 'projects'), { recursive: true });
+  fs.symlinkSync(projectRoot, path.join(desktop.workspace, 'projects', 'swarm-project'));
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'People' }).click();
   await page.getByRole('button', { name: 'Create Person' }).click();
   const personDialog = page.getByRole('dialog', { name: 'Create Person' });
@@ -968,6 +981,8 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
   await page.getByRole('button', { name: 'Start swarm' }).click();
   const dialog = page.getByRole('dialog', { name: 'Start a swarm' });
   await expect(dialog.getByText('.ai-workspace')).toBeVisible();
+  await dialog.getByLabel('Project').selectOption('swarm-project');
+  await expect(dialog.getByText(projectRoot)).toBeVisible();
   await expect(dialog.getByLabel('Team recipe')).toContainText('pair · 3 roles');
   await expect(dialog.getByRole('region', { name: 'pair recipe topology' })).toContainText('implementer');
   await expect(dialog.getByRole('group', { name: 'Recipe write permissions' })).toContainText(
@@ -976,6 +991,7 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
   await dialog.getByLabel('Task').fill('Inspect the existing Desktop architecture');
   const resolvedPeople = dialog.getByRole('region', { name: 'Resolved swarm People' });
   await expect(resolvedPeople).toContainText('reviewer → Lina');
+  await expect(dialog.getByText(`Repository · ${projectRoot}`)).toBeVisible();
   await expect(resolvedPeople).toContainText('matched role');
   await dialog.getByLabel('Person for reviewer').selectOption('lina');
   await expect(resolvedPeople).toContainText('selected');
@@ -1008,14 +1024,19 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
 
   await page.getByRole('button', { name: 'Start swarm' }).click();
   const boundDialog = page.getByRole('dialog', { name: 'Start a swarm' });
+  await boundDialog.getByLabel('Project').selectOption('swarm-project');
   await boundDialog.getByLabel('Task').fill('Keep the selected collaborator visible in run history');
   await boundDialog.getByLabel('Person for reviewer').selectOption('lina');
   await boundDialog.getByText('Runtime options').click();
   await boundDialog.getByLabel('Session adapter').selectOption('headless');
   await boundDialog.getByRole('button', { name: 'Start swarm' }).click();
   await expect(boundDialog).toBeHidden();
-  const boundRun = page.getByRole('button', { name: /Keep the selected collaborator visible in run history/ });
+  const boundRunRow = page
+    .getByRole('row')
+    .filter({ hasText: 'Keep the selected collaborator visible in run history' });
+  const boundRun = boundRunRow.getByRole('button', { name: /Keep the selected collaborator visible in run history/ });
   await expect(boundRun).toBeVisible();
+  await expect(boundRunRow).toContainText('swarm-project');
   await boundRun.click();
   const boundInspector = page.getByRole('region', { name: 'pair' });
   await expect(boundInspector.getByRole('region', { name: 'Role execution' })).toContainText('Lina');
@@ -1042,9 +1063,11 @@ test('Operations refreshes a live swarm when its state changes outside Desktop',
   const { page, workspace } = desktop;
   await waitForBackend(page);
   initializeTestRepository(workspace);
+  registerSwarmTestProject(workspace);
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
   await page.getByRole('button', { name: 'Start swarm' }).click();
   const dialog = page.getByRole('dialog', { name: 'Start a swarm' });
+  await dialog.getByLabel('Project').selectOption('e2e-workspace');
   await dialog.getByLabel('Task').fill('Observe externally updated run state');
   await dialog.getByText('Runtime options').click();
   await dialog.getByLabel('Session adapter').selectOption('headless');
@@ -1098,9 +1121,11 @@ test('swarm plan approval gates appear in Attention and Next that needs me opens
   const { page, workspace } = desktop;
   await waitForBackend(page);
   initializeTestRepository(workspace);
+  registerSwarmTestProject(workspace);
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
   await page.getByRole('button', { name: 'Start swarm' }).click();
   const dialog = page.getByRole('dialog', { name: 'Start a swarm' });
+  await dialog.getByLabel('Project').selectOption('e2e-workspace');
   await dialog.getByLabel('Team recipe').selectOption('team');
   await dialog.getByLabel('Task').fill('Review the semantic project valley');
   await dialog.getByText('Runtime options').click();

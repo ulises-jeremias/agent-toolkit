@@ -106,6 +106,48 @@ fn test_swarm_start_preview_reports_resolved_role_execution() {
 	assert !os.is_dir(os.join_path(base, '.agent-toolkit', 'swarm', 'runs'))
 }
 
+fn test_swarm_start_preview_targets_the_selected_workspace_project() {
+	base := os.join_path(os.temp_dir(), 'at-swarm-project-${os.getpid()}')
+	repo := os.join_path(os.temp_dir(), 'at-swarm-project-repo-${os.getpid()}')
+	os.mkdir_all(os.join_path(base, 'projects')) or { panic(err) }
+	os.write_file(os.join_path(base, 'AGENTS.md'), '# workspace\n') or { panic(err) }
+	os.mkdir_all(os.join_path(repo, '.git')) or { panic(err) }
+	os.symlink(repo, os.join_path(base, 'projects', 'agent-toolkit')) or { panic(err) }
+	defer {
+		os.rmdir_all(base) or {}
+		os.rmdir_all(repo) or {}
+	}
+
+	preview := run_swarm(SwarmOptions{
+		subcommand: 'start'
+		workspace_path: base
+		project_id: 'agent-toolkit'
+		recipe: 'pair'
+		backend: 'headless'
+		dry_run: true
+		task: 'inspect project selection'
+	})
+	assert preview.ok, preview.message
+	assert preview.data['project_id'] == 'agent-toolkit'
+	assert preview.data['project_path'] == os.real_path(repo)
+	resolved := swarm_repository_root(base, 'agent-toolkit') or { panic(err) }
+	assert resolved == os.real_path(repo)
+	assert !os.is_dir(os.join_path(base, '.agent-toolkit', 'swarm', 'runs'))
+
+	bad := run_swarm(SwarmOptions{
+		subcommand: 'start'
+		workspace_path: base
+		project_id: 'missing'
+		recipe: 'pair'
+		backend: 'headless'
+		dry_run: true
+		task: 'must not select the workspace root'
+	})
+	assert !bad.ok
+	assert bad.message.contains('project not found')
+	assert !os.is_dir(os.join_path(base, '.agent-toolkit', 'swarm', 'runs'))
+}
+
 fn test_swarm_recipe_catalog_exposes_canonical_topology_and_backends() {
 	catalog := list_swarm_recipes_typed()
 	assert catalog.ok
