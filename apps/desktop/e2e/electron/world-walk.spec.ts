@@ -39,9 +39,7 @@ test('walks in the world only while it has focus and keeps typing local to the c
       await page.screenshot({ path: path.resolve(outputDir, 'world-player-walking-compact.png') });
     }
     await expect(world).toHaveAttribute('data-camera-mode', 'follow');
-    await expect
-      .poll(() => map.evaluate((element) => element.style.transform))
-      .not.toBe(initialPan);
+    await expect.poll(() => map.evaluate((element) => element.style.transform)).not.toBe(initialPan);
     expect(Number(await world.getAttribute('data-zoom'))).toBeGreaterThanOrEqual(initialZoom);
     await expect(player).not.toHaveAttribute('data-walking', { timeout: 15_000 });
 
