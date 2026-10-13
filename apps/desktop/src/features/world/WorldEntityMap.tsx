@@ -585,6 +585,7 @@ export function WorldEntityMap({
       data-theme={theme.id}
       data-mode={mode}
       data-zoom={zoom}
+      data-camera-mode={cameraMode}
       data-player-ready={playerReady ? 'true' : 'false'}
       data-suspended={!animate ? 'true' : undefined}
       onPointerDown={onPointerDown}
@@ -610,6 +611,7 @@ export function WorldEntityMap({
       />
       <div
         className={styles.mapWorld}
+        data-world-map="true"
         style={{ transform: `translate(${pan.x}px, ${pan.y}px)`, width: viewW, height: viewH }}
       >
         <TerrainCanvas
