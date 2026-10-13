@@ -40,24 +40,24 @@ pub fn (mut set SwarmLockSet) for_run(run_id string) &sync.Mutex {
 	defer {
 		set.mu.unlock()
 	}
-	if lock := set.locks[run_id] {
+	if run_mutex := set.locks[run_id] {
 		set.refs[run_id] = set.refs[run_id] + 1
-		return lock
+		return run_mutex
 	}
-	lock := sync.new_mutex()
-	set.locks[run_id] = lock
+	run_mutex := sync.new_mutex()
+	set.locks[run_id] = run_mutex
 	set.refs[run_id] = 1
-	return lock
+	return run_mutex
 }
 
-pub fn (mut set SwarmLockSet) release(run_id string, lock &sync.Mutex) {
-	lock.unlock()
+pub fn (mut set SwarmLockSet) release(run_id string, run_mutex &sync.Mutex) {
+	run_mutex.unlock()
 	set.mu.lock()
 	defer {
 		set.mu.unlock()
 	}
 	if current := set.locks[run_id] {
-		if current == lock {
+		if current == run_mutex {
 			remaining := set.refs[run_id] - 1
 			if remaining <= 0 {
 				set.locks.delete(run_id)
