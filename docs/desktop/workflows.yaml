@@ -799,6 +799,24 @@ journeys:
         build: "0bc0449a (#1533; Packaged Electron with fresh HOME, run 38164996571)"
         tests:
           - apps/desktop/e2e/electron/people-session.spec.ts
+      - note: >-
+          Rechecked the no-runner recovery with the isolated Electron client and
+          the 1.44.0 Linux CI backend artifact (run 38362205781). Lina persists
+          as configured/offline; the start form keeps the chosen project and
+          one-time task preview, explains that an interactive runner must be
+          configured in Library, has no runner options, and keeps Start disabled.
+          The test intercepts provider discovery, returns before PTY creation,
+          and was run with a 2 GiB limit, so no local runner or model was started.
+          Current compact/large roster and start screenshots were opened and
+          reviewed on 2026-10-13.
+        build: "Linux Electron E2E; no-runner recovery passed on 2026-10-13"
+        tests:
+          - apps/desktop/e2e/electron/people-session.spec.ts
+        screenshots:
+          - assets/electron/people/people-roster-compact.png
+          - assets/electron/people/people-roster-large.png
+          - assets/electron/people/person-start-compact.png
+          - assets/electron/people/person-start-large.png
     blockers:
       - provider conversation IDs, transcript continuity and safe runner-specific resume are not available yet
       - initial-task submission is not supported for Cursor or Muse; no runner-specific argument contract is assumed
