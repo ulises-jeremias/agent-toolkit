@@ -78,9 +78,19 @@ jobs:
           ATK_E2E_BACKEND_BIN: ${{ github.workspace }}/dist/agent-toolkit
           ATK_CAPTURE: '1'
           ATK_CAPTURE_DIR: ${{ runner.temp }}/atk-world-review
+          ATK_LIBRARY_CAPTURE_DIR: ${{ runner.temp }}/atk-library-review
         run: >-
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
           pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/project-link.spec.ts
+      - name: Capture playable world visual review
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
+        env:
+          ATK_E2E_BACKEND_BIN: ${{ github.workspace }}/dist/agent-toolkit
+          ATK_CAPTURE_WORLD_EXPLORATION: '1'
+          ATK_CAPTURE_WORLD_EXPLORATION_DIR: ${{ runner.temp }}/atk-player-review
+        run: >-
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
+          pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/world-walk.spec.ts
       - name: Capture destination visual review
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
         env:
@@ -118,6 +128,16 @@ jobs:
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
           pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/desktop.spec.ts
           --grep "swarm plan approval gates"
+      - name: Capture Person import review
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
+        env:
+          ATK_E2E_BACKEND_BIN: ${{ github.workspace }}/dist/agent-toolkit
+          ATK_CAPTURE: '1'
+          ATK_PALETTE_CAPTURE_DIR: ${{ runner.temp }}/atk-import-review
+        run: >-
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
+          pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/desktop.spec.ts
+          --grep "palette reaches Person creation and Munder import review without saving or spawning"
       - name: Verify world review screenshots
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
         run: |
@@ -130,6 +150,13 @@ jobs:
             project-files-room-compact.png project-files-room-large.png; do
             test -s "${{ runner.temp }}/atk-world-review/$screenshot"
           done
+          test -s "${{ runner.temp }}/atk-player-review/world-player-walking-compact.png"
+          test -s "${{ runner.temp }}/atk-player-review/world-player-click-to-move-compact.png"
+          test -s "${{ runner.temp }}/atk-player-review/world-player-click-to-move-large.png"
+          test -s "${{ runner.temp }}/atk-library-review/copilot-project-review-compact.png"
+          test -s "${{ runner.temp }}/atk-library-review/copilot-project-review-large.png"
+          test -s "${{ runner.temp }}/atk-import-review/munder-review-compact.png"
+          test -s "${{ runner.temp }}/atk-import-review/munder-review-large.png"
           for screenshot in \
             meadow-1024x640-world.png meadow-1920x1080-world.png \
             meadow-1920x1080-library.png meadow-1920x1080-operations.png \
@@ -162,6 +189,9 @@ jobs:
           mkdir -p apps/desktop/test-results/review
           for directory in \
             "${{ runner.temp }}/atk-world-review" \
+            "${{ runner.temp }}/atk-player-review" \
+            "${{ runner.temp }}/atk-library-review" \
+            "${{ runner.temp }}/atk-import-review" \
             "${{ runner.temp }}/atk-destination-review" \
             "${{ runner.temp }}/atk-people-review" \
             "${{ runner.temp }}/atk-workspace-packs-review" \

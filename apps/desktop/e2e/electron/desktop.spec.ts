@@ -6,7 +6,8 @@ import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtur
 
 const CAPTURE = process.env['ATK_CAPTURE'] === '1';
 const CAPTURE_DIR = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/swarms');
-const PALETTE_CAPTURE_DIR = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/palette');
+const PALETTE_CAPTURE_DIR =
+  process.env.ATK_PALETTE_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/palette');
 const LIBRARY_CAPTURE_DIR =
   process.env['ATK_LIBRARY_CAPTURE_DIR'] ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/library');
 
