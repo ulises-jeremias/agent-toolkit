@@ -38,6 +38,25 @@ journeys:
     status: ok
     evidence:
       - note: >-
+          The player-follow camera now selects a crisp exploration zoom by
+          window width (32 px below 1280, 48 px through 1599, 64 px at 1600+),
+          updates that default on resize, and preserves a user-selected zoom.
+          Walk recenters on the player; Fit world remains an explicit overview.
+          Electron E2E checks compact/large/intermediate resizing, manual zoom
+          preservation, movement focus, and command-palette typing. Meadow and
+          Dusk captures at 1024x640 and 1920x1080 were opened and reviewed with
+          the installed 1.44.0 backend in a fresh temporary workspace.
+        build: "feat/world-adaptive-camera (Linux Electron; renderer build; installed backend 1.44.0)"
+        tests:
+          - apps/desktop/e2e/electron/world-walk.spec.ts
+          - apps/desktop/src/features/world/WorldEntityMap.test.tsx
+          - apps/desktop/src/features/world/camera.test.ts
+        screenshots:
+          - assets/electron/world-adaptive-camera-2026-10-13/world-meadow-compact.png
+          - assets/electron/world-adaptive-camera-2026-10-13/world-meadow-large.png
+          - assets/electron/world-adaptive-camera-2026-10-13/world-dusk-compact.png
+          - assets/electron/world-adaptive-camera-2026-10-13/world-dusk-large.png
+      - note: >-
           Electron E2E changes to a second workspace through Settings, verifies
           the URL scope changes with the supervised harness, links a real
           project using the GUI, verifies its building in World, rejects a

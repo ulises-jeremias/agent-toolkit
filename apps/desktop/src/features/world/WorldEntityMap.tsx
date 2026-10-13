@@ -148,6 +148,7 @@ export function WorldEntityMap({
   const panFocusRef = useRef<HTMLButtonElement>(null);
   const startPathRef = useRef<() => void>(() => {});
   const followCameraRef = useRef<() => void>(() => {});
+  const userAdjustedZoomRef = useRef(false);
   const playerPositionRef = useRef(playerPosition);
   const restoredKeyRef = useRef<string | null>(null);
   const pathRef = useRef<WorldPoint[]>([]);
@@ -469,22 +470,27 @@ export function WorldEntityMap({
       const current = movementStateRef.current;
       if (current.cameraMode === 'follow') {
         const viewport = { x: region.clientWidth, y: region.clientHeight };
-        if (current.viewW < viewport.x && current.viewH < viewport.y) {
-          const camera = fitCamera(viewport, { x: cols, y: rows });
-          setZoom(camera.zoom);
-          setPan(camera.pan);
-        } else {
-          setPan(
-            clampCamera(
-              {
-                x: viewport.x / 2 - playerPositionRef.current.x * current.zoom,
-                y: viewport.y / 2 - playerPositionRef.current.y * current.zoom,
-              },
-              viewport,
-              { x: current.viewW, y: current.viewH },
-            ),
-          );
+        // Compact windows need enough nearby context to recognize a building
+        // before walking toward it. Keep the larger exploration scale on roomy
+        // displays; an explicit zoom or Fit world choice always takes priority.
+        let followZoom = current.zoom;
+        if (!userAdjustedZoomRef.current && viewport.x > 0) {
+          const responsiveZoom = viewport.x < 1280 ? 32 : viewport.x >= 1600 ? 64 : 48;
+          if (current.zoom !== responsiveZoom) {
+            followZoom = responsiveZoom;
+            setZoom(responsiveZoom);
+          }
         }
+        setPan(
+          clampCamera(
+            {
+              x: viewport.x / 2 - playerPositionRef.current.x * followZoom,
+              y: viewport.y / 2 - playerPositionRef.current.y * followZoom,
+            },
+            viewport,
+            { x: cols * followZoom, y: rows * followZoom },
+          ),
+        );
       } else if (current.cameraMode !== 'manual') {
         fitWorld();
       } else {
@@ -556,6 +562,7 @@ export function WorldEntityMap({
 
   const onKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
     if (event.key === 'Home') {
+      userAdjustedZoomRef.current = true;
       movementStateRef.current = { ...movementStateRef.current, cameraMode: 'fit' };
       setCameraMode('fit');
       event.preventDefault();
@@ -573,6 +580,7 @@ export function WorldEntityMap({
 
   const changeZoom = (next: number) => {
     const region = regionRef.current;
+    userAdjustedZoomRef.current = true;
     movementStateRef.current = {
       ...movementStateRef.current,
       zoom: next,
@@ -706,7 +714,10 @@ export function WorldEntityMap({
         <button
           type="button"
           className={styles.hudButton}
-          onClick={() => panFocusRef.current?.focus()}
+          onClick={() => {
+            followCameraRef.current();
+            panFocusRef.current?.focus();
+          }}
           aria-label="Explore by walking"
           title="Walk with WASD or arrow keys"
         >
@@ -744,6 +755,7 @@ export function WorldEntityMap({
           type="button"
           className={styles.hudButton}
           onClick={() => {
+            userAdjustedZoomRef.current = true;
             setCameraMode('fit');
             fitWorld();
           }}
