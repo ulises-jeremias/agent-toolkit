@@ -120,6 +120,21 @@ fn test_interrupted_swarm_role_start_fails_closed_for_review() {
 	}
 }
 
+fn test_swarm_run_listing_deduplicates_workspace_project_symlink() {
+	workspace := os.join_path(os.temp_dir(), 'at-swarm-list-dedupe-${os.getpid()}')
+	os.mkdir_all(workspace) or { panic(err) }
+	defer { os.rmdir_all(workspace) or {} }
+	run_dir := swarm_run_dir(workspace, 'run-test')
+	ensure_swarm_run_dirs(run_dir) or { panic(err) }
+	projects_dir := os.join_path(workspace, 'projects')
+	os.mkdir_all(projects_dir) or { panic(err) }
+	os.symlink(workspace, os.join_path(projects_dir, 'workspace-alias')) or { panic(err) }
+
+	runs := list_all_swarm_runs(workspace)
+	assert runs.len == 1
+	assert runs[0] == os.real_path(run_dir)
+}
+
 fn test_swarm_help() {
 	r := run_swarm(SwarmOptions{
 		subcommand: 'help'

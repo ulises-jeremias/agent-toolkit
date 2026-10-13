@@ -2130,12 +2130,13 @@ fn spawn_herdr_workspace(workspace string, repo_root string, run_id string, task
 
 fn list_all_swarm_runs(ws string) []string {
 	mut out := []string{}
+	mut seen := map[string]bool{}
 	primary := swarm_runs_dir(ws)
 	if os.is_dir(primary) {
 		for n in os.ls(primary) or { []string{} } {
 			full := os.join_path(primary, n)
 			if os.is_dir(full) {
-				out << full
+				append_swarm_run_unique(mut out, mut seen, full)
 			}
 		}
 	}
@@ -2153,7 +2154,7 @@ fn list_all_swarm_runs(ws string) []string {
 					for n in os.ls(alt) or { []string{} } {
 						full2 := os.join_path(alt, n)
 						if os.is_dir(full2) {
-							out << full2
+							append_swarm_run_unique(mut out, mut seen, full2)
 						}
 					}
 				}
@@ -2172,6 +2173,15 @@ fn list_all_swarm_runs(ws string) []string {
 		return 0
 	})
 	return out
+}
+
+fn append_swarm_run_unique(mut out []string, mut seen map[string]bool, path string) {
+	canonical := os.real_path(path)
+	if canonical.len == 0 || seen[canonical] {
+		return
+	}
+	seen[canonical] = true
+	out << canonical
 }
 
 fn swarm_list(ws string, opts SwarmOptions) SwarmReport {
