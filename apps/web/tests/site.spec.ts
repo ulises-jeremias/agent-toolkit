@@ -148,6 +148,32 @@ test("scroll journey follows the selected place and supports reduced motion", as
       "aria-hidden",
       "false",
     );
+    await expect(page.locator(`[data-scene-image='${id}']`)).toHaveClass(
+      /is-active/,
+    );
+    await expect(
+      page
+        .getByRole("navigation", { name: "Jump to a place in the workspace" })
+        .locator(`[data-journey-link='${id}']`),
+    ).toHaveAttribute("aria-current", "step");
+    await expect(page.locator("[data-journey-location]")).toHaveText(
+      id === "valley"
+        ? "The workspace"
+        : id === "project"
+          ? "Inside a project"
+          : id === "people"
+            ? "People"
+            : id === "operations"
+              ? "Operations"
+              : "Library",
+    );
+    await expect
+      .poll(() =>
+        page
+          .locator(`[data-scene-image='${id}']`)
+          .evaluate((element) => getComputedStyle(element).opacity),
+      )
+      .toBe("1");
     await captureViewport(page, `journey-${id}-desktop.png`);
   }
 });
