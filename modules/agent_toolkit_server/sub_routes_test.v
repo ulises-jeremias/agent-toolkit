@@ -174,6 +174,20 @@ fn test_swarm_person_bindings_map_is_typed_and_forwarded() {
 	assert !start.attach
 }
 
+fn test_swarm_project_id_is_forwarded_and_validated() {
+	ws := sub_test_dir('swarm-project')
+	defer {
+		os.rmdir_all(ws) or {}
+	}
+	start := build_swarms_options('start', '{"workspace":"${ws}","project_id":"agent-toolkit","expected_project_path":"/workspace/project"}') or {
+		panic(err.msg())
+	}
+	assert start.workspace_path == ws
+	assert start.project_id == 'agent-toolkit'
+	assert start.expected_project_path == '/workspace/project'
+	expect_sub_error(swarms_ok('start', '{"project_id":"../outside"}'), 400, 'invalid project_id')
+}
+
 fn test_workspace_project_dc_fields_forwarded() {
 	ws := sub_test_dir('wsfields')
 	defer {

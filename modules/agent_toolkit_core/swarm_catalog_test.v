@@ -35,12 +35,21 @@ fn test_list_and_status_typed() {
 	assert list.runs.len == 1
 	assert list.runs[0].run_id == rid
 	assert list.runs[0].run_state == 'awaiting_plan_approval'
+	assert list.runs[0].project_id == ''
 	got := get_swarm_run_typed(base, rid) or { panic(err.msg()) }
 	assert got.run.run_id == rid
 	assert got.approvals.len > 0
 	assert got.budget.cost_status == 'accounted'
 	arts := list_swarm_artifacts_typed(base, rid) or { panic(err.msg()) }
 	assert arts.artifacts.len >= 1
+}
+
+fn test_typed_swarm_run_info_preserves_project_identity() {
+	info := swarm_run_info(SwarmStateFile{
+		run_id: 'run-project'
+		project_id: 'agent-toolkit'
+	})
+	assert info.project_id == 'agent-toolkit'
 }
 
 fn test_approve_reject_stop_typed() {

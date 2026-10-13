@@ -495,6 +495,8 @@ pub fn build_dc_options(sub string, body string) !agent_toolkit_core.Devcompanio
 
 struct SwarmsSubReq {
 	workspace     string
+	project_id    string
+	expected_project_path string
 	run_id        string
 	gate_id       string
 	recipe        string
@@ -555,6 +557,8 @@ pub fn build_swarms_options(sub string, body string) !agent_toolkit_core.SwarmOp
 	check_path_ref('to_recipe', req.to_recipe)!
 	check_path_ref('artifact', req.artifact)!
 	check_text('task', req.task, max_long_text_field)!
+	if req.project_id.len > 0 { check_ident('project_id', req.project_id)! }
+	check_text('expected_project_path', req.expected_project_path, max_text_field)!
 	check_text('reason', req.reason, max_text_field)!
 	check_issue_ref('issue_ref', req.issue_ref)!
 	check_git_ref('base_ref', req.base_ref)!
@@ -564,6 +568,8 @@ pub fn build_swarms_options(sub string, body string) !agent_toolkit_core.SwarmOp
 	return agent_toolkit_core.SwarmOptions{
 		subcommand: sub
 		workspace_path: ws
+		project_id: req.project_id
+		expected_project_path: req.expected_project_path
 		run_id: req.run_id
 		gate_id: req.gate_id
 		recipe: req.recipe

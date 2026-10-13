@@ -75,6 +75,58 @@ pub fn swarm_role_has_worktree(recipe string, role string) bool {
 	return role != 'planner'
 }
 
+// Resolve the execution directory for a role. Writer roles must use the
+// Toolkit-owned worktree recorded in run state; silently falling back to the
+// project checkout would defeat swarm isolation.
+fn swarm_role_execution_root(st SwarmStateFile, run_dir string, repo_root string, role string) !string {
+	if !swarm_role_has_worktree(st.recipe, role) {
+		return repo_root
+	}
+	expected := swarm_worktree_path_for(run_dir, role)!
+	worktrees_dir := os.join_path(run_dir, 'worktrees')
+	if os.is_link(run_dir) || os.is_link(worktrees_dir) || os.is_link(expected) || !os.is_dir(expected) {
+		return error('Worktree path for ${role} is missing or uses a symlink; refusing to launch')
+	}
+	canonical_expected := os.join_path(os.real_path(run_dir), 'worktrees', role)
+	if os.real_path(expected) != canonical_expected {
+		return error('Worktree path for ${role} resolves outside this run; refusing to launch')
+	}
+	expected_branch := swarm_branch_for_run_role(st.run_id, role)!
+	mut recorded := false
+	for wt in st.worktrees {
+		if wt.role == role {
+			if os.real_path(wt.path) != canonical_expected || wt.branch != expected_branch {
+				return error('Recorded worktree for ${role} is missing or outside this run; refusing to launch')
+			}
+			recorded = true
+			break
+		}
+	}
+	if !recorded {
+		return error('Worktree for ${role} has not been recorded; refusing to launch')
+	}
+	if !swarm_is_registered_worktree(repo_root, canonical_expected, expected_branch)! {
+		return error('Path for ${role} is not the registered swarm Git worktree; refusing to launch')
+	}
+	return expected
+}
+
+fn swarm_is_registered_worktree(repo_root string, path string, branch string) !bool {
+	worktree_list := swarm_git_run(['worktree', 'list', '--porcelain'], repo_root)
+	if worktree_list.exit_code != 0 {
+		return error('Cannot verify Git worktree at ${path}')
+	}
+	mut current_path_matches := false
+	for line in worktree_list.stdout.split_into_lines() {
+		if line.starts_with('worktree ') {
+			current_path_matches = line['worktree '.len..] == path
+		} else if current_path_matches && line == 'branch refs/heads/${branch}' {
+			return true
+		}
+	}
+	return false
+}
+
 pub fn swarm_recipe_lazy_start(recipe string) bool {
 	return true
 }
@@ -99,7 +151,14 @@ fn swarm_git_run(args []string, cwd string) RunResult {
 pub fn swarm_create_worktree(repo_root string, run_dir string, role string, run_id string, base_ref string) !SwarmWorktree {
 	branch := swarm_branch_for_run_role(run_id, role)!
 	wt_path := swarm_worktree_path_for(run_dir, role)!
+	worktrees_dir := os.join_path(run_dir, 'worktrees')
+	if os.is_link(run_dir) || os.is_link(worktrees_dir) || os.is_link(wt_path) {
+		return error('Cannot create worktree for ${role} through a symlink')
+	}
 	if os.exists(wt_path) {
+		if !os.is_dir(wt_path) || !swarm_is_registered_worktree(repo_root, os.real_path(wt_path), branch)! {
+			return error('Existing worktree path is not the registered swarm Git worktree: ${wt_path}')
+		}
 		return SwarmWorktree{
 			role: role
 			branch: branch
@@ -117,7 +176,7 @@ pub fn swarm_create_worktree(repo_root string, run_dir string, role string, run_
 			return error('Failed to create branch ${branch}: ${extra}')
 		}
 	}
-	os.mkdir_all(os.dir(wt_path)) or {
+	os.mkdir_all(worktrees_dir) or {
 		return error('mkdir worktree parent failed: ${err.msg()}')
 	}
 	wt_res := swarm_git_run(['worktree', 'add', wt_path, branch], repo_root)

@@ -8,6 +8,7 @@ import net.http
 import os
 import x.json2
 import strings
+import sync
 import time
 import veb
 import veb.sse
@@ -19,6 +20,53 @@ pub mut:
 	runner   &JobRunner = unsafe { nil }
 	bus      &EventBus = unsafe { nil }
 	sessions &agent_toolkit_core.PersonSessionStore = unsafe { nil }
+	swarm_locks &SwarmLockSet = new_swarm_lock_set()
+}
+
+@[heap]
+pub struct SwarmLockSet {
+mut:
+	mu    &sync.Mutex = sync.new_mutex()
+	locks map[string]&sync.Mutex
+	refs  map[string]int
+}
+
+pub fn new_swarm_lock_set() &SwarmLockSet {
+	return &SwarmLockSet{}
+}
+
+pub fn (mut set SwarmLockSet) for_run(run_id string) &sync.Mutex {
+	set.mu.lock()
+	defer {
+		set.mu.unlock()
+	}
+	if run_mutex := set.locks[run_id] {
+		set.refs[run_id] = set.refs[run_id] + 1
+		return run_mutex
+	}
+	run_mutex := sync.new_mutex()
+	set.locks[run_id] = run_mutex
+	set.refs[run_id] = 1
+	return run_mutex
+}
+
+pub fn (mut set SwarmLockSet) release(run_id string, run_mutex &sync.Mutex) {
+	run_mutex.unlock()
+	set.mu.lock()
+	defer {
+		set.mu.unlock()
+	}
+	if current := set.locks[run_id] {
+		if current == run_mutex {
+			remaining := set.refs[run_id] - 1
+			if remaining <= 0 {
+				set.locks.delete(run_id)
+				set.refs.delete(run_id)
+			} else {
+				set.refs[run_id] = remaining
+			}
+		}
+	}
 }
 
 fn is_loopback(host string) bool {
@@ -1165,6 +1213,14 @@ pub fn (app &App) swarms_generic(mut ctx Ctx, sub string) veb.Result {
 		return respond_deny(mut ctx, deny)
 	}
 	opts := build_swarms_options(sub, ctx.req.data) or { return respond_sub_error(mut ctx, err) }
+	if swarm_sub_mutates(sub, opts) && opts.run_id.len > 0 {
+		mut lock_set := app.swarm_locks
+		mut run_lock := lock_set.for_run(opts.run_id)
+		run_lock.lock()
+		defer {
+			lock_set.release(opts.run_id, run_lock)
+		}
+	}
 	res := agent_toolkit_core.swarm_result(agent_toolkit_core.run_swarm(opts))
 	if res.ok && swarm_sub_mutates(sub, opts) {
 		app.emit(ApiEvent{

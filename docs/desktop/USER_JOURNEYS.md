@@ -18,7 +18,7 @@ outcomes, not claims that every step is implemented.
 | Target setup | Explain where skills become available → select tool and scope → show compatibility evidence → install → inspect actual receipt → rollback. Use "coding tools" before "targets". |
 | Job operation | Configure real operation → review → start → observe logs/status/duration → cancel, retry or inspect failure. Spawn failure never becomes running. |
 | Loop operation | Select template → configure schedule/budget → preview → run or enable → observe next/previous runs → pause/resume → recover failure. |
-| Swarm operation | Choose recipe/project/agents → preview scope/budget → launch → observe real topology, handoffs, artifacts and approvals → attach session → cancel/recover. |
+| Swarm operation | Choose a registered project, recipe and task → review role bindings, runner/model, gates, budget and worktree scope → preview the resolved repository → start → observe real topology, handoffs, artifacts and approvals → attach session → cancel/recover. |
 | Doctor repair | Run checks → understand issue/impact/what remains safe → preview repair → apply → verify → undo when supported or follow recovery guidance. |
 | Terminal lifecycle | Create or attach → type → split/switch/focus → resize/search/select/copy/paste → observe exit → dismiss or explicitly restart. Global shortcuts do not consume input. |
 | Workspace switching | Choose validated workspace → explain active work/session implications → switch atomically → see correct context → recover invalid destination without losing current context. |

@@ -13,6 +13,8 @@ import {
 } from '../../lib/api';
 import { requireClient, useBackend } from '../../data/backend';
 import { useSessionContext } from '../../shell/useSessionContext';
+import { useProjects } from '../../data/projects';
+import { hasProjectBoundSwarmPreview } from './swarmPreview';
 import {
   Button,
   ButtonRow,
@@ -122,6 +124,7 @@ function SwarmTable({
           <th scope="col">State</th>
           <th scope="col">Run</th>
           <th scope="col">Recipe</th>
+          <th scope="col">Project</th>
           <th scope="col">Backend</th>
         </tr>
       </thead>
@@ -144,6 +147,9 @@ function SwarmTable({
             </th>
             <td>
               <Mono>{run.recipe || '—'}</Mono>
+            </td>
+            <td>
+              <Mono>{run.project_id || '—'}</Mono>
             </td>
             <td>
               <Mono>{run.backend || '—'}</Mono>
@@ -580,11 +586,13 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   const providers = useProviders();
   const models = useModels();
   const catalog = useSwarmRecipes();
+  const projectsQuery = useProjects(context.workspace, { enabled: open });
   const mutate = useSwarmCommand();
   const queryClient = useQueryClient();
   const receipt = useActionReceipt('Swarm start posted');
   const [recipe, setRecipe] = useState('pair');
   const [task, setTask] = useState('');
+  const [projectId, setProjectId] = useState('');
   const [runner, setRunner] = useState('');
   const [model, setModel] = useState('');
   const [backend, setBackend] = useState('auto');
@@ -618,6 +626,14 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   });
 
   const selectedRecipe = catalog.data?.recipes.find((item) => item.name === recipe);
+  const availableProjects = (projectsQuery.data?.projects ?? []).filter((project) => project.status === 'ok');
+  const selectedProject = availableProjects.find((project) => project.name === projectId);
+  useEffect(() => {
+    if (!open || projectsQuery.isPending || projectsQuery.isError) return;
+    const healthyProjects = (projectsQuery.data?.projects ?? []).filter((project) => project.status === 'ok');
+    if (healthyProjects.some((project) => project.name === projectId)) return;
+    setProjectId(healthyProjects.length === 1 ? (healthyProjects[0]?.name ?? '') : '');
+  }, [open, projectsQuery.isPending, projectsQuery.isError, projectsQuery.data, projectId]);
   const workspaceName =
     context.workspace
       .replace(/[\\/]+$/, '')
@@ -663,6 +679,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   const body = useMemo(() => {
     const payload: SubBody<'swarms'> = {
       workspace: context.workspace || undefined,
+      project_id: projectId || undefined,
       recipe,
       task: task.trim() || undefined,
       runner: runner || undefined,
@@ -681,6 +698,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
     activeRoleRunnerOverrides,
     backend,
     context.workspace,
+    projectId,
     dryRun,
     model,
     recipe,
@@ -695,10 +713,18 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   const startPreview = useQuery({
     queryKey: ['swarms', 'start-preview', previewBody],
     queryFn: async () => requireOk(await requireClient(client).sub('swarms', 'start', previewBody)),
-    enabled: open && Boolean(context.workspace) && Boolean(previewTask) && Boolean(selectedRecipe) && client !== null,
+    enabled:
+      open &&
+      Boolean(context.workspace) &&
+      Boolean(projectId) &&
+      Boolean(previewTask) &&
+      Boolean(selectedRecipe) &&
+      client !== null,
     retry: false,
     staleTime: 500,
   });
+  const previewProjectPath = startPreview.data?.data['project_path'];
+  const previewConfirmsProject = hasProjectBoundSwarmPreview(startPreview.data?.data, projectId);
   const resolvedPeople = useMemo<Record<string, string>>(() => {
     const raw = startPreview.data?.data['person_bindings'];
     if (!raw) return {};
@@ -735,6 +761,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
     saveDefaults.reset();
     setRecipe('pair');
     setTask('');
+    setProjectId('');
     setRunner('');
     setModel('');
     setBackend('auto');
@@ -747,9 +774,25 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   };
 
   const submit = () => {
-    if (!context.workspace || !task.trim() || !selectedRecipe || catalog.isLoading || mutate.isPending) return;
+    if (
+      !context.workspace ||
+      !projectId ||
+      !task.trim() ||
+      previewTask !== task.trim() ||
+      !previewConfirmsProject ||
+      startPreview.isFetching ||
+      startPreview.isError ||
+      !selectedRecipe ||
+      catalog.isLoading ||
+      mutate.isPending
+    ) {
+      return;
+    }
     mutate.mutate(
-      { sub: 'start', body },
+      {
+        sub: 'start',
+        body: compactBody({ ...body, expected_project_path: previewProjectPath }),
+      },
       {
         onSuccess: (envelope) => {
           receipt.onSuccess({ message: envelope.message || 'swarms start' });
@@ -773,7 +816,19 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
           <Button
             variant="primary"
             onClick={submit}
-            disabled={!context.workspace || !task.trim() || !selectedRecipe || catalog.isLoading}
+            disabled={
+              !context.workspace ||
+              !projectId ||
+              !task.trim() ||
+              previewTask !== task.trim() ||
+              !previewConfirmsProject ||
+              startPreview.isFetching ||
+              startPreview.isError ||
+              !selectedRecipe ||
+              catalog.isLoading ||
+              projectsQuery.isPending ||
+              projectsQuery.isError
+            }
             busy={mutate.isPending}
             busyLabel="Starting…"
           >
@@ -793,6 +848,35 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
           <span className={styles.previewLabel}>Current workspace</span>
           <strong>{workspaceName || 'No workspace selected'}</strong>
         </div>
+        <Field label="Project" hint="The swarm runs against this registered project and its Git worktree.">
+          {(control) => (
+            <Select
+              value={projectId}
+              onChange={(event) => setProjectId(event.target.value)}
+              disabled={projectsQuery.isPending || projectsQuery.isError || availableProjects.length === 0}
+              {...control}
+            >
+              <option value="">Choose a project…</option>
+              {availableProjects.map((project) => (
+                <option key={project.name} value={project.name}>
+                  {project.name}
+                </option>
+              ))}
+            </Select>
+          )}
+        </Field>
+        {projectsQuery.isError ? (
+          <ErrorState title="Could not load workspace projects" error={projectsQuery.error} />
+        ) : availableProjects.length === 0 && !projectsQuery.isPending ? (
+          <EmptyState title="No available projects in this workspace.">
+            Add a project from Workspace before starting a swarm. A project must be a registered Git repository.
+          </EmptyState>
+        ) : selectedProject ? (
+          <div className={styles.workspaceContext} title={selectedProject.target}>
+            <span className={styles.previewLabel}>Swarm repository</span>
+            <strong>{selectedProject.target}</strong>
+          </div>
+        ) : null}
         <Field label="Team recipe" hint="Roles and approval gates come from the canonical Toolkit recipe.">
           {(control) => (
             <Select value={recipe} onChange={(event) => setRecipe(event.target.value)} {...control}>
@@ -1107,8 +1191,10 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
         <div>
           <p className={styles.previewLabel}>Start review</p>
           <p>
-            {recipe} swarm{task.trim() ? ` · ${task.trim()}` : ' · Add a task to continue'}
+            {selectedProject?.name || 'Choose a project'} · {recipe} swarm
+            {task.trim() ? ` · ${task.trim()}` : ' · Add a task to continue'}
           </p>
+          {previewConfirmsProject ? <p className={styles.previewLabel}>Repository · {previewProjectPath}</p> : null}
           <p className={styles.previewLabel}>Runtime selection</p>
           <p>
             {runner || 'Automatic runner'} · {backend}
@@ -1123,9 +1209,21 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
             {!previewTask ? <p>Add a task to preview compatible People and ephemeral fallbacks.</p> : null}
             {startPreview.isFetching ? <p role="status">Resolving role assignments…</p> : null}
             {startPreview.isError ? (
-              <ErrorState title="Could not preview role assignments" error={startPreview.error} />
+              <>
+                <ErrorState title="Could not preview this swarm start" error={startPreview.error} />
+                <p className={styles.bindingNote}>
+                  Nothing has started. Check that the selected project is still linked and is a Git repository, then
+                  retry the preview.
+                </p>
+              </>
             ) : null}
-            {startPreview.data ? (
+            {startPreview.data && !previewConfirmsProject ? (
+              <p role="alert" className={styles.bindingNote}>
+                The backend did not confirm the selected project and repository. Nothing has started. Update or restart
+                the managed backend, then retry the preview.
+              </p>
+            ) : null}
+            {startPreview.data && previewConfirmsProject ? (
               <div className={styles.recipeSummary}>
                 {(selectedRecipe?.roles ?? []).map((role) => {
                   const personId = resolvedPeople[role.name];

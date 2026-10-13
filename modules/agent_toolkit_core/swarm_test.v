@@ -2,6 +2,139 @@ module agent_toolkit_core
 
 import os
 
+fn test_swarm_role_execution_root_requires_recorded_writer_worktree() {
+	base := os.join_path(os.temp_dir(), 'at-swarm-role-root-${os.getpid()}')
+	run_dir := os.join_path(base, 'run')
+	repo_root := os.join_path(base, 'project')
+	wt_path := os.join_path(run_dir, 'worktrees', 'implementer')
+	os.mkdir_all(base) or { panic(err) }
+	defer { os.rmdir_all(base) or {} }
+	git_init := swarm_git_run(['init', repo_root], base)
+	assert git_init.exit_code == 0, git_init.stderr
+	for args in [
+		['-C', repo_root, 'config', 'user.name', 'Agent Toolkit Tests'],
+		['-C', repo_root, 'config', 'user.email', 'tests@agent-toolkit.invalid'],
+		['-C', repo_root, 'commit', '--allow-empty', '-m', 'test base'],
+	] {
+		res := swarm_git_run(args, base)
+		assert res.exit_code == 0, res.stderr
+	}
+	wt := swarm_create_worktree(repo_root, run_dir, 'implementer', 'run-test', 'HEAD') or {
+		panic(err)
+	}
+	state := SwarmStateFile{
+		run_id:   'run-test'
+		recipe:   'pair'
+		worktrees: [wt]
+	}
+	writer_root := swarm_role_execution_root(state, run_dir, repo_root, 'implementer') or { panic(err) }
+	planner_root := swarm_role_execution_root(state, run_dir, repo_root, 'planner') or { panic(err) }
+	assert writer_root == wt_path
+	assert planner_root == repo_root
+	ordinary_run := os.join_path(base, 'ordinary-run')
+	ordinary_role_path := os.join_path(ordinary_run, 'worktrees', 'implementer')
+	os.mkdir_all(ordinary_role_path) or { panic(err) }
+	if _ := swarm_create_worktree(repo_root, ordinary_run, 'implementer', 'run-test', 'HEAD') {
+		assert false
+	} else {
+		assert err.msg().contains('not the registered swarm Git worktree')
+	}
+	if _ := swarm_role_execution_root(SwarmStateFile{ run_id: 'run-test', recipe: 'pair' }, run_dir, repo_root,
+		'implementer') {
+		assert false
+	} else {
+		assert err.msg().contains('refusing to launch')
+	}
+	if _ := swarm_role_execution_root(SwarmStateFile{
+		run_id:   'run-test'
+		recipe:   'pair'
+		worktrees: [SwarmWorktree{ ...wt, path: os.join_path(base, 'not-a-worktree') }]
+	}, run_dir, repo_root, 'implementer') {
+		assert false
+	} else {
+		assert err.msg().contains('refusing to launch')
+	}
+	ordinary_dir := os.join_path(base, 'ordinary-directory')
+	os.mkdir_all(ordinary_dir) or { panic(err) }
+	if _ := swarm_role_execution_root(SwarmStateFile{
+		run_id: 'run-test'
+		recipe: 'pair'
+		worktrees: [SwarmWorktree{ ...wt, path: ordinary_dir }]
+	}, run_dir, repo_root, 'implementer') {
+		assert false
+	} else {
+		assert err.msg().contains('refusing to launch')
+	}
+	$if !windows {
+		unsafe_run := os.join_path(base, 'unsafe-run')
+		os.mkdir_all(unsafe_run) or { panic(err) }
+		unsafe_worktrees := os.join_path(base, 'unsafe-worktrees')
+		os.mkdir_all(unsafe_worktrees) or { panic(err) }
+		os.symlink(unsafe_worktrees, os.join_path(unsafe_run, 'worktrees')) or {
+			panic(err)
+		}
+		if _ := swarm_create_worktree(repo_root, unsafe_run, 'implementer', 'run-test', 'HEAD') {
+			assert false
+		} else {
+			assert err.msg().contains('through a symlink')
+		}
+		unsafe_state := SwarmStateFile{
+			run_id:   'run-test'
+			recipe:   'pair'
+			worktrees: [SwarmWorktree{ ...wt, path: os.join_path(unsafe_run, 'worktrees', 'implementer') }]
+		}
+		if _ := swarm_role_execution_root(unsafe_state, unsafe_run, repo_root, 'implementer') {
+			assert false
+		} else {
+			assert err.msg().contains('symlink')
+		}
+	}
+}
+
+fn test_swarm_started_marker_survives_concurrent_trace_rewrite() {
+	run_dir := os.join_path(os.temp_dir(), 'at-swarm-start-marker-${os.getpid()}')
+	ensure_swarm_run_dirs(run_dir) or { panic(err) }
+	defer { os.rmdir_all(run_dir) or {} }
+	marker := swarm_reserve_role_start(run_dir, 'implementer') or { panic(err) }
+	os.write_file(marker, 'started\n') or { panic(err) }
+	append_swarm_trace(run_dir, 'role_autostarted', 'reviewer=opencode')
+	assert swarm_role_already_started(run_dir, 'implementer') or { panic(err) }
+	if _ := swarm_reserve_role_start(run_dir, 'implementer') {
+		assert false
+	} else {
+		assert err.msg().contains('startup reservation')
+	}
+}
+
+fn test_interrupted_swarm_role_start_fails_closed_for_review() {
+	run_dir := os.join_path(os.temp_dir(), 'at-swarm-interrupted-marker-${os.getpid()}')
+	ensure_swarm_run_dirs(run_dir) or { panic(err) }
+	defer { os.rmdir_all(run_dir) or {} }
+	marker := swarm_reserve_role_start(run_dir, 'reviewer') or { panic(err) }
+	assert os.read_file(marker) or { panic(err) } == 'starting\n'
+	if _ := swarm_role_already_started(run_dir, 'reviewer') {
+		assert false
+	} else {
+		assert err.msg().contains('inspect its terminal')
+		assert err.msg().contains('duplicate work')
+	}
+}
+
+fn test_swarm_run_listing_deduplicates_workspace_project_symlink() {
+	workspace := os.join_path(os.temp_dir(), 'at-swarm-list-dedupe-${os.getpid()}')
+	os.mkdir_all(workspace) or { panic(err) }
+	defer { os.rmdir_all(workspace) or {} }
+	run_dir := swarm_run_dir(workspace, 'run-test')
+	ensure_swarm_run_dirs(run_dir) or { panic(err) }
+	projects_dir := os.join_path(workspace, 'projects')
+	os.mkdir_all(projects_dir) or { panic(err) }
+	os.symlink(workspace, os.join_path(projects_dir, 'workspace-alias')) or { panic(err) }
+
+	runs := list_all_swarm_runs(workspace)
+	assert runs.len == 1
+	assert runs[0] == os.real_path(run_dir)
+}
+
 fn test_swarm_help() {
 	r := run_swarm(SwarmOptions{
 		subcommand: 'help'
@@ -103,6 +236,61 @@ fn test_swarm_start_preview_reports_resolved_role_execution() {
 	assert preview.ok, preview.message
 	assert preview.data['role_execution'].contains('"reviewer":{"runner":"opencode","model":"sonnet"}')
 	assert preview.data['role_execution'].contains('"planner":{"runner":"codex","model":"o3-mini"}')
+	assert !os.is_dir(os.join_path(base, '.agent-toolkit', 'swarm', 'runs'))
+}
+
+fn test_swarm_start_preview_targets_the_selected_workspace_project() {
+	base := os.join_path(os.temp_dir(), 'at-swarm-project-${os.getpid()}')
+	repo := os.join_path(os.temp_dir(), 'at-swarm-project-repo-${os.getpid()}')
+	os.mkdir_all(os.join_path(base, 'projects')) or { panic(err) }
+	os.write_file(os.join_path(base, 'AGENTS.md'), '# workspace\n') or { panic(err) }
+	os.mkdir_all(os.join_path(repo, '.git')) or { panic(err) }
+	os.symlink(repo, os.join_path(base, 'projects', 'agent-toolkit')) or { panic(err) }
+	defer {
+		os.rmdir_all(base) or {}
+		os.rmdir_all(repo) or {}
+	}
+
+	preview := run_swarm(SwarmOptions{
+		subcommand: 'start'
+		workspace_path: base
+		project_id: 'agent-toolkit'
+		recipe: 'pair'
+		backend: 'headless'
+		dry_run: true
+		task: 'inspect project selection'
+	})
+	assert preview.ok, preview.message
+	assert preview.data['project_id'] == 'agent-toolkit'
+	assert preview.data['project_path'] == os.real_path(repo)
+	changed := run_swarm(SwarmOptions{
+		subcommand: 'start'
+		workspace_path: base
+		project_id: 'agent-toolkit'
+		expected_project_path: base
+		recipe: 'pair'
+		backend: 'headless'
+		dry_run: true
+		task: 'reject a project whose reviewed path changed'
+	})
+	assert !changed.ok
+	assert changed.message.contains('changed after preview')
+	assert !os.is_dir(os.join_path(base, '.agent-toolkit', 'swarm', 'runs'))
+	resolved := swarm_repository_root(base, 'agent-toolkit') or { panic(err) }
+	assert resolved == os.real_path(repo)
+	assert !os.is_dir(os.join_path(base, '.agent-toolkit', 'swarm', 'runs'))
+
+	bad := run_swarm(SwarmOptions{
+		subcommand: 'start'
+		workspace_path: base
+		project_id: 'missing'
+		recipe: 'pair'
+		backend: 'headless'
+		dry_run: true
+		task: 'must not select the workspace root'
+	})
+	assert !bad.ok
+	assert bad.message.contains('project not found')
 	assert !os.is_dir(os.join_path(base, '.agent-toolkit', 'swarm', 'runs'))
 }
 

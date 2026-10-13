@@ -306,6 +306,27 @@ pub fn list_project_entries(workspace string) !ProjectListResponse {
 	}
 }
 
+// resolve_project_root returns the canonical git root for a registered
+// workspace project. Swarm launch uses this instead of treating the workspace
+// directory itself as the repository, and rejects unsafe or stale links.
+pub fn resolve_project_root(workspace string, project string) !string {
+	name := project.trim_space()
+	if name.len == 0 || name in ['.', '..'] || name.contains('/') || name.contains('\\')
+		|| name.contains('\x00') || name.contains('%') {
+		return error('invalid project id')
+	}
+	ws := find_workspace_root(workspace) or { return error('workspace not found') }
+	projects_dir := os.join_path(os.real_path(ws), 'projects')
+	if os.is_link(projects_dir) { return error('projects directory is a symlink') }
+	link := os.join_path(projects_dir, name)
+	if !os.is_link(link) { return error('project not found: ${name}') }
+	target := os.readlink(link) or { return error('project link cannot be read') }
+	if !symlink_target_exists(link, target) { return error('project target is missing') }
+	path := os.real_path(link)
+	if path.len == 0 || !os.is_dir(path) { return error('project target is not a directory') }
+	return find_git_root(path) or { error('project is not a git repository: ${name}') }
+}
+
 fn project_list(ws string) ProjectReport {
 	projects_dir := os.join_path(ws, 'projects')
 	mut lines := []string{}
