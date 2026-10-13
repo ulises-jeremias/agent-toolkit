@@ -14,6 +14,7 @@ import {
 import { requireClient, useBackend } from '../../data/backend';
 import { useSessionContext } from '../../shell/useSessionContext';
 import { useProjects } from '../../data/projects';
+import { hasProjectBoundSwarmPreview } from './swarmPreview';
 import {
   Button,
   ButtonRow,
@@ -722,6 +723,8 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
     retry: false,
     staleTime: 500,
   });
+  const previewProjectPath = startPreview.data?.data['project_path'];
+  const previewConfirmsProject = hasProjectBoundSwarmPreview(startPreview.data?.data, projectId);
   const resolvedPeople = useMemo<Record<string, string>>(() => {
     const raw = startPreview.data?.data['person_bindings'];
     if (!raw) return {};
@@ -776,7 +779,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
       !projectId ||
       !task.trim() ||
       previewTask !== task.trim() ||
-      !startPreview.data ||
+      !previewConfirmsProject ||
       startPreview.isFetching ||
       startPreview.isError ||
       !selectedRecipe ||
@@ -786,7 +789,10 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
       return;
     }
     mutate.mutate(
-      { sub: 'start', body },
+      {
+        sub: 'start',
+        body: compactBody({ ...body, expected_project_path: previewProjectPath }),
+      },
       {
         onSuccess: (envelope) => {
           receipt.onSuccess({ message: envelope.message || 'swarms start' });
@@ -815,7 +821,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
               !projectId ||
               !task.trim() ||
               previewTask !== task.trim() ||
-              !startPreview.data ||
+              !previewConfirmsProject ||
               startPreview.isFetching ||
               startPreview.isError ||
               !selectedRecipe ||
@@ -1188,9 +1194,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
             {selectedProject?.name || 'Choose a project'} · {recipe} swarm
             {task.trim() ? ` · ${task.trim()}` : ' · Add a task to continue'}
           </p>
-          {startPreview.data?.data['project_path'] ? (
-            <p className={styles.previewLabel}>Repository · {startPreview.data.data['project_path']}</p>
-          ) : null}
+          {previewConfirmsProject ? <p className={styles.previewLabel}>Repository · {previewProjectPath}</p> : null}
           <p className={styles.previewLabel}>Runtime selection</p>
           <p>
             {runner || 'Automatic runner'} · {backend}
@@ -1213,7 +1217,13 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
                 </p>
               </>
             ) : null}
-            {startPreview.data ? (
+            {startPreview.data && !previewConfirmsProject ? (
+              <p role="alert" className={styles.bindingNote}>
+                The backend did not confirm the selected project and repository. Nothing has started. Update or restart
+                the managed backend, then retry the preview.
+              </p>
+            ) : null}
+            {startPreview.data && previewConfirmsProject ? (
               <div className={styles.recipeSummary}>
                 {(selectedRecipe?.roles ?? []).map((role) => {
                   const personId = resolvedPeople[role.name];

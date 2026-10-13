@@ -242,3 +242,19 @@ fn test_spawn_opener_windows_args_split_correctly() {
 	assert args_windows[2] == 'start'
 	assert args_windows[3] == url
 }
+
+fn test_swarm_lock_set_scopes_concurrency_by_run() {
+	mut locks := new_swarm_lock_set()
+	mut first := locks.for_run('run-one')
+	mut same_run := locks.for_run('run-one')
+	mut other_run := locks.for_run('run-two')
+	first.lock()
+	assert !same_run.try_lock()
+	assert other_run.try_lock()
+	locks.release('run-one', first)
+	assert same_run.try_lock()
+	locks.release('run-one', same_run)
+	locks.release('run-two', other_run)
+	assert locks.locks.len == 0
+	assert locks.refs.len == 0
+}

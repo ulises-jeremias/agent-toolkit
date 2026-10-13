@@ -10,7 +10,7 @@ export function useProjects(workspace: string, options: { enabled?: boolean } = 
     queryKey: qk.projects.list(workspace),
     queryFn: () => requireClient(client).projects(workspace),
     enabled: client !== null && workspace.trim().length > 0 && (options.enabled ?? true),
-    staleTime: 15_000,
+    staleTime: 0,
     refetchOnMount: 'always',
   });
 }

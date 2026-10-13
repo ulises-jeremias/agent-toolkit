@@ -2741,6 +2741,7 @@ export interface operations {
                 "application/json": {
                     workspace?: string;
                     project_id?: string;
+                    expected_project_path?: string;
                     run_id?: string;
                     gate_id?: string;
                     recipe?: string;
