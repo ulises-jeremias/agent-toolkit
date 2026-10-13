@@ -1332,7 +1332,9 @@ describe('layoutWorld', () => {
     expect(denseWindows.length).toBeGreaterThan(0);
     const featuredPatches = terrain.decor.filter((sprite) => sprite.sprite.startsWith('wildflower-patch-'));
     expect(featuredPatches.length).toBeGreaterThan(0);
-    expect(featuredPatches.every((sprite) => sprite.w === 40 && sprite.h === 28)).toBe(true);
+    expect(
+      featuredPatches.every((sprite) => (sprite.w === 40 && sprite.h === 28) || (sprite.w === 24 && sprite.h === 24)),
+    ).toBe(true);
     const isPathTile = (tile: string) =>
       ['dirt', 'plaza', 'plaza-b'].includes(tile) || tile.startsWith('dirt-') || tile.startsWith('trail');
     const paths = cells.filter(({ tile }) => isPathTile(tile));
@@ -1349,6 +1351,36 @@ describe('layoutWorld', () => {
       );
       expect(overlapsPath).toBe(false);
     }
+  });
+
+  it('keeps the civic meadow in bloom instead of concentrating flowers by the creek', () => {
+    const layout = layoutWorld(
+      buildWorldModel(
+        baseInput({
+          projects: ['agent-toolkit', 'harness', 'workspace'].map((name) => ({
+            name,
+            target: `/${name}`,
+            status: 'ok' as const,
+          })),
+        }),
+      ),
+    );
+    const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);
+    const water = terrain.cells.filter(({ tile }) => tile === 'water');
+    const creekX = Math.min(...water.map(({ x }) => x));
+    const flowers = terrain.cells.filter(({ tile }) => tile.startsWith('flowers-'));
+    const westBankFlowers = flowers.filter(({ x }) => x < creekX - 3);
+    const eastBankFlowers = flowers.filter(({ x }) => x > creekX + 3);
+    const flowerPatches = terrain.decor.filter(({ sprite }) => sprite.startsWith('wildflower-patch-'));
+    const westBankPatches = flowerPatches.filter(({ x }) => x < creekX - 3);
+    const eastBankPatches = flowerPatches.filter(({ x }) => x > creekX + 3);
+
+    expect(water.length).toBeGreaterThan(0);
+    expect(westBankFlowers.length).toBeGreaterThan(15);
+    expect(eastBankFlowers.length).toBeGreaterThan(5);
+    expect(flowerPatches.length).toBeGreaterThanOrEqual(3);
+    expect(westBankPatches.length).toBeGreaterThan(0);
+    expect(eastBankPatches.length).toBeGreaterThan(0);
   });
 
   it('lays out a project interior without shared Library or Workshop fixtures', () => {

@@ -3,6 +3,20 @@ import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend } from './fixtures';
 
+async function expectFittedWorld(page: import('@playwright/test').Page) {
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const region = document.querySelector<HTMLElement>('[aria-label="Semantic workspace world"]');
+        const map = region?.querySelector<HTMLElement>('[data-world-map="true"]');
+        if (!region || !map) return false;
+        const bounds = map.getBoundingClientRect();
+        return bounds.width <= region.clientWidth + 1 && bounds.height <= region.clientHeight + 1;
+      }),
+    )
+    .toBe(true);
+}
+
 test('links an existing project from the GUI and places it in the world', async () => {
   if (process.env['ATK_CAPTURE'] === '1') test.setTimeout(5 * 60_000);
   const desktop = await openDesktop();
@@ -34,10 +48,13 @@ test('links an existing project from the GUI and places it in the world', async 
       ]) {
         await setViewport(desktop.app, size.width, size.height);
         await page.getByRole('button', { name: 'Fit world' }).click();
-        await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toHaveAttribute(
-          'data-zoom',
-          size.key === 'large' ? '64' : '32',
-        );
+        await expectFittedWorld(page);
+        if (size.key === 'compact') {
+          await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toHaveAttribute(
+            'data-zoom',
+            '32',
+          );
+        }
         await page.screenshot({ path: path.join(captureDir, `world-empty-${size.key}.png`) });
       }
     }
@@ -126,7 +143,11 @@ test('links an existing project from the GUI and places it in the world', async 
       ]) {
         await setViewport(desktop.app, size.width, size.height);
         await page.getByRole('button', { name: 'Fit world' }).click();
-        await expect(world).toHaveAttribute('data-zoom', size.key === 'large' ? '64' : '32');
+        if (size.key === 'large') {
+          await expectFittedWorld(page);
+        } else {
+          await expect(world).toHaveAttribute('data-zoom', '32');
+        }
         await page.waitForTimeout(200);
         await page.screenshot({ path: path.join(captureDir, `world-one-project-${size.key}.png`) });
         await page.getByRole('button', { name: /^Library · Capability library/ }).focus();
@@ -143,7 +164,7 @@ test('links an existing project from the GUI and places it in the world', async 
     await expect(world).toHaveAttribute('data-zoom', '32');
     await setViewport(desktop.app, 1920, 1080);
     await page.getByRole('button', { name: 'Fit world' }).click();
-    await expect(world).toHaveAttribute('data-zoom', '64');
+    await expectFittedWorld(page);
     const libraryPlace = page.getByRole('button', { name: /^Library · Capability library/ });
     await libraryPlace.focus();
     await page.keyboard.press('ArrowRight');
@@ -294,10 +315,7 @@ test('links an existing project from the GUI and places it in the world', async 
         ]) {
           await setViewport(desktop.app, size.width, size.height);
           await page.getByRole('button', { name: 'Fit world' }).click();
-          await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toHaveAttribute(
-            'data-zoom',
-            size.key === 'large' ? '64' : '32',
-          );
+          await expectFittedWorld(page);
           await page.waitForTimeout(200);
           await page.screenshot({ path: path.join(captureDir, `world-several-projects-${theme}-${size.key}.png`) });
         }

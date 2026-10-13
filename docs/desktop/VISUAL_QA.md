@@ -991,3 +991,23 @@ mostly orthogonal paths, and project architecture could use more district
 identity. The local checkout's `dist/agent-toolkit` was stale and returned a
 Projects API 404; these captures use the installed Desktop backend, which
 returned live workspace state successfully.
+
+## Civic meadow flower balance — 2026-10-13
+
+I reviewed a fresh Electron run at 1024×640 and 1920×1080 with three linked
+projects, in Meadow and Dusk. Flower glades now reserve space on both sides of
+the creek, and a smaller civic-bank flower clump is placed only where its
+footprint clears project/path collision cells. The regular flower patches are
+added after tree layout so bloom placement cannot reduce woodland density.
+The current screenshots in the [multi-project meadow](assets/electron/world/world-several-projects-compact.png),
+[large meadow](assets/electron/world/world-several-projects-large.png),
+[compact dusk](assets/electron/world/world-several-projects-dusk-compact.png),
+and [large dusk](assets/electron/world/world-several-projects-dusk-large.png)
+files show the real rendered result. Compact and large Fit World behavior was
+also exercised in Electron; large-window assertions check map bounds rather
+than assuming one fixed zoom across layouts.
+
+This improves color balance but does not resolve the broader art critique:
+the civic bank still has open lawn, repeated orthogonal paths, and less visual
+texture than the project bank. The change is a measured terrain adjustment,
+not a sign-off that the valley now meets the final art direction.
