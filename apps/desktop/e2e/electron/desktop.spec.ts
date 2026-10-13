@@ -1075,7 +1075,9 @@ test('Operations refreshes a live swarm when its state changes outside Desktop',
   await dialog.getByRole('button', { name: 'Start swarm' }).click();
   await expect(dialog).toBeHidden();
 
-  const runRow = page.getByRole('button', { name: /Observe externally updated run state/ });
+  const swarmRow = page.getByRole('row').filter({ hasText: 'Observe externally updated run state' });
+  await expect(swarmRow).toBeVisible();
+  const runRow = swarmRow.getByRole('button', { name: /Observe externally updated run state/ });
   await expect(runRow).toBeVisible();
   const dismissReceipt = page.getByRole('button', { name: 'Dismiss: Swarm start posted' }).last();
   if (await dismissReceipt.isVisible()) await dismissReceipt.click();
