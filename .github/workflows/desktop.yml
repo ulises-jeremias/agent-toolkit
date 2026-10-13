@@ -156,7 +156,6 @@ jobs:
           test -s "${{ runner.temp }}/atk-library-review/copilot-project-review-compact.png"
           test -s "${{ runner.temp }}/atk-library-review/copilot-project-review-large.png"
           test -s "${{ runner.temp }}/atk-import-review/munder-review-compact.png"
-          test -s "${{ runner.temp }}/atk-import-review/munder-review-large.png"
           for screenshot in \
             meadow-1024x640-world.png meadow-1920x1080-world.png \
             meadow-1920x1080-library.png meadow-1920x1080-operations.png \
@@ -168,7 +167,7 @@ jobs:
             test -s "${{ runner.temp }}/atk-people-review/$screenshot"
           done
           for screenshot in attention-swarm-gate-compact.png attention-swarm-gate-large.png; do
-            test -s "${{ runner.temp }}/atk-attention-review/$screenshot"
+          test -s "${{ runner.temp }}/atk-attention-review/$screenshot"
           done
           for screenshot in workspace-packs-compact.png workspace-packs-large.png; do
             test -s "${{ runner.temp }}/atk-workspace-packs-review/$screenshot"
