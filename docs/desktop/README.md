@@ -5,7 +5,8 @@ Agent Toolkit Desktop is a standalone Electron workstation over the canonical
 is a valley, registered projects are buildings, and shared services have their
 own recognizable places. The spatial view explains where things belong; the
 inspectors provide precise control without requiring the user to walk an avatar
-or run CLI commands.
+or run CLI commands. Walking, click-to-move and direct navigation are
+complementary ways to reach the same canonical product actions.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/world.png" width="100%" alt="A real Agent Toolkit workspace, showing separate project buildings, shared landmarks, creek, bridge, footpaths, and woodland" />
@@ -18,11 +19,11 @@ real backend. They show product behavior; visual approval and remaining
 composition work are tracked separately in the [visual QA log](VISUAL_QA.md).
 The larger world and inspector gallery is in the [repository README](../../README.md#desktop-app-gui).
 
-| Meadow valley | Dusk valley |
+| Walkable Meadow valley | Lantern-lit Dusk |
 | --- | --- |
-| ![The workspace valley in Meadow light, with actual projects, shared places, creek and woodland](../../static/screenshots/world.png) | ![The workspace valley at dusk, with project houses, shared places, creek and forest](../../static/screenshots/world-dusk.png) |
-| Project interior | Live Person presence |
-| ![Project interior with real Files, Memory, Terminal and project context destinations](../../static/screenshots/project-interior.png) | ![Lina appears in the project house only while her real local PTY session is running](assets/electron/people/world-person-large.png) |
+| ![The workspace valley with the human player, real projects, shared places, creek and woodland](../../static/screenshots/world.png) | ![The workspace valley at dusk, with project houses, shared places, creek and forest](../../static/screenshots/world-dusk.png) |
+| Project interior | Walking and click-to-move |
+| ![Project interior with real overview, files, records and terminal stations](../../static/screenshots/project-interior.png) | ![The player walks through the workspace using keyboard controls or click-to-move](../../static/screenshots/world-walk.png) |
 | People roster | Capability Library |
 | ![Configured collaborators in the People roster; offline People are not shown as active world characters](../../static/screenshots/people.png) | ![Library of reusable Agent Toolkit capabilities](../../static/screenshots/library.png) |
 | Operations | Real PTY terminal |
