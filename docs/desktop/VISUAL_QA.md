@@ -964,3 +964,29 @@ description still takes several lines on compact screens. Broader Library
 layout, repository-scoped Skills/Agent Definitions, and capability-pack
 discovery remain open work; this card review is not a visual sign-off for the
 whole Desktop.
+
+## Player-first world entry — 2026-10-13
+
+The world now starts at the human player's exploration scale with the camera
+following them; **Fit world** remains available for a full-valley overview.
+Movement still requires explicit Walk focus for keyboard input, so forms,
+terminals, and the command palette keep their normal keyboard behavior. The
+player remains a human avatar, and active worker characters still come only
+from real sessions.
+
+I ran the Electron app against the backend bundled in the installed Desktop,
+captured compact and large first-open views plus a compact walking frame, and
+opened all three: [start, compact](assets/electron/world-player-start-2026-10-13/world-player-start-compact.png),
+[start, large](assets/electron/world-player-start-2026-10-13/world-player-start-large.png),
+and [walking, compact](assets/electron/world-player-start-2026-10-13/world-player-walking-compact.png).
+The avatar is visible in the settlement and the creek, bridge, and landmarks
+remain readable at large size. The small walking view crops nearby architecture
+as expected while following the player.
+
+This is a stronger playable entry but not a composition sign-off: the large
+view still has broad open grass and mostly orthogonal paths, and the compact
+view gives only a small neighborhood. The next art pass needs to improve the
+settlement composition and surrounding meadow while preserving this fast
+player-first entry. The local checkout's `dist/agent-toolkit` was stale and
+returned a Projects API 404; these captures use the installed Desktop backend,
+which returned live workspace state successfully.

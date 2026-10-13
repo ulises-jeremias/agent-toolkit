@@ -132,7 +132,9 @@ export function WorldEntityMap({
   const regionRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState<number>(48);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [cameraMode, setCameraMode] = useState<'frame' | 'fit' | 'manual' | 'follow'>('frame');
+  // Start at a playable scale around the human avatar. Fit world remains one
+  // click away for workspace overview and direct productivity navigation.
+  const [cameraMode, setCameraMode] = useState<'frame' | 'fit' | 'manual' | 'follow'>('follow');
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const drag = useRef<{ x: number; y: number; panX: number; panY: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
@@ -247,6 +249,22 @@ export function WorldEntityMap({
     setNearbyId(null);
     setPlayerReadyKey(playerStartKey);
   }, [collisionMap, persistKey, playerStartKey, spawnPoint]);
+
+  useEffect(() => {
+    if (!playerReady || cameraMode !== 'follow') return;
+    const region = regionRef.current;
+    if (!region) return;
+    setPan(
+      clampCamera(
+        {
+          x: Math.floor(region.clientWidth / 2 - playerPositionRef.current.x * zoom),
+          y: Math.floor(region.clientHeight / 2 - playerPositionRef.current.y * zoom),
+        },
+        { x: region.clientWidth, y: region.clientHeight },
+        { x: viewW, y: viewH },
+      ),
+    );
+  }, [cameraMode, playerReady, viewH, viewW, zoom]);
 
   useEffect(() => {
     const target = nearbyWorldTarget(playerPosition, entities, entityHasInspector);
