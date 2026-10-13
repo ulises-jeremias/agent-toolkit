@@ -212,16 +212,11 @@ test('palette reaches Person creation and Munder import review without saving or
   await expect(create).toContainText('Saving this form does not start a process');
   if (CAPTURE) {
     fs.mkdirSync(PALETTE_CAPTURE_DIR, { recursive: true });
-    for (const size of [
-      { width: 1024, height: 768, key: 'compact' },
-      { width: 1440, height: 900, key: 'large' },
-    ]) {
-      await setViewport(desktop.app, size.width, size.height);
-      await page.setViewportSize({ width: size.width, height: size.height });
-      await page.screenshot({ path: path.join(PALETTE_CAPTURE_DIR, `people-create-${size.key}.png`), fullPage: true });
-    }
-    await setViewport(desktop.app, 1280, 800);
-    await page.setViewportSize({ width: 1280, height: 800 });
+    // Capture the runner's supported compact viewport here. The canonical
+    // visual-review suite already captures the same flow at both 1024 and
+    // 1920 pixels; resizing this Electron window beyond Xvfb's active screen
+    // makes BrowserWindow clamp it back to 1024 and flakes the review job.
+    await page.screenshot({ path: path.join(PALETTE_CAPTURE_DIR, 'people-create-compact.png'), fullPage: true });
   }
   await create.getByRole('button', { name: 'Cancel' }).click();
   await expect(create).toBeHidden();
@@ -256,16 +251,7 @@ test('palette reaches Person creation and Munder import review without saving or
   await expect(review).toContainText('command');
   await expect(review).toContainText('Import never starts a session');
   if (CAPTURE) {
-    for (const size of [
-      { width: 1024, height: 768, key: 'compact' },
-      { width: 1440, height: 900, key: 'large' },
-    ]) {
-      await setViewport(desktop.app, size.width, size.height);
-      await page.setViewportSize({ width: size.width, height: size.height });
-      await page.screenshot({ path: path.join(PALETTE_CAPTURE_DIR, `munder-review-${size.key}.png`), fullPage: true });
-    }
-    await setViewport(desktop.app, 1280, 800);
-    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.screenshot({ path: path.join(PALETTE_CAPTURE_DIR, 'munder-review-compact.png'), fullPage: true });
   }
   await page.keyboard.press('Escape');
 
