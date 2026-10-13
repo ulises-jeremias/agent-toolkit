@@ -36,12 +36,15 @@ test('walks in the world only while it has focus and keeps typing local to the c
         await page.screenshot({ path: path.resolve(outputDir, `world-player-start-${viewport.name}.png`) });
       }
       await page.setViewportSize({ width: 1024, height: 640 });
+      await page.waitForTimeout(250);
     }
 
     const bounds = await world.boundingBox();
     expect(bounds).toBeTruthy();
     const beforePointerWalk = await position();
-    await world.click({ position: { x: bounds!.width * 0.88, y: bounds!.height * 0.78 } });
+    // The lower-left meadow stays clear of semantic building hit boxes across
+    // the empty and initialized workspace maps used by the real backend.
+    await world.click({ position: { x: bounds!.width * 0.22, y: bounds!.height * 0.82 } });
     await expect.poll(position, { timeout: 3_000 }).not.toEqual(beforePointerWalk);
     await expect(player).toHaveAttribute('data-walking', 'true');
     await expect(player).toHaveCSS('animation-duration', '0.26s');
@@ -77,6 +80,7 @@ test('walks in the world only while it has focus and keeps typing local to the c
         await page.screenshot({ path: path.resolve(output) });
       }
       await page.setViewportSize({ width: 1024, height: 640 });
+      await page.waitForTimeout(250);
     }
 
     await page.getByRole('button', { name: 'Explore by walking' }).click();
