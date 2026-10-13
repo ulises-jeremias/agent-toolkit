@@ -42,10 +42,54 @@ test('walks in the world only while it has focus and keeps typing local to the c
     const bounds = await world.boundingBox();
     expect(bounds).toBeTruthy();
     const beforePointerWalk = await position();
-    // The lower-left meadow stays clear of semantic building hit boxes across
-    // the empty and initialized workspace maps used by the real backend.
-    await world.click({ position: { x: bounds!.width * 0.22, y: bounds!.height * 0.82 } });
-    await expect.poll(position, { timeout: 3_000 }).not.toEqual(beforePointerWalk);
+    const nearbyGround = await page.evaluate(() => {
+      const region = document.querySelector<HTMLElement>('[role="application"][aria-label="Semantic workspace world"]');
+      const player = region?.querySelector<HTMLElement>('[aria-label="You, exploring the workspace"]');
+      if (!region || !player) return [];
+      const regionBounds = region.getBoundingClientRect();
+      const playerBounds = player.getBoundingClientRect();
+      const tileSize = Number(region.dataset['zoom']);
+      const origin = {
+        x: playerBounds.left + playerBounds.width / 2,
+        y: playerBounds.top + playerBounds.height * 0.78,
+      };
+      const candidates: { x: number; y: number }[] = [];
+      for (const distance of [1, 2]) {
+        for (const [dx, dy] of [
+          [0, 1],
+          [1, 0],
+          [0, -1],
+          [-1, 0],
+        ]) {
+          const clientX = origin.x + dx! * tileSize * distance;
+          const clientY = origin.y + dy! * tileSize * distance;
+          if (
+            clientX < regionBounds.left ||
+            clientX >= regionBounds.right ||
+            clientY < regionBounds.top ||
+            clientY >= regionBounds.bottom
+          ) {
+            continue;
+          }
+          const hit = document.elementFromPoint(clientX, clientY);
+          if (hit?.closest('[data-activates="true"], [aria-label="Map view controls"]')) continue;
+          candidates.push({ x: clientX - regionBounds.left, y: clientY - regionBounds.top });
+        }
+      }
+      return candidates;
+    });
+    let walkedByPointer = false;
+    for (const point of nearbyGround) {
+      await world.click({ position: point });
+      try {
+        await expect.poll(position, { timeout: 750 }).not.toEqual(beforePointerWalk);
+        walkedByPointer = true;
+        break;
+      } catch {
+        // A nearby tile can be a wall or deep water; try the next visible ground tile.
+      }
+    }
+    expect(walkedByPointer, `nearby walkable click targets: ${JSON.stringify(nearbyGround)}`).toBe(true);
     await expect(player).toHaveAttribute('data-walking', 'true');
     await expect(player).toHaveCSS('animation-duration', '0.26s');
     if (process.env['ATK_CAPTURE_WORLD_EXPLORATION'] === '1') {
