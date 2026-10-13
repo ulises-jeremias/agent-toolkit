@@ -8,9 +8,11 @@ test('walks in the world only while it has focus and keeps typing local to the c
   try {
     const { page } = desktop;
     await waitForBackend(page);
+    await expect(page.getByText('Checking live workspace details…')).toBeHidden();
     const world = page.getByRole('application', { name: 'Semantic workspace world' });
     await expect(world).toHaveAttribute('data-player-ready', 'true');
     const player = world.getByRole('img', { name: 'You, exploring the workspace' });
+    const map = world.locator('[data-world-map="true"]');
     await expect(player).toHaveAttribute('data-ready', 'true');
     await expect(player).toHaveCSS('animation-duration', '1.6s');
     await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -22,6 +24,7 @@ test('walks in the world only while it has focus and keeps typing local to the c
     }
     const position = () => player.evaluate((element) => [element.style.left, element.style.top]);
     const initialZoom = Number(await world.getAttribute('data-zoom'));
+    const initialPan = await map.evaluate((element) => element.style.transform);
 
     const bounds = await world.boundingBox();
     expect(bounds).toBeTruthy();
@@ -35,7 +38,11 @@ test('walks in the world only while it has focus and keeps typing local to the c
       fs.mkdirSync(outputDir, { recursive: true });
       await page.screenshot({ path: path.resolve(outputDir, 'world-player-walking-compact.png') });
     }
-    await expect.poll(() => world.getAttribute('data-zoom')).not.toBe(String(initialZoom));
+    await expect(world).toHaveAttribute('data-camera-mode', 'follow');
+    await expect
+      .poll(() => map.evaluate((element) => element.style.transform))
+      .not.toBe(initialPan);
+    expect(Number(await world.getAttribute('data-zoom'))).toBeGreaterThanOrEqual(initialZoom);
     await expect(player).not.toHaveAttribute('data-walking', { timeout: 15_000 });
 
     const appearance = page.getByRole('combobox', { name: 'Your appearance' });
