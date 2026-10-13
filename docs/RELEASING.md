@@ -16,7 +16,11 @@ The **canonical artifact** is the native V binary from a GitHub Release (`agent-
 # 1. Create an isolated release-preparation branch before changing versions.
 git switch main
 git pull --ff-only
-export RELEASE_VERSION=1.43.0  # replace with the reviewed next version
+export RELEASE_VERSION=NEXT_VERSION  # replace with the reviewed x.y.z version before running
+if ! [[ "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Set RELEASE_VERSION to the reviewed x.y.z version first." >&2
+  exit 1
+fi
 git switch -c "chore/release-${RELEASE_VERSION}"
 export VJOBS=2  # keep local V compilation bounded on memory-constrained hosts
 
@@ -83,7 +87,7 @@ Usage:
 
 ```bash
 ./scripts/bump-version.vsh --check "$RELEASE_VERSION"  # dry-run, exits 1 if would change
-./scripts/bump-version.vsh "$RELEASE_VERSION"         # writes files
+./scripts/bump-version.vsh "$RELEASE_VERSION"          # writes files
 ```
 
 ## Rollback / republish

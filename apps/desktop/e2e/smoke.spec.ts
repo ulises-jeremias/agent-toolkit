@@ -56,6 +56,15 @@ test.describe('desktop smoke', () => {
     }
   });
 
+  test('all destinations stay visible without horizontal scrolling at compact widths', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.goto('/#/world', { waitUntil: 'commit' });
+    const list = page.getByRole('navigation', { name: 'Destinations' }).locator('ul');
+    await expect(list).toBeVisible();
+    await expect.poll(() => list.evaluate((element) => element.scrollWidth - element.clientWidth)).toBe(0);
+    await expect(list.getByRole('link')).toHaveCount(9);
+  });
+
   test('terminal explains itself outside Electron', async ({ page }) => {
     await page.goto('/#/terminal');
     await expect(page.getByRole('heading', { level: 1, name: 'Terminal' })).toBeVisible();

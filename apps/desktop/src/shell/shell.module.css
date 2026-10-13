@@ -231,6 +231,8 @@
 
   .navList {
     gap: 0;
+    flex-wrap: wrap;
+    overflow: visible;
   }
 
   .navLink {
