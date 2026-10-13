@@ -181,6 +181,14 @@ fn main() {
 				mut t := raw
 				// .provenance.json uses generatorVersion, not version.
 				if rel.ends_with('.provenance.json') {
+					// Generated provenance is compact JSON. Compare the stored value
+					// before proposing a replacement so whitespace normalization does
+					// not look like a version change in --check mode.
+					manifest := json2.decode[map[string]json2.Any](t) or { continue }
+					current_version := manifest['generatorVersion'] or { continue }
+					if current_version is string && current_version == version {
+						continue
+					}
 					mut gre := regex.regex_opt(r'"generatorVersion"\s*:\s*"[^"]*"') or { continue }
 					new_t := gre.replace_simple(t, '"generatorVersion": "${version}"')
 					if new_t != t {
