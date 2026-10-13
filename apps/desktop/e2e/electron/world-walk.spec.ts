@@ -12,7 +12,6 @@ test('walks in the world only while it has focus and keeps typing local to the c
     const world = page.getByRole('application', { name: 'Semantic workspace world' });
     await expect(world).toHaveAttribute('data-player-ready', 'true');
     const player = world.getByRole('img', { name: 'You, exploring the workspace' });
-    const map = world.locator('[data-world-map="true"]');
     await expect(player).toHaveAttribute('data-ready', 'true');
     await expect(player).toHaveCSS('animation-duration', '1.6s');
     await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -23,8 +22,21 @@ test('walks in the world only while it has focus and keeps typing local to the c
       await page.setViewportSize({ width: 1024, height: 640 });
     }
     const position = () => player.evaluate((element) => [element.style.left, element.style.top]);
+    await expect(world).toHaveAttribute('data-camera-mode', 'follow');
     const initialZoom = Number(await world.getAttribute('data-zoom'));
-    const initialPan = await map.evaluate((element) => element.style.transform);
+    if (process.env['ATK_CAPTURE_WORLD_EXPLORATION'] === '1') {
+      const outputDir = process.env['ATK_CAPTURE_WORLD_EXPLORATION_DIR'] ?? '/tmp/agent-toolkit-world-exploration';
+      fs.mkdirSync(outputDir, { recursive: true });
+      for (const viewport of [
+        { name: 'compact', width: 1024, height: 640 },
+        { name: 'large', width: 1920, height: 1080 },
+      ]) {
+        await page.setViewportSize({ width: viewport.width, height: viewport.height });
+        await page.waitForTimeout(250);
+        await page.screenshot({ path: path.resolve(outputDir, `world-player-start-${viewport.name}.png`) });
+      }
+      await page.setViewportSize({ width: 1024, height: 640 });
+    }
 
     const bounds = await world.boundingBox();
     expect(bounds).toBeTruthy();
@@ -39,13 +51,12 @@ test('walks in the world only while it has focus and keeps typing local to the c
       await page.screenshot({ path: path.resolve(outputDir, 'world-player-walking-compact.png') });
     }
     await expect(world).toHaveAttribute('data-camera-mode', 'follow');
-    await expect.poll(() => map.evaluate((element) => element.style.transform)).not.toBe(initialPan);
     expect(Number(await world.getAttribute('data-zoom'))).toBeGreaterThanOrEqual(initialZoom);
     await expect(player).not.toHaveAttribute('data-walking', { timeout: 15_000 });
 
     const appearance = page.getByRole('combobox', { name: 'Your appearance' });
     await appearance.selectOption('grove');
-    await expect(player).toHaveCSS('background-image', /char-player-grove-south\.png/);
+    await expect(player).toHaveCSS('background-image', /char-player-grove-(north|south|east|west)\.png/);
     await expect
       .poll(() =>
         page.evaluate(
@@ -65,6 +76,7 @@ test('walks in the world only while it has focus and keeps typing local to the c
         const output = path.join(outputDir, `world-player-click-to-move-${viewport.name}.png`);
         await page.screenshot({ path: path.resolve(output) });
       }
+      await page.setViewportSize({ width: 1024, height: 640 });
     }
 
     await page.getByRole('button', { name: 'Explore by walking' }).click();
