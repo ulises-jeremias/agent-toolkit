@@ -100,6 +100,63 @@ The [workflow ledger](workflows.yaml) records functional evidence separately;
 a passing screenshot does not establish an end-to-end journey, and a passing
 test does not establish visual quality.
 
+## Latest Electron review — v1.44.0, 2026-10-13
+
+The Electron review completed successfully in [CI run 38356729582](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38356729582)
+at source `01450a9943374e6afbd4fa3f3107b3ea3cdf79ee`, using the real bundled
+V backend and a disposable workspace. I opened compact and large empty and
+one-project worlds, large Meadow and Dusk multi-project worlds, compact player
+walking and large click-to-move, compact and large project interiors, compact
+and large People rosters, Person Start at both sizes, compact Person creation
+and Munder import review, and large Library, Operations, Terminal, Settings,
+swarm attention, MCP configuration, and MCP credential fallback. The retained
+captures are in [`assets/electron/review-2026-10-13/`](assets/electron/review-2026-10-13/).
+The README gallery now uses new screenshots from this Electron run.
+
+The world behaves as a navigation surface and keeps the human player visible;
+the compact viewport remains usable. Dusk adds warm light around the village's
+distinct landmarks. The project interior exposes a real overview board, records,
+files, terminal, and exit. People remains truthful about offline state, and the
+Start review reports that no interactive runner is installed. Munder import
+shows mapped fields and the ignored `command` before save. MCP configuration
+previews its registry-file target and required environment variable; when the
+secure credential store is unavailable, the credential panel says no value
+was saved. Operations shows actual completed jobs; Terminal shows real PTY
+output.
+
+After opening the captures, I refreshed the README PNG gallery and replaced
+the incorrect old import screenshot with the actual review dialog. I did not
+change renderer art in response to this capture: the valley still has large
+uniform grass clearings, a mostly straight creek, and orthogonal paths; some
+scenery remains detached from the routes. Interior wall boards repeat heavily,
+the large People roster leaves an unused lower area, and Library/Operations
+remain long inspectors. The player-walking image crops nearby scenery, so the
+gallery uses the large click-to-move view instead. These are continuing visual
+work items, not visual sign-off.
+
+Opened files: [`world-empty-compact.png`](assets/electron/review-2026-10-13/world-empty-compact.png),
+[`world-empty-large.png`](assets/electron/review-2026-10-13/world-empty-large.png),
+[`world-one-project-large.png`](assets/electron/review-2026-10-13/world-one-project-large.png),
+[`world-several-projects-meadow-large.png`](assets/electron/review-2026-10-13/world-several-projects-meadow-large.png),
+[`world-several-projects-dusk-large.png`](assets/electron/review-2026-10-13/world-several-projects-dusk-large.png),
+[`world-player-walking-compact.png`](assets/electron/review-2026-10-13/world-player-walking-compact.png),
+[`world-player-click-to-move-large.png`](assets/electron/review-2026-10-13/world-player-click-to-move-large.png),
+[`project-files-room-compact.png`](assets/electron/review-2026-10-13/project-files-room-compact.png),
+[`project-files-room-large.png`](assets/electron/review-2026-10-13/project-files-room-large.png),
+[`people-roster-compact.png`](assets/electron/review-2026-10-13/people-roster-compact.png),
+[`people-roster-large.png`](assets/electron/review-2026-10-13/people-roster-large.png),
+[`person-start-compact.png`](assets/electron/review-2026-10-13/person-start-compact.png),
+[`person-start-large.png`](assets/electron/review-2026-10-13/person-start-large.png),
+[`meadow-1024x640-person-create.png`](assets/electron/review-2026-10-13/meadow-1024x640-person-create.png),
+[`munder-review-compact.png`](assets/electron/review-2026-10-13/munder-review-compact.png),
+[`meadow-1920x1080-library.png`](assets/electron/review-2026-10-13/meadow-1920x1080-library.png),
+[`meadow-1920x1080-operations.png`](assets/electron/review-2026-10-13/meadow-1920x1080-operations.png),
+[`meadow-1920x1080-terminal.png`](assets/electron/review-2026-10-13/meadow-1920x1080-terminal.png),
+[`meadow-1920x1080-settings.png`](assets/electron/review-2026-10-13/meadow-1920x1080-settings.png),
+[`attention-swarm-gate-large.png`](assets/electron/review-2026-10-13/attention-swarm-gate-large.png),
+[`mcp-configure-large.png`](assets/electron/review-2026-10-13/mcp-configure-large.png), and
+[`mcp-credentials-large.png`](assets/electron/review-2026-10-13/mcp-credentials-large.png).
+
 ## Packaged-product visual review — v1.43.0, 2026-10-10
 
 I captured the current Electron renderer against the locally built v1.43.0
