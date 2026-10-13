@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
-import { openDesktop, waitForBackend } from './fixtures';
+import { openDesktop, setViewport, waitForBackend } from './fixtures';
 
 test('walks in the world only while it has focus and keeps typing local to the command palette', async () => {
   const desktop = await openDesktop();
@@ -13,6 +13,26 @@ test('walks in the world only while it has focus and keeps typing local to the c
     await expect(world).toHaveAttribute('data-player-ready', 'true');
     const player = world.getByRole('img', { name: 'You, exploring the workspace' });
     await expect(player).toHaveAttribute('data-ready', 'true');
+    const originalViewport = await page.evaluate(() => ({ width: innerWidth, height: innerHeight }));
+    await setViewport(desktop.app, 1024, 640);
+    await expect(world).toHaveAttribute('data-zoom', '32');
+    await setViewport(desktop.app, 1920, 1080);
+    await expect(world).toHaveAttribute('data-zoom', '64');
+    await setViewport(desktop.app, originalViewport.width, originalViewport.height);
+    await expect(world).toHaveAttribute(
+      'data-zoom',
+      originalViewport.width < 1280 ? '32' : originalViewport.width >= 1600 ? '64' : '48',
+    );
+    const responsiveZoom = Number(await world.getAttribute('data-zoom'));
+    await page.getByRole('button', { name: 'Zoom in' }).click();
+    const selectedZoom = Number(await world.getAttribute('data-zoom'));
+    await setViewport(desktop.app, 1024, 640);
+    await expect(world).toHaveAttribute('data-zoom', String(selectedZoom));
+    await setViewport(desktop.app, originalViewport.width, originalViewport.height);
+    await page.getByRole('button', { name: 'Zoom out' }).click();
+    await expect(world).toHaveAttribute('data-zoom', String(responsiveZoom));
+    await page.getByRole('button', { name: 'Explore by walking' }).click();
+    await expect(world).toHaveAttribute('data-camera-mode', 'follow');
     await expect(player).toHaveCSS('animation-duration', '1.6s');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await expect.poll(() => player.evaluate((element) => element.getAnimations().length)).toBe(0);

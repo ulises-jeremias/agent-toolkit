@@ -965,28 +965,29 @@ layout, repository-scoped Skills/Agent Definitions, and capability-pack
 discovery remain open work; this card review is not a visual sign-off for the
 whole Desktop.
 
-## Player-first world entry — 2026-10-13
+## Responsive player-follow world — 2026-10-13
 
-The world now starts at the human player's exploration scale with the camera
-following them; **Fit world** remains available for a full-valley overview.
-Movement still requires explicit Walk focus for keyboard input, so forms,
+The world follows the human player at a scale chosen for the window: 32 px per
+tile below 1280 px, 48 px from 1280 to 1599 px, and 64 px at 1600 px and wider.
+Resizing updates that default until the user changes zoom or chooses **Fit
+world**. The Walk control returns both focus and camera to the player; forms,
 terminals, and the command palette keep their normal keyboard behavior. The
-player remains a human avatar, and active worker characters still come only
-from real sessions.
+player is a human avatar, and active worker characters still come only from
+real sessions.
 
-I ran the Electron app against the backend bundled in the installed Desktop,
-captured compact and large first-open views plus a compact walking frame, and
-opened all three: [start, compact](assets/electron/world-player-start-2026-10-13/world-player-start-compact.png),
-[start, large](assets/electron/world-player-start-2026-10-13/world-player-start-large.png),
-and [walking, compact](assets/electron/world-player-start-2026-10-13/world-player-walking-compact.png).
-The avatar is visible in the settlement and the creek, bridge, and landmarks
-remain readable at large size. The small walking view crops nearby architecture
-as expected while following the player.
+I ran the Electron app with a fresh temporary HOME/workspace and the installed
+Desktop backend (`agent-toolkit 1.44.0`). The real app screenshots below were
+opened and reviewed at 1024×640 and 1920×1080 in Meadow and Dusk:
+[Meadow compact](assets/electron/world-adaptive-camera-2026-10-13/world-meadow-compact.png),
+[Meadow large](assets/electron/world-adaptive-camera-2026-10-13/world-meadow-large.png),
+[Dusk compact](assets/electron/world-adaptive-camera-2026-10-13/world-dusk-compact.png),
+and [Dusk large](assets/electron/world-adaptive-camera-2026-10-13/world-dusk-large.png).
+The compact change keeps the player and all shared landmarks in the scene
+instead of clipping buildings at the camera edge. The large view fills the
+world viewport with the valley while retaining the player-follow scale.
 
-This is a stronger playable entry but not a composition sign-off: the large
-view still has broad open grass and mostly orthogonal paths, and the compact
-view gives only a small neighborhood. The next art pass needs to improve the
-settlement composition and surrounding meadow while preserving this fast
-player-first entry. The local checkout's `dist/agent-toolkit` was stale and
-returned a Projects API 404; these captures use the installed Desktop backend,
-which returned live workspace state successfully.
+This is not a composition sign-off: the valley still has broad open grass and
+mostly orthogonal paths, and project architecture could use more district
+identity. The local checkout's `dist/agent-toolkit` was stale and returned a
+Projects API 404; these captures use the installed Desktop backend, which
+returned live workspace state successfully.
