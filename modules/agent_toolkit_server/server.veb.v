@@ -1214,10 +1214,11 @@ pub fn (app &App) swarms_generic(mut ctx Ctx, sub string) veb.Result {
 	}
 	opts := build_swarms_options(sub, ctx.req.data) or { return respond_sub_error(mut ctx, err) }
 	if swarm_sub_mutates(sub, opts) && opts.run_id.len > 0 {
-		mut run_lock := app.swarm_locks.for_run(opts.run_id)
+		mut lock_set := app.swarm_locks
+		mut run_lock := lock_set.for_run(opts.run_id)
 		run_lock.lock()
 		defer {
-			app.swarm_locks.release(opts.run_id, run_lock)
+			lock_set.release(opts.run_id, run_lock)
 		}
 	}
 	res := agent_toolkit_core.swarm_result(agent_toolkit_core.run_swarm(opts))
