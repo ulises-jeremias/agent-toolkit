@@ -192,6 +192,28 @@ journeys:
           - assets/electron/world-player-life/player-idle-large.png
           - assets/electron/world-player-life/player-walk-compact.png
       - note: >-
+          Rechecked the source renderer from main 41bde4cf against the 1.44.0
+          Linux CI package (run 38362205781, head ec3708c2). The real Electron
+          walk acceptance waits for live workspace details, verifies player
+          readiness, follows camera mode and actual map pan (rather than assuming
+          the zoom must change), reduced motion, click-to-move, keyboard walking,
+          appearance persistence, and that command-palette typing does not move
+          the player. Separate Electron acceptances walk through a project door,
+          open the real project-scoped PTY, then return through the interior door;
+          reduced motion bypasses the transition. All three tests passed under a
+          2 GiB scope. Compact and large world/room screenshots were refreshed,
+          opened, and reviewed on 2026-10-13.
+        build: "main 41bde4cf renderer + CI package 1.44.0; Electron E2E 3 passed"
+        tests:
+          - apps/desktop/e2e/electron/world-walk.spec.ts
+          - apps/desktop/e2e/electron/world-interactions.spec.ts
+        screenshots:
+          - assets/electron/review-2026-10-13/world-player-walking-compact.png
+          - assets/electron/review-2026-10-13/world-player-click-to-move-compact.png
+          - assets/electron/review-2026-10-13/world-player-click-to-move-large.png
+          - assets/electron/world-player-exit/compact.png
+          - assets/electron/world-player-exit/large.png
+      - note: >-
           Released main v1.42.0 capture at ea154c2f (workflow 37445405836)
           opened compact and large empty, one-project, and three-project valleys,
           both project interiors, People roster and start review, Person creation,
@@ -777,6 +799,24 @@ journeys:
         build: "0bc0449a (#1533; Packaged Electron with fresh HOME, run 38164996571)"
         tests:
           - apps/desktop/e2e/electron/people-session.spec.ts
+      - note: >-
+          Rechecked the no-runner recovery with the isolated Electron client and
+          the 1.44.0 Linux CI backend artifact (run 38362205781). Lina persists
+          as configured/offline; the start form keeps the chosen project and
+          one-time task preview, explains that an interactive runner must be
+          configured in Library, has no runner options, and keeps Start disabled.
+          The test intercepts provider discovery, returns before PTY creation,
+          and was run with a 2 GiB limit, so no local runner or model was started.
+          Current compact/large roster and start screenshots were opened and
+          reviewed on 2026-10-13.
+        build: "Linux Electron E2E; no-runner recovery passed on 2026-10-13"
+        tests:
+          - apps/desktop/e2e/electron/people-session.spec.ts
+        screenshots:
+          - assets/electron/people/people-roster-compact.png
+          - assets/electron/people/people-roster-large.png
+          - assets/electron/people/person-start-compact.png
+          - assets/electron/people/person-start-large.png
     blockers:
       - provider conversation IDs, transcript continuity and safe runner-specific resume are not available yet
       - initial-task submission is not supported for Cursor or Muse; no runner-specific argument contract is assumed
