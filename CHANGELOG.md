@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   viewport, while preserving any zoom the user selected.
 - Project rooms now sit inside a layered timber house frame with the themed
   valley visible beyond it; shared dialogs use warm, crisp game-window trim.
+- Long inspectors, nested lists, and dialogs now use wood-and-indigo scrollbars
+  that match the game-menu palette while keeping native scrolling intact.
 - Populated project valleys now keep a small deterministic woodland grove on
   the civic bank when landmark paths leave enough safe ground, framing shared
   places without blocking doors or creating false runtime activity.

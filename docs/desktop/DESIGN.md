@@ -274,6 +274,8 @@ The shell is a minimal game HUD, not a dashboard frame:
 Pixel art decorates and contextualizes the shell but never replaces standard
 affordances: buttons, tabs, fields, tables, scrollbars, selection, focus,
 resize handles.
+Native scroll behavior stays intact; tracks and thumbs use the menu palette so
+long inspectors, nested lists, and dialogs feel like the same framed interface.
 
 Primary destinations (see
 [UX_ARCHITECTURE.md](UX_ARCHITECTURE.md)): World (home), Attention,
