@@ -193,6 +193,15 @@ test('links an existing project from the GUI and places it in the world', async 
       await page.screenshot({ path: path.join(captureDir, 'project-files-room-compact.png') });
       await setViewport(desktop.app, 1920, 1080);
       await page.screenshot({ path: path.join(captureDir, 'project-files-room-large.png') });
+      await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
+      await page.getByRole('radio', { name: /Dusk/ }).check();
+      await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
+      await page.getByRole('button', { name: /garden-api · Project/ }).click();
+      await expect(page.getByRole('application', { name: 'Interior of garden-api' })).toBeVisible();
+      await setViewport(desktop.app, 1024, 640);
+      await page.screenshot({ path: path.join(captureDir, 'project-files-room-dusk-compact.png') });
+      await setViewport(desktop.app, 1920, 1080);
+      await page.screenshot({ path: path.join(captureDir, 'project-files-room-dusk-large.png') });
     }
     await page.getByRole('button', { name: /Files · Project files/ }).click();
     await expect(page).toHaveURL(/workspace\?[^#]*panel=files[^#]*project=garden-api/);

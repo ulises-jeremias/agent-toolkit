@@ -151,6 +151,11 @@
   image-rendering: pixelated;
 }
 
+:root[data-theme='dusk'] .mapRegion[data-mode='interior'] {
+  background-color: #596b86;
+  background-blend-mode: multiply;
+}
+
 .mapWorld {
   position: absolute;
   top: 0;
