@@ -7,6 +7,18 @@ that archive is historical evidence, not the current art specification.
 
 ## Project-room scale and framing — 2026-10-16
 
+## Shared game-menu surfaces — 2026-10-16
+
+I reviewed the packaged Electron destination captures from [CI run 38912367071](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38912367071), built from `a6d5d11`. Shared inspector panels now have a short warm-gold pixel inlay and a divided heading rail. Workspace file browsing follows the 2px square-corner token used by other game-menu surfaces. This brings the common panels, workspace, Library, Settings, and People form back into one visual grammar without changing their behavior.
+
+At 1024×640 the compact Settings and Library views retain clear grouping and visible scrolling; the frame does not collide with text, focus, controls, or the terminal dock. At 1920×1080 the same detailing stays restrained and leaves dense diagnostic text readable. Meadow and Dusk both use the same warm menu frame while preserving their different valley canvases. The Person creation dialog remains the same reviewed framed form. I opened each linked capture after generation; I found no clipping or contrast regression that warranted another CSS adjustment.
+
+Opened captures: [Settings, compact Meadow](assets/electron/menu-surfaces-2026-10-16/settings-compact-meadow.png), [Settings, compact Dusk](assets/electron/menu-surfaces-2026-10-16/settings-compact-dusk.png), [Settings, large Meadow](assets/electron/menu-surfaces-2026-10-16/settings-large-meadow.png), [Library, compact](assets/electron/menu-surfaces-2026-10-16/library-compact.png), [Library, large](assets/electron/menu-surfaces-2026-10-16/library-large.png), [Workspace files, large](assets/electron/menu-surfaces-2026-10-16/workspace-files-large.png), and [Person form, compact](assets/electron/menu-surfaces-2026-10-16/person-form-compact.png).
+
+This is a consistency pass, not a full visual sign-off for every Desktop screen. Existing rough world textures and feature-specific density still need separate review.
+
+## Project-room scale and framing — 2026-10-16
+
 I opened compact and large Meadow/Dusk interiors from [CI capture run 38901644963](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38901644963). The room now takes the largest crisp integer zoom that fits the full room and current viewport: in these captures it is 48px per source tile at 1024×640 and 80px at 1920×1080. The outer wall frame remains visible, and the landscape still surrounds the house. The camera preserves a zoom the user chose manually; the valley outside keeps its player-first scale.
 
 The compact room now uses nearly all the available height, so the furniture and project stations read more clearly. The large view keeps broad meadow margins while making the room substantially larger. Dusk keeps the outside cool and the interior warm. I opened all four captures and confirmed the wall frame is intact. The room still uses repeated wall and floor textures, so this is a scale improvement rather than a final art sign-off.
