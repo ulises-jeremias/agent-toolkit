@@ -7,52 +7,50 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adrs/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-09-30T05:09:35.927418Z
+Generated: 2026-10-05T06:48:09.653066Z
 Capabilities with external provenance: 31 (first-party omitted; lock is sparse)
 
 ## `design/brag`
 
-- **Trust:** `experimental` reviewed_at=2026-09-30 by=ulises-jeremias
-  - `reviewed_provenance:` `sha256:73e297c0d8ebeb43d95e669b65efde9560e1d80654026e1307841fbcbd47d7f1` (must equal `provenance_digest` below)
+- **Trust:** `experimental` reviewed_at=2026-10-05 by=ulises-jeremias
 - **Maintenance:** `active` last_activity=?
 - **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=True shell=True network=True cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:73e297c0d8ebeb43d95e669b65efde9560e1d80654026e1307841fbcbd47d7f1`
+- **Provenance digest:** `sha256:d2c2d1d99065a7ff90c00019925156cb64296abacd845cf2cf8205ba61177efe`
 
 ### Source `upstream` — `latent-spaces/brag/skills/brag`
 
 - **Repository:** `latent-spaces/brag`
 - **Path:** `skills/brag`
-- **Requested:** `commit` `c893c5ed52aed84e3e2ee56787de869fccdae6b0` (declaration intent)
-- **Resolved commit:** `c893c5ed52aed84e3e2ee56787de869fccdae6b0`
-- **Content checksum:** `sha256:30bda37da0fe99c66ab653a2f3556aaf8289655858941758d10a7674187d2b4d`
-- **Body checksum:** `sha256:de183e219a87cdc4119951b6742388641024fcd2836e2d06d35ec3c6342da9ff` (must match local SKILL.md body)
+- **Requested:** `commit` `fd7de7e418334876b3ea4e9258231a66a2c2a38d` (declaration intent)
+- **Resolved commit:** `fd7de7e418334876b3ea4e9258231a66a2c2a38d`
+- **Content checksum:** `sha256:45104673348a4d0a6996aed836093cd6425559469d1755066c858f97fc61d710`
+- **Body checksum:** `sha256:a9a9d0eafd1b06b512afbcdeeed339b323c31db9419e1bd1bf7fce6d20c5b791` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/brag/LICENSE` checksum=`sha256:92d538e0da9abeaafff8ecfc62e142f5053fa92b2c3ef29978742c325c554089`
   - Declaration expected `license: MIT` — mismatch requires review
-- **Resolved at:** `2026-09-30T05:09:15.685176Z` version=`c893c5e`
+- **Resolved at:** `2026-10-05T06:48:09.527506Z` version=`fd7de7e`
 
 - **Per-skill attribution:** `skills/design/brag/UPSTREAM.md`
 
 ## `design/brag-slim`
 
-- **Trust:** `experimental` reviewed_at=2026-09-30 by=ulises-jeremias
-  - `reviewed_provenance:` `sha256:baacba6055c7792bc1726fcfe9c92e70d063f1030f0b2c1b49fb7c22b24dda5e` (must equal `provenance_digest` below)
+- **Trust:** `experimental` reviewed_at=2026-10-05 by=ulises-jeremias
 - **Maintenance:** `active` last_activity=?
 - **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=False shell=True network=True cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:baacba6055c7792bc1726fcfe9c92e70d063f1030f0b2c1b49fb7c22b24dda5e`
+- **Provenance digest:** `sha256:a3f856f5236acb4be733db937fbc9503e1b9904399bf54d08db3e28609bee807`
 
 ### Source `upstream` — `latent-spaces/brag/skills/brag-slim`
 
 - **Repository:** `latent-spaces/brag`
 - **Path:** `skills/brag-slim`
-- **Requested:** `commit` `c893c5ed52aed84e3e2ee56787de869fccdae6b0` (declaration intent)
-- **Resolved commit:** `c893c5ed52aed84e3e2ee56787de869fccdae6b0`
-- **Content checksum:** `sha256:53ebaa71176352950736d818a76bfbfe5a30f5d3ec215a2b2aa4b662bac7fe70`
+- **Requested:** `commit` `fd7de7e418334876b3ea4e9258231a66a2c2a38d` (declaration intent)
+- **Resolved commit:** `fd7de7e418334876b3ea4e9258231a66a2c2a38d`
+- **Content checksum:** `sha256:79e90bbd2e98e18382f0939177715dd486dd5c7bff1f35bc14a9b5b9a2da69cb`
 - **Body checksum:** `sha256:fb7cc9efd8a171b46b7eedb522d8c111ca668ee17c7b0a9592609ef4b25589d7` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/brag-slim/LICENSE` checksum=`sha256:92d538e0da9abeaafff8ecfc62e142f5053fa92b2c3ef29978742c325c554089`
   - Declaration expected `license: MIT` — mismatch requires review
-- **Resolved at:** `2026-09-30T05:09:15.685176Z` version=`c893c5e`
+- **Resolved at:** `2026-10-05T06:48:09.527506Z` version=`fd7de7e`
 
 - **Per-skill attribution:** `skills/design/brag-slim/UPSTREAM.md`
 
