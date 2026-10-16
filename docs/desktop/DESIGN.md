@@ -274,6 +274,8 @@ The shell is a minimal game HUD, not a dashboard frame:
 Pixel art decorates and contextualizes the shell but never replaces standard
 affordances: buttons, tabs, fields, tables, scrollbars, selection, focus,
 resize handles.
+Native scroll behavior stays intact; tracks and thumbs use the menu palette so
+long inspectors, nested lists, and dialogs feel like the same framed interface.
 
 Primary destinations (see
 [UX_ARCHITECTURE.md](UX_ARCHITECTURE.md)): World (home), Attention,
@@ -370,7 +372,8 @@ Shared primitives live in `apps/desktop/src/ui/` (see
 speculative widget framework. The game-menu material:
 
 - **Panel** — deep menu surface, 2px solid border, pixel-cut corners
-  (2px notches), hard offset shadow (`3px 3px 0`), compact padding.
+  (2px notches), hard offset shadow (`3px 3px 0`), compact padding, and a
+  short warm-gold inlay above the divided title rail.
 - **Section header** — Silkscreen title with a gold tick; short muted
   description in body font.
 - **Buttons** — chunky chips: 2px border, hard shadow, pressed-state offset;
