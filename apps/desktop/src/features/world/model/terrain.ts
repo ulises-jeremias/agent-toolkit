@@ -951,7 +951,10 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
     [1, 4],
   ] as const;
   const addGrove = (candidate: (typeof candidates)[number]) => {
-    const minSpacing = 6;
+    // Compact groves can fit into the short civic meadow without closing the
+    // walkable routes. The tree pass still rejects roots on paths and crowns
+    // over every occupied facade.
+    const minSpacing = 4;
     if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < minSpacing)) return false;
     centers.push(candidate);
     // Repeating one hand-shaped cluster at every anchor made the meadow read
