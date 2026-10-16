@@ -1297,7 +1297,9 @@ describe('layoutWorld', () => {
     }
     const creekAtRow = (y: number) => {
       const exact = creekByRow.get(y);
-      const nearest = exact ?? [...creekByRow.entries()].sort((a, b) => Math.abs(a[0] - y) - Math.abs(b[0] - y))[0]?.[1];
+      const nearest =
+        exact ??
+        [...creekByRow.entries()].sort((a, b) => Math.abs(a[0] - y) - Math.abs(b[0] - y))[0]?.[1];
       if (!nearest?.length) return Number.POSITIVE_INFINITY;
       return nearest.reduce((sum, x) => sum + x, 0) / nearest.length;
     };

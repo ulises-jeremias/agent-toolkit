@@ -1164,13 +1164,13 @@ function forest(p: Painter, projectlessMeadow = false) {
 
     for (const westBank of [true, false]) {
       const countOnBank = () =>
-        p.decor.filter((sprite) => sprite.sprite.startsWith('tree-') && (sprite.x < creekAtRow(sprite.y)) === westBank)
+        p.decor.filter((sprite) => sprite.sprite.startsWith('tree-') && sprite.x < creekAtRow(sprite.y) === westBank)
           .length;
       if (countOnBank() >= 4) continue;
       const candidates: { x: number; y: number; rank: number }[] = [];
       for (let y = 4; y < p.rows - 3; y += 1) {
         for (let x = 4; x < p.cols - 4; x += 1) {
-          if ((x < creekAtRow(y)) !== westBank) continue;
+          if (x < creekAtRow(y) !== westBank) continue;
           candidates.push({ x, y, rank: h2(x, y, westBank ? 307 : 311) });
         }
       }
