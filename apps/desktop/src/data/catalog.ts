@@ -61,7 +61,11 @@ export function useMcpProviders(options: { enabled?: boolean; staleTime?: number
   const { client } = useBackend();
   return useQuery({
     queryKey: qk.catalog.mcp(),
-    queryFn: () => requireClient(client).mcpProviders(),
+    queryFn: async () => {
+      const catalog = await requireClient(client).mcpProviders();
+      if (!catalog.ok) throw new Error(catalog.message || 'The MCP provider catalog is unavailable.');
+      return catalog;
+    },
     enabled: client !== null && (options.enabled ?? true),
     staleTime: options.staleTime,
   });

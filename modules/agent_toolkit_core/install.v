@@ -316,9 +316,9 @@ fn install_one_tool(tool string, data_root string, home string, receipt_dir stri
 	}
 	if planned == 0 {
 		lines << if dry_run {
-			'  -  No writes are needed; target files are already current, user-owned, or symlink-managed.'
+			'  -  No install files would be written; any stale cleanup is listed above.'
 		} else {
-			'  -  No files changed; target files are already current, user-owned, or symlink-managed.'
+			'  -  No install files were written; any stale cleanup is listed above.'
 		}
 	}
 	return true, planned, lines.join('\n')

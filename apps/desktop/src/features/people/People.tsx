@@ -239,6 +239,7 @@ function PersonForm({
                 control={control}
                 values={draft.skills ?? []}
                 options={skillOptions}
+                groupLabel="Available Skills"
                 loading={skills.isLoading}
                 error={skills.isError ? errorMessage(skills.error) : undefined}
                 emptyLabel="The Toolkit Skill catalog has no entries."
@@ -255,6 +256,7 @@ function PersonForm({
                 control={control}
                 values={draft.mcp_servers ?? []}
                 options={mcpOptions}
+                groupLabel="Available MCP servers"
                 loading={mcpProviders.isLoading}
                 error={mcpProviders.isError ? errorMessage(mcpProviders.error) : undefined}
                 emptyLabel="No MCP provider templates are available."

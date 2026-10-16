@@ -34,6 +34,7 @@ describe('ReferenceMultiSelect', () => {
     const user = userEvent.setup();
     render(<Picker />);
 
+    expect(screen.getByRole('group', { name: 'Available options' })).toBeInTheDocument();
     await user.type(screen.getByRole('searchbox', { name: 'Skills' }), 'test');
     expect(screen.getByText('Test plan')).toBeInTheDocument();
     expect(screen.queryByText('Code reviewer')).not.toBeInTheDocument();
@@ -68,5 +69,23 @@ describe('ReferenceMultiSelect', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add reference' }));
     expect(onSelection).toHaveBeenCalledWith(['filesystem-read']);
+  });
+
+  it('does not submit the containing Person form when Enter is pressed in search', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn((event: React.FormEvent) => event.preventDefault());
+    render(
+      <form onSubmit={onSubmit}>
+        <Picker />
+        <button type="submit">Save Person</button>
+      </form>,
+    );
+
+    const search = screen.getByRole('searchbox', { name: 'Skills' });
+    await user.type(search, 'review');
+    await user.keyboard('{Enter}');
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Save Person' })).toBeVisible();
   });
 });

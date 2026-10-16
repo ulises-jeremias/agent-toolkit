@@ -131,6 +131,11 @@ test('Person references are picked from Skills and MCP catalogs without comma sy
     await create.getByRole('textbox', { name: 'Role' }).fill('reviewer');
     await create.getByRole('textbox', { name: 'Goal' }).fill('Review project changes.');
     await create.getByText('Capabilities and limits', { exact: true }).click();
+    const skillSearch = create.getByRole('searchbox', { name: 'Skills' });
+    await skillSearch.fill('Code review');
+    await skillSearch.press('Enter');
+    await expect(create).toBeVisible();
+    await expect(create.getByRole('group', { name: 'Available Skills' })).toBeVisible();
     await create.getByRole('checkbox', { name: 'Code review' }).check();
     await create.getByRole('checkbox', { name: 'GitHub' }).check();
     await create.getByRole('textbox', { name: 'Custom capability reference' }).fill('filesystem-read');
@@ -150,6 +155,33 @@ test('Person references are picked from Skills and MCP catalogs without comma sy
     await expect(page.getByText('code-review', { exact: true })).toBeVisible();
     await expect(page.getByText('github', { exact: true })).toBeVisible();
     await expect(page.getByText('filesystem-read', { exact: true })).toBeVisible();
+  } finally {
+    await desktop.close();
+  }
+});
+
+test('Person editor reports MCP catalog errors returned by the backend', async () => {
+  const desktop = await openDesktop();
+  try {
+    const { page } = desktop;
+    await page.route('**/api/v1/mcp/providers', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: false,
+          message: 'The MCP templates directory is unavailable.',
+          config_path: '',
+          providers: [],
+        }),
+      }),
+    );
+    await waitForBackend(page);
+    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'People' }).click();
+    await page.getByRole('button', { name: 'Create Person' }).click();
+    const create = page.getByRole('dialog', { name: 'Create Person' });
+    await create.getByText('Capabilities and limits', { exact: true }).click();
+    await expect(create.getByRole('status')).toContainText('The MCP templates directory is unavailable.');
   } finally {
     await desktop.close();
   }

@@ -261,7 +261,7 @@ fn test_install_skips_symlink_managed_targets_and_stale_cleanup() {
 	assert preview.ok, preview.message
 	assert preview.message.contains('Would preserve symlink-managed path')
 	assert preview.message.contains('Would preserve stale path managed by a symbolic link')
-	assert preview.message.contains('No writes are needed')
+	assert preview.message.contains('No install files would be written')
 	assert os.read_file(os.join_path(external, 'retired.mdc')) or { '' } == 'old Toolkit rule\n'
 	assert !os.is_file(os.join_path(external, 'assistant.mdc'))
 
@@ -274,7 +274,7 @@ fn test_install_skips_symlink_managed_targets_and_stale_cleanup() {
 	assert installed.ok, installed.message
 	assert installed.message.contains('Preserving symlink-managed path')
 	assert installed.message.contains('Preserving stale path managed by a symbolic link')
-	assert installed.message.contains('No files changed')
+	assert installed.message.contains('No install files were written')
 	assert os.read_file(os.join_path(external, 'retired.mdc')) or { '' } == 'old Toolkit rule\n'
 	assert !os.is_file(os.join_path(external, 'assistant.mdc'))
 }
@@ -326,6 +326,8 @@ fn test_install_preview_reports_stale_owned_files_without_removing_them() {
 	stale := os.join_path(home, '.cursor', 'rules', 'retired.mdc')
 	os.mkdir_all(os.dir(stale)) or { assert false, err.msg() }
 	os.write_file(stale, 'toolkit-owned\n') or { assert false, err.msg() }
+	current := os.join_path(home, '.cursor', 'rules', 'current.mdc')
+	os.write_file(current, 'current\n') or { assert false, err.msg() }
 	mut prior := new_install_receipt(profiles_product, 'cursor', 'user-home', '1.0.0', 'old')
 	prior.artifacts << ArtifactEntry{
 		path: stale
@@ -345,7 +347,18 @@ fn test_install_preview_reports_stale_owned_files_without_removing_them() {
 	})
 	assert preview.ok, preview.message
 	assert preview.message.contains('Would remove stale Toolkit-owned file: ${stale}')
+	assert preview.message.contains('No install files would be written')
 	assert os.is_file(stale)
+	installed := run_install(InstallOptions{
+		tools: ['cursor']
+		home_dir: home
+		data_root: data
+		receipt_dir: receipt_dir
+	})
+	assert installed.ok, installed.message
+	assert installed.message.contains('Removed stale: ${stale}')
+	assert installed.message.contains('No install files were written')
+	assert !os.is_file(stale)
 }
 
 fn test_install_skips_changed_stale_owned_file() {

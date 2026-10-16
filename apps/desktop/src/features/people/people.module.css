@@ -163,10 +163,15 @@
 .referenceGroup {
   display: grid;
   gap: var(--space-1);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 .referenceGroupLabel {
   color: var(--text-secondary);
   font-weight: 700;
+  padding: 0;
 }
 .referenceOptions {
   display: grid;

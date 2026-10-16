@@ -16,6 +16,7 @@ export function ReferenceMultiSelect({
   error,
   allowCustom = false,
   emptyLabel = 'No catalog options are available.',
+  groupLabel = 'Available options',
   onChange,
 }: {
   control: FieldControlProps;
@@ -25,6 +26,7 @@ export function ReferenceMultiSelect({
   error?: string;
   allowCustom?: boolean;
   emptyLabel?: string;
+  groupLabel?: string;
   onChange: (values: string[]) => void;
 }) {
   const [search, setSearch] = useState('');
@@ -64,6 +66,9 @@ export function ReferenceMultiSelect({
         type="search"
         value={search}
         onChange={(event) => setSearch(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.preventDefault();
+        }}
         placeholder="Search available options"
       />
       <div className={styles.referenceMeta} aria-live="polite">
@@ -75,8 +80,8 @@ export function ReferenceMultiSelect({
         </p>
       ) : null}
       {unknown.length > 0 ? (
-        <div className={styles.referenceGroup}>
-          <p className={styles.referenceGroupLabel}>Saved references outside the current catalog</p>
+        <fieldset className={styles.referenceGroup}>
+          <legend className={styles.referenceGroupLabel}>Saved references outside the current catalog</legend>
           <ul className={styles.referenceOptions}>
             {unknown.map((value) => (
               <li key={value}>
@@ -90,10 +95,10 @@ export function ReferenceMultiSelect({
               </li>
             ))}
           </ul>
-        </div>
+        </fieldset>
       ) : null}
-      <div className={styles.referenceGroup}>
-        <p className={styles.referenceGroupLabel}>{loading ? 'Loading catalog…' : 'Available options'}</p>
+      <fieldset className={styles.referenceGroup}>
+        <legend className={styles.referenceGroupLabel}>{loading ? 'Loading catalog…' : groupLabel}</legend>
         {filtered.length > 0 ? (
           <ul className={styles.referenceOptions}>
             {filtered.map((option) => (
@@ -116,7 +121,7 @@ export function ReferenceMultiSelect({
         ) : (
           <p className={styles.referenceEmpty}>{search ? 'No options match this search.' : emptyLabel}</p>
         )}
-      </div>
+      </fieldset>
       {allowCustom ? (
         <div className={styles.referenceCustom}>
           <TextInput
