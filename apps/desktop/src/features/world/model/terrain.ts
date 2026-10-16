@@ -1102,8 +1102,9 @@ function forest(p: Painter, projectlessMeadow = false) {
   // A populated civic bank can be so full of doors and approach paths that
   // the probabilistic tree pass leaves only the project district wooded.
   // Add one compact, deterministic grove on each bank when that happens. The
-  // root checks preserve walkable routes and the full canopy check protects
-  // every real building; this is environmental scenery, never agent activity.
+  // root checks preserve walkable routes. Crowns remain on the underlay behind
+  // buildings, so they can frame tight civic lots without covering facades.
+  // This is environmental scenery, never agent activity.
   if (!projectlessMeadow) {
     const creekBoundary = creekSafe(p);
     const groveRoots = [
@@ -1119,7 +1120,7 @@ function forest(p: Painter, projectlessMeadow = false) {
     const isTreeRootClear = (x: number, y: number) => {
       const ground = p.get(x, y);
       if ((!ground.startsWith('grass') && !ground.startsWith('flowers')) || p.isBlocked(x, y)) return false;
-      if (p.paths.has(key(x, y)) || canopyOverBuilding(p, x, y, 0, 0)) return false;
+      if (p.paths.has(key(x, y))) return false;
       return !p.decor.some(
         (sprite) =>
           sprite.sprite.startsWith('tree-') &&
