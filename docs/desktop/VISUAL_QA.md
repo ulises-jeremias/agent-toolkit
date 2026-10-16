@@ -5,6 +5,16 @@ art direction, the latest opened evidence, and unresolved findings in one place.
 The dated iteration log lives in [VISUAL_QA_HISTORY.md](VISUAL_QA_HISTORY.md);
 that archive is historical evidence, not the current art specification.
 
+## Framed project rooms and game-menu forms — 2026-10-16
+
+I opened the updated real Electron captures from [CI run 38897347805](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38897347805), built from the project-interior and shared dialog changes merged in `10b9d7e`. This pass frames the room against the meadow and places a timber-and-gold outline on its walls, so entering a project reads as entering a bounded place rather than viewing furniture on a blank canvas. Shared dialogs use the same crisp wood, shadow and gold language while keeping normal form controls, focus and text readability.
+
+The first capture showed the perimeter trim clipped at compact height. I moved the frame onto the inner wall edge and recaptured. The finished Meadow and Dusk rooms show all four sides at both 1024×640 and 1920×1080; the exterior grass makes the room feel situated in its house, and the Dusk treatment distinguishes the outside without reducing the warm interior. The compact room still has less furniture detail at normal scale, but the frame is complete and readable. The People creation form also has a framed game-menu surface with visible focus and readable actions. These captures verify visual treatment; they do not claim a new workflow or full visual sign-off.
+
+Opened captures: [Meadow room, compact](assets/electron/world/project-files-room-compact.png), [Meadow room, large](assets/electron/world/project-files-room-large.png), [Dusk room, compact](assets/electron/world/project-files-room-dusk-compact.png), [Dusk room, large](assets/electron/world/project-files-room-dusk-large.png), and [Person creation, compact](assets/electron/cozy-pixel-world/person-create.png). The README gallery now points at the fresh Meadow, Dusk, project-room, Library, Operations and terminal captures from this run. Existing People roster imagery remains because the new one-person test fixture is not a clearer product example.
+
+The frame improves spatial context, but this is an incremental interior pass: wall and floor textures still repeat, and the room could use more purposeful scale and richer project-specific detail. The full application remains a professional workstation first; the new frame decorates the real project resources without changing their canonical actions.
+
 ## Packaged clean-install and world smoke — 2026-10-11
 
 I built the Electron directory package from `fix/desktop-isolate-clean-install-backend`
