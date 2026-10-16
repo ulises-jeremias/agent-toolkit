@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.45.0] — 2026-10-16
+
 ### Changed
 
 - Project interiors now use the largest crisp zoom that fits the room and
@@ -30,8 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   keeping the human explorer moving without crossing terrain or building collisions.
 - The homepage now guides visitors through a responsive, scene-based journey
   across the Agent Toolkit valley while keeping product screenshots truthful.
+- The homepage hero now distinguishes conceptual valley artwork from real
+  Desktop captures with a readable, unobscured caption.
 - The human World navigator now has separate idle and alternating directional
   walk frames, with reduced-motion and suspended-window support.
+
 ### Added
 
 - Added the experimental, provenance-pinned `design/scroll-world` capability and its MIT-licensed resources. Landing-page strategy from Elaya Design is incorporated into first-party `design-improvement` to avoid duplicating overlapping skills. Paid media generation remains opt-in and was not used.
@@ -1295,7 +1300,8 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.44.0...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.45.0...HEAD
+[1.45.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.44.0...v1.45.0
 [1.44.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.43.0...v1.44.0
 [1.43.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.42.0...v1.43.0
 [1.42.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.41.0...v1.42.0
