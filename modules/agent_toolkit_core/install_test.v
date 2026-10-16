@@ -220,6 +220,65 @@ fn test_install_preserves_without_force() {
 	assert report.message.contains('Preserving user-owned file')
 }
 
+fn test_install_skips_symlink_managed_targets_and_stale_cleanup() {
+	base := os.join_path(os.temp_dir(), 'at-ins-symlink-${os.getpid()}')
+	data := os.join_path(base, 'data')
+	home := os.join_path(base, 'home')
+	receipt_dir := os.join_path(base, 'receipts')
+	external := os.join_path(base, 'workstation-skills')
+	destination_dir := os.join_path(home, '.cursor', 'rules')
+	stale_path := os.join_path(destination_dir, 'retired.mdc')
+	os.mkdir_all(os.join_path(data, 'profiles', 'cursor', 'rules')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(home, '.cursor')) or { assert false, err.msg() }
+	os.mkdir_all(external) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	os.write_file(os.join_path(data, 'profiles', 'cursor', 'rules', 'assistant.mdc'), 'Toolkit rule\n') or {
+		assert false, err.msg()
+		return
+	}
+	os.write_file(os.join_path(external, 'retired.mdc'), 'old Toolkit rule\n') or {
+		assert false, err.msg()
+		return
+	}
+	os.symlink(external, destination_dir) or { panic(err) }
+	mut prior := new_install_receipt(profiles_product, 'cursor', 'user-home', '1.0.0', 'old')
+	prior.artifacts << ArtifactEntry{
+		path: stale_path
+		digest: receipt_artifact_digest(stale_path)
+		ownership: 'created'
+	}
+	save_install_receipt(mut prior, receipt_dir) or { panic(err) }
+
+	preview := run_install(InstallOptions{
+		tools: ['cursor']
+		dry_run: true
+		home_dir: home
+		data_root: data
+		receipt_dir: receipt_dir
+	})
+	assert preview.ok, preview.message
+	assert preview.message.contains('Would preserve symlink-managed path')
+	assert preview.message.contains('Would preserve stale path managed by a symbolic link')
+	assert preview.message.contains('No install files would be written')
+	assert os.read_file(os.join_path(external, 'retired.mdc')) or { '' } == 'old Toolkit rule\n'
+	assert !os.is_file(os.join_path(external, 'assistant.mdc'))
+
+	installed := run_install(InstallOptions{
+		tools: ['cursor']
+		home_dir: home
+		data_root: data
+		receipt_dir: receipt_dir
+	})
+	assert installed.ok, installed.message
+	assert installed.message.contains('Preserving symlink-managed path')
+	assert installed.message.contains('Preserving stale path managed by a symbolic link')
+	assert installed.message.contains('No install files were written')
+	assert os.read_file(os.join_path(external, 'retired.mdc')) or { '' } == 'old Toolkit rule\n'
+	assert !os.is_file(os.join_path(external, 'assistant.mdc'))
+}
+
 fn test_install_force_overwrites() {
 	base := os.join_path(os.temp_dir(), 'at-ins-f-${os.getpid()}')
 	data := os.join_path(base, 'data')
@@ -267,6 +326,8 @@ fn test_install_preview_reports_stale_owned_files_without_removing_them() {
 	stale := os.join_path(home, '.cursor', 'rules', 'retired.mdc')
 	os.mkdir_all(os.dir(stale)) or { assert false, err.msg() }
 	os.write_file(stale, 'toolkit-owned\n') or { assert false, err.msg() }
+	current := os.join_path(home, '.cursor', 'rules', 'current.mdc')
+	os.write_file(current, 'current\n') or { assert false, err.msg() }
 	mut prior := new_install_receipt(profiles_product, 'cursor', 'user-home', '1.0.0', 'old')
 	prior.artifacts << ArtifactEntry{
 		path: stale
@@ -286,7 +347,18 @@ fn test_install_preview_reports_stale_owned_files_without_removing_them() {
 	})
 	assert preview.ok, preview.message
 	assert preview.message.contains('Would remove stale Toolkit-owned file: ${stale}')
+	assert preview.message.contains('No install files would be written')
 	assert os.is_file(stale)
+	installed := run_install(InstallOptions{
+		tools: ['cursor']
+		home_dir: home
+		data_root: data
+		receipt_dir: receipt_dir
+	})
+	assert installed.ok, installed.message
+	assert installed.message.contains('Removed stale: ${stale}')
+	assert installed.message.contains('No install files were written')
+	assert !os.is_file(stale)
 }
 
 fn test_install_skips_changed_stale_owned_file() {

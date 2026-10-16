@@ -65,3 +65,124 @@ test('People can edit durable identity and archive or restore while remaining of
     await desktop.close();
   }
 });
+
+test('Person references are picked from Skills and MCP catalogs without comma syntax', async () => {
+  const desktop = await openDesktop();
+  try {
+    const { page } = desktop;
+    await waitForBackend(page);
+    await page.route('**/api/v1/skills/catalog', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          count: 1,
+          message: '',
+          skills: [
+            {
+              id: 'code-review',
+              name: 'Code review',
+              domain: 'quality',
+              description: 'Review changes',
+              origin: 'first-party',
+              source_file: 'skills/code-review/SKILL.md',
+              requires: [],
+              prerequisites: [],
+              mcp_required: [],
+              compatibility: [],
+            },
+          ],
+        }),
+      }),
+    );
+    await page.route('**/api/v1/mcp/providers', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          message: '',
+          config_path: '~/.config/agent-toolkit/mcp-config.json',
+          providers: [
+            {
+              id: 'github',
+              display_name: 'GitHub',
+              package: '@modelcontextprotocol/server-github',
+              required_env: ['GITHUB_TOKEN'],
+              missing_env: ['GITHUB_TOKEN'],
+              configured: false,
+              enabled: false,
+              template_available: true,
+              template_sha: 'sha256:fixture',
+              template_is_pinned: true,
+              template_matches_pin: true,
+            },
+          ],
+        }),
+      }),
+    );
+
+    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'People' }).click();
+    await page.getByRole('button', { name: 'Create Person' }).click();
+    const create = page.getByRole('dialog', { name: 'Create Person' });
+    await create.getByRole('textbox', { name: 'Name' }).fill('Lina');
+    await create.getByRole('textbox', { name: 'ID' }).fill('lina');
+    await create.getByRole('textbox', { name: 'Role' }).fill('reviewer');
+    await create.getByRole('textbox', { name: 'Goal' }).fill('Review project changes.');
+    await create.getByText('Capabilities and limits', { exact: true }).click();
+    const skillSearch = create.getByRole('searchbox', { name: 'Skills' });
+    await skillSearch.fill('Code review');
+    await skillSearch.press('Enter');
+    await expect(create).toBeVisible();
+    await expect(create.getByRole('group', { name: 'Available Skills' })).toBeVisible();
+    await create.getByRole('checkbox', { name: 'Code review' }).check();
+    await create.getByRole('checkbox', { name: 'GitHub' }).check();
+    await create.getByRole('textbox', { name: 'Custom capability reference' }).fill('filesystem-read');
+    await create.getByRole('button', { name: 'Add reference' }).click();
+    await expect(create).toBeVisible();
+    await expect(create.getByText('1 of 32 selected')).toHaveCount(3);
+    if (CAPTURE) {
+      fs.mkdirSync(CAPTURE_DIR, { recursive: true });
+      await setViewport(desktop.app, 1024, 768);
+      await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-reference-pickers-compact.png') });
+      await setViewport(desktop.app, 1600, 1000);
+      await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-reference-pickers-large.png') });
+    }
+    await create.getByRole('button', { name: 'Create Person' }).click();
+    await expect(create).toBeHidden();
+    await page.getByRole('button', { name: /Lina.*reviewer.*Offline/ }).click();
+    await expect(page.getByText('code-review', { exact: true })).toBeVisible();
+    await expect(page.getByText('github', { exact: true })).toBeVisible();
+    await expect(page.getByText('filesystem-read', { exact: true })).toBeVisible();
+  } finally {
+    await desktop.close();
+  }
+});
+
+test('Person editor reports MCP catalog errors returned by the backend', async () => {
+  const desktop = await openDesktop();
+  try {
+    const { page } = desktop;
+    await page.route('**/api/v1/mcp/providers', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: false,
+          message: 'The MCP templates directory is unavailable.',
+          config_path: '',
+          providers: [],
+        }),
+      }),
+    );
+    await waitForBackend(page);
+    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'People' }).click();
+    await page.getByRole('button', { name: 'Create Person' }).click();
+    const create = page.getByRole('dialog', { name: 'Create Person' });
+    await create.getByText('Capabilities and limits', { exact: true }).click();
+    await expect(create.getByRole('status')).toContainText('The MCP templates directory is unavailable.');
+  } finally {
+    await desktop.close();
+  }
+});
