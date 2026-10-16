@@ -1296,7 +1296,10 @@ describe('layoutWorld', () => {
 
     expect(trees.length).toBeGreaterThan(16);
     expect(projectSideTrees.length).toBeGreaterThan(8);
-    expect(commonsSideTrees.length).toBeGreaterThan(4);
+    expect(
+      commonsSideTrees.length,
+      `bridge x=${bridge?.x}; all trees=${trees.map(({ x, y }) => `${x},${y}`).join(' ')}`,
+    ).toBeGreaterThan(4);
     expect(clusteredPairs.length).toBeGreaterThan(5);
   });
 
