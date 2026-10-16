@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampCamera, fitCamera, WORLD_ZOOMS, zoomCamera } from './camera';
+import { clampCamera, fitCamera, responsiveCameraZoom, WORLD_ZOOMS, zoomCamera } from './camera';
 
 describe('WORLD_ZOOMS', () => {
   it('stays integer and starts at one source pixel', () => {
@@ -49,6 +49,19 @@ describe('fitCamera', () => {
     const tiles = { x: 30, y: 20 };
     expect(fitCamera(viewport, tiles).zoom).toBe(32);
     expect(fitCamera(viewport, tiles, 48).zoom).toBe(48);
+  });
+});
+
+describe('responsiveCameraZoom', () => {
+  it('fits project interiors to the compact and large viewport without fractional pixels', () => {
+    expect(responsiveCameraZoom('interior', { x: 1024, y: 448 }, { x: 13, y: 9 })).toBe(48);
+    expect(responsiveCameraZoom('interior', { x: 1920, y: 860 }, { x: 13, y: 9 })).toBe(80);
+  });
+
+  it('keeps the player-first scale on grounds and falls back when an interior cannot grow', () => {
+    expect(responsiveCameraZoom('grounds', { x: 1024, y: 448 }, { x: 40, y: 24 })).toBe(32);
+    expect(responsiveCameraZoom('grounds', { x: 1920, y: 860 }, { x: 40, y: 24 })).toBe(64);
+    expect(responsiveCameraZoom('interior', { x: 800, y: 360 }, { x: 13, y: 9 })).toBe(32);
   });
 });
 
