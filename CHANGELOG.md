@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Project rooms now sit inside a layered timber house frame with the themed
+  valley visible beyond it; shared dialogs use warm, crisp game-window trim.
 - Populated project valleys now keep a small deterministic woodland grove on
   the civic bank when landmark paths leave enough safe ground, framing shared
   places without blocking doors or creating false runtime activity.
