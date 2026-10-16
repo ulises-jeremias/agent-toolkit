@@ -987,11 +987,11 @@ function grassTile(seed) {
       [2, 0, 'gm'],
     ],
   ];
-  // Ground should carry a quiet, continuous base at overview scale. Dense
-  // clovers read as repeated confetti once integer-scaled across a whole
-  // valley, so use a few larger pockets and let the authored glades, grasses,
-  // and tree canopies provide the stronger texture.
-  const count = 5 + random(4);
+  // Keep the ground calm in value, but make each tile carry enough authored
+  // leaf texture to read as a living meadow at normal zoom. Deterministic
+  // clumps avoid the confetti effect of isolated noise pixels and soften the
+  // broad moisture bands without obscuring paths or semantic objects.
+  const count = 8 + random(5);
   for (let i = 0; i < count; i++) {
     const motif = random(3) === 0 ? tufts[random(tufts.length)] : clovers[random(clovers.length)];
     const left = 1 + random(12);
