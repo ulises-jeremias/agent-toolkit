@@ -2,6 +2,12 @@
 
 # Desktop visual QA
 
+## Framed project rooms and game-menu forms — 2026-10-16
+
+Real Electron captures from [CI run 38897347805](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38897347805) were opened at 1024×640 and 1920×1080. The first compact capture clipped the outer room trim; the follow-up put the border on the inner wall perimeter. Meadow and Dusk now show the complete room frame at both sizes, and a Person creation form shows the shared framed dialog style with visible focus. This visual update preserves canonical room actions and form behavior. It is not a full visual sign-off: room textures still repeat, and compact furniture detail is necessarily small.
+
+Opened evidence: [Meadow room, compact](assets/electron/world/project-files-room-compact.png), [Meadow room, large](assets/electron/world/project-files-room-large.png), [Dusk room, compact](assets/electron/world/project-files-room-dusk-compact.png), [Dusk room, large](assets/electron/world/project-files-room-dusk-large.png), and [Person creation, compact](assets/electron/cozy-pixel-world/person-create.png). The README gallery was refreshed with real Electron captures for the valley, Dusk valley, project room, Library, Operations and terminal. The single-Person test roster was not substituted for the clearer existing three-Person example.
+
 ## People session recovery at compact and large sizes — 2026-10-06
 
 Source `42bc820f5f27f19c8aabbcb81ea29b8071a75422`, Linux Electron visual
