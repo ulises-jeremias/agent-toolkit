@@ -47,6 +47,13 @@ fn test_compile_remaining_families_temp() {
 	pi := compile_target('pi', g, product, out, root)
 	assert pi.is_valid(), pi.errors.str()
 	assert os.is_file(os.join_path(out, 'demo', 'pi-package.json'))
+	provenance := os.read_file(os.join_path(out, 'demo', '.provenance.json')) or {
+		assert false, err.msg()
+		return
+	}
+	assert provenance.contains('"sourceFile":"skills/core/assistant/SKILL.md"')
+	assert provenance.contains('"sourceFile":"agents/code-reviewer/AGENT.md"')
+	assert !provenance.contains(root)
 
 	gem := compile_target('gemini', g, product, out, root)
 	assert gem.is_valid(), gem.errors.str()

@@ -75,6 +75,25 @@ capabilities:
             spdx: MIT
           resolved_at: '2026-09-14T15:51:22.926753Z'
           version: cbfd1b6
+  design/scroll-world:
+    provenance_digest: sha256:ae98e445ac7fe03c515e260c16ceec23b1efce52f2d5fc8d6d7ce22affe2ec50
+    sources:
+      upstream:
+        path: skills/scroll-world
+        repository: oso95/scroll-world
+        requested:
+          ref: 71cc36d3bb150248ae36a2c552f9cbf88802a79c
+          type: commit
+        resolved:
+          body_checksum: sha256:5fedc60fae0f27555db56ae79e104281d793e7b58208f22136f64f0d47989e0c
+          commit: 71cc36d3bb150248ae36a2c552f9cbf88802a79c
+          content_checksum: sha256:d73e262a58c72b50778c0315539a1b82f5f8ca731c3db74bbab52b90deaeb919
+          license:
+            checksum: sha256:c4b96a7a050b85026eb68ac5b5fee2778384b14371aaeac50891dbadd848d309
+            source_path: skills/design/scroll-world/LICENSE
+            spdx: MIT
+          resolved_at: '2026-10-16T13:04:45.390836Z'
+          version: 71cc36d
   design/web-design-guidelines:
     provenance_digest: sha256:c8b56667e3806258590071b1583b0321d7b39544e622b02c19e0e92b232390f1
     sources:

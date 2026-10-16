@@ -3,6 +3,18 @@ name: design-improvement
 description: WHAT - Browser-grounded iterative design improvement. Consumes design-assessment findings, defines direction, prioritizes safe vs ambiguous changes, implements within existing design system, runs app, captures rendered evidence via browser, reviews and iterates. Reuses evidence model — no new scoring framework.
 origin:
   type: first-party
+metadata:
+  inspired_by:
+    - repository: elayadesign/ai-design-skills
+      path: skills/landing-page-design
+      ref: 1c1e97cb9878e236552c772092dda7adcdddbcb2
+      checksum: sha256:3aae79f3d33ea293491fe6251f9fee56ee0cbb7aa66d41b3f29cfc662e4bbdd6
+      license: MIT
+      license_checksum: sha256:5f9af6ce7083838497676a8dfa651ad8e2559fdabd4586afc73587beec476b0e
+      note: >-
+        Landing strategy, outcome-led copy, proof placement, conversion flow, FAQ/AEO,
+        and section-by-section review are absorbed here without duplicating existing
+        first-party design capabilities.
 ---
 
 # Design Improvement (WHAT)
@@ -165,3 +177,13 @@ Visual hierarchy, layout, spacing, typography, color, interaction, responsive be
 - `project-assessment-evidence` / `technical-unit-assessment` — evidence model and scale
 - `output-handshake` — destination + review gate
 
+## Landing-page storytelling
+
+For landing pages, use the same evidence-based loop with a clear audience, a concrete
+product promise, and one primary next step. Lead with real product experience, place
+first-party proof beside the claims it supports, and sequence the story around the
+visitor's understanding rather than a generic feature grid. Add FAQs only for real
+questions, and keep search metadata and internal links aligned with the page's actual
+promise. Build and critique one section at a time, then review the complete responsive
+journey. This absorbs useful strategy from Elaya Design's
+[`landing-page-design`](https://github.com/elayadesign/ai-design-skills/tree/1c1e97cb9878e236552c772092dda7adcdddbcb2); its fixed visual prescriptions do not override the product's established design direction.

@@ -8,7 +8,7 @@ remains the generated id→description index. For canonical holistic roster + mi
 **Rule:** **WHAT** skills (workflows, companion framing) define phases and gates; **HOW** skills
 (forge, tooling, integrations) own CLI/API procedures — do not inline HOW steps inside WHAT skills.
 
-**Design routing rule (#863):** The **designer** agent owns contextual selection among the 12 `design/*`
+**Design routing rule (#863):** The **designer** agent owns contextual selection among the 13 `design/*`
 plus `accessibility/review` skills. Do not mechanically chain all design skills on one task — pick one
 primary driver per task (see Design section and `docs/SKILL_ROUTING.md`).
 
@@ -84,6 +84,7 @@ Reserved for anti-slop, static analysis, and deep review. Skills in this section
 | Scenario | Route to |
 |----------|----------|
 | New visual direction / creative frontend (greenfield or intentional reshaping) | `design/frontend-design` |
+| Scroll-driven brand/product journey (authored scenes; use real-time/local assets when paid generation is unavailable or not approved) | `design/scroll-world` |
 | Existing frontend quality / design review (PR, component, flow, theme, design-system compliance) | `design/frontend-design-review` |
 | Concrete web-interface best-practice audit (`file:line`, forms/focus/animation, Vercel WIG) | `design/web-design-guidelines` |
 | Evidence-based holistic UX/UI diagnosis (visual, UX friction, a11y, responsive, system compliance, distinctiveness, perf) | `design/design-assessment` (+ `delivery/project-assessment-evidence` if no evidence map yet) |
@@ -93,6 +94,8 @@ Reserved for anti-slop, static analysis, and deep review. Skills in this section
 | Launch / share video for a project or site | `design/brag` (Hyperframes) or `design/brag-slim` (model-built, no bundled assets) |
 
 **Anti-pattern — do not mechanically chain:** `design-assessment` → `frontend-design-review` → `web-design-guidelines` → `frontend-design` → `design-improvement` on every ticket. Typically one of (assessment **or** review **or** guidelines) plus at most one Figma skill and optionally `accessibility/review`; `design-improvement` only after an assessment exists. See `capabilities/skills/registry.yaml` for `overlap`/`contraindications` and `agents/designer/AGENT.md` five-scenario test.
+
+`design/scroll-world` is experimental and includes shell/network instructions for paid media services. Never run its generation pipeline, provide credentials, or incur charges without explicit user approval; the original local/CSS/Canvas journey is a valid alternative.
 
 ---
 
