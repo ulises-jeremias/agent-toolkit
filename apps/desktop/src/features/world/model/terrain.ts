@@ -1223,57 +1223,6 @@ function forest(p: Painter, projectlessMeadow = false) {
     }
   }
 
-  // A populated settlement can crowd its civic lawns with buildings and
-  // doorways, so selected grove centers do not always survive the collision
-  // pass above. Keep a small deterministic tree frame on that bank as well;
-  // these are environmental trees and never imply agent activity.
-  if (!projectlessMeadow) {
-    const crossingX = creekSafe(p);
-    const civicTreeCount = () =>
-      p.decor.filter((decor) => decor.sprite.startsWith('tree-') && decor.x < crossingX).length;
-    const civicCandidates: { x: number; y: number; rank: number }[] = [];
-    for (let y = 4; y < p.rows - 1; y += 1) {
-      for (let x = 1; x < crossingX; x += 1) {
-        const ground = p.get(x, y);
-        if ((!ground.startsWith('grass') && !ground.startsWith('flowers')) || p.isBlocked(x, y)) continue;
-        if (p.paths.has(key(x, y)) || canopyOverBuilding(p, x, y, 0, 0)) continue;
-        civicCandidates.push({ x, y, rank: h2(x, y, 269) });
-      }
-    }
-    civicCandidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
-    for (const candidate of civicCandidates) {
-      if (civicTreeCount() >= 3) break;
-      if (
-        p.decor.some(
-          (decor) => decor.sprite.startsWith('tree-') && Math.hypot(decor.x - candidate.x, decor.y - candidate.y) < 3,
-        )
-      ) {
-        continue;
-      }
-      const kind = h2(candidate.x, candidate.y, 271) % 16;
-      const tree =
-        kind < 2
-          ? 'tree-pine'
-          : kind < 7
-            ? 'tree-blossom'
-            : kind < 10
-              ? 'tree-amber'
-              : kind === 10
-                ? 'tree-rune'
-                : 'tree-round';
-      p.sprite(
-        `tree:civic-frame:${candidate.x},${candidate.y}`,
-        candidate.x,
-        candidate.y,
-        tree,
-        48,
-        48,
-        -16,
-        -32,
-        false,
-      );
-    }
-  }
 }
 
 /** A warm pixel-step aura sits beneath each physical lantern sprite. */

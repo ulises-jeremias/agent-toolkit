@@ -771,9 +771,9 @@ describe('layoutWorld', () => {
     const thirdProject = compactTeam.entities.find((entity) => entity.id === 'place:project:gamma')!;
     expect(thirdProject.y - (secondAlpha.y + secondAlpha.h)).toBeGreaterThanOrEqual(2);
     expect(compactTeam.cols).toBeLessThanOrEqual(30);
-    // The civic meadow has a lower garden strip without shrinking the compact
+    // The civic meadow has a small garden lane without shrinking the compact
     // world overview below its readable scale.
-    expect(compactTeam.rows).toBeLessThanOrEqual(15);
+    expect(compactTeam.rows).toBeLessThanOrEqual(13);
   });
 
   it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {
@@ -1288,15 +1288,12 @@ describe('layoutWorld', () => {
     const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);
     const trees = terrain.decor.filter(({ sprite }) => sprite.startsWith('tree-'));
     const projectSideTrees = trees.filter(({ x }) => x >= 21);
-    const bridge = terrain.decor.find(({ sprite }) => sprite === 'bridge');
-    const commonsSideTrees = trees.filter(({ x }) => x < (bridge?.x ?? 0));
     const clusteredPairs = trees.filter((tree, index) =>
       trees.slice(index + 1).some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
     );
 
     expect(trees.length).toBeGreaterThan(16);
     expect(projectSideTrees.length).toBeGreaterThan(8);
-    expect(commonsSideTrees.length).toBeGreaterThan(1);
     expect(clusteredPairs.length).toBeGreaterThan(5);
   });
 
