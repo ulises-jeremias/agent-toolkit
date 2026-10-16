@@ -954,9 +954,22 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
     const minSpacing = 6;
     if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < minSpacing)) return false;
     centers.push(candidate);
+    // Repeating one hand-shaped cluster at every anchor made the meadow read
+    // like a planted orchard. Rotate and mirror this authored silhouette from
+    // its stable location so neighboring groves feel related without lining
+    // up as copies.
+    const turn = h2(candidate.x, candidate.y, 181) % 4;
+    const mirror = h2(candidate.x, candidate.y, 191) % 2 === 1;
     for (const [dx, dy] of offsets) {
-      const x = candidate.x + dx;
-      const y = candidate.y + dy;
+      const mirroredX = mirror ? -dx : dx;
+      const rotated = [
+        [mirroredX, dy],
+        [-dy, mirroredX],
+        [-mirroredX, -dy],
+        [dy, -mirroredX],
+      ][turn]!;
+      const x = candidate.x + rotated[0]!;
+      const y = candidate.y + rotated[1]!;
       if (p.get(x, y).startsWith('grass') || p.get(x, y).startsWith('flowers')) anchors.add(key(x, y));
     }
     return true;
@@ -971,6 +984,19 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
   for (const candidate of candidates.filter((entry) => entry.projectClearing)) {
     if (centers.length >= target || projectGroves >= projectGroveLimit) break;
     if (addGrove(candidate)) projectGroves += 1;
+  }
+  // Deliberately share the woodland between the village and the project
+  // district. A global random rank often spent nearly every remaining anchor
+  // on the wide project bank, leaving the civic meadow as an empty lawn.
+  const westQuota = Math.ceil(target / 2);
+  const eastQuota = Math.floor(target / 2);
+  for (const [isWest, quota] of [[true, westQuota], [false, eastQuota]] as const) {
+    const bankCount = () => centers.filter((center) => (center.x < creekSafe(p)) === isWest).length;
+    for (const candidate of candidates) {
+      if (bankCount() >= quota || centers.length >= target) break;
+      if ((candidate.x < creekSafe(p)) !== isWest) continue;
+      addGrove(candidate);
+    }
   }
   for (const candidate of candidates) {
     if (centers.length >= target) break;
