@@ -1263,7 +1263,17 @@ function forest(p: Painter, projectlessMeadow = false) {
               : kind === 10
                 ? 'tree-rune'
                 : 'tree-round';
-      p.sprite(`tree:civic-frame:${candidate.x},${candidate.y}`, candidate.x, candidate.y, tree, 48, 48, -16, -32, false);
+      p.sprite(
+        `tree:civic-frame:${candidate.x},${candidate.y}`,
+        candidate.x,
+        candidate.y,
+        tree,
+        48,
+        48,
+        -16,
+        -32,
+        false,
+      );
     }
   }
 }
