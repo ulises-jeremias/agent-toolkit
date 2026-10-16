@@ -1099,6 +1099,93 @@ function forest(p: Painter, projectlessMeadow = false) {
     }
   }
 
+  // A populated civic bank can be so full of doors and approach paths that
+  // the probabilistic tree pass leaves only the project district wooded.
+  // Add one compact, deterministic grove on each bank when that happens. The
+  // root checks preserve walkable routes. Crowns remain on the underlay behind
+  // buildings, so they can frame tight civic lots without covering facades.
+  // This is environmental scenery, never agent activity.
+  if (!projectlessMeadow) {
+    const creekBoundary = creekSafe(p);
+    const creekRows = new Map<number, number[]>();
+    for (const [at, tile] of p.cells) {
+      if (tile !== 'water') continue;
+      const [xText, yText] = at.split(',');
+      const x = Number(xText);
+      const y = Number(yText);
+      const row = creekRows.get(y) ?? [];
+      row.push(x);
+      creekRows.set(y, row);
+    }
+    const creekAtRow = (y: number) => {
+      const exact = creekRows.get(y);
+      if (exact?.length) return exact.reduce((sum, x) => sum + x, 0) / exact.length;
+      // The bridge is paved over the stream; use the nearest visible water
+      // row so nearby roots remain assigned to the same bank.
+      const nearest = [...creekRows.entries()].sort((a, b) => Math.abs(a[0] - y) - Math.abs(b[0] - y))[0]?.[1];
+      return nearest?.length ? nearest.reduce((sum, x) => sum + x, 0) / nearest.length : creekBoundary;
+    };
+    const groveRoots = [
+      [0, 0],
+      [-1, 1],
+      [1, 1],
+      [0, 2],
+      [-2, 0],
+      [2, 0],
+      [-2, 2],
+      [2, 2],
+    ] as const;
+    const isTreeRootClear = (x: number, y: number) => {
+      const ground = p.get(x, y);
+      if ((!ground.startsWith('grass') && !ground.startsWith('flowers')) || p.isBlocked(x, y)) return false;
+      if (p.paths.has(key(x, y))) return false;
+      return !p.decor.some(
+        (sprite) =>
+          sprite.sprite.startsWith('tree-') &&
+          Math.abs(sprite.x - x) < 2 &&
+          Math.abs(sprite.y - y) < 2 &&
+          (sprite.x === x || sprite.y === y),
+      );
+    };
+    const addTree = (x: number, y: number) => {
+      const kind = h2(x, y, 293) % 16;
+      const tree =
+        kind < 2
+          ? 'tree-pine'
+          : kind < 7
+            ? 'tree-blossom'
+            : kind < 10
+              ? 'tree-amber'
+              : kind === 10
+                ? 'tree-rune'
+                : 'tree-round';
+      p.sprite(`tree:civic-grove:${x},${y}`, x, y, tree, 48, 48, -16, -32, false);
+    };
+
+    for (const westBank of [true, false]) {
+      const countOnBank = () =>
+        p.decor.filter((sprite) => sprite.sprite.startsWith('tree-') && sprite.x < creekAtRow(sprite.y) === westBank)
+          .length;
+      if (countOnBank() >= 4) continue;
+      const candidates: { x: number; y: number; rank: number }[] = [];
+      for (let y = 4; y < p.rows - 3; y += 1) {
+        for (let x = 4; x < p.cols - 4; x += 1) {
+          if (x < creekAtRow(y) !== westBank) continue;
+          candidates.push({ x, y, rank: h2(x, y, westBank ? 307 : 311) });
+        }
+      }
+      candidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
+      for (const candidate of candidates) {
+        const roots = groveRoots
+          .map(([dx, dy]) => ({ x: candidate.x + dx, y: candidate.y + dy }))
+          .filter(({ x, y }) => isTreeRootClear(x, y));
+        if (roots.length < 4) continue;
+        for (const root of roots.slice(0, 4)) addTree(root.x, root.y);
+        if (countOnBank() >= 4) break;
+      }
+    }
+  }
+
   // Give the project quarter one intentional green heart when multiple real
   // houses form a usable clearing. Broad anchor spacing can otherwise leave
   // the exact three-tile garden gap empty even though the canopy fits there.
