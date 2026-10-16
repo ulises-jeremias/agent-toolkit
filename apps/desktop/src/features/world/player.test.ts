@@ -67,6 +67,19 @@ describe('world player movement', () => {
     expect(blocked.y).toBe(current.y);
   });
 
+  it('slides around a blocking corner on the way to a click-to-move waypoint', () => {
+    const map = { ...openMap, blocked: new Set([worldCellKey(4, 3)]) };
+    const start = { x: 3.5, y: 3.5 };
+    const target = { x: 4.5, y: 4.5 };
+    let current = start;
+    for (let frame = 0; frame < 4; frame += 1) current = stepWorldPlayerToward(current, target, 50, map);
+
+    expect(current.x).toBeLessThan(3.78);
+    expect(current.y).toBeGreaterThan(start.y);
+    for (let frame = 0; frame < 24; frame += 1) current = stepWorldPlayerToward(current, target, 50, map);
+    expect(current).toEqual(target);
+  });
+
   it('keeps the player inside map boundaries and rejects blocked restored coordinates', () => {
     const map = { ...openMap, blocked: new Set([worldCellKey(2, 2)]) };
     const moved = stepWorldPlayer({ x: 0.5, y: 0.5 }, { north: true, south: false, east: false, west: true }, 50, map);
