@@ -1288,12 +1288,16 @@ describe('layoutWorld', () => {
     const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);
     const trees = terrain.decor.filter(({ sprite }) => sprite.startsWith('tree-'));
     const projectSideTrees = trees.filter(({ x }) => x >= 21);
+    const creekCells = terrain.cells.filter(({ tile }) => tile === 'water');
+    const creekX = creekCells.reduce((sum, cell) => sum + cell.x, 0) / creekCells.length;
+    const civicTrees = trees.filter(({ x }) => x < creekX);
     const clusteredPairs = trees.filter((tree, index) =>
       trees.slice(index + 1).some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
     );
 
     expect(trees.length).toBeGreaterThan(16);
     expect(projectSideTrees.length).toBeGreaterThan(8);
+    expect(civicTrees.length).toBeGreaterThanOrEqual(4);
     expect(clusteredPairs.length).toBeGreaterThan(5);
   });
 
