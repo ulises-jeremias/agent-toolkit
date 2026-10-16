@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Balanced meadow flower glades across creek banks and around the civic commons
   without reducing woodland density or placing blooms over paths, tree roots,
   and buildings; creek-bank placement follows the curved stream row by row.
+- Click-to-move now slides around a blocked corner when either axis remains clear,
+  keeping the human explorer moving without crossing terrain or building collisions.
 - The homepage now guides visitors through a responsive, scene-based journey
   across the Agent Toolkit valley while keeping product screenshots truthful.
 - The human World navigator now has separate idle and alternating directional

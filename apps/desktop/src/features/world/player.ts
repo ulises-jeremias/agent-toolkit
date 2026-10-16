@@ -75,7 +75,19 @@ export function stepWorldPlayerToward(
   if (distance === 0) return current;
   const travel = Math.min(distance, (PLAYER_SPEED_TILES_PER_SECOND * Math.min(50, Math.max(0, elapsedMs))) / 1000);
   const next = { x: current.x + (dx / distance) * travel, y: current.y + (dy / distance) * travel };
-  return canOccupy(next, map) ? next : current;
+  if (canOccupy(next, map)) return next;
+
+  // A waypoint may be diagonally offset from the current player position even
+  // when the route itself is orthogonal. Keep the path moving along the clear
+  // axis instead of freezing against a corner; every partial step still uses
+  // the same player-footprint collision check as direct movement.
+  const horizontal = { x: current.x + (dx / distance) * travel, y: current.y };
+  const vertical = { x: current.x, y: current.y + (dy / distance) * travel };
+  const slid = { ...current };
+  if (canOccupy(horizontal, map)) slid.x = horizontal.x;
+  const verticalAfterSlide = { x: slid.x, y: vertical.y };
+  if (canOccupy(verticalAfterSlide, map)) slid.y = vertical.y;
+  return slid;
 }
 
 /** Find the closest reachable tile to a pointer target, routing around terrain and buildings. */
