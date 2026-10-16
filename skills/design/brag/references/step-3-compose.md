@@ -85,6 +85,7 @@ Requirements:
 - When music is present and the treatment is not `none`, consider Hyperframes audio-reactive workflow: extract audio data and use RMS/frequency bands for subtle, brand-specific motion. Good targets are glow, depth, background warmth, card presence, title emphasis, or other existing visual elements. Avoid waveform/equalizer visuals, musical-note graphics, generic particle systems, strobing, or heavy pulsing.
 - Use local assets for audio and any required runtime/media dependencies when possible.
 - Run `hyperframes check` before render — it is brag's single gate.
+- Keep creation and rendering local. Remote or publishing workflows require a separate explicit user request.
 ```
 
 The brief is the boundary: if a detail belongs to product positioning, copy, tone, source material, or selection of moments, `/brag` should specify it. If a detail belongs to composition implementation, Hyperframes should decide it.
@@ -126,8 +127,8 @@ npx hyperframes tts "<narration text or path to script>" \
 ```
 
 If the user wants a different Kokoro voice, run `npx hyperframes tts --list`
-to see the available options. The command above is the voice implementation
-for this PR and should be used directly.
+to see the available options. By default, use the command above to generate
+narration.
 
 Wire it into the composition on its own track. Music ducks to 0.12–0.15 for the duration of the voiceover, then returns to its normal level:
 
@@ -135,7 +136,7 @@ Wire it into the composition on its own track. Music ducks to 0.12–0.15 for th
 <audio id="vo" data-start="0" data-track-index="3" data-volume="1" src="assets/voiceover.wav"></audio>
 ```
 
-Scene durations must flex to match the generated audio — check the WAV duration after generation and adjust `data-duration` values accordingly. Do not hardcode scene lengths when voiceover is present; let the voice set the pace.
+The 15-25 second window holds whether or not narration is on. Write the narration script to fit that window. Within the window, scene durations flex to match the generated audio rather than being fixed in advance: check the WAV duration after generation and adjust `data-duration` values accordingly. If the rendered narration overruns the window, cut the script and regenerate; do not stretch the video past 25 seconds to fit it.
 
 ---
 
@@ -189,6 +190,7 @@ After `<output-dir>/brag-plan.md`, `<output-dir>/composition-brief.md`, and sele
 3. Let Hyperframes choose the implementation details.
 4. Run Hyperframes check (the single gate before render).
 5. Render to `<output-dir>/brag.mp4`.
+6. Keep creation and rendering local. Remote or publishing workflows require a separate explicit user request.
 
 Do not manually copy stale composition snippets from this skill into the output. The point of delegating is to benefit from the latest Hyperframes guidance.
 
@@ -206,5 +208,30 @@ Before moving to delivery, verify:
 - [ ] At least 1 major tween is beat-locked to a strong cue (a `strongCue`, or the highest-`strength` beat from `hyperframes beats`) within ±0.15s, marked `// beat-locked` (or natural timing was chosen for readability).
 - [ ] Sequential events (cards, stats, list items) snap to consecutive `beats[]` timestamps (±0.10s), marked `// beat-grid` (or natural timing was chosen for readability).
 - [ ] The composition shows at least one real UI, copy, or visual element from the project.
+- [ ] Every factual claim on screen is grounded in the project (see below).
 - [ ] Total duration is 15-25 seconds.
 - [ ] Hyperframes check passes, or any blocker is documented for the user.
+
+### Grounding factual claims
+
+`hyperframes check` audits structure. It has no opinion on copy, so a scene
+can read "Ships 10x faster" — a sentence nobody in the project ever wrote —
+and still come back clean. Read the composition once with this question in
+mind, because nothing else will ask it.
+
+The line is between what the video *asserts* and how it *says* it.
+
+**Must be grounded.** Names, numbers, capabilities, feature claims, quotes,
+anything presented as the product's own copy. If a line states something about
+the product, that something has to appear in the project — its files, its
+README, its UI, its actual output. Re-cased, trimmed or split across elements
+is fine; invented is not. "Streamline your workflow" fails not because it is
+generic but because it is a claim the project never makes.
+
+**Free to invent.** Tone, framing, jokes, hooks, transitions, connective
+narration. "Here's the part nobody asked for" is made up and welcome — it is
+the craft, and it asserts nothing about the product.
+
+When a line you want is not grounded, the fix is usually to quote what the
+project does say, which is almost always stranger and better than the
+invented version.
