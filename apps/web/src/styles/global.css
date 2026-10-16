@@ -829,6 +829,8 @@ h3 {
   color: var(--sun);
 }
 .hero-caption {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: baseline;
