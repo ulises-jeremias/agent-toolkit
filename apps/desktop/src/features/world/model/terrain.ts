@@ -1245,9 +1245,7 @@ function forest(p: Painter, projectlessMeadow = false) {
       if (civicTreeCount() >= 5) break;
       if (
         p.decor.some(
-          (decor) =>
-            decor.sprite.startsWith('tree-') &&
-            Math.hypot(decor.x - candidate.x, decor.y - candidate.y) < 3,
+          (decor) => decor.sprite.startsWith('tree-') && Math.hypot(decor.x - candidate.x, decor.y - candidate.y) < 3,
         )
       ) {
         continue;
