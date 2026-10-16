@@ -1288,9 +1288,24 @@ describe('layoutWorld', () => {
     const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);
     const trees = terrain.decor.filter(({ sprite }) => sprite.startsWith('tree-'));
     const projectSideTrees = trees.filter(({ x }) => x >= 21);
-    const creekCells = terrain.cells.filter(({ tile }) => tile === 'water');
-    const creekX = creekCells.reduce((sum, cell) => sum + cell.x, 0) / creekCells.length;
-    const civicTrees = trees.filter(({ x }) => x < creekX);
+    const creekByRow = new Map<number, number[]>();
+    for (const cell of terrain.cells) {
+      if (cell.tile !== 'water') continue;
+      const row = creekByRow.get(cell.y) ?? [];
+      row.push(cell.x);
+      creekByRow.set(cell.y, row);
+    }
+    const creekAtRow = (y: number) => {
+      const exact = creekByRow.get(y);
+      const nearest = exact ?? [...creekByRow.entries()].sort((a, b) => Math.abs(a[0] - y) - Math.abs(b[0] - y))[0]?.[1];
+      if (!nearest?.length) return Number.POSITIVE_INFINITY;
+      return nearest.reduce((sum, x) => sum + x, 0) / nearest.length;
+    };
+    const civicTrees = trees.filter((tree) => {
+      const creekX = creekAtRow(tree.y);
+      if (!Number.isFinite(creekX)) return false;
+      return tree.x < creekX;
+    });
     const clusteredPairs = trees.filter((tree, index) =>
       trees.slice(index + 1).some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
     );

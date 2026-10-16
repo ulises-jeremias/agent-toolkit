@@ -1107,6 +1107,24 @@ function forest(p: Painter, projectlessMeadow = false) {
   // This is environmental scenery, never agent activity.
   if (!projectlessMeadow) {
     const creekBoundary = creekSafe(p);
+    const creekRows = new Map<number, number[]>();
+    for (const [at, tile] of p.cells) {
+      if (tile !== 'water') continue;
+      const [xText, yText] = at.split(',');
+      const x = Number(xText);
+      const y = Number(yText);
+      const row = creekRows.get(y) ?? [];
+      row.push(x);
+      creekRows.set(y, row);
+    }
+    const creekAtRow = (y: number) => {
+      const exact = creekRows.get(y);
+      if (exact?.length) return exact.reduce((sum, x) => sum + x, 0) / exact.length;
+      // The bridge is paved over the stream; use the nearest visible water
+      // row so nearby roots remain assigned to the same bank.
+      const nearest = [...creekRows.entries()].sort((a, b) => Math.abs(a[0] - y) - Math.abs(b[0] - y))[0]?.[1];
+      return nearest?.length ? nearest.reduce((sum, x) => sum + x, 0) / nearest.length : creekBoundary;
+    };
     const groveRoots = [
       [0, 0],
       [-1, 1],
@@ -1146,12 +1164,13 @@ function forest(p: Painter, projectlessMeadow = false) {
 
     for (const westBank of [true, false]) {
       const countOnBank = () =>
-        p.decor.filter((sprite) => sprite.sprite.startsWith('tree-') && sprite.x < creekBoundary === westBank).length;
+        p.decor.filter((sprite) => sprite.sprite.startsWith('tree-') && (sprite.x < creekAtRow(sprite.y)) === westBank)
+          .length;
       if (countOnBank() >= 4) continue;
       const candidates: { x: number; y: number; rank: number }[] = [];
       for (let y = 4; y < p.rows - 3; y += 1) {
         for (let x = 4; x < p.cols - 4; x += 1) {
-          if (x < creekBoundary !== westBank) continue;
+          if ((x < creekAtRow(y)) !== westBank) continue;
           candidates.push({ x, y, rank: h2(x, y, westBank ? 307 : 311) });
         }
       }
