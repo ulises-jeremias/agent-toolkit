@@ -4,7 +4,7 @@ import crypto.sha256
 import os
 
 fn test_install_claude_previews_complete_skills_and_preserves_user_conflicts() {
-	base := os.join_path(os.temp_dir(), 'at-ins-skills-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-skills-${os.getpid()}')
 	data := os.join_path(base, 'data')
 	home := os.join_path(base, 'home')
 	receipt_dir := os.join_path(base, 'receipts')
@@ -72,7 +72,7 @@ fn test_install_claude_previews_complete_skills_and_preserves_user_conflicts() {
 }
 
 fn test_install_invalid_skill_layout_aborts_before_stale_cleanup() {
-	base := os.join_path(os.temp_dir(), 'at-ins-bad-layout-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-bad-layout-${os.getpid()}')
 	data := os.join_path(base, 'data')
 	home := os.join_path(base, 'home')
 	receipt_dir := os.join_path(base, 'receipts')
@@ -116,7 +116,7 @@ fn test_install_invalid_skill_layout_aborts_before_stale_cleanup() {
 }
 
 fn test_install_cursor_dry_run_writes_nothing() {
-	base := os.join_path(os.temp_dir(), 'at-ins-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-${os.getpid()}')
 	data := os.join_path(base, 'data')
 	home := os.join_path(base, 'home')
 	receipt_dir := os.join_path(base, 'receipts')
@@ -146,7 +146,7 @@ fn test_install_cursor_dry_run_writes_nothing() {
 }
 
 fn test_install_cursor_writes_file_and_receipt() {
-	base := os.join_path(os.temp_dir(), 'at-ins-w-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-w-${os.getpid()}')
 	data := os.join_path(base, 'data')
 	home := os.join_path(base, 'home')
 	receipt_dir := os.join_path(base, 'receipts')
@@ -178,7 +178,7 @@ fn test_install_cursor_writes_file_and_receipt() {
 }
 
 fn test_install_preserves_without_force() {
-	base := os.join_path(os.temp_dir(), 'at-ins-p-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-p-${os.getpid()}')
 	data := os.join_path(base, 'data')
 	home := os.join_path(base, 'home')
 	receipt_dir := os.join_path(base, 'receipts')
@@ -221,7 +221,7 @@ fn test_install_preserves_without_force() {
 }
 
 fn test_install_skips_symlink_managed_targets_and_stale_cleanup() {
-	base := os.join_path(os.temp_dir(), 'at-ins-symlink-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-symlink-${os.getpid()}')
 	data := os.join_path(base, 'data')
 	home := os.join_path(base, 'home')
 	receipt_dir := os.join_path(base, 'receipts')
@@ -280,7 +280,7 @@ fn test_install_skips_symlink_managed_targets_and_stale_cleanup() {
 }
 
 fn test_install_force_overwrites() {
-	base := os.join_path(os.temp_dir(), 'at-ins-f-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-f-${os.getpid()}')
 	data := os.join_path(base, 'data')
 	home := os.join_path(base, 'home')
 	receipt_dir := os.join_path(base, 'receipts')
@@ -310,7 +310,7 @@ fn test_install_force_overwrites() {
 }
 
 fn test_install_preview_reports_stale_owned_files_without_removing_them() {
-	base := os.join_path(os.temp_dir(), 'at-ins-stale-preview-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-stale-preview-${os.getpid()}')
 	data := os.join_path(base, 'data')
 	home := os.join_path(base, 'home')
 	receipt_dir := os.join_path(base, 'receipts')
@@ -362,7 +362,7 @@ fn test_install_preview_reports_stale_owned_files_without_removing_them() {
 }
 
 fn test_install_skips_changed_stale_owned_file() {
-	base := os.join_path(os.temp_dir(), 'at-ins-stale-changed-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-stale-changed-${os.getpid()}')
 	data := os.join_path(base, 'data')
 	home := os.join_path(base, 'home')
 	receipt_dir := os.join_path(base, 'receipts')
@@ -397,7 +397,7 @@ fn test_install_skips_changed_stale_owned_file() {
 }
 
 fn test_install_skips_stale_receipt_path_outside_home() {
-	base := os.join_path(os.temp_dir(), 'at-ins-stale-outside-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-stale-outside-${os.getpid()}')
 	data := os.join_path(base, 'data')
 	home := os.join_path(base, 'home')
 	receipt_dir := os.join_path(base, 'receipts')
@@ -431,7 +431,7 @@ fn test_install_skips_stale_receipt_path_outside_home() {
 }
 
 fn test_install_unknown_tool_skipped() {
-	base := os.join_path(os.temp_dir(), 'at-ins-u-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-u-${os.getpid()}')
 	os.mkdir_all(base) or { assert false, err.msg() }
 	defer {
 		os.rmdir_all(base) or {}
@@ -448,7 +448,7 @@ fn test_install_unknown_tool_skipped() {
 }
 
 fn test_install_no_tools_detected() {
-	base := os.join_path(os.temp_dir(), 'at-ins-n-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-n-${os.getpid()}')
 	data := os.join_path(base, 'data')
 	home := os.join_path(base, 'home')
 	os.mkdir_all(os.join_path(data, 'profiles')) or { assert false, err.msg() }
@@ -466,7 +466,7 @@ fn test_install_no_tools_detected() {
 }
 
 fn test_install_opencode_json_merge() {
-	base := os.join_path(os.temp_dir(), 'at-ins-j-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-j-${os.getpid()}')
 	data := os.join_path(base, 'data')
 	home := os.join_path(base, 'home')
 	receipt_dir := os.join_path(base, 'receipts')
@@ -505,7 +505,7 @@ fn test_install_opencode_json_merge() {
 }
 
 fn test_install_copilot_skipped_noninteractive() {
-	base := os.join_path(os.temp_dir(), 'at-ins-c-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-c-${os.getpid()}')
 	os.mkdir_all(base) or { assert false, err.msg() }
 	defer {
 		os.rmdir_all(base) or {}
@@ -522,7 +522,7 @@ fn test_install_copilot_skipped_noninteractive() {
 }
 
 fn test_install_autodetect_cursor_home() {
-	base := os.join_path(os.temp_dir(), 'at-ins-d-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-d-${os.getpid()}')
 	data := os.join_path(base, 'data')
 	home := os.join_path(base, 'home')
 	receipt_dir := os.join_path(base, 'receipts')
@@ -545,7 +545,7 @@ fn test_install_autodetect_cursor_home() {
 }
 
 fn test_install_skips_claude_settings_json() {
-	base := os.join_path(os.temp_dir(), 'at-ins-s-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-s-${os.getpid()}')
 	data := os.join_path(base, 'data')
 	home := os.join_path(base, 'home')
 	receipt_dir := os.join_path(base, 'receipts')
@@ -577,7 +577,7 @@ fn test_install_skips_claude_settings_json() {
 }
 
 fn test_merge_json_install_recursive() {
-	base := os.join_path(os.temp_dir(), 'at-ins-merge-${os.getpid()}')
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-merge-${os.getpid()}')
 	os.mkdir_all(base) or { assert false, err.msg() }
 	defer {
 		os.rmdir_all(base) or {}
