@@ -990,11 +990,15 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
   // on the wide project bank, leaving the civic meadow as an empty lawn.
   const westQuota = Math.ceil(target / 2);
   const eastQuota = Math.floor(target / 2);
-  for (const [isWest, quota] of [[true, westQuota], [false, eastQuota]] as const) {
-    const bankCount = () => centers.filter((center) => (center.x < creekSafe(p)) === isWest).length;
+  const isWestBank = (x: number) => x < creekSafe(p);
+  for (const [isWest, quota] of [
+    [true, westQuota],
+    [false, eastQuota],
+  ] as const) {
+    const bankCount = () => centers.filter((center) => isWestBank(center.x) === isWest).length;
     for (const candidate of candidates) {
       if (bankCount() >= quota || centers.length >= target) break;
-      if ((candidate.x < creekSafe(p)) !== isWest) continue;
+      if (isWestBank(candidate.x) !== isWest) continue;
       addGrove(candidate);
     }
   }
