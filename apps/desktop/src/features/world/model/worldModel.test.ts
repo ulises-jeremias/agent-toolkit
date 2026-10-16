@@ -1296,12 +1296,8 @@ describe('layoutWorld', () => {
       creekByRow.set(cell.y, row);
     }
     const creekAtRow = (y: number) => {
-      const exact = creekByRow.get(y);
-      const nearest =
-        exact ??
-        [...creekByRow.entries()].sort((a, b) => Math.abs(a[0] - y) - Math.abs(b[0] - y))[0]?.[1];
-      if (!nearest?.length) return Number.POSITIVE_INFINITY;
-      return nearest.reduce((sum, x) => sum + x, 0) / nearest.length;
+      const nearest = creekByRow.get(y) ?? creekByRow.get(y - 1) ?? creekByRow.get(y + 1);
+      return nearest?.length ? nearest.reduce((sum, x) => sum + x, 0) / nearest.length : Number.POSITIVE_INFINITY;
     };
     const civicTrees = trees.filter((tree) => {
       const creekX = creekAtRow(tree.y);
