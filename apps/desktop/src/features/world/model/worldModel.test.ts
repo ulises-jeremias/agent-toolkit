@@ -523,6 +523,9 @@ describe('buildWorldModel', () => {
     );
     expect(new Set(landmarks.slice(0, 3).map((entity) => entity.y)).size).toBe(3);
     expect(new Set(landmarks.slice(3).map((entity) => entity.y + entity.h)).size).toBeGreaterThan(1);
+    expect(landmarks.find((entity) => entity.id === 'object:workshop')?.y).toBeGreaterThanOrEqual(
+      landmarks.find((entity) => entity.id === 'object:attention')?.y ?? -1,
+    );
 
     for (let left = 0; left < landmarks.length; left += 1) {
       for (let right = left + 1; right < landmarks.length; right += 1) {
@@ -768,6 +771,8 @@ describe('layoutWorld', () => {
     const thirdProject = compactTeam.entities.find((entity) => entity.id === 'place:project:gamma')!;
     expect(thirdProject.y - (secondAlpha.y + secondAlpha.h)).toBeGreaterThanOrEqual(2);
     expect(compactTeam.cols).toBeLessThanOrEqual(30);
+    // The civic meadow has a small garden lane without shrinking the compact
+    // world overview below its readable scale.
     expect(compactTeam.rows).toBeLessThanOrEqual(13);
   });
 
@@ -1280,9 +1285,8 @@ describe('layoutWorld', () => {
         }),
       ),
     );
-    const trees = paintTerrain(layout.entities, layout.cols, layout.rows).decor.filter(({ sprite }) =>
-      sprite.startsWith('tree-'),
-    );
+    const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);
+    const trees = terrain.decor.filter(({ sprite }) => sprite.startsWith('tree-'));
     const projectSideTrees = trees.filter(({ x }) => x >= 21);
     const clusteredPairs = trees.filter((tree, index) =>
       trees.slice(index + 1).some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
