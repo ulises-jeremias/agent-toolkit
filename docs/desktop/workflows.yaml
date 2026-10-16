@@ -534,6 +534,23 @@ journeys:
         screenshots:
           - assets/electron/world/world-spatial-focus-compact.png
           - assets/electron/world/world-spatial-focus-large.png
+      - note: >-
+          Project interiors now select the largest crisp integer zoom that fits
+          the room and viewport unless the user has adjusted zoom manually.
+          The Electron project-link capture checks 48px tiles at 1024x640 and
+          80px at 1920x1080, with the complete room inside the view in Meadow
+          and Dusk. Compact and large captures were opened after the scale
+          change; the outer house frame stays visible and the meadow remains
+          around the room.
+        build: "52f8eeca (Linux Electron; project-link.spec.ts; capture run 38901644963)"
+        tests:
+          - apps/desktop/src/features/world/camera.test.ts
+          - apps/desktop/e2e/electron/project-link.spec.ts
+        screenshots:
+          - assets/electron/world/project-files-room-compact.png
+          - assets/electron/world/project-files-room-large.png
+          - assets/electron/world/project-files-room-dusk-compact.png
+          - assets/electron/world/project-files-room-dusk-large.png
     blockers: []
   - id: capability-discovery
     title: Browse skills/agents/packs in the Library

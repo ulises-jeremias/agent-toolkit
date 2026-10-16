@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Project interiors now use the largest crisp zoom that fits the room and
+  viewport, while preserving any zoom the user selected.
+- Project rooms now sit inside a layered timber house frame with the themed
+  valley visible beyond it; shared dialogs use warm, crisp game-window trim.
+- Populated project valleys now keep a small deterministic woodland grove on
+  the civic bank when landmark paths leave enough safe ground, framing shared
+  places without blocking doors or creating false runtime activity.
 - Balanced meadow flower glades across creek banks and around the civic commons
   without reducing woodland density or placing blooms over paths, tree roots,
   and buildings; creek-bank placement follows the curved stream row by row.

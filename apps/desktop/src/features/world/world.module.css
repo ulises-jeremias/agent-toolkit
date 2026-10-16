@@ -146,12 +146,38 @@
 
 .mapRegion[data-mode='interior'] {
   background: var(--world-outside-interior, #30253f);
+  background-image: url('/world/grass-a.png');
+  background-repeat: repeat;
+  image-rendering: pixelated;
+}
+
+:root[data-theme='dusk'] .mapRegion[data-mode='interior'] {
+  background-color: #596b86;
+  background-blend-mode: multiply;
 }
 
 .mapWorld {
   position: absolute;
   top: 0;
   left: 0;
+}
+
+/* A project room sits inside the silhouette of its house. The meadow visible
+   beyond the room and the layered timber edge make that relationship legible
+   at a glance; the frame is presentation only and does not change navigation
+   or collision. */
+.mapWorld[data-mode='interior'] {
+  isolation: isolate;
+}
+
+.mapWorld[data-mode='interior']::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border: 10px solid var(--cw-wood-dark);
+  box-shadow: inset 0 0 0 4px var(--cw-wood-light), inset 0 0 0 7px var(--cw-gold-deep);
 }
 
 .mapWorld :global(.worldTerrain) {
