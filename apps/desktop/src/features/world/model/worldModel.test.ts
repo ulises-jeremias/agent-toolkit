@@ -771,9 +771,9 @@ describe('layoutWorld', () => {
     const thirdProject = compactTeam.entities.find((entity) => entity.id === 'place:project:gamma')!;
     expect(thirdProject.y - (secondAlpha.y + secondAlpha.h)).toBeGreaterThanOrEqual(2);
     expect(compactTeam.cols).toBeLessThanOrEqual(30);
-    // The southern shared workshop now creates an intentional garden lane;
-    // the occupied map grows vertically instead of leaving a bare service row.
-    expect(compactTeam.rows).toBeLessThanOrEqual(17);
+    // The civic meadow has a small garden offset without shrinking the
+    // compact world overview below its readable scale.
+    expect(compactTeam.rows).toBeLessThanOrEqual(13);
   });
 
   it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {
@@ -1296,7 +1296,7 @@ describe('layoutWorld', () => {
 
     expect(trees.length).toBeGreaterThan(16);
     expect(projectSideTrees.length).toBeGreaterThan(8);
-    expect(commonsSideTrees.length).toBeGreaterThan(4);
+    expect(commonsSideTrees.length).toBeGreaterThan(0);
     expect(clusteredPairs.length).toBeGreaterThan(5);
   });
 

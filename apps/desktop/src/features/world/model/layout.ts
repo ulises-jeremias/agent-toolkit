@@ -222,10 +222,9 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // smaller service places form its southern garden lane.
   const civicSlots: Record<string, { x: number; y: number }> = {
     'object:library': { x: 1, y: 4 },
-    // The workshop anchors a lower garden clearing. Lifting it out of the
-    // crowded service lane gives the civic commons a real meadow between the
-    // shared buildings and the creek.
-    'object:workshop': { x: 12, y: 12 },
+    // A one-row offset opens a meadow strip in the civic commons while keeping
+    // the settlement inside the compact camera's readable footprint.
+    'object:workshop': { x: 12, y: 8 },
     'object:operations': { x: 5, y: 3 },
     'object:terminal': { x: 11, y: 2 },
     'object:attention': { x: 0, y: 8 },
