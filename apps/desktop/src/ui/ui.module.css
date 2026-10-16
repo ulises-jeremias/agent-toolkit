@@ -538,33 +538,6 @@
   padding: var(--space-2) var(--space-5) var(--space-4);
   overflow: auto;
   color: var(--text-secondary);
-  scrollbar-color: var(--cw-wood-light) var(--surface-sunken);
-  scrollbar-width: auto;
-}
-
-.dialogBody::-webkit-scrollbar {
-  width: 14px;
-  height: 14px;
-}
-
-.dialogBody::-webkit-scrollbar-track {
-  border-inline: 2px solid var(--border-subtle);
-  background: var(--surface-sunken);
-}
-
-.dialogBody::-webkit-scrollbar-thumb {
-  min-height: 2.5rem;
-  border: 3px solid var(--surface-sunken);
-  background: var(--cw-wood-light);
-  box-shadow: inset 0 0 0 1px var(--cw-wood-dark);
-}
-
-.dialogBody::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-gold);
-}
-
-.dialogBody::-webkit-scrollbar-corner {
-  background: var(--surface-sunken);
 }
 
 .dialogBody > * + * {
