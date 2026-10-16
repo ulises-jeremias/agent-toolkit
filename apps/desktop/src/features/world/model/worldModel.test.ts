@@ -1332,7 +1332,9 @@ describe('layoutWorld', () => {
     expect(denseWindows.length).toBeGreaterThan(0);
     const featuredPatches = terrain.decor.filter((sprite) => sprite.sprite.startsWith('wildflower-patch-'));
     expect(featuredPatches.length).toBeGreaterThan(0);
-    expect(featuredPatches.every((sprite) => sprite.w === 40 && sprite.h === 28)).toBe(true);
+    expect(
+      featuredPatches.every((sprite) => (sprite.w === 40 && sprite.h === 28) || (sprite.w === 24 && sprite.h === 24)),
+    ).toBe(true);
     const isPathTile = (tile: string) =>
       ['dirt', 'plaza', 'plaza-b'].includes(tile) || tile.startsWith('dirt-') || tile.startsWith('trail');
     const paths = cells.filter(({ tile }) => isPathTile(tile));
@@ -1348,7 +1350,55 @@ describe('layoutWorld', () => {
           bounds.left < path.x + 1 && bounds.right > path.x && bounds.top < path.y + 1 && bounds.bottom > path.y,
       );
       expect(overlapsPath).toBe(false);
+      const overlapsTreeRoot = terrain.decor.some(
+        (tree) =>
+          tree.sprite.startsWith('tree-') &&
+          bounds.left < tree.x + 1 &&
+          bounds.right > tree.x &&
+          bounds.top < tree.y + 1 &&
+          bounds.bottom > tree.y,
+      );
+      expect(overlapsTreeRoot).toBe(false);
     }
+  });
+
+  it('keeps the civic meadow in bloom instead of concentrating flowers by the creek', () => {
+    const layout = layoutWorld(
+      buildWorldModel(
+        baseInput({
+          projects: ['agent-toolkit', 'harness', 'workspace'].map((name) => ({
+            name,
+            target: `/${name}`,
+            status: 'ok' as const,
+          })),
+        }),
+      ),
+    );
+    const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);
+    const water = terrain.cells.filter(({ tile }) => tile === 'water');
+    const creekByRow = new Map<number, { left: number; right: number }>();
+    for (const { x, y } of water) {
+      const bank = creekByRow.get(y);
+      creekByRow.set(y, { left: Math.min(bank?.left ?? x, x), right: Math.max(bank?.right ?? x, x) });
+    }
+    const onBank = (x: number, y: number, side: 'west' | 'east', margin = 3) => {
+      const creek = creekByRow.get(y);
+      if (!creek) return false; // The paved bridge crossing has no open-water bank.
+      return side === 'west' ? x < creek.left - margin : x > creek.right + margin;
+    };
+    const flowers = terrain.cells.filter(({ tile }) => tile.startsWith('flowers-'));
+    const westBankFlowers = flowers.filter(({ x, y }) => onBank(x, y, 'west'));
+    const eastBankFlowers = flowers.filter(({ x, y }) => onBank(x, y, 'east'));
+    const flowerPatches = terrain.decor.filter(({ sprite }) => sprite.startsWith('wildflower-patch-'));
+    const westBankPatches = flowerPatches.filter(({ x, y }) => onBank(x, Math.floor(y - 0.5), 'west', 1));
+    const eastBankPatches = flowerPatches.filter(({ x, y }) => onBank(x, Math.floor(y - 0.5), 'east', 1));
+
+    expect(water.length).toBeGreaterThan(0);
+    expect(westBankFlowers.length).toBeGreaterThan(15);
+    expect(eastBankFlowers.length).toBeGreaterThan(5);
+    expect(flowerPatches.length).toBeGreaterThanOrEqual(3);
+    expect(westBankPatches.length).toBeGreaterThan(0);
+    expect(eastBankPatches.length).toBeGreaterThan(0);
   });
 
   it('lays out a project interior without shared Library or Workshop fixtures', () => {
