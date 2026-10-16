@@ -523,7 +523,7 @@ describe('buildWorldModel', () => {
     );
     expect(new Set(landmarks.slice(0, 3).map((entity) => entity.y)).size).toBe(3);
     expect(new Set(landmarks.slice(3).map((entity) => entity.y + entity.h)).size).toBeGreaterThan(1);
-    expect(landmarks.find((entity) => entity.id === 'object:workshop')?.y).toBeGreaterThan(
+    expect(landmarks.find((entity) => entity.id === 'object:workshop')?.y).toBeGreaterThanOrEqual(
       landmarks.find((entity) => entity.id === 'object:attention')?.y ?? -1,
     );
 

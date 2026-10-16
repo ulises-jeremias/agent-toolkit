@@ -227,7 +227,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     'object:workshop': { x: 12, y: 8 },
     'object:operations': { x: 5, y: 3 },
     'object:terminal': { x: 11, y: 2 },
-    'object:attention': { x: 0, y: 7 },
+    'object:attention': { x: 0, y: 8 },
     'object:files': { x: 4, y: 8 },
     'object:settings': { x: 8, y: 7 },
   };
