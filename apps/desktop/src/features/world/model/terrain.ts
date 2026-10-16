@@ -1222,7 +1222,6 @@ function forest(p: Painter, projectlessMeadow = false) {
       }
     }
   }
-
 }
 
 /** A warm pixel-step aura sits beneath each physical lantern sprite. */
