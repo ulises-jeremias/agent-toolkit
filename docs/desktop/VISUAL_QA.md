@@ -118,7 +118,31 @@ The [workflow ledger](workflows.yaml) records functional evidence separately;
 a passing screenshot does not establish an end-to-end journey, and a passing
 test does not establish visual quality.
 
-## Latest Electron review — v1.44.0, 2026-10-13
+## Latest Electron review — v1.44.0, 2026-10-16
+
+The Desktop capture tour completed in [CI run 38906545120](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38906545120)
+at source `539a6dea9e549aaf15a5323b1eba37b945cb5333`, using the real bundled
+backend and disposable Electron workspaces. I opened compact and large Meadow
+Settings, compact Person creation and Start, a compact project room, and the
+large Terminal. The retained captures are in
+[`assets/electron/review-2026-10-16/`](assets/electron/review-2026-10-16/).
+
+The wood-and-indigo scrollbar now follows the same palette on long pages,
+dialogs, and nested lists. Settings remains readable at both sizes; the Person
+forms retain their pixel-cut timber frame, visible focus, clear actions, and
+native scrolling. The room frame stays complete, and the terminal dock and real
+PTY remain unobscured. I made no renderer-art changes after this capture. The
+existing world composition and repeated room-board textures remain separate
+visual work items.
+
+Opened files: [`meadow-1024x640-settings.png`](assets/electron/review-2026-10-16/meadow-1024x640-settings.png),
+[`meadow-1920x1080-settings.png`](assets/electron/review-2026-10-16/meadow-1920x1080-settings.png),
+[`meadow-1024x640-person-create.png`](assets/electron/review-2026-10-16/meadow-1024x640-person-create.png),
+[`person-start-compact.png`](assets/electron/review-2026-10-16/person-start-compact.png),
+[`project-files-room-compact.png`](assets/electron/review-2026-10-16/project-files-room-compact.png), and
+[`meadow-1920x1080-terminal.png`](assets/electron/review-2026-10-16/meadow-1920x1080-terminal.png).
+
+## Electron review — v1.44.0, 2026-10-13
 
 The Electron review completed successfully in [CI run 38356729582](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38356729582)
 at source `01450a9943374e6afbd4fa3f3107b3ea3cdf79ee`, using the real bundled
