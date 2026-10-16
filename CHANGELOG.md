@@ -10,6 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.45.1] — 2026-10-17
+
+### Added
+
+- People profiles now use searchable multi-select controls for Skills and MCP
+  references, with configured capabilities visible in the roster and existing
+  unknown references preserved for review.
+- The getting-started guide now leads with the Desktop setup journey, supported
+  runners, capability installation, People, sessions, and recovery.
+
+### Fixed
+
+- Workspace validation now reads YAML literal and folded block scalars in pack
+  descriptions and job requests instead of treating them as empty values.
+- Profile installation and stale-file cleanup now leave symlink-managed paths
+  intact, preventing host-managed integrations from redirecting or aborting an
+  install.
+
 ## [1.45.0] — 2026-10-16
 
 ### Changed
