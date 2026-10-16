@@ -1288,15 +1288,15 @@ describe('layoutWorld', () => {
     const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);
     const trees = terrain.decor.filter(({ sprite }) => sprite.startsWith('tree-'));
     const projectSideTrees = trees.filter(({ x }) => x >= 21);
-    const westBankEdge = Math.min(...terrain.cells.filter(({ tile }) => tile === 'water').map(({ x }) => x));
-    const commonsSideTrees = trees.filter(({ x }) => x < westBankEdge);
+    const bridge = terrain.decor.find(({ sprite }) => sprite === 'bridge');
+    const commonsSideTrees = trees.filter(({ x }) => x < (bridge?.x ?? 0));
     const clusteredPairs = trees.filter((tree, index) =>
       trees.slice(index + 1).some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
     );
 
     expect(trees.length).toBeGreaterThan(16);
     expect(projectSideTrees.length).toBeGreaterThan(8);
-    expect(commonsSideTrees.length).toBeGreaterThan(0);
+    expect(commonsSideTrees.length).toBeGreaterThan(4);
     expect(clusteredPairs.length).toBeGreaterThan(5);
   });
 
