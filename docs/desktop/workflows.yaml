@@ -38,6 +38,25 @@ journeys:
     status: ok
     evidence:
       - note: >-
+          The player-follow camera now selects a crisp exploration zoom by
+          window width (32 px below 1280, 48 px through 1599, 64 px at 1600+),
+          updates that default on resize, and preserves a user-selected zoom.
+          Walk recenters on the player; Fit world remains an explicit overview.
+          Electron E2E checks compact/large/intermediate resizing, manual zoom
+          preservation, movement focus, and command-palette typing. Meadow and
+          Dusk captures at 1024x640 and 1920x1080 were opened and reviewed with
+          the installed 1.44.0 backend in a fresh temporary workspace.
+        build: "feat/world-adaptive-camera (Linux Electron; renderer build; installed backend 1.44.0)"
+        tests:
+          - apps/desktop/e2e/electron/world-walk.spec.ts
+          - apps/desktop/src/features/world/WorldEntityMap.test.tsx
+          - apps/desktop/src/features/world/camera.test.ts
+        screenshots:
+          - assets/electron/world-adaptive-camera-2026-10-13/world-meadow-compact.png
+          - assets/electron/world-adaptive-camera-2026-10-13/world-meadow-large.png
+          - assets/electron/world-adaptive-camera-2026-10-13/world-dusk-compact.png
+          - assets/electron/world-adaptive-camera-2026-10-13/world-dusk-large.png
+      - note: >-
           Electron E2E changes to a second workspace through Settings, verifies
           the URL scope changes with the supervised harness, links a real
           project using the GUI, verifies its building in World, rejects a
@@ -131,6 +150,25 @@ journeys:
           - assets/electron/world-player-click-to-move/large.png
           - assets/electron/world-player-exit/compact.png
           - assets/electron/world-player-exit/large.png
+      - note: >-
+          The World now opens at a player-first exploration scale instead of
+          fitting the full valley on first load. The human avatar and camera
+          are ready at entry; Fit world remains available for the complete
+          workspace overview. Electron E2E verifies initial player visibility,
+          pointer and keyboard movement, saved appearance, and that command
+          palette typing leaves the player still. First-open compact and large
+          captures and a compact walking capture were opened against the
+          installed Desktop backend. The screenshot review still identifies
+          broad grass and orthogonal routes as unresolved composition work.
+        build: "74b25c12 (Electron E2E; installed 1.44.0 backend; world-walk.spec.ts)"
+        tests:
+          - apps/desktop/e2e/electron/world-walk.spec.ts
+          - apps/desktop/src/features/world/WorldEntityMap.test.tsx
+          - apps/desktop/src/features/world/player.test.ts
+        screenshots:
+          - assets/electron/world-player-start-2026-10-13/world-player-start-compact.png
+          - assets/electron/world-player-start-2026-10-13/world-player-start-large.png
+          - assets/electron/world-player-start-2026-10-13/world-player-walking-compact.png
       - note: >-
           The project's interior door now describes its real action as returning
           to the workspace grounds. Electron E2E walks to that door, checks the

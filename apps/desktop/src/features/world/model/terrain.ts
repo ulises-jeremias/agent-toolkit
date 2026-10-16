@@ -672,27 +672,36 @@ function canopyOverBuilding(p: Painter, x: number, y: number, offsetX: number, o
   return false;
 }
 
-function canopyOverFlowerPatch(p: Painter, x: number, y: number, offsetX: number, offsetY: number): boolean {
-  const left = x - 1 + offsetX / 16;
-  const top = y - 2 + offsetY / 16;
-  return p.decor.some((decor) => {
-    if (!decor.sprite.startsWith('wildflower-patch-')) return false;
-    const patchLeft = decor.x + decor.dx / 16;
-    const patchTop = decor.y + decor.dy / 16;
-    const patchRight = patchLeft + decor.w / 16;
-    const patchBottom = patchTop + decor.h / 16;
-    return left < patchRight && left + 3 > patchLeft && top < patchBottom && top + 3 > patchTop;
-  });
+function footprintClearsPathsAndStructures(
+  p: Painter,
+  footprint: { left: number; top: number; right: number; bottom: number },
+): boolean {
+  for (let y = Math.floor(footprint.top); y < Math.ceil(footprint.bottom); y += 1) {
+    for (let x = Math.floor(footprint.left); x < Math.ceil(footprint.right); x += 1) {
+      const at = key(x, y);
+      const treeRoot = p.decor.some((sprite) => sprite.sprite.startsWith('tree-') && sprite.x === x && sprite.y === y);
+      if (p.paths.has(at) || p.blocked.has(at) || treeRoot) return false;
+    }
+  }
+  return true;
 }
 
 /** Broad irregular flower beds give open lawns a visible meadow rhythm. */
 function flowerGlades(p: Painter) {
   // Give the quiet spaces a visible meadow rhythm at overview scale. Glades
   // stay grouped and seed-stable so additional color does not become speckle.
-  const target = Math.min(20, Math.max(6, Math.floor((p.cols * p.rows) / 36)));
+  // Balance the planting across both banks: global rank alone can concentrate
+  // every bloom beside the creek and leave the civic quarter as a bare lawn.
+  // Include the outer fringe so narrow, path-bound civic banks can still host
+  // a clipped edge glade instead of reserving all blooms for open interiors.
+  const target = Math.min(22, Math.max(8, Math.floor((p.cols * p.rows) / 30)));
+  const hasProjectDistrict = p.projectLots.length > 0;
+  const minX = hasProjectDistrict ? 1 : 2;
+  const minY = hasProjectDistrict ? 1 : 3;
+  const centerSpacing = hasProjectDistrict ? 4 : 5;
   const candidates: { x: number; y: number; rank: number }[] = [];
-  for (let y = 3; y < p.rows - 2; y++) {
-    for (let x = 2; x < p.cols - 2; x++) {
+  for (let y = minY; y < p.rows - 2; y++) {
+    for (let x = minX; x < p.cols - 2; x++) {
       if (!p.get(x, y).startsWith('grass') || nearStructureOrPath(p, x, y, 0)) continue;
       candidates.push({ x, y, rank: h2(x, y, 131) });
     }
@@ -700,11 +709,11 @@ function flowerGlades(p: Painter) {
   candidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
 
   const centers: { x: number; y: number }[] = [];
-  for (const candidate of candidates) {
-    if (centers.length >= target) break;
-    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < 6)) continue;
+  const plant = (candidate: (typeof candidates)[number]) => {
+    if (centers.length >= target) return false;
+    if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < centerSpacing))
+      return false;
     centers.push(candidate);
-
     const radiusX = 4 + (h2(candidate.x, candidate.y, 137) % 2);
     const radiusY = 2 + (h2(candidate.x, candidate.y, 139) % 2);
     const blooms = ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'] as const;
@@ -726,6 +735,25 @@ function flowerGlades(p: Painter) {
         }
       }
     }
+    return true;
+  };
+
+  const creekX = creekSafe(p);
+  const banks = [
+    candidates.filter((candidate) => candidate.x < creekX - 3),
+    candidates.filter((candidate) => candidate.x > creekX + 3),
+  ];
+  const bankShares = [Math.ceil(target / 2), Math.floor(target / 2)];
+  for (const [bankIndex, bank] of banks.entries()) {
+    let planted = 0;
+    for (const candidate of bank) {
+      if (planted >= bankShares[bankIndex]!) break;
+      if (plant(candidate)) planted += 1;
+    }
+  }
+  for (const candidate of candidates) {
+    if (centers.length >= target) break;
+    plant(candidate);
   }
 }
 
@@ -742,36 +770,35 @@ function flowerPatchSprites(p: Painter) {
   candidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
 
   const placed: { x: number; y: number }[] = [];
-  const target = Math.min(4, Math.max(2, Math.floor((p.cols * p.rows) / 250)));
-  for (const candidate of candidates) {
-    const tooClose = placed.some((patch) => Math.hypot(patch.x - candidate.x, patch.y - candidate.y) < 7);
-    if (placed.length >= target || tooClose) {
-      continue;
-    }
+  const minimumPatches = p.projectLots.length > 0 ? 4 : 3;
+  const target = Math.min(8, Math.max(minimumPatches, Math.floor((p.cols * p.rows) / 140)));
+  const onBank = (candidate: { x: number; y: number }, side: 'west' | 'east') => {
+    const waterXs = Array.from({ length: p.cols }, (_, x) => x).filter((x) => p.get(x, candidate.y) === 'water');
+    if (waterXs.length === 0) return false; // The paved crossing row has no open-water bank.
+    const edge = side === 'west' ? Math.min(...waterXs) : Math.max(...waterXs);
+    // A single grass tile beyond the water is enough to count as a bank; the
+    // wider buffer used for tiny flowers would exclude the narrow east shore.
+    return side === 'west' ? candidate.x < edge - 1 : candidate.x > edge + 1;
+  };
+  const placePatch = (candidate: (typeof candidates)[number]) => {
+    const tooClose = placed.some((patch) => Math.hypot(patch.x - candidate.x, patch.y - candidate.y) < 6);
+    if (placed.length >= target || tooClose) return false;
     const patch = {
       left: candidate.x - 1,
       top: candidate.y + 0.25,
       right: candidate.x + 1.5,
       bottom: candidate.y + 2,
     };
-    const overlapsGrid = (grid: ReadonlySet<string>) => {
-      for (let y = Math.floor(patch.top); y < Math.ceil(patch.bottom); y++) {
-        for (let x = Math.floor(patch.left); x < Math.ceil(patch.right); x++) {
-          if (grid.has(key(x, y))) return true;
-        }
-      }
-      return false;
-    };
-    if (overlapsGrid(p.paths) || overlapsGrid(p.blocked)) continue;
-    const overlapsTreeOrBridge = p.decor.some((decor) => {
-      if (!decor.sprite.startsWith('tree-') && decor.sprite !== 'bridge') return false;
+    if (!footprintClearsPathsAndStructures(p, patch)) return false;
+    const overlapsBridge = p.decor.some((decor) => {
+      if (decor.sprite !== 'bridge') return false;
       const left = decor.x + decor.dx / 16;
       const top = decor.y + decor.dy / 16;
       const right = left + decor.w / 16;
       const bottom = top + decor.h / 16;
       return patch.left < right && patch.right > left && patch.top < bottom && patch.bottom > top;
     });
-    if (overlapsTreeOrBridge) continue;
+    if (overlapsBridge) return false;
     p.sprite(
       `flower-patch:${candidate.x},${candidate.y}`,
       candidate.x,
@@ -780,6 +807,89 @@ function flowerPatchSprites(p: Painter) {
       40,
       28,
       -16,
+      -12,
+    );
+    placed.push(candidate);
+    return true;
+  };
+
+  const banks = [
+    candidates.filter((candidate) => onBank(candidate, 'west')),
+    candidates.filter((candidate) => onBank(candidate, 'east')),
+  ];
+  const bankShares = [Math.ceil(target / 2), Math.floor(target / 2)];
+  for (const [bankIndex, bank] of banks.entries()) {
+    let planted = 0;
+    for (const candidate of bank) {
+      if (planted >= bankShares[bankIndex]!) break;
+      if (placePatch(candidate)) planted += 1;
+    }
+  }
+  for (const candidate of candidates) {
+    if (placed.length >= target) break;
+    placePatch(candidate);
+  }
+
+  // The civic bank is narrower and path-bound once projects occupy the
+  // western meadow, so a smaller blossom cluster gives it one clear color
+  // anchor without displacing a route or a building footprint.
+  if (p.projectLots.length > 0 && !placed.some((candidate) => onBank(candidate, 'west'))) {
+    const civicCandidates = candidates
+      .filter((candidate) => onBank(candidate, 'west'))
+      .sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
+    for (const candidate of civicCandidates) {
+      const patch = {
+        left: candidate.x,
+        top: candidate.y + 0.25,
+        right: candidate.x + 1.5,
+        bottom: candidate.y + 1.75,
+      };
+      if (!footprintClearsPathsAndStructures(p, patch)) continue;
+      p.sprite(
+        `civic-flower-patch:${candidate.x},${candidate.y}`,
+        candidate.x,
+        candidate.y + 1,
+        patchNames[h2(candidate.x, candidate.y, 149) % patchNames.length]!,
+        24,
+        24,
+        0,
+        -12,
+      );
+      placed.push(candidate);
+      break;
+    }
+  }
+
+  // In project worlds, roads and house roots can leave only a few open cells
+  // for full-size flower sprites. Fill any remaining visual quota with a
+  // smaller cluster on a valid footprint instead of overlapping tree roots.
+  for (const candidate of candidates) {
+    if (placed.length >= target) break;
+    if (placed.some((patch) => Math.hypot(patch.x - candidate.x, patch.y - candidate.y) < 2)) continue;
+    const patch = {
+      left: candidate.x,
+      top: candidate.y + 0.25,
+      right: candidate.x + 1.5,
+      bottom: candidate.y + 1.75,
+    };
+    if (!footprintClearsPathsAndStructures(p, patch)) continue;
+    const overlapsBridge = p.decor.some((decor) => {
+      if (decor.sprite !== 'bridge') return false;
+      const left = decor.x + decor.dx / 16;
+      const top = decor.y + decor.dy / 16;
+      const right = left + decor.w / 16;
+      const bottom = top + decor.h / 16;
+      return patch.left < right && patch.right > left && patch.top < bottom && patch.bottom > top;
+    });
+    if (overlapsBridge) continue;
+    p.sprite(
+      `civic-flower-patch:${candidate.x},${candidate.y}`,
+      candidate.x,
+      candidate.y + 1,
+      patchNames[h2(candidate.x, candidate.y, 149) % patchNames.length]!,
+      24,
+      24,
+      0,
       -12,
     );
     placed.push(candidate);
@@ -896,7 +1006,6 @@ function forest(p: Painter, projectlessMeadow = false) {
       // framing row aligned so a sway offset cannot crop the top pixel row.
       const canopyOffsetY = y === 2 || nearestLot <= 3 ? 0 : (h2(x, y, 53) % 3) - 1;
       const overlapsBuilding = canopyOverBuilding(p, x, y, canopyOffsetX, canopyOffsetY);
-      const overlapsFlowerPatch = canopyOverFlowerPatch(p, x, y, canopyOffsetX, canopyOffsetY);
       // Tree crowns may lean over a path. Keep trunks off the walking tiles,
       // while allowing the canopy to frame the route instead of making a moat.
       const nearTrail = p.paths.has(key(x, y));
@@ -929,8 +1038,7 @@ function forest(p: Painter, projectlessMeadow = false) {
           Math.abs(sprite.y - y) < 2 &&
           (sprite.x === x || sprite.y === y),
       );
-      const wantTree =
-        treeInsideFrame && !overlapsBuilding && !overlapsFlowerPatch && !nearTrail && !crowdedCanopy && woodlandCell;
+      const wantTree = treeInsideFrame && !overlapsBuilding && !nearTrail && !crowdedCanopy && woodlandCell;
       if (wantTree) {
         const kind = h2(x, y, 4) % 16;
         const tree =
@@ -972,7 +1080,7 @@ function forest(p: Painter, projectlessMeadow = false) {
       ) {
         continue;
       }
-      if (canopyOverBuilding(p, x, y, 0, 0) || canopyOverFlowerPatch(p, x, y, 0, 0)) continue;
+      if (canopyOverBuilding(p, x, y, 0, 0)) continue;
       const distances = p.projectLots.map((lot) => {
         const dx = Math.max(lot.x - x, 0, x - (lot.x + lot.w - 1));
         const dy = Math.max(lot.y - y, 0, y - (lot.y + lot.h - 1));
@@ -1042,7 +1150,6 @@ function forest(p: Painter, projectlessMeadow = false) {
         const ground = p.get(x, y);
         if ((!ground.startsWith('grass') && !ground.startsWith('flowers')) || p.isBlocked(x, y)) continue;
         if (p.paths.has(key(x, y)) || canopyOverBuilding(p, x, y, 0, 0)) continue;
-        if (canopyOverFlowerPatch(p, x, y, 0, 0)) continue;
         openMeadow.push({ x, y, rank: h2(x, y, 257), eastBank: x > creekSafe(p) });
       }
     }
@@ -1256,19 +1363,26 @@ function wildlife(p: Painter, hall: LaidOutEntity | undefined) {
     }
   }
 
-  const creeksideGrass = [...p.cells].flatMap(([at, tile]) => {
+  const creeksideGround = [...p.cells].flatMap(([at, tile]) => {
     const [xs, ys] = at.split(',');
     const x = Number(xs);
     const y = Number(ys);
-    if (!tile.startsWith('grass') || Math.abs(x - creekSafe(p)) > 5 || y <= 4 || p.waterReservations.has(at)) return [];
+    if (
+      (!tile.startsWith('grass') && !tile.startsWith('flowers')) ||
+      Math.abs(x - creekSafe(p)) > 5 ||
+      y <= 4 ||
+      p.waterReservations.has(at)
+    ) {
+      return [];
+    }
     return [{ at, x, y, rank: h2(x, y, 97) }];
   });
   // Prefer an open glade. Narrow, projectless layouts may have no grass two
   // tiles clear of every path or building, so progressively relax the visual
   // buffer while still keeping each sprite off paths and blocked cells.
-  let moteCandidates = creeksideGrass.filter(({ x, y }) => !nearStructureOrPath(p, x, y, 2));
+  let moteCandidates = creeksideGround.filter(({ x, y }) => !nearStructureOrPath(p, x, y, 2));
   if (moteCandidates.length === 0) {
-    moteCandidates = creeksideGrass.filter(({ x, y }) => !nearStructureOrPath(p, x, y, 0));
+    moteCandidates = creeksideGround.filter(({ x, y }) => !nearStructureOrPath(p, x, y, 0));
   }
   moteCandidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
   const motePositions: { x: number; y: number }[] = [];
@@ -1414,8 +1528,8 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   }
   feather(p);
   flowerGlades(p);
-  flowerPatchSprites(p);
   forest(p, projects.length === 0);
+  flowerPatchSprites(p);
   wildlife(p, hall);
 
   return {

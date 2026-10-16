@@ -132,7 +132,9 @@ export function WorldEntityMap({
   const regionRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState<number>(48);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [cameraMode, setCameraMode] = useState<'frame' | 'fit' | 'manual' | 'follow'>('frame');
+  // Start at a playable scale around the human avatar. Fit world remains one
+  // click away for workspace overview and direct productivity navigation.
+  const [cameraMode, setCameraMode] = useState<'frame' | 'fit' | 'manual' | 'follow'>('follow');
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const drag = useRef<{ x: number; y: number; panX: number; panY: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
@@ -146,6 +148,7 @@ export function WorldEntityMap({
   const panFocusRef = useRef<HTMLButtonElement>(null);
   const startPathRef = useRef<() => void>(() => {});
   const followCameraRef = useRef<() => void>(() => {});
+  const userAdjustedZoomRef = useRef(false);
   const playerPositionRef = useRef(playerPosition);
   const restoredKeyRef = useRef<string | null>(null);
   const pathRef = useRef<WorldPoint[]>([]);
@@ -247,6 +250,22 @@ export function WorldEntityMap({
     setNearbyId(null);
     setPlayerReadyKey(playerStartKey);
   }, [collisionMap, persistKey, playerStartKey, spawnPoint]);
+
+  useEffect(() => {
+    if (!playerReady || cameraMode !== 'follow') return;
+    const region = regionRef.current;
+    if (!region) return;
+    setPan(
+      clampCamera(
+        {
+          x: Math.floor(region.clientWidth / 2 - playerPositionRef.current.x * zoom),
+          y: Math.floor(region.clientHeight / 2 - playerPositionRef.current.y * zoom),
+        },
+        { x: region.clientWidth, y: region.clientHeight },
+        { x: viewW, y: viewH },
+      ),
+    );
+  }, [cameraMode, playerReady, viewH, viewW, zoom]);
 
   useEffect(() => {
     const target = nearbyWorldTarget(playerPosition, entities, entityHasInspector);
@@ -451,22 +470,27 @@ export function WorldEntityMap({
       const current = movementStateRef.current;
       if (current.cameraMode === 'follow') {
         const viewport = { x: region.clientWidth, y: region.clientHeight };
-        if (current.viewW < viewport.x && current.viewH < viewport.y) {
-          const camera = fitCamera(viewport, { x: cols, y: rows });
-          setZoom(camera.zoom);
-          setPan(camera.pan);
-        } else {
-          setPan(
-            clampCamera(
-              {
-                x: viewport.x / 2 - playerPositionRef.current.x * current.zoom,
-                y: viewport.y / 2 - playerPositionRef.current.y * current.zoom,
-              },
-              viewport,
-              { x: current.viewW, y: current.viewH },
-            ),
-          );
+        // Compact windows need enough nearby context to recognize a building
+        // before walking toward it. Keep the larger exploration scale on roomy
+        // displays; an explicit zoom or Fit world choice always takes priority.
+        let followZoom = current.zoom;
+        if (!userAdjustedZoomRef.current && viewport.x > 0) {
+          const responsiveZoom = viewport.x < 1280 ? 32 : viewport.x >= 1600 ? 64 : 48;
+          if (current.zoom !== responsiveZoom) {
+            followZoom = responsiveZoom;
+            setZoom(responsiveZoom);
+          }
         }
+        setPan(
+          clampCamera(
+            {
+              x: viewport.x / 2 - playerPositionRef.current.x * followZoom,
+              y: viewport.y / 2 - playerPositionRef.current.y * followZoom,
+            },
+            viewport,
+            { x: cols * followZoom, y: rows * followZoom },
+          ),
+        );
       } else if (current.cameraMode !== 'manual') {
         fitWorld();
       } else {
@@ -538,6 +562,7 @@ export function WorldEntityMap({
 
   const onKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
     if (event.key === 'Home') {
+      userAdjustedZoomRef.current = true;
       movementStateRef.current = { ...movementStateRef.current, cameraMode: 'fit' };
       setCameraMode('fit');
       event.preventDefault();
@@ -555,6 +580,7 @@ export function WorldEntityMap({
 
   const changeZoom = (next: number) => {
     const region = regionRef.current;
+    userAdjustedZoomRef.current = true;
     movementStateRef.current = {
       ...movementStateRef.current,
       zoom: next,
@@ -688,7 +714,10 @@ export function WorldEntityMap({
         <button
           type="button"
           className={styles.hudButton}
-          onClick={() => panFocusRef.current?.focus()}
+          onClick={() => {
+            followCameraRef.current();
+            panFocusRef.current?.focus();
+          }}
           aria-label="Explore by walking"
           title="Walk with WASD or arrow keys"
         >
@@ -726,6 +755,7 @@ export function WorldEntityMap({
           type="button"
           className={styles.hudButton}
           onClick={() => {
+            userAdjustedZoomRef.current = true;
             setCameraMode('fit');
             fitWorld();
           }}

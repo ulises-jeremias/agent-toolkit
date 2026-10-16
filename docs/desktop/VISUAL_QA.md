@@ -964,3 +964,56 @@ description still takes several lines on compact screens. Broader Library
 layout, repository-scoped Skills/Agent Definitions, and capability-pack
 discovery remain open work; this card review is not a visual sign-off for the
 whole Desktop.
+
+## Responsive player-follow world — 2026-10-13
+
+The world follows the human player at a scale chosen for the window: 32 px per
+tile below 1280 px, 48 px from 1280 to 1599 px, and 64 px at 1600 px and wider.
+Resizing updates that default until the user changes zoom or chooses **Fit
+world**. The Walk control returns both focus and camera to the player; forms,
+terminals, and the command palette keep their normal keyboard behavior. The
+player is a human avatar, and active worker characters still come only from
+real sessions.
+
+I ran the Electron app with a fresh temporary HOME/workspace and the installed
+Desktop backend (`agent-toolkit 1.44.0`). The real app screenshots below were
+opened and reviewed at 1024×640 and 1920×1080 in Meadow and Dusk:
+[Meadow compact](assets/electron/world-adaptive-camera-2026-10-13/world-meadow-compact.png),
+[Meadow large](assets/electron/world-adaptive-camera-2026-10-13/world-meadow-large.png),
+[Dusk compact](assets/electron/world-adaptive-camera-2026-10-13/world-dusk-compact.png),
+and [Dusk large](assets/electron/world-adaptive-camera-2026-10-13/world-dusk-large.png).
+The compact change keeps the player and all shared landmarks in the scene
+instead of clipping buildings at the camera edge. The large view fills the
+world viewport with the valley while retaining the player-follow scale.
+
+This is not a composition sign-off: the valley still has broad open grass and
+mostly orthogonal paths, and project architecture could use more district
+identity. The local checkout's `dist/agent-toolkit` was stale and returned a
+Projects API 404; these captures use the installed Desktop backend, which
+returned live workspace state successfully.
+
+## Civic meadow flower balance — 2026-10-16
+
+I reviewed four fresh Electron captures from the CI-built V backend at
+1024×640 and 1920×1080, with three linked projects in Meadow and Dusk. I opened
+the [multi-project meadow](assets/electron/world/world-several-projects-compact.png),
+[large meadow](assets/electron/world/world-several-projects-large.png),
+[compact dusk](assets/electron/world/world-several-projects-dusk-compact.png),
+and [large dusk](assets/electron/world/world-several-projects-dusk-large.png)
+screenshots. The curved creek now determines the bank at each planting row,
+including the narrow east shore; a paved crossing row is not treated as a bank.
+Flower-patch footprints also reserve tree-root cells while allowing canopies to
+frame nearby clearings. Small safe clusters fill any remaining civic meadow
+planting quota, so bloom placement does not reduce woodland density.
+
+The captures show visible plantings on both creek banks and maintain a readable
+bridge and project district at both scales. The map still has broad open lawns
+and some orthogonal path sections; this is a measured terrain refinement, not a
+sign-off that the valley has reached the final art direction. Fit World was
+exercised in Electron, and the capture assertion checks all four map edges
+against the workspace bounds with a one-pixel tolerance.
+
+This improves color balance but does not resolve the broader art critique:
+the civic bank still has open lawn, repeated orthogonal paths, and less visual
+texture than the project bank. The change is a measured terrain adjustment,
+not a sign-off that the valley now meets the final art direction.
