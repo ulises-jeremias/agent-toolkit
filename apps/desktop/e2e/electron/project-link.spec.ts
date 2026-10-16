@@ -10,8 +10,17 @@ async function expectFittedWorld(page: import('@playwright/test').Page) {
         const region = document.querySelector<HTMLElement>('[aria-label="Semantic workspace world"]');
         const map = region?.querySelector<HTMLElement>('[data-world-map="true"]');
         if (!region || !map) return false;
+        const regionBounds = region.getBoundingClientRect();
         const bounds = map.getBoundingClientRect();
-        return bounds.width <= region.clientWidth + 1 && bounds.height <= region.clientHeight + 1;
+        const tolerance = 1;
+        return (
+          bounds.width <= region.clientWidth + tolerance &&
+          bounds.height <= region.clientHeight + tolerance &&
+          bounds.left >= regionBounds.left - tolerance &&
+          bounds.top >= regionBounds.top - tolerance &&
+          bounds.right <= regionBounds.right + tolerance &&
+          bounds.bottom <= regionBounds.bottom + tolerance
+        );
       }),
     )
     .toBe(true);

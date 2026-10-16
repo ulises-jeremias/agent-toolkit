@@ -1350,6 +1350,15 @@ describe('layoutWorld', () => {
           bounds.left < path.x + 1 && bounds.right > path.x && bounds.top < path.y + 1 && bounds.bottom > path.y,
       );
       expect(overlapsPath).toBe(false);
+      const overlapsTreeRoot = terrain.decor.some(
+        (tree) =>
+          tree.sprite.startsWith('tree-') &&
+          bounds.left < tree.x + 1 &&
+          bounds.right > tree.x &&
+          bounds.top < tree.y + 1 &&
+          bounds.bottom > tree.y,
+      );
+      expect(overlapsTreeRoot).toBe(false);
     }
   });
 
@@ -1367,13 +1376,22 @@ describe('layoutWorld', () => {
     );
     const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);
     const water = terrain.cells.filter(({ tile }) => tile === 'water');
-    const creekX = Math.min(...water.map(({ x }) => x));
+    const creekByRow = new Map<number, { left: number; right: number }>();
+    for (const { x, y } of water) {
+      const bank = creekByRow.get(y);
+      creekByRow.set(y, { left: Math.min(bank?.left ?? x, x), right: Math.max(bank?.right ?? x, x) });
+    }
+    const onBank = (x: number, y: number, side: 'west' | 'east', margin = 3) => {
+      const creek = creekByRow.get(y);
+      if (!creek) return false; // The paved bridge crossing has no open-water bank.
+      return side === 'west' ? x < creek.left - margin : x > creek.right + margin;
+    };
     const flowers = terrain.cells.filter(({ tile }) => tile.startsWith('flowers-'));
-    const westBankFlowers = flowers.filter(({ x }) => x < creekX - 3);
-    const eastBankFlowers = flowers.filter(({ x }) => x > creekX + 3);
+    const westBankFlowers = flowers.filter(({ x, y }) => onBank(x, y, 'west'));
+    const eastBankFlowers = flowers.filter(({ x, y }) => onBank(x, y, 'east'));
     const flowerPatches = terrain.decor.filter(({ sprite }) => sprite.startsWith('wildflower-patch-'));
-    const westBankPatches = flowerPatches.filter(({ x }) => x < creekX - 3);
-    const eastBankPatches = flowerPatches.filter(({ x }) => x > creekX + 3);
+    const westBankPatches = flowerPatches.filter(({ x, y }) => onBank(x, Math.floor(y - 0.5), 'west', 1));
+    const eastBankPatches = flowerPatches.filter(({ x, y }) => onBank(x, Math.floor(y - 0.5), 'east', 1));
 
     expect(water.length).toBeGreaterThan(0);
     expect(westBankFlowers.length).toBeGreaterThan(15);

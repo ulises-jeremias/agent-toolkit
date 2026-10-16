@@ -679,7 +679,8 @@ function footprintClearsPathsAndStructures(
   for (let y = Math.floor(footprint.top); y < Math.ceil(footprint.bottom); y += 1) {
     for (let x = Math.floor(footprint.left); x < Math.ceil(footprint.right); x += 1) {
       const at = key(x, y);
-      if (p.paths.has(at) || p.blocked.has(at)) return false;
+      const treeRoot = p.decor.some((sprite) => sprite.sprite.startsWith('tree-') && sprite.x === x && sprite.y === y);
+      if (p.paths.has(at) || p.blocked.has(at) || treeRoot) return false;
     }
   }
   return true;
@@ -769,8 +770,16 @@ function flowerPatchSprites(p: Painter) {
   candidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
 
   const placed: { x: number; y: number }[] = [];
-  const target = Math.min(8, Math.max(3, Math.floor((p.cols * p.rows) / 140)));
-  const creekX = creekSafe(p);
+  const minimumPatches = p.projectLots.length > 0 ? 4 : 3;
+  const target = Math.min(8, Math.max(minimumPatches, Math.floor((p.cols * p.rows) / 140)));
+  const onBank = (candidate: { x: number; y: number }, side: 'west' | 'east') => {
+    const waterXs = Array.from({ length: p.cols }, (_, x) => x).filter((x) => p.get(x, candidate.y) === 'water');
+    if (waterXs.length === 0) return false; // The paved crossing row has no open-water bank.
+    const edge = side === 'west' ? Math.min(...waterXs) : Math.max(...waterXs);
+    // A single grass tile beyond the water is enough to count as a bank; the
+    // wider buffer used for tiny flowers would exclude the narrow east shore.
+    return side === 'west' ? candidate.x < edge - 1 : candidate.x > edge + 1;
+  };
   const placePatch = (candidate: (typeof candidates)[number]) => {
     const tooClose = placed.some((patch) => Math.hypot(patch.x - candidate.x, patch.y - candidate.y) < 6);
     if (placed.length >= target || tooClose) return false;
@@ -805,8 +814,8 @@ function flowerPatchSprites(p: Painter) {
   };
 
   const banks = [
-    candidates.filter((candidate) => candidate.x < creekX - 3),
-    candidates.filter((candidate) => candidate.x > creekX + 3),
+    candidates.filter((candidate) => onBank(candidate, 'west')),
+    candidates.filter((candidate) => onBank(candidate, 'east')),
   ];
   const bankShares = [Math.ceil(target / 2), Math.floor(target / 2)];
   for (const [bankIndex, bank] of banks.entries()) {
@@ -824,9 +833,9 @@ function flowerPatchSprites(p: Painter) {
   // The civic bank is narrower and path-bound once projects occupy the
   // western meadow, so a smaller blossom cluster gives it one clear color
   // anchor without displacing a route or a building footprint.
-  if (p.projectLots.length > 0 && !placed.some(({ x }) => x < creekX - 3)) {
+  if (p.projectLots.length > 0 && !placed.some((candidate) => onBank(candidate, 'west'))) {
     const civicCandidates = candidates
-      .filter((candidate) => candidate.x < creekX - 3)
+      .filter((candidate) => onBank(candidate, 'west'))
       .sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
     for (const candidate of civicCandidates) {
       const patch = {
@@ -846,8 +855,44 @@ function flowerPatchSprites(p: Painter) {
         0,
         -12,
       );
+      placed.push(candidate);
       break;
     }
+  }
+
+  // In project worlds, roads and house roots can leave only a few open cells
+  // for full-size flower sprites. Fill any remaining visual quota with a
+  // smaller cluster on a valid footprint instead of overlapping tree roots.
+  for (const candidate of candidates) {
+    if (placed.length >= target) break;
+    if (placed.some((patch) => Math.hypot(patch.x - candidate.x, patch.y - candidate.y) < 2)) continue;
+    const patch = {
+      left: candidate.x,
+      top: candidate.y + 0.25,
+      right: candidate.x + 1.5,
+      bottom: candidate.y + 1.75,
+    };
+    if (!footprintClearsPathsAndStructures(p, patch)) continue;
+    const overlapsBridge = p.decor.some((decor) => {
+      if (decor.sprite !== 'bridge') return false;
+      const left = decor.x + decor.dx / 16;
+      const top = decor.y + decor.dy / 16;
+      const right = left + decor.w / 16;
+      const bottom = top + decor.h / 16;
+      return patch.left < right && patch.right > left && patch.top < bottom && patch.bottom > top;
+    });
+    if (overlapsBridge) continue;
+    p.sprite(
+      `civic-flower-patch:${candidate.x},${candidate.y}`,
+      candidate.x,
+      candidate.y + 1,
+      patchNames[h2(candidate.x, candidate.y, 149) % patchNames.length]!,
+      24,
+      24,
+      0,
+      -12,
+    );
+    placed.push(candidate);
   }
 }
 
