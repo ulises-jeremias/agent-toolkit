@@ -146,6 +146,83 @@
 .details .formGrid {
   margin-top: var(--space-3);
 }
+.referencePicker {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.referenceMeta,
+.referenceGroupLabel,
+.referenceEmpty,
+.referenceNotice {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+.referenceGroup {
+  display: grid;
+  gap: var(--space-1);
+}
+.referenceGroupLabel {
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+.referenceOptions {
+  display: grid;
+  max-height: 10rem;
+  overflow: auto;
+  gap: 1px;
+  margin: 0;
+  padding: 2px;
+  border: 2px solid var(--border-strong);
+  background: var(--surface-sunken);
+  list-style: none;
+}
+.referenceOption {
+  display: flex;
+  min-height: 2.65rem;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  background: var(--surface-raised);
+  cursor: pointer;
+}
+.referenceOption:hover {
+  background: var(--surface-hover);
+}
+.referenceOption input {
+  flex: 0 0 auto;
+  accent-color: var(--text-link);
+}
+.referenceOption span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+.referenceOption strong,
+.referenceOption small {
+  overflow-wrap: anywhere;
+}
+.referenceOption small {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+.referenceEmpty {
+  padding: var(--space-2);
+  border: 2px dashed var(--border-subtle);
+  background: var(--surface-raised);
+}
+.referenceNotice {
+  border-left: 3px solid var(--accent-gold);
+  padding: var(--space-1) var(--space-2);
+  color: var(--status-warn-fg);
+}
+.referenceCustom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+}
 .error {
   margin: 0;
   color: var(--status-err-fg);

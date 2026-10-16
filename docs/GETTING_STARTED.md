@@ -1,131 +1,132 @@
-# Getting Started
+# Get started with Agent Toolkit Desktop
 
-The fastest path from install to your first successful skill use.
+This guide takes you from a fresh install to a working project, a configured
+Person and a real coding session. The graphical setup is the normal path: you
+do not need to install the CLI, edit Toolkit configuration files or clone the
+repository to use Desktop.
 
-Prefer a graphical setup? Install [Agent Toolkit Desktop from the latest
-GitHub Release](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
-and follow its in-app workspace setup. Desktop bundles the backend; basic use
-does not require a separate CLI, a repository checkout, or manual config edits.
-See the [Desktop guide](desktop/README.md) for workflows and current limits.
+## 1. Install Desktop
 
-## 1. Install (pick one channel — all end on the same V CLI)
+Download the latest [Agent Toolkit Desktop release](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+for your system. Choose the AppImage or `.deb` on Linux, the `.dmg` on macOS,
+or the Windows installer. Desktop includes the matching Toolkit backend and
+world assets.
 
-```bash
-# GitHub Release binary (native V) — see docs/INSTALLATION.md
-# Homebrew
-brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
-# AUR
-yay -S agent-toolkit-bin
-# PyPI launcher (execs bundled V; ADR-021)
-uv tool install agent-toolkit-cli
-# npm
-npm i -g agent-toolkit-cli
+For platform-specific notes and CLI/automation installation, see
+[Installation](INSTALLATION.md). The CLI is an optional path for scripting,
+CI, remote hosts and terminal-first use.
 
-agent-toolkit install
-```
+## 2. Create or open your workspace
 
-From a git checkout, build the canonical V binary ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555), [HOW_TO_DEVELOP_V.md](HOW_TO_DEVELOP_V.md)):
+Launch **Agent Toolkit Desktop**. On first run, choose **Create a workspace**
+and select a location, or open an existing Agent Toolkit workspace. A workspace
+is the shared valley: its projects, People, capabilities, memory and operations
+are all managed from this context.
 
-```bash
-./make.vsh install-cli    # ~/.local/bin/agent-toolkit (or --prefix=/usr/local)
-agent-toolkit doctor --json
-```
+You can switch workspaces later from **Settings → Workspace**. The current
+workspace is shown in the Desktop header so you can check context before
+starting work.
 
-PyPI/`uvx` is a thin trampoline over the bundled V binary ([ADR-021](adrs/ADR-021-pypi-binary.md)). `insights` / `release` are not ported ([advanced-command-disposition.md](v/advanced-command-disposition.md)). Rollback: [docs/v/archive/rollback.md](v/archive/rollback.md).
+## 3. Check your coding tools and sign in
 
-See [docs/INSTALLATION.md](INSTALLATION.md) for full options.
+Open **Library → Coding tools** to see which supported coding tools Desktop can
+detect. Open **Settings → Tool profiles** to update Toolkit-managed files.
+Install a coding tool from its publisher if it is not present, then return to
+Desktop and refresh detection.
 
-## 2. Verify with doctor
+Toolkit can manage capability profiles for Claude Code, Cursor, OpenCode,
+Windsurf, Pi and Muse Code. GitHub Copilot setup is project-scoped. The exact
+targets available depend on your operating system and installed tools. Codex
+and other runners may be available for starting sessions without being a
+Toolkit profile-install target; the picker shows the current choices.
+
+Sign in through each tool's own application or documented sign-in flow. Agent
+Toolkit does not need your provider password or API key to detect a local
+runner. Never paste credentials into a Skill, Agent Definition, Person note or
+ordinary workspace file.
+
+## 4. Review and install capabilities
+
+Open **Library** to browse Skills, Agent Definitions and integrations.
+Select a capability to inspect its source and requirements. Before a profile
+installation, Desktop previews the target tools, paths, conflicts and changes.
+Review that preview, then apply it from the Library. The receipt shows what was
+actually written; a catalog entry alone does not mean a capability is
+installed.
+
+Start with only what you need. Installing a Skill profile does not sign a
+provider in, configure an MCP secret or start an agent. MCP setup is a separate
+review-and-probe flow in **Library → MCP**.
+
+## 5. Open a project
+
+From **World**, select a project house to enter the project. Use the
+**Workspace** view to link an existing project directory or manage project
+context. The project remains a real filesystem location; the world is its
+spatial view, not a copy of its files.
+
+Inside the project, use its Files, Knowledge, Memory and Terminal objects to
+open those canonical resources. You can also reach the same destinations from
+the main navigation and command palette (`Ctrl/Cmd+K`). Walking around is
+optional.
+
+## 6. Create a reusable Person and start a session
+
+Open **People → Create Person**. Give the collaborator a name and role, then
+choose an Agent Definition, preferred runner/model, Skills, MCP references,
+appearance and limits as appropriate. These settings describe a durable Person;
+they do not start a process. Skills and MCP references are selected from the
+available catalogs where possible. An offline Person does not appear as a
+worker in the World.
+
+Choose **Start**, select a project and available runner/model, review the
+session details and start. Desktop creates a real local session. You can open
+its real terminal, inspect runtime status and stop it from the Person panel. A
+runner that is unavailable is reported as unavailable; Toolkit will not invent
+a session. The Person remains in the roster when the session ends.
+
+You can also open **Terminal → New session** for a direct shell session that
+is not tied to a Person.
+
+## 7. Observe work and use Swarms or Loops
+
+**Operations** is the shared place for jobs, loops, swarms, approvals and
+failures. Use it to inspect real runtime state and recover from errors.
+
+- **Swarms:** choose a recipe and task, review roles, runner/model choices,
+  People preferences, permissions, gates and budgets, then start. People are
+  optional; Toolkit can use an ephemeral role session when no compatible
+  Person is selected. Herdr or tmux may be needed for multi-session layouts.
+- **Loops:** open a loop to inspect its definition and last report, run it once,
+  or review the scheduler plan before enabling a schedule.
+- **Approvals:** inspect the proposed action and its scope before approving or
+  rejecting it.
+
+The world shows where confirmed work is happening. **Operations** shows the
+details of what each run is doing.
+
+## 8. Verify setup and recover
+
+Open **Settings → Self-check** when the backend or a capability is unavailable.
+The report identifies the failed check and a next step. Check tool availability
+in **Library → Coding tools**. For an individual integration, open its Library
+page to validate or probe it. Do not reinstall over existing files just to clear
+a warning; inspect the preview and conflict behavior first.
+
+If you need help, see [Troubleshooting](TROUBLESHOOTING.md), [Trust and
+security](TRUST.md), and the focused guides linked from the public
+[documentation index](/docs/).
+
+## Optional: CLI and automation
+
+For scripting or headless operation, install the CLI using one of the methods
+in [Installation](INSTALLATION.md), then use:
 
 ```bash
 agent-toolkit doctor
-```
-
-Expected: all detected tools show `installed` and `healthy`. If a tool is missing, install it first (e.g. Claude Code, Cursor, OpenCode).
-
-## 3. Install core profile/plugin
-
-```bash
-agent-toolkit install --tools claude-code
-# Check what is installed
 agent-toolkit inventory
+agent-toolkit --help
 ```
 
-For Claude Code marketplace (alternative): `/plugin marketplace add ulises-jeremias/agent-toolkit` then `/plugin install agent-toolkit-core@agent-toolkit`.
-
-## 4. Open a supported tool
-
-Open Claude Code (or your tool from `agent-toolkit doctor` output) and confirm the plugin/skill is listed:
-
-```bash
-agent-toolkit inventory --tool claude-code
-```
-
-## 5. Invoke one named core skill
-
-In your AI tool, invoke an existing core skill — e.g. `core/assistant`:
-
-```
-> Use the core/assistant skill to bootstrap this workspace
-```
-
-You should see the assistant skill instructions load. Browse the full catalog: `catalogs/skill-catalog.yaml` (103+ skills), regenerate with `./scripts/generate-catalogs.vsh`.
-
-## 6. Try Swarms (optional — multi-agent orchestration)
-
-Swarms coordinate multiple coding-agent sessions with isolated Git worktrees and durable handoffs. Herdr is recommended, tmux is the portable fallback, and `--runner skeleton` lets you explore fully offline.
-
-```bash
-# Check swarm prerequisites (Herdr, tmux, runners, git)
-agent-toolkit swarm doctor
-agent-toolkit swarm backends --json
-agent-toolkit swarm runners
-
-# Explore recipes: pair (default), team, full
-agent-toolkit swarm recipes
-agent-toolkit swarm recipe show pair
-agent-toolkit swarm models --runner opencode   # provider/model discovery
-
-# Side-effect free dry-run — no worktrees, no LLM needed
-agent-toolkit swarm start --recipe pair --backend headless --runner skeleton --dry-run "Demo: add hello endpoint"
-
-# Start a swarm — Herdr (recommended)
-agent-toolkit swarm start --recipe pair --backend herdr --runner opencode --model-profile balanced "Implement issue #123"
-# tmux fallback (works over SSH/headless)
-agent-toolkit swarm start --recipe pair --backend tmux --runner opencode --model-profile balanced "Fix bug #42"
-
-# Observe & operate
-agent-toolkit swarm list
-agent-toolkit swarm status RUN_ID --json
-agent-toolkit swarm handoffs RUN_ID
-agent-toolkit swarm artifacts RUN_ID
-agent-toolkit swarm logs RUN_ID implementer
-agent-toolkit swarm promote RUN_ID --to team   # elastic pair→team→full
-agent-toolkit swarm approve RUN_ID plan # human gate
-```
-
-- **pair** — implementer → reviewer/integrator → human approval (bugs, features).
-- **team** — planner → implementer → reviewer → architect → human approval (medium features, requires plan approval).
-- **full** — planner → implementer → refactorer → architect → hardener → QA → human approval (security/releases).
-- Budgets: `max_total_tokens`, `max_cost_usd`, `max_wall_seconds`, concurrency/round-trip limits. Human gates: plan, architecture, cost escalation, final integration. State under `.agent-toolkit/swarm/runs/<run-id>/`.
-
-Details: [SWARMS.md](SWARMS.md) (overview + quickstart), [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md) (diagrams + state machines), [SWARM_HERDR.md](SWARM_HERDR.md) (Herdr UI), [SWARM_TMUX.md](SWARM_TMUX.md) (tmux fallback), [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) (models/budgets), [SWARM_SECURITY.md](SWARM_SECURITY.md) (permissions/privacy).
-
-Prerequisites: see [INSTALLATION.md — Swarms prerequisites](INSTALLATION.md#swarms--agent-toolkit-swarm-prerequisites) for Herdr/tmux/runner setup, or `agent_swarms.enabled=true` in [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation) for auto-provision. Offline: `--runner skeleton` + `--backend tmux` works without Herdr or an LLM.
-
-## Next steps
-
-- **Agent Definitions:** see `agents/` and the generated `catalogs/agent-catalog.yaml`.
-- **MCP:** see `mcp/` templates (placeholders only; add credentials locally).
-- **Advanced CLI:** see [SCOPE.md](SCOPE.md) and [CLI surfaces](CLI_SURFACES.md) for progressive command discovery.
-- **Loops:** see `loops/` and [how to create a loop](HOW_TO_CREATE_LOOP.md).
-- **Swarms:** see [SWARMS.md](SWARMS.md), [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md), and [how to create a swarm recipe](HOW_TO_CREATE_SWARM_RECIPE.md).
-- **Contributing:** see [CONTRIBUTING.md](../CONTRIBUTING.md) for local setup and CI checks.
-
-## Troubleshooting
-
-- `agent-toolkit doctor` reports a missing tool → install that tool first.
-- `inventory` is empty → re-run `agent-toolkit install` with `--force`.
-- A package channel is unavailable → use Homebrew, AUR `agent-toolkit-bin`, GitHub Releases, `uv tool install agent-toolkit-cli`, or `npm i -g agent-toolkit-cli`.
-
-See also: [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for doctor error recipes.
+The CLI and Desktop use the same canonical Toolkit operations. Prefer `--help`
+for the installed version instead of copying commands from an older guide.

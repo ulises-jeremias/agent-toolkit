@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAgents, useProviders } from '../../data/catalog';
+import { useAgents, useLibrarySkills, useMcpProviders, useProviders } from '../../data/catalog';
 import { requireClient, useBackend } from '../../data/backend';
 import { errorMessage, type Person, type PersonSession } from '../../lib/api';
 import { useTerminalSessions } from '../../data/terminal';
@@ -28,6 +28,7 @@ import { PersonStartDialog } from './PersonStartDialog';
 import { personCharacter } from './avatar';
 import { personSessionStatusLabel } from '../../data/personSessionStatus';
 import { activePersonSessionsForWorkspace, selectActivePersonSession } from '../../data/personSessionScope';
+import { ReferenceMultiSelect, type ReferenceOption } from './ReferenceMultiSelect';
 
 const blank: Person = {
   spec: 'agent-toolkit/person@1',
@@ -37,13 +38,6 @@ const blank: Person = {
   goal: '',
   archived: false,
 };
-
-function commaList(value: string): string[] {
-  return value
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
 
 function optionalText(value: string): string | undefined {
   return value.trim() || undefined;
@@ -66,7 +60,19 @@ function PersonForm({
 }) {
   const [draft, setDraft] = useState<Person>(initial);
   const agents = useAgents();
+  const skills = useLibrarySkills();
+  const mcpProviders = useMcpProviders();
   const providers = useProviders();
+  const skillOptions: ReferenceOption[] = (skills.data?.skills ?? []).map((skill) => ({
+    value: skill.id,
+    label: skill.name,
+    detail: `${skill.domain} · ${skill.id}`,
+  }));
+  const mcpOptions: ReferenceOption[] = (mcpProviders.data?.providers ?? []).map((provider) => ({
+    value: provider.id,
+    label: provider.display_name || provider.id,
+    detail: provider.id,
+  }));
   const editing = existing;
   const update = (patch: Partial<Person>) => setDraft((current) => ({ ...current, ...patch }));
   const submit = (event: FormEvent) => {
@@ -209,21 +215,53 @@ function PersonForm({
       <details className={styles.details}>
         <summary>Capabilities and limits</summary>
         <div className={styles.formGrid}>
-          {(['capabilities', 'skills', 'mcp_servers'] as const).map((field) => (
-            <Field
-              key={field}
-              label={field === 'mcp_servers' ? 'MCP servers' : field[0]!.toUpperCase() + field.slice(1)}
-              hint="Comma-separated references; no installation happens here."
-            >
-              {(control) => (
-                <TextInput
-                  {...control}
-                  value={draft[field]?.join(', ') ?? ''}
-                  onChange={(event) => update({ [field]: commaList(event.target.value) })}
-                />
-              )}
-            </Field>
-          ))}
+          <Field
+            label="Capability references"
+            hint="This reference field has no canonical catalog yet. Adding a reference does not grant permissions or install anything."
+          >
+            {(control) => (
+              <ReferenceMultiSelect
+                control={control}
+                values={draft.capabilities ?? []}
+                options={[]}
+                allowCustom
+                emptyLabel="No capability catalog is published by the backend yet."
+                onChange={(capabilities) => update({ capabilities })}
+              />
+            )}
+          </Field>
+          <Field
+            label="Skills"
+            hint="Choose from the real Toolkit catalog. Selecting a Skill reference does not install it."
+          >
+            {(control) => (
+              <ReferenceMultiSelect
+                control={control}
+                values={draft.skills ?? []}
+                options={skillOptions}
+                loading={skills.isLoading}
+                error={skills.isError ? errorMessage(skills.error) : undefined}
+                emptyLabel="The Toolkit Skill catalog has no entries."
+                onChange={(selectedSkills) => update({ skills: selectedSkills })}
+              />
+            )}
+          </Field>
+          <Field
+            label="MCP servers"
+            hint="Choose from known provider templates. Saving a reference never enables or starts an MCP server."
+          >
+            {(control) => (
+              <ReferenceMultiSelect
+                control={control}
+                values={draft.mcp_servers ?? []}
+                options={mcpOptions}
+                loading={mcpProviders.isLoading}
+                error={mcpProviders.isError ? errorMessage(mcpProviders.error) : undefined}
+                emptyLabel="No MCP provider templates are available."
+                onChange={(mcp_servers) => update({ mcp_servers })}
+              />
+            )}
+          </Field>
           <Field label="Isolation">
             {(control) => (
               <Select
@@ -646,6 +684,8 @@ export default function People() {
                     <dd>{displaySession?.model || selected.preferred_model || 'Runner default'}</dd>
                     <dt>Isolation</dt>
                     <dd>{selected.isolation || 'Inherited'}</dd>
+                    <dt>Capabilities</dt>
+                    <dd>{selected.capabilities?.join(', ') || 'None configured'}</dd>
                     <dt>Skills</dt>
                     <dd>{selected.skills?.join(', ') || 'None configured'}</dd>
                     <dt>MCP</dt>

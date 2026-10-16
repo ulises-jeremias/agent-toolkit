@@ -267,14 +267,21 @@ fn install_one_tool(tool string, data_root string, home string, receipt_dir stri
 			'skip_identical' {
 				lines << '  -  Already up to date: ${m.dst}'
 			}
-			'skip_preserve' {
-				lines << if dry_run {
-					'  [dry]   Would preserve existing file (no overwrite): ${m.dst}'
-				} else {
-					'  -  Preserving user-owned file (use --force to overwrite): ${m.dst}'
-				}
+		'skip_preserve' {
+			lines << if dry_run {
+				'  [dry]   Would preserve existing file (no overwrite): ${m.dst}'
+			} else {
+				'  -  Preserving user-owned file (use --force to overwrite): ${m.dst}'
 			}
-			'merged' {
+		}
+		'skip_symlink' {
+			lines << if dry_run {
+				'  [dry]   Would preserve symlink-managed path (no writes through symbolic links): ${m.dst}'
+			} else {
+				'  -  Preserving symlink-managed path (no writes through symbolic links): ${m.dst}'
+			}
+		}
+		'merged' {
 				lines << if dry_run {
 					'  [dry]   Would merge config without overwriting existing keys: ${m.dst}'
 				} else {
@@ -307,10 +314,20 @@ fn install_one_tool(tool string, data_root string, home string, receipt_dir stri
 	if path.len > 0 {
 		lines << '  ✓  Saved install receipt for ${tool}'
 	}
+	if planned == 0 {
+		lines << if dry_run {
+			'  -  No writes are needed; target files are already current, user-owned, or symlink-managed.'
+		} else {
+			'  -  No files changed; target files are already current, user-owned, or symlink-managed.'
+		}
+	}
 	return true, planned, lines.join('\n')
 }
 
 fn stage_install_mapping(mut tx InstallTransaction, m FileMapping, force bool) !string {
+	if install_path_has_symlink_component(m.dst) {
+		return 'skip_symlink'
+	}
 	if m.dst.ends_with('.json') && os.is_file(m.dst) && !force {
 		content, ownership := merge_json_install(m.src, m.dst)
 		if ownership == 'skipped' {
@@ -340,6 +357,23 @@ fn stage_install_mapping(mut tx InstallTransaction, m FileMapping, force bool) !
 	}
 	tx.stage_write(m.dst, src)!
 	return 'created'
+}
+
+// install_path_has_symlink_component keeps installs and stale cleanup from
+// following user-managed directory links into another tool's configuration.
+fn install_path_has_symlink_component(path string) bool {
+	mut current := path
+	for {
+		if os.is_link(current) {
+			return true
+		}
+		parent := os.dir(current)
+		if parent.len == 0 || parent == current {
+			break
+		}
+		current = parent
+	}
+	return false
 }
 
 // merge_json_objects_nondestructive merges overlay into base without
@@ -643,6 +677,14 @@ fn cleanup_stale_install_files(tool string, receipt_dir string, home string, map
 		}
 		if receipt_path_escapes(a.path) {
 			lines << '  ⚠  Skipping stale path escape: ${a.path}'
+			continue
+		}
+		if install_path_has_symlink_component(a.path) {
+			lines << if dry_run {
+				'  [dry]   Would preserve stale path managed by a symbolic link: ${a.path}'
+			} else {
+				'  -  Preserving stale path managed by a symbolic link: ${a.path}'
+			}
 			continue
 		}
 		if !os.exists(a.path) {
