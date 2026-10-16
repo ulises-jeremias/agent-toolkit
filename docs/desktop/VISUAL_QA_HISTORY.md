@@ -2,6 +2,12 @@
 
 # Desktop visual QA
 
+## Project-room scale and framing — 2026-10-16
+
+I opened the compact and large Meadow/Dusk project-room captures from [CI run 38901644963](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38901644963). The camera now fits the room at the largest crisp zoom supported by the current viewport. These captures use 48px source tiles at 1024×640 and 80px at 1920×1080. The full wall frame remains visible, and Meadow/Dusk preserve the exterior context. The compact room uses nearly all available height; the large room leaves meadow around the house. Textures still repeat, so this is not a visual sign-off.
+
+Opened evidence: [Meadow compact](assets/electron/world/project-files-room-compact.png), [Meadow large](assets/electron/world/project-files-room-large.png), [Dusk compact](assets/electron/world/project-files-room-dusk-compact.png), and [Dusk large](assets/electron/world/project-files-room-dusk-large.png). The README interior image was refreshed with the large Meadow capture.
+
 ## Framed project rooms and game-menu forms — 2026-10-16
 
 Real Electron captures from [CI run 38897347805](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38897347805) were opened at 1024×640 and 1920×1080. The first compact capture clipped the outer room trim; the follow-up put the border on the inner wall perimeter. Meadow and Dusk now show the complete room frame at both sizes, and a Person creation form shows the shared framed dialog style with visible focus. This visual update preserves canonical room actions and form behavior. It is not a full visual sign-off: room textures still repeat, and compact furniture detail is necessarily small.

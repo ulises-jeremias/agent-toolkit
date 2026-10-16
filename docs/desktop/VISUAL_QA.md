@@ -5,6 +5,14 @@ art direction, the latest opened evidence, and unresolved findings in one place.
 The dated iteration log lives in [VISUAL_QA_HISTORY.md](VISUAL_QA_HISTORY.md);
 that archive is historical evidence, not the current art specification.
 
+## Project-room scale and framing — 2026-10-16
+
+I opened compact and large Meadow/Dusk interiors from [CI capture run 38901644963](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38901644963). The room now takes the largest crisp integer zoom that fits the full room and current viewport: in these captures it is 48px per source tile at 1024×640 and 80px at 1920×1080. The outer wall frame remains visible, and the landscape still surrounds the house. The camera preserves a zoom the user chose manually; the valley outside keeps its player-first scale.
+
+The compact room now uses nearly all the available height, so the furniture and project stations read more clearly. The large view keeps broad meadow margins while making the room substantially larger. Dusk keeps the outside cool and the interior warm. I opened all four captures and confirmed the wall frame is intact. The room still uses repeated wall and floor textures, so this is a scale improvement rather than a final art sign-off.
+
+Opened captures: [Meadow room, compact](assets/electron/world/project-files-room-compact.png), [Meadow room, large](assets/electron/world/project-files-room-large.png), [Dusk room, compact](assets/electron/world/project-files-room-dusk-compact.png), and [Dusk room, large](assets/electron/world/project-files-room-dusk-large.png). The README now shows the larger Meadow room.
+
 ## Framed project rooms and game-menu forms — 2026-10-16
 
 I opened the updated real Electron captures from [CI run 38897347805](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38897347805), built from the project-interior and shared dialog changes merged in `10b9d7e`. This pass frames the room against the meadow and places a timber-and-gold outline on its walls, so entering a project reads as entering a bounded place rather than viewing furniture on a blank canvas. Shared dialogs use the same crisp wood, shadow and gold language while keeping normal form controls, focus and text readability.
