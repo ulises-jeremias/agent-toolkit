@@ -3,7 +3,7 @@
 # Do not hand-edit counts; validate with: python3 scripts/validate-skill-capability.py --check
 # Schema: schemas/skill-capability-registry.schema.json
 version: 1
-count: 105
+count: 106
 generated: true
 skills:
 - id: accessibility/review
@@ -1447,6 +1447,41 @@ skills:
   specialist_justified: false
   contraindications: Consume assessment findings; do not invent findings; preserve design-system tokens;
     rendered evidence required before good
+- id: design/scroll-world
+  domain: design
+  purpose: Build an immersive scroll-driven product journey with connected scenes and a portable scrub engine.
+  origin: upstream
+  holistic_owner: designer
+  role: creation
+  context_cost: high
+  network_required: true
+  mcp_required: []
+  requires: []
+  triggers:
+  - scroll-driven product story
+  - scroll world
+  - immersive landing page journey
+  overlap:
+  - design/frontend-design
+  - design/design-improvement
+  complementary:
+  - design/frontend-design
+  - design/design-improvement
+  - tooling/playwright-cli
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - implementer
+  - qa-engineer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Never invoke paid generation, use external credentials, or incur service charges without explicit user authorization; prefer local authored scenes when paid services are not approved.
+  upstream:
+    repository: oso95/scroll-world
+    path: skills/scroll-world
+    ref: 71cc36d3bb150248ae36a2c552f9cbf88802a79c
+    license: MIT
+    version: 71cc36d
 - id: design/figma
   domain: design
   purpose: Use the Figma MCP server to fetch design context, screenshots, variables, and assets, and to

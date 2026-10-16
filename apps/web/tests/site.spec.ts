@@ -132,7 +132,50 @@ test("scroll journey follows the selected place and supports reduced motion", as
     .locator("[data-scene-image='operations']")
     .evaluate((element) => getComputedStyle(element).transitionDuration);
   expect(Number.parseFloat(transitionDuration)).toBeLessThan(0.001);
-  await captureViewport(page, "journey-operations-desktop.png");
+  for (const { id, label } of [
+    { id: "valley", label: /The workspace/ },
+    { id: "project", label: /Inside a project/ },
+    { id: "people", label: /People/ },
+    { id: "operations", label: /Operations/ },
+    { id: "library", label: /Library/ },
+  ]) {
+    await page
+      .getByRole("navigation", { name: "Jump to a place in the workspace" })
+      .getByRole("link", { name: label })
+      .click();
+    await expect(stage).toHaveAttribute("data-scene", id);
+    await expect(page.locator(`[data-scene-image='${id}']`)).toHaveAttribute(
+      "aria-hidden",
+      "false",
+    );
+    await expect(page.locator(`[data-scene-image='${id}']`)).toHaveClass(
+      /is-active/,
+    );
+    await expect(
+      page
+        .getByRole("navigation", { name: "Jump to a place in the workspace" })
+        .locator(`[data-journey-link='${id}']`),
+    ).toHaveAttribute("aria-current", "step");
+    await expect(page.locator("[data-journey-location]")).toHaveText(
+      id === "valley"
+        ? "The workspace"
+        : id === "project"
+          ? "Inside a project"
+          : id === "people"
+            ? "People"
+            : id === "operations"
+              ? "Operations"
+              : "Library",
+    );
+    await expect
+      .poll(() =>
+        page
+          .locator(`[data-scene-image='${id}']`)
+          .evaluate((element) => getComputedStyle(element).opacity),
+      )
+      .toBe("1");
+    await captureViewport(page, `journey-${id}-desktop.png`);
+  }
 });
 
 test("journey copy and direct links remain available without JavaScript", async ({
@@ -202,6 +245,8 @@ test("capabilities are searchable and grouped from canonical catalogs", async ({
   );
   await expect(page.locator("#capability-count")).toContainText("entries");
   const search = page.getByRole("searchbox", { name: /search by name/i });
+  const totalEntries = await page.locator(".capability-item:visible").count();
+  expect(totalEntries).toBeGreaterThan(0);
   await search.fill("mcp-audit");
   await expect(page.locator(".capability-item:visible")).toHaveCount(1);
   await expect(page.locator(".capability-item:visible")).toContainText(
@@ -210,6 +255,10 @@ test("capabilities are searchable and grouped from canonical catalogs", async ({
   await expect(page.locator("#capability-count")).toContainText("1 of");
   await search.fill("nothing matches this exact phrase");
   await expect(page.getByText(/no catalog entries match/i)).toBeVisible();
+  await search.fill("");
+  await expect(page.locator(".capability-item:visible")).toHaveCount(
+    totalEntries,
+  );
   await capturePage(page, "capabilities-desktop.png");
 });
 

@@ -81,6 +81,7 @@ Reference upstream: [cursor/plugins](https://github.com/cursor/plugins) @
 | 2026-08-19 | Do not vendor cursor fix-ci; enhance gh-fix-ci | Single forge CI skill |
 | 2026-08-19 | unslop excluded from agent-toolkit-core | Upstream "Must always apply" semantics |
 | 2026-09-30 | Vendor latent-spaces/brag `brag` + `brag-slim` as `design/brag` and `design/brag-slim` | Unique launch-video skills; no first-party overlap. MIT skill text vendored literally. Full `brag` omits `assets/` (ende.app music license unverified; Kenney SFX + ~17MB binaries). |
+| 2026-10-11 | Absorb Elaya Design `landing-page-design` into first-party `design/design-improvement`; vendor `oso95/scroll-world` as `design/scroll-world` | Landing strategy overlaps first-party design and improvement skills; retain one source of guidance and record inspiration. Scroll-world's portable scrub engine and scene-continuity workflow are unique. Its paid generation pipeline is explicitly opt-in and remains unused in this work. |
 
 ---
 

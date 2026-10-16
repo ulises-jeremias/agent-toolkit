@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `./scripts/generate-skill-matrix.vsh` to regenerate, or `./scripts/generate-skill-matrix.vsh --check` in CI.
 
-_Generated from 5 products × 105 skills × 18 agents._
+_Generated from 5 products × 106 skills × 18 agents._
 
 ## Products and targets
 
@@ -12,7 +12,7 @@ _Generated from 5 products × 105 skills × 18 agents._
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 18 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 8 | 0 |
 | `agent-toolkit-craft` | stable | claude-code, cursor | 3 | 0 |
-| `agent-toolkit-complete` | experimental | — | 105 | 18 |
+| `agent-toolkit-complete` | experimental | — | 106 | 18 |
 
 ## Skills → Products
 
@@ -69,6 +69,7 @@ _Generated from 5 products × 105 skills × 18 agents._
 | `design/figma-implement-design` | `agent-toolkit-complete` | — |
 | `design/frontend-design` | `agent-toolkit-complete` | — |
 | `design/frontend-design-review` | `agent-toolkit-complete` | — |
+| `design/scroll-world` | `agent-toolkit-complete` | — |
 | `design/web-design-guidelines` | `agent-toolkit-complete` | — |
 | `forge/fix-merge-conflicts` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `forge/gh-address-comments` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |

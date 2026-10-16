@@ -67,6 +67,7 @@
       "figma-implement-design",
       "frontend-design",
       "frontend-design-review",
+      "scroll-world",
       "web-design-guidelines"
     ],
     "forge": [
@@ -389,6 +390,11 @@
     {
       "id": "design/frontend-design-review",
       "name": "frontend-design-review",
+      "domain": "design"
+    },
+    {
+      "id": "design/scroll-world",
+      "name": "scroll-world",
       "domain": "design"
     },
     {

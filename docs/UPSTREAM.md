@@ -7,8 +7,8 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adrs/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-10-05T06:48:09.653066Z
-Capabilities with external provenance: 31 (first-party omitted; lock is sparse)
+Generated: 2026-10-16T13:05:59.442270Z
+Capabilities with external provenance: 32 (first-party omitted; lock is sparse)
 
 ## `design/brag`
 
@@ -95,6 +95,29 @@ Capabilities with external provenance: 31 (first-party omitted; lock is sparse)
 - **Observed license:** `MIT` source_path=`skills/design/frontend-design-review/LICENSE` checksum=`sha256:d9a1b1e30d633d5732ea18e3cba9538d293ebc53e1a9e4e96ab739e0c5c4f1cb`
   - Declaration expected `license: MIT` — mismatch requires review
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`cbfd1b6`
+
+## `design/scroll-world`
+
+- **Trust:** `reviewed` reviewed_at=2026-10-16 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:ae98e445ac7fe03c515e260c16ceec23b1efce52f2d5fc8d6d7ce22affe2ec50` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=True shell=True network=True cve_policy=not-applicable mcp=[] hooks=[]
+- **Provenance digest:** `sha256:ae98e445ac7fe03c515e260c16ceec23b1efce52f2d5fc8d6d7ce22affe2ec50`
+
+### Source `upstream` — `oso95/scroll-world/skills/scroll-world`
+
+- **Repository:** `oso95/scroll-world`
+- **Path:** `skills/scroll-world`
+- **Requested:** `commit` `71cc36d3bb150248ae36a2c552f9cbf88802a79c` (declaration intent)
+- **Resolved commit:** `71cc36d3bb150248ae36a2c552f9cbf88802a79c`
+- **Content checksum:** `sha256:d73e262a58c72b50778c0315539a1b82f5f8ca731c3db74bbab52b90deaeb919`
+- **Body checksum:** `sha256:5fedc60fae0f27555db56ae79e104281d793e7b58208f22136f64f0d47989e0c` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/design/scroll-world/LICENSE` checksum=`sha256:c4b96a7a050b85026eb68ac5b5fee2778384b14371aaeac50891dbadd848d309`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-10-16T13:04:45.390836Z` version=`71cc36d`
+
+- **Per-skill attribution:** `skills/design/scroll-world/UPSTREAM.md`
 
 ## `design/web-design-guidelines`
 
