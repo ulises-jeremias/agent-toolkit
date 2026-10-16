@@ -338,10 +338,27 @@ fn write_text_artifact(path string, content string, source_file string, output_r
 	}
 	records << ArtifactRecord{
 		path: rel.replace('\\', '/')
-		source_file: source_file
+		source_file: portable_source_file(source_file)
 		source_digest: src_digest
 		generated_digest: file_digest(path)
 	}
+}
+
+fn portable_source_file(source_file string) string {
+	if !os.is_abs_path(source_file) {
+		return source_file.replace('\\', '/')
+	}
+	parts := source_file.replace('\\', '/').split('/')
+	mut source_root := -1
+	for index, part in parts {
+		if part in ['skills', 'agents'] && index + 1 < parts.len {
+			source_root = index
+		}
+	}
+	if source_root >= 0 {
+		return parts[source_root..].join('/')
+	}
+	return source_file.replace('\\', '/')
 }
 
 fn json_escape(s string) string {

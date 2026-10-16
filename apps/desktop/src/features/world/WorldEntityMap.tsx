@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { Link } from 'react-router';
 import { StatusBadge, Table, VisuallyHidden, type Tone } from '../../ui';
-import { clampCamera, fitCamera, WORLD_ZOOMS, zoomCamera } from './camera';
+import { clampCamera, fitCamera, responsiveCameraZoom, WORLD_ZOOMS, zoomCamera } from './camera';
 import { entityActivateLabel, entityActivateVerb, entityHasInspector } from './inspectors';
 import { paintInterior, paintTerrain, type DecorSprite, type LaidOutEntity } from './model';
 import spriteManifest from './manifest.json';
@@ -470,12 +470,12 @@ export function WorldEntityMap({
       const current = movementStateRef.current;
       if (current.cameraMode === 'follow') {
         const viewport = { x: region.clientWidth, y: region.clientHeight };
-        // Compact windows need enough nearby context to recognize a building
-        // before walking toward it. Keep the larger exploration scale on roomy
-        // displays; an explicit zoom or Fit world choice always takes priority.
+        // Project rooms are small enough to frame at the largest crisp scale.
+        // Grounds keep the wider player-first view. Explicit zoom and Fit world
+        // choices always take priority.
         let followZoom = current.zoom;
         if (!userAdjustedZoomRef.current && viewport.x > 0) {
-          const responsiveZoom = viewport.x < 1280 ? 32 : viewport.x >= 1600 ? 64 : 48;
+          const responsiveZoom = responsiveCameraZoom(mode, viewport, { x: cols, y: rows });
           if (current.zoom !== responsiveZoom) {
             followZoom = responsiveZoom;
             setZoom(responsiveZoom);
@@ -501,7 +501,7 @@ export function WorldEntityMap({
     });
     observer.observe(region);
     return () => observer.disconnect();
-  }, [cameraMode, cols, fitWorld, rows, viewW, viewH, zoom]);
+  }, [cameraMode, cols, fitWorld, mode, rows, viewW, viewH, zoom]);
 
   const clampPan = useCallback(
     (x: number, y: number) => {
@@ -601,11 +601,7 @@ export function WorldEntityMap({
     <div
       ref={regionRef}
       className={styles.mapRegion}
-      style={
-        mode === 'grounds'
-          ? { backgroundImage: "url('/world/grass-a.png')", backgroundSize: `${zoom}px ${zoom}px` }
-          : undefined
-      }
+      style={{ backgroundImage: "url('/world/grass-a.png')", backgroundSize: `${zoom}px ${zoom}px` }}
       role="application"
       aria-label={ariaLabel}
       data-theme={theme.id}
@@ -638,6 +634,7 @@ export function WorldEntityMap({
       <div
         className={styles.mapWorld}
         data-world-map="true"
+        data-mode={mode}
         style={{ transform: `translate(${pan.x}px, ${pan.y}px)`, width: viewW, height: viewH }}
       >
         <TerrainCanvas

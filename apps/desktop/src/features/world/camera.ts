@@ -12,6 +12,12 @@ export interface Point {
   y: number;
 }
 
+/** Use the room's largest fitting pixel scale; grounds keep the player-first valley scale. */
+export function responsiveCameraZoom(mode: 'grounds' | 'interior', viewport: Point, tiles: Point): number {
+  if (mode === 'interior') return fitCamera(viewport, tiles).zoom;
+  return viewport.x < 1280 ? 32 : viewport.x >= 1600 ? 64 : 48;
+}
+
 /** Largest crisp zoom with a 24px gutter, or edge-to-edge when that avoids halving scale. */
 export function fitCamera(viewport: Point, tiles: Point, minimumZoom = 16): { zoom: number; pan: Point } {
   const largestFirst = [...WORLD_ZOOMS].reverse();

@@ -127,6 +127,35 @@
   --shadow-chip: 2px 2px 0 rgba(15, 12, 26, 0.45);
 
   color-scheme: light;
+  scrollbar-color: var(--cw-wood-light) var(--cw-menu-950);
+  scrollbar-width: auto;
+}
+
+/* Keep native scrolling legible while carrying the wood-and-indigo menu frame
+   across long inspectors, nested lists, and dialogs. */
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+::-webkit-scrollbar-track {
+  border-inline: 2px solid var(--cw-menu-800);
+  background: var(--cw-menu-950);
+}
+
+::-webkit-scrollbar-thumb {
+  min-height: 2.5rem;
+  border: 3px solid var(--cw-menu-950);
+  background: var(--cw-wood-light);
+  box-shadow: inset 0 0 0 1px var(--cw-wood-dark);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cw-gold);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--cw-menu-950);
 }
 
 /* Meadow — valley daylight (default). */

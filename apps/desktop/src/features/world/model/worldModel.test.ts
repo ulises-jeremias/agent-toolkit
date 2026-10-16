@@ -1288,12 +1288,29 @@ describe('layoutWorld', () => {
     const terrain = paintTerrain(layout.entities, layout.cols, layout.rows);
     const trees = terrain.decor.filter(({ sprite }) => sprite.startsWith('tree-'));
     const projectSideTrees = trees.filter(({ x }) => x >= 21);
+    const creekByRow = new Map<number, number[]>();
+    for (const cell of terrain.cells) {
+      if (cell.tile !== 'water') continue;
+      const row = creekByRow.get(cell.y) ?? [];
+      row.push(cell.x);
+      creekByRow.set(cell.y, row);
+    }
+    const creekAtRow = (y: number) => {
+      const nearest = creekByRow.get(y) ?? creekByRow.get(y - 1) ?? creekByRow.get(y + 1);
+      return nearest?.length ? nearest.reduce((sum, x) => sum + x, 0) / nearest.length : Number.POSITIVE_INFINITY;
+    };
+    const civicTrees = trees.filter((tree) => {
+      const creekX = creekAtRow(tree.y);
+      if (!Number.isFinite(creekX)) return false;
+      return tree.x < creekX;
+    });
     const clusteredPairs = trees.filter((tree, index) =>
       trees.slice(index + 1).some((other) => Math.abs(tree.x - other.x) <= 2 && Math.abs(tree.y - other.y) <= 2),
     );
 
     expect(trees.length).toBeGreaterThan(16);
     expect(projectSideTrees.length).toBeGreaterThan(8);
+    expect(civicTrees.length).toBeGreaterThanOrEqual(4);
     expect(clusteredPairs.length).toBeGreaterThan(5);
   });
 

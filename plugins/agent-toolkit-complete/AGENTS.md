@@ -44,6 +44,7 @@ Full stable skill catalog coverage for consumers who want everything (
 - **design-improvement**: design/design-improvement
 - **frontend-design**: design/frontend-design
 - **frontend-design-review**: design/frontend-design-review
+- **scroll-world**: design/scroll-world
 - **web-design-guidelines**: design/web-design-guidelines
 - **supply-chain-audit**: agentic-security/supply-chain-audit
 - **fix-merge-conflicts**: forge/fix-merge-conflicts

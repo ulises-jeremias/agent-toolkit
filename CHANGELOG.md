@@ -12,6 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Project interiors now use the largest crisp zoom that fits the room and
+  viewport, while preserving any zoom the user selected.
+- Project rooms now sit inside a layered timber house frame with the themed
+  valley visible beyond it; shared dialogs use warm, crisp game-window trim.
+- Long inspectors, nested lists, and dialogs now use wood-and-indigo scrollbars
+  that match the game-menu palette while keeping native scrolling intact.
+- Shared inspector panels now carry a warm pixel-menu title rail, and file
+  browsing surfaces use the same square-cut corners as the rest of Desktop.
+- Populated project valleys now keep a small deterministic woodland grove on
+  the civic bank when landmark paths leave enough safe ground, framing shared
+  places without blocking doors or creating false runtime activity.
 - Balanced meadow flower glades across creek banks and around the civic commons
   without reducing woodland density or placing blooms over paths, tree roots,
   and buildings; creek-bank placement follows the curved stream row by row.
@@ -21,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   across the Agent Toolkit valley while keeping product screenshots truthful.
 - The human World navigator now has separate idle and alternating directional
   walk frames, with reduced-motion and suspended-window support.
+### Added
+
+- Added the experimental, provenance-pinned `design/scroll-world` capability and its MIT-licensed resources. Landing-page strategy from Elaya Design is incorporated into first-party `design-improvement` to avoid duplicating overlapping skills. Paid media generation remains opt-in and was not used.
 
 ## [1.44.0] — 2026-10-10
 

@@ -24,7 +24,7 @@
   margin: 0;
   padding: 0;
   border: 1px solid var(--border-default);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--surface-sunken);
   max-height: 22rem;
   overflow: auto;
@@ -59,7 +59,7 @@
 
 .preview {
   border: 1px solid var(--border-default);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 0.75rem;
   background: var(--surface-raised);
   min-height: 16rem;
@@ -78,7 +78,7 @@
   padding: 0.65rem 0.75rem;
   max-height: 18rem;
   overflow: auto;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   background: var(--surface-sunken);
   color: var(--text-primary);
   font-family: var(--font-mono, 'IBM Plex Mono', ui-monospace, monospace);

@@ -1,25 +1,26 @@
 ---
-
-name: "jira-assistant"
-description: "Jira Cloud, Jira Software and Jira Service Management automation through the jira-as CLI (2.x). Run `jira-as help` first; find operations with `jira-as api search` and `jira-as api describe`."
-version: "5.0.0"
-author: "jira-assistant-skills"
-license: "MIT"
-allowed-tools: ["Bash", "Read"]
+name: jira-assistant
+description: Jira Cloud, Jira Software and Jira Service Management automation through the jira-as CLI
+  (2.x). Run `jira-as help` first; find operations with `jira-as api search` and `jira-as api describe`.
+license: MIT
+allowed-tools:
+- Bash
+- Read
 origin:
   type: upstream
 upstream:
   repository: grandcamel/JIRA-Assistant-Skills
   path: skills/jira
-  ref: 82370fd582cb11998646c288309b36e93b297c5b
+  ref: f78f19496d4c7432f5aa92236e3750ed96ccdbf4
   license: MIT
+  version: f78f194
 trust:
   tier: experimental
-  reviewed_at: '2026-09-19'
+  reviewed_at: '2026-09-21'
   reviewed_by: ulises-jeremias
 maintenance:
   status: active
-  last_checked: '2026-09-19'
+  last_checked: '2026-09-21'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -30,6 +31,8 @@ security:
   network: true
   mcp: false
   hooks: false
+version: 5.0.0
+author: jira-assistant-skills
 ---
 
 # Jira
