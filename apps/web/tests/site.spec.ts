@@ -66,6 +66,12 @@ test("home explains the product and uses the real world capture", async ({
     "naturalWidth",
     1536,
   );
+  await expect(page.locator(".hero-caption")).toContainText(
+    "Illustration · not live product state",
+  );
+  await expect(page.locator(".hero-caption")).toContainText(
+    "Real Desktop captures ↓ in the journey",
+  );
   await expect(page.locator("[data-scene-image='valley']")).toHaveJSProperty(
     "naturalWidth",
     1920,

@@ -829,12 +829,18 @@ h3 {
   color: var(--sun);
 }
 .hero-caption {
-  display: flex;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 14px;
-  margin-top: 19px;
-  color: #a5c1b2;
-  font: 400 10px/1.7 var(--code);
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px 12px 0;
+  border-top: 1px solid rgb(193 220 191 / 20%);
+  color: #c1d2c7;
+  font: 400 10px/1.6 var(--code);
 }
 .hero-caption span:last-child {
   color: var(--leaf);
@@ -885,9 +891,7 @@ h3 {
     bottom: 42px;
   }
   .hero-caption {
-    display: grid;
-    gap: 3px;
-    font-size: 8px;
+    font-size: 10px;
   }
   .hero-footnote {
     max-width: 43ch;
@@ -1521,8 +1525,8 @@ h3 {
     font-size: 7px;
   }
   .hero-caption {
-    display: grid;
-    font-size: 8px;
+    grid-template-columns: 1fr;
+    font-size: 9px;
   }
   .hero-footnote {
     margin-top: 24px;
