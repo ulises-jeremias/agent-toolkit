@@ -992,20 +992,26 @@ identity. The local checkout's `dist/agent-toolkit` was stale and returned a
 Projects API 404; these captures use the installed Desktop backend, which
 returned live workspace state successfully.
 
-## Civic meadow flower balance — 2026-10-13
+## Civic meadow flower balance — 2026-10-16
 
-I reviewed a fresh Electron run at 1024×640 and 1920×1080 with three linked
-projects, in Meadow and Dusk. Flower glades now reserve space on both sides of
-the creek, and a smaller civic-bank flower clump is placed only where its
-footprint clears project/path collision cells. The regular flower patches are
-added after tree layout so bloom placement cannot reduce woodland density.
-The current screenshots in the [multi-project meadow](assets/electron/world/world-several-projects-compact.png),
+I reviewed four fresh Electron captures from the CI-built V backend at
+1024×640 and 1920×1080, with three linked projects in Meadow and Dusk. I opened
+the [multi-project meadow](assets/electron/world/world-several-projects-compact.png),
 [large meadow](assets/electron/world/world-several-projects-large.png),
 [compact dusk](assets/electron/world/world-several-projects-dusk-compact.png),
 and [large dusk](assets/electron/world/world-several-projects-dusk-large.png)
-files show the real rendered result. Compact and large Fit World behavior was
-also exercised in Electron; large-window assertions check map bounds rather
-than assuming one fixed zoom across layouts.
+screenshots. The curved creek now determines the bank at each planting row,
+including the narrow east shore; a paved crossing row is not treated as a bank.
+Flower-patch footprints also reserve tree-root cells while allowing canopies to
+frame nearby clearings. Small safe clusters fill any remaining civic meadow
+planting quota, so bloom placement does not reduce woodland density.
+
+The captures show visible plantings on both creek banks and maintain a readable
+bridge and project district at both scales. The map still has broad open lawns
+and some orthogonal path sections; this is a measured terrain refinement, not a
+sign-off that the valley has reached the final art direction. Fit World was
+exercised in Electron, and the capture assertion checks all four map edges
+against the workspace bounds with a one-pixel tolerance.
 
 This improves color balance but does not resolve the broader art critique:
 the civic bank still has open lawn, repeated orthogonal paths, and less visual
