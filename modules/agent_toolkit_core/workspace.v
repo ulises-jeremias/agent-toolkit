@@ -1327,17 +1327,64 @@ fn yaml_to_fields(text string) []string {
 
 fn yaml_string_field(text string, key string) string {
 	prefix := '${key}:'
-	for line in text.split_into_lines() {
+	lines := text.split_into_lines()
+	for i, line in lines {
 		t := line.trim_space()
 		if t.starts_with(prefix) {
 			v := t.all_after(prefix).trim_space()
-			if v == '|' || v == '>' {
-				continue
+			if v.len > 0 && v[0] in [`|`, `>`] {
+				indent := line.len - line.trim_left(' \t').len
+				return yaml_block_scalar(lines, i + 1, indent, v[0] == `>`)
 			}
 			return v.trim('"').trim("'")
 		}
 	}
 	return ''
+}
+
+fn yaml_block_scalar(lines []string, start int, parent_indent int, folded bool) string {
+	mut content := []string{}
+	mut content_indent := -1
+	for i := start; i < lines.len; i++ {
+		line := lines[i]
+		if line.trim_space().len == 0 {
+			content << ''
+			continue
+		}
+		indent := line.len - line.trim_left(' \t').len
+		if indent <= parent_indent {
+			break
+		}
+		if content_indent < 0 {
+			content_indent = indent
+		}
+		if indent < content_indent {
+			break
+		}
+		content << line[content_indent..]
+	}
+	for content.len > 0 && content.last().len == 0 {
+		content.delete_last()
+	}
+	if !folded {
+		return content.join('\n')
+	}
+	mut result := ''
+	for line in content {
+		if line.len == 0 {
+			if result.len > 0 && !result.ends_with('\n') {
+				result += '\n'
+			} else if result.ends_with('\n') {
+				result += '\n'
+			}
+			continue
+		}
+		if result.len > 0 && !result.ends_with('\n') {
+			result += ' '
+		}
+		result += line
+	}
+	return result
 }
 
 fn yaml_string_list(text string, key string) []string {

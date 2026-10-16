@@ -159,6 +159,41 @@ fn test_workspace_missing_root_fails() {
 	assert report.message.contains('workspace not found')
 }
 
+fn test_workspace_validate_accepts_block_scalar_pack_and_job_fields() {
+	base := os.join_path(os.temp_dir(), 'at-ws-block-yaml-${os.getpid()}')
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	init := run_workspace(WorkspaceOptions{
+		subcommand: 'init'
+		dir:        base
+	})
+	assert init.ok, init.message
+	os.write_file(os.join_path(base, 'packs', 'sample.yaml'), 'name: sample\ndescription: >\n  A useful workspace pack\n  with a folded description.\n') or {
+		assert false, err.msg()
+		return
+	}
+	jobs := os.join_path(base, 'templates', 'jobs')
+	os.mkdir_all(jobs) or { assert false, err.msg() }
+	os.write_file(os.join_path(jobs, 'sample.yaml'), 'name: sample\nrequest: |\n  Run the task carefully.\n  Report the result.\n') or {
+		assert false, err.msg()
+		return
+	}
+	report := run_workspace(WorkspaceOptions{
+		subcommand:     'validate'
+		workspace_path: base
+	})
+	assert report.ok, report.message
+	assert report.message.contains('All context files valid')
+}
+
+fn test_yaml_string_field_reads_multiline_literal_and_folded_values() {
+	text := 'description: >\n  first paragraph\n  continues here.\n\n  second paragraph.\nrequest: |-\n  first line\n  second line\nnext: done\n'
+	assert yaml_string_field(text, 'description') == 'first paragraph continues here.\nsecond paragraph.'
+	assert yaml_string_field(text, 'request') == 'first line\nsecond line'
+	assert yaml_string_field(text, 'next') == 'done'
+}
+
 fn test_workspace_init_preserves_existing_people_readme() {
 	base := os.join_path(os.temp_dir(), 'at-ws-people-keep-${os.getpid()}')
 	defer {
