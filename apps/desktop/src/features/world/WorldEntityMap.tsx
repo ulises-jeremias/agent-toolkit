@@ -601,11 +601,7 @@ export function WorldEntityMap({
     <div
       ref={regionRef}
       className={styles.mapRegion}
-      style={
-        mode === 'grounds'
-          ? { backgroundImage: "url('/world/grass-a.png')", backgroundSize: `${zoom}px ${zoom}px` }
-          : undefined
-      }
+      style={{ backgroundImage: "url('/world/grass-a.png')", backgroundSize: `${zoom}px ${zoom}px` }}
       role="application"
       aria-label={ariaLabel}
       data-theme={theme.id}
@@ -638,6 +634,7 @@ export function WorldEntityMap({
       <div
         className={styles.mapWorld}
         data-world-map="true"
+        data-mode={mode}
         style={{ transform: `translate(${pan.x}px, ${pan.y}px)`, width: viewW, height: viewH }}
       >
         <TerrainCanvas
