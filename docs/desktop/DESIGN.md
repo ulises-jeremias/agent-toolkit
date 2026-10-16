@@ -372,7 +372,8 @@ Shared primitives live in `apps/desktop/src/ui/` (see
 speculative widget framework. The game-menu material:
 
 - **Panel** — deep menu surface, 2px solid border, pixel-cut corners
-  (2px notches), hard offset shadow (`3px 3px 0`), compact padding.
+  (2px notches), hard offset shadow (`3px 3px 0`), compact padding, and a
+  short warm-gold inlay above the divided title rail.
 - **Section header** — Silkscreen title with a gold tick; short muted
   description in body font.
 - **Buttons** — chunky chips: 2px border, hard shadow, pressed-state offset;
