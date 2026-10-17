@@ -5,6 +5,36 @@ art direction, the latest opened evidence, and unresolved findings in one place.
 The dated iteration log lives in [VISUAL_QA_HISTORY.md](VISUAL_QA_HISTORY.md);
 that archive is historical evidence, not the current art specification.
 
+## Latest packaged Desktop screenshots — v1.45.1, 2026-10-16
+
+The README gallery and Desktop guide now use captures from the actual Electron
+app and bundled V backend at `main` source `7ef296e`. The isolated GitHub
+Actions review [run 38984234510](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38984234510)
+passed and generated the images; no local Desktop session or workspace was
+used. I opened and reviewed the refreshed world, Dusk, project room, walking
+world, People, Library, Operations, Terminal, and Munder import screenshots.
+
+The valley shows the real 14-place workspace and human player; the project
+room is framed and larger; People shows Lina as configured but offline; and
+Terminal shows a real PTY with the matching 1.45.1 backend. The clean capture
+workspace has no linked projects or installed Library receipts, so those
+screenshots intentionally show the corresponding empty states. The map still
+has broad grass areas and orthogonal paths, and the Library remains a dense
+professional inspector; these images are current evidence, not a claim that
+those art and layout concerns are resolved. First-run onboarding images remain
+from the earlier reviewed onboarding run because this capture tour did not
+exercise onboarding.
+
+The opened gallery includes [Meadow world](../../static/screenshots/world.png),
+[Dusk world](../../static/screenshots/world-dusk.png),
+[project room](../../static/screenshots/project-interior.png),
+[player navigation](../../static/screenshots/world-walk.png),
+[People](../../static/screenshots/people.png),
+[Library](../../static/screenshots/library.png),
+[Operations](../../static/screenshots/operations.png),
+[Terminal](../../static/screenshots/terminal.png), and
+[Munder import review](../../static/screenshots/people-import.png).
+
 ## Project-room scale and framing — 2026-10-16
 
 ## Shared game-menu surfaces — 2026-10-16
@@ -130,7 +160,7 @@ The [workflow ledger](workflows.yaml) records functional evidence separately;
 a passing screenshot does not establish an end-to-end journey, and a passing
 test does not establish visual quality.
 
-## Latest Electron review — v1.44.0, 2026-10-16
+## Electron review — v1.44.0, 2026-10-16
 
 The Desktop capture tour completed in [CI run 38906545120](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38906545120)
 at source `539a6dea9e549aaf15a5323b1eba37b945cb5333`, using the real bundled

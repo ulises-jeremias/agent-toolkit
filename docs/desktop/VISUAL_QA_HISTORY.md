@@ -2,6 +2,41 @@
 
 # Desktop visual QA
 
+## Packaged v1.45.1 screenshot refresh — 2026-10-16
+
+The Electron visual capture workflow passed on `main` at source
+`7ef296e96888e6eb912bf9db9a69d844aa1be475` in
+[CI run 38984234510](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38984234510).
+It built the current V backend and Desktop on a GitHub-hosted runner, captured
+the app in disposable workspaces, and uploaded the review artifact. This kept
+the user's local graphical session untouched. I opened the resulting PNGs
+before replacing the selected README/Desktop-gallery screenshots.
+
+The refreshed images show the multi-project Meadow and Dusk worlds, click-to-
+move, the framed project room, an offline configured Person, the Library,
+Operations, a live PTY, and the reviewed Munder import. The screenshots report
+`agent-toolkit 1.45.1`, matching the current package. The clean review workspace
+has no linked projects and no Toolkit capability receipts, so the People and
+Library captures display those truthful empty/configured states. The capture
+tour did not include onboarding; the two onboarding images remain from their
+previous dedicated review and are not represented as v1.45.1 captures.
+
+Opened and reviewed: [Meadow world](../../static/screenshots/world.png),
+[Dusk world](../../static/screenshots/world-dusk.png),
+[project room](../../static/screenshots/project-interior.png),
+[player navigation](../../static/screenshots/world-walk.png),
+[People roster](../../static/screenshots/people.png),
+[Library](../../static/screenshots/library.png),
+[Operations](../../static/screenshots/operations.png),
+[Terminal](../../static/screenshots/terminal.png), and
+[Munder import review](../../static/screenshots/people-import.png).
+
+After reviewing the captures, I replaced these nine tracked gallery images and
+updated the current [visual acceptance guide](VISUAL_QA.md). The world remains
+readable and colorful, but broad open grass and straight path segments remain
+visible; the Library is dense and clearly reports its unconfigured state. This
+refresh updates evidence, not the underlying art or application behavior.
+
 ## Project-room scale and framing — 2026-10-16
 
 I opened the compact and large Meadow/Dusk project-room captures from [CI run 38901644963](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38901644963). The camera now fits the room at the largest crisp zoom supported by the current viewport. These captures use 48px source tiles at 1024×640 and 80px at 1920×1080. The full wall frame remains visible, and Meadow/Dusk preserve the exterior context. The compact room uses nearly all available height; the large room leaves meadow around the house. Textures still repeat, so this is not a visual sign-off.
