@@ -182,6 +182,22 @@ jobs:
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
           pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/desktop.spec.ts
           --grep "Library configures MCP providers"
+      - name: Capture onboarding visual review
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
+        env:
+          ATK_E2E_BACKEND_BIN: ${{ github.workspace }}/dist/agent-toolkit
+          ATK_CAPTURE: '1'
+          ATK_CAPTURE_DIR: ${{ runner.temp }}/atk-onboarding-review
+        run: >-
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
+          pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/onboarding.spec.ts
+      - name: Verify onboarding review screenshots
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
+        run: |
+          set -euo pipefail
+          test -s "${{ runner.temp }}/atk-onboarding-review/01-ready.png"
+          test -s "${{ runner.temp }}/atk-onboarding-review/01-ready-compact.png"
+          test -s "${{ runner.temp }}/atk-onboarding-review/02-harness-existing.png"
       - name: Stage screenshots for visual review
         if: always() && github.event_name == 'workflow_dispatch' && github.event.inputs.capture_visual_review == 'true'
         run: |
@@ -194,7 +210,8 @@ jobs:
             "${{ runner.temp }}/atk-destination-review" \
             "${{ runner.temp }}/atk-people-review" \
             "${{ runner.temp }}/atk-workspace-packs-review" \
-            "${{ runner.temp }}/atk-attention-review"; do
+            "${{ runner.temp }}/atk-attention-review" \
+            "${{ runner.temp }}/atk-onboarding-review"; do
             for screenshot in "$directory"/*.png; do
               if test -s "$screenshot"; then
                 cp "$screenshot" apps/desktop/test-results/review/
