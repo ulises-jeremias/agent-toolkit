@@ -17,9 +17,9 @@ move, the framed project room, an offline configured Person, the Library,
 Operations, a live PTY, and the reviewed Munder import. The screenshots report
 `agent-toolkit 1.45.1`, matching the current package. The clean review workspace
 has no linked projects and no Toolkit capability receipts, so the People and
-Library captures display those truthful empty/configured states. The capture
-tour did not include onboarding; the two onboarding images remain from their
-previous dedicated review and are not represented as v1.45.1 captures.
+Library captures display those truthful empty/configured states. The initial
+gallery capture did not include onboarding; the follow-up review below refreshed
+those two screens from the same product version.
 
 Opened and reviewed: [Meadow world](../../static/screenshots/world.png),
 [Dusk world](../../static/screenshots/world-dusk.png),
@@ -36,6 +36,28 @@ updated the current [visual acceptance guide](VISUAL_QA.md). The world remains
 readable and colorful, but broad open grass and straight path segments remain
 visible; the Library is dense and clearly reports its unconfigured state. This
 refresh updates evidence, not the underlying art or application behavior.
+
+## First-run onboarding screenshot refresh — 2026-10-17
+
+The workflow was extended in [PR #1568](https://github.com/ulises-jeremias/agent-toolkit/pull/1568)
+to capture Electron onboarding only when the visual-review dispatch is
+explicitly selected. The follow-up [CI run 38988906142](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38988906142)
+used the current 1.45.1 backend in disposable workspaces, verified the expected
+captures, and included them in the downloadable review artifact. No local
+Desktop session or workspace was touched.
+
+I opened the full-size welcome, compact welcome, and existing-workspace folder
+review. The full and compact welcome both show backend `1.45.1`, a clear
+semantic valley preview, and the Continue action without clipping. The folder
+screen truthfully shows that the temporary workspace already exists and that
+entering it will not copy or overwrite files. I replaced only the two README
+onboarding images with the current welcome captures; the folder-review capture
+remains available in the CI artifact rather than expanding the static gallery.
+
+Opened evidence: [welcome, large](../../static/screenshots/onboarding.png),
+[welcome, compact](../../static/screenshots/onboarding-compact.png). The
+existing-workspace folder review is retained in the review artifact for [CI
+run 38988906142](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38988906142).
 
 ## Project-room scale and framing — 2026-10-16
 

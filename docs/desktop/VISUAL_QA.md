@@ -13,6 +13,9 @@ Actions review [run 38984234510](https://github.com/ulises-jeremias/agent-toolki
 passed and generated the images; no local Desktop session or workspace was
 used. I opened and reviewed the refreshed world, Dusk, project room, walking
 world, People, Library, Operations, Terminal, and Munder import screenshots.
+The first-run screens were captured from the same 1.45.1 package in the
+follow-up isolated [run 38988906142](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/38988906142)
+at `main` source `4088c9f`, after adding onboarding to the capture workflow.
 
 The valley shows the real 14-place workspace and human player; the project
 room is framed and larger; People shows Lina as configured but offline; and
@@ -21,9 +24,7 @@ workspace has no linked projects or installed Library receipts, so those
 screenshots intentionally show the corresponding empty states. The map still
 has broad grass areas and orthogonal paths, and the Library remains a dense
 professional inspector; these images are current evidence, not a claim that
-those art and layout concerns are resolved. First-run onboarding images remain
-from the earlier reviewed onboarding run because this capture tour did not
-exercise onboarding.
+those art and layout concerns are resolved.
 
 The opened gallery includes [Meadow world](../../static/screenshots/world.png),
 [Dusk world](../../static/screenshots/world-dusk.png),
@@ -33,7 +34,10 @@ The opened gallery includes [Meadow world](../../static/screenshots/world.png),
 [Library](../../static/screenshots/library.png),
 [Operations](../../static/screenshots/operations.png),
 [Terminal](../../static/screenshots/terminal.png), and
-[Munder import review](../../static/screenshots/people-import.png).
+[Munder import review](../../static/screenshots/people-import.png). The
+[first-run welcome](../../static/screenshots/onboarding.png) and
+[compact welcome](../../static/screenshots/onboarding-compact.png) are also
+current 1.45.1 Electron captures.
 
 ## Project-room scale and framing — 2026-10-16
 
