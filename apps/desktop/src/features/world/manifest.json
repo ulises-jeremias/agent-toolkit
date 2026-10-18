@@ -101,13 +101,17 @@
       "file": "landmark-files.png",
       "w": 64,
       "h": 64,
-      "frames": 1
+      "frames": 1,
+      "source": "scripts/world-art/landmark-files.png",
+      "sha256": "1278ded04918dd8df611d9fff9846818708cbb56670b9fcb02197e5734cd30ad"
     },
     "landmark-settings": {
       "file": "landmark-settings.png",
       "w": 64,
       "h": 64,
-      "frames": 1
+      "frames": 1,
+      "source": "scripts/world-art/landmark-settings.png",
+      "sha256": "7134ab72155398cc93650469d632c38f94443c1b8cd084de94be763d80784a19"
     },
     "landmark-attention": {
       "file": "landmark-attention.png",

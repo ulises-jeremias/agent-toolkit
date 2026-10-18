@@ -10,7 +10,10 @@ scaling. The project homes use 48×64 source pixels with a 3×3
 walkable ground footprint; roofs and eaves intentionally overhang that lot.
 Separate landmark sprites give the workspace hall, Library, Operations
 observatory, Memory Archive, Terminal Station, Workshop, and Attention place
-distinct silhouettes and warm window light.
+distinct silhouettes and warm window light. The Files depot and Settings
+clockwork pavilion facades (`landmark-files.png`, `landmark-settings.png`)
+are original generated pixel art in the same atlas style, knocked out to
+transparent sprites, palette-reduced and hard-alpha sampled at 64×64.
 The empty-project invitation is an original leafy timber sign with a glowing
 plus rune and abstract project tokens (64×50 source pixels); it is a real
 clickable project-directory action, not a decorative notice board.
