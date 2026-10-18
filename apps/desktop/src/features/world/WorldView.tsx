@@ -144,6 +144,7 @@ export default function WorldView() {
           provider: session.provider,
           model: session.model,
           avatarCharacter: personCharacterSprite(person),
+          avatarAccent: person.avatar?.accent,
         },
       ];
     });

@@ -66,6 +66,8 @@ export interface SemanticEntity {
   facade?: string;
   /** Durable Person appearance, only projected while its real PTY is alive. */
   characterSprite?: 'char-scout' | 'char-maker' | 'char-scholar' | 'char-keeper';
+  /** Durable Person accent color, projected with the same live-PTY gate. */
+  characterAccent?: string;
 }
 
 export interface LaidOutEntity extends SemanticEntity {
@@ -159,6 +161,7 @@ export interface WorldDomainInput {
     provider?: string;
     model?: string;
     avatarCharacter?: SemanticEntity['characterSprite'];
+    avatarAccent?: string;
   }>;
   focusProjectId?: string | null;
 }
