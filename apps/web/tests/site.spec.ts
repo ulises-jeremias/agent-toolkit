@@ -60,8 +60,15 @@ test("home explains the product and uses the real world capture", async ({
   );
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
     "content",
-    /agent-toolkit\.io\/screenshots\/world\.png/,
+    /agent-toolkit\.io\/site\/og-card\.jpg/,
   );
+  await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute(
+    "content",
+    "1200",
+  );
+  await expect(
+    page.locator('meta[property="og:image:height"]'),
+  ).toHaveAttribute("content", "630");
   await expect(page.locator(".hero-screen img")).toHaveJSProperty(
     "naturalWidth",
     1536,
