@@ -880,6 +880,7 @@ function EntityTile({
         width: entity.w * tileSize,
         height: entity.h * tileSize,
         ['--world-tile-size' as string]: `${tileSize}px`,
+        ...(entity.characterAccent ? { ['--person-accent' as string]: entity.characterAccent } : {}),
       }}
       onClick={canInspect ? () => activateEntity(entity, onSelect, onActivate) : undefined}
       onKeyDown={canInspect ? onKeyDown : undefined}

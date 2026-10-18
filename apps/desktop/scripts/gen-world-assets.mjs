@@ -714,6 +714,26 @@ function landmarkFiles() {
   img.rect(28, 42, 35, 45, 'iv').rect(39, 42, 46, 45, 'cy');
   door(img, 27, 48, 10, 10);
   img.hline(14, 49, 55, 'ol');
+  // Cozy depot dressing: chimney, hanging scroll sign, lantern, flower
+  // boxes under the glazing, climbing vine and a worn porch step.
+  chimney(img, 45, 12);
+  sign(img, 57, 40, 'scroll');
+  img.rect(24, 44, 25, 46, 'k').set(24, 45, 'wy'); // lantern by the door
+  img.rect(17, 52, 25, 53, 'od').rect(40, 52, 47, 53, 'od'); // flower boxes
+  img.set(19, 51, 'rr').set(22, 51, 'pd').set(42, 51, 'rr').set(45, 51, 'wy');
+  img.set(12, 44, 'gd').set(12, 38, 'gg').set(13, 41, 'gd').set(12, 33, 'gg'); // vine
+  img.set(14, 36, 'gd').set(14, 47, 'gg');
+  img.rect(25, 58, 38, 59, 'od').hline(27, 36, 58, 'ol'); // porch step
+  // Roof shingle rows + mossy eaves, plank shading and base shrubs so the
+  // depot reads as richly as the project cottages at world scale.
+  for (let y = 13; y <= 27; y += 4) {
+    const half = Math.floor((y - 6) * 1.05);
+    for (let x = 32 - half; x <= 32 + half; x += 5) img.set(x, y, 'rsd');
+  }
+  img.set(8, 28, 'gd').set(14, 29, 'gg').set(52, 28, 'gd').set(57, 29, 'gg'); // moss
+  img.ellipse(11, 56, 5, 3, 'gd').ellipse(52, 56, 5, 3, 'gd'); // shrubs
+  img.set(9, 54, 'gg').set(54, 54, 'gg').set(12, 57, 'gg').set(50, 57, 'gg');
+  img.set(10, 55, 'rr').set(53, 55, 'pd'); // shrub berries
   return [{ name: 'landmark-files', img }];
 }
 
@@ -732,6 +752,27 @@ function landmarkSettings() {
   win(img, 17, 40, 7, 9, true);
   win(img, 40, 40, 7, 9, true);
   door(img, 28, 46, 9, 12);
+  // Pavilion dressing: gold finial, hanging gear sign, lanterns, flower
+  // boxes, climbing vine and a stone porch step.
+  img.set(32, 3, 'go').set(32, 4, 'wy'); // finial
+  sign(img, 55, 38, 'gear');
+  img.rect(25, 42, 26, 44, 'k').set(25, 43, 'wy'); // lanterns by the door
+  img.rect(38, 42, 39, 44, 'k').set(38, 43, 'wy');
+  img.rect(17, 50, 24, 51, 'od').rect(40, 50, 47, 51, 'od'); // flower boxes
+  img.set(19, 49, 'rr').set(22, 49, 'pd').set(42, 49, 'rr').set(45, 49, 'wy');
+  img.set(15, 46, 'gd').set(15, 41, 'gg').set(16, 44, 'gd').set(48, 44, 'gg'); // vines
+  img.set(48, 39, 'gd').set(47, 47, 'gg');
+  img.rect(26, 58, 38, 59, 'sd').hline(28, 36, 58, 'ol'); // porch step
+  // Roof shingle rows, stone speckle and base shrubs for cottage-level depth.
+  for (let y = 11; y <= 29; y += 4) {
+    const half = Math.floor((y - 4) * 1.02);
+    for (let x = 32 - half; x <= 32 + half; x += 5) img.set(x, y, 'red');
+  }
+  for (let y = 34; y <= 56; y += 5)
+    for (let x = 17; x <= 46; x += 7) img.set(x + ((y / 5) % 2) * 3, y, 'sd');
+  img.ellipse(13, 56, 5, 3, 'gd').ellipse(50, 56, 5, 3, 'gd'); // shrubs
+  img.set(11, 54, 'gg').set(52, 54, 'gg').set(14, 57, 'gg').set(48, 57, 'gg');
+  img.set(12, 55, 'wy').set(51, 55, 'rr'); // shrub flowers
   return [{ name: 'landmark-settings', img }];
 }
 

@@ -354,6 +354,14 @@
   background-position: left bottom;
 }
 
+/* Live Person/job characters idle gently; working ones move faster.
+   Idle motion is cosmetic only — it never implies a job is running.
+   A live Person NPC carries its durable accent as a soft ground shadow. */
+.entity[data-kind='character'] .entitySprite {
+  animation: decor-frame 1.8s steps(2) infinite;
+  filter: drop-shadow(0 2px 0 var(--person-accent, rgb(25 30 35 / 0%)));
+}
+
 .entity[data-activity='working'] .entitySprite {
   animation: decor-frame 0.9s steps(2) infinite;
 }
@@ -704,6 +712,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .decorSprite,
+  .entity[data-kind='character'] .entitySprite,
   .entity[data-activity='working'] .entitySprite,
   .playerActor {
     animation: none;
@@ -711,6 +720,7 @@
 }
 
 :root[data-motion='reduced'] .decorSprite,
+:root[data-motion='reduced'] .entity[data-kind='character'] .entitySprite,
 :root[data-motion='reduced'] .entity[data-activity='working'] .entitySprite,
 :root[data-motion='reduced'] .playerActor {
   animation: none;

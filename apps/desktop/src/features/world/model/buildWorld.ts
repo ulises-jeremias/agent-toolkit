@@ -97,6 +97,7 @@ function pushPersonCharacters(
       state: 'session open',
       themeKey: 'agent.idle',
       characterSprite: session.avatarCharacter,
+      characterAccent: session.avatarAccent,
       availability: 'present',
       hrefPath: '/people',
       hrefExtra: { person: session.personId, session: session.id },

@@ -10,10 +10,12 @@
 
 **A semantic developer workspace represented as a living pixel valley — with reusable capabilities for every major coding assistant**
 
-[CI](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml) ·
-[Desktop CI](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/desktop.yml) ·
-[MIT License](LICENSE) ·
-[Latest release](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+[![CI](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=CI)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
+[![Desktop CI](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/desktop.yml?branch=main&label=Desktop%20CI)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/desktop.yml)
+[![Latest release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?label=release)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/ulises-jeremias/agent-toolkit/total?label=downloads)](https://github.com/ulises-jeremias/agent-toolkit/releases)
+[![License: MIT](https://img.shields.io/github/license/ulises-jeremias/agent-toolkit)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/ulises-jeremias/agent-toolkit)](https://github.com/ulises-jeremias/agent-toolkit/stargazers)
 
 [Documentation](docs/) ·
 [Official website](https://agent-toolkit.io) ·
@@ -49,6 +51,12 @@ flowchart LR
 ### Desktop app (GUI)
 
 Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installer on Windows from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest). The Electron app bundles its backend; normal workspace setup does not require a separate CLI, source checkout, or manual configuration files. Start with the [Desktop guide](docs/desktop/README.md) for supported workflows and current limits.
+
+<p align="center">
+  <img src="static/demo/world-demo.gif" width="100%" alt="Walking through the Agent Toolkit Desktop valley: the player explores a workspace where each project is a house" />
+  <br />
+  <sub>Live Desktop walkthrough — <a href="static/demo/world-demo.mp4">watch the full MP4</a></sub>
+</p>
 
 | Playable Meadow valley | Lantern-lit Dusk |
 | --- | --- |

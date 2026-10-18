@@ -59,6 +59,20 @@
         "safety",
         "blast-radius"
       ]
+    },
+    {
+      "name": "agent-toolkit-complete",
+      "source": "agent-toolkit-complete",
+      "description": "Full catalog: every Agent Toolkit skill in one opt-in plugin (experimental stability — install deliberately, not by default).",
+      "version": "1.45.1",
+      "category": "productivity",
+      "tags": [
+        "complete",
+        "catalog",
+        "all-skills",
+        "experimental",
+        "opt-in"
+      ]
     }
   ]
 }

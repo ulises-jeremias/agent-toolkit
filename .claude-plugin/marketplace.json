@@ -5,7 +5,7 @@
     "email": "ulisescf.24@gmail.com"
   },
   "metadata": {
-    "description": "Composable AI agent capabilities for Claude Code \u2014 skills, agents, and automation for every major workflow.",
+    "description": "Composable AI agent capabilities for Claude Code — skills, agents, and automation for every major workflow.",
     "version": "1.45.1",
     "pluginRoot": "./plugins"
   },
@@ -63,6 +63,20 @@
         "quality",
         "safety",
         "blast-radius"
+      ]
+    },
+    {
+      "name": "agent-toolkit-complete",
+      "source": "./plugins/agent-toolkit-complete",
+      "description": "Full catalog: every Agent Toolkit skill in one opt-in plugin (experimental stability — install deliberately, not by default).",
+      "version": "1.45.1",
+      "category": "productivity",
+      "tags": [
+        "complete",
+        "catalog",
+        "all-skills",
+        "experimental",
+        "opt-in"
       ]
     }
   ]

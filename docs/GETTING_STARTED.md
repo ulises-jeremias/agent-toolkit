@@ -115,7 +115,7 @@ a warning; inspect the preview and conflict behavior first.
 
 If you need help, see [Troubleshooting](TROUBLESHOOTING.md), [Trust and
 security](TRUST.md), and the focused guides linked from the public
-[documentation index](/docs/).
+[documentation index](README.md).
 
 ## Optional: CLI and automation
 

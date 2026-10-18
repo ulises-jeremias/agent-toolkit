@@ -123,6 +123,7 @@ describe('buildWorldModel', () => {
           provider: 'opencode',
           model: 'model-x',
           avatarCharacter: 'char-scholar',
+          avatarAccent: '#e58a3c',
         },
       ],
     });
@@ -131,6 +132,7 @@ describe('buildWorldModel', () => {
     expect(character).toMatchObject({
       name: 'Lina',
       characterSprite: 'char-scholar',
+      characterAccent: '#e58a3c',
       state: 'session open',
       hrefPath: '/people',
       hrefExtra: { person: 'lina', session: 'pty-1' },
