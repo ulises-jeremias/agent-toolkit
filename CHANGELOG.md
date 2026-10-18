@@ -10,6 +10,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.46.0] — 2026-10-18
+
+### Added
+
+- README now carries live CI/release/download badges and a recorded Desktop
+  demo (GIF + MP4) of walking the real workspace valley.
+- Live Person and job characters in the Desktop world now idle-animate, and a
+  live Person NPC carries its durable accent color as a tinted ground shadow.
+- The Files and Settings landmark houses gained cottage-level dressing:
+  chimney, hanging signs, lanterns, flower boxes, vines, shingle texture
+  and base shrubs.
+- The website hero now opens with an orchestrated, contrast-safe entrance
+  and social sharing uses a dedicated 1200×630 card with dimensions and alt
+  text.
+- `agent-toolkit-complete` is discoverable in the Claude and Cursor
+  marketplaces, tagged experimental/opt-in per its catalog stability.
+
+### Fixed
+
+- Broken `/docs/` link in Getting Started; scroll-world trust tier
+  reconciled with its human-approved provenance.
+
 ## [1.45.1] — 2026-10-17
 
 ### Added
