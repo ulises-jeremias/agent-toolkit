@@ -268,6 +268,8 @@ const P = {
   nmd: [0xb3, 0x1e, 0x5e],
   nv: [0x8a, 0x5f, 0xff],
   ct: [0x14, 0x8a, 0x7a],
+  cw: [0x1d, 0x35, 0x8f],
+  cwl: [0x3d, 0x7b, 0xd6],
   ctd: [0x0d, 0x4f, 0x46],
   ctl: [0x2d, 0xd4, 0xbf],
   as: [0x2c, 0x30, 0x42],
@@ -2091,8 +2093,7 @@ function hornero() {
    tiles sit beside the generated cyber facades in the same theme pack. */
 function cyberAsphalt(seed) {
   const img = new Img(16, 16).rect(0, 0, 15, 15, 'as');
-  img.hline(0, 15, 15, 'asd');
-  img.vline(15, 0, 15, 'asd');
+  if (seed % 2 === 0) img.hline(0, 15, 15, 'asd');
   for (let i = 0; i < 7; i++) img.set((seed * 5 + i * 7) % 15, (seed * 3 + i * 5) % 15, 'asl');
   if (seed === 1) img.set(11, 11, 'nm');
   if (seed === 2) img.set(4, 5, 'cy');
@@ -2100,10 +2101,10 @@ function cyberAsphalt(seed) {
   return img;
 }
 function cyberCanal(seed) {
-  const img = new Img(16, 16).rect(0, 0, 15, 15, 'asd');
-  img.rect(0, 5, 15, 10, 'as');
+  const img = new Img(16, 16).rect(0, 0, 15, 15, 'cw');
+  img.rect(0, 0, 15, 4, 'cwl');
   img.hline(2 + seed, 5 + seed, 3, 'cy').hline(9 - seed, 13 - seed, 8, 'ctl');
-  img.hline(4 + seed, 6 + seed, 12, 'nv');
+  img.hline(4 + seed, 6 + seed, 12, 'cwl');
   img.set(12 - seed, 5, 'nm').set(3 + seed, 13, 'cy');
   return img;
 }
@@ -2145,9 +2146,17 @@ function cyberBush() {
   return img;
 }
 function cyberFlower(seed) {
-  const img = cyberAsphalt(seed + 1);
-  img.vline(4, 9, 13, 'ct').vline(11, 8, 13, 'ct');
-  img.set(4, 8, 'nm').set(11, 7, 'cy').set(7, 11, 'wy');
+  void seed;
+  const img = new Img(16, 16);
+  img.vline(4, 9, 14, 'ct').vline(11, 8, 14, 'ct').vline(7, 11, 14, 'ct');
+  img.set(4, 8, 'nm').set(11, 7, 'cy').set(7, 10, 'wy');
+  img.set(3, 7, 'ctl').set(12, 6, 'nm');
+  return img;
+}
+function cyberGlow() {
+  const img = new Img(32, 32);
+  img.set(16, 8, 'cy').set(8, 16, 'nm').set(24, 18, 'ctl').set(16, 25, 'nv');
+  img.set(12, 12, 'ctl').set(20, 13, 'cy');
   return img;
 }
 
@@ -2231,6 +2240,7 @@ function collect() {
   for (const dir of ['n', 's', 'e', 'w']) put(`cyber-shore-${dir}`, cyberShore(dir));
   put('cyber-bridge', cyberBridge());
   put('cyber-lamp', cyberLamp(), [cyberLamp(), cyberLamp()]);
+  put('cyber-glow', cyberGlow());
   put('cyber-tree', cyberTree());
   for (const facade of [
     'cyber-house-neon',

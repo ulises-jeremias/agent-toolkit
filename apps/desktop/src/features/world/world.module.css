@@ -850,7 +850,7 @@
   box-shadow: 0 0 10px rgb(255 46 136 / 55%);
 }
 /* Cyberpunk map ambience: neon wash above terrain, below entities */
-.mapWorld[data-theme='cyberpunk-city']::after {
+:root .mapWorld.mapWorld[data-theme='cyberpunk-city']::after {
   /* Night-city grade: replaces (never blends with) the valley washes so the
      neon terrain keeps its own dark, saturated identity. */
   mix-blend-mode: normal;
