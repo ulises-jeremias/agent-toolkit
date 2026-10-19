@@ -850,7 +850,7 @@
   box-shadow: 0 0 10px rgb(255 46 136 / 55%);
 }
 /* Cyberpunk map ambience: neon wash above terrain, below entities */
-:root .mapWorld.mapWorld[data-theme='cyberpunk-city']::after {
+:root .mapRegion[data-theme='cyberpunk-city'] .mapWorld::after {
   /* Night-city grade: replaces (never blends with) the valley washes so the
      neon terrain keeps its own dark, saturated identity. */
   mix-blend-mode: normal;
@@ -860,7 +860,7 @@
     radial-gradient(ellipse at 55% 96%, rgb(0 229 255 / 9%), transparent 44%),
     linear-gradient(180deg, rgb(16 6 34 / 16%), transparent 40%, rgb(8 3 20 / 20%));
 }
-.mapWorld[data-theme='cyberpunk-city'] .worldLabel[data-nearby='true'] {
+.mapRegion[data-theme='cyberpunk-city'] .worldLabel[data-nearby='true'] {
   border-color: #ff2e88;
   box-shadow: 0 0 12px rgb(255 46 136 / 65%);
 }
