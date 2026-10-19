@@ -145,7 +145,7 @@ test('walks back through the interior door to the workspace grounds', async () =
     }
     await interior.getByRole('button', { name: 'Explore by walking' }).click();
     await page.keyboard.press('E');
-    await expect(page.getByText('workspace valley')).toBeVisible();
+    await expect(page.getByText('Cozy Valley').first()).toBeVisible();
     await expectDoorTransition(page);
 
     await page.emulateMedia({ reducedMotion: 'reduce' });

@@ -857,6 +857,82 @@ h3 {
 .hero-sign span {
   color: var(--sun);
 }
+.hero-sign--neon {
+  right: auto;
+  left: -14px;
+  bottom: -14px;
+  border-color: #ff2e88;
+  background: #160a2e;
+  box-shadow:
+    5px 5px 0 #08181d,
+    0 0 18px rgb(255 46 136 / 45%);
+  transform: rotate(-2deg);
+  text-decoration: none;
+}
+.hero-sign--neon span {
+  color: #ff7ab8;
+  text-shadow: 0 0 8px rgb(255 46 136 / 80%);
+}
+.hero-sign--neon:hover span,
+.hero-sign--neon:focus-visible span {
+  color: #ffd7ec;
+}
+/* Retrofuturistic section: neon city card + sign (static glow, no motion) */
+.section--neon {
+  background:
+    radial-gradient(ellipse at 18% 0%, rgb(138 95 255 / 16%), transparent 55%),
+    radial-gradient(
+      ellipse at 85% 100%,
+      rgb(255 46 136 / 12%),
+      transparent 50%
+    ),
+    linear-gradient(180deg, #0d0618, #120826);
+  color: #f3eaff;
+}
+.section--neon .section-kicker {
+  color: #ff7ab8;
+}
+.neon-sign {
+  font: 400 10px/1.7 var(--pixel);
+  letter-spacing: 0.12em;
+  color: #7df9ff;
+  text-shadow:
+    0 0 6px rgb(0 229 255 / 75%),
+    0 0 18px rgb(138 95 255 / 55%);
+}
+.neon-card {
+  display: grid;
+  align-content: center;
+  gap: 14px;
+  min-height: 240px;
+  padding: 28px;
+  border: 2px solid #8a5fff;
+  background:
+    linear-gradient(180deg, rgb(255 46 136 / 10%), transparent 45%),
+    repeating-linear-gradient(
+      0deg,
+      rgb(125 249 255 / 6%) 0 2px,
+      transparent 2px 26px
+    ),
+    #0a0416;
+  box-shadow:
+    8px 8px 0 #05030c,
+    0 0 26px rgb(138 95 255 / 35%);
+  text-align: center;
+}
+.neon-card-title {
+  font: 400 clamp(22px, 4vw, 40px)/1.25 var(--pixel);
+  color: #ff7ab8;
+  text-shadow:
+    0 0 8px rgb(255 46 136 / 85%),
+    0 0 26px rgb(255 46 136 / 45%);
+}
+.neon-card-sub {
+  font: 400 9px/1.8 var(--pixel);
+  letter-spacing: 0.1em;
+  color: #7df9ff;
+  text-shadow: 0 0 8px rgb(0 229 255 / 70%);
+}
 .hero-caption {
   position: relative;
   z-index: 1;

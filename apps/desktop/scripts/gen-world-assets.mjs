@@ -47,6 +47,10 @@ const ORIGINAL_PIXEL_ASSETS = new Set([
   'landmark-attention',
   'landmark-files',
   'landmark-settings',
+  'cyber-house-neon',
+  'cyber-house-capsule',
+  'cyber-landmark-spire',
+  'cyber-landmark-station',
   'project-board',
   'tree-round',
   'tree-pine',
@@ -255,6 +259,13 @@ const P = {
   rw: [0xd9, 0xa6, 0x48],
   rwd: [0xb3, 0x85, 0x3b],
   cy: [0x5f, 0xe3, 0xd0],
+  // Cyberpunk City neon palette: magenta/violet signage over dark asphalt.
+  nm: [0xff, 0x2e, 0x88],
+  nmd: [0xb3, 0x1e, 0x5e],
+  nv: [0x8a, 0x5f, 0xff],
+  as: [0x2c, 0x30, 0x42],
+  asd: [0x1e, 0x21, 0x30],
+  asl: [0x3d, 0x42, 0x5c],
   cyd: [0x3f, 0xb5, 0xa6],
   gg: [0xff, 0xd9, 0x7a],
   glowOuter: [0xff, 0xd9, 0x7a, 56],
@@ -1910,6 +1921,7 @@ const PLAYER_OUTFITS = {
   river: { coat: 'rs', shade: 'rsd', highlight: 'rsl', accent: 'gg' },
   grove: { coat: 'rm', shade: 'rmd', highlight: 'em', accent: 'wy' },
   ember: { coat: 'rt', shade: 'rtd', highlight: 'rtl', accent: 'gg' },
+  neon: { coat: 'nv', shade: 'asd', highlight: 'nm', accent: 'cy' },
 };
 
 /** Human world navigator: distinct from runtime People, with clear facings and authored outfits. */
@@ -2068,6 +2080,43 @@ function hornero() {
  * 11. Registry + output. Frames are packed horizontally in one PNG.
  * ------------------------------------------------------------------ */
 
+/* Cyberpunk City tiles: neon-lit asphalt, canal, holo flora. Small code-drawn
+   tiles sit beside the generated cyber facades in the same theme pack. */
+function cyberAsphalt(seed) {
+  const img = new Img(16, 16).rect(0, 0, 15, 15, 'as');
+  for (let i = 0; i < 10; i++) img.set((seed * 5 + i * 7) % 16, (seed * 3 + i * 5) % 16, i % 3 === 0 ? 'asl' : 'asd');
+  if (seed % 2 === 0) img.hline(0, 15, 15, 'asd');
+  if (seed === 1) img.set(3, 3, 'nm').set(12, 10, 'cy');
+  if (seed === 2) img.set(5, 12, 'nv').set(10, 4, 'nm');
+  return img;
+}
+function cyberCanal(seed) {
+  const img = new Img(16, 16).rect(0, 0, 15, 15, 'asd');
+  img.hline(0, 15, 3 + seed, 'cy').hline(0, 15, 10 - seed, 'nv');
+  img.set(4 + seed, 7, 'nm').set(11 - seed, 13, 'cy');
+  return img;
+}
+function cyberTree() {
+  const img = new Img(48, 48);
+  img.rect(22, 30, 25, 44, 'asd');
+  img.ellipse(24, 18, 17, 14, 'nmd');
+  img.ellipse(18, 14, 10, 8, 'nm');
+  img.ellipse(31, 12, 9, 7, 'nv');
+  img.set(24, 8, 'cy').set(16, 20, 'cy').set(33, 22, 'cy').set(24, 26, 'wy');
+  return img;
+}
+function cyberBush() {
+  const img = new Img(16, 12);
+  img.ellipse(8, 7, 7, 4, 'nmd');
+  img.set(4, 5, 'nm').set(9, 3, 'cy').set(12, 7, 'nv');
+  return img;
+}
+function cyberFlower(seed) {
+  const img = cyberAsphalt(seed + 1);
+  img.set(4, 5, 'nm').set(11, 9, 'cy').set(7, 12, 'nv');
+  return img;
+}
+
 function collect() {
   const sprites = new Map();
   const put = (name, img, frames) => {
@@ -2143,6 +2192,11 @@ function collect() {
   for (const t of dirtTiles()) put(t.name, t.img);
   for (const t of plazaTiles()) put(t.name, t.img);
   for (const t of waterTiles()) put(t.name, t.img, t.frames);
+  for (let i = 0; i < 4; i++) put(`cyber-asphalt-${i}`, cyberAsphalt(i));
+  put('cyber-canal', cyberCanal(0), [cyberCanal(0), cyberCanal(1)]);
+  put('cyber-tree', cyberTree());
+  put('cyber-bush', cyberBush());
+  put('cyber-flower', cyberFlower(0));
   for (const [name, ch] of [
     ['char-teal', character('re', 'red', 'cy')],
     ['char-gold', character('rw', 'rwd', 'gg')],
@@ -2151,6 +2205,13 @@ function collect() {
     ['char-maker', character('rw', 'rwd', 'gg', 'rrd', 'skd')],
     ['char-scholar', character('rs', 'rsd', 'lv', 'inkd')],
     ['char-keeper', character('rm', 'rmd', 'wy', 'rw', 'skd')],
+    ['char-cyber-teal', character('nv', 'asd', 'cy', 'nm')],
+    ['char-cyber-gold', character('nmd', 'asd', 'wy', 'nv', 'skd')],
+    ['char-cyber-brick', character('nm', 'nmd', 'cy', 'asd')],
+    ['char-cyber-scout', character('nv', 'asd', 'cy', 'nm')],
+    ['char-cyber-maker', character('nmd', 'asd', 'wy', 'nv', 'skd')],
+    ['char-cyber-scholar', character('as', 'asd', 'cy', 'nm', 'skd')],
+    ['char-cyber-keeper', character('nm', 'nmd', 'wy', 'nv', 'skd')],
   ])
     put(name, ch.frames[0], ch.frames);
   for (const [outfit] of Object.entries(PLAYER_OUTFITS)) {

@@ -67,11 +67,13 @@ function activateEntity(
 }
 
 /** Character sprite variant by stable entity hash (never runtime state). */
-function characterSprite(id: string, themeKey: string, durableSprite?: string): string {
-  if (durableSprite) return durableSprite;
+function characterSprite(id: string, themeKey: string, durableSprite?: string, prefix = 'char-'): string {
+  if (durableSprite) {
+    return durableSprite.startsWith('char-') ? `${prefix}${durableSprite.slice(5)}` : durableSprite;
+  }
   let hash = 0;
   for (let i = 0; i < id.length; i += 1) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-  const variants = ['char-teal', 'char-gold', 'char-brick'];
+  const variants = [`${prefix}teal`, `${prefix}gold`, `${prefix}brick`];
   void themeKey;
   return variants[hash % variants.length]!;
 }
@@ -95,7 +97,7 @@ export interface WorldEntityMapProps {
 
 /** Integer zoom steps (display px per 16px source tile). */
 const ZOOMS = WORLD_ZOOMS;
-const PLAYER_APPEARANCES = ['river', 'grove', 'ember'] as const;
+const PLAYER_APPEARANCES = ['river', 'grove', 'ember', 'neon'] as const;
 type PlayerAppearance = (typeof PLAYER_APPEARANCES)[number];
 
 function isPlayerAppearance(value: string | null): value is PlayerAppearance {
@@ -601,7 +603,10 @@ export function WorldEntityMap({
     <div
       ref={regionRef}
       className={styles.mapRegion}
-      style={{ backgroundImage: "url('/world/grass-a.png')", backgroundSize: `${zoom}px ${zoom}px` }}
+      style={{
+        backgroundImage: `url('${theme.id === 'cyberpunk-city' ? '/world/cyber-asphalt-0.png' : '/world/grass-a.png'}')`,
+        backgroundSize: `${zoom}px ${zoom}px`,
+      }}
       role="application"
       aria-label={ariaLabel}
       data-theme={theme.id}
@@ -688,24 +693,38 @@ export function WorldEntityMap({
             <DecorSpriteView key={d.id} decor={d} theme={theme} scale={scale} />
           ))}
         {entities
-          .filter((entity) => entity.kind !== 'character' && (entity.id === selectedId || entity.id === hoveredId))
-          .map((entity) => (
-            <span
-              key={`label:${entity.id}`}
-              className={styles.worldLabel}
-              data-entity-label-for={entity.id}
-              aria-hidden="true"
-              data-label-kind={entity.kind}
-              data-selected={entity.id === selectedId || entity.id === hoveredId ? 'true' : undefined}
-              style={{
-                left: (entity.x + entity.w / 2) * zoom,
-                top: (entity.y + entity.h) * zoom + 2,
-                ['--world-tile-size' as string]: `${zoom}px`,
-              }}
-            >
-              {entity.name}
-            </span>
-          ))}
+          .filter(
+            (entity) =>
+              entity.kind !== 'character' &&
+              (entity.kind === 'place' ||
+                entity.id === selectedId ||
+                entity.id === hoveredId ||
+                entity.id === nearbyId),
+          )
+          .map((entity) => {
+            const isNearby = entity.id === nearbyId;
+            const isActive = entity.id === selectedId || entity.id === hoveredId || isNearby;
+            return (
+              <span
+                key={`label:${entity.id}`}
+                className={styles.worldLabel}
+                data-entity-label-for={entity.id}
+                aria-hidden="true"
+                data-label-kind={entity.kind}
+                data-sign={entity.kind === 'place' && !isActive ? 'true' : undefined}
+                data-nearby={isNearby ? 'true' : undefined}
+                data-selected={isActive ? 'true' : undefined}
+                style={{
+                  left: (entity.x + entity.w / 2) * zoom,
+                  top: (entity.y + entity.h) * zoom + 2,
+                  ['--world-tile-size' as string]: `${zoom}px`,
+                }}
+              >
+                {entity.name}
+                {isNearby && entity.state ? <small className={styles.worldLabelDetail}>{entity.state}</small> : null}
+              </span>
+            );
+          })}
       </div>
       <div className={styles.cameraHud} role="group" aria-label="Map view controls">
         <button
@@ -824,7 +843,9 @@ function EntityTile({
 }) {
   const asset = resolveEntityAsset(theme, entity);
   const isCharacter = entity.kind === 'character';
-  const spriteName = isCharacter ? characterSprite(entity.id, entity.themeKey, entity.characterSprite) : null;
+  const spriteName = isCharacter
+    ? characterSprite(entity.id, entity.themeKey, entity.characterSprite, theme.characterPrefix)
+    : null;
   const src =
     asset.kind === 'sprite'
       ? spriteName
