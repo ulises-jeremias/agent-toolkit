@@ -10,6 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.47.0] — 2026-10-19
+
+### Added
+
+- **Cyberpunk City world theme**: a second, genuinely distinct world pack
+  for the Desktop — image-generated neon tower and capsule houses, an HQ
+  spire and transit-station landmarks, neon asphalt and canal terrain,
+  holo flora, neon-coated NPCs/People and a neon player coat. Switch packs
+  from the World header; the choice persists.
+- Every house and place in the world now carries an always-on name sign,
+  and walking up to a house promotes its plaque with the place name and
+  live state — no mouse hover required.
+- The website gained retrofuturistic touches: a Cyberpunk City hero sign
+  on the homepage and a neon “Two worlds, one workspace” section on the
+  World page.
+
 ## [1.46.1] — 2026-10-18
 
 ### Changed
