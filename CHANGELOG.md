@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.46.1] — 2026-10-18
+
+### Changed
+
+- The Files and Settings landmark houses in the Desktop world are now
+  original generated pixel-art facades in the same atlas style as the
+  project cottages — a glazed archive depot and a clockwork pavilion —
+  replacing the flat code-drawn houses.
+
 ## [1.46.0] — 2026-10-18
 
 ### Added
