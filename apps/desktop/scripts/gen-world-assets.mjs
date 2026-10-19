@@ -45,6 +45,8 @@ const ORIGINAL_PIXEL_ASSETS = new Set([
   'landmark-terminal',
   'landmark-workshop',
   'landmark-attention',
+  'landmark-files',
+  'landmark-settings',
   'project-board',
   'tree-round',
   'tree-pine',
