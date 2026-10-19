@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.47.3] — 2026-10-19
+
+### Fixed
+
+- The Cyberpunk night overlay finally applies: its selector targeted
+  `.mapWorld[data-theme]` but the pack id lives on `.mapRegion`, so the
+  Dusk warm wash painted beige blotches over the city. Verified against
+  a real-host capture.
+
 ## [1.47.2] — 2026-10-19
 
 ### Fixed
