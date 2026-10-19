@@ -49,6 +49,10 @@ const ORIGINAL_PIXEL_ASSETS = new Set([
   'landmark-settings',
   'cyber-house-neon',
   'cyber-house-capsule',
+  'cyber-house-deco',
+  'cyber-house-noodle',
+  'cyber-tree',
+  'cyber-landmark-vault',
   'cyber-landmark-spire',
   'cyber-landmark-station',
   'project-board',
@@ -263,6 +267,9 @@ const P = {
   nm: [0xff, 0x2e, 0x88],
   nmd: [0xb3, 0x1e, 0x5e],
   nv: [0x8a, 0x5f, 0xff],
+  ct: [0x14, 0x8a, 0x7a],
+  ctd: [0x0d, 0x4f, 0x46],
+  ctl: [0x2d, 0xd4, 0xbf],
   as: [0x2c, 0x30, 0x42],
   asd: [0x1e, 0x21, 0x30],
   asl: [0x3d, 0x42, 0x5c],
@@ -2084,36 +2091,63 @@ function hornero() {
    tiles sit beside the generated cyber facades in the same theme pack. */
 function cyberAsphalt(seed) {
   const img = new Img(16, 16).rect(0, 0, 15, 15, 'as');
-  for (let i = 0; i < 10; i++) img.set((seed * 5 + i * 7) % 16, (seed * 3 + i * 5) % 16, i % 3 === 0 ? 'asl' : 'asd');
-  if (seed % 2 === 0) img.hline(0, 15, 15, 'asd');
-  if (seed === 1) img.set(3, 3, 'nm').set(12, 10, 'cy');
-  if (seed === 2) img.set(5, 12, 'nv').set(10, 4, 'nm');
+  img.hline(0, 15, 15, 'asd');
+  img.vline(15, 0, 15, 'asd');
+  for (let i = 0; i < 7; i++) img.set((seed * 5 + i * 7) % 15, (seed * 3 + i * 5) % 15, 'asl');
+  if (seed === 1) img.set(11, 11, 'nm');
+  if (seed === 2) img.set(4, 5, 'cy');
+  if (seed === 3) img.set(12, 3, 'ctl');
   return img;
 }
 function cyberCanal(seed) {
   const img = new Img(16, 16).rect(0, 0, 15, 15, 'asd');
-  img.hline(0, 15, 3 + seed, 'cy').hline(0, 15, 10 - seed, 'nv');
-  img.set(4 + seed, 7, 'nm').set(11 - seed, 13, 'cy');
+  img.rect(0, 5, 15, 10, 'as');
+  img.hline(2 + seed, 5 + seed, 3, 'cy').hline(9 - seed, 13 - seed, 8, 'ctl');
+  img.hline(4 + seed, 6 + seed, 12, 'nv');
+  img.set(12 - seed, 5, 'nm').set(3 + seed, 13, 'cy');
+  return img;
+}
+function cyberShore(dir) {
+  const img = cyberCanal(0);
+  // Neon rim light on the bank side, dark metal lip behind it.
+  if (dir === 'n') { img.rect(0, 0, 15, 2, 'asd'); img.hline(0, 15, 3, 'cy'); }
+  if (dir === 's') { img.rect(0, 13, 15, 15, 'asd'); img.hline(0, 15, 12, 'cy'); }
+  if (dir === 'w') { img.rect(0, 0, 2, 15, 'asd'); img.vline(3, 0, 15, 'cy'); }
+  if (dir === 'e') { img.rect(13, 0, 15, 15, 'asd'); img.vline(12, 0, 15, 'cy'); }
+  return img;
+}
+function cyberBridge() {
+  const img = new Img(48, 48).rect(0, 10, 47, 37, 'asd');
+  for (let y = 14; y < 37; y += 6) img.hline(0, 47, y, 'as');
+  img.rect(0, 10, 47, 13, 'as').rect(0, 34, 47, 37, 'as');
+  img.hline(0, 47, 11, 'nm').hline(0, 47, 36, 'cy');
+  for (let x = 4; x < 48; x += 10) { img.set(x, 12, 'nm'); img.set(x, 35, 'cy'); }
+  return img;
+}
+function cyberLamp() {
+  const img = new Img(16, 24);
+  img.vline(7, 8, 22, 'asd').vline(8, 8, 22, 'asl');
+  img.rect(5, 21, 10, 23, 'asd');
+  img.ellipse(8, 5, 4, 4, 'nm');
+  img.ellipse(8, 5, 2, 2, 'iv');
+  img.set(8, 0, 'cy');
   return img;
 }
 function cyberTree() {
-  const img = new Img(48, 48);
-  img.rect(22, 30, 25, 44, 'asd');
-  img.ellipse(24, 18, 17, 14, 'nmd');
-  img.ellipse(18, 14, 10, 8, 'nm');
-  img.ellipse(31, 12, 9, 7, 'nv');
-  img.set(24, 8, 'cy').set(16, 20, 'cy').set(33, 22, 'cy').set(24, 26, 'wy');
-  return img;
+  return new Img(48, 48);
 }
 function cyberBush() {
   const img = new Img(16, 12);
-  img.ellipse(8, 7, 7, 4, 'nmd');
-  img.set(4, 5, 'nm').set(9, 3, 'cy').set(12, 7, 'nv');
+  img.ellipse(8, 8, 7, 4, 'ctd');
+  img.ellipse(6, 6, 4, 3, 'ct');
+  img.ellipse(11, 7, 3, 2, 'ct');
+  img.set(4, 5, 'cy').set(9, 4, 'ctl').set(12, 7, 'nm').set(7, 8, 'cy');
   return img;
 }
 function cyberFlower(seed) {
   const img = cyberAsphalt(seed + 1);
-  img.set(4, 5, 'nm').set(11, 9, 'cy').set(7, 12, 'nv');
+  img.vline(4, 9, 13, 'ct').vline(11, 8, 13, 'ct');
+  img.set(4, 8, 'nm').set(11, 7, 'cy').set(7, 11, 'wy');
   return img;
 }
 
@@ -2194,7 +2228,20 @@ function collect() {
   for (const t of waterTiles()) put(t.name, t.img, t.frames);
   for (let i = 0; i < 4; i++) put(`cyber-asphalt-${i}`, cyberAsphalt(i));
   put('cyber-canal', cyberCanal(0), [cyberCanal(0), cyberCanal(1)]);
+  for (const dir of ['n', 's', 'e', 'w']) put(`cyber-shore-${dir}`, cyberShore(dir));
+  put('cyber-bridge', cyberBridge());
+  put('cyber-lamp', cyberLamp(), [cyberLamp(), cyberLamp()]);
   put('cyber-tree', cyberTree());
+  for (const facade of [
+    'cyber-house-neon',
+    'cyber-house-capsule',
+    'cyber-house-deco',
+    'cyber-house-noodle',
+    'cyber-landmark-spire',
+    'cyber-landmark-station',
+    'cyber-landmark-vault',
+  ])
+    put(facade, new Img(48, 64));
   put('cyber-bush', cyberBush());
   put('cyber-flower', cyberFlower(0));
   for (const [name, ch] of [

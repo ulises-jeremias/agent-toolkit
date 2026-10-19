@@ -1143,11 +1143,105 @@
       "h": 16,
       "frames": 2
     },
+    "cyber-shore-n": {
+      "file": "cyber-shore-n.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "cyber-shore-s": {
+      "file": "cyber-shore-s.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "cyber-shore-e": {
+      "file": "cyber-shore-e.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "cyber-shore-w": {
+      "file": "cyber-shore-w.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "cyber-bridge": {
+      "file": "cyber-bridge.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1
+    },
+    "cyber-lamp": {
+      "file": "cyber-lamp.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
     "cyber-tree": {
       "file": "cyber-tree.png",
       "w": 48,
       "h": 48,
-      "frames": 1
+      "frames": 1,
+      "source": "scripts/world-art/cyber-tree.png",
+      "sha256": "1298a92c3cd5e57b7ad8dd6c15bf656a4cb795f586c058fd2930f330f9cc61ae"
+    },
+    "cyber-house-neon": {
+      "file": "cyber-house-neon.png",
+      "w": 48,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art/cyber-house-neon.png",
+      "sha256": "9bfd15cd448e87122000113934a94889c370c3c7132731107e62cf38b22b2015"
+    },
+    "cyber-house-capsule": {
+      "file": "cyber-house-capsule.png",
+      "w": 48,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art/cyber-house-capsule.png",
+      "sha256": "583422f8bc40daff3cc7ffacb010dcbf8af082f330314787d58e48300bb5fa9b"
+    },
+    "cyber-house-deco": {
+      "file": "cyber-house-deco.png",
+      "w": 48,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art/cyber-house-deco.png",
+      "sha256": "58f5cfafa19c62c62fcff52464e46e1dc940102f40f786403e1997dc11275216"
+    },
+    "cyber-house-noodle": {
+      "file": "cyber-house-noodle.png",
+      "w": 48,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art/cyber-house-noodle.png",
+      "sha256": "11ccd010fdf10105aece29e595bf62a8f13eb4da7f6dc8839f4660d16ac01084"
+    },
+    "cyber-landmark-spire": {
+      "file": "cyber-landmark-spire.png",
+      "w": 64,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art/cyber-landmark-spire.png",
+      "sha256": "b61d2396a042d9c1887ebe31ba015bde122c08b4b487367ac67d4b138582016a"
+    },
+    "cyber-landmark-station": {
+      "file": "cyber-landmark-station.png",
+      "w": 64,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art/cyber-landmark-station.png",
+      "sha256": "ec649db2cc859888886ffd9b32b84d739a7e31038acb7159027ca8f8fb8cae7e"
+    },
+    "cyber-landmark-vault": {
+      "file": "cyber-landmark-vault.png",
+      "w": 64,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art/cyber-landmark-vault.png",
+      "sha256": "0a8d8578a80eaf64d71fc69ec41630ddba491d995a4238a6228679bcd1a769ff"
     },
     "cyber-bush": {
       "file": "cyber-bush.png",

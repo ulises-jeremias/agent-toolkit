@@ -851,11 +851,14 @@
 }
 /* Cyberpunk map ambience: neon wash above terrain, below entities */
 .mapWorld[data-theme='cyberpunk-city']::after {
+  /* Night-city grade: replaces (never blends with) the valley washes so the
+     neon terrain keeps its own dark, saturated identity. */
+  mix-blend-mode: normal;
   background:
-    radial-gradient(ellipse at 20% 12%, rgb(255 46 136 / 16%), transparent 40%),
-    radial-gradient(ellipse at 82% 20%, rgb(138 95 255 / 18%), transparent 36%),
-    radial-gradient(ellipse at 55% 95%, rgb(0 229 255 / 10%), transparent 42%),
-    linear-gradient(180deg, rgb(20 8 40 / 22%), transparent 45%, rgb(10 4 24 / 26%));
+    radial-gradient(ellipse at 20% 12%, rgb(255 46 136 / 13%), transparent 42%),
+    radial-gradient(ellipse at 82% 18%, rgb(138 95 255 / 15%), transparent 38%),
+    radial-gradient(ellipse at 55% 96%, rgb(0 229 255 / 9%), transparent 44%),
+    linear-gradient(180deg, rgb(16 6 34 / 16%), transparent 40%, rgb(8 3 20 / 20%));
 }
 .mapWorld[data-theme='cyberpunk-city'] .worldLabel[data-nearby='true'] {
   border-color: #ff2e88;
