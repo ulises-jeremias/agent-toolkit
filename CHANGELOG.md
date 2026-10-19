@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.47.1] — 2026-10-19
+
+### Fixed
+
+- Cyberpunk City actually renders its buildings: the generated facades
+  were never emitted into the sprite atlas, so every house 404'd and only
+  name signs floated over the terrain. The pack now ships seven distinct
+  facades (new deco tower home, noodle-bar house and data-vault landmark
+  included), a generated neon tree, rim-lit canal shores, a neon bridge
+  and lamp, holo flora, and neon-lane trails — and its night overlay no
+  longer blends with the Dusk wash.
+
 ## [1.47.0] — 2026-10-19
 
 ### Added
