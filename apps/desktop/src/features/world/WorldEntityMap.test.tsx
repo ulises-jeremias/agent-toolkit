@@ -261,19 +261,31 @@ describe('WorldEntityMap activation', () => {
     expect(terminalInspect?.getAttribute('href')).toContain('/terminal');
   });
 
-  it('keeps the idle valley clear and reveals a semantic plaque on hover', async () => {
+  it('shows house name signs at idle and reveals a semantic plaque on hover', async () => {
     const { user } = renderMap();
-    expect(document.querySelector('[data-label-kind]')).toBeNull();
+    // Houses (places) carry always-on name signs; objects stay clear until hover.
+    expect(document.querySelector('[data-sign="true"]')).not.toBeNull();
+    // At idle only house signs and the spawn's proximity plaque are visible.
+    for (const label of document.querySelectorAll('[data-entity-label-for]')) {
+      expect(
+        label.getAttribute('data-sign') === 'true' || label.getAttribute('data-nearby') === 'true',
+      ).toBe(true);
+    }
 
     const library = screen.getByRole('button', { name: /^Library · Capability library/i });
     await user.hover(library);
     const plaque = document.querySelector<HTMLElement>('[data-entity-label-for="object:library"]');
-    expect(plaque?.textContent).toBe('Library');
+    expect(plaque?.textContent).toContain('Library');
     expect(plaque?.closest('button')).toBeNull();
     expect(plaque?.getAttribute('aria-hidden')).toBe('true');
 
     await user.unhover(library);
-    expect(document.querySelector('[data-label-kind]')).toBeNull();
+    // After unhover, only house signs and proximity plaques remain.
+    for (const label of document.querySelectorAll('[data-entity-label-for]')) {
+      expect(
+        label.getAttribute('data-sign') === 'true' || label.getAttribute('data-nearby') === 'true',
+      ).toBe(true);
+    }
   });
 
   it('uses arrow keys to move between nearby places and Enter to open the same destination', async () => {
@@ -416,6 +428,13 @@ describe('WorldEntityMap activation', () => {
 
     await user.click(screen.getByRole('button', { name: 'Explore by walking' }));
     expect(screen.getByRole('status')).toHaveTextContent(candidate.name);
+    // Proximity also raises the house plaque on the map, with its state detail.
+    const nearbyPlaque = document.querySelector<HTMLElement>(
+      `[data-entity-label-for="${candidate.id}"][data-nearby="true"]`,
+    );
+    expect(nearbyPlaque).not.toBeNull();
+    expect(nearbyPlaque?.textContent).toContain(candidate.name);
+    expect(nearbyPlaque?.textContent).toContain(candidate.state);
     fireEvent.keyDown(screen.getByRole('application', { name: 'test world' }), { key: movement[0] });
     await waitFor(() => {
       expect((actor as HTMLElement).style.left !== startLeft || (actor as HTMLElement).style.top !== startTop).toBe(

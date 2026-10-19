@@ -1113,6 +1113,54 @@
       "h": 16,
       "frames": 1
     },
+    "cyber-asphalt-0": {
+      "file": "cyber-asphalt-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "cyber-asphalt-1": {
+      "file": "cyber-asphalt-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "cyber-asphalt-2": {
+      "file": "cyber-asphalt-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "cyber-asphalt-3": {
+      "file": "cyber-asphalt-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "cyber-canal": {
+      "file": "cyber-canal.png",
+      "w": 16,
+      "h": 16,
+      "frames": 2
+    },
+    "cyber-tree": {
+      "file": "cyber-tree.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1
+    },
+    "cyber-bush": {
+      "file": "cyber-bush.png",
+      "w": 16,
+      "h": 12,
+      "frames": 1
+    },
+    "cyber-flower": {
+      "file": "cyber-flower.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
     "char-teal": {
       "file": "char-teal.png",
       "w": 16,
@@ -1151,6 +1199,48 @@
     },
     "char-keeper": {
       "file": "char-keeper.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-cyber-teal": {
+      "file": "char-cyber-teal.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-cyber-gold": {
+      "file": "char-cyber-gold.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-cyber-brick": {
+      "file": "char-cyber-brick.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-cyber-scout": {
+      "file": "char-cyber-scout.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-cyber-maker": {
+      "file": "char-cyber-maker.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-cyber-scholar": {
+      "file": "char-cyber-scholar.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-cyber-keeper": {
+      "file": "char-cyber-keeper.png",
       "w": 16,
       "h": 24,
       "frames": 2
@@ -1223,6 +1313,30 @@
     },
     "char-player-ember-north": {
       "file": "char-player-ember-north.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4
+    },
+    "char-player-neon-south": {
+      "file": "char-player-neon-south.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4
+    },
+    "char-player-neon-west": {
+      "file": "char-player-neon-west.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4
+    },
+    "char-player-neon-east": {
+      "file": "char-player-neon-east.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4
+    },
+    "char-player-neon-north": {
+      "file": "char-player-neon-north.png",
       "w": 16,
       "h": 24,
       "frames": 4

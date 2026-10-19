@@ -177,7 +177,9 @@
   z-index: 1;
   pointer-events: none;
   border: 10px solid var(--cw-wood-dark);
-  box-shadow: inset 0 0 0 4px var(--cw-wood-light), inset 0 0 0 7px var(--cw-gold-deep);
+  box-shadow:
+    inset 0 0 0 4px var(--cw-wood-light),
+    inset 0 0 0 7px var(--cw-gold-deep);
 }
 
 .mapWorld :global(.worldTerrain) {
@@ -556,6 +558,22 @@
   border-color: var(--accent-gold);
 }
 
+/* Always-on house sign: quieter wooden plaque so houses stay identifiable
+   without hover, while the active plaque keeps the gold highlight. */
+.worldLabel[data-sign='true'] {
+  opacity: 0.92;
+  border-bottom-width: 3px;
+  font-size: clamp(6px, calc(var(--world-tile-size, 16px) * 0.3), 10px);
+}
+
+.worldLabelDetail {
+  display: block;
+  font-family: var(--font-body, inherit);
+  font-size: 0.82em;
+  line-height: 1.25;
+  opacity: 0.88;
+}
+
 .worldLabel[data-label-kind='place'][data-selected='true']::after {
   background: var(--accent-gold);
 }
@@ -804,4 +822,42 @@
     radial-gradient(ellipse at 84% 24%, rgb(255 194 110 / 36%), transparent 24%),
     linear-gradient(180deg, rgb(31 39 87 / 42%), rgb(35 37 77 / 38%));
   mix-blend-mode: multiply;
+}
+
+/* World theme pack picker (Cozy Valley / Cyberpunk City) */
+.worldThemePackPicker {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: auto;
+}
+.worldThemePackPicker button {
+  font: inherit;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line, #3a4a3a);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.worldThemePackPicker button[data-active='true'] {
+  background: var(--accent, #2f6f4e);
+  color: #fff;
+  border-color: transparent;
+}
+.worldThemePackPicker button[data-world-pack='cyberpunk-city'][data-active='true'] {
+  background: linear-gradient(90deg, #ff2e88, #8a5fff);
+  box-shadow: 0 0 10px rgb(255 46 136 / 55%);
+}
+/* Cyberpunk map ambience: neon wash above terrain, below entities */
+.mapWorld[data-theme='cyberpunk-city']::after {
+  background:
+    radial-gradient(ellipse at 20% 12%, rgb(255 46 136 / 16%), transparent 40%),
+    radial-gradient(ellipse at 82% 20%, rgb(138 95 255 / 18%), transparent 36%),
+    radial-gradient(ellipse at 55% 95%, rgb(0 229 255 / 10%), transparent 42%),
+    linear-gradient(180deg, rgb(20 8 40 / 22%), transparent 45%, rgb(10 4 24 / 26%));
+}
+.mapWorld[data-theme='cyberpunk-city'] .worldLabel[data-nearby='true'] {
+  border-color: #ff2e88;
+  box-shadow: 0 0 12px rgb(255 46 136 / 65%);
 }

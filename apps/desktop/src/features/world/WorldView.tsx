@@ -23,7 +23,7 @@ import {
   type MemorySummary,
   type ToolRecord,
 } from './model';
-import { cozyValleyTheme } from './theme/cozyValley';
+import { WORLD_THEME_PACKS, worldThemePack } from './theme/cyberpunkCity';
 import { ToolRecordInspector } from './ToolRecordInspector';
 import { useWorldDetailEscape } from './useWorldDetailEscape';
 import { WorldEntityList, WorldEntityMap } from './WorldEntityMap';
@@ -62,6 +62,22 @@ export default function WorldView() {
     staleTime: 15_000,
   });
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [worldPackId, setWorldPackId] = useState<string | null>(() => {
+    try {
+      return window.localStorage.getItem('at-world-pack');
+    } catch {
+      return null;
+    }
+  });
+  const worldPack = worldThemePack(worldPackId);
+  const chooseWorldPack = useCallback((id: string) => {
+    setWorldPackId(id);
+    try {
+      window.localStorage.setItem('at-world-pack', id);
+    } catch {
+      /* storage unavailable */
+    }
+  }, []);
 
   const navigateWorld = useCallback(
     (to: string, throughProjectDoor = false) => {
@@ -252,8 +268,24 @@ export default function WorldView() {
       <header className={styles.worldHeader}>
         <h1 className={styles.worldTitle}>{title}</h1>
         <span className={styles.worldMeta}>
-          {model.focusProjectId ? 'project interior' : 'workspace valley'} · {layout.entities.length} places
+          {model.focusProjectId ? 'project interior' : worldPack.label} · {layout.entities.length} places
         </span>
+        {!model.focusProjectId ? (
+          <div className={styles.worldThemePackPicker} role="group" aria-label="World theme">
+            {WORLD_THEME_PACKS.map((pack) => (
+              <button
+                key={pack.id}
+                type="button"
+                data-world-pack={pack.id}
+                data-active={worldPack.id === pack.id || undefined}
+                aria-pressed={worldPack.id === pack.id}
+                onClick={() => chooseWorldPack(pack.id)}
+              >
+                {pack.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
         {selected ? (
           <span className={styles.selectedChip} aria-live="polite">
             Selected: <strong>{selected.name}</strong> — {selected.concept}
@@ -290,7 +322,7 @@ export default function WorldView() {
           <WorldEntityMap
             entities={layout.entities}
             selectedId={selectedId}
-            theme={cozyValleyTheme}
+            theme={worldPack}
             cols={layout.cols}
             rows={layout.rows}
             ariaLabel={model.focusProjectId ? `Interior of ${model.focusProjectId}` : 'Semantic workspace world'}
