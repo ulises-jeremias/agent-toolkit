@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.47.4] — 2026-10-19
+
+### Fixed
+
+- Cyberpunk City places now glow neon (cyan/magenta/violet) instead of
+  the warm window glow that read as beige blotches on dark asphalt.
+
 ## [1.47.3] — 2026-10-19
 
 ### Fixed
