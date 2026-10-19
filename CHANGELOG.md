@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.47.2] — 2026-10-19
+
+### Fixed
+
+- Cyberpunk City terrain polish, verified on a real host: the night
+  overlay now wins over the Dusk multiply wash (no warm blotches), the
+  canal is real blue water with neon reflections, asphalt lost its panel
+  grid, and valley wildflowers/flowers became transparent holo flora.
+
 ## [1.47.1] — 2026-10-19
 
 ### Fixed
