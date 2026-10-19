@@ -267,9 +267,7 @@ describe('WorldEntityMap activation', () => {
     expect(document.querySelector('[data-sign="true"]')).not.toBeNull();
     // At idle only house signs and the spawn's proximity plaque are visible.
     for (const label of document.querySelectorAll('[data-entity-label-for]')) {
-      expect(
-        label.getAttribute('data-sign') === 'true' || label.getAttribute('data-nearby') === 'true',
-      ).toBe(true);
+      expect(label.getAttribute('data-sign') === 'true' || label.getAttribute('data-nearby') === 'true').toBe(true);
     }
 
     const library = screen.getByRole('button', { name: /^Library · Capability library/i });
@@ -282,9 +280,7 @@ describe('WorldEntityMap activation', () => {
     await user.unhover(library);
     // After unhover, only house signs and proximity plaques remain.
     for (const label of document.querySelectorAll('[data-entity-label-for]')) {
-      expect(
-        label.getAttribute('data-sign') === 'true' || label.getAttribute('data-nearby') === 'true',
-      ).toBe(true);
+      expect(label.getAttribute('data-sign') === 'true' || label.getAttribute('data-nearby') === 'true').toBe(true);
     }
   });
 
