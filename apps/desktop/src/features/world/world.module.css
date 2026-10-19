@@ -864,3 +864,11 @@
   border-color: #ff2e88;
   box-shadow: 0 0 12px rgb(255 46 136 / 65%);
 }
+
+/* Cyberpunk places glow neon, not warm-window beige. */
+.mapRegion[data-theme='cyberpunk-city'] .entity[data-kind='place']::before {
+  background:
+    radial-gradient(ellipse at 31% 55%, rgb(0 229 255 / 22%) 0 5%, transparent 23%),
+    radial-gradient(ellipse at 68% 55%, rgb(255 46 136 / 20%) 0 5%, transparent 23%),
+    radial-gradient(ellipse at 50% 38%, rgb(138 95 255 / 16%) 0 4%, transparent 19%);
+}
