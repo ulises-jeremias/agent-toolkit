@@ -1179,6 +1179,12 @@
       "h": 24,
       "frames": 2
     },
+    "cyber-glow": {
+      "file": "cyber-glow.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
     "cyber-tree": {
       "file": "cyber-tree.png",
       "w": 48,
