@@ -123,7 +123,7 @@ export function registerIpc(deps: IpcDeps): void {
         cols?: number;
         rows?: number;
       },
-    ) => {
+    ) => (async (): Promise<unknown> => {
       if (!isRecord(options)) return null;
       const {
         agent,
@@ -164,7 +164,7 @@ export function registerIpc(deps: IpcDeps): void {
       if (rows !== undefined && !isPositiveInt(rows)) return null;
       try {
         return (
-          deps.getTerminals()?.create({
+          (await deps.getTerminals()?.create({
             agent,
             personId,
             agentSessionId,
@@ -178,13 +178,13 @@ export function registerIpc(deps: IpcDeps): void {
             maxSeconds,
             cols,
             rows,
-          }) ?? null
+          })) ?? null
         );
       } catch (error) {
         if (error instanceof TerminalCwdError) return null;
         throw error;
       }
-    },
+    })(),
   );
   ipcMain.handle('atk:pty-write', (_event, id: unknown, data: unknown) =>
     typeof id === 'string' && typeof data === 'string' ? (deps.getTerminals()?.write(id, data) ?? false) : false,

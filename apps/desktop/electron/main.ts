@@ -135,6 +135,8 @@ async function createWindow(): Promise<void> {
   }
 
   terminals.attachWindow(() => mainWindow);
+  // Adopt sessions that survived in the detached PTY host (ADR-037).
+  void terminals.start().catch(() => undefined);
 
   mainWindow.webContents.setWindowOpenHandler(({ url: target }) => {
     try {
