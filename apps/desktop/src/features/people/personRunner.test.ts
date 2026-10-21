@@ -22,16 +22,23 @@ const provider: ProviderInfo = {
 describe('personSessionOptions', () => {
   it('builds a real runner PTY with argv and project identity metadata', () => {
     const model: ModelInfo = { profile: 'balanced', runner: 'opencode', model: 'model-x' };
-    expect(
-      personSessionOptions({ ...person, budget: { max_seconds: 90 } }, provider, model, '/work/project', 'project'),
-    ).toEqual({
+    const options = personSessionOptions(
+      { ...person, budget: { max_seconds: 90 } },
+      provider,
+      model,
+      '/work/project',
+      'project',
+    );
+    // opencode is assign-strategy: a ses_-prefixed id is chosen at launch.
+    expect(options?.providerSessionId).toMatch(/^ses_[0-9a-f]{24}$/);
+    expect(options).toMatchObject({
       agent: 'Lina',
       personId: 'lina',
       projectId: 'project',
       provider: 'opencode',
       model: 'model-x',
       cmd: '/usr/bin/opencode',
-      args: ['--model', 'model-x'],
+      args: ['--model', 'model-x', '--session', options?.providerSessionId],
       cwd: '/work/project',
       maxSeconds: 90,
     });
@@ -88,14 +95,14 @@ describe('personSessionOptions', () => {
       'project',
       '  Review this PR  ',
     );
-    if (providerId === 'claude' || providerId === 'copilot') {
+    if (providerId === 'claude' || providerId === 'copilot' || providerId === 'opencode') {
       // Assign-strategy runners receive a session id we choose (resume support).
-      const sessionIdIndex = options?.args?.indexOf('--session-id') ?? -1;
+      const flag = providerId === 'opencode' ? '--session' : '--session-id';
+      const sessionIdIndex = options?.args?.indexOf(flag) ?? -1;
       expect(sessionIdIndex).toBeGreaterThanOrEqual(0);
       expect(options?.providerSessionId).toBe(options?.args?.[sessionIdIndex + 1]);
-      expect(options?.args?.filter((arg) => arg !== '--session-id' && arg !== options?.providerSessionId)).toEqual(
-        args,
-      );
+      if (providerId === 'opencode') expect(options?.providerSessionId).toMatch(/^ses_/);
+      expect(options?.args?.filter((arg) => arg !== flag && arg !== options?.providerSessionId)).toEqual(args);
     } else {
       expect(options?.providerSessionId).toBeUndefined();
       expect(options?.args).toEqual(args);
@@ -111,6 +118,8 @@ describe('personSessionOptions', () => {
 
   it('does not send a prompt when the user clears the one-time task', () => {
     expect(personInitialPrompt(person, '  ')).toBeNull();
-    expect(personSessionOptions(person, provider, undefined, '/work/project', 'project', '')?.args).toEqual([]);
+    const options = personSessionOptions(person, provider, undefined, '/work/project', 'project', '');
+    // No prompt is sent, but the assign-strategy session id still is.
+    expect(options?.args).toEqual(['--session', options?.providerSessionId]);
   });
 });

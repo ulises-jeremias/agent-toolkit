@@ -1,6 +1,6 @@
 import type { ModelInfo, Person, ProviderInfo } from '../../lib/api';
 import type { PtyCreateOptions } from '../../types/electron';
-import { newProviderSessionId, providerResumeSupport } from './providerResume';
+import { newProviderSessionId, providerResumeSupport, providerSessionIdFlag } from './providerResume';
 
 export type InitialPromptMode = 'positional' | 'opencode-mini' | 'copilot-interactive' | 'unsupported';
 
@@ -35,10 +35,12 @@ export function personSessionOptions(
 ): PtyCreateOptions | null {
   if (!provider.available || provider.id === 'skeleton' || !provider.bin || !cwd) return null;
   const args = model?.model ? ['--model', model.model] : [];
-  // Assign-strategy runners (claude, copilot) get a session id we choose,
-  // so the conversation can be resumed later. It must precede the prompt.
-  const providerSessionId = providerResumeSupport(provider.id)?.kind === 'assign' ? newProviderSessionId() : undefined;
-  if (providerSessionId) args.push('--session-id', providerSessionId);
+  // Assign-strategy runners (claude, copilot, opencode) get a session id
+  // we choose, so the conversation can be resumed later. It must precede
+  // the prompt; opencode uses --session with a ses_-prefixed id.
+  const providerSessionId =
+    providerResumeSupport(provider.id)?.kind === 'assign' ? newProviderSessionId(provider.id) : undefined;
+  if (providerSessionId) args.push(providerSessionIdFlag(provider.id), providerSessionId);
   const prompt = personInitialPrompt(person, task);
   switch (initialPromptMode(provider.id)) {
     case 'positional':
