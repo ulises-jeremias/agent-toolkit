@@ -10,6 +10,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.47.6] — 2026-10-21
+
+### Added
+
+- Desktop sessions now run in a detached PTY host, so real agent
+  terminals survive an app exit and reattach on relaunch (ADR-037).
+- Person sessions can resume the previous provider conversation where
+  the runner supports it: Claude, Copilot and Codex (ADR-038), plus
+  OpenCode with assigned `ses_` session ids.
+- Swarm collaboration semantics: communication acts, hop budget,
+  human routing and broadcast (ADR-039), a Needs-you inbox for
+  human-routed handoffs, and a GitHub issue picker when starting a run.
+- From a swarm run in the Desktop: create a draft PR, see its live
+  status and diff size, and mark it ready for review.
+- Live CLI model catalogue with static fallback, plus cancel
+  hardening (ADR-040).
+- Context packs render as named Districts in the valley, and the
+  effective-context assembler shows a provenance preview before a
+  session starts.
+- Desktop update check is notify-only until code signing exists
+  (ADR-041).
+
+### Fixed
+
+- Importing a Munder hire no longer silently drops canonical fields,
+  and saving a workspace pack from the Desktop preserves its rich
+  fields.
+- Release scripts migrated from the removed V `json` module to
+  `x.json2`; the detached-host test cleanup no longer flakes with
+  ENOTEMPTY.
+
 ## [1.47.5] — 2026-10-19
 
 ### Changed
