@@ -24,7 +24,7 @@ fn test_first_url_line_extracts_pr_url() {
 }
 
 fn test_parse_swarm_pr_status_summarizes_checks() {
-	sample := '{"url":"https://github.com/o/r/pull/7","state":"OPEN","isDraft":true,"statusCheckRollup":[{"conclusion":"SUCCESS","status":"COMPLETED"},{"conclusion":"FAILURE","status":"COMPLETED"},{"conclusion":"","status":"IN_PROGRESS"},{"state":"PENDING"}]}'
+	sample := '{"url":"https://github.com/o/r/pull/7","state":"OPEN","isDraft":true,"mergeable":"MERGEABLE","reviewDecision":"APPROVED","statusCheckRollup":[{"conclusion":"SUCCESS","status":"COMPLETED"},{"conclusion":"FAILURE","status":"COMPLETED"},{"conclusion":"","status":"IN_PROGRESS"},{"state":"PENDING"}]}'
 	st := parse_swarm_pr_status('run-1', sample) or {
 		assert false, err.msg()
 		return
@@ -35,6 +35,8 @@ fn test_parse_swarm_pr_status_summarizes_checks() {
 	assert st.checks_pass == 1
 	assert st.checks_fail == 1
 	assert st.checks_pending == 2
+	assert st.mergeable == 'MERGEABLE'
+	assert st.review_decision == 'APPROVED'
 	if _ := parse_swarm_pr_status('run-1', 'not json') {
 		assert false, 'invalid JSON must error'
 	}
@@ -58,6 +60,10 @@ fn test_pr_status_without_recorded_pr_is_honest() {
 	assert !resp.ok
 	assert resp.detail.contains('No pull request recorded')
 	assert swarm_pr_status_typed(ws, 'no-such-run').detail.contains('Run not found')
+	ready := mark_swarm_pr_ready_typed(ws, 'run-nopr')
+	assert !ready.ok
+	assert ready.detail.contains('No pull request recorded')
+	assert mark_swarm_pr_ready_typed(ws, 'no-such-run').detail.contains('Run not found')
 }
 
 fn test_create_draft_pr_missing_run_is_honest_error() {

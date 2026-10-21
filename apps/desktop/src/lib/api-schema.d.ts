@@ -1371,6 +1371,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/swarms/runs/{id}/pr-ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark the run draft PR ready for review via gh */
+        post: operations["mark_swarm_pr_ready"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/swarms/runs/{id}/draft-pr": {
         parameters: {
             query?: never;
@@ -1955,6 +1972,14 @@ export interface components {
             checks_pass: number;
             checks_fail: number;
             checks_pending: number;
+            mergeable: string;
+            review_decision: string;
+            detail: string;
+        };
+        SwarmPrReadyResponse: {
+            ok: boolean;
+            run_id: string;
+            pr_url: string;
             detail: string;
         };
         LoopInfo: {
@@ -5374,6 +5399,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SwarmPrStatusResponse"];
+                };
+            };
+        };
+    };
+    mark_swarm_pr_ready: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwarmPrReadyResponse"];
+                };
+            };
+            /** @description run or pull request not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
                 };
             };
         };

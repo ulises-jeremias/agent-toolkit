@@ -209,10 +209,20 @@ pub:
 	pr_url         string
 	state          string
 	is_draft       bool
-	checks_pass    int
-	checks_fail    int
-	checks_pending int
-	detail         string
+	checks_pass     int
+	checks_fail     int
+	checks_pending  int
+	mergeable       string
+	review_decision string
+	detail          string
+}
+
+pub struct SwarmPrReadyResponse {
+pub:
+	ok     bool
+	run_id string
+	pr_url string
+	detail string
 }
 
 pub struct GhPrCheck {
@@ -227,6 +237,8 @@ pub:
 	url                 string
 	state               string
 	is_draft            bool @[json: 'isDraft']
+	mergeable           string
+	review_decision     string @[json: 'reviewDecision']
 	status_check_rollup []GhPrCheck @[json: 'statusCheckRollup']
 }
 
@@ -254,6 +266,8 @@ fn parse_swarm_pr_status(run_id string, text string) !SwarmPrStatusResponse {
 		checks_pass: pass
 		checks_fail: fail
 		checks_pending: pending
+		mergeable: view.mergeable
+		review_decision: view.review_decision
 		detail: 'Live PR status from GitHub.'
 	}
 }
@@ -278,7 +292,8 @@ pub fn swarm_pr_status_typed(ws string, run_id string) SwarmPrStatusResponse {
 		return fail('GitHub CLI (gh) not found on PATH; PR status unavailable.')
 	}
 	res := new_process_service().run(
-		argv: ['gh', 'pr', 'view', st.pr_url, '--json', 'url,state,isDraft,statusCheckRollup']
+		argv: ['gh', 'pr', 'view', st.pr_url, '--json',
+			'url,state,isDraft,mergeable,reviewDecision,statusCheckRollup']
 		cwd: ws
 		timeout: 15 * time.second
 	) or { return fail('GitHub CLI (gh) is not available: ${err.msg()}') }
@@ -289,6 +304,43 @@ pub fn swarm_pr_status_typed(ws string, run_id string) SwarmPrStatusResponse {
 	return SwarmPrStatusResponse{
 		...parsed
 		pr_url: if parsed.pr_url.len > 0 { parsed.pr_url } else { st.pr_url }
+	}
+}
+
+// mark_swarm_pr_ready_typed promotes the run's draft PR to ready for
+// review via `gh pr ready` (Slice 11). Explicit user action only; honest
+// failures, never a silent merge or auto-approval.
+pub fn mark_swarm_pr_ready_typed(ws string, run_id string) SwarmPrReadyResponse {
+	fail := fn [run_id] (detail string) SwarmPrReadyResponse {
+		return SwarmPrReadyResponse{
+			ok: false
+			run_id: run_id
+			detail: detail
+		}
+	}
+	rd := swarm_run_dir(ws, run_id)
+	st := read_swarm_state(rd) or { return fail('Run not found: ${run_id}') }
+	if st.pr_url.len == 0 {
+		return fail('No pull request recorded for this run yet.')
+	}
+	if os.find_abs_path_of_executable('gh') or { '' } == '' {
+		return fail('GitHub CLI (gh) not found on PATH; cannot mark the PR ready.')
+	}
+	res := new_process_service().run(
+		argv: ['gh', 'pr', 'ready', st.pr_url]
+		cwd: ws
+		timeout: 30 * time.second
+	) or { return fail('GitHub CLI (gh) is not available: ${err.msg()}') }
+	if res.exit_code != 0 {
+		msg := res.stderr.trim_space()
+		return fail('gh pr ready failed: ${if msg.len > 0 { msg } else { 'exit ${res.exit_code}' }}')
+	}
+	append_swarm_trace(rd, 'pr_marked_ready', st.pr_url)
+	return SwarmPrReadyResponse{
+		ok: true
+		run_id: run_id
+		pr_url: st.pr_url
+		detail: 'Pull request marked ready for review.'
 	}
 }
 

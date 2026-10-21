@@ -32,6 +32,7 @@ import type {
   SelfcheckResponse,
   SwarmActionResponse,
   SwarmDraftPrResponse,
+  SwarmPrReadyResponse,
   SwarmPrStatusResponse,
   SwarmListResponse,
   SwarmRecipesResponse,
@@ -607,5 +608,13 @@ export class ApiClient {
     id: string,
   ): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}/pr-status', 'get'>, SwarmPrStatusResponse>> {
     return this.json('GET', fillPath('/api/v1/swarms/runs/{id}/pr-status' satisfies PathWith<'get'>, { id }));
+  }
+
+  markSwarmPrReady(
+    id: string,
+  ): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}/pr-ready', 'post'>, SwarmPrReadyResponse>> {
+    return this.json('POST', fillPath('/api/v1/swarms/runs/{id}/pr-ready' satisfies PathWith<'post'>, { id }), {
+      body: {},
+    });
   }
 }

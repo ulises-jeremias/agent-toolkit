@@ -6,6 +6,7 @@ import {
   type SubCommand,
   type SwarmActionResponse,
   type SwarmDraftPrResponse,
+  type SwarmPrReadyResponse,
   type SwarmPrStatusResponse,
   type SwarmListResponse,
   type SwarmRunResponse,
@@ -114,6 +115,18 @@ export function useSwarmPrStatus(id: string | null, hasPr: boolean) {
     enabled: client !== null && Boolean(id) && hasPr,
     refetchInterval: 30_000,
     refetchIntervalInBackground: false,
+  });
+}
+
+export function useMarkSwarmPrReady() {
+  const { client } = useBackend();
+  const queryClient = useQueryClient();
+  return useMutation<SwarmPrReadyResponse, Error, { id: string }>({
+    mutationKey: ['swarms', 'pr-ready'],
+    mutationFn: ({ id }) => requireClient(client).markSwarmPrReady(id),
+    onSettled: (_data, _error, variables) => {
+      if (variables) void queryClient.invalidateQueries({ queryKey: qk.swarms.prStatus(variables.id) });
+    },
   });
 }
 

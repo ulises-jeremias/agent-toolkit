@@ -3815,6 +3815,46 @@
         }
       }
     },
+    "/api/v1/swarms/runs/{id}/pr-ready": {
+      "post": {
+        "operationId": "mark_swarm_pr_ready",
+        "summary": "Mark the run draft PR ready for review via gh",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmPrReadyResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "run or pull request not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/swarms/runs/{id}/draft-pr": {
       "post": {
         "operationId": "create_swarm_draft_pr",
@@ -6122,6 +6162,12 @@
           "checks_pending": {
             "type": "integer"
           },
+          "mergeable": {
+            "type": "string"
+          },
+          "review_decision": {
+            "type": "string"
+          },
           "detail": {
             "type": "string"
           }
@@ -6135,6 +6181,31 @@
           "checks_pass",
           "checks_fail",
           "checks_pending",
+          "mergeable",
+          "review_decision",
+          "detail"
+        ]
+      },
+      "SwarmPrReadyResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "pr_url": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "run_id",
+          "pr_url",
           "detail"
         ]
       },

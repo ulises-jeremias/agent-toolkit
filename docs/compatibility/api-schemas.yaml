@@ -599,6 +599,15 @@ schemas:
       - checks_pass:integer
       - checks_fail:integer
       - checks_pending:integer
+      - mergeable:string
+      - review_decision:string
+      - detail:string
+
+  - name: SwarmPrReadyResponse
+    fields:
+      - ok:boolean
+      - run_id:string
+      - pr_url:string
       - detail:string
 
   - name: LoopInfo
@@ -1280,6 +1289,14 @@ native:
     op: swarm_pr_status
     summary: Live GitHub state and check summary of the run draft PR via gh
     response: '#SwarmPrStatusResponse'
+  - path: /api/v1/swarms/runs/{id}/pr-ready
+    method: post
+    op: mark_swarm_pr_ready
+    summary: Mark the run draft PR ready for review via gh
+    request: '#SwarmDraftPrRequest'
+    response: '#SwarmPrReadyResponse'
+    errors:
+      - '404:run or pull request not found'
   - path: /api/v1/swarms/runs/{id}/draft-pr
     method: post
     op: create_swarm_draft_pr
