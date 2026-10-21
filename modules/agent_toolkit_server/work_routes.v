@@ -192,6 +192,29 @@ pub fn (app &App) swarm_run_pr_status(mut ctx Ctx, id string) veb.Result {
 	return ctx.json(agent_toolkit_core.swarm_pr_status_typed(ws, id))
 }
 
+@['/api/v1/swarms/runs/:id/pr-ready'; post]
+pub fn (app &App) swarm_run_pr_ready(mut ctx Ctx, id string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	req := decode_sub_body[SwarmDraftPrRequest](ctx.req.data) or {
+		return respond_sub_error(mut ctx, err)
+	}
+	ws := serve_memory_workspace(ctx, req.workspace) or { return respond_sub_error(mut ctx, err) }
+	res := agent_toolkit_core.mark_swarm_pr_ready_typed(ws, id)
+	if !res.ok {
+		return work_action_error(mut ctx, res.detail)
+	}
+	app.emit(ApiEvent{
+		kind: 'swarm.changed'
+		subject: id
+		status: 'pr-ready'
+		message: res.pr_url
+	})
+	return ctx.json(res)
+}
+
 @['/api/v1/swarms/runs/:id/draft-pr'; post]
 pub fn (app &App) swarm_run_draft_pr(mut ctx Ctx, id string) veb.Result {
 	deny := deny_if_remote(app, ctx)

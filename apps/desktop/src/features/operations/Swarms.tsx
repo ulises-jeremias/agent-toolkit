@@ -4,6 +4,7 @@ import { useModels, useProviders } from '../../data/catalog';
 import { useLiveStatus } from '../../data/live';
 import {
   useCreateSwarmDraftPr,
+  useMarkSwarmPrReady,
   useResolveSwarmHandoff,
   useSwarmPrStatus,
   useSwarmCommand,
@@ -438,6 +439,7 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
   const { run, budget } = data;
   const draftPr = useCreateSwarmDraftPr();
   const prStatus = useSwarmPrStatus(run.run_id, Boolean(run.pr_url));
+  const markPrReady = useMarkSwarmPrReady();
   const executionRoles = Object.keys(run.role_runners ?? {}).sort();
   const personBindings = run.person_bindings ?? {};
   const peopleById = new Map(people.map((person) => [person.id, person]));
@@ -467,7 +469,7 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
                   value: prStatus.isPending
                     ? 'Checking GitHub…'
                     : prStatus.data?.ok
-                      ? `${prStatus.data.state}${prStatus.data.is_draft ? ' (draft)' : ''} · checks ${prStatus.data.checks_pass} passed, ${prStatus.data.checks_fail} failed, ${prStatus.data.checks_pending} pending`
+                      ? `${prStatus.data.state}${prStatus.data.is_draft ? ' (draft)' : ''} · checks ${prStatus.data.checks_pass} passed, ${prStatus.data.checks_fail} failed, ${prStatus.data.checks_pending} pending · mergeable ${prStatus.data.mergeable || 'unknown'} · review ${prStatus.data.review_decision || 'none'}`
                       : `Unavailable: ${prStatus.data?.detail ?? prStatus.error?.message ?? 'unknown error'}`,
                 },
               ]
@@ -479,6 +481,15 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
           { label: 'Cost', value: cost },
         ]}
       />
+      {run.pr_url && prStatus.data?.ok && prStatus.data.is_draft ? (
+        <ButtonRow>
+          <Button size="sm" disabled={markPrReady.isPending} onClick={() => markPrReady.mutate({ id: run.run_id })}>
+            {markPrReady.isPending ? 'Marking ready…' : 'Mark PR ready for review'}
+          </Button>
+          {markPrReady.isError ? <span role="alert">{markPrReady.error.message}</span> : null}
+          {markPrReady.data?.ok ? <span>{markPrReady.data.detail}</span> : null}
+        </ButtonRow>
+      ) : null}
       {!run.pr_url ? (
         <ButtonRow>
           <Button size="sm" disabled={draftPr.isPending} onClick={() => draftPr.mutate({ id: run.run_id })}>
