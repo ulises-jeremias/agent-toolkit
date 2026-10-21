@@ -1354,6 +1354,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/swarms/runs/{id}/draft-pr": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Push the run integrator branch and open (or find) its draft PR via gh */
+        post: operations["create_swarm_draft_pr"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/loops": {
         parameters: {
             query?: never;
@@ -1755,6 +1772,7 @@ export interface components {
             created_at: string;
             task: string;
             issue_ref: string;
+            pr_url: string;
             project_id?: string;
             person_bindings?: {
                 [key: string]: string;
@@ -1899,6 +1917,17 @@ export interface components {
             message: string;
             run_id: string;
             status: string;
+        };
+        SwarmDraftPrRequest: {
+            workspace: string;
+        };
+        SwarmDraftPrResponse: {
+            ok: boolean;
+            run_id: string;
+            branch: string;
+            pr_url: string;
+            created: boolean;
+            detail: string;
         };
         LoopInfo: {
             name: string;
@@ -5289,6 +5318,37 @@ export interface operations {
                 };
             };
             /** @description run or handoff not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    create_swarm_draft_pr: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwarmDraftPrResponse"];
+                };
+            };
+            /** @description run or integrator branch not found */
             404: {
                 headers: {
                     [name: string]: unknown;

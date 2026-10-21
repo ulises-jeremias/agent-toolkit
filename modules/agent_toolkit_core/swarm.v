@@ -91,6 +91,7 @@ pub mut:
 	project_id      string
 	base_ref        string
 	issue_ref       string
+	pr_url          string
 }
 
 struct SwarmRoleExecution {

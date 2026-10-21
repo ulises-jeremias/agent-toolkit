@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useModels, useProviders } from '../../data/catalog';
 import { useLiveStatus } from '../../data/live';
 import {
+  useCreateSwarmDraftPr,
   useResolveSwarmHandoff,
   useSwarmCommand,
   useSwarmRecipes,
@@ -434,6 +435,7 @@ function NeedsYouSection({ runId, handoffs }: { runId: string; handoffs: SwarmHa
 
 function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person[] }) {
   const { run, budget } = data;
+  const draftPr = useCreateSwarmDraftPr();
   const executionRoles = Object.keys(run.role_runners ?? {}).sort();
   const personBindings = run.person_bindings ?? {};
   const peopleById = new Map(people.map((person) => [person.id, person]));
@@ -448,6 +450,18 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
           { label: 'State', value: <StatusBadge tone={jobTone(run.run_state)} label={run.run_state} /> },
           { label: 'Task', value: run.task || '—' },
           ...(run.issue_ref ? [{ label: 'Issue', value: run.issue_ref }] : []),
+          ...(run.pr_url
+            ? [
+                {
+                  label: 'Pull request',
+                  value: (
+                    <a href={run.pr_url} target="_blank" rel="noreferrer">
+                      {run.pr_url}
+                    </a>
+                  ),
+                },
+              ]
+            : []),
           { label: 'Session adapter', value: run.backend || '—', mono: true },
           { label: 'Runner', value: data.runner || '—', mono: true },
           { label: 'Model', value: data.model || '—', mono: true },
@@ -455,6 +469,19 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
           { label: 'Cost', value: cost },
         ]}
       />
+      {!run.pr_url ? (
+        <ButtonRow>
+          <Button size="sm" disabled={draftPr.isPending} onClick={() => draftPr.mutate({ id: run.run_id })}>
+            {draftPr.isPending ? 'Creating draft PR…' : 'Create draft PR'}
+          </Button>
+          {draftPr.isError ? <span role="alert">{draftPr.error.message}</span> : null}
+          {draftPr.data?.pr_url ? (
+            <a href={draftPr.data.pr_url} target="_blank" rel="noreferrer">
+              View draft PR
+            </a>
+          ) : null}
+        </ButtonRow>
+      ) : null}
       {executionRoles.length > 0 ? (
         <SwarmSection
           title="Role execution"

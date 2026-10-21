@@ -3785,6 +3785,46 @@
         }
       }
     },
+    "/api/v1/swarms/runs/{id}/draft-pr": {
+      "post": {
+        "operationId": "create_swarm_draft_pr",
+        "summary": "Push the run integrator branch and open (or find) its draft PR via gh",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmDraftPrResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "run or integrator branch not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/loops": {
       "get": {
         "operationId": "list_loops",
@@ -5381,6 +5421,9 @@
           "issue_ref": {
             "type": "string"
           },
+          "pr_url": {
+            "type": "string"
+          },
           "project_id": {
             "type": "string"
           },
@@ -5410,7 +5453,8 @@
           "run_state",
           "created_at",
           "task",
-          "issue_ref"
+          "issue_ref",
+          "pr_url"
         ]
       },
       "SwarmListResponse": {
@@ -5977,6 +6021,48 @@
           "message",
           "run_id",
           "status"
+        ]
+      },
+      "SwarmDraftPrRequest": {
+        "type": "object",
+        "properties": {
+          "workspace": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace"
+        ]
+      },
+      "SwarmDraftPrResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "pr_url": {
+            "type": "string"
+          },
+          "created": {
+            "type": "boolean"
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "run_id",
+          "branch",
+          "pr_url",
+          "created",
+          "detail"
         ]
       },
       "LoopInfo": {

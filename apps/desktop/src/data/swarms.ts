@@ -5,6 +5,7 @@ import {
   type SubBody,
   type SubCommand,
   type SwarmActionResponse,
+  type SwarmDraftPrResponse,
   type SwarmListResponse,
   type SwarmRunResponse,
   type SwarmRecipesResponse,
@@ -97,6 +98,19 @@ export function useResolveSwarmHandoff() {
   return useMutation<SwarmActionResponse, Error, { id: string; handoffId: string }>({
     mutationKey: ['swarms', 'resolve-handoff'],
     mutationFn: ({ id, handoffId }) => requireClient(client).resolveSwarmHandoff(id, handoffId),
+    onSettled: (_data, _error, variables) => {
+      void queryClient.invalidateQueries({ queryKey: qk.swarms.list() });
+      if (variables) void queryClient.invalidateQueries({ queryKey: qk.swarms.run(variables.id) });
+    },
+  });
+}
+
+export function useCreateSwarmDraftPr() {
+  const { client } = useBackend();
+  const queryClient = useQueryClient();
+  return useMutation<SwarmDraftPrResponse, Error, { id: string }>({
+    mutationKey: ['swarms', 'draft-pr'],
+    mutationFn: ({ id }) => requireClient(client).createSwarmDraftPr(id),
     onSettled: (_data, _error, variables) => {
       void queryClient.invalidateQueries({ queryKey: qk.swarms.list() });
       if (variables) void queryClient.invalidateQueries({ queryKey: qk.swarms.run(variables.id) });

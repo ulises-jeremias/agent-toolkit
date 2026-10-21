@@ -12,6 +12,7 @@ pub:
 	created_at      string
 	task            string
 	issue_ref       string
+	pr_url          string
 	project_id      string
 	person_bindings map[string]string
 	role_runners    map[string]string
@@ -250,6 +251,7 @@ fn swarm_run_info(st SwarmStateFile) SwarmRunInfo {
 		created_at: st.created_at
 		task: st.task
 		issue_ref: st.issue_ref
+		pr_url: st.pr_url
 		project_id: st.project_id
 		person_bindings: clone_string_map(st.person_bindings)
 		role_runners: clone_string_map(st.role_runners)
