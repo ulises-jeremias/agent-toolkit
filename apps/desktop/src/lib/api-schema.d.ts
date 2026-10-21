@@ -961,6 +961,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/models/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Live model catalogue probed from the runner CLI (60s cache, static fallback) */
+        get: operations["list_live_models"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/memory": {
         parameters: {
             query?: never;
@@ -1596,6 +1613,20 @@ export interface components {
         ModelsResponse: {
             ok: boolean;
             models: components["schemas"]["ModelInfo"][];
+        };
+        /** @description One model from a runner's live CLI catalogue (or static fallback). */
+        LiveModelInfo: {
+            runner: string;
+            model: string;
+            name: string;
+        };
+        /** @description source is live, static or unavailable; detail explains any fallback. */
+        LiveModelsResponse: {
+            ok: boolean;
+            runner: string;
+            source: string;
+            models: components["schemas"]["LiveModelInfo"][];
+            detail: string;
         };
         PersonRoleBinding: {
             role: string;
@@ -4286,6 +4317,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModelsResponse"];
+                };
+            };
+        };
+    };
+    list_live_models: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveModelsResponse"];
                 };
             };
         };

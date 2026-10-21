@@ -6,11 +6,16 @@ import time
 // RunOptions configures a no-shell process spawn.
 pub struct RunOptions {
 pub:
-	argv    []string // argv[0] = executable name or path; rest = args
-	cwd     string
-	env     map[string]string // if empty, inherit parent env
-	timeout time.Duration // 0 = no timeout
+	argv      []string // argv[0] = executable name or path; rest = args
+	cwd       string
+	env       map[string]string // if empty, inherit parent env
+	timeout   time.Duration // 0 = no timeout
+	// term_grace is how long a timed-out process gets after SIGTERM
+	// before the process-group kill escalates. 0 = default (1s).
+	term_grace time.Duration
 }
+
+const default_term_grace = 1 * time.second
 
 // RunResult is the captured outcome of a process run.
 pub struct RunResult {
@@ -58,7 +63,7 @@ pub fn (p ProcessService) run(opts RunOptions) !RunResult {
 		deadline := time.now().add(opts.timeout)
 		for proc.is_alive() {
 			if time.now() > deadline {
-				proc.signal_kill()
+				terminate_with_grace(mut proc, opts.term_grace)
 				out := proc.stdout_slurp()
 				err := proc.stderr_slurp()
 				proc.close()
@@ -82,6 +87,31 @@ pub fn (p ProcessService) run(opts RunOptions) !RunResult {
 		stdout: out
 		stderr: err
 		timed_out: false
+	}
+}
+
+// terminate_with_grace stops a timed-out process politely first:
+// SIGTERM, wait out the grace window, then escalate to a process-group
+// kill (reaches grandchildren when the child leads its own group) and
+// finally SIGKILL. The old path went straight to SIGKILL, which gave
+// provider CLIs no chance to flush state or stop their own children.
+fn terminate_with_grace(mut proc os.Process, grace time.Duration) {
+	window := if grace > 0 { grace } else { default_term_grace }
+	proc.signal_term()
+	mut deadline := time.now().add(window)
+	for proc.is_alive() && time.now() < deadline {
+		time.sleep(10 * time.millisecond)
+	}
+	if !proc.is_alive() {
+		return
+	}
+	proc.signal_pgkill()
+	deadline = time.now().add(250 * time.millisecond)
+	for proc.is_alive() && time.now() < deadline {
+		time.sleep(10 * time.millisecond)
+	}
+	if proc.is_alive() {
+		proc.signal_kill()
 	}
 }
 

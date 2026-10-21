@@ -265,6 +265,22 @@ schemas:
       - ok:boolean
       - 'models:#ModelInfo[]'
 
+  - name: LiveModelInfo
+    description: One model from a runner's live CLI catalogue (or static fallback).
+    fields:
+      - runner:string
+      - model:string
+      - name:string
+
+  - name: LiveModelsResponse
+    description: source is live, static or unavailable; detail explains any fallback.
+    fields:
+      - ok:boolean
+      - runner:string
+      - source:string
+      - 'models:#LiveModelInfo[]'
+      - detail:string
+
   - name: PersonRoleBinding
     v_struct: PersonRoleBindingResp
     fields:
@@ -1050,6 +1066,11 @@ native:
     op: list_models
     summary: Swarm model profile slots
     response: '#ModelsResponse'
+  - path: /api/v1/models/live
+    method: get
+    op: list_live_models
+    summary: Live model catalogue probed from the runner CLI (60s cache, static fallback)
+    response: '#LiveModelsResponse'
   - path: /api/v1/memory
     method: get
     op: list_memory

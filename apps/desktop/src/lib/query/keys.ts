@@ -70,6 +70,7 @@ export const qk = {
     tools: () => ['tools', 'list'] as const,
     providers: () => ['providers', 'list'] as const,
     models: () => ['models', 'list'] as const,
+    liveModels: (runner: string) => ['models', 'live', runner] as const,
     mcp: () => ['mcp', 'providers'] as const,
     installReceipts: () => ['inventory', 'install-receipts'] as const,
   },

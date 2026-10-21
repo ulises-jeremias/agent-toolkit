@@ -2663,6 +2663,26 @@
         }
       }
     },
+    "/api/v1/models/live": {
+      "get": {
+        "operationId": "list_live_models",
+        "summary": "Live model catalogue probed from the runner CLI (60s cache, static fallback)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveModelsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/memory": {
       "get": {
         "operationId": "list_memory",
@@ -4812,6 +4832,57 @@
         "required": [
           "ok",
           "models"
+        ]
+      },
+      "LiveModelInfo": {
+        "type": "object",
+        "description": "One model from a runner's live CLI catalogue (or static fallback).",
+        "properties": {
+          "runner": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "runner",
+          "model",
+          "name"
+        ]
+      },
+      "LiveModelsResponse": {
+        "type": "object",
+        "description": "source is live, static or unavailable; detail explains any fallback.",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "runner": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LiveModelInfo"
+            }
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "runner",
+          "source",
+          "models",
+          "detail"
         ]
       },
       "PersonRoleBinding": {

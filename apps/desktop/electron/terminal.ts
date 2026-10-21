@@ -37,6 +37,22 @@ export interface TerminalSessionInfo {
   createdAt: string;
 }
 
+/**
+ * Kill a PTY process tree: the pty child leads its own process group on
+ * POSIX, so a negative-pid signal reaches grandchildren (provider CLIs
+ * spawn helpers that a bare pid kill orphans). Falls back to the bare
+ * pid when the child is not a group leader (e.g. Windows).
+ */
+export function killProcessTree(pid: number, signal: 'SIGTERM' | 'SIGKILL'): void {
+  try {
+    process.kill(-pid, signal);
+    return;
+  } catch {
+    // Not a process-group leader; signal the process itself.
+  }
+  process.kill(pid, signal);
+}
+
 interface Session extends TerminalSessionInfo {
   proc: pty.IPty;
   tail: string;
@@ -202,8 +218,8 @@ export class TerminalService {
     if (signal !== 'int' && session.exitReason !== 'time-budget') this.clearTimers(session);
     try {
       if (signal === 'int') session.proc.write('\x03');
-      else if (signal === 'term') process.kill(session.proc.pid, 'SIGTERM');
-      else process.kill(session.proc.pid, 'SIGKILL');
+      else if (signal === 'term') killProcessTree(session.proc.pid, 'SIGTERM');
+      else killProcessTree(session.proc.pid, 'SIGKILL');
     } catch {
       return false;
     }

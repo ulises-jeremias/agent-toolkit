@@ -108,7 +108,7 @@ pub fn (mut store PersonSessionStore) create_person_session(req PersonSessionCre
 	if !os.is_dir(cwd) { return error('project target is not a directory') }
 	provider := list_providers().filter(it.id == req.provider && it.available && it.id != 'skeleton')
 	if provider.len == 0 { return error('interactive provider is unavailable: ${req.provider}') }
-	if req.model.len > 0 && list_models().filter(it.runner == req.provider && it.model == req.model).len == 0 {
+	if req.model.len > 0 && !model_available_for_runner(req.provider, req.model) {
 		return error('model is not available for provider: ${req.provider}')
 	}
 	now := time.utc().format_rfc3339()

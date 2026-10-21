@@ -38,6 +38,27 @@ fn test_run_rejects_empty_argv() {
 	assert false, 'expected empty argv error'
 }
 
+fn test_run_timeout_terminates_with_grace() {
+	$if windows {
+		return
+	}
+	p := new_process_service()
+	start := time.now()
+	res := p.run(
+		argv: ['sleep', '30']
+		timeout: 200 * time.millisecond
+		term_grace: 200 * time.millisecond
+	) or {
+		assert false, err.msg()
+		return
+	}
+	elapsed := time.now().unix_milli() - start.unix_milli()
+	assert res.timed_out
+	assert res.exit_code == -1
+	// TERM grace + escalation must finish far below the 30s sleep.
+	assert elapsed < 10_000
+}
+
 fn test_run_with_cwd() {
 	p := new_process_service()
 	cwd := os.temp_dir()

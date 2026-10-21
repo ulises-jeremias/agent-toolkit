@@ -669,6 +669,7 @@ const registered_api_routes = [
 	'/api/v1/mcp/providers',
 	'/api/v1/providers',
 	'/api/v1/models',
+	'/api/v1/models/live',
 ]
 
 // SelfcheckCheck is one named runtime coherence result.
@@ -870,6 +871,23 @@ pub fn (app &App) models(mut ctx Ctx) veb.Result {
 		ok: true
 		models: agent_toolkit_core.list_models()
 	})
+}
+
+@['/api/v1/models/live'; get]
+pub fn (app &App) live_models(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	runner := ctx.query['runner'] or { '' }
+	if runner.len == 0 {
+		return ctx.json(agent_toolkit_core.LiveModelsResponse{
+			ok: false
+			source: 'unavailable'
+			detail: 'runner query parameter is required'
+		})
+	}
+	return ctx.json(agent_toolkit_core.list_live_models_typed(runner))
 }
 
 @['/api/v1/doctor'; get]
