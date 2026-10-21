@@ -2,7 +2,7 @@
 // Validate Claude and Cursor marketplace manifests and plugin.json files.
 // Usage: ./scripts/validate-manifests.vsh
 
-import json
+import x.json2
 
 struct MarketplacePlugin {
 	name   string
@@ -84,7 +84,7 @@ fn validate_marketplace(root string, marketplace_path string, tool string, mut e
 		println('  ✗ ${msg}')
 		return
 	}
-	data := json.decode(Marketplace, raw) or {
+	data := json2.decode[Marketplace](raw) or {
 		msg := '${rel_to(root, marketplace_path)}: invalid JSON: ${err}'
 		errors << msg
 		println('  ✗ ${msg}')
@@ -130,7 +130,7 @@ fn validate_marketplace(root string, marketplace_path string, tool string, mut e
 			println('  ✗ ${msg}')
 			continue
 		}
-		pdata := json.decode(PluginManifest, praw) or {
+		pdata := json2.decode[PluginManifest](praw) or {
 			msg := "${tool} plugin '${pname}': invalid plugin.json: ${err}"
 			errors << msg
 			println('  ✗ ${msg}')
