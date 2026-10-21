@@ -979,6 +979,8 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 	mut commit := ''
 	mut branch := ''
 	mut blocking := false
+	mut act := ''
+	mut max_hops := 0
 	mut role := ''
 	mut handoff_id := ''
 	mut older_than := ''
@@ -1098,7 +1100,7 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			continue
 		}
 		if a in ['--type', '--from', '--to', '--artifact', '--commit', '--branch', '--role',
-			'--handoff'] {
+			'--handoff', '--act', '--max-hops'] {
 			if i + 1 >= args.len {
 				return error('${a} requires an argument')
 			}
@@ -1128,9 +1130,25 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 				'--handoff' {
 					handoff_id = val
 				}
+				'--act' {
+					act = val
+				}
+				'--max-hops' {
+					max_hops = val.int()
+				}
 				else {}
 			}
 			i += 2
+			continue
+		}
+		if a.starts_with('--act=') {
+			act = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--max-hops=') {
+			max_hops = a.all_after('=').int()
+			i++
 			continue
 		}
 		if a.starts_with('--type=') {
@@ -1418,6 +1436,8 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		commit: commit
 		branch: branch
 		blocking: blocking
+		act: act
+		max_hops: max_hops
 		role: role
 		handoff_id: handoff_id
 		to_recipe: to_recipe
@@ -1490,6 +1510,16 @@ fn parse_memory_options(args []string) !agent_toolkit_core.MemoryOptions {
 				else {}
 			}
 			i += 2
+			continue
+		}
+		if a.starts_with('--act=') {
+			act = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--max-hops=') {
+			max_hops = a.all_after('=').int()
+			i++
 			continue
 		}
 		if a.starts_with('--type=') {

@@ -44,6 +44,8 @@ pub:
 	commit      string
 	branch      string
 	blocking    bool
+	act         string
+	max_hops    int
 	role        string
 	handoff_id  string
 	to_recipe   string
@@ -127,11 +129,12 @@ pub:
 
 struct SwarmHandoffsJson {
 pub mut:
-	outbox    int
-	queued    int
-	active    int
-	completed int
-	failed    int
+	outbox         int
+	queued         int
+	active         int
+	completed      int
+	failed         int
+	awaiting_human int
 }
 
 struct SwarmApprovalsJson {
@@ -340,7 +343,7 @@ pub fn swarm_help_text() string {
 		}
 	}
 	runners_line := runners_parts.join(', ')
-	return 'swarm — Multi-agent orchestration (REDESIGN: filesystem SoT, ADR-008/ADR-020).\n\nUsage:\n    agent-toolkit swarm recipes [name]\n    agent-toolkit swarm backends\n    agent-toolkit swarm doctor [--json]\n    agent-toolkit swarm runners [--json] [--workspace PATH]\n    agent-toolkit swarm models [--json] [--runner NAME] [--profile NAME] [--workspace PATH]\n    agent-toolkit swarm start [--recipe pair|team|full] [--backend auto|herdr|tmux|headless] [--request-file PATH] [--issue REF] [--base-ref REF] [--workspace PATH] [-C PATH] [--repo PATH] [--json] [--runner NAME] [--model-profile NAME] [--attach|--no-attach] [--dry-run] [task]\n    agent-toolkit swarm init [--recipe pair|team|full] [--workspace PATH] [--json] [--runner NAME] [--model-profile NAME] [task]\n    agent-toolkit swarm plan <run-id> [--workspace PATH]\n    agent-toolkit swarm activate <run-id> <role> [--workspace PATH]\n    agent-toolkit swarm deactivate <run-id> <role> [--workspace PATH]\n    agent-toolkit swarm promote <run-id> [--force] [--base-ref REF] [--workspace PATH]\n    agent-toolkit swarm promote <run-id> --to <team|full>\n    agent-toolkit swarm pause <run-id>\n    agent-toolkit swarm resume <run-id>\n    agent-toolkit swarm stop <run-id>\n    agent-toolkit swarm cleanup <run-id> [--force] [--dry-run]\n    agent-toolkit swarm list [--json] [--workspace PATH] [-C PATH] [--repo PATH]\n    agent-toolkit swarm graph <run-id> [--json] [--workspace PATH]\n    agent-toolkit swarm status [run-id] [--json] [--workspace PATH] [-C PATH] [--repo PATH]\n    agent-toolkit swarm approve <run-id> <gate>\n    agent-toolkit swarm reject <run-id> <gate> --reason TEXT\n    agent-toolkit swarm cancel <run-id>\n    agent-toolkit swarm handoff create --type artifact|commit|feedback|decision_request --from ROLE --to ROLE [--priority N] [--artifact PATH] [--commit SHA] [--branch BR] [--blocking] [--run-id ID]\n    agent-toolkit swarm task next --role ROLE [--run-id ID] [--json]\n    agent-toolkit swarm task complete --handoff HID [--run-id ID]\n    agent-toolkit swarm attach <run-id> [--workspace PATH] [-C PATH] [--repo PATH]\n    agent-toolkit swarm watch [run-id] [--current] [--workspace PATH]\n    agent-toolkit swarm report <run-id> [--json] [--workspace PATH]\n    agent-toolkit swarm artifacts <run-id> [--json] [--workspace PATH]\n    agent-toolkit swarm handoffs <run-id> [--json] [--workspace PATH]\n    agent-toolkit swarm logs <run-id> [role] [--json] [--workspace PATH]\n    agent-toolkit swarm approvals <run-id> [--json]\n    agent-toolkit swarm prune --older-than DURATION [--dry-run] [--force] [--workspace PATH]\n    agent-toolkit swarm cleanup <run-id> [--force]  (alias for prune)\n    agent-toolkit swarm help\n\nRunners: ${runners_line}. Same capability as: agent-toolkit loop run --runner NAME.\nBackends: herdr (recommended, auto-focus worktree), tmux (Unix fallback), headless (filesystem only).\nWindows: tmux/herdr unsupported; use --backend headless.\nConcurrency: process-per-run supervisor; UI spawn is fail-closed without ProcessService stdin.\nState: .agent-toolkit/swarm/runs/<run-id>/ (state.json, approvals.json, trace.jsonl).\nAttach: herdr attach by default (focus UI); use --no-attach for CI/script mode.\nPrune: reclaims old runs/worktrees/branches and Herdr workspaces + tmux sockets. Default --older-than 7d. Use --dry-run to preview.\n'
+	return 'swarm — Multi-agent orchestration (REDESIGN: filesystem SoT, ADR-008/ADR-020).\n\nUsage:\n    agent-toolkit swarm recipes [name]\n    agent-toolkit swarm backends\n    agent-toolkit swarm doctor [--json]\n    agent-toolkit swarm runners [--json] [--workspace PATH]\n    agent-toolkit swarm models [--json] [--runner NAME] [--profile NAME] [--workspace PATH]\n    agent-toolkit swarm start [--recipe pair|team|full] [--backend auto|herdr|tmux|headless] [--request-file PATH] [--issue REF] [--base-ref REF] [--workspace PATH] [-C PATH] [--repo PATH] [--json] [--runner NAME] [--model-profile NAME] [--attach|--no-attach] [--dry-run] [task]\n    agent-toolkit swarm init [--recipe pair|team|full] [--workspace PATH] [--json] [--runner NAME] [--model-profile NAME] [task]\n    agent-toolkit swarm plan <run-id> [--workspace PATH]\n    agent-toolkit swarm activate <run-id> <role> [--workspace PATH]\n    agent-toolkit swarm deactivate <run-id> <role> [--workspace PATH]\n    agent-toolkit swarm promote <run-id> [--force] [--base-ref REF] [--workspace PATH]\n    agent-toolkit swarm promote <run-id> --to <team|full>\n    agent-toolkit swarm pause <run-id>\n    agent-toolkit swarm resume <run-id>\n    agent-toolkit swarm stop <run-id>\n    agent-toolkit swarm cleanup <run-id> [--force] [--dry-run]\n    agent-toolkit swarm list [--json] [--workspace PATH] [-C PATH] [--repo PATH]\n    agent-toolkit swarm graph <run-id> [--json] [--workspace PATH]\n    agent-toolkit swarm status [run-id] [--json] [--workspace PATH] [-C PATH] [--repo PATH]\n    agent-toolkit swarm approve <run-id> <gate>\n    agent-toolkit swarm reject <run-id> <gate> --reason TEXT\n    agent-toolkit swarm cancel <run-id>\n    agent-toolkit swarm handoff create --type artifact|commit|feedback|decision_request --from ROLE --to ROLE|all [--priority N] [--artifact PATH] [--commit SHA] [--branch BR] [--blocking] [--act ACT] [--max-hops N] [--run-id ID]\n    agent-toolkit swarm task next --role ROLE [--run-id ID] [--json]\n    agent-toolkit swarm task complete --handoff HID [--run-id ID]\n    agent-toolkit swarm attach <run-id> [--workspace PATH] [-C PATH] [--repo PATH]\n    agent-toolkit swarm watch [run-id] [--current] [--workspace PATH]\n    agent-toolkit swarm report <run-id> [--json] [--workspace PATH]\n    agent-toolkit swarm artifacts <run-id> [--json] [--workspace PATH]\n    agent-toolkit swarm handoffs <run-id> [--json] [--workspace PATH]\n    agent-toolkit swarm logs <run-id> [role] [--json] [--workspace PATH]\n    agent-toolkit swarm approvals <run-id> [--json]\n    agent-toolkit swarm prune --older-than DURATION [--dry-run] [--force] [--workspace PATH]\n    agent-toolkit swarm cleanup <run-id> [--force]  (alias for prune)\n    agent-toolkit swarm help\n\nRunners: ${runners_line}. Same capability as: agent-toolkit loop run --runner NAME.\nBackends: herdr (recommended, auto-focus worktree), tmux (Unix fallback), headless (filesystem only).\nWindows: tmux/herdr unsupported; use --backend headless.\nConcurrency: process-per-run supervisor; UI spawn is fail-closed without ProcessService stdin.\nState: .agent-toolkit/swarm/runs/<run-id>/ (state.json, approvals.json, trace.jsonl).\nAttach: herdr attach by default (focus UI); use --no-attach for CI/script mode.\nPrune: reclaims old runs/worktrees/branches and Herdr workspaces + tmux sockets. Default --older-than 7d. Use --dry-run to preview.\n'
 }
 
 pub fn swarm_prune_help_text() string {
@@ -2324,7 +2327,7 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 	bcj := json2.encode(bc, escape_unicode: true)
 	// Feature: handoffs, worktrees dir, artifacts, trace_tail, budget json
 	mut ho := SwarmHandoffsJson{}
-	for q in ['outbox', 'queued', 'active', 'completed', 'failed'] {
+	for q in ['outbox', 'queued', 'active', 'completed', 'failed', 'awaiting_human'] {
 		dir := os.join_path(rd, 'handoffs', q)
 		mut cnt := 0
 		if os.is_dir(dir) {
@@ -2350,6 +2353,9 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 			}
 			'failed' {
 				ho.failed = cnt
+			}
+			'awaiting_human' {
+				ho.awaiting_human = cnt
 			}
 			else {}
 		}
@@ -4618,7 +4624,7 @@ fn swarm_handoff_help_text() string {
 	return 'swarm handoff create — durable filesystem handoff queue (ADR-008).
 
 Usage:
-    agent-toolkit swarm handoff create --type artifact|commit|feedback|decision_request --from ROLE --to ROLE [--priority N] [--artifact PATH] [--commit SHA] [--branch BR] [--blocking] [--run-id ID]
+    agent-toolkit swarm handoff create --type artifact|commit|feedback|decision_request --from ROLE --to ROLE|all [--priority N] [--artifact PATH] [--commit SHA] [--branch BR] [--blocking] [--act ACT] [--max-hops N] [--run-id ID]
 
 Types:
     artifact        hand off an artifact under <run>/artifacts (1 MB max)
@@ -4630,7 +4636,14 @@ Types:
     feedback        reviewer feedback; --blocking enforces the round-trip limit (2)
     decision_request request a decision (no commit/artifact required)
 
-State: handoffs/{outbox,queued,active,completed,failed}/<16-hex>.json.
+State: handoffs/{outbox,queued,active,completed,failed,awaiting_human}/<16-hex>.json.
+
+Collaboration semantics:
+    --act ACT         speech act: propose|review|approve|reject|request_decision|inform
+    --max-hops N      reply-chain budget (default 6): a reply inherits hops+1
+                      from the handoff it answers; past the budget the handoff
+                      is routed to awaiting_human instead of looping forever
+    --to all          broadcast: one queued handoff per recipe role
 '
 }
 
@@ -4682,6 +4695,63 @@ fn swarm_handoff_create(ws string, opts SwarmOptions) SwarmReport {
 	if roles.len == 0 {
 		roles = ['implementer', 'reviewer', 'integrator']
 	}
+	// Broadcast: one queued handoff per recipe role (except the sender).
+	// Recursive single-target creates keep validation, the audit gate and
+	// wake-up behavior identical for every recipient.
+	if opts.to_role == 'all' {
+		mut targets := []string{}
+		for r in roles {
+			if r != opts.from_role && r != 'human' && r !in targets {
+				targets << r
+			}
+		}
+		if targets.len == 0 {
+			return SwarmReport{
+				ok: false
+				message: 'broadcast has no recipients: no recipe roles besides ${opts.from_role}'
+				data: {
+					'subcommand': 'handoff'
+					'run_id':     run_id
+				}
+			}
+		}
+		mut created_ids := []string{}
+		mut failures := []string{}
+		for target in targets {
+			sub := swarm_handoff_create(ws, SwarmOptions{
+				...opts
+				to_role: target
+			})
+			if sub.ok {
+				created_ids << sub.data['handoff_id']
+			} else {
+				failures << '${target}: ${sub.message}'
+			}
+		}
+		if created_ids.len == 0 {
+			return SwarmReport{
+				ok: false
+				message: 'broadcast failed for every recipient: ' + failures.join('; ')
+				data: {
+					'subcommand': 'handoff'
+					'run_id':     run_id
+				}
+			}
+		}
+		append_swarm_trace(rd, 'handoff_broadcast', '${opts.from_role}->all:${created_ids.join(',')}')
+		return SwarmReport{
+			ok: true
+			message: 'Broadcast handoff created for ${created_ids.len} role(s): ${created_ids.join(', ')}' +
+				(if failures.len > 0 { ' (failed: ${failures.join('; ')})' } else { '' })
+			data: {
+				'subcommand':  'handoff'
+				'run_id':      run_id
+				'broadcast':   'true'
+				'handoff_ids': created_ids.join(',')
+				'recipients':  '${created_ids.len}'
+			}
+		}
+	}
 	htype := opts.htype
 	from_role := opts.from_role
 	to_role := opts.to_role
@@ -4698,6 +4768,8 @@ fn swarm_handoff_create(ws string, opts SwarmOptions) SwarmReport {
 		blocking: false
 		handoff_id: ''
 		created_at: ''
+		act: opts.act
+		max_hops: opts.max_hops
 	}
 
 	if opts.artifact.len > 0 {
@@ -4842,6 +4914,31 @@ fn swarm_handoff_create(ws string, opts SwarmOptions) SwarmReport {
 			}
 		}
 	}
+	// Collaboration semantics: a reply inherits hops+1 from the active
+	// handoff it answers. Past the chain budget the handoff is routed to
+	// a human (awaiting_human) instead of bouncing between agents.
+	mut chain_hops := 0
+	mut chain_max := rec.max_hops
+	mut has_incoming := false
+	for h in list_handoffs(rd, 'active') {
+		if h.to_role == from_role {
+			chain_hops = h.hops + 1
+			if chain_max == 0 {
+				chain_max = h.max_hops
+			}
+			has_incoming = true
+			break
+		}
+	}
+	if chain_max == 0 {
+		chain_max = handoff_default_max_hops
+	}
+	rec.hops = chain_hops
+	rec.max_hops = chain_max
+	capped := has_incoming && chain_hops > chain_max
+	if capped {
+		rec.act = 'request_decision'
+	}
 	errs := validate_handoff(rec, rd, roles)
 	if errs.len > 0 {
 		return SwarmReport{
@@ -4869,6 +4966,31 @@ fn swarm_handoff_create(ws string, opts SwarmOptions) SwarmReport {
 		os.rm(os.join_path(audit_dir_gc, '${audit_digest_gc}.json.consumed')) or {}
 	}
 	hid := rec.handoff_id
+	if capped {
+		move_handoff(rd, hid, 'outbox', 'awaiting_human') or {}
+		append_swarm_trace(rd, 'handoff_awaiting_human', '${hid}:hops=${rec.hops}:max_hops=${rec.max_hops}')
+		for h in list_handoffs(rd, 'active') {
+			if h.to_role == from_role && h.handoff_id.len > 0 {
+				move_handoff(rd, h.handoff_id, 'active', 'completed') or {}
+				append_swarm_trace(rd, 'handoff_completed', '${h.handoff_id}:auto:handoff_create:${hid}')
+			}
+		}
+		return SwarmReport{
+			ok: true
+			message: 'Handoff ${hid} routed to a human: the ${from_role} -> ${to_role} chain exceeded its hop budget (${rec.hops} > ${rec.max_hops}). It waits in awaiting_human; resolve it from the Desktop Needs-you inbox or with `agent-toolkit swarm task complete --handoff ${hid}`, then hand the work on explicitly.'
+			data: {
+				'subcommand': 'handoff'
+				'handoff_id': hid
+				'type':       htype
+				'from':       from_role
+				'to':         to_role
+				'state':      'awaiting_human'
+				'act':        rec.act
+				'hops':       '${rec.hops}'
+				'max_hops':   '${rec.max_hops}'
+			}
+		}
+	}
 	move_handoff(rd, hid, 'outbox', 'queued') or {}
 	append_swarm_trace(rd, 'handoff_queued', hid)
 	// swarm-forge handoffd behavior without a daemon: when a work handoff
@@ -5065,7 +5187,20 @@ fn swarm_task_complete(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 	hid := opts.handoff_id
-	move_handoff(rd, hid, 'active', 'completed') or {
+	if _ := move_handoff(rd, hid, 'active', 'completed') {
+		// Completed from the active queue below.
+	} else if _ := move_handoff(rd, hid, 'awaiting_human', 'completed') {
+		append_swarm_trace(rd, 'handoff_resolved', '${hid}:awaiting_human->completed')
+		return SwarmReport{
+			ok: true
+			message: 'Resolved human-routed handoff ${hid}'
+			data: {
+				'subcommand': 'task'
+				'handoff_id': hid
+				'state':      'completed'
+			}
+		}
+	} else {
 		return SwarmReport{
 			ok: false
 			message: 'Handoff not found or not active: ${hid}'
@@ -5115,7 +5250,8 @@ fn swarm_role_receive_mode(recipe string, role string) string {
 
 fn ensure_swarm_run_dirs(run_dir string) ! {
 	for sub in ['artifacts', 'handoffs/outbox', 'handoffs/queued', 'handoffs/active',
-		'handoffs/completed', 'handoffs/failed', 'prompts', 'worktrees', 'runner/opencode/agents'] {
+		'handoffs/completed', 'handoffs/failed', 'handoffs/awaiting_human', 'prompts', 'worktrees',
+		'runner/opencode/agents'] {
 		os.mkdir_all(os.join_path(run_dir, sub))!
 	}
 }

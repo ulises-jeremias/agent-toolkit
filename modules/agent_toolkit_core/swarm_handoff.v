@@ -14,6 +14,14 @@ const handoff_version = 1
 // allowed_handoff_types mirrors Python handoff.ALLOWED_TYPES.
 const allowed_handoff_types = ['artifact', 'commit', 'feedback', 'decision_request']
 
+// handoff_acts are the speech acts a handoff can carry (Slice 5a collaboration
+// semantics). Empty act = legacy record written before acts existed.
+const handoff_acts = ['propose', 'review', 'approve', 'reject', 'request_decision', 'inform']
+
+// handoff_default_max_hops caps agent-to-agent reply chains: a reply inherits
+// hops+1 from the handoff it answers; past the budget it routes to a human.
+const handoff_default_max_hops = 6
+
 // HandoffRecord is the on-disk handoff payload (handoffs/<state>/<id>.json).
 // JSON keys match the Python dict written by write_handoff_outbox.
 pub struct HandoffRecord {
@@ -27,6 +35,9 @@ pub mut:
 	commit     string
 	branch     string
 	blocking   bool
+	act        string
+	hops       int
+	max_hops   int
 	handoff_id string
 	created_at string
 }
@@ -73,7 +84,7 @@ fn handoff_id_for(rec HandoffRecord) string {
 
 // handoff_paths returns the five handoff state dirs (outbox/queued/active/completed/failed).
 fn handoff_states() []string {
-	return ['outbox', 'queued', 'active', 'completed', 'failed']
+	return ['outbox', 'queued', 'active', 'completed', 'failed', 'awaiting_human']
 }
 
 // handoff_exists reports whether a handoff id already exists in any state dir.
@@ -134,6 +145,15 @@ fn validate_handoff(rec HandoffRecord, run_dir string, roles []string) []string 
 	}
 	if rec.priority < 0 || rec.priority > 100 {
 		errors << 'priority must be int 0..100'
+	}
+	if rec.act.len > 0 && rec.act !in handoff_acts {
+		errors << 'act must be one of [${handoff_acts.join(', ')}], got ${rec.act}'
+	}
+	if rec.hops < 0 {
+		errors << 'hops must be >= 0'
+	}
+	if rec.max_hops < 0 {
+		errors << 'max_hops must be >= 0'
 	}
 	artifact := rec.artifact
 	if artifact.len > 0 {
