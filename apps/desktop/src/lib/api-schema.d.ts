@@ -1974,6 +1974,9 @@ export interface components {
             checks_pending: number;
             mergeable: string;
             review_decision: string;
+            changed_files: number;
+            additions: number;
+            deletions: number;
             detail: string;
         };
         SwarmPrReadyResponse: {

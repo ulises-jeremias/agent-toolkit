@@ -6168,6 +6168,15 @@
           "review_decision": {
             "type": "string"
           },
+          "changed_files": {
+            "type": "integer"
+          },
+          "additions": {
+            "type": "integer"
+          },
+          "deletions": {
+            "type": "integer"
+          },
           "detail": {
             "type": "string"
           }
@@ -6183,6 +6192,9 @@
           "checks_pending",
           "mergeable",
           "review_decision",
+          "changed_files",
+          "additions",
+          "deletions",
           "detail"
         ]
       },

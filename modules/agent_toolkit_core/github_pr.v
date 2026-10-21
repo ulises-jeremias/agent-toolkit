@@ -214,6 +214,9 @@ pub:
 	checks_pending  int
 	mergeable       string
 	review_decision string
+	changed_files   int
+	additions       int
+	deletions       int
 	detail          string
 }
 
@@ -239,6 +242,9 @@ pub:
 	is_draft            bool @[json: 'isDraft']
 	mergeable           string
 	review_decision     string @[json: 'reviewDecision']
+	changed_files       int @[json: 'changedFiles']
+	additions           int
+	deletions           int
 	status_check_rollup []GhPrCheck @[json: 'statusCheckRollup']
 }
 
@@ -268,6 +274,9 @@ fn parse_swarm_pr_status(run_id string, text string) !SwarmPrStatusResponse {
 		checks_pending: pending
 		mergeable: view.mergeable
 		review_decision: view.review_decision
+		changed_files: view.changed_files
+		additions: view.additions
+		deletions: view.deletions
 		detail: 'Live PR status from GitHub.'
 	}
 }
@@ -293,7 +302,7 @@ pub fn swarm_pr_status_typed(ws string, run_id string) SwarmPrStatusResponse {
 	}
 	res := new_process_service().run(
 		argv: ['gh', 'pr', 'view', st.pr_url, '--json',
-			'url,state,isDraft,mergeable,reviewDecision,statusCheckRollup']
+			'url,state,isDraft,mergeable,reviewDecision,changedFiles,additions,deletions,statusCheckRollup']
 		cwd: ws
 		timeout: 15 * time.second
 	) or { return fail('GitHub CLI (gh) is not available: ${err.msg()}') }
