@@ -1,12 +1,18 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useProjects } from '../../data/projects';
-import { useActivateWorkspacePack, useSaveWorkspacePack, useWorkspacePacks } from '../../data/workspacePacks';
+import {
+  useActivateWorkspacePack,
+  useEffectiveContext,
+  useSaveWorkspacePack,
+  useWorkspacePacks,
+} from '../../data/workspacePacks';
 import { errorMessage, recoveryHint, type WorkspacePackSummary } from '../../lib/api';
 import { Button, ButtonRow, Dialog, Field, Panel, StatusBadge, TextArea, TextInput } from '../../ui';
 import styles from './workspace.module.css';
 
 export function WorkspacePacksPanel({ workspace }: { workspace: string }) {
   const packs = useWorkspacePacks(workspace);
+  const effective = useEffectiveContext(workspace);
   const projects = useProjects(workspace);
   const activate = useActivateWorkspacePack(workspace);
   const save = useSaveWorkspacePack(workspace);
@@ -80,6 +86,40 @@ export function WorkspacePacksPanel({ workspace }: { workspace: string }) {
           These workspace bundles add shared notes when a new session starts. They are separate from reusable Library
           capabilities; saving or selecting one does not install or run anything.
         </p>
+        {effective.isSuccess && effective.data.fragments.length ? (
+          <div>
+            <strong>What a new session will draw from (about {effective.data.total_est_tokens} tokens)</strong>
+            <ul className={styles.packList} aria-label="Effective context">
+              {effective.data.fragments.map((fragment) => (
+                <li key={fragment.id} className={styles.packCard}>
+                  <div className={styles.packHeading}>
+                    <div>
+                      <strong>{fragment.kind}</strong> <code title={fragment.source}>{fragment.source}</code>
+                    </div>
+                    <StatusBadge
+                      tone={fragment.mode === 'missing' ? 'err' : 'ok'}
+                      label={fragment.mode === 'missing' ? 'Missing' : fragment.mode}
+                    />
+                  </div>
+                  <p className={styles.packProjects}>{fragment.detail}</p>
+                  <p className={styles.packProjects}>
+                    {fragment.bytes} bytes · about {fragment.est_tokens} tokens · sha {fragment.sha256.slice(0, 12)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            {effective.data.notes.map((note) => (
+              <p className={styles.packProjects} key={note}>
+                {note}
+              </p>
+            ))}
+          </div>
+        ) : null}
+        {effective.isError ? (
+          <p role="alert">
+            Could not assemble the effective context: {errorMessage(effective.error)} {recoveryHint(effective.error)}
+          </p>
+        ) : null}
         {packs.isPending ? <p role="status">Reading workspace context packs…</p> : null}
         {packs.isError ? (
           <p role="alert">
