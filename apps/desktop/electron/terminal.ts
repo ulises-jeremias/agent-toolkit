@@ -23,6 +23,7 @@ export interface TerminalCreateOptions {
   projectId?: string;
   provider?: string;
   model?: string;
+  providerSessionId?: string;
   cmd: string;
   args?: string[];
   cwd?: string;
@@ -40,6 +41,8 @@ export interface TerminalSessionInfo {
   projectId?: string;
   provider?: string;
   model?: string;
+  /** Provider-native conversation id, assigned at launch or captured after spawn. */
+  providerSessionId?: string;
   cmd: string;
   args: string[];
   cwd: string;
@@ -99,6 +102,13 @@ export class TerminalService {
           id: event.sessionId,
           exitCode: event.exitCode,
           exitReason: event.exitReason,
+        });
+      } else if (event.event === 'provider-session') {
+        const session = this.sessions.get(event.sessionId);
+        if (session) session.providerSessionId = event.providerSessionId;
+        this.windowOf?.()?.webContents.send('atk:pty-provider-session', {
+          id: event.sessionId,
+          providerSessionId: event.providerSessionId,
         });
       } else if (event.event === 'created') {
         void this.refresh();
@@ -172,6 +182,7 @@ export class TerminalService {
       projectId: options.projectId,
       provider: options.provider,
       model: options.model,
+      providerSessionId: options.providerSessionId,
       cmd: options.cmd,
       args: options.args ?? [],
       cwd,

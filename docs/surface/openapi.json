@@ -3866,6 +3866,86 @@
           }
         }
       }
+    },
+    "/api/v1/sessions/{id}/provider-session": {
+      "post": {
+        "operationId": "attach_person_session_provider_id",
+        "summary": "Record the provider conversation id captured after PTY spawn",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonSessionProviderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonSessionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid provider session id or session already ended",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "session not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "a different provider session id is already recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "unsafe session storage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4802,6 +4882,10 @@
           },
           "exit_code": {
             "type": "integer"
+          },
+          "provider_session_id": {
+            "type": "string",
+            "description": "Provider-native conversation id (uuid, ses_..., ...). Empty when the runner exposes none; non-empty means the conversation can be resumed by the Desktop adapter."
           }
         },
         "required": [
@@ -4816,7 +4900,8 @@
           "status",
           "started_at",
           "ended_at",
-          "exit_code"
+          "exit_code",
+          "provider_session_id"
         ]
       },
       "PersonSessionsResponse": {
@@ -4869,6 +4954,10 @@
           },
           "model": {
             "type": "string"
+          },
+          "provider_session_id": {
+            "type": "string",
+            "description": "Optional provider-native conversation id assigned at launch (runners that accept one). Validated as an opaque transport-safe token."
           }
         },
         "required": [
@@ -6320,6 +6409,22 @@
           "fragments",
           "total_est_tokens",
           "notes"
+        ]
+      },
+      "PersonSessionProviderRequest": {
+        "type": "object",
+        "description": "Attach the provider-native conversation id captured by the Desktop adapter after spawn. Write-once.",
+        "properties": {
+          "workspace": {
+            "type": "string"
+          },
+          "provider_session_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace",
+          "provider_session_id"
         ]
       }
     }

@@ -301,6 +301,7 @@ schemas:
       - started_at:string
       - ended_at:string
       - exit_code:integer
+      - provider_session_id:string
 
   - name: PersonSessionsResponse
     v_struct: PersonSessionsResponse
@@ -322,6 +323,13 @@ schemas:
       - project_id:string
       - provider:string
       - model:string
+      - provider_session_id:string
+
+  - name: PersonSessionProviderRequest
+    v_struct: PersonSessionProviderRequest
+    fields:
+      - workspace:string
+      - provider_session_id:string
 
   - name: PersonSessionStatusRequest
     v_struct: PersonSessionStatusRequest

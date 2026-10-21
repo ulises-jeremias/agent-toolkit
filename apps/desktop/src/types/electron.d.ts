@@ -87,6 +87,8 @@ export interface PtyCreateOptions {
   projectId?: string;
   provider?: string;
   model?: string;
+  /** Provider-native conversation id assigned at launch, when the runner accepts one. */
+  providerSessionId?: string;
   cmd: string;
   args?: string[];
   /** Defaults to the resolved harness; relative paths resolve against it; must exist. */
@@ -106,6 +108,8 @@ export interface PtySessionInfo {
   projectId?: string;
   provider?: string;
   model?: string;
+  /** Provider-native conversation id; present means the conversation can be resumed. */
+  providerSessionId?: string;
   cmd: string;
   args: string[];
   cwd: string;
@@ -120,6 +124,11 @@ export interface PtySessionInfo {
 export interface PtyDataEvent {
   id: string;
   chunk: string;
+}
+
+export interface PtyProviderSessionEvent {
+  id: string;
+  providerSessionId: string;
 }
 
 export interface PtyExitEvent {
@@ -160,6 +169,7 @@ export interface AtkBridge {
   ptyClose: (id: string) => Promise<boolean>;
   onPtyData: (listener: (event: PtyDataEvent) => void) => Unsubscribe;
   onPtyExit: (listener: (event: PtyExitEvent) => void) => Unsubscribe;
+  onPtyProviderSession: (listener: (event: PtyProviderSessionEvent) => void) => Unsubscribe;
 }
 
 export interface McpSecretStatus {

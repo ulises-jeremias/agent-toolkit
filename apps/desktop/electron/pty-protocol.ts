@@ -25,6 +25,8 @@ export interface PtyCreateRequest {
   projectId?: string;
   provider?: string;
   model?: string;
+  /** Provider-native conversation id assigned at launch, when the runner accepts one. */
+  providerSessionId?: string;
   cmd: string;
   args?: string[];
   cwd: string;
@@ -50,7 +52,8 @@ export type PtyHostResponse = { id: number; ok: true; result?: unknown } | { id:
 export type PtyHostEvent =
   | { event: 'data'; sessionId: string; chunk: string }
   | { event: 'exit'; sessionId: string; exitCode: number; exitReason?: 'time-budget' | 'user-stop' | 'app-shutdown' }
-  | { event: 'created'; sessionId: string };
+  | { event: 'created'; sessionId: string }
+  | { event: 'provider-session'; sessionId: string; providerSessionId: string };
 
 export type PtyHostFrame = PtyHostResponse | PtyHostEvent;
 

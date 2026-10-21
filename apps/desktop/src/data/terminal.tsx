@@ -92,6 +92,20 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
       setSessions(list);
       setLoading(false);
     });
+    const offProviderSession = bridge.onPtyProviderSession((event) => {
+      const session = sessionMetadataRef.current.get(event.id);
+      setSessions((current) =>
+        current.map((candidate) =>
+          candidate.id === event.id ? { ...candidate, providerSessionId: event.providerSessionId } : candidate,
+        ),
+      );
+      if (session?.agentSessionId && session.sessionWorkspace && client) {
+        void client
+          .attachProviderSessionId(session.sessionWorkspace, session.agentSessionId, event.providerSessionId)
+          .then(() => queryClient.invalidateQueries({ queryKey: ['person-sessions', session.sessionWorkspace] }))
+          .catch(() => {});
+      }
+    });
     const offExit = bridge.onPtyExit((exit: PtyExitEvent) => {
       const exitedSession = sessionMetadataRef.current.get(exit.id);
       sessionMetadataRef.current.delete(exit.id);
@@ -111,6 +125,7 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
     });
     return () => {
       cancelled = true;
+      offProviderSession();
       offExit();
     };
   }, [bridge, client, queryClient]);
@@ -138,6 +153,18 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
         await Promise.all(
           updates.map((update) =>
             client.updatePersonSession(workspace, update.id, update.status, update.exitCode).catch(() => null),
+          ),
+        );
+        // Adopted PTYs may already carry a captured provider conversation
+        // id the durable record never received (app died in between).
+        const attaches = result.sessions.flatMap((record) => {
+          if (!activeStatuses.has(record.status) || record.provider_session_id) return [];
+          const terminal = localSessions.find((candidate) => candidate.agentSessionId === record.id);
+          return terminal?.providerSessionId ? [{ id: record.id, providerSessionId: terminal.providerSessionId }] : [];
+        });
+        await Promise.all(
+          attaches.map((attach) =>
+            client.attachProviderSessionId(workspace, attach.id, attach.providerSessionId).catch(() => null),
           ),
         );
         await queryClient.invalidateQueries({ queryKey: ['person-sessions', workspace] });
