@@ -1,6 +1,20 @@
 # Swarm Handoffs
 
-Durable filesystem queue under `.agent-toolkit/swarm/runs/<run-id>/handoffs/{outbox,queued,active,completed,failed}/<id>.json`.
+Durable filesystem queue under `.agent-toolkit/swarm/runs/<run-id>/handoffs/{outbox,queued,active,completed,failed,awaiting_human}/<id>.json`.
+
+## Collaboration semantics (ADR-039)
+
+- **Speech acts** — every handoff may carry `act`: `propose`, `review`,
+  `approve`, `reject`, `request_decision` or `inform`
+  (`--act ACT`). Records written before acts existed decode with an empty act.
+- **Hop budget** — a reply inherits `hops + 1` (and `max_hops`, when not given)
+  from the active handoff it answers. Default budget: 6 (`--max-hops N`).
+- **Human routing** — a reply past the budget is not dropped: its act becomes
+  `request_decision` and it waits in `handoffs/awaiting_human/`. Resolve it
+  with `agent-toolkit swarm task complete --handoff <id>`, then hand the work
+  on explicitly.
+- **Broadcast** — `--to all` creates one queued handoff per recipe role
+  (except the sender) with identical validation, audit and wake-up behavior.
 
 ## Types
 

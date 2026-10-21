@@ -42,6 +42,7 @@ Single source: [`docs/adrs/`](./) — 40 records. Engineering ADRs use `ADR-0xx`
 | [ADR-036](ADR-036-durable-people.md) | Durable People distinct from definitions and runtime |
 | [ADR-037](ADR-037-detached-pty-host.md) | Detached PTY host owns interactive terminal sessions |
 | [ADR-038](ADR-038-provider-conversation-resume.md) | Provider conversation ids on PersonSession records and GUI resume |
+| [ADR-039](ADR-039-swarm-collaboration-semantics.md) | Swarm collaboration semantics: speech acts, hop budget, human routing, broadcast |
 | [0001](0001-capability-declaration-and-external-provenance-lock.md) | Capability declaration and external provenance lock |
 | [0002](0002-design-assessment-as-design-unit.md) | Design assessment as design unit |
 | [0003](0003-pack-semantics-products-own-installation.md) | Pack semantics — products own installation |

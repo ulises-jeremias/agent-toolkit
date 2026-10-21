@@ -1,6 +1,7 @@
 module agent_toolkit_core
 
 import os
+import x.json2
 
 fn test_swarm_role_execution_root_requires_recorded_writer_worktree() {
 	base := os.join_path(os.temp_dir(), 'at-swarm-role-root-${os.getpid()}')
@@ -459,4 +460,113 @@ fn test_resolve_swarm_config_keeps_valid_concurrency() {
 	}
 	assert r.execution.max_concurrency == 2
 	assert r.spec.execution.max_concurrency == 2
+}
+
+fn semantics_run(workspace string, run_id string, recipe string) string {
+	rd := swarm_run_dir(workspace, run_id)
+	ensure_swarm_run_dirs(rd) or { panic(err) }
+	write_swarm_state(rd, SwarmStateFile{
+		run_id: run_id
+		recipe: recipe
+		run_state: 'running'
+		backend: 'headless'
+	}) or { panic(err) }
+	return rd
+}
+
+fn semantics_create(workspace string, run_id string, from_role string, to_role string, act string, max_hops int) SwarmReport {
+	return run_swarm(SwarmOptions{
+		subcommand: 'handoff'
+		handoff_sub: 'create'
+		workspace_path: workspace
+		run_id: run_id
+		htype: 'decision_request'
+		from_role: from_role
+		to_role: to_role
+		act: act
+		max_hops: max_hops
+	})
+}
+
+fn test_swarm_handoff_act_validation_and_legacy_records() {
+	workspace := os.join_path(os.temp_dir(), 'at-swarm-act-${os.getpid()}')
+	os.mkdir_all(workspace) or { panic(err) }
+	defer { os.rmdir_all(workspace) or {} }
+	rd := semantics_run(workspace, 'run-act', 'pair')
+
+	bad := semantics_create(workspace, 'run-act', 'implementer', 'reviewer', 'bogus-act', 0)
+	assert !bad.ok
+	assert bad.message.contains('act must be one of')
+
+	good := semantics_create(workspace, 'run-act', 'implementer', 'reviewer', 'propose', 0)
+	assert good.ok, good.message
+	queued := list_handoffs(rd, 'queued')
+	assert queued.len == 1
+	assert queued[0].act == 'propose'
+	assert queued[0].hops == 0
+	assert queued[0].max_hops == handoff_default_max_hops
+
+	// A record written before acts/hops existed must still decode and validate.
+	legacy := '{"version":1,"type":"decision_request","from":"reviewer","to":"implementer","priority":0,"artifact":"","commit":"","branch":"","blocking":false}'
+	legacy_rec := json2.decode[HandoffRecord](legacy) or { panic(err) }
+	assert legacy_rec.act == ''
+	assert legacy_rec.hops == 0
+	assert validate_handoff(legacy_rec, rd, ['implementer', 'reviewer']).len == 0
+}
+
+fn test_swarm_handoff_hop_cap_routes_to_human_and_resolves() {
+	workspace := os.join_path(os.temp_dir(), 'at-swarm-hops-${os.getpid()}')
+	os.mkdir_all(workspace) or { panic(err) }
+	defer { os.rmdir_all(workspace) or {} }
+	rd := semantics_run(workspace, 'run-hops', 'pair')
+
+	first := semantics_create(workspace, 'run-hops', 'implementer', 'reviewer', 'propose', 1)
+	assert first.ok, first.message
+	move_handoff(rd, first.data['handoff_id'], 'queued', 'active') or { panic('move to active failed') }
+
+	reply := semantics_create(workspace, 'run-hops', 'reviewer', 'implementer', 'review', 1)
+	assert reply.ok, reply.message
+	assert reply.data['state'] != 'awaiting_human'
+	move_handoff(rd, reply.data['handoff_id'], 'queued', 'active') or { panic('move reply to active failed') }
+
+	capped := semantics_create(workspace, 'run-hops', 'implementer', 'reviewer', 'propose', 1)
+	assert capped.ok, capped.message
+	assert capped.data['state'] == 'awaiting_human'
+	assert capped.data['hops'] == '2'
+	waiting := list_handoffs(rd, 'awaiting_human')
+	assert waiting.len == 1
+	assert waiting[0].act == 'request_decision'
+	assert list_handoffs(rd, 'queued').len == 0
+
+	resolved := run_swarm(SwarmOptions{
+		subcommand: 'task'
+		handoff_sub: 'complete'
+		workspace_path: workspace
+		run_id: 'run-hops'
+		handoff_id: capped.data['handoff_id']
+	})
+	assert resolved.ok, resolved.message
+	assert list_handoffs(rd, 'awaiting_human').len == 0
+	assert list_handoffs(rd, 'completed').len == 3
+}
+
+fn test_swarm_handoff_broadcast_fans_out_per_role() {
+	workspace := os.join_path(os.temp_dir(), 'at-swarm-broadcast-${os.getpid()}')
+	os.mkdir_all(workspace) or { panic(err) }
+	defer { os.rmdir_all(workspace) or {} }
+	rd := semantics_run(workspace, 'run-broadcast', 'pair')
+
+	report := semantics_create(workspace, 'run-broadcast', 'implementer', 'all', 'inform', 0)
+	assert report.ok, report.message
+	assert report.data['broadcast'] == 'true'
+	assert report.data['recipients'] == '2'
+	queued := list_handoffs(rd, 'queued')
+	assert queued.len == 2
+	mut recipients := []string{}
+	for h in queued {
+		recipients << h.to_role
+		assert h.act == 'inform'
+	}
+	recipients.sort()
+	assert recipients == ['integrator', 'reviewer']
 }
