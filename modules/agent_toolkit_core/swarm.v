@@ -1480,6 +1480,12 @@ fn spawn_tmux_session(workspace string, repo_root string, run_id string, task st
 			}
 		}
 		append_swarm_trace(run_dir, 'tmux_agent_started', role + '=' + role_runner + ' model=' + role_model)
+		if i == 0 {
+			// Only the first tmux role launches a runner at spawn; the rest
+			// wait for handoffs and are recorded by swarm_autostart_role.
+			record_swarm_role_person_session(workspace, run_dir, run_id, role, person_bindings,
+				role_runner, role_model, first_role_root)
+		}
 	}
 	// 4. Verify the window inventory (SC1 contract: window name == role name).
 	verify := ps.run(RunOptions{
@@ -1515,6 +1521,38 @@ fn spawn_tmux_session(workspace string, repo_root string, run_id string, task st
 fn swarm_person_env(role string, person_bindings map[string]string) string {
 	id := person_bindings[role] or { return '' }
 	return ' && export AGENT_TOOLKIT_PERSON_ID=' + shell_quote(id)
+}
+
+// record_swarm_role_person_session links a really-launched swarm role to the
+// canonical PersonSession history of its bound Person. Call it only after a
+// runner launch succeeded for that role — never for waiting roles or from
+// binding resolution — so the record stays truthful runtime evidence.
+// Failures are traced, never fatal: the worker is already running.
+fn record_swarm_role_person_session(ws string, run_dir string, run_id string, role string, person_bindings map[string]string, runner string, model string, cwd string) {
+	person_id := person_bindings[role] or { return }
+	mut store := new_person_session_store()
+	store.record_swarm_person_session(SwarmPersonSessionRequest{
+		workspace: ws
+		run_id: run_id
+		role: role
+		person_id: person_id
+		provider: runner
+		model: model
+		cwd: cwd
+	}) or {
+		append_swarm_trace(run_dir, 'person_session_record_failed', role + ':' + err.msg())
+		return
+	}
+	append_swarm_trace(run_dir, 'person_session_recorded', role + '=' + person_id)
+}
+
+// close_swarm_role_person_sessions ends the run's swarm-linked PersonSession
+// records when the run's workers are torn down (stop/cancel/cleanup).
+fn close_swarm_role_person_sessions(ws string, run_dir string, run_id string, status string) {
+	mut store := new_person_session_store()
+	store.close_swarm_person_sessions(ws, run_id, status) or {
+		append_swarm_trace(run_dir, 'person_session_close_failed', run_id + ':' + err.msg())
+	}
 }
 
 // swarm_role_already_started reports a completed start. An interrupted
@@ -1865,6 +1903,8 @@ fn swarm_autostart_role(ws string, run_id string, recipe string, role string, ru
 			}
 		}
 		append_swarm_trace(run_dir, 'role_autostarted', role + '=' + effective_runner)
+		record_swarm_role_person_session(ws, run_dir, run_id, role, state.person_bindings,
+			effective_runner, effective_model, role_root)
 		runner_launched = true
 		os.write_file(start_marker, 'started\n') or {}
 		role_lock.release()
@@ -1913,6 +1953,8 @@ fn swarm_autostart_role(ws string, run_id string, recipe string, role string, ru
 			}
 		}
 		append_swarm_trace(run_dir, 'role_autostarted', role + '=' + effective_runner + ' pane=' + pane_id)
+		record_swarm_role_person_session(ws, run_dir, run_id, role, state.person_bindings,
+			effective_runner, effective_model, role_root)
 		runner_launched = true
 		os.write_file(start_marker, 'started\n') or {}
 		role_lock.release()
@@ -2057,6 +2099,8 @@ fn spawn_herdr_workspace(workspace string, repo_root string, run_id string, task
 			}
 			if res2.exit_code == 0 {
 				append_swarm_trace(run_dir, 'herdr_agent_started', first_role + '=' + effective_runner + ' pane=' + root_pane)
+				record_swarm_role_person_session(workspace, run_dir, run_id, first_role, person_bindings,
+					effective_runner, effective_model, first_role_root)
 				swarm_wake_agent(run_id, first_role, 'herdr', root_pane, '')
 			} else if res2.stderr.len > 0 || res2.stdout.len > 0 || res2.exit_code != -1 {
 				mut m2 := if res2.stderr.len > 0 {
@@ -2088,6 +2132,8 @@ fn spawn_herdr_workspace(workspace string, repo_root string, run_id string, task
 			}
 			if res2.exit_code == 0 {
 				append_swarm_trace(run_dir, 'herdr_agent_started', first_role + '=' + effective_runner + ' pane=' + root_pane)
+				record_swarm_role_person_session(workspace, run_dir, run_id, first_role, person_bindings,
+					effective_runner, effective_model, first_role_root)
 			} else if res2.exit_code != -1 {
 				mut m2 := if res2.stderr.len > 0 {
 					res2.stderr.trim_space()
@@ -2657,6 +2703,7 @@ fn swarm_cancel(ws string, opts SwarmOptions) SwarmReport {
 			message: 'write state failed: ${err}'
 		}
 	}
+	close_swarm_role_person_sessions(ws, rd, opts.run_id, 'stopped')
 	append_swarm_trace(rd, 'run_cancelled', opts.run_id)
 	return SwarmReport{
 		ok: true
@@ -3471,6 +3518,7 @@ fn swarm_stop(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 	swarm_stop_backend_agents(st.backend, opts.run_id, st.recipe)
+	close_swarm_role_person_sessions(ws, rd, opts.run_id, 'stopped')
 	append_swarm_trace(rd, 'role_stopped', opts.run_id)
 	return SwarmReport{
 		ok: true
@@ -3547,6 +3595,7 @@ fn swarm_cleanup(ws string, opts SwarmOptions) SwarmReport {
 			swarm_remove_worktree(ws, wt, opts.force) or {}
 		}
 	}
+	close_swarm_role_person_sessions(ws, rd, opts.run_id, 'stopped')
 	swarm_teardown_backend(backend, opts.run_id)
 	append_swarm_trace(rd, 'cleanup_completed', opts.run_id)
 	return SwarmReport{

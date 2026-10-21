@@ -872,8 +872,13 @@ journeys:
           - assets/electron/people/people-roster-large.png
           - assets/electron/people/person-start-compact.png
           - assets/electron/people/person-start-large.png
+      - note: >-
+          Provider conversation resume is implemented for Claude, Copilot,
+          Codex and OpenCode (ADR-038; #1594, #1605): PersonSession records
+          carry the provider-native conversation id, assigned at launch or
+          attached write-once after spawn, and the start flow offers resume
+          only where the runner contract is verified.
     blockers:
-      - provider conversation IDs, transcript continuity and safe runner-specific resume are not available yet
       - initial-task submission is not supported for Cursor or Muse; no runner-specific argument contract is assumed
   - id: swarm-role-picker
     title: Choose People for swarm roles before start
@@ -918,10 +923,19 @@ journeys:
         screenshots:
           - assets/electron/swarms/swarm-run-person-binding-compact.png
           - assets/electron/swarms/swarm-run-person-binding-large.png
+      - note: >-
+          Bound roles now become canonical PersonSession records when — and
+          only when — their runner really launches: the swarm engine records
+          source=swarm with run/role linkage after tmux/herdr role starts and
+          handoff autostarts, closes the records on stop/cancel/cleanup, and
+          the run inspector lists them per role. A binding alone still creates
+          no session, terminal action or World character.
+        tests:
+          - modules/agent_toolkit_core/sessions_test.v
+          - apps/desktop/src/features/operations/swarmPreview.test.ts
     blockers:
-      - Agent Toolkit does not consume the role-process Person hint as a session identity
-      - swarm role sessions are not yet projected into truthful World characters
-      - Person-specific terminal actions do not yet resolve to a real AgentSession
+      - swarm role sessions are not yet projected into truthful World characters (swarm workers are tmux/herdr processes, not Desktop PTYs)
+      - Person-specific terminal actions do not yet resolve to a swarm AgentSession
   - id: swarm-start-review
     title: Review canonical recipe topology and runtime settings before starting
     destinations: [operations]

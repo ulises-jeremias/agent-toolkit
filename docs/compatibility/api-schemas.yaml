@@ -303,7 +303,7 @@ schemas:
 
   - name: PersonSession
     v_struct: PersonSession
-    description: Durable lifecycle evidence for a real local PTY bound to a Person.
+    description: Durable lifecycle evidence for a real session bound to a Person (Desktop PTY, or a swarm role that really launched with source=swarm).
     fields:
       - id:string
       - person_id:string
@@ -318,6 +318,9 @@ schemas:
       - ended_at:string
       - exit_code:integer
       - provider_session_id:string
+      - source:string=|swarm
+      - swarm_run_id:string
+      - swarm_role:string
 
   - name: PersonSessionsResponse
     v_struct: PersonSessionsResponse

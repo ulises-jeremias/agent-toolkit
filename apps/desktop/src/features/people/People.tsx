@@ -639,7 +639,11 @@ export default function People() {
                       <ul className={styles.sessionHistory}>
                         {selectedSessionHistory.map((session) => (
                           <li key={session.id}>
-                            <span>{session.project_id}</span>
+                            <span>
+                              {session.source === 'swarm'
+                                ? `Swarm ${session.swarm_role} · run ${session.swarm_run_id}`
+                                : session.project_id}
+                            </span>
                             <StatusBadge
                               tone={
                                 session.status === 'running'
@@ -656,7 +660,7 @@ export default function People() {
                               {session.provider}
                               {session.model ? ` · ${session.model}` : ''}
                             </small>
-                            {session.status !== 'running' ? (
+                            {session.status !== 'running' && session.source !== 'swarm' ? (
                               <Button
                                 variant="secondary"
                                 disabled={!terminals.available || Boolean(selectedSession) || selected.archived}

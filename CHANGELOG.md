@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Swarm roles bound to People now become canonical PersonSession
+  records when their runner really launches (tmux/herdr spawn or
+  handoff autostart), closing when the run stops, is cancelled, or is
+  cleaned up. The Desktop run inspector lists them per role, and
+  People history shows the swarm origin. A binding alone still
+  creates no session.
+
 ## [1.47.6] — 2026-10-21
 
 ### Added

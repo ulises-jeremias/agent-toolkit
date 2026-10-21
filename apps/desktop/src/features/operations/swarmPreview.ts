@@ -39,6 +39,25 @@ export function issueOptionLabel(issue: IssueLike): string {
   return `#${issue.number} ${issue.title}${labels}${author}`;
 }
 
+export interface SwarmPersonSessionLike {
+  source: string;
+  swarm_run_id: string;
+  swarm_role: string;
+}
+
+/**
+ * Canonical PersonSession records a swarm run really launched (source=swarm).
+ * A Person binding alone never appears here: the engine records a session
+ * only after that role's runner started, and closes it with the run.
+ */
+export function swarmPersonSessionsForRun<T extends SwarmPersonSessionLike>(
+  sessions: readonly T[],
+  runId: string,
+): T[] {
+  if (!runId) return [];
+  return sessions.filter((session) => session.source === 'swarm' && session.swarm_run_id === runId);
+}
+
 /** Chain position label, e.g. "hop 7 of 6" once a chain passed its budget. */
 export function hopLabel(handoff: HandoffLike): string {
   return handoff.max_hops > 0 ? `hop ${handoff.hops} of ${handoff.max_hops}` : `hop ${handoff.hops}`;

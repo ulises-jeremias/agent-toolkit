@@ -75,6 +75,58 @@ fn test_person_session_launch_requires_active_person_real_project_and_installed_
 	}
 }
 
+fn test_swarm_person_session_records_only_real_role_starts_and_closes_with_run() {
+	ws := session_workspace('swarm-link')
+	defer { os.rmdir_all(ws) or {} }
+	mut store := new_person_session_store()
+	recorded := store.record_swarm_person_session(SwarmPersonSessionRequest{
+		workspace: ws
+		run_id: 's20261021T212457Z'
+		role: 'reviewer'
+		person_id: 'lina'
+		provider: 'opencode'
+		model: 'auto'
+		cwd: os.join_path(ws, 'projects', 'demo')
+	}) or { panic(err) }
+	assert recorded.status == 'running'
+	assert recorded.source == 'swarm'
+	assert recorded.swarm_run_id == 's20261021T212457Z'
+	assert recorded.swarm_role == 'reviewer'
+	assert recorded.person_id == 'lina'
+	// A retried role start must not duplicate the canonical record.
+	again := store.record_swarm_person_session(SwarmPersonSessionRequest{
+		workspace: ws
+		run_id: 's20261021T212457Z'
+		role: 'reviewer'
+		person_id: 'lina'
+		provider: 'opencode'
+		model: 'auto'
+		cwd: os.join_path(ws, 'projects', 'demo')
+	}) or { panic(err) }
+	assert again.id == recorded.id
+	listed := store.list_person_sessions(ws) or { panic(err) }
+	assert listed.sessions.len == 1
+	closed := store.close_swarm_person_sessions(ws, 's20261021T212457Z', 'stopped') or { panic(err) }
+	assert closed == 1
+	after := store.list_person_sessions(ws) or { panic(err) }
+	assert after.sessions[0].status == 'stopped'
+	assert after.sessions[0].ended_at.len > 0
+	// Closing again is a no-op, and an unknown/archived Person cannot be recorded.
+	assert (store.close_swarm_person_sessions(ws, 's20261021T212457Z', 'stopped') or { panic(err) }) == 0
+	if _ := store.record_swarm_person_session(SwarmPersonSessionRequest{
+		workspace: ws
+		run_id: 's20261021T212457Z'
+		role: 'implementer'
+		person_id: 'ghost'
+		provider: 'opencode'
+		cwd: ws
+	}) {
+		assert false, 'unknown People must not get swarm session records'
+	} else {
+		assert err.msg().len > 0
+	}
+}
+
 fn test_person_session_list_rejects_symlinked_session_storage() {
 	ws := session_workspace('symlink-storage')
 	defer { os.rmdir_all(ws) or {} }

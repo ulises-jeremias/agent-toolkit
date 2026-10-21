@@ -6,6 +6,7 @@ import {
   issueRefFor,
   issueTaskFor,
   needsYouHandoffs,
+  swarmPersonSessionsForRun,
 } from './swarmPreview';
 
 describe('hasProjectBoundSwarmPreview', () => {
@@ -45,6 +46,20 @@ describe('needs-you handoffs (ADR-039)', () => {
   it('labels the chain position against its budget', () => {
     expect(hopLabel(handoffs[1]!)).toBe('hop 7 of 6');
     expect(hopLabel({ state: 'queued', act: '', hops: 2, max_hops: 0 })).toBe('hop 2');
+  });
+});
+
+describe('swarm Person sessions', () => {
+  const sessions = [
+    { id: 'a', source: 'swarm', swarm_run_id: 'run-1', swarm_role: 'reviewer' },
+    { id: 'b', source: '', swarm_run_id: '', swarm_role: '' },
+    { id: 'c', source: 'swarm', swarm_run_id: 'run-2', swarm_role: 'implementer' },
+  ];
+
+  it('returns only sessions this run really launched', () => {
+    expect(swarmPersonSessionsForRun(sessions, 'run-1').map((session) => session.id)).toEqual(['a']);
+    expect(swarmPersonSessionsForRun(sessions, 'missing')).toEqual([]);
+    expect(swarmPersonSessionsForRun(sessions, '')).toEqual([]);
   });
 });
 
