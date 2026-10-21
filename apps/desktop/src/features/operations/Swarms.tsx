@@ -5,6 +5,7 @@ import { useLiveStatus } from '../../data/live';
 import {
   useCreateSwarmDraftPr,
   useResolveSwarmHandoff,
+  useSwarmPrStatus,
   useSwarmCommand,
   useSwarmRecipes,
   useSwarmRun,
@@ -436,6 +437,7 @@ function NeedsYouSection({ runId, handoffs }: { runId: string; handoffs: SwarmHa
 function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person[] }) {
   const { run, budget } = data;
   const draftPr = useCreateSwarmDraftPr();
+  const prStatus = useSwarmPrStatus(run.run_id, Boolean(run.pr_url));
   const executionRoles = Object.keys(run.role_runners ?? {}).sort();
   const personBindings = run.person_bindings ?? {};
   const peopleById = new Map(people.map((person) => [person.id, person]));
@@ -459,6 +461,14 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
                       {run.pr_url}
                     </a>
                   ),
+                },
+                {
+                  label: 'PR status',
+                  value: prStatus.isPending
+                    ? 'Checking GitHub…'
+                    : prStatus.data?.ok
+                      ? `${prStatus.data.state}${prStatus.data.is_draft ? ' (draft)' : ''} · checks ${prStatus.data.checks_pass} passed, ${prStatus.data.checks_fail} failed, ${prStatus.data.checks_pending} pending`
+                      : `Unavailable: ${prStatus.data?.detail ?? prStatus.error?.message ?? 'unknown error'}`,
                 },
               ]
             : []),

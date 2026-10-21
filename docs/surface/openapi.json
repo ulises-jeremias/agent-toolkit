@@ -3785,6 +3785,36 @@
         }
       }
     },
+    "/api/v1/swarms/runs/{id}/pr-status": {
+      "get": {
+        "operationId": "swarm_pr_status",
+        "summary": "Live GitHub state and check summary of the run draft PR via gh",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmPrStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/swarms/runs/{id}/draft-pr": {
       "post": {
         "operationId": "create_swarm_draft_pr",
@@ -6062,6 +6092,49 @@
           "branch",
           "pr_url",
           "created",
+          "detail"
+        ]
+      },
+      "SwarmPrStatusResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "pr_url": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "is_draft": {
+            "type": "boolean"
+          },
+          "checks_pass": {
+            "type": "integer"
+          },
+          "checks_fail": {
+            "type": "integer"
+          },
+          "checks_pending": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "run_id",
+          "pr_url",
+          "state",
+          "is_draft",
+          "checks_pass",
+          "checks_fail",
+          "checks_pending",
           "detail"
         ]
       },

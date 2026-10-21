@@ -23,6 +23,43 @@ fn test_first_url_line_extracts_pr_url() {
 	assert first_url_line('no url here') == ''
 }
 
+fn test_parse_swarm_pr_status_summarizes_checks() {
+	sample := '{"url":"https://github.com/o/r/pull/7","state":"OPEN","isDraft":true,"statusCheckRollup":[{"conclusion":"SUCCESS","status":"COMPLETED"},{"conclusion":"FAILURE","status":"COMPLETED"},{"conclusion":"","status":"IN_PROGRESS"},{"state":"PENDING"}]}'
+	st := parse_swarm_pr_status('run-1', sample) or {
+		assert false, err.msg()
+		return
+	}
+	assert st.ok
+	assert st.is_draft
+	assert st.state == 'OPEN'
+	assert st.checks_pass == 1
+	assert st.checks_fail == 1
+	assert st.checks_pending == 2
+	if _ := parse_swarm_pr_status('run-1', 'not json') {
+		assert false, 'invalid JSON must error'
+	}
+}
+
+fn test_pr_status_without_recorded_pr_is_honest() {
+	ws := os.join_path(os.temp_dir(), 'atk-pr-status-none-${os.getpid()}')
+	rd := swarm_run_dir(ws, 'run-nopr')
+	os.mkdir_all(rd) or { panic(err) }
+	defer {
+		os.rmdir_all(ws) or {}
+	}
+	write_swarm_state(rd, SwarmStateFile{
+		run_id: 'run-nopr'
+		task: 'anything'
+	}) or {
+		assert false, err.msg()
+		return
+	}
+	resp := swarm_pr_status_typed(ws, 'run-nopr')
+	assert !resp.ok
+	assert resp.detail.contains('No pull request recorded')
+	assert swarm_pr_status_typed(ws, 'no-such-run').detail.contains('Run not found')
+}
+
 fn test_create_draft_pr_missing_run_is_honest_error() {
 	ws := os.join_path(os.temp_dir(), 'atk-draft-pr-missing-${os.getpid()}')
 	os.mkdir_all(ws) or { panic(err) }

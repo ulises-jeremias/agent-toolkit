@@ -6,6 +6,7 @@ import {
   type SubCommand,
   type SwarmActionResponse,
   type SwarmDraftPrResponse,
+  type SwarmPrStatusResponse,
   type SwarmListResponse,
   type SwarmRunResponse,
   type SwarmRecipesResponse,
@@ -105,6 +106,17 @@ export function useResolveSwarmHandoff() {
   });
 }
 
+export function useSwarmPrStatus(id: string | null, hasPr: boolean) {
+  const { client } = useBackend();
+  return useQuery<SwarmPrStatusResponse>({
+    queryKey: qk.swarms.prStatus(id ?? ''),
+    queryFn: () => requireClient(client).swarmPrStatus(id ?? ''),
+    enabled: client !== null && Boolean(id) && hasPr,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
+  });
+}
+
 export function useCreateSwarmDraftPr() {
   const { client } = useBackend();
   const queryClient = useQueryClient();
@@ -113,7 +125,10 @@ export function useCreateSwarmDraftPr() {
     mutationFn: ({ id }) => requireClient(client).createSwarmDraftPr(id),
     onSettled: (_data, _error, variables) => {
       void queryClient.invalidateQueries({ queryKey: qk.swarms.list() });
-      if (variables) void queryClient.invalidateQueries({ queryKey: qk.swarms.run(variables.id) });
+      if (variables) {
+        void queryClient.invalidateQueries({ queryKey: qk.swarms.run(variables.id) });
+        void queryClient.invalidateQueries({ queryKey: qk.swarms.prStatus(variables.id) });
+      }
     },
   });
 }

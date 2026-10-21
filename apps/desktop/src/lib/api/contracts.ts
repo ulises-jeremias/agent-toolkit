@@ -280,6 +280,7 @@ export type SwarmRunInfo = components['schemas']['SwarmRunInfo'];
 export type SwarmRunResponse = components['schemas']['SwarmRunResponse'];
 export type SwarmActionResponse = components['schemas']['SwarmActionResponse'];
 export type SwarmDraftPrResponse = components['schemas']['SwarmDraftPrResponse'];
+export type SwarmPrStatusResponse = components['schemas']['SwarmPrStatusResponse'];
 
 export const API_EVENT_TYPES: readonly ApiEventType[] = [
   'backend.ready',

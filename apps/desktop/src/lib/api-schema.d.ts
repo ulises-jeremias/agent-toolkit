@@ -1354,6 +1354,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/swarms/runs/{id}/pr-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Live GitHub state and check summary of the run draft PR via gh */
+        get: operations["swarm_pr_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/swarms/runs/{id}/draft-pr": {
         parameters: {
             query?: never;
@@ -1927,6 +1944,17 @@ export interface components {
             branch: string;
             pr_url: string;
             created: boolean;
+            detail: string;
+        };
+        SwarmPrStatusResponse: {
+            ok: boolean;
+            run_id: string;
+            pr_url: string;
+            state: string;
+            is_draft: boolean;
+            checks_pass: number;
+            checks_fail: number;
+            checks_pending: number;
             detail: string;
         };
         LoopInfo: {
@@ -5324,6 +5352,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    swarm_pr_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwarmPrStatusResponse"];
                 };
             };
         };
