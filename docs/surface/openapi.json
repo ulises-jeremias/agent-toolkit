@@ -1964,6 +1964,76 @@
         }
       }
     },
+    "/api/v1/sessions/{id}/provider-session": {
+      "post": {
+        "operationId": "attach_person_session_provider_id",
+        "summary": "Record the provider conversation id captured after PTY spawn",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonSessionProviderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonSessionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid provider session id or session already ended",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "session not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "a different provider session id is already recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/people/bindings": {
       "get": {
         "operationId": "list_people_bindings",
@@ -4802,6 +4872,9 @@
           },
           "exit_code": {
             "type": "integer"
+          },
+          "provider_session_id": {
+            "type": "string"
           }
         },
         "required": [
@@ -4816,7 +4889,8 @@
           "status",
           "started_at",
           "ended_at",
-          "exit_code"
+          "exit_code",
+          "provider_session_id"
         ]
       },
       "PersonSessionsResponse": {
@@ -4869,6 +4943,9 @@
           },
           "model": {
             "type": "string"
+          },
+          "provider_session_id": {
+            "type": "string"
           }
         },
         "required": [
@@ -4876,7 +4953,23 @@
           "person_id",
           "project_id",
           "provider",
-          "model"
+          "model",
+          "provider_session_id"
+        ]
+      },
+      "PersonSessionProviderRequest": {
+        "type": "object",
+        "properties": {
+          "workspace": {
+            "type": "string"
+          },
+          "provider_session_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace",
+          "provider_session_id"
         ]
       },
       "PersonSessionStatusRequest": {

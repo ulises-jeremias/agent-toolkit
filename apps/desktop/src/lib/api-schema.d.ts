@@ -703,6 +703,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sessions/{id}/provider-session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record the provider conversation id captured after PTY spawn */
+        post: operations["attach_person_session_provider_id"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/people/bindings": {
         parameters: {
             query?: never;
@@ -1594,6 +1611,7 @@ export interface components {
             started_at: string;
             ended_at: string;
             exit_code: number;
+            provider_session_id: string;
         };
         PersonSessionsResponse: {
             ok: boolean;
@@ -1609,6 +1627,11 @@ export interface components {
             project_id: string;
             provider: string;
             model: string;
+            provider_session_id: string;
+        };
+        PersonSessionProviderRequest: {
+            workspace: string;
+            provider_session_id: string;
         };
         PersonSessionStatusRequest: {
             workspace: string;
@@ -3646,6 +3669,59 @@ export interface operations {
                 };
             };
             /** @description invalid lifecycle transition */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    attach_person_session_provider_id: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonSessionProviderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonSessionResponse"];
+                };
+            };
+            /** @description invalid provider session id or session already ended */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description session not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description a different provider session id is already recorded */
             409: {
                 headers: {
                     [name: string]: unknown;

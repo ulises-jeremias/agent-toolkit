@@ -2,7 +2,7 @@
 // Copy GitHub Release V binaries into npm platform packages (ADR-025 / #536).
 // Usage: RELEASE_BIN_DIR=binaries RELEASE_VERSION=x.y.z ./scripts/pack_npm.vsh
 
-import json
+import x.json2
 
 fn repo_root() string {
 	mut d := dir(@FILE)
@@ -28,7 +28,7 @@ fn load_platforms(root string) []PlatformSpec {
 		eprintln('cannot read platforms.json: ${err}')
 		exit(1)
 	}
-	return json.decode([]PlatformSpec, raw) or {
+	return json2.decode[[]PlatformSpec](raw) or {
 		eprintln('decode platforms.json: ${err}')
 		exit(1)
 	}

@@ -40,7 +40,9 @@ Single source: [`docs/adrs/`](./) — 40 records. Engineering ADRs use `ADR-0xx`
 | [ADR-034](ADR-034-semantic-world.md) | Desktop: semantic spatial world as primary home |
 | [ADR-035](ADR-035-cozy-pixel-world.md) | Desktop visual reset: Cozy Pixel World |
 | [ADR-036](ADR-036-durable-people.md) | Durable People distinct from definitions and runtime |
-| [ADR-039](ADR-039-swarm-collaboration-semantics.md) | Swarm collaboration semantics: speech acts, hop budget, human routing, broadcast (ADR-037/038 land with the PTY-host and provider-resume PRs) |
+| [ADR-037](ADR-037-detached-pty-host.md) | Detached PTY host owns interactive terminal sessions |
+| [ADR-038](ADR-038-provider-conversation-resume.md) | Provider conversation ids on PersonSession records and GUI resume |
+| [ADR-039](ADR-039-swarm-collaboration-semantics.md) | Swarm collaboration semantics: speech acts, hop budget, human routing, broadcast |
 | [0001](0001-capability-declaration-and-external-provenance-lock.md) | Capability declaration and external provenance lock |
 | [0002](0002-design-assessment-as-design-unit.md) | Design assessment as design unit |
 | [0003](0003-pack-semantics-products-own-installation.md) | Pack semantics — products own installation |

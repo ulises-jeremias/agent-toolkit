@@ -6,9 +6,11 @@ bound to a Person and project. The V backend records session identity and
 lifecycle history; Electron remains the process/PTY owner. A configured Person
 stays offline unless a matching local PTY is alive. The local PTY enforces
 `max_seconds`; token and cost limits and non-inherited isolation are disclosed
-as unsupported and need explicit acknowledgement. Provider conversation IDs,
-resume, and process continuity across app exit are not implemented; see
-[Gaps](#gaps).
+as unsupported and need explicit acknowledgement. Provider conversation IDs
+are recorded when the runner exposes one (assigned for claude/copilot,
+captured for codex), conversations can be resumed from the Start dialog,
+and PTYs survive app exit in the detached PTY host (ADR-037, ADR-038); see
+[Gaps](#gaps) for the runners still unsupported.
 
 The screenshots below were captured from the live Electron app and backend at
 both compact and large sizes. A configured Person is offline until a real PTY
@@ -57,7 +59,7 @@ These five things are different, and the code keeps them different:
 |**Agent definition**|toolkit `agents/<name>/AGENT.md`|A reusable persona template — how an AI works in a session|
 |**Agent profile**|toolkit `profiles/<target>/`|A per-target adapter/overlay of toolkit capabilities|
 |**Person**|workspace `people/<id>.json`|A durable collaborator you chose and reviewed|
-|**Agent session**|workspace `.agent-toolkit/sessions/<id>.json` + Electron PTY|Durable lifecycle record joined to one local runner process; provider conversation state is not captured yet|
+|**Agent session**|workspace `.agent-toolkit/sessions/<id>.json` + detached PTY host|Durable lifecycle record joined to one local runner process; carries the provider conversation id when the runner exposes one (ADR-038)|
 |**Swarm role**|recipe|A slot in a swarm run, resolved per run|
 
 Workspace personas (`personas/*.md`) constrain behavior and permissions during
@@ -190,7 +192,8 @@ main process and records missing processes as interrupted. The PTY carries the
 V session ID, Person ID and project ID so a living process can be inspected
 from the world and reopened in Terminal; stopping/reaping it leaves the Person
 untouched. This record is lifecycle evidence, not a provider conversation
-transcript or resumable session. The portrait uses original Toolkit sprites;
+transcript; when it carries a provider conversation id, the Start dialog can
+resume that conversation in a new PTY (ADR-038). The portrait uses original Toolkit sprites;
 source appearance is attribution only. Operations also offers explicit Person
 assignment per swarm role, validates the choice against the workspace roster,
 and can launch real adapter-backed role sessions.
@@ -200,10 +203,10 @@ and can launch real adapter-backed role sessions.
 The following are explicitly **not implemented**. Do not represent schemas or
 file authoring as the user interface:
 
-- Runner-specific provider session IDs, conversation history, safe resume, and
-  keeping a process alive after Desktop exits. The durable lifecycle record
-  remains, but Desktop marks a missing PTY as interrupted rather than claiming
-  the provider conversation can resume.
+- Conversation resume for runners without a verified session-id dialect
+  (opencode, gemini, cursor and unknown CLIs). Their sessions still run, but
+  no conversation id is recorded and Start always opens a fresh conversation.
+  Conversation history browsing is likewise not implemented.
 - Cursor and Muse currently open interactively without a submitted initial
   task because their runner-specific interactive prompt contracts have not
   been verified. The Start review lets the user copy the reviewed prompt into
