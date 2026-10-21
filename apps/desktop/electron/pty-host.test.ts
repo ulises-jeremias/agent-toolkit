@@ -9,7 +9,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { captureCodexSessionId } from './provider-session-capture.js';
 import { PtyHostClient } from './pty-host-client.js';
 import { PtyHostCore } from './pty-host-core.js';
-import { encodeFrame, PTY_HOST_PROTOCOL, ptySocketPath, readOrCreateToken } from './pty-protocol.js';
+import { encodeFrame, PTY_HOST_PROTOCOL, ptyRuntimeDir, ptySocketPath, readOrCreateToken } from './pty-protocol.js';
 
 const desktopDir = path.resolve(__dirname, '..');
 
@@ -25,6 +25,20 @@ async function waitFor(check: () => Promise<boolean>, timeoutMs = 15_000): Promi
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 }
+
+describe('ptyRuntimeDir', () => {
+  it('honors the absolute AGENT_TOOLKIT_PTY_RUNTIME_DIR override over XDG', () => {
+    expect(ptyRuntimeDir({ AGENT_TOOLKIT_PTY_RUNTIME_DIR: '/tmp/atk-pty-iso', XDG_RUNTIME_DIR: '/run/user/1000' })).toBe(
+      '/tmp/atk-pty-iso',
+    );
+  });
+
+  it('ignores a relative override and falls back to the XDG runtime dir', () => {
+    expect(ptyRuntimeDir({ AGENT_TOOLKIT_PTY_RUNTIME_DIR: 'relative/dir', XDG_RUNTIME_DIR: '/run/user/1000' })).toBe(
+      path.join('/run/user/1000', 'agent-toolkit'),
+    );
+  });
+});
 
 describe('PtyHost (ADR-037)', () => {
   it('keeps sessions alive across client disconnect and reattaches with output intact', async () => {

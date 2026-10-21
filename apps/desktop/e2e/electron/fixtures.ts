@@ -81,6 +81,10 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
     if (value !== undefined && !dropped.has(key)) env[key] = value;
   }
   env['HOME'] = home;
+  // Isolate the detached PTY host per launch: the default runtime dir is
+  // per-user, so without this a prior spec's surviving sessions would be
+  // listed as tabs in this spec's fresh app instance.
+  env['AGENT_TOOLKIT_PTY_RUNTIME_DIR'] = path.join(root, 'pty-runtime');
   env['XDG_CONFIG_HOME'] = path.join(home, '.config');
   env['XDG_DATA_HOME'] = path.join(home, '.local', 'share');
   // The Electron supervisor must launch the same binary used to scaffold and
