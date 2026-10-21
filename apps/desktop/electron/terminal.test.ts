@@ -226,10 +226,11 @@ describe('TerminalService', () => {
 describe('killProcessTree', () => {
   it('kills grandchildren in the PTY process group, not just the leader', async () => {
     if (process.platform === 'win32') return;
-    const service = new TerminalService();
+    const runtimeDir = tempRuntimeDir();
+    const service = makeService({ runtimeDir });
     try {
       // The shell backgrounds a grandchild sleep, prints its pid, then waits.
-      const session = service.create({
+      const session = await service.create({
         agent: 'test',
         cmd: '/bin/sh',
         args: ['-c', 'sleep 60 & echo GC:$!; wait'],
@@ -251,7 +252,7 @@ describe('killProcessTree', () => {
       await new Promise((resolve) => setTimeout(resolve, 500));
       expect(() => process.kill(grandchildPid, 0)).toThrow();
     } finally {
-      service.dispose();
+      await cleanup(service, runtimeDir);
     }
   }, 30_000);
 });
