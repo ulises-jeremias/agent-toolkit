@@ -31,6 +31,7 @@ import {
   issueRefFor,
   issueTaskFor,
   needsYouHandoffs,
+  swarmPersonSessionsForRun,
 } from './swarmPreview';
 import {
   Button,
@@ -381,7 +382,9 @@ function SwarmInspector({
         ) : null}
       </Dialog>
       <QueryView query={detail} loading="Loading swarm run" errorTitle="Could not load this swarm run">
-        {(data) => <SwarmRunBody data={data} people={people.data?.people ?? []} />}
+        {(data) => (
+          <SwarmRunBody data={data} people={people.data?.people ?? []} workspace={context.workspace} client={client} />
+        )}
       </QueryView>
     </Panel>
   );
@@ -435,7 +438,24 @@ function NeedsYouSection({ runId, handoffs }: { runId: string; handoffs: SwarmHa
   );
 }
 
-function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person[] }) {
+function SwarmRunBody({
+  data,
+  people,
+  workspace,
+  client,
+}: {
+  data: SwarmRunResponse;
+  people: Person[];
+  workspace: string;
+  client: ReturnType<typeof useBackend>['client'];
+}) {
+  const personSessions = useQuery({
+    queryKey: ['person-sessions', workspace],
+    queryFn: () => requireClient(client).personSessions(workspace),
+    enabled: client !== null && Boolean(workspace),
+    staleTime: 10_000,
+  });
+  const runPersonSessions = swarmPersonSessionsForRun(personSessions.data?.sessions ?? [], data.run.run_id);
   const { run, budget } = data;
   const draftPr = useCreateSwarmDraftPr();
   const prStatus = useSwarmPrStatus(run.run_id, Boolean(run.pr_url));
@@ -533,9 +553,38 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
             </tbody>
           </Table>
           <p role="note">
-            Runner and model show the saved launch configuration. A Person binding identifies the collaborator but does
-            not create a live Person session or a World character by itself.
+            Runner and model show the saved launch configuration. A Person binding alone creates neither a Person
+            session nor a World character: a canonical Person session appears below only when the runner for that role
+            really launched, and it closes when the run stops.
           </p>
+          {runPersonSessions.length > 0 ? (
+            <Table>
+              <thead>
+                <tr>
+                  <th scope="col">Person session</th>
+                  <th scope="col">Role</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {runPersonSessions.map((session) => (
+                  <tr key={session.id}>
+                    <td>
+                      <strong>{session.person}</strong>
+                      <div>{[session.provider, session.model].filter(Boolean).join(' · ')}</div>
+                      <Mono>{session.id}</Mono>
+                    </td>
+                    <td>{session.swarm_role}</td>
+                    <td>
+                      <StatusBadge tone={jobTone(session.status)} label={session.status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
+            <p role="note">No bound role has launched yet, so this run has no Person sessions.</p>
+          )}
         </SwarmSection>
       ) : null}
       <SwarmSection title="Approvals" empty="No gates on this run.">

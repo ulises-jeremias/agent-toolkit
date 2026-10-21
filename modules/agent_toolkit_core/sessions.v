@@ -31,6 +31,12 @@ pub mut:
 	// otherwise captured by the Desktop adapter after spawn and attached
 	// via attach_provider_session_id. Empty means: not resumable (yet).
 	provider_session_id string
+	// Origin of this session: '' for a direct Desktop Person start, 'swarm'
+	// when a swarm role bound to this Person actually launched a runner.
+	// A binding alone never creates a record; only a real role start does.
+	source       string
+	swarm_run_id string
+	swarm_role   string
 }
 
 pub struct PersonSessionsResponse {
@@ -66,6 +72,17 @@ pub struct PersonSessionProviderRequest {
 pub:
 	workspace           string
 	provider_session_id string
+}
+
+pub struct SwarmPersonSessionRequest {
+pub:
+	workspace string
+	run_id    string
+	role      string
+	person_id string
+	provider  string
+	model     string
+	cwd       string
 }
 
 pub struct PersonSessionStore {
@@ -176,6 +193,121 @@ pub fn (mut store PersonSessionStore) create_person_session(req PersonSessionCre
 	if os.exists(file) || os.is_link(file) { return error('session record already exists or is unsafe') }
 	write_person_session_file(file, session)!
 	return session
+}
+
+
+// Swarm run ids are engine timestamps (e.g. s20261021T212457Z): mixed case
+// alphanumerics with '-'/'_' separators. They are opaque linkage keys here,
+// never paths, so they get their own conservative validator instead of the
+// lowercase-only person_slug.
+fn swarm_run_id_valid(value string) bool {
+	if value.len == 0 || value.len > 128 {
+		return false
+	}
+	for i, ch in value.bytes() {
+		ok := (ch >= `a` && ch <= `z`) || (ch >= `A` && ch <= `Z`) || (ch >= `0` && ch <= `9`) || ch == `-` || ch == `_`
+		if !ok {
+			return false
+		}
+		if i == 0 && !(ch >= `a` && ch <= `z`) && !(ch >= `A` && ch <= `Z`) && !(ch >= `0` && ch <= `9`) {
+			return false
+		}
+	}
+	return true
+}
+
+// record_swarm_person_session creates the canonical PersonSession for a
+// swarm role bound to a Person, but only when that role's runner has really
+// launched (the swarm engine calls this after a successful role start, never
+// from binding resolution). It is idempotent per (run, role): a retried role
+// start returns the existing live record instead of duplicating history.
+// Swarm workers are not Desktop PTYs, so project_id stays empty and cwd
+// carries the role's real execution root (project or isolated worktree).
+pub fn (mut store PersonSessionStore) record_swarm_person_session(req SwarmPersonSessionRequest) !PersonSession {
+	store.mut.lock()
+	defer { store.mut.unlock() }
+	if !swarm_run_id_valid(req.run_id) || !swarm_is_valid_role(req.role) {
+		return error('invalid swarm run or role')
+	}
+	if req.provider.len == 0 || req.provider.len > 64 || req.cwd.len == 0 || !os.is_dir(req.cwd) {
+		return error('invalid swarm session launch evidence')
+	}
+	person := read_person(req.workspace, req.person_id)!
+	if person.person['archived']!.bool() { return error('archived People cannot start sessions') }
+	dir := person_sessions_dir(req.workspace)!
+	if os.is_dir(dir) {
+		entries := os.ls(dir) or { return error('sessions directory cannot be read') }
+		if entries.len > person_sessions_limit { return error('too many session records') }
+		for entry in entries {
+			if !entry.ends_with('.json') { continue }
+			existing_id := entry[..entry.len - 5]
+			file := store.session_file(req.workspace, existing_id)!
+			if os.is_link(file) { return error('session record is a symlink') }
+			if os.file_size(file) > person_session_limit { continue }
+			raw := os.read_file(file) or { continue }
+			existing := json2.decode[PersonSession](raw) or { continue }
+			if existing.source == 'swarm' && existing.swarm_run_id == req.run_id
+				&& existing.swarm_role == req.role && existing.status in ['launching', 'running'] {
+				return existing
+			}
+		}
+	}
+	now := time.utc().format_rfc3339()
+	id := 'session_${time.utc().unix()}_${os.getpid()}_${(rand.int_in_range(1000, 9999) or { 1000 })}'
+	session := PersonSession{
+		id: id
+		person_id: req.person_id
+		person: person.person['name']!.str()
+		role: person.person['role']!.str()
+		cwd: os.real_path(req.cwd)
+		provider: req.provider
+		model: req.model
+		status: 'running'
+		started_at: now
+		source: 'swarm'
+		swarm_run_id: req.run_id
+		swarm_role: req.role
+	}
+	os.mkdir_all(dir) or { return error('sessions directory cannot be created') }
+	if os.is_link(os.dir(dir)) || os.is_link(dir) { return error('sessions directory is a symlink') }
+	file := store.session_file(req.workspace, id)!
+	if os.exists(file) || os.is_link(file) { return error('session record already exists or is unsafe') }
+	write_person_session_file(file, session)!
+	return session
+}
+
+// close_swarm_person_sessions ends every live swarm-linked PersonSession of
+// a run when the run reaches a terminal state. Returns how many records
+// changed; already-terminal records are untouched, so retries are no-ops.
+pub fn (mut store PersonSessionStore) close_swarm_person_sessions(workspace string, run_id string, status string) !int {
+	store.mut.lock()
+	defer { store.mut.unlock() }
+	if status !in ['completed', 'failed', 'stopped', 'timed_out', 'interrupted'] {
+		return error('invalid session status')
+	}
+	if !swarm_run_id_valid(run_id) { return error('invalid swarm run') }
+	dir := person_sessions_dir(workspace)!
+	if !os.is_dir(dir) { return 0 }
+	entries := os.ls(dir) or { return error('sessions directory cannot be read') }
+	if entries.len > person_sessions_limit { return error('too many session records') }
+	mut closed := 0
+	for entry in entries {
+		if !entry.ends_with('.json') { continue }
+		id := entry[..entry.len - 5]
+		file := store.session_file(workspace, id)!
+		if os.is_link(file) { return error('session record is a symlink') }
+		if os.file_size(file) > person_session_limit { continue }
+		raw := os.read_file(file) or { continue }
+		mut session := json2.decode[PersonSession](raw) or { continue }
+		if session.source != 'swarm' || session.swarm_run_id != run_id { continue }
+		if session.status !in ['launching', 'running'] { continue }
+		session.status = status
+		session.ended_at = time.utc().format_rfc3339()
+		session.exit_code = if status == 'completed' { 0 } else { -1 }
+		write_person_session_file(file, session)!
+		closed++
+	}
+	return closed
 }
 
 pub fn (mut store PersonSessionStore) update_person_session(workspace string, id string, status string, exit_code int) !PersonSession {

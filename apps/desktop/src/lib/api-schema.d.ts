@@ -1712,7 +1712,7 @@ export interface components {
                 [key: string]: string;
             };
         };
-        /** @description Durable lifecycle evidence for a real local PTY bound to a Person. */
+        /** @description Durable lifecycle evidence for a real session bound to a Person (Desktop PTY, or a swarm role that really launched with source=swarm). */
         PersonSession: {
             id: string;
             person_id: string;
@@ -1728,6 +1728,10 @@ export interface components {
             ended_at: string;
             exit_code: number;
             provider_session_id: string;
+            /** @enum {string} */
+            source: "" | "swarm";
+            swarm_run_id: string;
+            swarm_role: string;
         };
         PersonSessionsResponse: {
             ok: boolean;

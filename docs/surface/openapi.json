@@ -5129,7 +5129,7 @@
       },
       "PersonSession": {
         "type": "object",
-        "description": "Durable lifecycle evidence for a real local PTY bound to a Person.",
+        "description": "Durable lifecycle evidence for a real session bound to a Person (Desktop PTY, or a swarm role that really launched with source=swarm).",
         "properties": {
           "id": {
             "type": "string"
@@ -5178,6 +5178,19 @@
           },
           "provider_session_id": {
             "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "",
+              "swarm"
+            ]
+          },
+          "swarm_run_id": {
+            "type": "string"
+          },
+          "swarm_role": {
+            "type": "string"
           }
         },
         "required": [
@@ -5193,7 +5206,10 @@
           "started_at",
           "ended_at",
           "exit_code",
-          "provider_session_id"
+          "provider_session_id",
+          "source",
+          "swarm_run_id",
+          "swarm_role"
         ]
       },
       "PersonSessionsResponse": {
