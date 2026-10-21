@@ -121,7 +121,10 @@ export class ApiClient {
           'x-atk-desktop': '1',
           'content-type': 'application/json',
         },
-        body: options.body === undefined ? undefined : JSON.stringify(options.body),
+        // Mutations always carry a JSON object body: an empty body with a
+        // JSON content type is rejected by the server framework before the
+        // route handler runs, which would mask the real validation result.
+        body: options.body === undefined ? (method === 'GET' ? undefined : '{}') : JSON.stringify(options.body),
       });
     } catch (error) {
       throw new ApiError(

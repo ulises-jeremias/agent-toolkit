@@ -385,6 +385,13 @@ describe('ApiClient', () => {
       'POST http://127.0.0.1:9/api/v1/swarms/runs/run_1/reject',
       'POST http://127.0.0.1:9/api/v1/swarms/runs/run_1/stop',
     ]);
+    // Bodyless mutations must still send a JSON object: an empty body with a
+    // JSON content type is rejected by the server before routing.
+    const postBodies = calls.filter((call) => call.init?.method === 'POST').map((call) => call.init?.body);
+    expect(postBodies).toEqual(['{}', '{}', '{}']);
+    expect(calls.filter((call) => call.init?.method === 'GET').every((call) => call.init?.body === undefined)).toBe(
+      true,
+    );
   });
 
   it('reads canonical swarm recipe topology through the typed catalog route', async () => {

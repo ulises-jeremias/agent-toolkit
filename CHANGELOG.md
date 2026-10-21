@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Desktop mutations without a payload now send an explicit `{}`
+  JSON body; an empty body with a JSON content type could be
+  rejected by the backend framework before routing, which broke
+  swarm run actions such as Stop on stricter server builds.
 - Orphaned swarm PersonSession records now reconcile to a terminal
   status when the run's authoritative state is terminal, instead of
   staying `running` forever.
