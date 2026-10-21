@@ -26,6 +26,32 @@ async function waitFor(check: () => Promise<boolean>, timeoutMs = 15_000): Promi
   }
 }
 
+async function waitForProcessExit(pid: number, timeoutMs = 15_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    try {
+      process.kill(pid, 0);
+    } catch {
+      return; // ESRCH: process is gone.
+    }
+    if (Date.now() > deadline) throw new Error(`process ${pid} did not exit`);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+}
+
+/** rm -rf that tolerates a dying host still releasing files (ENOTEMPTY race). */
+async function removeDirRobust(dir: string): Promise<void> {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOTEMPTY' || attempt === 19) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+}
+
 describe('ptyRuntimeDir', () => {
   it('honors the absolute AGENT_TOOLKIT_PTY_RUNTIME_DIR override over XDG', () => {
     expect(ptyRuntimeDir({ AGENT_TOOLKIT_PTY_RUNTIME_DIR: '/tmp/atk-pty-iso', XDG_RUNTIME_DIR: '/run/user/1000' })).toBe(
@@ -232,16 +258,20 @@ describe('PtyHost (ADR-037)', () => {
         await waitFor(async () => (await client.list()).length === 0);
         client.disconnect();
       } finally {
-        // Stop the detached host explicitly via its registry pid.
+        // Stop the detached host explicitly via its registry pid, wait
+        // for it to actually exit, then remove the runtime dir. Removing
+        // while the host is still shutting down races with its socket /
+        // registry cleanup and intermittently fails with ENOTEMPTY.
         try {
           const registry = JSON.parse(fs.readFileSync(path.join(runtimeDir, 'pty-registry.json'), 'utf8')) as {
             pid: number;
           };
           process.kill(registry.pid, 'SIGTERM');
+          await waitForProcessExit(registry.pid);
         } catch {
           // Host already exited.
         }
-        fs.rmSync(runtimeDir, { recursive: true, force: true });
+        await removeDirRobust(runtimeDir);
       }
     }, 120_000);
   });
