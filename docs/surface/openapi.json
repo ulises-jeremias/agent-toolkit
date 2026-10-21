@@ -3579,6 +3579,56 @@
         }
       }
     },
+    "/api/v1/swarms/runs/{id}/resolve-handoff": {
+      "post": {
+        "operationId": "resolve_swarm_handoff",
+        "summary": "Server-native endpoint (resolve_swarm_handoff)",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid handoff_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "run or handoff not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/loops": {
       "get": {
         "operationId": "list_loops",
@@ -3867,66 +3917,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
                 }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/swarms/runs/{id}/resolve-handoff": {
-      "post": {
-        "operationId": "resolve_swarm_handoff",
-        "summary": "Server-native endpoint (resolve_swarm_handoff)",
-        "x-scope": "write:*",
-        "x-confirm-required": false,
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SwarmActionResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "invalid run_id",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "run not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SwarmResolveHandoffRequest"
               }
             }
           }
@@ -5717,6 +5707,21 @@
           "artifacts"
         ]
       },
+      "SwarmResolveHandoffRequest": {
+        "type": "object",
+        "properties": {
+          "workspace": {
+            "type": "string"
+          },
+          "handoff_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace",
+          "handoff_id"
+        ]
+      },
       "SwarmActionResponse": {
         "type": "object",
         "properties": {
@@ -6398,20 +6403,6 @@
           "fragments",
           "total_est_tokens",
           "notes"
-        ]
-      },
-      "SwarmResolveHandoffRequest": {
-        "type": "object",
-        "properties": {
-          "workspace": {
-            "type": "string"
-          },
-          "handoff_id": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "handoff_id"
         ]
       }
     }
