@@ -1,4 +1,5 @@
-import type { LaidOutEntity, SemanticEntity, WorldLayout, WorldModel } from './types';
+import { UNFILED_DISTRICT_ID } from './districts';
+import type { DistrictBounds, LaidOutEntity, SemanticEntity, WorldLayout, WorldModel } from './types';
 
 /**
  * Layout (Cozy Pixel World). Footprints come from the semantic footprint
@@ -242,23 +243,57 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // Houses begin just beyond the creek crossing. Keeping the project lane
   // beside the civic commons gives compact windows a landscape-shaped valley
   // that can fit at 32px tiles instead of shrinking the whole world to 16px.
-  const districtY = 4;
   const districtX = projectDistrictX;
-  if (emptyProject) place(emptyProject, emptyMarkerX, districtY + 2);
+  if (emptyProject) place(emptyProject, emptyMarkerX, 6);
   const projectSlots = new Map<string, { x: number; y: number }>();
-  projects.forEach((project, index) => {
-    const col = index % districtCols;
-    const row = Math.floor(index / districtCols);
-    // Keep existing lots fixed as a roster grows; only new lots are appended.
-    // Stagger alternate streets so a rear house never shares its front-door
-    // path with a house directly in front of it.
-    const x = districtX + col * projectLaneGap + (row % 2 === 1 ? 2 : 0);
-    // Offset the next street and leave enough land for a path verge or tree
-    // canopy between its houses and the previous row.
-    const y = districtY + row * 5;
-    place(project, x, y);
-    if (project.projectId) projectSlots.set(project.projectId, { x, y });
-  });
+  // Houses group into district bands: one band per context-pack district,
+  // in the model's district order, with a two-tile garden gap between
+  // bands. A single district reproduces the historic single-neighbourhood
+  // layout exactly — districts only ever split the band, never move a lot
+  // within its band.
+  const groupOrder: string[] = [];
+  for (const district of model.districts ?? []) {
+    if (!groupOrder.includes(district.id)) groupOrder.push(district.id);
+  }
+  for (const project of projects) {
+    const id = project.districtId ?? UNFILED_DISTRICT_ID;
+    if (!groupOrder.includes(id)) groupOrder.push(id);
+  }
+  const districtBounds: DistrictBounds[] = [];
+  let bandY = 4;
+  let projectBottom = 4;
+  for (const groupId of groupOrder) {
+    const members = projects.filter((project) => (project.districtId ?? UNFILED_DISTRICT_ID) === groupId);
+    if (members.length === 0) continue;
+    const rowsInBand = Math.ceil(members.length / Math.max(1, districtCols));
+    members.forEach((project, index) => {
+      const col = index % districtCols;
+      const row = Math.floor(index / districtCols);
+      // Keep existing lots fixed as a roster grows; only new lots are appended.
+      // Stagger alternate streets so a rear house never shares its front-door
+      // path with a house directly in front of it.
+      const x = districtX + col * projectLaneGap + (row % 2 === 1 ? 2 : 0);
+      // Offset the next street and leave enough land for a path verge or tree
+      // canopy between its houses and the previous row.
+      const y = bandY + row * 5;
+      place(project, x, y);
+      if (project.projectId) projectSlots.set(project.projectId, { x, y });
+    });
+    const meta = (model.districts ?? []).find((district) => district.id === groupId);
+    const bandCols = Math.min(members.length, districtCols);
+    districtBounds.push({
+      id: groupId,
+      name: meta?.name ?? 'Projects',
+      packPath: meta?.packPath,
+      active: meta?.active,
+      x: districtX,
+      y: bandY,
+      w: bandCols > 0 ? (bandCols - 1) * projectLaneGap + projectWidth : 0,
+      h: (rowsInBand - 1) * 5 + 4,
+    });
+    projectBottom = Math.max(projectBottom, bandY + (rowsInBand - 1) * 5 + 4);
+    bandY += rowsInBand * 5 + 2;
+  }
 
   // Characters: stand at named commons object when job.cmd matches; else house porch.
   let orphanX = coreX;
@@ -282,10 +317,9 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     place(entity, maxX + 1, 0);
   }
 
-  const districtRows = Math.ceil(projects.length / Math.max(1, districtCols));
   // Reserve the front-porch tile after the southernmost house as well as its
   // footprint; without it, wrapped project lanes could sit on the map edge.
-  const projectRows = districtY + Math.max(0, districtRows - 1) * 5 + 4;
+  const projectRows = projectBottom;
   // Give every civic front door at least one walkable tile inside the camera
   // bounds, including the southern workshop lane on empty workspaces.
   const landmarkRows = Math.max(
@@ -299,5 +333,6 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     cols: Math.max(mapW, maxX),
     rows: Math.max(maxY, mapRows),
     entities: laid,
+    districts: districtBounds,
   };
 }

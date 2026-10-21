@@ -1,4 +1,5 @@
 import {
+  Fragment,
   useCallback,
   useEffect,
   useMemo,
@@ -11,7 +12,7 @@ import { Link } from 'react-router';
 import { StatusBadge, Table, VisuallyHidden, type Tone } from '../../ui';
 import { clampCamera, fitCamera, responsiveCameraZoom, WORLD_ZOOMS, zoomCamera } from './camera';
 import { entityActivateLabel, entityActivateVerb, entityHasInspector } from './inspectors';
-import { paintInterior, paintTerrain, type DecorSprite, type LaidOutEntity } from './model';
+import { paintInterior, paintTerrain, type DecorSprite, type LaidOutEntity, type WorldDistrict } from './model';
 import spriteManifest from './manifest.json';
 import { TerrainCanvas } from './TerrainRenderer';
 import { nearestWorldNeighbor, type WorldDirection } from './spatialNavigation';
@@ -968,10 +969,23 @@ export interface WorldEntityListProps {
   selectedId: string | null;
   href: WorldHref;
   onSelect: (id: string) => void;
+  /** Grounds districts; when 2+ are present the list groups under headings. */
+  districts?: readonly WorldDistrict[];
 }
 
 /** Structured list fallback — same inspect targets as the map (or — when none). */
-export function WorldEntityList({ entities, selectedId, href, onSelect }: WorldEntityListProps): ReactNode {
+export function WorldEntityList({ entities, selectedId, href, onSelect, districts }: WorldEntityListProps): ReactNode {
+  const districtOrder = new Map((districts ?? []).map((district, index) => [district.id, index] as const));
+  const grouped =
+    districtOrder.size > 1 && entities.some((entity) => entity.districtId && districtOrder.has(entity.districtId));
+  const ordered = grouped
+    ? [...entities].sort((a, b) => {
+        const da = districtOrder.get(a.districtId ?? '') ?? Number.MAX_SAFE_INTEGER;
+        const db = districtOrder.get(b.districtId ?? '') ?? Number.MAX_SAFE_INTEGER;
+        return da - db || a.name.localeCompare(b.name);
+      })
+    : entities;
+  let lastDistrictId: string | undefined;
   return (
     <Table>
       <thead>
@@ -986,33 +1000,55 @@ export function WorldEntityList({ entities, selectedId, href, onSelect }: WorldE
         </tr>
       </thead>
       <tbody>
-        {entities.map((entity) => (
-          <tr key={`list:${entity.id}`} data-selected={entity.id === selectedId ? 'true' : undefined}>
-            <th scope="row">{entity.name}</th>
-            <td>{entity.concept}</td>
-            <td>
-              <StatusBadge tone={toneForState(entity.state)} label={entity.state} />
-            </td>
-            <td>{entity.kind}</td>
-            <td data-align="end">
-              {entityHasInspector(entity) && entity.hrefPath ? (
-                <Link
-                  to={href(entity.hrefPath, entity.hrefExtra)}
-                  aria-label={`${entityActivateVerb(entity)}: ${entity.name}`}
-                  onClick={() => onSelect(entity.id)}
-                  data-entity-inspect={entity.id}
-                >
-                  Open
-                </Link>
-              ) : (
-                <span data-entity-inspect={entity.id} data-inactive="true">
-                  —
-                </span>
-              )}
-            </td>
-          </tr>
-        ))}
+        {ordered.map((entity) => {
+          const district =
+            grouped && entity.districtId ? districts?.find((row) => row.id === entity.districtId) : undefined;
+          const showHeading = district !== undefined && district.id !== lastDistrictId;
+          lastDistrictId = district?.id ?? lastDistrictId;
+          return (
+            <Fragment key={`row:${entity.id}`}>
+              {showHeading ? (
+                <tr key={`district:${district.id}`} data-district-heading={district.id}>
+                  <th colSpan={5} scope="colgroup">
+                    {district.name}
+                    {district.active ? ' · active pack' : ''}
+                  </th>
+                </tr>
+              ) : null}
+              {renderEntityRow(entity)}
+            </Fragment>
+          );
+        })}
       </tbody>
     </Table>
   );
+
+  function renderEntityRow(entity: LaidOutEntity): ReactNode {
+    return (
+      <tr key={`list:${entity.id}`} data-selected={entity.id === selectedId ? 'true' : undefined}>
+        <th scope="row">{entity.name}</th>
+        <td>{entity.concept}</td>
+        <td>
+          <StatusBadge tone={toneForState(entity.state)} label={entity.state} />
+        </td>
+        <td>{entity.kind}</td>
+        <td data-align="end">
+          {entityHasInspector(entity) && entity.hrefPath ? (
+            <Link
+              to={href(entity.hrefPath, entity.hrefExtra)}
+              aria-label={`${entityActivateVerb(entity)}: ${entity.name}`}
+              onClick={() => onSelect(entity.id)}
+              data-entity-inspect={entity.id}
+            >
+              Open
+            </Link>
+          ) : (
+            <span data-entity-inspect={entity.id} data-inactive="true">
+              —
+            </span>
+          )}
+        </td>
+      </tr>
+    );
+  }
 }

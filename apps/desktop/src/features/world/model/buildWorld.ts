@@ -1,6 +1,7 @@
 import { isTerminalJobStatus } from '../../../lib/api';
 import { memoryFilePath, memoryInspectExtra } from '../inspectors';
 import { projectFacades } from './facades';
+import { COMMONS_DISTRICT_ID, planDistricts, UNFILED_DISTRICT_ID } from './districts';
 import { jobStandAtId, projectScopedMemory, workspaceLevelMemory } from './memoryScope';
 import type {
   MemoryEntryRecord,
@@ -565,12 +566,50 @@ export function resolveProjectTarget(workspace: string, target: string): string 
  */
 export function buildWorldModel(input: WorldDomainInput): WorldModel {
   const focus = input.focusProjectId?.trim() || null;
-  const entities = focus ? buildInterior(input, focus) : buildGrounds(input);
+  if (focus) {
+    return {
+      workspacePath: input.workspacePath,
+      workspaceLabel: workspaceLabel(input.workspacePath),
+      focusProjectId: focus,
+      entities: buildInterior(input, focus),
+      districts: [],
+    };
+  }
+
+  // Districts are a projection of the workspace context packs: project
+  // houses group under their first referencing pack, characters follow
+  // their project, and every referencing pack stays named in the detail.
+  const plan = planDistricts(
+    input.projects.map((project) => project.name),
+    input.contextPacks ?? [],
+  );
+  const entities = buildGrounds(input).map((entity) => {
+    let districtId: string = COMMONS_DISTRICT_ID;
+    if (entity.id.startsWith('place:project:')) {
+      districtId = plan.byProject.get(entity.id.slice('place:project:'.length)) ?? UNFILED_DISTRICT_ID;
+    } else if (entity.projectId && plan.byProject.has(entity.projectId)) {
+      districtId = plan.byProject.get(entity.projectId)!;
+    } else if (
+      entity.id === 'place:projects-empty' &&
+      plan.districts.some((district) => district.id === UNFILED_DISTRICT_ID)
+    ) {
+      districtId = UNFILED_DISTRICT_ID;
+    }
+    let detail = entity.detail;
+    if (entity.id.startsWith('place:project:')) {
+      const packNames = plan.packNamesByProject.get(entity.id.slice('place:project:'.length));
+      if (packNames && packNames.length > 0) {
+        detail = `${detail ?? ''} · Packs: ${packNames.join(', ')}`;
+      }
+    }
+    return { ...entity, districtId, detail };
+  });
 
   return {
     workspacePath: input.workspacePath,
     workspaceLabel: workspaceLabel(input.workspacePath),
     focusProjectId: focus,
     entities,
+    districts: plan.districts,
   };
 }
