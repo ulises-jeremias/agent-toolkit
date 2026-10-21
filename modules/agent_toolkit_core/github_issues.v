@@ -26,15 +26,18 @@ pub:
 	detail string
 }
 
-struct GhIssueLabel {
+pub struct GhIssueLabel {
+pub:
 	name string
 }
 
-struct GhIssueAuthor {
+pub struct GhIssueAuthor {
+pub:
 	login string
 }
 
-struct GhIssue {
+pub struct GhIssue {
+pub:
 	number int
 	title  string
 	url    string
