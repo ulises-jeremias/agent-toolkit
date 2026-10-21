@@ -34,4 +34,7 @@ mac:
 win:
   target:
     - nsis
+# No updater feed while artifacts are unsigned (ADR-041): Desktop checks
+# for new releases and links to them, but never auto-downloads binaries
+# it cannot verify. Set a signed publish provider when certificates land.
 publish: null

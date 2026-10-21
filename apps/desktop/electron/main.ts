@@ -8,12 +8,14 @@ import { registerIpc } from './ipc';
 import { electronStorageName, McpSecretStore, mcpSecretStorePath } from './mcp-secrets';
 import { startRendererServer, type RendererServer } from './renderer-server';
 import { TerminalService } from './terminal';
+import { UpdateChecker } from './update-check';
 
 let mainWindow: BrowserWindow | null = null;
 let backend: BackendSupervisor | null = null;
 let terminals: TerminalService | null = null;
 let harness: HarnessController | null = null;
 let mcpSecrets: McpSecretStore | null = null;
+let updateChecker: UpdateChecker | null = null;
 let rendererServer: RendererServer | null = null;
 let ipcRegistered = false;
 let shutdownTask: Promise<void> | null = null;
@@ -121,6 +123,12 @@ async function createWindow(): Promise<void> {
     mainWindow = null;
   });
 
+  if (!updateChecker) {
+    updateChecker = new UpdateChecker({
+      currentVersion: app.getVersion(),
+      cachePath: path.join(app.getPath('userData'), 'update-check.json'),
+    });
+  }
   if (!ipcRegistered) {
     registerIpc({
       getBackend: () => backend,
@@ -128,6 +136,7 @@ async function createWindow(): Promise<void> {
       getWindow: () => mainWindow,
       getHarness: () => harness,
       getMcpSecrets: () => mcpSecrets,
+      getUpdateChecker: () => updateChecker,
       getPublicBackendUrl: () => rendererServer?.url ?? null,
       chooseProjectDirectory,
     });

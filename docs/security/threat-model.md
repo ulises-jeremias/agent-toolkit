@@ -50,7 +50,7 @@
 
 ### T5: Supply chain
 - **Threat:** Malicious code introduced via dependencies or compromised source
-- **Controls:** Pinned deps, SBOM, Gitleaks, Trivy, minimal dep surface
+- **Controls:** Pinned deps, SBOM, Gitleaks, minimal dep surface (Trivy planned, #260)
 
 ## Security Controls Summary
 
@@ -61,4 +61,4 @@
 - ✅ No external HTTP hooks by default
 - ✅ MCP uses ${ENV_VAR} for credentials
 - ✅ Secret scanning in CI (Gitleaks)
-- ✅ Dependency scanning in CI (Trivy)
+- ⏳ Dependency scanning in CI (Trivy) — planned, see #260 and docs/TRUST.md
