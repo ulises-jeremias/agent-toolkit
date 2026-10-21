@@ -84,6 +84,11 @@ export class NdjsonDecoder {
 
 /** Runtime directory holding the socket, token, registry and journals. */
 export function ptyRuntimeDir(env: NodeJS.ProcessEnv = process.env): string {
+  // Explicit override wins: tests and sandboxed launches must be able to
+  // isolate their host instead of sharing the per-user default (which would
+  // leak live sessions across otherwise-isolated app instances).
+  const override = env.AGENT_TOOLKIT_PTY_RUNTIME_DIR;
+  if (override && path.isAbsolute(override)) return override;
   const xdg = env.XDG_RUNTIME_DIR;
   if (xdg && path.isAbsolute(xdg)) return path.join(xdg, 'agent-toolkit');
   return path.join(os.tmpdir(), `agent-toolkit-${os.userInfo().uid ?? 'user'}`);
