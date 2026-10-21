@@ -143,6 +143,16 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
         ]);
       } finally {
         if (killTimer) clearTimeout(killTimer);
+        // The detached PTY host outlives the app by design; in tests it must
+        // not outlive the launch, or its PTYs leak into the shared worker.
+        try {
+          const registry = JSON.parse(
+            fs.readFileSync(path.join(root, 'pty-runtime', 'pty-registry.json'), 'utf8'),
+          ) as { pid?: number };
+          if (typeof registry.pid === 'number') process.kill(registry.pid, 'SIGTERM');
+        } catch {
+          // No host was spawned for this launch, or it already exited.
+        }
         fs.rmSync(root, { recursive: true, force: true });
       }
     },
