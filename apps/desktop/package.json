@@ -1,6 +1,6 @@
 {
   "name": "agent-toolkit-desktop",
-  "version": "1.47.4",
+  "version": "1.47.5",
   "private": true,
   "description": "Agent Toolkit Desktop — Electron + React workstation over the `agent-toolkit serve` backend",
   "author": "ulises-jeremias",

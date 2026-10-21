@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.47.5] — 2026-10-19
+
+### Changed
+
+- Website screenshots and demo re-captured from Desktop 1.47.4 running
+  over a real workspace: Cozy Valley with house name signs and the
+  proximity plaque, the Cyberpunk City world as a real capture in the
+  neon section, project interior, Library, Operations, People and
+  Terminal.
+
 ## [1.47.4] — 2026-10-19
 
 ### Fixed
