@@ -6049,6 +6049,12 @@
           },
           "active": {
             "type": "boolean"
+          },
+          "extra_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -6059,7 +6065,8 @@
           "notes",
           "revision",
           "validation_errors",
-          "active"
+          "active",
+          "extra_fields"
         ]
       },
       "WorkspacePacksResponse": {

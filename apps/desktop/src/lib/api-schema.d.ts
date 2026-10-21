@@ -1899,6 +1899,7 @@ export interface components {
             revision: string;
             validation_errors: string[];
             active: boolean;
+            extra_fields: string[];
         };
         WorkspacePacksResponse: {
             ok: boolean;

@@ -25,6 +25,10 @@ pub:
 	revision          string
 	validation_errors []string
 	active            bool
+	// Top-level fields the Desktop form does not edit (for example `repos`,
+	// `org`, `ai`, `conventions`). They are preserved verbatim on save and
+	// listed here so the UI can disclose them instead of dropping them.
+	extra_fields []string
 }
 
 pub struct WorkspacePacksResponse {
@@ -149,6 +153,7 @@ pub fn list_workspace_packs(workspace string) !WorkspacePacksResponse {
 			revision: sha256.hexhash(text)
 			validation_errors: validation_errors
 			active: path == active
+			extra_fields: workspace_pack_extra_fields(text)
 		}
 	}
 	packs.sort(a.path < b.path)
@@ -244,6 +249,21 @@ pub fn save_workspace_pack(req WorkspacePackSaveRequest) !WorkspacePackSaveRespo
 			lines << '  '
 		}
 	}
+	// Preserve top-level fields the Desktop form does not edit verbatim, so
+	// saving a rich pack (repos/org/ai/conventions/…) never destroys them.
+	// The revision check below still runs against the file as opened, so a
+	// stale read cannot resurrect blocks from an outdated copy.
+	mut preserved_fields := []string{}
+	if req.pack_path.len > 0 && os.is_file(target) && !os.is_link(target) {
+		if existing := os.read_file(target) {
+			preserved_fields = workspace_pack_extra_fields(existing)
+			preserved := workspace_pack_preserved_lines(existing)
+			if preserved.len > 0 {
+				lines << ''
+				lines << preserved
+			}
+		}
+	}
 	contents := lines.join('\n') + '\n'
 	if contents.len > workspace_pack_file_limit {
 		return error('pack exceeds the 64 KiB review limit')
@@ -294,11 +314,94 @@ pub fn save_workspace_pack(req WorkspacePackSaveRequest) !WorkspacePackSaveRespo
 	if saved.len == 0 {
 		return error('saved pack could not be reloaded')
 	}
+	message := if preserved_fields.len > 0 {
+		'Workspace context pack saved. Fields not edited here (${preserved_fields.join(', ')}) were preserved verbatim. Review it before selecting it for future sessions.'
+	} else {
+		'Workspace context pack saved. Review it before selecting it for future sessions.'
+	}
 	return WorkspacePackSaveResponse{
 		ok: true
 		pack: saved[0]
-		message: 'Workspace context pack saved. Review it before selecting it for future sessions.'
+		message: message
 	}
+}
+
+const workspace_pack_managed_fields = ['name', 'description', 'projects', 'notes']
+
+// workspace_pack_top_level_key returns the key of a top-level YAML mapping
+// line (`key:` at column 0), or '' for content, comment and blank lines.
+fn workspace_pack_top_level_key(line string) string {
+	if line.len == 0 || line[0] == `#` || line[0] == ` ` || line[0] == `\t` {
+		return ''
+	}
+	mut end := 0
+	for end < line.len {
+		ch := line[end]
+		if (ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122) || (ch >= 48 && ch <= 57) || ch == 95 || ch == 45 {
+			end++
+		} else {
+			break
+		}
+	}
+	if end == 0 || end >= line.len || line[end] != `:` {
+		return ''
+	}
+	if end + 1 < line.len && line[end + 1] != ` ` {
+		return ''
+	}
+	return line[..end]
+}
+
+// workspace_pack_extra_fields lists top-level fields outside the Desktop
+// form model, in file order, without duplicates.
+fn workspace_pack_extra_fields(text string) []string {
+	mut fields := []string{}
+	for line in text.split('\n') {
+		key := workspace_pack_top_level_key(line)
+		if key.len > 0 && key !in workspace_pack_managed_fields && key !in fields {
+			fields << key
+		}
+	}
+	return fields
+}
+
+// workspace_pack_preserved_lines returns the verbatim lines of every
+// unmanaged top-level block, including the comment/blank lines that precede
+// it. Managed blocks (name/description/projects/notes) are dropped because
+// the caller re-emits them from the request.
+fn workspace_pack_preserved_lines(text string) []string {
+	mut kept := []string{}
+	mut pending := []string{}
+	mut in_kept_block := false
+	for line in text.split('\n') {
+		key := workspace_pack_top_level_key(line)
+		if key.len > 0 {
+			if key in workspace_pack_managed_fields {
+				pending = []string{}
+				in_kept_block = false
+			} else {
+				kept << pending
+				pending = []string{}
+				kept << line
+				in_kept_block = true
+			}
+		} else if line.starts_with('#') || line.trim_space().len == 0 {
+			pending << line
+		} else if in_kept_block {
+			kept << pending
+			pending = []string{}
+			kept << line
+		} else {
+			pending = []string{}
+		}
+	}
+	if in_kept_block {
+		kept << pending
+	}
+	for kept.len > 0 && kept[kept.len - 1].trim_space().len == 0 {
+		kept.delete(kept.len - 1)
+	}
+	return kept
 }
 
 fn workspace_pack_project_ref(value string) bool {
