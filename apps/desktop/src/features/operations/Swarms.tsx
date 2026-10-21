@@ -553,8 +553,8 @@ function SwarmRunBody({
             </tbody>
           </Table>
           <p role="note">
-            Runner and model show the saved launch configuration. A Person binding alone creates neither a Person
-            session nor a World character: a canonical Person session appears below only when the runner for that role
+            Runner and model show the saved launch configuration. A Person binding alone does not create a live Person
+            session or a World character: a canonical Person session appears below only when the runner for that role
             really launched, and it closes when the run stops.
           </p>
           {runPersonSessions.length > 0 ? (
@@ -583,7 +583,7 @@ function SwarmRunBody({
               </tbody>
             </Table>
           ) : (
-            <p role="note">No bound role has launched yet, so this run has no Person sessions.</p>
+            <p>No bound role has launched yet, so this run has no Person sessions.</p>
           )}
         </SwarmSection>
       ) : null}
