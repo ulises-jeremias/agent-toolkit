@@ -116,6 +116,11 @@ export function WorkspacePacksPanel({ workspace }: { workspace: string }) {
                     Related projects: <span>{pack.projects.join(', ')}</span>
                   </p>
                 ) : null}
+                {pack.extra_fields.length ? (
+                  <p className={styles.packProjects}>
+                    Also in this file (kept as-is, not edited here): <span>{pack.extra_fields.join(', ')}</span>
+                  </p>
+                ) : null}
                 {pack.validation_errors.map((error) => (
                   <p className={styles.packError} key={error} role="alert">
                     {error}
@@ -240,6 +245,12 @@ export function WorkspacePacksPanel({ workspace }: { workspace: string }) {
             <Button variant="ghost" onClick={() => void reloadLatest()} disabled={packs.isFetching}>
               Discard changes and reload latest
             </Button>
+          ) : null}
+          {editing?.extra_fields.length ? (
+            <p>
+              This pack file also defines <strong>{editing.extra_fields.join(', ')}</strong>. Those fields are not
+              edited in this form; saving keeps them exactly as they are in the file.
+            </p>
           ) : null}
           {editing && !editing.revision ? (
             <p className={styles.packError} role="alert">

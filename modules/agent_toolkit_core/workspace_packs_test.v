@@ -169,6 +169,52 @@ fn test_workspace_pack_create_edit_and_reject_stale_revision() {
 	assert false, 'stale edits must not overwrite a newer pack'
 }
 
+fn test_workspace_pack_save_preserves_rich_fields_outside_desktop_model() {
+	base := os.join_path(os.temp_dir(), 'at-ws-packs-rich-${os.getpid()}')
+	defer { os.rmdir_all(base) or {} }
+	os.mkdir_all(os.join_path(base, 'packs')) or { assert false, err.msg() }
+	os.write_file(os.join_path(base, 'AGENTS.md'), '# Workspace\n') or { assert false, err.msg() }
+	path := os.join_path(base, 'packs', 'rich.yaml')
+	os.write_file(path, 'name: Rich\ndescription: Rich pack\nprojects:\n  - alpha\n# ── Repos ──\nrepos:\n  - name: alpha\n    path: projects/alpha\norg:\n  github: example\nai:\n  delivery_skill: delivery/example\n') or {
+		assert false, err.msg()
+	}
+	listed := list_workspace_packs(base) or {
+		assert false, err.msg()
+		return
+	}
+	assert listed.packs.len == 1
+	assert listed.packs[0].extra_fields == ['repos', 'org', 'ai']
+	saved := save_workspace_pack(WorkspacePackSaveRequest{
+		workspace: base
+		pack_path: 'packs/rich.yaml'
+		revision: listed.packs[0].revision
+		name: 'Rich'
+		description: 'Updated rich pack'
+		projects: ['alpha', 'beta']
+		notes: 'Updated notes.'
+	}) or {
+		assert false, err.msg()
+		return
+	}
+	assert saved.pack.description == 'Updated rich pack'
+	assert saved.pack.extra_fields == ['repos', 'org', 'ai']
+	assert saved.message.contains('preserved')
+	text := os.read_file(path) or {
+		assert false, err.msg()
+		return
+	}
+	assert text.contains('repos:\n  - name: alpha\n    path: projects/alpha')
+	assert text.contains('org:\n  github: example')
+	assert text.contains('ai:\n  delivery_skill: delivery/example')
+	assert text.contains('# ── Repos ──')
+	reloaded := list_workspace_packs(base) or {
+		assert false, err.msg()
+		return
+	}
+	assert reloaded.packs[0].projects == ['alpha', 'beta']
+	assert reloaded.packs[0].notes == 'Updated notes.'
+}
+
 fn test_workspace_pack_reads_yaml_block_scalar_variants() {
 	base := os.join_path(os.temp_dir(), 'at-ws-packs-yaml-${os.getpid()}')
 	defer { os.rmdir_all(base) or {} }

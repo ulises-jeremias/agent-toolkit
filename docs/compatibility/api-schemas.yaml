@@ -670,6 +670,7 @@ schemas:
       - revision:string
       - validation_errors:string[]
       - active:boolean
+      - extra_fields:string[]
 
   - name: WorkspacePacksResponse
     v_struct: WorkspacePacksResponse
