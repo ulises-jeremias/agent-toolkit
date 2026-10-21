@@ -177,6 +177,40 @@ fn test_swarm_headless_start_refuses_requested_role_process_launch() {
 	assert !os.is_dir(os.join_path(base, '.agent-toolkit', 'swarm', 'runs'))
 }
 
+fn test_reconcile_swarm_person_sessions_closes_only_terminal_runs() {
+	ws := os.join_path(os.temp_dir(), 'at-swarm-reconcile-${os.getpid()}')
+	os.mkdir_all(os.join_path(ws, '.git')) or { panic(err) }
+	os.mkdir_all(os.join_path(ws, 'projects', 'demo')) or { panic(err) }
+	os.write_file(os.join_path(ws, 'AGENTS.md'), '# Swarm reconcile test workspace') or { panic(err) }
+	defer { os.rmdir_all(ws) or {} }
+	save_person(ws, '{"spec":"agent-toolkit/person@1","id":"lina","name":"Lina","role":"reviewer","goal":"Review changes","archived":false}', true) or {
+		panic(err)
+	}
+	mut store := new_person_session_store()
+	run_id := 's20261021T220000Z'
+	store.record_swarm_person_session(SwarmPersonSessionRequest{
+		workspace: ws
+		run_id: run_id
+		role: 'reviewer'
+		person_id: 'lina'
+		provider: 'opencode'
+		model: 'auto'
+		cwd: os.join_path(ws, 'projects', 'demo')
+	}) or { panic(err) }
+	rd := swarm_run_dir(ws, run_id)
+	// A live or paused run is not evidence the worker is gone.
+	reconcile_swarm_person_sessions(ws, rd, run_id, 'running')
+	reconcile_swarm_person_sessions(ws, rd, run_id, 'paused')
+	mut listed := store.list_person_sessions(ws) or { panic(err) }
+	assert listed.sessions.len == 1
+	assert listed.sessions[0].status == 'running'
+	// A terminal run state closes the orphaned record truthfully.
+	reconcile_swarm_person_sessions(ws, rd, run_id, 'completed')
+	listed = store.list_person_sessions(ws) or { panic(err) }
+	assert listed.sessions[0].status == 'completed'
+	assert listed.sessions[0].ended_at.len > 0
+}
+
 fn test_swarm_person_environment_hint_is_role_specific_and_shell_quoted() {
 	bindings := {
 		'reviewer': "lina's-review"

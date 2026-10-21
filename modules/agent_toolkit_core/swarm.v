@@ -1546,6 +1546,24 @@ fn record_swarm_role_person_session(ws string, run_dir string, run_id string, ro
 	append_swarm_trace(run_dir, 'person_session_recorded', role + '=' + person_id)
 }
 
+// reconcile_swarm_person_sessions closes orphaned swarm PersonSession
+// records when the run's authoritative state is terminal. Live or paused
+// runs are not evidence that a worker is gone, so their records are left
+// alone. Status/list paths call this so stale `running` records converge
+// to the truth the next time anyone looks at the run.
+fn reconcile_swarm_person_sessions(ws string, run_dir string, run_id string, run_state string) {
+	status := match run_state {
+		'completed' { 'completed' }
+		'failed' { 'failed' }
+		'cancelled', 'budget_exhausted', 'cleanup_pending' { 'interrupted' }
+		else { '' }
+	}
+	if status.len == 0 {
+		return
+	}
+	close_swarm_role_person_sessions(ws, run_dir, run_id, status)
+}
+
 // close_swarm_role_person_sessions ends the run's swarm-linked PersonSession
 // records when the run's workers are torn down (stop/cancel/cleanup).
 fn close_swarm_role_person_sessions(ws string, run_dir string, run_id string, status string) {
@@ -2255,6 +2273,7 @@ fn swarm_list(ws string, opts SwarmOptions) SwarmReport {
 		mut entries := []SwarmListEntry{}
 		for rd in all {
 			st := read_swarm_state(rd) or { continue }
+			reconcile_swarm_person_sessions(ws, rd, st.run_id, st.run_state)
 			entries << SwarmListEntry{
 				run_id: st.run_id
 				recipe: st.recipe
@@ -2298,6 +2317,7 @@ fn swarm_list(ws string, opts SwarmOptions) SwarmReport {
 	mut count := 0
 	for rd in all {
 		st := read_swarm_state(rd) or { continue }
+		reconcile_swarm_person_sessions(ws, rd, st.run_id, st.run_state)
 		lines << '${st.run_id}\t${st.recipe}\t${st.run_state}\t${st.created_at}'
 		count++
 	}
@@ -2338,6 +2358,7 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 			message: 'Run not found: ${opts.run_id}'
 		}
 	}
+	reconcile_swarm_person_sessions(ws, rd, opts.run_id, st.run_state)
 	gates := read_swarm_approvals(rd)
 	mut gtxt := []string{}
 	for g in gates {
