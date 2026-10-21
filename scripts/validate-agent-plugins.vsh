@@ -46,14 +46,14 @@ fn valid_plugin_name(name string) bool {
 }
 
 struct PluginManifest {
-	schema      string @[json: '\$schema']
+	schema      string @[json: '$schema']
 	name        string
 	version     string
 	description string
 }
 
 struct McpFile {
-	schema      string @[json: '\$schema']
+	schema      string @[json: '$schema']
 	mcp_servers map[string]McpServer @[json: 'mcpServers']
 }
 
