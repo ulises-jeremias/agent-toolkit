@@ -6,6 +6,7 @@ import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { captureCodexSessionId } from './provider-session-capture.js';
 import { PtyHostClient } from './pty-host-client.js';
 import { PtyHostCore } from './pty-host-core.js';
 import { encodeFrame, PTY_HOST_PROTOCOL, ptyRuntimeDir, ptySocketPath, readOrCreateToken } from './pty-protocol.js';
@@ -107,6 +108,66 @@ describe('PtyHost (ADR-037)', () => {
       core.terminateAll();
       await core.close();
       fs.rmSync(runtimeDir, { recursive: true, force: true });
+    }
+  }, 30_000);
+
+  it('captures the codex session id recorded for the session cwd', async () => {
+    const runtimeDir = tempRuntimeDir();
+    const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-codex-home-'));
+    const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-codex-cwd-'));
+    const previousCodexHome = process.env.CODEX_HOME;
+    process.env.CODEX_HOME = codexHome;
+    const token = readOrCreateToken(runtimeDir, () => randomUUID());
+    const core = new PtyHostCore({ runtimeDir, token });
+    await core.listen();
+    try {
+      const client = new PtyHostClient({
+        runtimeDir,
+        spawnHost: () => {
+          throw new Error('host already listening');
+        },
+      });
+      const rolloutDir = path.join(codexHome, 'sessions', '2026', '10', '21');
+      const meta = JSON.stringify({ type: 'session_meta', payload: { id: 'codex-conv-123', cwd: workDir } });
+      const script = `mkdir -p ${rolloutDir} && printf '%s\\n' '${meta}' > ${path.join(rolloutDir, 'rollout-test.jsonl')} && sleep 30`;
+      const session = await client.create({ agent: 'codex-test', provider: 'codex', cmd: '/bin/sh', args: ['-c', script], cwd: workDir });
+      expect(session.providerSessionId).toBeUndefined();
+      await waitFor(async () => {
+        const info = (await client.list()).find((candidate) => candidate.id === session.id);
+        return info?.providerSessionId === 'codex-conv-123';
+      });
+      expect(await client.close(session.id)).toBe(true);
+      client.disconnect();
+    } finally {
+      if (previousCodexHome === undefined) delete process.env.CODEX_HOME;
+      else process.env.CODEX_HOME = previousCodexHome;
+      core.terminateAll();
+      await core.close();
+      fs.rmSync(runtimeDir, { recursive: true, force: true });
+      fs.rmSync(codexHome, { recursive: true, force: true });
+      fs.rmSync(workDir, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  it('never captures a codex session recorded for a different cwd', async () => {
+    const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-codex-home-'));
+    try {
+      const rolloutDir = path.join(codexHome, 'sessions', '2026', '10', '21');
+      fs.mkdirSync(rolloutDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(rolloutDir, 'rollout-other.jsonl'),
+        `${JSON.stringify({ type: 'session_meta', payload: { id: 'other-conv', cwd: '/somewhere/else' } })}\n`,
+      );
+      const captured = await captureCodexSessionId({
+        cwd: os.tmpdir(),
+        sinceMs: Date.now() - 60_000,
+        codexHome,
+        timeoutMs: 300,
+        intervalMs: 50,
+      });
+      expect(captured).toBeNull();
+    } finally {
+      fs.rmSync(codexHome, { recursive: true, force: true });
     }
   }, 30_000);
 

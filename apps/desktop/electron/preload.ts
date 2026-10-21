@@ -1,5 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { AtkBridge, PtyCreateOptions, PtyExitEvent, PtyDataEvent } from '../src/types/electron';
+import type {
+  AtkBridge,
+  PtyCreateOptions,
+  PtyExitEvent,
+  PtyDataEvent,
+  PtyProviderSessionEvent,
+} from '../src/types/electron';
 
 const bridge: AtkBridge = {
   backendStatus: () => ipcRenderer.invoke('atk:backend-status'),
@@ -46,6 +52,15 @@ const bridge: AtkBridge = {
     ipcRenderer.on('atk:pty-exit', wrapped);
     return () => {
       ipcRenderer.removeListener('atk:pty-exit', wrapped);
+    };
+  },
+  onPtyProviderSession: (listener) => {
+    const wrapped = (_event: unknown, payload: unknown): void => {
+      listener(payload as PtyProviderSessionEvent);
+    };
+    ipcRenderer.on('atk:pty-provider-session', wrapped);
+    return () => {
+      ipcRenderer.removeListener('atk:pty-provider-session', wrapped);
     };
   },
 };

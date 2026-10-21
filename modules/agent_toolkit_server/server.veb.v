@@ -630,6 +630,7 @@ const registered_api_routes = [
 	'/api/v1/people/:id',
 	'/api/v1/people/:id/archive',
 	'/api/v1/sessions',
+	'/api/v1/sessions/:id/provider-session',
 	'/api/v1/sessions/:id/status',
 	'/api/v1/memory/:sub',
 	'/api/v1/files',

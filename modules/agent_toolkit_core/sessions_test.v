@@ -91,3 +91,51 @@ fn test_person_session_list_rejects_symlinked_session_storage() {
 		assert err.msg().contains('symlink')
 	}
 }
+
+fn test_provider_session_id_attach_is_write_once_and_rejects_invalid_values() {
+	ws := session_workspace('provider-attach')
+	defer { os.rmdir_all(ws) or {} }
+	mut store := new_person_session_store()
+	file := store.session_file(ws, 'session-test') or { panic(err) }
+	os.mkdir_all(os.dir(file)) or { panic(err) }
+	os.write_file(file, '{"id":"session-test","person_id":"lina","person":"Lina","role":"reviewer","project_id":"linked-demo","cwd":"${os.join_path(ws, 'projects', 'demo')}","provider":"codex","model":"","status":"running","started_at":"2026-10-06T00:00:00Z","ended_at":"","exit_code":-1}') or { panic(err) }
+	if _ := store.attach_provider_session_id(ws, 'session-test', 'bad id!') {
+		assert false, 'invalid provider session ids must be rejected'
+	} else {
+		assert err.msg().contains('invalid provider session id')
+	}
+	attached := store.attach_provider_session_id(ws, 'session-test', '0199da6e-0000-7000-8000-000000000001') or { panic(err) }
+	assert attached.provider_session_id == '0199da6e-0000-7000-8000-000000000001'
+	again := store.attach_provider_session_id(ws, 'session-test', '0199da6e-0000-7000-8000-000000000001') or { panic(err) }
+	assert again.provider_session_id == attached.provider_session_id
+	if _ := store.attach_provider_session_id(ws, 'session-test', '0199da6e-0000-7000-8000-000000000002') {
+		assert false, 'a different provider session id must conflict, never overwrite'
+	} else {
+		assert err.msg().contains('already recorded')
+	}
+	store.update_person_session(ws, 'session-test', 'completed', 0) or { panic(err) }
+	if _ := store.attach_provider_session_id(ws, 'session-test', '0199da6e-0000-7000-8000-000000000003') {
+		assert false, 'ended sessions must not accept provider session ids'
+	} else {
+		assert err.msg().contains('live session')
+	}
+	listed := store.list_person_sessions(ws) or { panic(err) }
+	assert listed.sessions[0].provider_session_id == '0199da6e-0000-7000-8000-000000000001'
+}
+
+fn test_create_person_session_rejects_invalid_provider_session_id() {
+	ws := session_workspace('provider-create-validation')
+	defer { os.rmdir_all(ws) or {} }
+	mut store := new_person_session_store()
+	if _ := store.create_person_session(PersonSessionCreateRequest{
+		workspace: ws
+		person_id: 'lina'
+		project_id: 'missing'
+		provider: 'opencode'
+		provider_session_id: 'bad id!'
+	}) {
+		assert false, 'invalid provider session ids must be rejected at create'
+	} else {
+		assert err.msg().contains('invalid provider session id')
+	}
+}

@@ -12,6 +12,7 @@ import {
   type PtyHostEvent,
   type PtyHostRequest,
 } from './pty-protocol.js';
+import { captureCodexSessionId } from './provider-session-capture.js';
 import type { TerminalSessionInfo } from './terminal.js';
 
 /**
@@ -210,6 +211,7 @@ export class PtyHostCore {
       projectId: request.projectId,
       provider: request.provider,
       model: request.model,
+      providerSessionId: request.providerSessionId,
       cmd: request.cmd,
       args: request.args ?? [],
       cwd: request.cwd,
@@ -235,6 +237,21 @@ export class PtyHostCore {
     });
     this.sessions.set(id, session);
     if (request.maxSeconds !== undefined) this.scheduleBudgetExpiry(session, Date.now() + request.maxSeconds * 1000);
+    if (request.provider === 'codex' && !request.providerSessionId) {
+      // Codex does not accept an assigned session id; capture the one it
+      // records for this cwd after spawn (best-effort, never guessed).
+      const spawnedAt = Date.now();
+      void captureCodexSessionId({
+        cwd: request.cwd,
+        sinceMs: spawnedAt,
+        shouldContinue: () => session.exitCode === null && this.sessions.has(id),
+      }).then((providerSessionId) => {
+        if (!providerSessionId || session.exitCode !== null) return;
+        session.providerSessionId = providerSessionId;
+        this.writeRegistry();
+        this.broadcast({ event: 'provider-session', sessionId: id, providerSessionId });
+      });
+    }
     this.writeRegistry();
     this.broadcast({ event: 'created', sessionId: id });
     return this.infoOf(session);
