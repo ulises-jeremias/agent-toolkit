@@ -59,6 +59,7 @@ export const qk = {
 
   workspacePacks: {
     list: (workspace = '') => ['workspace-packs', 'list', workspace] as const,
+    effectiveContext: (workspace = '') => ['workspace-packs', 'effective-context', workspace] as const,
   },
 
   report: (kind: ReportKind) => [kind, 'report'] as const,

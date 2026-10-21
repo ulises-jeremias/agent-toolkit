@@ -377,6 +377,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspace/packs/effective-context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Show the ordered effective-context fragments a future session in this workspace would draw from */
+        get: operations["workspace_packs_effective_context"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspace/packs/activate": {
         parameters: {
             query?: never;
@@ -1932,6 +1949,26 @@ export interface components {
             pack: components["schemas"]["WorkspacePackSummary"];
             message: string;
         };
+        /** @description One ordered fragment of the effective context a future session would draw from, with provenance and a provider-agnostic size estimate. */
+        ContextFragment: {
+            id: string;
+            kind: string;
+            source: string;
+            sha256: string;
+            bytes: number;
+            est_tokens: number;
+            mode: string;
+            detail: string;
+        };
+        /** @description The assembled effective-context fragment list for a workspace. Selection applies to future sessions only; this is prompt-shaping data, not a security boundary. */
+        EffectiveContextResponse: {
+            ok: boolean;
+            workspace: string;
+            active_pack: string;
+            fragments: components["schemas"]["ContextFragment"][];
+            total_est_tokens: number;
+            notes: string[];
+        };
     };
     responses: never;
     parameters: never;
@@ -2896,6 +2933,46 @@ export interface operations {
             };
             /** @description workspace is outside allowed roots or uses a symlinked pack directory */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    workspace_packs_effective_context: {
+        parameters: {
+            query?: {
+                workspace?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EffectiveContextResponse"];
+                };
+            };
+            /** @description workspace is outside allowed roots or uses a symlinked pack directory */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description workspace is not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

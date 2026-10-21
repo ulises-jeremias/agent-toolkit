@@ -37,6 +37,7 @@ import type {
   WorkspaceFileListResponse,
   WorkspaceFileReadResponse,
   WorkspaceFileSearchResponse,
+  EffectiveContextResponse,
   WorkspacePacksResponse,
   WorkspacePackActivateResponse,
   WorkspacePackSaveResponse,
@@ -432,6 +433,12 @@ export class ApiClient {
 
   workspacePacks(workspace: string): Promise<WorkspacePacksResponse> {
     return this.json('GET', '/api/v1/workspace/packs/list' satisfies PathWith<'get'>, { query: { workspace } });
+  }
+
+  effectiveContext(workspace: string): Promise<EffectiveContextResponse> {
+    return this.json('GET', '/api/v1/workspace/packs/effective-context' satisfies PathWith<'get'>, {
+      query: { workspace },
+    });
   }
 
   activateWorkspacePack(workspace: string, pack_path: string): Promise<WorkspacePackActivateResponse> {

@@ -639,6 +639,7 @@ const registered_api_routes = [
 	'/api/v1/workspace/packs/list',
 	'/api/v1/workspace/packs/activate',
 	'/api/v1/workspace/packs/save',
+	'/api/v1/workspace/packs/effective-context',
 	'/api/v1/project/:sub',
 	'/api/v1/dc/:sub',
 	'/api/v1/build',
