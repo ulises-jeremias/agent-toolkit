@@ -91,4 +91,17 @@ export function useSwarmRunAction() {
   });
 }
 
+export function useResolveSwarmHandoff() {
+  const { client } = useBackend();
+  const queryClient = useQueryClient();
+  return useMutation<SwarmActionResponse, Error, { id: string; handoffId: string }>({
+    mutationKey: ['swarms', 'resolve-handoff'],
+    mutationFn: ({ id, handoffId }) => requireClient(client).resolveSwarmHandoff(id, handoffId),
+    onSettled: (_data, _error, variables) => {
+      void queryClient.invalidateQueries({ queryKey: qk.swarms.list() });
+      if (variables) void queryClient.invalidateQueries({ queryKey: qk.swarms.run(variables.id) });
+    },
+  });
+}
+
 export type { SwarmListResponse, SwarmRunResponse };

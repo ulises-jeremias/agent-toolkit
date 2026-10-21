@@ -654,6 +654,7 @@ const registered_api_routes = [
 	'/api/v1/swarms/runs/:id/approve',
 	'/api/v1/swarms/runs/:id/reject',
 	'/api/v1/swarms/runs/:id/stop',
+	'/api/v1/swarms/runs/:id/resolve-handoff',
 	'/api/v1/swarms/:sub',
 	'/api/v1/jobs',
 	'/api/v1/jobs/:id/log',

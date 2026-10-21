@@ -2,7 +2,14 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useModels, useProviders } from '../../data/catalog';
 import { useLiveStatus } from '../../data/live';
-import { useSwarmCommand, useSwarmRecipes, useSwarmRun, useSwarmRunAction, useSwarms } from '../../data/swarms';
+import {
+  useResolveSwarmHandoff,
+  useSwarmCommand,
+  useSwarmRecipes,
+  useSwarmRun,
+  useSwarmRunAction,
+  useSwarms,
+} from '../../data/swarms';
 import {
   requireOk,
   type CommandEnvelope,
@@ -14,7 +21,7 @@ import {
 import { requireClient, useBackend } from '../../data/backend';
 import { useSessionContext } from '../../shell/useSessionContext';
 import { useProjects } from '../../data/projects';
-import { hasProjectBoundSwarmPreview } from './swarmPreview';
+import { hasProjectBoundSwarmPreview, hopLabel, needsYouHandoffs } from './swarmPreview';
 import {
   Button,
   ButtonRow,
@@ -370,6 +377,54 @@ function SwarmInspector({
   );
 }
 
+type SwarmHandoff = SwarmRunResponse['handoffs'][number];
+
+function NeedsYouSection({ runId, handoffs }: { runId: string; handoffs: SwarmHandoff[] }) {
+  const resolve = useResolveSwarmHandoff();
+  const waiting = needsYouHandoffs(handoffs);
+  if (waiting.length === 0) return null;
+  return (
+    <SwarmSection title="Needs you" empty="Nothing is waiting on a human.">
+      <p role="note">
+        These handoffs passed their reply-chain budget and were routed to you instead of bouncing between agents
+        (ADR-039). Resolving completes the handoff; hand the work on explicitly afterwards.
+      </p>
+      <Table>
+        <thead>
+          <tr>
+            <th scope="col">From</th>
+            <th scope="col">To</th>
+            <th scope="col">Act</th>
+            <th scope="col">Chain</th>
+            <th scope="col">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {waiting.map((handoff) => (
+            <tr key={handoff.id}>
+              <td>{handoff.from_role}</td>
+              <td>{handoff.to_role}</td>
+              <td>{handoff.act || '—'}</td>
+              <td>{hopLabel(handoff)}</td>
+              <td>
+                <Button
+                  size="sm"
+                  disabled={resolve.isPending}
+                  busy={resolve.isPending && resolve.variables?.handoffId === handoff.id}
+                  onClick={() => resolve.mutate({ id: runId, handoffId: handoff.id })}
+                >
+                  Resolve
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+      {resolve.isError ? <ErrorState title="Could not resolve the handoff" error={resolve.error} /> : null}
+    </SwarmSection>
+  );
+}
+
 function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person[] }) {
   const { run, budget } = data;
   const executionRoles = Object.keys(run.role_runners ?? {}).sort();
@@ -477,6 +532,7 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
           </Table>
         ) : null}
       </SwarmSection>
+      <NeedsYouSection runId={run.run_id} handoffs={data.handoffs} />
       <SwarmSection title="Handoffs" empty="No handoffs reported.">
         {data.handoffs.length > 0 ? (
           <Table>
@@ -485,6 +541,8 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
                 <th scope="col">State</th>
                 <th scope="col">From</th>
                 <th scope="col">To</th>
+                <th scope="col">Act</th>
+                <th scope="col">Chain</th>
               </tr>
             </thead>
             <tbody>
@@ -495,6 +553,8 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
                   </td>
                   <td>{handoff.from_role}</td>
                   <td>{handoff.to_role}</td>
+                  <td>{handoff.act || '—'}</td>
+                  <td>{hopLabel(handoff)}</td>
                 </tr>
               ))}
             </tbody>

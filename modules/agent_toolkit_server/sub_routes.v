@@ -523,6 +523,8 @@ struct SwarmsSubReq {
 	commit        string
 	branch        string
 	blocking      bool
+	act           string
+	max_hops      int
 	role          string
 	handoff_id    string
 	to_recipe     string
@@ -565,6 +567,10 @@ pub fn build_swarms_options(sub string, body string) !agent_toolkit_core.SwarmOp
 	check_git_ref('branch', req.branch)!
 	check_commit('commit', req.commit)!
 	check_non_negative('priority', req.priority)!
+	check_non_negative('max_hops', req.max_hops)!
+	if req.act.len > 0 {
+		check_ident('act', req.act)!
+	}
 	return agent_toolkit_core.SwarmOptions{
 		subcommand: sub
 		workspace_path: ws
@@ -596,6 +602,8 @@ pub fn build_swarms_options(sub string, body string) !agent_toolkit_core.SwarmOp
 		commit: req.commit
 		branch: req.branch
 		blocking: req.blocking
+		act: req.act
+		max_hops: req.max_hops
 		role: req.role
 		handoff_id: req.handoff_id
 		to_recipe: req.to_recipe

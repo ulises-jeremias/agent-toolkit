@@ -978,6 +978,12 @@
                   "blocking": {
                     "type": "boolean"
                   },
+                  "act": {
+                    "type": "string"
+                  },
+                  "max_hops": {
+                    "type": "integer"
+                  },
                   "role": {
                     "type": "string"
                   },
@@ -3643,6 +3649,56 @@
         }
       }
     },
+    "/api/v1/swarms/runs/{id}/resolve-handoff": {
+      "post": {
+        "operationId": "resolve_swarm_handoff",
+        "summary": "Server-native endpoint (resolve_swarm_handoff)",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid handoff_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "run or handoff not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/loops": {
       "get": {
         "operationId": "list_loops",
@@ -5330,6 +5386,15 @@
           "blocking": {
             "type": "boolean"
           },
+          "act": {
+            "type": "string"
+          },
+          "hops": {
+            "type": "integer"
+          },
+          "max_hops": {
+            "type": "integer"
+          },
           "state": {
             "type": "string"
           },
@@ -5347,6 +5412,9 @@
           "commit",
           "branch",
           "blocking",
+          "act",
+          "hops",
+          "max_hops",
           "state",
           "created_at"
         ]
@@ -5730,6 +5798,21 @@
           "ok",
           "run_id",
           "artifacts"
+        ]
+      },
+      "SwarmResolveHandoffRequest": {
+        "type": "object",
+        "properties": {
+          "workspace": {
+            "type": "string"
+          },
+          "handoff_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace",
+          "handoff_id"
         ]
       },
       "SwarmActionResponse": {

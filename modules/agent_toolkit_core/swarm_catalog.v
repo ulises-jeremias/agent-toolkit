@@ -44,6 +44,9 @@ pub:
 	commit     string
 	branch     string
 	blocking   bool
+	act        string
+	hops       int
+	max_hops   int
 	state      string
 	created_at string
 }
@@ -205,6 +208,19 @@ pub fn reject_swarm_gate_typed(workspace string, run_id string, gate_id string, 
 	return swarm_action_from_report(report, run_id)
 }
 
+// resolve_swarm_handoff_typed completes a handoff on behalf of a human —
+// the resolution path for handoffs routed to awaiting_human (ADR-039).
+pub fn resolve_swarm_handoff_typed(workspace string, run_id string, handoff_id string) SwarmActionResponse {
+	report := run_swarm(SwarmOptions{
+		subcommand: 'task'
+		handoff_sub: 'complete'
+		workspace_path: workspace
+		run_id: run_id
+		handoff_id: handoff_id
+	})
+	return swarm_action_from_report(report, run_id)
+}
+
 pub fn stop_swarm_run_typed(workspace string, run_id string) SwarmActionResponse {
 	report := run_swarm(SwarmOptions{
 		subcommand: 'cancel'
@@ -269,6 +285,9 @@ fn collect_swarm_handoffs(rd string) []SwarmHandoffView {
 				commit: rec.commit
 				branch: rec.branch
 				blocking: rec.blocking
+				act: rec.act
+				hops: rec.hops
+				max_hops: rec.max_hops
 				state: st
 				created_at: rec.created_at
 			}

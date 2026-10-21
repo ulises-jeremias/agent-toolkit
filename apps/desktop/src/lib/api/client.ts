@@ -568,4 +568,13 @@ export class ApiClient {
   ): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}/stop', 'post'>, SwarmActionResponse>> {
     return this.json('POST', fillPath('/api/v1/swarms/runs/{id}/stop' satisfies PathWith<'post'>, { id }));
   }
+
+  resolveSwarmHandoff(
+    id: string,
+    handoffId: string,
+  ): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}/resolve-handoff', 'post'>, SwarmActionResponse>> {
+    return this.json('POST', fillPath('/api/v1/swarms/runs/{id}/resolve-handoff' satisfies PathWith<'post'>, { id }), {
+      body: { handoff_id: handoffId },
+    });
+  }
 }
