@@ -9,6 +9,7 @@ import { useTerminalSessions } from '../../data/terminal';
 import { useSessionContext } from '../../shell/useSessionContext';
 import { Button, ButtonRow, Dialog, ErrorState, Field, Panel, Select } from '../../ui';
 import { initialPromptMode, personInitialPrompt, personSessionOptions } from './personRunner';
+import { canResumeConversation, personResumeOptions, providerResumeSupport } from './providerResume';
 import styles from './people.module.css';
 
 export function PersonStartDialog({
@@ -32,6 +33,7 @@ export function PersonStartDialog({
   const [task, setTask] = useState('');
   const [taskCopied, setTaskCopied] = useState(false);
   const [taskCopyError, setTaskCopyError] = useState<string | null>(null);
+  const [resumeConversation, setResumeConversation] = useState(true);
   const [acknowledgeUnenforcedPolicy, setAcknowledgeUnenforcedPolicy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -80,6 +82,7 @@ export function PersonStartDialog({
     setProviderId(previousSession?.provider || person.preferred_provider || '');
     setModelName(previousSession?.model || person.preferred_model || '');
     setTask(person.goal);
+    setResumeConversation(true);
     setTaskCopied(false);
     setTaskCopyError(null);
     setAcknowledgeUnenforcedPolicy(false);
@@ -107,19 +110,30 @@ export function PersonStartDialog({
   const previousProviderAvailable = Boolean(
     previousSession && providers.some((provider) => provider.id === previousSession.provider && provider.available),
   );
+  const resumable = Boolean(
+    previousSession &&
+    chosenProvider &&
+    previousSession.provider === chosenProvider.id &&
+    canResumeConversation(chosenProvider.id, previousSession.provider_session_id),
+  );
+  const willResume = resumable && resumeConversation;
 
   const begin = async () => {
     if (!person || !chosenProvider || !chosenProject || busy) return;
     if (unenforcedPersonPolicy.length > 0 && !acknowledgeUnenforcedPolicy) return;
     setError(null);
-    const options = personSessionOptions(
-      person,
-      chosenProvider,
-      chosenModel,
-      chosenProject.target,
-      chosenProject.name,
-      task,
-    );
+    const options =
+      willResume && previousSession
+        ? personResumeOptions(
+            person,
+            chosenProvider,
+            chosenModel,
+            chosenProject.target,
+            chosenProject.name,
+            previousSession.provider_session_id,
+            task,
+          )
+        : personSessionOptions(person, chosenProvider, chosenModel, chosenProject.target, chosenProject.name, task);
     if (!options) {
       setError('This runner is not available for a local PTY session. Choose an installed runner and a valid project.');
       return;
@@ -133,6 +147,7 @@ export function PersonStartDialog({
         project_id: chosenProject.name,
         provider: chosenProvider.id,
         model: chosenModel?.model ?? '',
+        ...(options.providerSessionId ? { provider_session_id: options.providerSessionId } : {}),
       });
       let session = null;
       try {
@@ -189,7 +204,9 @@ export function PersonStartDialog({
       title={person ? `Start ${person.name}${previousSession ? ' again' : ''}` : 'Start Person'}
       description={
         previousSession
-          ? 'Starts a fresh PTY with the previous project and runner settings as a starting point. It does not restore a transcript or continue the prior conversation. Review every choice before starting.'
+          ? willResume
+            ? 'Continues the previous conversation with the same runner: a new PTY and session record resume the recorded provider conversation. Review every choice before starting.'
+            : 'Starts a fresh PTY with the previous project and runner settings as a starting point. It does not restore a transcript or continue the prior conversation. Review every choice before starting.'
           : 'Reviews a real local runner session before it starts. The Person stays durable; this task belongs only to the new session. Max runtime is enforced; token/cost limits and worktree/session isolation are not supported by this interactive PTY yet.'
       }
       size="wide"
@@ -233,8 +250,29 @@ export function PersonStartDialog({
           {previousSession ? (
             <p className={styles.recoveryNote} role="note">
               Previous setup: {previousSession.project_id} with {previousSession.provider}
-              {previousSession.model ? ` · ${previousSession.model}` : ''}. This opens a fresh session; conversation
-              state is not restored. Review the selected settings below.
+              {previousSession.model ? ` · ${previousSession.model}` : ''}.{' '}
+              {willResume
+                ? 'The previous conversation will be resumed.'
+                : 'This opens a fresh session; conversation state is not restored.'}{' '}
+              Review the selected settings below.
+            </p>
+          ) : null}
+          {previousSession && resumable ? (
+            <label className={styles.policyAcknowledgement}>
+              <input
+                type="checkbox"
+                checked={resumeConversation}
+                onChange={(event) => setResumeConversation(event.target.checked)}
+              />
+              <span>
+                Continue the previous {previousSession.provider} conversation. Uncheck to start a fresh conversation
+                instead; the previous one stays untouched.
+              </span>
+            </label>
+          ) : null}
+          {previousSession && previousSession.provider_session_id && chosenProvider && !resumable ? (
+            <p role="status" className={styles.recoveryNote}>
+              The previous conversation cannot be resumed with the selected runner; a fresh conversation will start.
             </p>
           ) : null}
           {previousSession && projectsQuery.isSuccess && !previousProjectAvailable ? (
@@ -381,6 +419,14 @@ export function PersonStartDialog({
                 {taskCopyError ? <span role="alert">{taskCopyError}</span> : null}
               </div>
             ) : null}
+            <p>
+              <strong>Conversation:</strong>{' '}
+              {willResume
+                ? `Resumes the previous ${previousSession?.provider} conversation in a new PTY.`
+                : chosenProvider && providerResumeSupport(chosenProvider.id)
+                  ? 'Starts fresh; this runner records its conversation so a later session can resume it.'
+                  : 'Starts fresh; this runner does not expose a resumable conversation id.'}
+            </p>
             <p>
               <strong>Working folder:</strong> <code>{chosenProject?.target || 'Choose a project'}</code>
             </p>

@@ -80,16 +80,26 @@ describe('personSessionOptions', () => {
       ],
     ],
   ])('sends a reviewed initial task to %s using its interactive CLI contract', (providerId, args) => {
-    expect(
-      personSessionOptions(
-        person,
-        { ...provider, id: providerId },
-        { profile: 'balanced', runner: providerId, model: 'model-x' },
-        '/work/project',
-        'project',
-        '  Review this PR  ',
-      )?.args,
-    ).toEqual(args);
+    const options = personSessionOptions(
+      person,
+      { ...provider, id: providerId },
+      { profile: 'balanced', runner: providerId, model: 'model-x' },
+      '/work/project',
+      'project',
+      '  Review this PR  ',
+    );
+    if (providerId === 'claude' || providerId === 'copilot') {
+      // Assign-strategy runners receive a session id we choose (resume support).
+      const sessionIdIndex = options?.args?.indexOf('--session-id') ?? -1;
+      expect(sessionIdIndex).toBeGreaterThanOrEqual(0);
+      expect(options?.providerSessionId).toBe(options?.args?.[sessionIdIndex + 1]);
+      expect(options?.args?.filter((arg) => arg !== '--session-id' && arg !== options?.providerSessionId)).toEqual(
+        args,
+      );
+    } else {
+      expect(options?.providerSessionId).toBeUndefined();
+      expect(options?.args).toEqual(args);
+    }
   });
 
   it('keeps unsupported runners interactive and never guesses prompt flags', () => {

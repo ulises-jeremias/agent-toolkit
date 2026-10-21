@@ -317,6 +317,7 @@ schemas:
       - started_at:string
       - ended_at:string
       - exit_code:integer
+      - provider_session_id:string
 
   - name: PersonSessionsResponse
     v_struct: PersonSessionsResponse
@@ -338,6 +339,13 @@ schemas:
       - project_id:string
       - provider:string
       - model:string
+      - provider_session_id:string
+
+  - name: PersonSessionProviderRequest
+    v_struct: PersonSessionProviderRequest
+    fields:
+      - workspace:string
+      - provider_session_id:string
 
   - name: PersonSessionStatusRequest
     v_struct: PersonSessionStatusRequest
@@ -950,6 +958,16 @@ native:
       - '400:invalid session status'
       - '404:session not found'
       - '409:invalid lifecycle transition'
+  - path: /api/v1/sessions/{id}/provider-session
+    method: post
+    op: attach_person_session_provider_id
+    summary: Record the provider conversation id captured after PTY spawn
+    request_body: PersonSessionProviderRequest
+    response: '#PersonSessionResponse'
+    errors:
+      - '400:invalid provider session id or session already ended'
+      - '404:session not found'
+      - '409:a different provider session id is already recorded'
   - path: /api/v1/people/bindings
     method: get
     op: list_people_bindings

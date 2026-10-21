@@ -116,6 +116,7 @@ export function registerIpc(deps: IpcDeps): void {
         sessionWorkspace?: string;
         provider?: string;
         model?: string;
+        providerSessionId?: string;
         cmd: string;
         args?: string[];
         cwd?: string;
@@ -123,7 +124,7 @@ export function registerIpc(deps: IpcDeps): void {
         cols?: number;
         rows?: number;
       },
-    ) => {
+    ) => (async (): Promise<unknown> => {
       if (!isRecord(options)) return null;
       const {
         agent,
@@ -133,6 +134,7 @@ export function registerIpc(deps: IpcDeps): void {
         projectId,
         provider,
         model,
+        providerSessionId,
         cmd,
         args,
         cwd,
@@ -160,11 +162,16 @@ export function registerIpc(deps: IpcDeps): void {
       if (projectId !== undefined && (typeof projectId !== 'string' || projectId.length > 256)) return null;
       if (provider !== undefined && (typeof provider !== 'string' || provider.length > 64)) return null;
       if (model !== undefined && (typeof model !== 'string' || model.length > 256)) return null;
+      if (
+        providerSessionId !== undefined &&
+        (typeof providerSessionId !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(providerSessionId))
+      )
+        return null;
       if (cols !== undefined && !isPositiveInt(cols)) return null;
       if (rows !== undefined && !isPositiveInt(rows)) return null;
       try {
         return (
-          deps.getTerminals()?.create({
+          (await deps.getTerminals()?.create({
             agent,
             personId,
             agentSessionId,
@@ -172,19 +179,20 @@ export function registerIpc(deps: IpcDeps): void {
             projectId,
             provider,
             model,
+            providerSessionId,
             cmd,
             args: args ?? [],
             cwd,
             maxSeconds,
             cols,
             rows,
-          }) ?? null
+          })) ?? null
         );
       } catch (error) {
         if (error instanceof TerminalCwdError) return null;
         throw error;
       }
-    },
+    })(),
   );
   ipcMain.handle('atk:pty-write', (_event, id: unknown, data: unknown) =>
     typeof id === 'string' && typeof data === 'string' ? (deps.getTerminals()?.write(id, data) ?? false) : false,

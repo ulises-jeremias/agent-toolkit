@@ -4,7 +4,7 @@
 
 import crypto.sha256
 import os
-import json
+import x.json2
 import time
 
 struct FloatingSpec {
@@ -256,16 +256,16 @@ fn main() {
 	for a in assets {
 		mut libc_field := ''
 		if a.libc.len > 0 {
-			libc_field = ',\n    "libc": ${json.encode(a.libc)}'
+			libc_field = ',\n    "libc": ${json2.encode(a.libc)}'
 		}
 		asset_jsons << '  {
-    "os": ${json.encode(a.os)},
-    "arch": ${json.encode(a.arch)},
-    "channel": ${json.encode(a.channel)},
-    "kind": ${json.encode(a.kind)},
-    "filename": ${json.encode(a.filename)},
-    "sha256": ${json.encode(a.sha256)},
-    "url": ${json.encode(a.url)}${libc_field}
+    "os": ${json2.encode(a.os)},
+    "arch": ${json2.encode(a.arch)},
+    "channel": ${json2.encode(a.channel)},
+    "kind": ${json2.encode(a.kind)},
+    "filename": ${json2.encode(a.filename)},
+    "sha256": ${json2.encode(a.sha256)},
+    "url": ${json2.encode(a.url)}${libc_field}
   }'
 	}
 	mut released := ''
@@ -277,10 +277,10 @@ fn main() {
 	manifest := '{
   "schemaVersion": 1,
   "name": "agent-toolkit",
-  "version": ${json.encode(version)},
-  "gitTag": ${json.encode(tag)},
+  "version": ${json2.encode(version)},
+  "gitTag": ${json2.encode(tag)},
   "channel": "stable",
-  "releasedAt": ${json.encode(released)},
+  "releasedAt": ${json2.encode(released)},
   "assets": [
 ${asset_jsons.join(',\n')}
   ]

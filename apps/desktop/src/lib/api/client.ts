@@ -516,8 +516,15 @@ export class ApiClient {
     project_id: string;
     provider: string;
     model: string;
+    provider_session_id?: string;
   }): Promise<PersonSessionResponse> {
     return this.json('POST', '/api/v1/sessions' satisfies PathWith<'post'>, { body: input });
+  }
+
+  attachProviderSessionId(workspace: string, id: string, provider_session_id: string): Promise<PersonSessionResponse> {
+    return this.json('POST', fillPath('/api/v1/sessions/{id}/provider-session' satisfies PathWith<'post'>, { id }), {
+      body: { workspace, provider_session_id },
+    });
   }
 
   updatePersonSession(

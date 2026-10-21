@@ -5,7 +5,7 @@
 //   ./scripts/audit-capability.vsh --json skills/design/
 //   ./scripts/audit-capability.vsh --fail-on high
 
-import json
+import x.json2
 import regex
 
 struct Finding {
@@ -188,7 +188,7 @@ fn main() {
 	}
 
 	if json_out {
-		println(json.encode({
+		println(json2.encode({
 			'findings': all_findings
 			'high':     high
 		}))

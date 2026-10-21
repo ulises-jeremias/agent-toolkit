@@ -26,6 +26,7 @@ pub fn (mut app App) person_session_create(mut ctx Ctx) veb.Result {
 		project_id: req.project_id
 		provider: req.provider
 		model: req.model
+		provider_session_id: req.provider_session_id
 	}) or { return person_session_error(mut ctx, err) }
 	return ctx.json(agent_toolkit_core.PersonSessionResponse{ ok: true, session: result })
 }
@@ -44,12 +45,27 @@ pub fn (mut app App) person_session_status(mut ctx Ctx, id string) veb.Result {
 	return ctx.json(agent_toolkit_core.PersonSessionResponse{ ok: true, session: result })
 }
 
+@['/api/v1/sessions/:id/provider-session'; post]
+pub fn (mut app App) person_session_provider_session(mut ctx Ctx, id string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none { return respond_deny(mut ctx, deny) }
+	req := decode_sub_body[agent_toolkit_core.PersonSessionProviderRequest](ctx.req.data) or {
+		return respond_sub_error(mut ctx, err)
+	}
+	ws := serve_memory_workspace(ctx, req.workspace) or { return respond_sub_error(mut ctx, err) }
+	result := app.sessions.attach_provider_session_id(ws, id, req.provider_session_id) or {
+		return person_session_error(mut ctx, err)
+	}
+	return ctx.json(agent_toolkit_core.PersonSessionResponse{ ok: true, session: result })
+}
+
 fn person_session_error(mut ctx Ctx, err IError) veb.Result {
 	message := err.msg()
 	if message.contains('not found') { ctx.res.set_status(.not_found) }
 	else if message.contains('already exists') { ctx.res.set_status(.conflict) }
 	else if message.contains('symlink') { ctx.res.set_status(.forbidden) }
 	else if message.contains('invalid session transition') { ctx.res.set_status(.conflict) }
+	else if message.contains('already recorded') { ctx.res.set_status(.conflict) }
 	else { ctx.res.set_status(.bad_request) }
 	return ctx.json(DenyErr{ ok: false, error: message })
 }
