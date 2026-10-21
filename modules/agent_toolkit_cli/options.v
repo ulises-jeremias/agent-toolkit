@@ -1512,16 +1512,6 @@ fn parse_memory_options(args []string) !agent_toolkit_core.MemoryOptions {
 			i += 2
 			continue
 		}
-		if a.starts_with('--act=') {
-			act = a.all_after('=')
-			i++
-			continue
-		}
-		if a.starts_with('--max-hops=') {
-			max_hops = a.all_after('=').int()
-			i++
-			continue
-		}
 		if a.starts_with('--type=') {
 			entry_type = a.all_after('=')
 			i++
