@@ -182,6 +182,16 @@ pub fn (app &App) swarm_run_resolve_handoff(mut ctx Ctx, id string) veb.Result {
 	return ctx.json(res)
 }
 
+@['/api/v1/swarms/runs/:id/pr-status'; get]
+pub fn (app &App) swarm_run_pr_status(mut ctx Ctx, id string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	ws := serve_memory_workspace(ctx, '') or { return respond_sub_error(mut ctx, err) }
+	return ctx.json(agent_toolkit_core.swarm_pr_status_typed(ws, id))
+}
+
 @['/api/v1/swarms/runs/:id/draft-pr'; post]
 pub fn (app &App) swarm_run_draft_pr(mut ctx Ctx, id string) veb.Result {
 	deny := deny_if_remote(app, ctx)

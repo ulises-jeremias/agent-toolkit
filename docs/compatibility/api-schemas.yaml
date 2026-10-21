@@ -581,6 +581,18 @@ schemas:
       - created:boolean
       - detail:string
 
+  - name: SwarmPrStatusResponse
+    fields:
+      - ok:boolean
+      - run_id:string
+      - pr_url:string
+      - state:string
+      - is_draft:boolean
+      - checks_pass:integer
+      - checks_fail:integer
+      - checks_pending:integer
+      - detail:string
+
   - name: LoopInfo
     fields:
       - name:string
@@ -1245,6 +1257,11 @@ native:
     errors:
       - '400:invalid handoff_id'
       - '404:run or handoff not found'
+  - path: /api/v1/swarms/runs/{id}/pr-status
+    method: get
+    op: swarm_pr_status
+    summary: Live GitHub state and check summary of the run draft PR via gh
+    response: '#SwarmPrStatusResponse'
   - path: /api/v1/swarms/runs/{id}/draft-pr
     method: post
     op: create_swarm_draft_pr

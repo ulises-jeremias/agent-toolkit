@@ -2,6 +2,7 @@ module agent_toolkit_core
 
 import os
 import time
+import x.json2
 
 // Draft PR creation for finished swarm runs (Slice 9, Pack E). A run's
 // integrator branch (`agent-toolkit-swarm/<run-id>/integrator`) already
@@ -198,6 +199,96 @@ pub fn create_swarm_draft_pr_typed(ws string, run_id string) SwarmDraftPrRespons
 		pr_url: url
 		created: true
 		detail: 'Draft PR created.'
+	}
+}
+
+pub struct SwarmPrStatusResponse {
+pub:
+	ok             bool
+	run_id         string
+	pr_url         string
+	state          string
+	is_draft       bool
+	checks_pass    int
+	checks_fail    int
+	checks_pending int
+	detail         string
+}
+
+pub struct GhPrCheck {
+pub:
+	conclusion string
+	status     string
+	state      string
+}
+
+pub struct GhPrView {
+pub:
+	url                 string
+	state               string
+	is_draft            bool @[json: 'isDraft']
+	status_check_rollup []GhPrCheck @[json: 'statusCheckRollup']
+}
+
+// parse_swarm_pr_status decodes `gh pr view --json ...` output and
+// summarizes the check rollup into pass/fail/pending counts.
+fn parse_swarm_pr_status(run_id string, text string) !SwarmPrStatusResponse {
+	view := json2.decode[GhPrView](text) or { return error('could not parse gh pr view output') }
+	mut pass := 0
+	mut fail := 0
+	mut pending := 0
+	for check in view.status_check_rollup {
+		verdict := if check.conclusion.len > 0 { check.conclusion } else { check.state }
+		match verdict.to_upper() {
+			'SUCCESS' { pass++ }
+			'FAILURE', 'ERROR', 'TIMED_OUT', 'CANCELLED', 'ACTION_REQUIRED' { fail++ }
+			else { pending++ }
+		}
+	}
+	return SwarmPrStatusResponse{
+		ok: true
+		run_id: run_id
+		pr_url: view.url
+		state: view.state
+		is_draft: view.is_draft
+		checks_pass: pass
+		checks_fail: fail
+		checks_pending: pending
+		detail: 'Live PR status from GitHub.'
+	}
+}
+
+// swarm_pr_status_typed reports the live state of the run's recorded PR
+// (Slice 10, Pack E: review outcome inside the Desktop). Honest failures:
+// no PR recorded yet, no gh, or GitHub unreachable — never fake status.
+pub fn swarm_pr_status_typed(ws string, run_id string) SwarmPrStatusResponse {
+	fail := fn [run_id] (detail string) SwarmPrStatusResponse {
+		return SwarmPrStatusResponse{
+			ok: false
+			run_id: run_id
+			detail: detail
+		}
+	}
+	rd := swarm_run_dir(ws, run_id)
+	st := read_swarm_state(rd) or { return fail('Run not found: ${run_id}') }
+	if st.pr_url.len == 0 {
+		return fail('No pull request recorded for this run yet.')
+	}
+	if os.find_abs_path_of_executable('gh') or { '' } == '' {
+		return fail('GitHub CLI (gh) not found on PATH; PR status unavailable.')
+	}
+	res := new_process_service().run(
+		argv: ['gh', 'pr', 'view', st.pr_url, '--json', 'url,state,isDraft,statusCheckRollup']
+		cwd: ws
+		timeout: 15 * time.second
+	) or { return fail('GitHub CLI (gh) is not available: ${err.msg()}') }
+	if res.exit_code != 0 {
+		return fail('gh pr view failed: ${res.stderr.trim_space()}')
+	}
+	parsed := parse_swarm_pr_status(run_id, res.stdout) or { return fail(err.msg()) }
+	return SwarmPrStatusResponse{
+		...parsed
+		pr_url: if parsed.pr_url.len > 0 { parsed.pr_url } else { st.pr_url }
 	}
 }
 
