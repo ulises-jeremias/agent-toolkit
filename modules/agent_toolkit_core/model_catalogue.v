@@ -2,7 +2,7 @@ module agent_toolkit_core
 
 import os
 import time
-import json2
+import x.json2
 
 // Live model catalogue (Pack A task 5, ADR-040): the static
 // swarm_model_profiles() map goes stale silently — a model retired by a
