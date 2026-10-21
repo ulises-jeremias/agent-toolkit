@@ -3,6 +3,7 @@ import type { AtkBridge, PtyCreateOptions, PtyExitEvent, PtyDataEvent } from '..
 
 const bridge: AtkBridge = {
   backendStatus: () => ipcRenderer.invoke('atk:backend-status'),
+  updateStatus: () => ipcRenderer.invoke('atk:update-status'),
   backendRestart: () => ipcRenderer.invoke('atk:backend-restart'),
   mcpSecretStatus: () => ipcRenderer.invoke('atk:mcp-secret-status'),
   mcpSecretSet: (name: string, value: string) => ipcRenderer.invoke('atk:mcp-secret-set', { name, value }),

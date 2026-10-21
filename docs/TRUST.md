@@ -89,6 +89,19 @@ agent-toolkit follows these principles (see also
 - MCP credentials via environment variables only
 - Secret scanning (Gitleaks) and CodeQL Python analysis in CI (`.github/workflows/codeql.yml` — PRs and `main`); Trivy **Planned** (see #260)
 
+### Desktop updates
+
+Desktop builds are **not code-signed yet** (see the signing policy tracked
+for macOS Gatekeeper / Windows SmartScreen). Because an unsigned
+auto-updater could not verify its own artifacts, Desktop never downloads
+or applies updates by itself. Instead it checks the latest GitHub
+Release at most once a day (Settings → *Desktop updates*) and, when a
+newer version exists, links to the release page. To update manually:
+download the new Desktop artifact from the release, verify it against
+the release `SHA256SUMS`, and install it over the current build. A
+signed updater feed replaces this manual path once signing certificates
+are in place.
+
 ---
 
 ## Supply chain

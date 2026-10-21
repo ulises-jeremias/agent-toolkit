@@ -4,6 +4,7 @@ import { createDefaultHarnessFromProcess, isDefaultHarnessPath } from './harness
 import type { HarnessController, HarnessSwitchResult } from './harness-controller';
 import type { McpSecretStore } from './mcp-secrets';
 import { TerminalCwdError, type TerminalService } from './terminal';
+import type { UpdateChecker, UpdateStatus } from './update-check';
 
 export interface IpcDeps {
   getBackend: () => BackendSupervisor | null;
@@ -11,6 +12,7 @@ export interface IpcDeps {
   getWindow: () => BrowserWindow | null;
   getHarness: () => HarnessController | null;
   getMcpSecrets?: () => McpSecretStore | null;
+  getUpdateChecker?: () => UpdateChecker | null;
   chooseProjectDirectory?: (defaultPath: string) => Promise<string | null>;
   /** When set, rewrite backend.url to the same-origin renderer proxy. */
   getPublicBackendUrl?: () => string | null;
@@ -37,6 +39,19 @@ export function registerIpc(deps: IpcDeps): void {
     return publicUrl && snapshot.url ? { ...snapshot, url: publicUrl } : snapshot;
   });
   ipcMain.handle('atk:backend-restart', async () => deps.getBackend()?.restart() ?? false);
+  ipcMain.handle(
+    'atk:update-status',
+    async (): Promise<UpdateStatus> =>
+      (await deps.getUpdateChecker?.()?.status()) ?? {
+        current: 'unknown',
+        latest: null,
+        updateAvailable: false,
+        releaseUrl: null,
+        checkedAt: null,
+        source: 'unavailable',
+        detail: 'Update checker is not ready.',
+      },
+  );
 
   ipcMain.handle(
     'atk:mcp-secret-status',

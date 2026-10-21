@@ -130,8 +130,20 @@ export interface PtyExitEvent {
 
 export type Unsubscribe = () => void;
 
+/** Notify-only update check result (mirrors electron/update-check.ts). */
+export interface UpdateStatus {
+  current: string;
+  latest: string | null;
+  updateAvailable: boolean;
+  releaseUrl: string | null;
+  checkedAt: string | null;
+  source: 'live' | 'cache' | 'unavailable';
+  detail: string;
+}
+
 export interface AtkBridge {
   backendStatus: () => Promise<BackendState | null>;
+  updateStatus: () => Promise<UpdateStatus>;
   backendRestart: () => Promise<boolean>;
   mcpSecretStatus: () => Promise<McpSecretStatus>;
   mcpSecretSet: (name: string, value: string) => Promise<McpSecretMutationResult>;

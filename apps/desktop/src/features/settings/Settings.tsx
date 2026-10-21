@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router';
 import { useOperation } from '../../data/commands';
 import { useBackend, useHealth, useHelp, useSelfcheck } from '../../data/backend';
 import { backendProblemCopy } from '../../lib/backend-copy';
-import type { HarnessSwitchResult } from '../../types/electron';
+import type { HarnessSwitchResult, UpdateStatus } from '../../types/electron';
 import { requestOnboardingReplay } from '../onboarding/complete';
 import { useSessionContext } from '../../shell/useSessionContext';
 import {
@@ -60,6 +60,55 @@ function backendTone(status: string | undefined): Tone {
     default:
       return 'err';
   }
+}
+
+/** Notify-only update status: Desktop never installs updates itself. */
+function DesktopUpdateStatus() {
+  const [status, setStatus] = useState<UpdateStatus | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const bridge = typeof window !== 'undefined' ? window.atk : undefined;
+    if (!bridge) return;
+    bridge
+      .updateStatus()
+      .then((result) => {
+        if (!cancelled) setStatus(result);
+      })
+      .catch(() => {
+        // The panel renders its unavailable state below.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  if (!status) {
+    return <p>Checking for updates…</p>;
+  }
+  return (
+    <Stack>
+      <KeyValue
+        items={[
+          { label: 'Installed', value: status.current, mono: true },
+          { label: 'Latest release', value: status.latest ?? 'Unknown', mono: status.latest !== null },
+          ...(status.checkedAt ? [{ label: 'Checked', value: new Date(status.checkedAt).toLocaleString() }] : []),
+        ]}
+      />
+      {status.updateAvailable && status.releaseUrl ? (
+        <p role="status">
+          Agent Toolkit Desktop {status.latest} is available. Updates are installed manually while Desktop builds are
+          unsigned:{' '}
+          <a href={status.releaseUrl} target="_blank" rel="noreferrer">
+            view the release
+          </a>
+          .
+        </p>
+      ) : status.latest ? (
+        <p role="status">Desktop is up to date.</p>
+      ) : (
+        <p role="status">{status.detail || 'Update check unavailable.'}</p>
+      )}
+    </Stack>
+  );
 }
 
 function Choice<T extends string>({
@@ -377,6 +426,10 @@ export default function Settings() {
             </QueryView>
           </Panel>
         </Grid>
+
+        <Panel title="Desktop updates" meta="Installed Desktop build versus the latest published release">
+          <DesktopUpdateStatus />
+        </Panel>
 
         <Panel title="Tool profiles" meta="Skills, agents and rules the toolkit manages inside each coding tool">
           <p>Update rewrites the managed files from the current toolkit version. Uninstall removes them.</p>
