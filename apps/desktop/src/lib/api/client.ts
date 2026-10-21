@@ -25,6 +25,7 @@ import type {
   PersonSessionResponse,
   PersonSessionsResponse,
   Person,
+  ProjectIssuesResponse,
   ProjectListResponse,
   ProvidersResponse,
   SelfcheckResponse,
@@ -429,6 +430,15 @@ export class ApiClient {
 
   projects(workspace: string): Promise<ProjectListResponse> {
     return this.json('GET', '/api/v1/projects' satisfies PathWith<'get'>, { query: { workspace } });
+  }
+
+  projectIssues(
+    workspace: string,
+    projectId: string,
+  ): Promise<ResponseOf<OperationOf<'/api/v1/projects/{id}/issues', 'get'>, ProjectIssuesResponse>> {
+    return this.json('GET', fillPath('/api/v1/projects/{id}/issues' satisfies PathWith<'get'>, { id: projectId }), {
+      query: { workspace },
+    });
   }
 
   workspacePacks(workspace: string): Promise<WorkspacePacksResponse> {

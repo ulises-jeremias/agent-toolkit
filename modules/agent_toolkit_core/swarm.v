@@ -90,6 +90,7 @@ pub mut:
 	worktrees       []SwarmWorktree
 	project_id      string
 	base_ref        string
+	issue_ref       string
 }
 
 struct SwarmRoleExecution {
@@ -808,6 +809,19 @@ fn resolve_swarm_role_execution(ws string, recipe string, bindings map[string]st
 	return resolved
 }
 
+// swarm_effective_task mirrors the CLI `--issue` convention in the engine so
+// API/Desktop starts behave identically: an issue ref with no explicit task
+// becomes "Implement issue <ref>".
+fn swarm_effective_task(opts SwarmOptions) string {
+	if opts.task.len > 0 {
+		return opts.task
+	}
+	if opts.issue_ref.len > 0 {
+		return 'Implement issue ${opts.issue_ref}'
+	}
+	return ''
+}
+
 fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 	// OWNER/REPO shorthand hint parity with Python _resolve_owner_repo_from_prompt + find_repo_root
 	// When --workspace/-C/--repo is an OWNER/REPO shorthand and not found locally, emit clone hint (fixes #902)
@@ -1084,7 +1098,8 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		model_profile: model_profile
 		run_state: initial
 		created_at: time.utc().format_rfc3339()
-		task: opts.task
+		task: swarm_effective_task(opts)
+		issue_ref: opts.issue_ref
 		budget: resolved.budget
 		budget_consumed: BudgetConsumed{}
 		personas: personas
@@ -3596,7 +3611,7 @@ fn swarm_init(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 	// task-contract.md mirrors Python task-contract scaffold
-	task_text := opts.task
+	task_text := swarm_effective_task(opts)
 	artifacts_dir := os.join_path(run_dir, 'artifacts')
 	os.mkdir_all(artifacts_dir) or {}
 	tc_path := os.join_path(artifacts_dir, 'task-contract.md')
@@ -3616,6 +3631,7 @@ fn swarm_init(ws string, opts SwarmOptions) SwarmReport {
 		run_state: 'planning'
 		created_at: time.utc().format_rfc3339()
 		task: task_text
+		issue_ref: opts.issue_ref
 		active_roles: []string{}
 	}
 	write_swarm_state(run_dir, st) or {

@@ -157,6 +157,7 @@ describe('collectAttention', () => {
             run_state: 'awaiting_plan_approval',
             created_at: '2026-10-10T10:00:00Z',
             task: 'Review world layout',
+            issue_ref: '',
           },
           {
             run_id: 'run-budget',
@@ -165,6 +166,7 @@ describe('collectAttention', () => {
             run_state: 'budget_exhausted',
             created_at: '2026-10-10T10:00:00Z',
             task: 'Fix terminal recovery',
+            issue_ref: '',
           },
           {
             run_id: 'run-done',
@@ -173,6 +175,7 @@ describe('collectAttention', () => {
             run_state: 'completed',
             created_at: '2026-10-10T10:00:00Z',
             task: 'Completed work is not a gate',
+            issue_ref: '',
           },
         ],
       }),
@@ -237,6 +240,7 @@ describe('collectNeedsMe / takeNextNeedsMe', () => {
             run_state: 'awaiting_human',
             created_at: '2026-10-10T10:00:00Z',
             task: 'Review patch',
+            issue_ref: '',
           },
         ],
       }),

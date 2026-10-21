@@ -360,6 +360,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{id}/issues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List open GitHub issues for a registered project via the authenticated gh CLI */
+        get: operations["list_project_issues"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspace/packs/list": {
         parameters: {
             query?: never;
@@ -1683,6 +1700,7 @@ export interface components {
             run_state: string;
             created_at: string;
             task: string;
+            issue_ref: string;
             project_id?: string;
             person_bindings?: {
                 [key: string]: string;
@@ -1925,6 +1943,20 @@ export interface components {
             target: string;
             /** @enum {string} */
             status: "ok" | "broken";
+        };
+        GithubIssueView: {
+            number: number;
+            title: string;
+            url: string;
+            state: string;
+            labels: string[];
+            author: string;
+        };
+        ProjectIssuesResponse: {
+            ok: boolean;
+            repo: string;
+            issues: components["schemas"]["GithubIssueView"][];
+            detail: string;
         };
         ProjectListResponse: {
             ok: boolean;
@@ -2933,6 +2965,49 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectListResponse"];
+                };
+            };
+        };
+    };
+    list_project_issues: {
+        parameters: {
+            query?: {
+                workspace?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectIssuesResponse"];
+                };
+            };
+            /** @description invalid project id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description project not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
                 };
             };
         };
