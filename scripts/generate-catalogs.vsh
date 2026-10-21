@@ -4,7 +4,7 @@
 //   ./scripts/generate-catalogs.vsh          # write catalogs
 //   ./scripts/generate-catalogs.vsh --check  # fail on drift
 
-import json
+import x.json2
 import os
 import yaml
 
@@ -77,7 +77,7 @@ fn parse_frontmatter_yaml(fm string) Frontmatter {
 	if raw.len == 0 {
 		return Frontmatter{}
 	}
-	decoded := json.decode(Frontmatter, raw) or { return Frontmatter{} }
+	decoded := json2.decode[Frontmatter](raw) or { return Frontmatter{} }
 	return decoded
 }
 
@@ -104,7 +104,7 @@ fn fm_list(fm string, key string) []string {
 	}
 }
 
-fn truncate(s string, n int) string {
+fn truncate_text(s string, n int) string {
 	// Frontmatter permits folded and indented multiline descriptions. Catalog
 	// scalars are emitted as single-line quoted strings, so normalize whitespace
 	// before applying the byte limit to keep those generated scalars valid YAML.
@@ -280,7 +280,7 @@ fn gen_skills(root string) []SkillEntry {
 				id:          '${domain}/${name}'
 				name:        if nm.len > 0 { nm } else { name }
 				domain:      domain
-				description: truncate(desc, 200)
+				description: truncate_text(desc, 200)
 				stability:   if stab.len > 0 { stab } else { 'stable' }
 			}
 		}
@@ -307,7 +307,7 @@ fn gen_agents(root string) []AgentEntry {
 		agents << AgentEntry{
 			id:                name
 			name:              if nm.len > 0 { nm } else { name }
-			description:       truncate(desc, 200)
+			description:       truncate_text(desc, 200)
 			kind:              if kind.len > 0 { kind } else { 'holistic' }
 			delegates:         delegates
 			collaborates_with: collab
@@ -335,7 +335,7 @@ fn gen_loops(root string) []LoopEntry {
 			name:        nm
 			tier:        data.tier
 			cadence:     cadence
-			description: truncate(data.description, 200)
+			description: truncate_text(data.description, 200)
 		}
 	}
 	return loops

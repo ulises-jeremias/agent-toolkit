@@ -4,7 +4,7 @@
 //
 // Usage:
 //   v run scripts/upstream_pr_body.vsh [--summary <json>]... [-o <out.md>]
-import json
+import x.json2
 import os
 
 struct Applied {
@@ -22,7 +22,7 @@ struct Summary {
 fn load_summary(paths []string) Summary {
 	for p in paths {
 		txt := os.read_file(p) or { continue }
-		if dec := json.decode(Summary, txt) {
+		if dec := json2.decode[Summary](txt) {
 			return dec
 		}
 	}

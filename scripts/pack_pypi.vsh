@@ -2,7 +2,7 @@
 // Build PyPI sdist + platform wheels from GitHub Release V binaries (ADR-021).
 // Usage: RELEASE_BIN_DIR=binaries ./scripts/pack_pypi.vsh
 
-import json
+import x.json2
 
 fn repo_root() string {
 	mut d := dir(@FILE)
@@ -25,7 +25,7 @@ fn load_platforms(root string) []PlatformSpec {
 		eprintln('cannot read platforms.json: ${err}')
 		exit(1)
 	}
-	return json.decode([]PlatformSpec, raw) or {
+	return json2.decode[[]PlatformSpec](raw) or {
 		eprintln('decode platforms.json: ${err}')
 		exit(1)
 	}

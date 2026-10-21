@@ -2,7 +2,7 @@
 // Validate Agent Plugins 1.0 manifests (structural checks; no jsonschema).
 // Usage: ./scripts/validate-agent-plugins.vsh [--check]
 
-import json
+import x.json2
 
 fn repo_root() string {
 	mut d := dir(@FILE)
@@ -46,14 +46,14 @@ fn valid_plugin_name(name string) bool {
 }
 
 struct PluginManifest {
-	schema      string @[json: '\$schema']
+	schema      string @[json: '$schema']
 	name        string
 	version     string
 	description string
 }
 
 struct McpFile {
-	schema      string @[json: '\$schema']
+	schema      string @[json: '$schema']
 	mcp_servers map[string]McpServer @[json: 'mcpServers']
 }
 
@@ -111,7 +111,7 @@ fn validate_plugin_manifest(root string, plugin_dir string, mut errors []string,
 		errors << '${rel_to(root, p)}: cannot read'
 		return
 	}
-	data := json.decode(PluginManifest, raw) or {
+	data := json2.decode[PluginManifest](raw) or {
 		errors << '${rel_to(root, p)}: invalid JSON: ${err}'
 		return
 	}
@@ -185,7 +185,7 @@ fn validate_mcp(root string, plugin_dir string, mut errors []string, mut warning
 		errors << '${rel_to(root, p)}: cannot read'
 		return
 	}
-	data := json.decode(McpFile, raw) or {
+	data := json2.decode[McpFile](raw) or {
 		errors << '${rel_to(root, p)}: invalid JSON: ${err}'
 		return
 	}
