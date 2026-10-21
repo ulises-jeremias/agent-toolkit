@@ -1355,6 +1355,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/swarms/runs/{id}/resolve-handoff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Server-native endpoint (resolve_swarm_handoff) */
+        post: operations["resolve_swarm_handoff"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1708,6 +1725,9 @@ export interface components {
             commit: string;
             branch: string;
             blocking: boolean;
+            act: string;
+            hops: number;
+            max_hops: number;
             state: string;
             created_at: string;
         };
@@ -1968,6 +1988,10 @@ export interface components {
             fragments: components["schemas"]["ContextFragment"][];
             total_est_tokens: number;
             notes: string[];
+        };
+        SwarmResolveHandoffRequest: {
+            workspace?: string;
+            handoff_id: string;
         };
     };
     responses: never;
@@ -2802,6 +2826,8 @@ export interface operations {
                     commit?: string;
                     branch?: string;
                     blocking?: boolean;
+                    act?: string;
+                    max_hops?: number;
                     role?: string;
                     handoff_id?: string;
                     to_recipe?: string;
@@ -5233,6 +5259,50 @@ export interface operations {
                 };
             };
             /** @description workspace not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    resolve_swarm_handoff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SwarmResolveHandoffRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwarmActionResponse"];
+                };
+            };
+            /** @description invalid run_id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description run not found */
             404: {
                 headers: {
                     [name: string]: unknown;

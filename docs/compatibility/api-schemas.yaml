@@ -432,6 +432,9 @@ schemas:
       - commit:string
       - branch:string
       - blocking:boolean
+      - act:string
+      - hops:integer
+      - max_hops:integer
       - state:string
       - created_at:string
 
@@ -534,6 +537,11 @@ schemas:
       - ok:boolean
       - run_id:string
       - 'artifacts:#SwarmArtifactView[]'
+
+  - name: SwarmResolveHandoffRequest
+    fields:
+      - workspace:string
+      - handoff_id:string
 
   - name: SwarmActionResponse
     fields:
@@ -1168,6 +1176,14 @@ native:
     errors:
       - '400:invalid run_id'
       - '404:run not found'
+  - path: /api/v1/swarms/runs/{id}/resolve-handoff
+    method: post
+    op: resolve_swarm_handoff
+    request: '#SwarmResolveHandoffRequest'
+    response: '#SwarmActionResponse'
+    errors:
+      - '400:invalid handoff_id'
+      - '404:run or handoff not found'
   - path: /api/v1/loops
     method: get
     op: list_loops

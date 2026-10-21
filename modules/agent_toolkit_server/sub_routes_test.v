@@ -323,3 +323,18 @@ fn test_get_guard_still_classifies_mutations() {
 	assert is_read_subcommand('skills', 'list')
 	assert is_read_subcommand('mcp', 'health')
 }
+
+fn test_swarms_handoff_act_and_max_hops_forwarded() {
+	opts := build_swarms_options('handoff', '{"handoff_sub":"create","htype":"decision_request","from_role":"implementer","to_role":"reviewer","act":"propose","max_hops":3}') or {
+		panic(err.msg())
+	}
+	assert opts.act == 'propose'
+	assert opts.max_hops == 3
+	plain := build_swarms_options('handoff', '{"handoff_sub":"create","htype":"decision_request","from_role":"implementer","to_role":"reviewer"}') or {
+		panic(err.msg())
+	}
+	assert plain.act == ''
+	assert plain.max_hops == 0
+	expect_sub_error(swarms_ok('handoff', '{"act":"bogus act!"}'), 400, 'invalid act')
+	expect_sub_error(swarms_ok('handoff', '{"max_hops":-1}'), 400, 'invalid max_hops')
+}
