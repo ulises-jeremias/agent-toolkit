@@ -593,6 +593,9 @@ schemas:
       - checks_pending:integer
       - mergeable:string
       - review_decision:string
+      - changed_files:integer
+      - additions:integer
+      - deletions:integer
       - detail:string
 
   - name: SwarmPrReadyResponse

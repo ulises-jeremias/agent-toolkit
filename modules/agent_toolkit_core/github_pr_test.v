@@ -24,7 +24,7 @@ fn test_first_url_line_extracts_pr_url() {
 }
 
 fn test_parse_swarm_pr_status_summarizes_checks() {
-	sample := '{"url":"https://github.com/o/r/pull/7","state":"OPEN","isDraft":true,"mergeable":"MERGEABLE","reviewDecision":"APPROVED","statusCheckRollup":[{"conclusion":"SUCCESS","status":"COMPLETED"},{"conclusion":"FAILURE","status":"COMPLETED"},{"conclusion":"","status":"IN_PROGRESS"},{"state":"PENDING"}]}'
+	sample := '{"url":"https://github.com/o/r/pull/7","state":"OPEN","isDraft":true,"mergeable":"MERGEABLE","reviewDecision":"APPROVED","changedFiles":4,"additions":120,"deletions":30,"statusCheckRollup":[{"conclusion":"SUCCESS","status":"COMPLETED"},{"conclusion":"FAILURE","status":"COMPLETED"},{"conclusion":"","status":"IN_PROGRESS"},{"state":"PENDING"}]}'
 	st := parse_swarm_pr_status('run-1', sample) or {
 		assert false, err.msg()
 		return
@@ -37,6 +37,9 @@ fn test_parse_swarm_pr_status_summarizes_checks() {
 	assert st.checks_pending == 2
 	assert st.mergeable == 'MERGEABLE'
 	assert st.review_decision == 'APPROVED'
+	assert st.changed_files == 4
+	assert st.additions == 120
+	assert st.deletions == 30
 	if _ := parse_swarm_pr_status('run-1', 'not json') {
 		assert false, 'invalid JSON must error'
 	}

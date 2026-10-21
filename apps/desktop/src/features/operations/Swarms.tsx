@@ -469,7 +469,7 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
                   value: prStatus.isPending
                     ? 'Checking GitHub…'
                     : prStatus.data?.ok
-                      ? `${prStatus.data.state}${prStatus.data.is_draft ? ' (draft)' : ''} · checks ${prStatus.data.checks_pass} passed, ${prStatus.data.checks_fail} failed, ${prStatus.data.checks_pending} pending · mergeable ${prStatus.data.mergeable || 'unknown'} · review ${prStatus.data.review_decision || 'none'}`
+                      ? `${prStatus.data.state}${prStatus.data.is_draft ? ' (draft)' : ''} · checks ${prStatus.data.checks_pass} passed, ${prStatus.data.checks_fail} failed, ${prStatus.data.checks_pending} pending · mergeable ${prStatus.data.mergeable || 'unknown'} · review ${prStatus.data.review_decision || 'none'} · ${prStatus.data.changed_files} files +${prStatus.data.additions} −${prStatus.data.deletions}`
                       : `Unavailable: ${prStatus.data?.detail ?? prStatus.error?.message ?? 'unknown error'}`,
                 },
               ]
