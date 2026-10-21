@@ -194,6 +194,11 @@ app.on('before-quit', (event) => {
   if (shutdownComplete) return;
   shuttingDown = true;
   event.preventDefault();
+  // Shutdown must be bounded: a stuck backend stop or renderer-server close
+  // must never leave the app (and its child processes) alive after quit.
+  setTimeout(() => {
+    if (!shutdownComplete) app.exit(0);
+  }, 10_000).unref();
   void shutdown().then(
     () => {
       shutdownComplete = true;
