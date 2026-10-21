@@ -703,6 +703,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sessions/{id}/provider-session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record the provider conversation id captured after PTY spawn */
+        post: operations["attach_person_session_provider_id"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/people/bindings": {
         parameters: {
             query?: never;
@@ -1355,23 +1372,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/sessions/{id}/provider-session": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Record the provider conversation id captured after PTY spawn */
-        post: operations["attach_person_session_provider_id"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1611,7 +1611,6 @@ export interface components {
             started_at: string;
             ended_at: string;
             exit_code: number;
-            /** @description Provider-native conversation id (uuid, ses_..., ...). Empty when the runner exposes none; non-empty means the conversation can be resumed by the Desktop adapter. */
             provider_session_id: string;
         };
         PersonSessionsResponse: {
@@ -1628,8 +1627,11 @@ export interface components {
             project_id: string;
             provider: string;
             model: string;
-            /** @description Optional provider-native conversation id assigned at launch (runners that accept one). Validated as an opaque transport-safe token. */
-            provider_session_id?: string;
+            provider_session_id: string;
+        };
+        PersonSessionProviderRequest: {
+            workspace: string;
+            provider_session_id: string;
         };
         PersonSessionStatusRequest: {
             workspace: string;
@@ -1989,11 +1991,6 @@ export interface components {
             fragments: components["schemas"]["ContextFragment"][];
             total_est_tokens: number;
             notes: string[];
-        };
-        /** @description Attach the provider-native conversation id captured by the Desktop adapter after spawn. Write-once. */
-        PersonSessionProviderRequest: {
-            workspace: string;
-            provider_session_id: string;
         };
     };
     responses: never;
@@ -3682,6 +3679,59 @@ export interface operations {
             };
         };
     };
+    attach_person_session_provider_id: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonSessionProviderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonSessionResponse"];
+                };
+            };
+            /** @description invalid provider session id or session already ended */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description session not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description a different provider session id is already recorded */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     list_people_bindings: {
         parameters: {
             query?: never;
@@ -5260,68 +5310,6 @@ export interface operations {
             };
             /** @description workspace not found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
-        };
-    };
-    attach_person_session_provider_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PersonSessionProviderRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PersonSessionResponse"];
-                };
-            };
-            /** @description invalid provider session id or session already ended */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
-            /** @description unsafe session storage */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
-            /** @description session not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
-            /** @description a different provider session id is already recorded */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };
