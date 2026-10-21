@@ -215,6 +215,51 @@ fn test_workspace_pack_save_preserves_rich_fields_outside_desktop_model() {
 	assert reloaded.packs[0].notes == 'Updated notes.'
 }
 
+fn test_effective_context_fragments_order_provenance_and_honesty() {
+	base := os.join_path(os.temp_dir(), 'at-effective-context-${os.getpid()}')
+	defer { os.rmdir_all(base) or {} }
+	os.mkdir_all(os.join_path(base, 'packs')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(base, 'personas')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(base, 'knowledge', 'learnings')) or { assert false, err.msg() }
+	os.write_file(os.join_path(base, 'AGENTS.md'), '# Workspace rules\nBe kind.\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(base, 'packs', 'team.yaml'), 'name: Team\ndescription: Team context\nprojects:\n  - alpha\nnotes: Shared notes here.\n') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(base, 'personas', 'reviewer.md'), '# Reviewer\nReview carefully.\n') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(base, '.active-persona'), 'reviewer\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(base, 'knowledge', 'learnings', 'one.md'), '# One\n') or { assert false, err.msg() }
+	activate_workspace_pack(WorkspacePackActivateRequest{
+		workspace: base
+		pack_path: 'packs/team.yaml'
+	}) or {
+		assert false, err.msg()
+		return
+	}
+	effective := effective_context(base) or {
+		assert false, err.msg()
+		return
+	}
+	assert effective.active_pack == 'packs/team.yaml'
+	kinds := effective.fragments.map(it.kind)
+	assert kinds == ['agents', 'pack', 'persona', 'knowledge']
+	for fragment in effective.fragments {
+		assert fragment.est_tokens >= 0
+	}
+	assert effective.fragments[0].sha256.len == 64
+	assert effective.fragments[1].detail.contains('alpha')
+	assert effective.fragments[1].detail.contains('Shared notes')
+	assert effective.fragments[3].detail.contains('learnings=1')
+	assert effective.total_est_tokens == effective.fragments[0].est_tokens + effective.fragments[1].est_tokens + effective.fragments[2].est_tokens + effective.fragments[3].est_tokens
+	assert effective.notes.join(' ').contains('not a security boundary')
+	assert effective.notes.join(' ').contains('future sessions')
+	// Switching the active pack must not rewrite what a started session used:
+	// the assembler is a pure read, so a second call reflects only the new
+	// selection and the first response object is unchanged.
+	assert effective.fragments[1].source == 'packs/team.yaml'
+}
+
 fn test_workspace_pack_reads_yaml_block_scalar_variants() {
 	base := os.join_path(os.temp_dir(), 'at-ws-packs-yaml-${os.getpid()}')
 	defer { os.rmdir_all(base) or {} }

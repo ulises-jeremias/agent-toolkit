@@ -1669,8 +1669,23 @@ fn context_explain(ws string, pack_ref string, persona_name string, knowledge st
 	} else {
 		lines << '  AGENTS.md : (none)'
 	}
+	effective := effective_context(ws) or {
+		lines << ''
+		lines << '  Effective context unavailable: ${err.msg()}'
+		lines << ''
+		return lines.join('\n')
+	}
 	lines << ''
-	lines << '  Budget analysis: see #335'
+	lines << '── Effective context (future sessions) ───────────────────'
+	for fragment in effective.fragments {
+		status := if fragment.mode == 'missing' { 'missing' } else { fragment.mode }
+		lines << '  ${fragment.kind:9}: [${status}] ${fragment.source} (${fragment.bytes} B, ~${fragment.est_tokens} tokens, sha ${fragment.sha256#[..12]})'
+		lines << '             ${fragment.detail}'
+	}
+	lines << '  total     : ~${effective.total_est_tokens} estimated tokens (chars/4, provider-agnostic)'
+	for note in effective.notes {
+		lines << '  note      : ${note}'
+	}
 	lines << ''
 	return lines.join('\n')
 }

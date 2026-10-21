@@ -30,6 +30,18 @@ pub fn (app &App) workspace_packs_list(mut ctx Ctx) veb.Result {
 	return ctx.json(response)
 }
 
+@['/api/v1/workspace/packs/effective-context'; get]
+pub fn (app &App) workspace_packs_effective_context(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none { return respond_deny(mut ctx, deny) }
+	workspace := ctx.query['workspace'] or { '' }
+	ws := serve_memory_workspace(ctx, workspace) or { return respond_sub_error(mut ctx, err) }
+	response := agent_toolkit_core.effective_context(ws) or {
+		return workspace_packs_error(mut ctx, err)
+	}
+	return ctx.json(response)
+}
+
 @['/api/v1/workspace/packs/activate'; post]
 pub fn (app &App) workspace_packs_activate(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)

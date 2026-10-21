@@ -534,6 +534,130 @@ pub fn activate_workspace_pack(req WorkspacePackActivateRequest) !WorkspacePackA
 	}
 }
 
+pub struct ContextFragment {
+pub:
+	id         string
+	kind       string
+	source     string
+	sha256     string
+	bytes      int
+	est_tokens int
+	mode       string
+	detail     string
+}
+
+pub struct EffectiveContextResponse {
+pub:
+	ok               bool
+	workspace        string
+	active_pack      string
+	fragments        []ContextFragment
+	total_est_tokens int
+	notes            []string
+}
+
+fn context_fragment(id string, kind string, source string, text string, detail string) ContextFragment {
+	return ContextFragment{
+		id: id
+		kind: kind
+		source: source
+		sha256: sha256.hexhash(text)
+		bytes: text.len
+		est_tokens: (text.len + 3) / 4
+		mode: 'inline'
+		detail: detail
+	}
+}
+
+// effective_context assembles the ordered fragment list a future session in
+// this workspace would draw from: workspace AGENTS.md, the active pack,
+// the active persona, then a knowledge summary (counts only — memory inject
+// clips records separately). It is a pure read: selecting a pack never
+// mutates the context of sessions that are already running.
+pub fn effective_context(workspace string) !EffectiveContextResponse {
+	root := find_workspace_root(workspace) or {
+		return error('Workspace is unavailable or has no AGENTS.md.')
+	}
+	mut fragments := []ContextFragment{}
+	agents_path := os.join_path(root, 'AGENTS.md')
+	if os.is_file(agents_path) {
+		text := os.read_file(agents_path) or { '' }
+		fragments << context_fragment('agents', 'agents', 'AGENTS.md', text, 'Workspace rules and routing.')
+	}
+	listed := list_workspace_packs(workspace)!
+	active := listed.active_pack
+	if active.len > 0 {
+		mut found := false
+		for pack in listed.packs {
+			if pack.path == active {
+				found = true
+				text := os.read_file(os.join_path(root, active)) or { '' }
+				mut detail := 'Projects: ${pack.projects.join(', ')}.'
+				if pack.notes.len > 0 {
+					detail += ' Notes: ${pack.notes}'
+				}
+				if pack.extra_fields.len > 0 {
+					detail += ' Preserved fields not inlined here: ${pack.extra_fields.join(', ')}.'
+				}
+				fragments << context_fragment('pack', 'pack', pack.path, text, detail)
+			}
+		}
+		if !found {
+			fragments << ContextFragment{
+				id: 'pack'
+				kind: 'pack'
+				source: active
+				mode: 'missing'
+				detail: 'The active pack marker points at a file that does not exist.'
+			}
+		}
+	}
+	persona_name := read_strip(os.join_path(root, '.active-persona'))
+	if persona_name.len > 0 {
+		persona_file := persona_path(root, persona_name)
+		if os.is_file(persona_file) {
+			text := os.read_file(persona_file) or { '' }
+			fragments << context_fragment('persona', 'persona', 'personas/${persona_name}.md', text, 'Active persona for this workspace.')
+		} else {
+			fragments << ContextFragment{
+				id: 'persona'
+				kind: 'persona'
+				source: 'personas/${persona_name}.md'
+				mode: 'missing'
+				detail: 'The active persona marker points at a file that does not exist.'
+			}
+		}
+	}
+	knowledge := os.join_path(root, 'knowledge')
+	if os.is_dir(knowledge) {
+		ks := knowledge_summary(knowledge)
+		fragments << ContextFragment{
+			id: 'knowledge'
+			kind: 'knowledge'
+			source: 'knowledge/'
+			bytes: approx_size(knowledge)
+			mode: 'summary'
+			detail: 'Knowledge summaries only (learnings=${ks.learnings}, todos=${ks.todos}, processes=${ks.processes}); memory injection clips individual records separately.'
+		}
+	}
+	mut total := 0
+	for fragment in fragments {
+		total += fragment.est_tokens
+	}
+	return EffectiveContextResponse{
+		ok: true
+		workspace: root
+		active_pack: active
+		fragments: fragments
+		total_est_tokens: total
+		notes: [
+			'Token counts are provider-agnostic estimates (characters / 4), not a tokenizer result.',
+			'This selection applies to future sessions only; running sessions keep the context they started with.',
+			'A context pack shapes prompts; it is not a security boundary and selecting one installs or runs nothing.',
+		]
+	}
+}
+
 fn workspace_pack_paths(root string, dir string, depth int) []string {
 	if depth > 4 || os.is_link(dir) {
 		return []string{}
