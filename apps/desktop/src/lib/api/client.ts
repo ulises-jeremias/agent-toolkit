@@ -18,6 +18,7 @@ import type {
   MemoryWriteResponse,
   McpProvidersResponse,
   MessageResponse,
+  LiveModelsResponse,
   ModelsResponse,
   PeopleResponse,
   PersonResponse,
@@ -547,6 +548,10 @@ export class ApiClient {
 
   models(): Promise<ResponseOf<OperationOf<'/api/v1/models', 'get'>, ModelsResponse>> {
     return this.json('GET', '/api/v1/models' satisfies PathWith<'get'>);
+  }
+
+  liveModels(runner: string): Promise<ResponseOf<OperationOf<'/api/v1/models/live', 'get'>, LiveModelsResponse>> {
+    return this.json('GET', '/api/v1/models/live' satisfies PathWith<'get'>, { query: { runner } });
   }
 
   swarms(): Promise<ResponseOf<OperationOf<'/api/v1/swarms', 'get'>, SwarmListResponse>> {

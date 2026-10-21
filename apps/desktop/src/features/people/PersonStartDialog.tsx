@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { useModels, useProviders } from '../../data/catalog';
+import { useLiveModels, useModels, useProviders } from '../../data/catalog';
 import { requireClient, useBackend } from '../../data/backend';
 import { useProjects } from '../../data/projects';
 import { errorMessage, type Person, type PersonSession } from '../../lib/api';
@@ -40,14 +40,30 @@ export function PersonStartDialog({
   const projectsQuery = useProjects(workspace);
   const providersQuery = useProviders();
   const modelsQuery = useModels();
+  const liveQuery = useLiveModels(providerId);
 
   const projects = useMemo(() => projectsQuery.data?.projects ?? [], [projectsQuery.data]);
   const providers = useMemo(() => providersQuery.data?.providers ?? [], [providersQuery.data]);
   const models = useMemo(() => modelsQuery.data?.models ?? [], [modelsQuery.data]);
   const matchingModels = useMemo(() => models.filter((model) => model.runner === providerId), [models, providerId]);
+  // Live catalogue entries the static profiles do not know about yet;
+  // the server validates picks against the same catalogue at start.
+  const liveModels = useMemo(
+    () =>
+      liveQuery.data?.source === 'live'
+        ? liveQuery.data.models
+            .filter((live) => !matchingModels.some((model) => model.model === live.model))
+            .map((live) => ({ profile: 'live', runner: live.runner, model: live.model, name: live.name }))
+        : [],
+    [liveQuery.data, matchingModels],
+  );
+  const offeredModels = useMemo(
+    () => [...matchingModels.map((model) => ({ ...model, name: '' })), ...liveModels],
+    [matchingModels, liveModels],
+  );
   const chosenProvider = providers.find((provider) => provider.id === providerId);
   const hasInstalledRunner = providers.some((provider) => provider.available && provider.id !== 'skeleton');
-  const chosenModel = matchingModels.find((model) => model.model === modelName);
+  const chosenModel = offeredModels.find((model) => model.model === modelName);
   const chosenProject = projects.find((project) => project.name === projectName);
   const initialPrompt = person ? personInitialPrompt(person, task) : null;
   const canSendInitialPrompt = chosenProvider ? initialPromptMode(chosenProvider.id) !== 'unsupported' : false;
@@ -322,18 +338,26 @@ export function PersonStartDialog({
                 </Select>
               )}
             </Field>
-            <Field label="Model" hint="Optional. Only models discovered for this runner are offered.">
+            <Field
+              label="Model"
+              hint={
+                liveQuery.data?.source === 'live'
+                  ? 'Optional. Includes the live catalogue reported by this runner’s CLI.'
+                  : 'Optional. Only models discovered for this runner are offered.'
+              }
+            >
               {(control) => (
                 <Select {...control} value={modelName} onChange={(event) => setModelName(event.target.value)}>
                   <option value="">Runner default</option>
-                  {modelName && !matchingModels.some((model) => model.model === modelName) ? (
+                  {modelName && !offeredModels.some((model) => model.model === modelName) ? (
                     <option value={modelName} disabled>
                       {modelName} · not discovered
                     </option>
                   ) : null}
-                  {matchingModels.map((model) => (
+                  {offeredModels.map((model) => (
                     <option key={`${model.profile}:${model.model}`} value={model.model}>
                       {model.profile} · {model.model}
+                      {model.name ? ` · ${model.name}` : ''}
                     </option>
                   ))}
                 </Select>

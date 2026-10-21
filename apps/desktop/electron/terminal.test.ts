@@ -222,3 +222,37 @@ describe('TerminalService', () => {
     }
   }, 30_000);
 });
+
+describe('killProcessTree', () => {
+  it('kills grandchildren in the PTY process group, not just the leader', async () => {
+    if (process.platform === 'win32') return;
+    const runtimeDir = tempRuntimeDir();
+    const service = makeService({ runtimeDir });
+    try {
+      // The shell backgrounds a grandchild sleep, prints its pid, then waits.
+      const session = await service.create({
+        agent: 'test',
+        cmd: '/bin/sh',
+        args: ['-c', 'sleep 60 & echo GC:$!; wait'],
+      });
+      const grandchildPid = await new Promise<number>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('no grandchild pid within 10s')), 10_000);
+        const off = service.onData((id, chunk) => {
+          const match = chunk.match(/GC:(\d+)/);
+          if (id === session.id && match) {
+            clearTimeout(timer);
+            off();
+            resolve(Number(match[1]));
+          }
+        });
+      });
+      expect(() => process.kill(grandchildPid, 0)).not.toThrow();
+      expect(service.signal(session.id, 'term')).toBe(true);
+      // The whole group got SIGTERM: the grandchild must be gone too.
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      expect(() => process.kill(grandchildPid, 0)).toThrow();
+    } finally {
+      await cleanup(service, runtimeDir);
+    }
+  }, 30_000);
+});

@@ -57,6 +57,17 @@ export function useModels() {
   });
 }
 
+/** Live CLI model catalogue for one runner; mirrors the 60s server cache. */
+export function useLiveModels(runner: string) {
+  const { client } = useBackend();
+  return useQuery({
+    queryKey: qk.catalog.liveModels(runner),
+    queryFn: () => requireClient(client).liveModels(runner),
+    enabled: client !== null && runner.length > 0,
+    staleTime: TOOLS_STALE_MS,
+  });
+}
+
 export function useMcpProviders(options: { enabled?: boolean; staleTime?: number } = {}) {
   const { client } = useBackend();
   return useQuery({
