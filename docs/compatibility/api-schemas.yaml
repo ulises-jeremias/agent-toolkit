@@ -401,6 +401,7 @@ schemas:
       - run_state:string
       - created_at:string
       - task:string
+      - issue_ref:string
       - project_id?:string
       - person_bindings?:map<string>
       - role_runners?:map<string>
@@ -668,6 +669,22 @@ schemas:
       - target:string
       - status:string=ok|broken
 
+  - name: GithubIssueView
+    fields:
+      - number:integer
+      - title:string
+      - url:string
+      - state:string
+      - 'labels:string[]'
+      - author:string
+
+  - name: ProjectIssuesResponse
+    fields:
+      - ok:boolean
+      - repo:string
+      - 'issues:#GithubIssueView[]'
+      - detail:string
+
   - name: ProjectListResponse
     v_struct: ProjectListResponse
     fields:
@@ -765,6 +782,15 @@ native:
     summary: List registered workspace projects with link health as typed rows
     query_params: ['workspace?:string']
     response: '#ProjectListResponse'
+  - path: /api/v1/projects/{id}/issues
+    method: get
+    op: list_project_issues
+    summary: List open GitHub issues for a registered project via the authenticated gh CLI
+    query_params: ['workspace?:string', 'limit?:integer']
+    response: '#ProjectIssuesResponse'
+    errors:
+      - '400:invalid project id'
+      - '404:project not found'
   - path: /api/v1/workspace/packs/list
     method: get
     op: workspace_packs_list

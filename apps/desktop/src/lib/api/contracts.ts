@@ -226,6 +226,8 @@ export interface WorkspaceFileSearchResponse {
 /** OpenAPI project roster; target preserves the symlink target for session association. */
 export type ProjectListEntry = components['schemas']['ProjectListEntry'];
 export type ProjectListResponse = components['schemas']['ProjectListResponse'];
+export type GithubIssueView = components['schemas']['GithubIssueView'];
+export type ProjectIssuesResponse = components['schemas']['ProjectIssuesResponse'];
 export type WorkspacePackSummary = components['schemas']['WorkspacePackSummary'];
 export type WorkspacePacksResponse = components['schemas']['WorkspacePacksResponse'];
 export type WorkspacePackActivateResponse = components['schemas']['WorkspacePackActivateResponse'];

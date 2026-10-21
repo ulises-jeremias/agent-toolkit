@@ -570,3 +570,9 @@ fn test_swarm_handoff_broadcast_fans_out_per_role() {
 	recipients.sort()
 	assert recipients == ['integrator', 'reviewer']
 }
+
+fn test_swarm_effective_task_derives_from_issue_ref() {
+	assert swarm_effective_task(SwarmOptions{ task: 'Custom', issue_ref: 'o/r#1' }) == 'Custom'
+	assert swarm_effective_task(SwarmOptions{ issue_ref: 'o/r#42' }) == 'Implement issue o/r#42'
+	assert swarm_effective_task(SwarmOptions{}) == ''
+}

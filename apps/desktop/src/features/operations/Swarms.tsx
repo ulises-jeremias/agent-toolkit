@@ -21,7 +21,14 @@ import {
 import { requireClient, useBackend } from '../../data/backend';
 import { useSessionContext } from '../../shell/useSessionContext';
 import { useProjects } from '../../data/projects';
-import { hasProjectBoundSwarmPreview, hopLabel, needsYouHandoffs } from './swarmPreview';
+import {
+  hasProjectBoundSwarmPreview,
+  hopLabel,
+  issueOptionLabel,
+  issueRefFor,
+  issueTaskFor,
+  needsYouHandoffs,
+} from './swarmPreview';
 import {
   Button,
   ButtonRow,
@@ -440,6 +447,7 @@ function SwarmRunBody({ data, people }: { data: SwarmRunResponse; people: Person
         items={[
           { label: 'State', value: <StatusBadge tone={jobTone(run.run_state)} label={run.run_state} /> },
           { label: 'Task', value: run.task || '—' },
+          ...(run.issue_ref ? [{ label: 'Issue', value: run.issue_ref }] : []),
           { label: 'Session adapter', value: run.backend || '—', mono: true },
           { label: 'Runner', value: data.runner || '—', mono: true },
           { label: 'Model', value: data.model || '—', mono: true },
@@ -652,6 +660,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   const receipt = useActionReceipt('Swarm start posted');
   const [recipe, setRecipe] = useState('pair');
   const [task, setTask] = useState('');
+  const [issueRef, setIssueRef] = useState('');
   const [projectId, setProjectId] = useState('');
   const [runner, setRunner] = useState('');
   const [model, setModel] = useState('');
@@ -685,6 +694,12 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
     },
   });
 
+  const issuesQuery = useQuery({
+    queryKey: ['projects', context.workspace, projectId, 'issues'],
+    queryFn: () => requireClient(client).projectIssues(context.workspace, projectId),
+    enabled: open && Boolean(context.workspace) && Boolean(projectId) && client !== null,
+  });
+  const issueOptions = issuesQuery.data?.ok ? issuesQuery.data.issues : [];
   const selectedRecipe = catalog.data?.recipes.find((item) => item.name === recipe);
   const availableProjects = (projectsQuery.data?.projects ?? []).filter((project) => project.status === 'ok');
   const selectedProject = availableProjects.find((project) => project.name === projectId);
@@ -742,6 +757,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
       project_id: projectId || undefined,
       recipe,
       task: task.trim() || undefined,
+      issue_ref: issueRef || undefined,
       runner: runner || undefined,
       backend,
       model_profile: model || undefined,
@@ -760,6 +776,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
     context.workspace,
     projectId,
     dryRun,
+    issueRef,
     model,
     recipe,
     runner,
@@ -912,7 +929,10 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
           {(control) => (
             <Select
               value={projectId}
-              onChange={(event) => setProjectId(event.target.value)}
+              onChange={(event) => {
+                setProjectId(event.target.value);
+                setIssueRef('');
+              }}
               disabled={projectsQuery.isPending || projectsQuery.isError || availableProjects.length === 0}
               {...control}
             >
@@ -936,6 +956,43 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
             <span className={styles.previewLabel}>Swarm repository</span>
             <strong>{selectedProject.target}</strong>
           </div>
+        ) : null}
+        {projectId ? (
+          <Field
+            label="GitHub issue (optional)"
+            hint="Pick an open issue to work on; the swarm records the ref and derives the task when the task is empty."
+          >
+            {(control) => (
+              <Select
+                value={issueRef}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setIssueRef(next);
+                  const picked = issueOptions.find(
+                    (issue) => issueRefFor(issuesQuery.data?.repo ?? '', issue) === next,
+                  );
+                  if (picked && !task.trim()) {
+                    setTask(issueTaskFor(issuesQuery.data?.repo ?? '', picked));
+                  }
+                }}
+                disabled={issuesQuery.isPending || !issuesQuery.data?.ok}
+                {...control}
+              >
+                <option value="">No issue — free-form task</option>
+                {issueOptions.map((issue) => (
+                  <option key={issue.number} value={issueRefFor(issuesQuery.data?.repo ?? '', issue)}>
+                    {issueOptionLabel(issue)}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+        ) : null}
+        {projectId && issuesQuery.data && !issuesQuery.data.ok ? (
+          <p role="note">GitHub issues unavailable: {issuesQuery.data.detail}</p>
+        ) : null}
+        {projectId && issuesQuery.isError ? (
+          <ErrorState title="Could not load GitHub issues" error={issuesQuery.error} />
         ) : null}
         <Field label="Team recipe" hint="Roles and approval gates come from the canonical Toolkit recipe.">
           {(control) => (

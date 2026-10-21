@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { hasProjectBoundSwarmPreview, hopLabel, needsYouHandoffs } from './swarmPreview';
+import {
+  hasProjectBoundSwarmPreview,
+  hopLabel,
+  issueOptionLabel,
+  issueRefFor,
+  issueTaskFor,
+  needsYouHandoffs,
+} from './swarmPreview';
 
 describe('hasProjectBoundSwarmPreview', () => {
   it('accepts only a preview that confirms both the selected project and its repository path', () => {
@@ -38,5 +45,20 @@ describe('needs-you handoffs (ADR-039)', () => {
   it('labels the chain position against its budget', () => {
     expect(hopLabel(handoffs[1]!)).toBe('hop 7 of 6');
     expect(hopLabel({ state: 'queued', act: '', hops: 2, max_hops: 0 })).toBe('hop 2');
+  });
+});
+
+describe('github issue picker helpers', () => {
+  const issue = { number: 42, title: 'Fix the thing', labels: ['bug', 'p1'], author: 'octocat' };
+
+  it('builds the canonical issue ref and derived task', () => {
+    expect(issueRefFor('o/r', issue)).toBe('o/r#42');
+    expect(issueRefFor('', issue)).toBe('#42');
+    expect(issueTaskFor('o/r', issue)).toBe('Implement issue o/r#42');
+  });
+
+  it('labels picker options with labels and author', () => {
+    expect(issueOptionLabel(issue)).toBe('#42 Fix the thing · bug, p1 · @octocat');
+    expect(issueOptionLabel({ number: 7, title: 'Docs', labels: [], author: '' })).toBe('#7 Docs');
   });
 });

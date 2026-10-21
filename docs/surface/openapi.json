@@ -1093,6 +1093,72 @@
         }
       }
     },
+    "/api/v1/projects/{id}/issues": {
+      "get": {
+        "operationId": "list_project_issues",
+        "summary": "List open GitHub issues for a registered project via the authenticated gh CLI",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectIssuesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid project id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/workspace/packs/list": {
       "get": {
         "operationId": "workspace_packs_list",
@@ -5241,6 +5307,9 @@
           "task": {
             "type": "string"
           },
+          "issue_ref": {
+            "type": "string"
+          },
           "project_id": {
             "type": "string"
           },
@@ -5269,7 +5338,8 @@
           "backend",
           "run_state",
           "created_at",
-          "task"
+          "task",
+          "issue_ref"
         ]
       },
       "SwarmListResponse": {
@@ -6222,6 +6292,66 @@
           "name",
           "target",
           "status"
+        ]
+      },
+      "GithubIssueView": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "author": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "title",
+          "url",
+          "state",
+          "labels",
+          "author"
+        ]
+      },
+      "ProjectIssuesResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "repo": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GithubIssueView"
+            }
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "repo",
+          "issues",
+          "detail"
         ]
       },
       "ProjectListResponse": {
