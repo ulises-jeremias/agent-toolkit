@@ -31,6 +31,7 @@ import type {
   ProvidersResponse,
   SelfcheckResponse,
   SwarmActionResponse,
+  SwarmDraftPrResponse,
   SwarmListResponse,
   SwarmRecipesResponse,
   SwarmRunResponse,
@@ -583,6 +584,14 @@ export class ApiClient {
   ): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}/resolve-handoff', 'post'>, SwarmActionResponse>> {
     return this.json('POST', fillPath('/api/v1/swarms/runs/{id}/resolve-handoff' satisfies PathWith<'post'>, { id }), {
       body: { handoff_id: handoffId },
+    });
+  }
+
+  createSwarmDraftPr(
+    id: string,
+  ): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}/draft-pr', 'post'>, SwarmDraftPrResponse>> {
+    return this.json('POST', fillPath('/api/v1/swarms/runs/{id}/draft-pr' satisfies PathWith<'post'>, { id }), {
+      body: {},
     });
   }
 }

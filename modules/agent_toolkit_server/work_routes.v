@@ -14,6 +14,10 @@ struct SwarmResolveHandoffRequest {
 	handoff_id string
 }
 
+struct SwarmDraftPrRequest {
+	workspace string
+}
+
 @['/api/v1/swarms/runs/:id'; get]
 pub fn (app &App) swarm_run_get(mut ctx Ctx, id string) veb.Result {
 	deny := deny_if_remote(app, ctx)
@@ -174,6 +178,29 @@ pub fn (app &App) swarm_run_resolve_handoff(mut ctx Ctx, id string) veb.Result {
 		subject: id
 		status: res.status
 		message: 'resolve-handoff'
+	})
+	return ctx.json(res)
+}
+
+@['/api/v1/swarms/runs/:id/draft-pr'; post]
+pub fn (app &App) swarm_run_draft_pr(mut ctx Ctx, id string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	req := decode_sub_body[SwarmDraftPrRequest](ctx.req.data) or {
+		return respond_sub_error(mut ctx, err)
+	}
+	ws := serve_memory_workspace(ctx, req.workspace) or { return respond_sub_error(mut ctx, err) }
+	res := agent_toolkit_core.create_swarm_draft_pr_typed(ws, id)
+	if !res.ok {
+		return work_action_error(mut ctx, res.detail)
+	}
+	app.emit(ApiEvent{
+		kind: 'swarm.changed'
+		subject: id
+		status: 'draft-pr'
+		message: res.pr_url
 	})
 	return ctx.json(res)
 }

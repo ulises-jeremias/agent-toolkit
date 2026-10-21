@@ -410,6 +410,7 @@ schemas:
       - created_at:string
       - task:string
       - issue_ref:string
+      - pr_url:string
       - project_id?:string
       - person_bindings?:map<string>
       - role_runners?:map<string>
@@ -566,6 +567,19 @@ schemas:
       - message:string
       - run_id:string
       - status:string
+
+  - name: SwarmDraftPrRequest
+    fields:
+      - workspace:string
+
+  - name: SwarmDraftPrResponse
+    fields:
+      - ok:boolean
+      - run_id:string
+      - branch:string
+      - pr_url:string
+      - created:boolean
+      - detail:string
 
   - name: LoopInfo
     fields:
@@ -1231,6 +1245,14 @@ native:
     errors:
       - '400:invalid handoff_id'
       - '404:run or handoff not found'
+  - path: /api/v1/swarms/runs/{id}/draft-pr
+    method: post
+    op: create_swarm_draft_pr
+    summary: Push the run integrator branch and open (or find) its draft PR via gh
+    request: '#SwarmDraftPrRequest'
+    response: '#SwarmDraftPrResponse'
+    errors:
+      - '404:run or integrator branch not found'
   - path: /api/v1/loops
     method: get
     op: list_loops
