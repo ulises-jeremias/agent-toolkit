@@ -68,6 +68,39 @@ export interface SemanticEntity {
   characterSprite?: 'char-scout' | 'char-maker' | 'char-scholar' | 'char-keeper';
   /** Durable Person accent color, projected with the same live-PTY gate. */
   characterAccent?: string;
+  /**
+   * District this entity belongs to (layout + a11y grouping only). Derived
+   * from workspace context packs; never stored domain state. A project keeps
+   * one lot in its first referencing pack's district even when several packs
+   * reference it — all of them are still listed in its detail.
+   */
+  districtId?: string;
+}
+
+/** A named neighbourhood of the grounds, projected from context packs. */
+export interface WorldDistrict {
+  id: string;
+  name: string;
+  /** Workspace-relative pack file for pack districts; omitted otherwise. */
+  packPath?: string;
+  /** True when this district is the workspace's active context pack. */
+  active?: boolean;
+}
+
+/** District extent in tile units, for terrain/camera/a11y consumers. */
+export interface DistrictBounds extends WorldDistrict {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** Context-pack reference as the world consumes it (name + member projects). */
+export interface ContextPackRef {
+  name: string;
+  path: string;
+  projects: string[];
+  active?: boolean;
 }
 
 export interface LaidOutEntity extends SemanticEntity {
@@ -82,12 +115,16 @@ export interface WorldModel {
   workspaceLabel: string;
   focusProjectId: string | null;
   entities: SemanticEntity[];
+  /** Grounds districts in display order; empty for project interiors. */
+  districts: WorldDistrict[];
 }
 
 export interface WorldLayout {
   cols: number;
   rows: number;
   entities: LaidOutEntity[];
+  /** District extents in tile units; empty for interiors/single-district fallback. */
+  districts?: DistrictBounds[];
 }
 
 export interface ProjectRecord {
@@ -164,4 +201,6 @@ export interface WorldDomainInput {
     avatarAccent?: string;
   }>;
   focusProjectId?: string | null;
+  /** Workspace context packs (typed packs API); drives district grouping. */
+  contextPacks?: ContextPackRef[];
 }

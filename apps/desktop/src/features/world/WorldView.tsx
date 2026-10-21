@@ -7,6 +7,7 @@ import { useTools } from '../../data/catalog';
 import { sortJobs, useJobs } from '../../data/jobs';
 import { useMemoryFile, useMemoryList } from '../../data/memory';
 import { useProjects } from '../../data/projects';
+import { useWorkspacePacks } from '../../data/workspacePacks';
 import { useTerminalSessions } from '../../data/terminal';
 import { activePersonSessionsForWorkspace } from '../../data/personSessionScope';
 import { personCharacterSprite } from '../people/avatar';
@@ -51,6 +52,7 @@ export default function WorldView() {
   const memoryFileQuery = useMemoryFile(memoryPath, { enabled: memoryPath.length > 0 });
   const jobsQuery = useJobs();
   const toolsQuery = useTools();
+  const packsQuery = useWorkspacePacks(workspacePath);
   const livePersonPtys = useMemo(
     () => activePersonSessionsForWorkspace(terminalSessions.sessions, context.workspace),
     [terminalSessions.sessions, context.workspace],
@@ -187,6 +189,12 @@ export default function WorldView() {
         })),
         personSessions,
         focusProjectId: focusProject,
+        contextPacks: (packsQuery.data?.packs ?? []).map((pack) => ({
+          name: pack.name,
+          path: pack.path,
+          projects: pack.projects,
+          active: pack.active,
+        })),
       }),
     [
       workspacePath,
@@ -199,6 +207,7 @@ export default function WorldView() {
       jobs,
       personSessions,
       focusProject,
+      packsQuery.data,
     ],
   );
 
@@ -391,7 +400,13 @@ export default function WorldView() {
         {layout.entities.length === 0 ? (
           <EmptyState title="Nothing to place yet.">Waiting on workspace context.</EmptyState>
         ) : (
-          <WorldEntityList entities={layout.entities} selectedId={selectedId} href={href} onSelect={setSelectedId} />
+          <WorldEntityList
+            entities={layout.entities}
+            selectedId={selectedId}
+            href={href}
+            onSelect={setSelectedId}
+            districts={model.districts}
+          />
         )}
       </details>
     </div>

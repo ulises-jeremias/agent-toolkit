@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildWorldModel, jobBelongsToProject, pathIsWithin, resolveProjectTarget } from './buildWorld';
+import { districtIdForPack, planDistricts, UNFILED_DISTRICT_ID } from './districts';
 import { layoutWorld } from './layout';
 import { paintInterior, paintTerrain } from './terrain';
 import type { MemoryEntryRecord, MemorySummary, ToolRecord, WorldDomainInput } from './types';
@@ -1466,5 +1467,80 @@ describe('layoutWorld', () => {
     expect(files!.x - terminal!.x).toBeGreaterThanOrEqual(4);
     expect(layout.cols).toBe(13);
     expect(layout.rows).toBe(9);
+  });
+});
+
+describe('districts (context-pack neighbourhoods)', () => {
+  const projects = [
+    { name: 'alpha', target: 'projects/alpha', status: 'ok' as const },
+    { name: 'beta', target: 'projects/beta', status: 'ok' as const },
+    { name: 'gamma', target: 'projects/gamma', status: 'ok' as const },
+  ];
+  const packs = [
+    { name: 'Team', path: 'packs/team.yaml', projects: ['alpha', 'beta'], active: true },
+    { name: 'Client', path: 'packs/client.yaml', projects: ['beta', 'gamma', 'ghost'] },
+  ];
+
+  it('plans districts: first referencing pack wins the lot, every pack stays listed', () => {
+    const plan = planDistricts(
+      projects.map((project) => project.name),
+      packs,
+    );
+    expect(plan.byProject.get('alpha')).toBe(districtIdForPack('packs/team.yaml'));
+    expect(plan.byProject.get('beta')).toBe(districtIdForPack('packs/team.yaml'));
+    expect(plan.byProject.get('gamma')).toBe(districtIdForPack('packs/client.yaml'));
+    expect(plan.packNamesByProject.get('beta')).toEqual(['Team', 'Client']);
+    expect(plan.packNamesByProject.has('ghost')).toBe(false);
+    expect(plan.districts.map((district) => district.id)).toEqual([
+      'district:commons',
+      districtIdForPack('packs/team.yaml'),
+      districtIdForPack('packs/client.yaml'),
+    ]);
+    expect(plan.districts[1]).toMatchObject({ name: 'Team', active: true });
+  });
+
+  it('sends unreferenced projects to the unfiled district', () => {
+    const plan = planDistricts(['alpha', 'solo'], [packs[0]!]);
+    expect(plan.byProject.get('solo')).toBe(UNFILED_DISTRICT_ID);
+    expect(plan.districts.map((district) => district.id)).toContain(UNFILED_DISTRICT_ID);
+  });
+
+  it('tags project houses with their district and names every pack in the detail', () => {
+    const model = buildWorldModel(baseInput({ projects, contextPacks: packs }));
+    const beta = model.entities.find((entity) => entity.id === 'place:project:beta');
+    expect(beta?.districtId).toBe(districtIdForPack('packs/team.yaml'));
+    expect(beta?.detail).toContain('Packs: Team, Client');
+    const hall = model.entities.find((entity) => entity.id === 'place:workspace');
+    expect(hall?.districtId).toBe('district:commons');
+    expect(model.districts).toHaveLength(3);
+  });
+
+  it('lays districts out as separate bands with named bounds', () => {
+    const model = buildWorldModel(baseInput({ projects, contextPacks: packs }));
+    const layout = layoutWorld(model);
+    const alpha = layout.entities.find((entity) => entity.id === 'place:project:alpha')!;
+    const gamma = layout.entities.find((entity) => entity.id === 'place:project:gamma')!;
+    expect(gamma.y).toBeGreaterThan(alpha.y + alpha.h);
+    expect(layout.districts?.map((district) => district.name)).toEqual(['Team', 'Client']);
+    const team = layout.districts!.find((district) => district.name === 'Team')!;
+    expect(alpha.y).toBeGreaterThanOrEqual(team.y);
+    expect(alpha.y + alpha.h).toBeLessThanOrEqual(team.y + team.h);
+    expect(layout.districts!.find((district) => district.name === 'Client')!.active).toBeFalsy();
+    expect(team.active).toBe(true);
+  });
+
+  it('keeps the historic single-neighbourhood layout when no packs exist', () => {
+    const withPacks = layoutWorld(buildWorldModel(baseInput({ projects, contextPacks: [] })));
+    const plain = layoutWorld(buildWorldModel(baseInput({ projects })));
+    const spots = (layout: typeof plain) =>
+      layout.entities
+        .filter((entity) => entity.id.startsWith('place:project:'))
+        .map((entity) => [entity.id, entity.x, entity.y]);
+    expect(spots(withPacks)).toEqual(spots(plain));
+  });
+
+  it('reports no districts inside a project interior', () => {
+    const model = buildWorldModel(baseInput({ projects, contextPacks: packs, focusProjectId: 'alpha' }));
+    expect(model.districts).toEqual([]);
   });
 });

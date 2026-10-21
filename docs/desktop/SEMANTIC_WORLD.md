@@ -222,6 +222,14 @@ popularity, copied game artwork.
   or paginate — do not random-scatter.
 - Entering a project changes **focus space** (filter/layout to that project's
   knowledge, memory, terminal links) without destroying the workspace model.
+- **Districts**: workspace context packs project onto the grounds as named
+  neighbourhood bands (`model/districts.ts`). A project house keeps exactly
+  one lot — in the district of the first pack that references it — while its
+  detail names every referencing pack. Unreferenced projects form the
+  "No context pack" district; civic places stay in the Civic Commons.
+  Switching the active pack only marks the active district; houses never
+  move and running sessions are never disturbed. The World Index groups
+  entries under district headings whenever 2+ districts are present.
 
 ## 6. Navigation and inspectors
 
