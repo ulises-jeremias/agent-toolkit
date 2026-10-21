@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Fixed
+
+- Orphaned swarm PersonSession records now reconcile to a terminal
+  status when the run's authoritative state is terminal, instead of
+  staying `running` forever.
+
 ### Added
 
 - Swarm roles bound to People now become canonical PersonSession
