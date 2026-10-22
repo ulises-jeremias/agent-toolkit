@@ -592,11 +592,19 @@ journeys:
           - assets/electron/library/catalog-partial-receipt-compact.png
           - assets/electron/library/catalog-partial-receipt-large.png
           - ../../static/screenshots/library.png
+      - note: >-
+          Target compatibility is now declared for Agent Definitions as
+          well as Skills: AgentInfo carries per-target rows derived from
+          the registry's native_custom_agents capability, and the Library
+          Agent definitions table renders them like the Skills catalog.
+        build: "Linux (V unit tests pass; serve /api/v1/agents readback: 18/18 definitions carry compatibility)"
+        tests:
+          - modules/agent_toolkit_core/discovery_test.v
     blockers:
       - >-
           Workspace context bundles are managed in Workspace Hall, separate
-          from installable Library capabilities. Target compatibility is
-          currently declared for Skills only.
+          from installable Library capabilities, so discovery does not yet
+          present both kinds side by side.
   - id: install-capabilities
     title: Install skills/agents from the Library
     destinations: [library]

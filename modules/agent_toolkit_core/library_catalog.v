@@ -191,9 +191,11 @@ fn project_target_registry(text string) string {
 		} else if trimmed == 'capabilities:' {
 			lines << '    capabilities:'
 			inside_capabilities = true
-		} else if inside_capabilities && trimmed.starts_with('agent_skills:') {
+		} else if inside_capabilities && (trimmed.starts_with('agent_skills:')
+			|| trimmed.starts_with('native_custom_agents:')) {
+			key := trimmed.all_before(':')
 			support := trimmed.all_after(':').trim_space().trim('"').trim("'")
-			lines << "      agent_skills: '${support}'"
+			lines << "      ${key}: '${support}'"
 		} else if trimmed.len > 0 && line.starts_with('  ') && !line.starts_with('    ') {
 			inside_capabilities = false
 		}
@@ -202,9 +204,15 @@ fn project_target_registry(text string) string {
 }
 
 fn library_skill_compatibility(targets []TargetCapabilityEntry) []LibraryCompatibility {
+	return library_target_compatibility(targets, 'agent_skills')
+}
+
+// library_target_compatibility maps one declared capability key of the
+// target registry to per-target support rows.
+fn library_target_compatibility(targets []TargetCapabilityEntry, capability string) []LibraryCompatibility {
 	mut out := []LibraryCompatibility{}
 	for target in targets {
-		support := target.capabilities['agent_skills'] or { 'unknown' }
+		support := target.capabilities[capability] or { 'unknown' }
 		status := match support {
 			'true' { 'supported' }
 			'partial' { 'partial' }
@@ -218,4 +226,21 @@ fn library_skill_compatibility(targets []TargetCapabilityEntry) []LibraryCompati
 		}
 	}
 	return out
+}
+
+// agent_definition_compatibility declares, per target, whether native
+// custom agents (Agent Definitions) are supported. It reads the same
+// target registry as the Skills catalog; an unreadable registry yields
+// no rows rather than invented support.
+pub fn agent_definition_compatibility(root string) []LibraryCompatibility {
+	text := data_read_file(root, os.join_path(root, 'capabilities/targets/registry.yaml')) or {
+		return []LibraryCompatibility{}
+	}
+	targets := yaml.decode[TargetCapabilityRegistry](project_target_registry(text)) or {
+		return []LibraryCompatibility{}
+	}
+	if targets.targets.len == 0 {
+		return []LibraryCompatibility{}
+	}
+	return library_target_compatibility(targets.targets, 'native_custom_agents')
 }

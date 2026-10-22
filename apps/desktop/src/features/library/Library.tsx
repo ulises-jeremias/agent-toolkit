@@ -43,6 +43,46 @@ function yesNo(value: boolean): { tone: Tone; label: string } {
   return value ? { tone: 'ok', label: 'yes' } : { tone: 'idle', label: 'no' };
 }
 
+interface CompatibilityRow {
+  target: string;
+  display_name: string;
+  status: string;
+}
+
+/** Declared per-target support from the target registry (Skills and Agent Definitions share the shape). */
+function CompatibilityCell({ compatibility }: { compatibility: readonly CompatibilityRow[] }) {
+  const supportCounts = compatibility.reduce(
+    (counts, item) => ({ ...counts, [item.status]: (counts[item.status] ?? 0) + 1 }),
+    {} as Record<string, number>,
+  );
+  if (compatibility.length === 0) return <>Not declared</>;
+  return (
+    <>
+      <span className={styles.compatibilitySummary}>
+        {(['supported', 'partial', 'unsupported', 'unknown'] as const).map((status) =>
+          supportCounts[status] ? (
+            <StatusBadge
+              key={status}
+              tone={status === 'supported' ? 'ok' : status === 'partial' ? 'warn' : 'idle'}
+              label={`${supportCounts[status]} ${status}`}
+            />
+          ) : null,
+        )}
+      </span>
+      <details className={styles.resourceDetails}>
+        <summary>Targets</summary>
+        <ul>
+          {compatibility.map((item) => (
+            <li key={item.target}>
+              {item.display_name}: {item.status}
+            </li>
+          ))}
+        </ul>
+      </details>
+    </>
+  );
+}
+
 function enabledBadge(value: ToolEnabled): { tone: Tone; label: string } {
   if (value === 'true') return { tone: 'ok', label: 'true' };
   if (value === 'false') return { tone: 'idle', label: 'false' };
@@ -907,6 +947,7 @@ export default function Library() {
                           <th scope="col">Id</th>
                           <th scope="col">Kind</th>
                           <th scope="col">Toolkit receipt</th>
+                          <th scope="col">Compatibility</th>
                           <th scope="col">Description</th>
                         </tr>
                       </thead>
@@ -919,6 +960,9 @@ export default function Library() {
                             <td>{agent.kind || 'Unknown'}</td>
                             <td>
                               <ResourceReceipt kind="agent" name={agent.id} receipts={installReceipts} />
+                            </td>
+                            <td>
+                              <CompatibilityCell compatibility={agent.compatibility} />
                             </td>
                             <td>
                               {agent.description || agent.name}
@@ -1063,10 +1107,6 @@ export default function Library() {
                     </thead>
                     <tbody>
                       {skillRows.map((row) => {
-                        const supportCounts = row.compatibility.reduce(
-                          (counts, item) => ({ ...counts, [item.status]: (counts[item.status] ?? 0) + 1 }),
-                          {} as Record<string, number>,
-                        );
                         return (
                           <tr key={row.id}>
                             <th scope="row">
@@ -1080,27 +1120,7 @@ export default function Library() {
                               </span>
                             </td>
                             <td>
-                              <span className={styles.compatibilitySummary}>
-                                {(['supported', 'partial', 'unsupported', 'unknown'] as const).map((status) =>
-                                  supportCounts[status] ? (
-                                    <StatusBadge
-                                      key={status}
-                                      tone={status === 'supported' ? 'ok' : status === 'partial' ? 'warn' : 'idle'}
-                                      label={`${supportCounts[status]} ${status}`}
-                                    />
-                                  ) : null,
-                                )}
-                              </span>
-                              <details className={styles.resourceDetails}>
-                                <summary>Targets</summary>
-                                <ul>
-                                  {row.compatibility.map((item) => (
-                                    <li key={item.target}>
-                                      {item.display_name}: {item.status}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </details>
+                              <CompatibilityCell compatibility={row.compatibility} />
                             </td>
                             <td>
                               {row.description || 'Description unavailable.'}
