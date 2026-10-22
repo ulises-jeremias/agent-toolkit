@@ -30,6 +30,11 @@ pub mut:
 	// cancel() only signals through this entry (term → grace → kill),
 	// mirroring desktop_engine/process cancel semantics.
 	procs       map[string]&os.Process
+	// finalized marks jobs whose final log (with [exit]/[canceled]) has
+	// been written. Status turns terminal before the watcher writes that
+	// log on cancel, so SSE must gate its done event on this flag —
+	// otherwise clients refetch and cache the pre-final [running] log.
+	finalized   map[string]bool
 	max_running int = 2
 	running     int
 	dir         string
@@ -64,8 +69,14 @@ pub fn new_job_runner(dir string) &JobRunner {
 			}
 		}
 	}
+	// Restored jobs have no watcher; their on-disk log is already final.
+	mut finalized := map[string]bool{}
+	for id, _ in jobs {
+		finalized[id] = true
+	}
 	return &JobRunner{
 		jobs: jobs
+		finalized: finalized
 		max_running: 2
 		running: running
 		dir: dir
@@ -247,10 +258,24 @@ fn (mut r JobRunner) watch(id string, mut p os.Process) {
 			final_log += '[canceled]\n'
 		}
 		os.write_file(r.log_path(id), final_log) or {}
+		r.finalized[id] = true
 	}
 	r.procs.delete(id)
 	p.close()
 	r.persist_locked()
+}
+
+// is_finalized reports whether the job's final log has been written.
+// Unknown jobs count as finalized so stream consumers never wait forever.
+pub fn (r &JobRunner) is_finalized(id string) bool {
+	r.mut.lock()
+	defer {
+		r.mut.unlock()
+	}
+	if id !in r.jobs {
+		return true
+	}
+	return r.finalized[id] or { false }
 }
 
 // get returns a snapshot of the job with `id` if it exists.
@@ -305,7 +330,11 @@ pub fn (mut r JobRunner) cancel(id string) !Job {
 			p.signal_kill()
 		}
 	} else {
+		// No watcher will write a final log; the marker above is final.
 		append_canceled_marker(r.log_path(id))
+		r.mut.lock()
+		r.finalized[id] = true
+		r.mut.unlock()
 	}
 	return job
 }
@@ -342,6 +371,7 @@ pub fn (mut r JobRunner) delete(id string, force bool) ! {
 	}
 	r.jobs.delete(id)
 	r.procs.delete(id)
+	r.finalized.delete(id)
 	r.persist_locked()
 	if r.bus != unsafe { nil } {
 		r.bus.publish(ApiEvent{

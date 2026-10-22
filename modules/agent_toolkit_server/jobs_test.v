@@ -17,6 +17,11 @@ fn test_new_job_runner_hydrate_completed_and_running() {
 	assert runner.jobs['job_running'].status == 'failed'
 	assert runner.jobs['job_running'].ended_at.len > 0
 	assert runner.running == 0
+	// Restored jobs have no watcher: their on-disk log is already final.
+	assert runner.is_finalized('job_completed')
+	assert runner.is_finalized('job_running')
+	// Unknown jobs count as finalized so SSE consumers never wait forever.
+	assert runner.is_finalized('job_missing')
 	// New jobs should be creatable without phantom capacity
 	assert runner.running < runner.max_running
 }
@@ -262,7 +267,8 @@ fn test_cancel_kills_live_job() {
 	runs := os.join_path(dir, 'runs')
 	mut runner := new_job_runner(runs)
 	job := runner.create('version', [], '') or { panic(err.msg()) }
-	assert runner.get(job.id)!.status == 'running'
+	created := runner.get(job.id) or { panic('job missing after create') }
+	assert created.status == 'running'
 	canceled := runner.cancel(job.id) or { panic(err.msg()) }
 	assert canceled.status == 'canceled'
 	// watcher must reap the killed child quickly (bounded: would take 30s
@@ -278,9 +284,13 @@ fn test_cancel_kills_live_job() {
 		assert time.now().unix_milli() <= deadline.unix_milli(), 'watcher never reaped canceled job'
 		time.sleep(100 * time.millisecond)
 	}
-	final := runner.get(job.id) or { panic(err.msg()) }
+	final := runner.get(job.id) or { panic('job missing after cancel') }
 	assert final.status == 'canceled'
 	// the watcher's final log write keeps exactly one canceled marker
 	log := os.read_file(os.join_path(runs, job.id + '.log')) or { panic(err.msg()) }
 	assert log.count('[canceled]') == 1
+	// Finalization (what SSE gates `done` on) must be observable no later
+	// than the watcher reaping the process, and only with the final log
+	// already on disk — otherwise clients cache the pre-final log.
+	assert runner.is_finalized(job.id)
 }
