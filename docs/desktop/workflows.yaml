@@ -1009,6 +1009,18 @@ journeys:
         build: "Linux Electron E2E (tmux swarm launch test in swarm-person-session.spec.ts, 1 passed locally)"
         tests:
           - apps/desktop/e2e/electron/swarm-person-session.spec.ts
+      - note: >-
+          The whole chain now also runs as one continuous GUI flow in a
+          single Desktop launch (full-journey.spec.ts): apply a context
+          pack in Workspace, create Mara in People, start a tmux swarm
+          bound to her from Operations, watch her PersonSession running
+          in the inspector and as a World character at the project house,
+          stop the run, then reopen the exact run from her People history
+          via Open run. Passed against both the dev build and the
+          packaged app with its bundled backend (23s each locally).
+        build: "Linux Electron E2E (full-journey.spec.ts, dev + packaged, 1 passed each)"
+        tests:
+          - apps/desktop/e2e/electron/full-journey.spec.ts
     blockers: []
   - id: swarm-start-review
     title: Review canonical recipe topology and runtime settings before starting
