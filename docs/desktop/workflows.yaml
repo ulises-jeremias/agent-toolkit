@@ -619,7 +619,7 @@ journeys:
   - id: install-capabilities
     title: Install skills/agents from the Library
     destinations: [library]
-    status: partial
+    status: ok
     evidence:
       - note: >-
           Library previews the actual profile, Agent Definition, and complete Skill file
@@ -677,11 +677,25 @@ journeys:
           - assets/electron/library/removal-preview-large.png
           - assets/electron/library/copilot-project-review-compact.png
           - assets/electron/library/copilot-project-review-large.png
-    blockers:
-      - >-
-          Compiled Copilot repository Skills and Agent Definitions are not yet
-          exposed in Desktop; the current project flow installs only the
-          instruction profile.
+      - note: >-
+          The Copilot project flow now installs the full compiled repository
+          set: instructions plus Skills under .github/skills and Agent
+          Definitions as .github/agents/*.agent.md from the canonical
+          catalog. The review lists every file with its state (new, current,
+          preserved); existing project files are never overwritten, the
+          receipt owns only files the install actually created, and removal
+          deletes only unchanged receipt-owned files — if any receipted
+          file was edited, nothing is removed. The Electron journey verifies
+          preserved instructions, stale-review rejection, real Skill/Agent
+          files on disk, edited-file protection, and full removal.
+        build: "Linux Electron E2E (project-link.spec.ts); compact/large captures opened"
+        tests:
+          - modules/agent_toolkit_core/copilot_project_install_test.v
+          - apps/desktop/e2e/electron/project-link.spec.ts
+        screenshots:
+          - assets/electron/library/copilot-project-review-compact.png
+          - assets/electron/library/copilot-project-review-large.png
+    blockers: []
   - id: mcp-configure-probe
     title: Configure an MCP provider and probe it
     destinations: [library]

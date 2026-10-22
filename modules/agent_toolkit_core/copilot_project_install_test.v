@@ -28,9 +28,15 @@ fn test_copilot_project_install_reviews_then_writes_real_profile() {
 	installed := copilot_project_install(workspace, 'demo', preview.review_token, true, receipts)
 	assert installed.ok
 	assert installed.status == 'installed'
-	assert installed.files_written == 1
+	assert installed.files_written > 1
+	assert installed.files.any(it.kind == 'instructions' && it.state == 'new')
+	assert installed.files.any(it.kind == 'skill')
+	assert installed.files.any(it.kind == 'agent')
 	content := os.read_file(os.join_path(project, '.github', 'copilot-instructions.md')) or { panic(err) }
 	assert content.contains('# Copilot Instructions Template')
+	assert os.is_file(os.join_path(project, '.github', 'skills', 'assistant', 'SKILL.md')) || installed.files.any(it.kind == 'skill' && it.state == 'new')
+	agent_entries := os.ls(os.join_path(project, '.github', 'agents')) or { panic(err) }
+	assert agent_entries.any(it.ends_with('.agent.md'))
 	current := copilot_project_install(workspace, 'demo', '', false, receipts)
 	assert current.ok
 	assert current.status == 'current'
@@ -45,7 +51,12 @@ fn test_copilot_project_install_preserves_existing_instructions_and_symlinks() {
 	os.write_file(dest, 'my own rules') or { panic(err) }
 	conflict := copilot_project_install(workspace, 'demo', '', false, os.join_path(base, 'receipts'))
 	assert conflict.ok
-	assert conflict.status == 'preserved-existing'
+	// Instructions are preserved, but Skills/Agents can still be reviewed.
+	assert conflict.status == 'ready'
+	assert conflict.files.any(it.kind == 'instructions' && it.state == 'preserved')
+	applied := copilot_project_install(workspace, 'demo', conflict.review_token, true, os.join_path(base, 'receipts'))
+	assert applied.status == 'installed'
+	assert applied.files_written > 0
 	assert os.read_file(dest) or { '' } == 'my own rules'
 
 	unsafe_base, unsafe_workspace, unsafe_project := setup_copilot_project_install_test()
@@ -84,7 +95,8 @@ fn test_copilot_project_removal_requires_receipt_and_preserves_edits() {
 	removed := copilot_project_remove(workspace, 'demo', remove_preview.review_token, true, receipts)
 	assert removed.ok
 	assert removed.status == 'removed'
-	assert removed.files_removed == 1
+	assert removed.files_removed == installed.files_written
+	assert !os.exists(os.join_path(project, '.github', 'skills'))
 	assert !os.exists(os.join_path(project, '.github', 'copilot-instructions.md'))
 	assert list_install_receipts(receipts).len == 0
 

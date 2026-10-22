@@ -50,6 +50,13 @@ schemas:
       - action:string=install|remove
       - review_token:string
 
+  - name: CopilotProjectFile
+    v_struct: CopilotProjectFileSummary
+    fields:
+      - path:string
+      - kind:string=instructions|skill|agent
+      - state:string
+
   - name: CopilotProjectInstallResponse
     v_struct: CopilotProjectInstallResp
     fields:
@@ -62,6 +69,7 @@ schemas:
       - review_token:string
       - files_written:integer
       - files_removed:integer
+      - 'files:#CopilotProjectFile[]'
 
   - name: InstallReceiptSummary
     v_struct: InstallReceiptSummary

@@ -4288,6 +4288,30 @@
           "review_token"
         ]
       },
+      "CopilotProjectFile": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "instructions",
+              "skill",
+              "agent"
+            ]
+          },
+          "state": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "kind",
+          "state"
+        ]
+      },
       "CopilotProjectInstallResponse": {
         "type": "object",
         "properties": {
@@ -4317,6 +4341,12 @@
           },
           "files_removed": {
             "type": "integer"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CopilotProjectFile"
+            }
           }
         },
         "required": [
@@ -4328,7 +4358,8 @@
           "status",
           "review_token",
           "files_written",
-          "files_removed"
+          "files_removed",
+          "files"
         ]
       },
       "InstallReceiptSummary": {

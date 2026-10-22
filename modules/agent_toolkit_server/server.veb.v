@@ -437,6 +437,13 @@ fn install_artifact_status(path string, expected_digest string) string {
 	return 'modified'
 }
 
+pub struct CopilotProjectFileSummary {
+pub:
+	path  string
+	kind  string
+	state string
+}
+
 pub struct CopilotProjectInstallResp {
 pub:
 	ok            bool
@@ -448,6 +455,7 @@ pub:
 	review_token  string
 	files_written int
 	files_removed int
+	files         []CopilotProjectFileSummary
 }
 
 struct InstallReviewedReq {
@@ -472,6 +480,11 @@ fn copilot_project_install_response(report agent_toolkit_core.CopilotProjectInst
 		review_token: report.review_token
 		files_written: report.files_written
 		files_removed: report.files_removed
+		files: report.files.map(CopilotProjectFileSummary{
+			path: it.path
+			kind: it.kind
+			state: it.state
+		})
 	}
 }
 

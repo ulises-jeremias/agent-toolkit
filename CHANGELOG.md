@@ -40,6 +40,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   PersonSession; the character names the swarm role and run and opens
   the Operations run inspector — never a fabricated terminal for a
   tmux/herdr session. The character disappears when the session ends.
+- The Library's GitHub Copilot project setup now installs the full
+  compiled repository set — instructions, Skills under
+  `.github/skills`, and Agent Definitions as `.github/agents/*.agent.md`
+  — instead of only the instruction profile. The review lists every
+  file with its state; existing project files are preserved, and
+  receipt-backed removal deletes only unchanged Toolkit-owned files
+  (if any file was edited, nothing is removed).
 - The Library now discovers workspace context bundles beside Skills
   and Agent Definitions. The same Library search filters bundles by
   name, description, and related projects; bundles stay read-only
