@@ -357,40 +357,40 @@ test('a dead tmux worker surface closes its Person session as interrupted, then 
   }
 });
 
-test('a lost herdr workspace closes its Person session as interrupted, then the run still stops', async () => {
-  test.setTimeout(240_000);
-  const { page } = desktop;
-  let herdrAvailable = true;
-  try {
-    execFileSync('herdr', ['--version'], { stdio: 'pipe' });
-  } catch {
-    herdrAvailable = false;
-  }
-  test.skip(!herdrAvailable, 'herdr session adapter unavailable on this host');
-  // `herdr workspace create` needs a running server; start the headless
-  // server for this test only when none is answering, and stop it again
-  // afterwards only if this test started it.
-  // The backend spawns herdr with the isolated test HOME, so every herdr
-  // call in this test must use that same environment and socket.
-  const herdrEnv = {
+function herdrTestEnv(): NodeJS.ProcessEnv {
+  return {
     ...process.env,
     HOME: desktop.home,
     XDG_CONFIG_HOME: path.join(desktop.home, '.config'),
     XDG_DATA_HOME: path.join(desktop.home, '.local', 'share'),
   };
-  const herdrList = () => execFileSync('herdr', ['workspace', 'list'], { env: herdrEnv, encoding: 'utf8' });
-  let startedServer = false;
+}
+
+function herdrAvailableOnHost(): boolean {
   try {
-    herdrList();
+    execFileSync('herdr', ['--version'], { stdio: 'pipe' });
+    return true;
   } catch {
-    const server = spawn('herdr', ['server'], { detached: true, stdio: 'ignore', env: herdrEnv });
+    return false;
+  }
+}
+
+// `herdr workspace create` needs a running server; start the headless
+// server only when none is answering in the isolated test HOME, and
+// report whether this call started it (so the test can stop it again).
+async function ensureHerdrServer(env: NodeJS.ProcessEnv): Promise<boolean> {
+  const list = () => execFileSync('herdr', ['workspace', 'list'], { env, encoding: 'utf8' });
+  try {
+    list();
+    return false;
+  } catch {
+    const server = spawn('herdr', ['server'], { detached: true, stdio: 'ignore', env });
     server.unref();
-    startedServer = true;
     await expect
       .poll(
         () => {
           try {
-            herdrList();
+            list();
             return true;
           } catch {
             return false;
@@ -399,7 +399,28 @@ test('a lost herdr workspace closes its Person session as interrupted, then the 
         { timeout: 20_000 },
       )
       .toBe(true);
+    return true;
   }
+}
+
+function stopHerdrServerIfStarted(env: NodeJS.ProcessEnv, started: boolean): void {
+  if (!started) return;
+  try {
+    execFileSync('herdr', ['server', 'stop'], { env, stdio: 'pipe' });
+  } catch {
+    // Already gone with the workspace close; nothing to clean.
+  }
+}
+
+test('a lost herdr workspace closes its Person session as interrupted, then the run still stops', async () => {
+  test.setTimeout(240_000);
+  const { page } = desktop;
+  test.skip(!herdrAvailableOnHost(), 'herdr session adapter unavailable on this host');
+  // The backend spawns herdr with the isolated test HOME, so every herdr
+  // call in this test must use that same environment and socket.
+  const herdrEnv = herdrTestEnv();
+  const herdrList = () => execFileSync('herdr', ['workspace', 'list'], { env: herdrEnv, encoding: 'utf8' });
+  const startedServer = await ensureHerdrServer(herdrEnv);
   await waitForBackend(page);
   await createPerson('Mira', 'mira', 'implementer');
   const runId = await startTmuxSwarm('Lose the herdr workspace mid-run', { implementer: 'mira' }, 'herdr');
@@ -421,7 +442,57 @@ test('a lost herdr workspace closes its Person session as interrupted, then the 
 
   // Recovery stays operator-driven: stopping the run still resolves it.
   await stopRunFromInspector();
-  if (startedServer) {
-    execFileSync('herdr', ['server', 'stop'], { env: herdrEnv, stdio: 'pipe' });
+  stopHerdrServerIfStarted(herdrEnv, startedServer);
+});
+
+test('handoff to a waiting role launches its bound herdr Person session', async () => {
+  test.setTimeout(240_000);
+  const { page } = desktop;
+  test.skip(!herdrAvailableOnHost(), 'herdr session adapter unavailable on this host');
+  const herdrEnv = herdrTestEnv();
+  const startedServer = await ensureHerdrServer(herdrEnv);
+  try {
+    await waitForBackend(page);
+    await createPerson('Noa', 'noa', 'implementer');
+    await createPerson('Iris', 'iris', 'reviewer');
+    const runId = await startTmuxSwarm(
+      'Hand the herdr implementation to the reviewer',
+      { implementer: 'noa', reviewer: 'iris' },
+      'herdr',
+    );
+
+    // Only the first role launches at start; the reviewer waits.
+    await expect(inspectorSessionRow('Noa')).toContainText('running', { timeout: 30_000 });
+    await expect(inspectorSessionRow('Iris')).toHaveCount(0);
+    expect(sessionRecords()).not.toContain('"iris"');
+
+    // A real handoff to the waiting role auto-starts its herdr pane,
+    // which is what records Iris's canonical PersonSession.
+    swarmCli([
+      'handoff',
+      'create',
+      '--type',
+      'artifact',
+      '--from',
+      'implementer',
+      '--to',
+      'reviewer',
+      '--run-id',
+      runId,
+    ]);
+    await expect(inspectorSessionRow('Iris')).toContainText('reviewer', { timeout: 60_000 });
+    await expect(inspectorSessionRow('Iris')).toContainText('running');
+    await expect.poll(() => sessionRecords(), { timeout: 20_000 }).toContain('"iris"');
+    const trace = fs.readFileSync(
+      path.join(desktop.workspace, '.agent-toolkit', 'swarm', 'runs', runId, 'trace.jsonl'),
+      'utf8',
+    );
+    expect(trace).toContain('handoff_autostart_ok');
+
+    await stopRunFromInspector();
+    await expect(inspectorSessionRow('Noa')).toContainText('stopped', { timeout: 20_000 });
+    await expect(inspectorSessionRow('Iris')).toContainText('stopped', { timeout: 20_000 });
+  } finally {
+    stopHerdrServerIfStarted(herdrEnv, startedServer);
   }
 });
