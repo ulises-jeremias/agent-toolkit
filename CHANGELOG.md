@@ -45,6 +45,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   waiting herdr role auto-starts on handoff and its bound Person
   session appears in the run inspector. With launch, liveness, and
   recovery also verified, the swarm-run-watch journey is complete.
+- A single continuous Electron journey now covers the definition-of-done
+  flow in one Desktop launch: apply a context pack, create a Person,
+  start a People-bound tmux swarm, observe the live PersonSession in
+  Operations and the World, stop the run, and reopen it from the
+  Person's history. It passes against both the dev build and the
+  packaged app (`full-journey.spec.ts`).
 - People session history now opens swarm work directly: a swarm
   PersonSession row carries an **Open run** action that navigates to
   the Operations inspector for that exact run, matching the World
