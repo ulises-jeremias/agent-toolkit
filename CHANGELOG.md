@@ -45,6 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   waiting herdr role auto-starts on handoff and its bound Person
   session appears in the run inspector. With launch, liveness, and
   recovery also verified, the swarm-run-watch journey is complete.
+- A bound Person's durable notes now join swarm work too: at run
+  creation, the backend appends a `# Person memory` section with the
+  bound Person's operator notes to that role's prompt (manifest size
+  updated to match). Unbound roles and note-less People get nothing.
 - People now carry durable operator-written memory: an optional
   `notes` field on `agent-toolkit/person@1` (validated by the V
   backend, shown and edited in the People form and detail, persisted
