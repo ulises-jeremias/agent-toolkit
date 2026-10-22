@@ -86,6 +86,22 @@ describe('personSessionOptions', () => {
         'Role: reviewer\nConfigured goal: Review changes\n\nTask for this session:\nReview this PR',
       ],
     ],
+    [
+      'cursor',
+      [
+        '--model',
+        'model-x',
+        'Role: reviewer\nConfigured goal: Review changes\n\nTask for this session:\nReview this PR',
+      ],
+    ],
+    [
+      'muse',
+      [
+        '--model',
+        'model-x',
+        'Role: reviewer\nConfigured goal: Review changes\n\nTask for this session:\nReview this PR',
+      ],
+    ],
   ])('sends a reviewed initial task to %s using its interactive CLI contract', (providerId, args) => {
     const options = personSessionOptions(
       person,
@@ -110,9 +126,10 @@ describe('personSessionOptions', () => {
   });
 
   it('keeps unsupported runners interactive and never guesses prompt flags', () => {
-    expect(initialPromptMode('cursor')).toBe('unsupported');
+    expect(initialPromptMode('windsurf')).toBe('unsupported');
     expect(
-      personSessionOptions(person, { ...provider, id: 'cursor' }, undefined, '/work/project', 'project', 'task')?.args,
+      personSessionOptions(person, { ...provider, id: 'windsurf' }, undefined, '/work/project', 'project', 'task')
+        ?.args,
     ).toEqual([]);
   });
 
