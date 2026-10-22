@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- A responsive-layout Electron E2E now exercises the supported window
+  matrix (1280×800, 1024×768, and the declared 1024×640 minimum) in the
+  real Desktop: destinations, the People primary action, and the
+  command palette stay inside the viewport with no horizontal overflow
+  at every size.
+
 ### Fixed
 
 - The Desktop "Skip to content" link now actually moves keyboard focus
