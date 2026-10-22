@@ -88,7 +88,19 @@ function ShellFrame() {
   const location = useLocation();
   return (
     <div className={styles.shell} data-destination={location.pathname}>
-      <a className={styles.skipLink} href="#main">
+      <a
+        className={styles.skipLink}
+        href="#main"
+        onClick={(event) => {
+          // HashRouter owns location.hash, so the default anchor jump would
+          // be parsed as a route change instead of moving focus. Focus the
+          // landmark explicitly (it carries tabIndex={-1} for this purpose).
+          event.preventDefault();
+          const main = document.getElementById('main');
+          main?.focus();
+          main?.scrollIntoView();
+        }}
+      >
         Skip to content
       </a>
       <Hud />
