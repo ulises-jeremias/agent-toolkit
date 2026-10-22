@@ -25,6 +25,112 @@ test.afterAll(async () => {
   await desktop?.close();
 });
 
+function backendBinary(): string {
+  const candidates = [
+    process.env['ATK_E2E_BACKEND_BIN'],
+    path.resolve(__dirname, '../../../../dist/agent-toolkit'),
+    path.resolve(__dirname, '../../../../build/agent-toolkit'),
+  ].filter((candidate): candidate is string => Boolean(candidate));
+  const binary = candidates.find((candidate) => fs.existsSync(candidate));
+  if (!binary) throw new Error('The E2E backend binary is unavailable for swarm handoff commands');
+  return binary;
+}
+
+function swarmCli(args: string[]): string {
+  return execFileSync(backendBinary(), ['swarm', ...args, '--workspace', desktop.workspace], {
+    env: {
+      ...process.env,
+      HOME: desktop.home,
+      XDG_CONFIG_HOME: path.join(desktop.home, '.config'),
+      XDG_DATA_HOME: path.join(desktop.home, '.local', 'share'),
+      AGENT_TOOLKIT_WORKSPACE: desktop.workspace,
+    },
+    encoding: 'utf8',
+    stdio: 'pipe',
+  });
+}
+
+function sessionRecords(): string {
+  const sessionsDir = path.join(desktop.workspace, '.agent-toolkit', 'sessions');
+  if (!fs.existsSync(sessionsDir)) return '';
+  return fs
+    .readdirSync(sessionsDir)
+    .map((file) => fs.readFileSync(path.join(sessionsDir, file), 'utf8'))
+    .join('\n');
+}
+
+async function createPerson(name: string, id: string, role: string): Promise<void> {
+  const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'People' }).click();
+  await page.getByRole('button', { name: 'Create Person' }).click();
+  const personDialog = page.getByRole('dialog', { name: 'Create Person' });
+  await personDialog.getByRole('textbox', { name: 'Name' }).fill(name);
+  await personDialog.getByRole('textbox', { name: 'ID' }).fill(id);
+  await personDialog.getByRole('textbox', { name: 'Role' }).fill(role);
+  await personDialog.getByRole('textbox', { name: 'Goal' }).fill(`Work assigned to the ${role} swarm role`);
+  await personDialog.getByRole('button', { name: 'Create Person' }).click();
+  await expect(personDialog).toBeHidden();
+}
+
+async function startTmuxSwarm(task: string, bindings: Record<string, string>): Promise<string> {
+  const { page, workspace } = desktop;
+  initRepo(workspace);
+  const link = path.join(workspace, 'projects', 'e2e-workspace');
+  fs.mkdirSync(path.dirname(link), { recursive: true });
+  if (!fs.existsSync(link)) fs.symlinkSync(workspace, link, 'dir');
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
+  await page.getByRole('button', { name: 'Start swarm' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Start a swarm' });
+  await dialog.getByLabel('Project').selectOption('e2e-workspace');
+  await dialog.getByLabel('Task').fill(task);
+  for (const [role, personId] of Object.entries(bindings)) {
+    await dialog.getByLabel(`Person for ${role}`).selectOption(personId);
+  }
+  await dialog.getByText('Runtime options').click();
+  const adapter = dialog.getByLabel('Session adapter');
+  const adapterOptions = await adapter.locator('option').allTextContents();
+  test.skip(
+    !adapterOptions.some((label) => label.startsWith('tmux')),
+    `tmux session adapter unavailable on this host (options: ${adapterOptions.join(', ')})`,
+  );
+  await adapter.selectOption('tmux');
+  for (const role of ['implementer', 'reviewer', 'integrator']) {
+    const roleRuntime = dialog.getByRole('group', { name: `Runtime settings for ${role}` });
+    await roleRuntime.locator('summary').click();
+    await dialog.getByLabel(`Runner for ${role}`).selectOption('skeleton');
+  }
+  await expect(dialog.getByLabel('Launch real role sessions')).toBeChecked();
+  await dialog.getByRole('button', { name: 'Start swarm' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole('region', { name: 'Receipts' })).toContainText(/Swarm start posted/);
+  const swarmPanel = page.getByRole('region', { name: 'Swarms' });
+  const runRow = swarmPanel
+    .getByRole('row')
+    .filter({ hasText: task })
+    .getByRole('button', { name: new RegExp(task) });
+  await expect(runRow).toBeVisible();
+  const runId = (await runRow.innerText()).trim().split(/\s+/)[0] ?? '';
+  expect(runId).not.toBe('');
+  await runRow.click();
+  return runId;
+}
+
+function inspectorSessionRow(personName: string) {
+  const inspector = desktop.page.getByRole('region', { name: 'pair' });
+  const roleExecution = inspector.getByRole('region', { name: 'Role execution' });
+  const sessionTable = roleExecution.locator('table').filter({ hasText: 'Person session' });
+  return sessionTable.getByRole('row').filter({ hasText: personName });
+}
+
+async function stopRunFromInspector(): Promise<void> {
+  const { page } = desktop;
+  const inspector = page.getByRole('region', { name: 'pair' });
+  await inspector.getByRole('button', { name: 'Stop' }).click();
+  const stopDialog = page.getByRole('dialog', { name: 'Stop this swarm run?' });
+  await stopDialog.getByRole('button', { name: 'Stop run' }).click();
+  await expect(inspector.getByText('cancelled', { exact: true })).toBeVisible({ timeout: 20_000 });
+}
+
 function initRepo(dir: string): void {
   execFileSync('git', ['init', '--quiet', dir]);
   execFileSync(
@@ -143,4 +249,58 @@ test('tmux swarm launch records a PersonSession that closes on stop', async () =
   } catch {
     // Already gone with the run stop; nothing to clean.
   }
+});
+
+test('handoff to a waiting role launches its bound Person session', async () => {
+  const { page } = desktop;
+  await waitForBackend(page);
+  await createPerson('Hana', 'hana', 'implementer');
+  await createPerson('Rui', 'rui', 'reviewer');
+  const runId = await startTmuxSwarm('Hand the implementation to the reviewer', {
+    implementer: 'hana',
+    reviewer: 'rui',
+  });
+
+  // Only the first role launches at start; the reviewer waits for a handoff.
+  await expect(inspectorSessionRow('Hana')).toContainText('running', { timeout: 20_000 });
+  await expect(inspectorSessionRow('Rui')).toHaveCount(0);
+  expect(sessionRecords()).not.toContain('"rui"');
+
+  // A real handoff to the waiting role auto-starts its runner, which is
+  // what records Rui's canonical PersonSession.
+  swarmCli(['handoff', 'create', '--type', 'artifact', '--from', 'implementer', '--to', 'reviewer', '--run-id', runId]);
+  await expect(inspectorSessionRow('Rui')).toContainText('reviewer', { timeout: 60_000 });
+  await expect(inspectorSessionRow('Rui')).toContainText('running');
+  await expect.poll(() => sessionRecords(), { timeout: 20_000 }).toContain('"rui"');
+  const trace = fs.readFileSync(
+    path.join(desktop.workspace, '.agent-toolkit', 'swarm', 'runs', runId, 'trace.jsonl'),
+    'utf8',
+  );
+  expect(trace).toContain('handoff_autostart_ok');
+
+  await stopRunFromInspector();
+  await expect(inspectorSessionRow('Hana')).toContainText('stopped', { timeout: 20_000 });
+  await expect(inspectorSessionRow('Rui')).toContainText('stopped', { timeout: 20_000 });
+  try {
+    execFileSync('tmux', ['-L', `agent-toolkit-swarm-${runId}`, 'kill-server'], { stdio: 'pipe' });
+  } catch {
+    // Already gone with the run stop; nothing to clean.
+  }
+});
+
+test('a dead tmux worker surface closes its Person session as interrupted, then the run still stops', async () => {
+  const { page } = desktop;
+  await waitForBackend(page);
+  await createPerson('Kenji', 'kenji', 'implementer');
+  const runId = await startTmuxSwarm('Lose the worker surface mid-run', { implementer: 'kenji' });
+  await expect(inspectorSessionRow('Kenji')).toContainText('running', { timeout: 20_000 });
+
+  // The worker surface dies without the run reaching a terminal state:
+  // the record must not keep claiming `running` once anyone looks.
+  execFileSync('tmux', ['-L', `agent-toolkit-swarm-${runId}`, 'kill-server'], { stdio: 'pipe' });
+  await expect(inspectorSessionRow('Kenji')).toContainText('interrupted', { timeout: 30_000 });
+  await expect.poll(() => sessionRecords(), { timeout: 20_000 }).toContain('"interrupted"');
+
+  // Recovery stays operator-driven: stopping the run still resolves it.
+  await stopRunFromInspector();
 });

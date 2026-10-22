@@ -211,6 +211,67 @@ fn test_reconcile_swarm_person_sessions_closes_only_terminal_runs() {
 	assert listed.sessions[0].ended_at.len > 0
 }
 
+fn test_swarm_role_already_started_ignores_waiting_roles() {
+	ws := os.join_path(os.temp_dir(), 'at-swarm-waiting-${os.getpid()}')
+	os.mkdir_all(os.join_path(ws, '.git')) or { panic(err) }
+	defer { os.rmdir_all(ws) or {} }
+	run_id := 's20261021T231500Z'
+	rd := swarm_run_dir(ws, run_id)
+	os.mkdir_all(rd) or { panic(err) }
+	// A waiting tmux window traces agent_waiting, never a started agent:
+	// the handoff autostart gate must still launch its runner.
+	os.write_file(os.join_path(rd, 'trace.jsonl'), '{"kind":"agent_waiting","detail":"reviewer:implementer"}\n{"kind":"tmux_agent_started","detail":"implementer=skeleton model=auto"}\n') or {
+		panic(err)
+	}
+	assert swarm_role_already_started(rd, 'implementer') or { panic(err) }
+	assert !(swarm_role_already_started(rd, 'reviewer') or { panic(err) })
+	// Once the reviewer really launches, the gate closes.
+	os.write_file(os.join_path(rd, 'trace.jsonl'), '{"kind":"agent_waiting","detail":"reviewer:implementer"}\n{"kind":"role_autostarted","detail":"reviewer=skeleton"}\n') or {
+		panic(err)
+	}
+	assert swarm_role_already_started(rd, 'reviewer') or { panic(err) }
+}
+
+fn test_reconcile_dead_tmux_swarm_sessions_closes_only_proven_dead_workers() {
+	if os.execute('command -v tmux').exit_code != 0 {
+		// Without tmux the probe cannot prove a worker surface is gone;
+		// the Electron swarm spec covers the real path on tmux hosts.
+		return
+	}
+	ws := os.join_path(os.temp_dir(), 'at-swarm-dead-worker-${os.getpid()}')
+	os.mkdir_all(os.join_path(ws, '.git')) or { panic(err) }
+	os.mkdir_all(os.join_path(ws, 'projects', 'demo')) or { panic(err) }
+	os.write_file(os.join_path(ws, 'AGENTS.md'), '# Swarm dead-worker test workspace') or { panic(err) }
+	defer { os.rmdir_all(ws) or {} }
+	save_person(ws, '{"spec":"agent-toolkit/person@1","id":"lina","name":"Lina","role":"reviewer","goal":"Review changes","archived":false}', true) or {
+		panic(err)
+	}
+	mut store := new_person_session_store()
+	run_id := 's20261021T230000Z'
+	store.record_swarm_person_session(SwarmPersonSessionRequest{
+		workspace: ws
+		run_id: run_id
+		role: 'reviewer'
+		person_id: 'lina'
+		provider: 'skeleton'
+		model: 'auto'
+		cwd: os.join_path(ws, 'projects', 'demo')
+	}) or { panic(err) }
+	rd := swarm_run_dir(ws, run_id)
+	// Other backends and non-running runs are not probed: no evidence of loss.
+	reconcile_dead_tmux_swarm_sessions(ws, rd, run_id, 'running', 'headless')
+	reconcile_dead_tmux_swarm_sessions(ws, rd, run_id, 'paused', 'tmux')
+	mut listed := store.list_person_sessions(ws) or { panic(err) }
+	assert listed.sessions.len == 1
+	assert listed.sessions[0].status == 'running'
+	// No tmux session exists for this run id, so a running tmux run's
+	// recorded worker surface is provably gone and must not stay `running`.
+	reconcile_dead_tmux_swarm_sessions(ws, rd, run_id, 'running', 'tmux')
+	listed = store.list_person_sessions(ws) or { panic(err) }
+	assert listed.sessions[0].status == 'interrupted'
+	assert listed.sessions[0].ended_at.len > 0
+}
+
 fn test_swarm_person_environment_hint_is_role_specific_and_shell_quoted() {
 	bindings := {
 		'reviewer': "lina's-review"

@@ -1060,11 +1060,37 @@ journeys:
         build: "7fc25d60 (Linux Electron E2E; swarm-person-session.spec.ts; 1 passed)"
         tests:
           - apps/desktop/e2e/electron/swarm-person-session.spec.ts
+      - note: >-
+          Handoff progress between tmux workers is now verified end to end,
+          and a real defect was fixed on the way: the tmux spawn traced
+          waiting roles as `tmux_agent_started`, so the handoff autostart
+          gate believed the reviewer had already launched and only woke a
+          window with no runner in it. Waiting roles now trace
+          `agent_waiting` (as the herdr path already did), the handoff
+          auto-starts the reviewer's runner, and its bound PersonSession
+          is recorded and listed in the inspector.
+        build: "Linux Electron E2E (handoff test in swarm-person-session.spec.ts); CLI repro traced handoff_autostart_ok"
+        tests:
+          - modules/agent_toolkit_core/swarm_test.v
+          - apps/desktop/e2e/electron/swarm-person-session.spec.ts
+      - note: >-
+          Failure recovery of a launched tmux worker is now verified end
+          to end: when the run's tmux server dies while the run still
+          claims to be running, the typed run reads the Desktop polls
+          apply a liveness reconcile that closes the worker's
+          PersonSession as `interrupted` (never `failed`: the surface is
+          gone, the cause is unknown), traced as person_session_worker_lost.
+          The run state stays operator-owned; stopping the run afterwards
+          still resolves it. Probe errors prove nothing and close nothing.
+        build: "Linux Electron E2E (dead-worker test in swarm-person-session.spec.ts)"
+        tests:
+          - modules/agent_toolkit_core/swarm_test.v
+          - apps/desktop/e2e/electron/swarm-person-session.spec.ts
     blockers:
       - >-
-          Handoff progress between adapter-backed workers and failure
-          recovery of a launched worker are not yet verified in an
-          end-to-end Desktop run.
+          Dead-worker liveness detection covers the tmux adapter only;
+          a lost herdr workspace is not yet detected, and herdr handoff
+          progression is not yet verified in an end-to-end Desktop run.
   - id: universal-search-actions
     title: Search and launch core actions with safe previews
     destinations: [shell]

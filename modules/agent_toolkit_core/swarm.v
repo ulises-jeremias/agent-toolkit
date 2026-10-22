@@ -1479,12 +1479,21 @@ fn spawn_tmux_session(workspace string, repo_root string, run_id string, task st
 				data: { 'role': role }
 			}
 		}
-		append_swarm_trace(run_dir, 'tmux_agent_started', role + '=' + role_runner + ' model=' + role_model)
 		if i == 0 {
 			// Only the first tmux role launches a runner at spawn; the rest
 			// wait for handoffs and are recorded by swarm_autostart_role.
+			// Waiting roles must not be traced as started: the handoff
+			// autostart gate (swarm_role_already_started) reads `*_started`
+			// trace lines, and a waiting window has no runner to wake.
+			append_swarm_trace(run_dir, 'tmux_agent_started', role + '=' + role_runner + ' model=' + role_model)
 			record_swarm_role_person_session(workspace, run_dir, run_id, role, person_bindings,
 				role_runner, role_model, first_role_root)
+		} else {
+			mut pred := swarm_role_predecessor(recipe, role)
+			if pred.len == 0 {
+				pred = 'previous role'
+			}
+			append_swarm_trace(run_dir, 'agent_waiting', role + ':' + pred)
 		}
 	}
 	// 4. Verify the window inventory (SC1 contract: window name == role name).
@@ -1562,6 +1571,37 @@ fn reconcile_swarm_person_sessions(ws string, run_dir string, run_id string, run
 		return
 	}
 	close_swarm_role_person_sessions(ws, run_dir, run_id, status)
+}
+
+// reconcile_dead_tmux_swarm_sessions closes swarm PersonSession records
+// whose tmux worker surface is provably gone while the run still claims
+// to be running (worker crash, killed tmux server, host reboot). Only a
+// definitive `has-session` failure counts as evidence: a probe error
+// (tmux missing, spawn failure) proves nothing and leaves records alone,
+// as do paused runs — a pause is not evidence a worker died — and other
+// backends, whose surfaces this probe cannot judge. Records are closed
+// as `interrupted`, never `failed`: the surface is gone, the cause is
+// unknown. The run state itself is left for the operator to resolve.
+fn reconcile_dead_tmux_swarm_sessions(ws string, run_dir string, run_id string, run_state string, backend string) {
+	if run_state != 'running' || backend != 'tmux' {
+		return
+	}
+	ps := new_process_service()
+	probe := ps.run(RunOptions{
+		argv: ['tmux', '-L', 'agent-toolkit-swarm-' + run_id, 'has-session', '-t', 'swarm-' + run_id]
+		timeout: 5 * time.second
+	}) or { return }
+	if probe.exit_code == 0 {
+		return
+	}
+	mut store := new_person_session_store()
+	closed := store.close_swarm_person_sessions(ws, run_id, 'interrupted') or {
+		append_swarm_trace(run_dir, 'person_session_close_failed', run_id + ':' + err.msg())
+		return
+	}
+	if closed > 0 {
+		append_swarm_trace(run_dir, 'person_session_worker_lost', '${run_id}: tmux session gone; closed ${closed} record(s) as interrupted')
+	}
 }
 
 // close_swarm_role_person_sessions ends the run's swarm-linked PersonSession
@@ -2274,6 +2314,7 @@ fn swarm_list(ws string, opts SwarmOptions) SwarmReport {
 		for rd in all {
 			st := read_swarm_state(rd) or { continue }
 			reconcile_swarm_person_sessions(ws, rd, st.run_id, st.run_state)
+			reconcile_dead_tmux_swarm_sessions(ws, rd, st.run_id, st.run_state, st.backend)
 			entries << SwarmListEntry{
 				run_id: st.run_id
 				recipe: st.recipe
@@ -2318,6 +2359,7 @@ fn swarm_list(ws string, opts SwarmOptions) SwarmReport {
 	for rd in all {
 		st := read_swarm_state(rd) or { continue }
 		reconcile_swarm_person_sessions(ws, rd, st.run_id, st.run_state)
+		reconcile_dead_tmux_swarm_sessions(ws, rd, st.run_id, st.run_state, st.backend)
 		lines << '${st.run_id}\t${st.recipe}\t${st.run_state}\t${st.created_at}'
 		count++
 	}
@@ -2359,6 +2401,7 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 	reconcile_swarm_person_sessions(ws, rd, opts.run_id, st.run_state)
+	reconcile_dead_tmux_swarm_sessions(ws, rd, opts.run_id, st.run_state, st.backend)
 	gates := read_swarm_approvals(rd)
 	mut gtxt := []string{}
 	for g in gates {
