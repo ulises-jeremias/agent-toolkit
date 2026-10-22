@@ -199,6 +199,10 @@ export interface WorldDomainInput {
     model?: string;
     avatarCharacter?: SemanticEntity['characterSprite'];
     avatarAccent?: string;
+    /** 'swarm' sessions live in a swarm adapter, not a Desktop PTY. */
+    origin?: 'pty' | 'swarm';
+    runId?: string;
+    swarmRole?: string;
   }>;
   focusProjectId?: string | null;
   /** Workspace context packs (typed packs API); drives district grouping. */

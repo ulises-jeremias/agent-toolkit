@@ -10,7 +10,9 @@ import { useProjects } from '../../data/projects';
 import { useWorkspacePacks } from '../../data/workspacePacks';
 import { useTerminalSessions } from '../../data/terminal';
 import { activePersonSessionsForWorkspace } from '../../data/personSessionScope';
+import { useSwarms } from '../../data/swarms';
 import { personCharacterSprite } from '../people/avatar';
+import { swarmPersonWorldEntries } from './swarmPersonWorld';
 import { useSessionContext } from '../../shell/useSessionContext';
 import { EmptyState, ErrorState } from '../../ui';
 import { installTargetForTool, worldDetailBackExtra, worldDetailBackLabel } from './inspectors';
@@ -57,10 +59,26 @@ export default function WorldView() {
     () => activePersonSessionsForWorkspace(terminalSessions.sessions, context.workspace),
     [terminalSessions.sessions, context.workspace],
   );
+  const canonicalSessionsQuery = useQuery({
+    queryKey: ['person-sessions', context.workspace],
+    queryFn: () => requireClient(client).personSessions(context.workspace),
+    enabled: Boolean(client && context.workspace),
+    refetchInterval: (query) =>
+      (query.state.data?.sessions ?? []).some(
+        (session) => session.source === 'swarm' && (session.status === 'launching' || session.status === 'running'),
+      )
+        ? 5_000
+        : false,
+    refetchIntervalInBackground: false,
+  });
+  const swarmsQuery = useSwarms();
+  const hasLiveSwarmSessions = (canonicalSessionsQuery.data?.sessions ?? []).some(
+    (session) => session.source === 'swarm' && (session.status === 'launching' || session.status === 'running'),
+  );
   const peopleQuery = useQuery({
     queryKey: ['people', context.workspace],
     queryFn: () => requireClient(client).people(context.workspace),
-    enabled: Boolean(client && context.workspace && livePersonPtys.length > 0),
+    enabled: Boolean(client && context.workspace && (livePersonPtys.length > 0 || hasLiveSwarmSessions)),
     staleTime: 15_000,
   });
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -143,7 +161,20 @@ export default function WorldView() {
   const personSessions = useMemo(() => {
     if (!peopleQuery.data) return [];
     const peopleById = new Map(peopleQuery.data.people.map((person) => [person.id, person]));
-    return livePersonPtys.flatMap((session) => {
+    const swarmEntries = swarmPersonWorldEntries({
+      sessions: canonicalSessionsQuery.data?.sessions ?? [],
+      runs: swarmsQuery.data?.runs ?? [],
+      people: peopleQuery.data.people,
+      projectNames: projects.map((project) => project.name),
+    }).map((entry) => {
+      const person = peopleById.get(entry.personId);
+      return {
+        ...entry,
+        avatarCharacter: person ? personCharacterSprite(person) : undefined,
+        avatarAccent: person?.avatar?.accent,
+      };
+    });
+    const ptyEntries = livePersonPtys.flatMap((session) => {
       const person = session.personId ? peopleById.get(session.personId) : undefined;
       const project = projects.find(
         (candidate) =>
@@ -166,7 +197,8 @@ export default function WorldView() {
         },
       ];
     });
-  }, [livePersonPtys, peopleQuery.data, projects, workspacePath]);
+    return [...ptyEntries, ...swarmEntries];
+  }, [livePersonPtys, peopleQuery.data, projects, workspacePath, canonicalSessionsQuery.data, swarmsQuery.data]);
 
   const harnessNotice = backend?.harness?.notice ?? null;
 

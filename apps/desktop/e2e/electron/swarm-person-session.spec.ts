@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
-import { openDesktop, waitForBackend, type Desktop } from './fixtures';
+import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtures';
 
 /**
  * Swarm Person-session linkage (slice: canonical PersonSession per launched
@@ -281,6 +281,49 @@ test('handoff to a waiting role launches its bound Person session', async () => 
   await stopRunFromInspector();
   await expect(inspectorSessionRow('Hana')).toContainText('stopped', { timeout: 20_000 });
   await expect(inspectorSessionRow('Rui')).toContainText('stopped', { timeout: 20_000 });
+  try {
+    execFileSync('tmux', ['-L', `agent-toolkit-swarm-${runId}`, 'kill-server'], { stdio: 'pipe' });
+  } catch {
+    // Already gone with the run stop; nothing to clean.
+  }
+});
+
+test('a running swarm worker appears as a World character at its project house and opens the run', async () => {
+  const { page } = desktop;
+  await waitForBackend(page);
+  await createPerson('Sora', 'sora', 'implementer');
+  const runId = await startTmuxSwarm('Show the swarm worker in the World', { implementer: 'sora' });
+  await expect(inspectorSessionRow('Sora')).toContainText('running', { timeout: 20_000 });
+
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
+  const character = page.getByRole('button', { name: /Sora.*Person session.*session open/i });
+  await expect(character).toBeVisible({ timeout: 20_000 });
+  const house = page.locator('[data-entity-id="place:project:e2e-workspace"]');
+  await expect(house).toBeVisible();
+  const characterBox = await character.boundingBox();
+  const houseBox = await house.boundingBox();
+  expect(characterBox).not.toBeNull();
+  expect(houseBox).not.toBeNull();
+  expect(characterBox!.x).toBeGreaterThanOrEqual(houseBox!.x);
+  expect(characterBox!.x).toBeLessThan(houseBox!.x + houseBox!.width);
+  expect(characterBox!.y).toBeGreaterThanOrEqual(houseBox!.y);
+  expect(characterBox!.y).toBeLessThan(houseBox!.y + houseBox!.height);
+  if (process.env['ATK_CAPTURE_DIR']) {
+    await setViewport(desktop.app, 1920, 1080);
+    await page.screenshot({ path: path.join(process.env['ATK_CAPTURE_DIR'], 'world-swarm-person-large.png') });
+    await setViewport(desktop.app, 1024, 768);
+    await page.screenshot({ path: path.join(process.env['ATK_CAPTURE_DIR'], 'world-swarm-person-compact.png') });
+  }
+
+  // The character inspects the real work: it opens the Operations run,
+  // never a fabricated terminal for a tmux session.
+  await character.click();
+  await expect(page).toHaveURL(new RegExp(`#/operations\\?[^#]*swarm=${runId}`));
+  await expect(page.getByRole('region', { name: 'pair' })).toBeVisible();
+
+  await stopRunFromInspector();
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
+  await expect(character).toHaveCount(0, { timeout: 20_000 });
   try {
     execFileSync('tmux', ['-L', `agent-toolkit-swarm-${runId}`, 'kill-server'], { stdio: 'pipe' });
   } catch {

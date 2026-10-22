@@ -100,10 +100,14 @@ function pushPersonCharacters(
       characterSprite: session.avatarCharacter,
       characterAccent: session.avatarAccent,
       availability: 'present',
-      hrefPath: '/people',
-      hrefExtra: { person: session.personId, session: session.id },
+      hrefPath: session.origin === 'swarm' ? '/operations' : '/people',
+      hrefExtra:
+        session.origin === 'swarm' ? { swarm: session.runId ?? '' } : { person: session.personId, session: session.id },
       projectId,
-      detail: `${session.role} · ${session.provider ?? 'runner unknown'}${session.model ? ` · ${session.model}` : ''} · PTY ${session.id}`,
+      detail:
+        session.origin === 'swarm'
+          ? `${session.role} · ${session.provider ?? 'runner unknown'}${session.model ? ` · ${session.model}` : ''} · Swarm ${session.swarmRole ?? session.role} in run ${session.runId ?? ''} — inspect in Operations`
+          : `${session.role} · ${session.provider ?? 'runner unknown'}${session.model ? ` · ${session.model}` : ''} · PTY ${session.id}`,
       standAtId,
     });
   }
@@ -337,7 +341,9 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     for (const project of input.projects) {
       const projectJobs = input.jobs.filter((job) => jobBelongsToProject(job, project));
       const projectSessions = (input.personSessions ?? []).filter(
-        (session) => session.projectId === project.name && pathIsWithin(session.cwd, project.target),
+        (session) =>
+          session.projectId === project.name &&
+          (session.origin === 'swarm' || pathIsWithin(session.cwd, project.target)),
       );
       const activity = activityForJobs(projectJobs);
       const liveCount = projectJobs.filter((job) => !isTerminalJobStatus(job.status)).length;
@@ -414,7 +420,8 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
 
   const projectJobs = input.jobs.filter((job) => jobBelongsToProject(job, project));
   const projectSessions = (input.personSessions ?? []).filter(
-    (session) => session.projectId === project.name && pathIsWithin(session.cwd, project.target),
+    (session) =>
+      session.projectId === project.name && (session.origin === 'swarm' || pathIsWithin(session.cwd, project.target)),
   );
   const activity = activityForJobs(projectJobs);
   const liveCount = projectJobs.filter(

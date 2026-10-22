@@ -187,6 +187,40 @@ describe('buildWorldModel', () => {
     expect(wrongCase.entities.some((entity) => entity.id.startsWith('character:person:'))).toBe(false);
   });
 
+  it('places swarm workers at the run project house and links them to Operations, not a PTY', () => {
+    const project = { name: 'alpha', target: '/repos/alpha', status: 'ok' as const };
+    const model = buildWorldModel(
+      baseInput({
+        projects: [project],
+        personSessions: [
+          {
+            id: 'swarm-session-1',
+            personId: 'mara',
+            name: 'Mara',
+            role: 'implementer',
+            cwd: '/ws/.agent-toolkit/swarm/runs/run-9/worktrees/implementer',
+            projectId: 'alpha',
+            provider: 'skeleton',
+            model: 'auto',
+            origin: 'swarm',
+            runId: 'run-9',
+            swarmRole: 'implementer',
+          },
+        ],
+      }),
+    );
+    const character = model.entities.find((entity) => entity.id === 'character:person:mara:swarm-session-1');
+    expect(character).toMatchObject({
+      name: 'Mara',
+      state: 'session open',
+      hrefPath: '/operations',
+      hrefExtra: { swarm: 'run-9' },
+      projectId: 'alpha',
+    });
+    expect(character?.detail).toContain('Swarm implementer in run run-9');
+    expect(character?.detail).not.toContain('PTY');
+  });
+
   it('surfaces harness notices on the workspace grounds tile', () => {
     const model = buildWorldModel(
       baseInput({
