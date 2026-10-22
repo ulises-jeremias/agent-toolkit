@@ -1506,6 +1506,12 @@ export interface components {
             action: "install" | "remove";
             review_token: string;
         };
+        CopilotProjectFile: {
+            path: string;
+            /** @enum {string} */
+            kind: "instructions" | "skill" | "agent";
+            state: string;
+        };
         CopilotProjectInstallResponse: {
             ok: boolean;
             message: string;
@@ -1516,6 +1522,7 @@ export interface components {
             review_token: string;
             files_written: number;
             files_removed: number;
+            files: components["schemas"]["CopilotProjectFile"][];
         };
         InstallReceiptSummary: {
             product: string;

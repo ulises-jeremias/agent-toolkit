@@ -437,8 +437,8 @@ export default function Library() {
         title={copilotAction === 'install' ? 'Review GitHub Copilot setup' : 'Review GitHub Copilot removal'}
         description={
           copilotAction === 'install'
-            ? "This installs Agent Toolkit's repository-scoped Copilot instructions in one linked project. It does not launch an agent or change user-level tools. Existing project instructions are preserved."
-            : 'This removes only the unchanged instructions file recorded in the selected project receipt. Any file edited since installation is preserved.'
+            ? "This installs Agent Toolkit's repository-scoped Copilot instructions, Skills and Agent Definitions in one linked project. It does not launch an agent or change user-level tools. Existing project files are preserved."
+            : 'This removes only the unchanged files recorded in the selected project receipt. If any file was edited since installation, nothing is removed.'
         }
         size="normal"
         footer={
@@ -468,7 +468,7 @@ export default function Library() {
                 variant="primary"
                 disabled={applyCopilot.isPending || !copilotReview.review_token || !selectedCopilotProject}
                 busy={applyCopilot.isPending}
-                busyLabel={copilotAction === 'install' ? 'Installing instructions…' : 'Removing instructions…'}
+                busyLabel={copilotAction === 'install' ? 'Installing files…' : 'Removing files…'}
                 onClick={() => {
                   if (!workspacePath || !selectedCopilotProject || !copilotReview.review_token) return;
                   applyCopilot.mutate({
@@ -479,7 +479,7 @@ export default function Library() {
                   });
                 }}
               >
-                {copilotAction === 'install' ? 'Install reviewed instructions' : 'Remove reviewed instructions'}
+                {copilotAction === 'install' ? 'Install reviewed files' : 'Remove reviewed files'}
               </Button>
             ) : null}
           </ButtonRow>
@@ -507,13 +507,35 @@ export default function Library() {
                 },
                 {
                   label: copilotAction === 'install' ? 'Files to add' : 'Files to remove',
-                  value: copilotReview.status === 'ready' || copilotReview.status === 'ready-remove' ? '1' : '0',
+                  value: String(
+                    (copilotReview.files ?? []).filter((file) =>
+                      copilotAction === 'install' ? file.state === 'new' : file.state === 'unchanged',
+                    ).length,
+                  ),
+                },
+                {
+                  label: 'Skills / agents',
+                  value: `${(copilotReview.files ?? []).filter((file) => file.kind === 'skill').length} skill files · ${
+                    (copilotReview.files ?? []).filter((file) => file.kind === 'agent').length
+                  } agent files`,
                 },
               ]}
             />
+            {(copilotReview.files ?? []).length > 0 ? (
+              <details className={styles.copilotFilePreview}>
+                <summary>Review {(copilotReview.files ?? []).length} files</summary>
+                <ul className={styles.copilotFileList} aria-label="Copilot project files">
+                  {(copilotReview.files ?? []).map((file) => (
+                    <li key={file.path}>
+                      <code>{file.path}</code> <span>{file.state}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ) : null}
             {copilotReview.status === 'ready' && copilotReview.content ? (
               <details className={styles.copilotFilePreview}>
-                <summary>Review file contents</summary>
+                <summary>Review instructions contents</summary>
                 <pre className={styles.installPreview} aria-label="Copilot instructions file contents">
                   {copilotReview.content}
                 </pre>
@@ -694,10 +716,12 @@ export default function Library() {
       </Dialog>
       <div className={styles.shelves}>
         <Stack>
-          <Panel title="GitHub Copilot" meta="Repository instructions">
+          <Panel title="GitHub Copilot" meta="Repository instructions, Skills and agents">
             <p>
-              Add the Agent Toolkit Copilot instructions to one linked project. The Library previews the exact file and
-              keeps existing repository instructions untouched.
+              Add the Agent Toolkit Copilot repository set to one linked project: instructions (
+              <code>.github/copilot-instructions.md</code>), compiled Skills (<code>.github/skills</code>) and Agent
+              Definitions (<code>.github/agents</code>). The Library previews every file and keeps existing project
+              files untouched.
             </p>
             {projectsQuery.isError ? (
               <p role="alert">Could not load linked projects: {errorMessage(projectsQuery.error)}</p>

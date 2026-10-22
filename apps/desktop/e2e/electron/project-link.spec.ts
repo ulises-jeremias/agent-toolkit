@@ -236,19 +236,23 @@ test('links an existing project from the GUI and places it in the world', async 
     await page.getByRole('button', { name: 'Review project setup' }).click();
     const copilotReview = page.getByRole('dialog', { name: 'Review GitHub Copilot setup' });
     await expect(copilotReview).toBeVisible();
-    await expect(copilotReview).toContainText('Existing project instructions are preserved');
     await expect(copilotReview).toContainText(path.join(projectPath, '.github', 'copilot-instructions.md'));
-    await expect(copilotReview.getByRole('button', { name: 'Install reviewed instructions' })).toHaveCount(0);
+    // Skills and agents are still installable; the instructions file is marked preserved.
+    await copilotReview.getByText(/Review \d+ files/).click();
+    await expect(copilotReview.getByLabel('Copilot project files')).toContainText(
+      '.github/copilot-instructions.md preserved',
+    );
+    await expect(copilotReview).toContainText('skill files');
     expect(fs.readFileSync(copilotFile, 'utf8')).toBe('Repository-owned Copilot instructions.\n');
     await copilotReview.getByRole('button', { name: 'Close' }).click();
     fs.rmSync(copilotFile);
     await page.getByRole('button', { name: 'Review project setup' }).click();
-    await expect(copilotReview).toContainText('Review one new file');
-    await copilotReview.getByText('Review file contents').click();
+    await expect(copilotReview).toContainText(/Review \d+ new file/);
+    await copilotReview.getByText('Review instructions contents').click();
     await expect(copilotReview.getByLabel('Copilot instructions file contents')).toContainText(
       '# Copilot Instructions Template',
     );
-    await copilotReview.getByText('Review file contents').click();
+    await copilotReview.getByText('Review instructions contents').click();
     if (process.env.ATK_CAPTURE === '1') {
       const libraryDir =
         process.env.ATK_LIBRARY_CAPTURE_DIR ??
@@ -267,23 +271,27 @@ test('links an existing project from the GUI and places it in the world', async 
       await setViewport(desktop.app, 1280, 800);
     }
     fs.writeFileSync(copilotFile, 'Appeared after the review was prepared.\n');
-    await copilotReview.getByRole('button', { name: 'Install reviewed instructions' }).click();
+    await copilotReview.getByRole('button', { name: 'Install reviewed files' }).click();
     await expect(copilotReview.getByRole('alert')).toContainText('changed after review');
     expect(fs.readFileSync(copilotFile, 'utf8')).toBe('Appeared after the review was prepared.\n');
     await copilotReview.getByRole('button', { name: 'Review again' }).click();
-    await expect(copilotReview).toContainText('Existing project instructions are preserved');
-    await expect(copilotReview.getByRole('button', { name: 'Install reviewed instructions' })).toHaveCount(0);
+    await copilotReview.getByText(/Review \d+ files/).click();
+    await expect(copilotReview.getByLabel('Copilot project files')).toContainText(
+      '.github/copilot-instructions.md preserved',
+    );
     await copilotReview.getByRole('button', { name: 'Close' }).click();
     fs.rmSync(copilotFile);
     await page.getByRole('button', { name: 'Review project setup' }).click();
-    await expect(copilotReview).toContainText('Review one new file');
-    await copilotReview.getByText('Review file contents').click();
-    await copilotReview.getByText('Review file contents').click();
-    await copilotReview.getByRole('button', { name: 'Install reviewed instructions' }).click();
-    await expect(copilotReview).toContainText('Installed Agent Toolkit instructions for GitHub Copilot');
+    await expect(copilotReview).toContainText(/Review \d+ new file/);
+    await copilotReview.getByRole('button', { name: 'Install reviewed files' }).click();
+    await expect(copilotReview).toContainText(/Installed \d+ Agent Toolkit Copilot file/);
     expect(fs.readFileSync(path.join(projectPath, '.github', 'copilot-instructions.md'), 'utf8')).toContain(
       '# Copilot Instructions Template',
     );
+    const installedSkill = path.join(projectPath, '.github', 'skills', 'assistant', 'SKILL.md');
+    expect(fs.existsSync(installedSkill)).toBe(true);
+    const installedAgents = fs.readdirSync(path.join(projectPath, '.github', 'agents'));
+    expect(installedAgents.some((name) => name.endsWith('.agent.md'))).toBe(true);
     await copilotReview.getByRole('button', { name: 'Close' }).click();
     const bundledInstructions = fs.readFileSync(copilotFile, 'utf8');
     await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText(
@@ -295,16 +303,18 @@ test('links an existing project from the GUI and places it in the world', async 
     fs.writeFileSync(copilotFile, `${bundledInstructions}\nUser-owned addition.\n`);
     await page.getByRole('button', { name: 'Review removal' }).last().click();
     const protectedCopilot = page.getByRole('dialog', { name: 'Review GitHub Copilot removal' });
-    await expect(protectedCopilot).toContainText('changed after Agent Toolkit created it');
-    await expect(protectedCopilot.getByRole('button', { name: 'Remove reviewed instructions' })).toHaveCount(0);
+    await expect(protectedCopilot).toContainText('changed after Agent Toolkit created them');
+    await expect(protectedCopilot.getByRole('button', { name: 'Remove reviewed files' })).toHaveCount(0);
     await protectedCopilot.getByRole('button', { name: 'Close' }).click();
     fs.writeFileSync(copilotFile, bundledInstructions);
     await page.getByRole('button', { name: 'Review removal' }).last().click();
     const safeCopilotRemoval = page.getByRole('dialog', { name: 'Review GitHub Copilot removal' });
-    await expect(safeCopilotRemoval.getByRole('button', { name: 'Remove reviewed instructions' })).toBeEnabled();
-    await safeCopilotRemoval.getByRole('button', { name: 'Remove reviewed instructions' }).click();
-    await expect(safeCopilotRemoval).toContainText('Removed the unchanged Agent Toolkit Copilot instructions');
+    await expect(safeCopilotRemoval.getByRole('button', { name: 'Remove reviewed files' })).toBeEnabled();
+    await safeCopilotRemoval.getByRole('button', { name: 'Remove reviewed files' }).click();
+    await expect(safeCopilotRemoval).toContainText(/Removed \d+ unchanged Agent Toolkit Copilot file/);
     expect(fs.existsSync(copilotFile)).toBe(false);
+    expect(fs.existsSync(path.join(projectPath, '.github', 'skills'))).toBe(false);
+    expect(fs.existsSync(path.join(projectPath, '.github', 'agents'))).toBe(false);
     expect(fs.readFileSync(githubSidecar, 'utf8')).toBe('pull_request_targets: all\n');
     await safeCopilotRemoval.getByRole('button', { name: 'Close' }).click();
 

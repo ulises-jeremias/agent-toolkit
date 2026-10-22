@@ -267,6 +267,26 @@
   font-weight: 700;
 }
 
+.copilotFileList {
+  max-height: min(42vh, 28rem);
+  margin: var(--space-2) 0 0;
+  padding: 0 var(--space-2) 0 0;
+  overflow: auto;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.copilotFileList li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+}
+
+.copilotFileList code {
+  overflow-wrap: anywhere;
+}
+
 .artifactList {
   max-height: min(42vh, 28rem);
   margin: var(--space-2) 0 0;
