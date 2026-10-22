@@ -555,7 +555,7 @@ journeys:
   - id: capability-discovery
     title: Browse skills/agents/packs in the Library
     destinations: [library]
-    status: partial
+    status: ok
     evidence:
       - note: Library renders catalog definitions over the serve API
       - note: >-
@@ -600,11 +600,22 @@ journeys:
         build: "Linux (V unit tests pass; serve /api/v1/agents readback: 18/18 definitions carry compatibility)"
         tests:
           - modules/agent_toolkit_core/discovery_test.v
-    blockers:
-      - >-
-          Workspace context bundles are managed in Workspace Hall, separate
-          from installable Library capabilities, so discovery does not yet
-          present both kinds side by side.
+      - note: >-
+          Workspace context bundles are now discoverable beside Skills and
+          Agent Definitions in the Library. The same Library search filters
+          bundles by name, description, and related projects; the panel is
+          read-only, states that bundles are not installable capabilities,
+          shows the bundle used for future sessions plus validation errors,
+          and links to Workspace for creating, editing, or selecting one.
+          Finding a bundle installs nothing and changes no running session.
+        build: "Linux Electron E2E (context bundles test in desktop.spec.ts); compact/large captures opened"
+        tests:
+          - apps/desktop/src/features/library/contextBundles.test.ts
+          - apps/desktop/e2e/electron/desktop.spec.ts
+        screenshots:
+          - assets/electron/library/context-bundles-compact.png
+          - assets/electron/library/context-bundles-large.png
+    blockers: []
   - id: install-capabilities
     title: Install skills/agents from the Library
     destinations: [library]

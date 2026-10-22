@@ -37,6 +37,7 @@ import {
   type Tone,
 } from '../../ui';
 import styles from './library.module.css';
+import { ContextBundlesPanel } from './ContextBundlesPanel';
 import { McpProvidersPanel } from './McpProvidersPanel';
 
 function yesNo(value: boolean): { tone: Tone; label: string } {
@@ -418,10 +419,10 @@ export default function Library() {
           type="search"
           value={catalogSearch}
           onChange={(event) => setCatalogSearch(event.target.value)}
-          placeholder="Search Skills and Agent Definitions"
+          placeholder="Search Skills, Agent Definitions, and context bundles"
           autoComplete="off"
         />
-        <small>Searches names, descriptions, domains, and source paths.</small>
+        <small>Searches names, descriptions, domains, source paths, and bundle projects.</small>
       </div>
       <Dialog
         open={copilotReview !== null || previewCopilot.isPending || previewCopilot.isError}
@@ -760,6 +761,7 @@ export default function Library() {
               </div>
             ) : null}
           </Panel>
+          <ContextBundlesPanel workspace={workspacePath} needle={catalogNeedle} />
           <Panel
             title="Installation evidence"
             meta={receipts.data ? `${receipts.data.receipts.length} receipts` : undefined}

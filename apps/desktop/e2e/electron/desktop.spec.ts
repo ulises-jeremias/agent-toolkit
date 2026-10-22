@@ -704,6 +704,65 @@ test('Library searches typed catalog metadata and reveals provenance and compati
   await expect(page.getByRole('region', { name: 'Agent definitions' })).toContainText('agentic-security-reviewer');
 });
 
+test('Library discovers workspace context bundles beside the catalog without installing them', async () => {
+  const { page } = desktop;
+  await page.route('**/api/v1/workspace/packs/list**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        workspace: '/workspace',
+        active_pack: 'packs/release.yaml',
+        marker_issue: '',
+        packs: [
+          {
+            path: 'packs/release.yaml',
+            name: 'Release context',
+            description: 'Shared notes for release work',
+            projects: ['agent-toolkit'],
+            notes: '',
+            revision: '1',
+            validation_errors: [],
+            active: true,
+            extra_fields: [],
+          },
+          {
+            path: 'packs/client.yaml',
+            name: 'Client context',
+            description: 'Billing engagement notes',
+            projects: ['ledger'],
+            notes: '',
+            revision: '1',
+            validation_errors: [],
+            active: false,
+            extra_fields: [],
+          },
+        ],
+      }),
+    }),
+  );
+  await page.reload();
+  await waitForBackend(page);
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+  const bundles = page.getByRole('region', { name: 'Workspace context bundles' });
+  await expect(bundles).toContainText('Release context');
+  await expect(bundles).toContainText('Client context');
+  await expect(bundles).toContainText('Used for future sessions');
+  await expect(bundles).toContainText('not installable Library capabilities');
+  await expect(bundles.getByRole('link', { name: 'Manage in Workspace' })).toBeVisible();
+  const search = page.getByRole('searchbox', { name: 'Find a capability' });
+  await search.fill('ledger');
+  await expect(bundles).toContainText('Client context');
+  await expect(bundles).not.toContainText('Release context');
+  await search.fill('no-such-bundle-41827');
+  await expect(bundles).toContainText('No context bundles match this search.');
+  await page.unroute('**/api/v1/workspace/packs/list**');
+  await page.reload();
+  await waitForBackend(page);
+});
+
 test('Library explains a missing Skill catalog and offers retry', async () => {
   const { page } = desktop;
   await page.route('**/api/v1/skills/catalog', (route) =>

@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The Library now discovers workspace context bundles beside Skills
+  and Agent Definitions. The same Library search filters bundles by
+  name, description, and related projects; bundles stay read-only
+  there — creating, editing, or selecting one still happens in
+  Workspace, and finding a bundle installs nothing.
 - Agent Definitions in the Library now declare per-target
   compatibility from the target registry (`native_custom_agents`),
   rendered like the Skills catalog instead of Skills-only support.
