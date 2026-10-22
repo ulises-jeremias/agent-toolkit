@@ -211,6 +211,19 @@ fn test_reconcile_swarm_person_sessions_closes_only_terminal_runs() {
 	assert listed.sessions[0].ended_at.len > 0
 }
 
+fn test_tmux_session_missing_requires_tmuxs_own_words() {
+	assert tmux_session_missing(RunResult{ exit_code: 1, stderr: 'no server running on /tmp/tmux-1000/default' })
+	assert tmux_session_missing(RunResult{ exit_code: 1, stderr: "can't find session: swarm-s1" })
+	assert tmux_session_missing(RunResult{
+		exit_code: 1
+		stderr: 'error connecting to /tmp/tmux-1000/agent-toolkit-swarm-s1 (No such file or directory)'
+	})
+	assert !tmux_session_missing(RunResult{ exit_code: 0 })
+	assert !tmux_session_missing(RunResult{ exit_code: 1, stderr: 'no server running on /tmp/tmux-1000/default', timed_out: true })
+	assert !tmux_session_missing(RunResult{ exit_code: 1, stderr: 'failed to connect to server' })
+	assert !tmux_session_missing(RunResult{ exit_code: -1 })
+}
+
 fn test_swarm_role_already_started_ignores_waiting_roles() {
 	ws := os.join_path(os.temp_dir(), 'at-swarm-waiting-${os.getpid()}')
 	os.mkdir_all(os.join_path(ws, '.git')) or { panic(err) }

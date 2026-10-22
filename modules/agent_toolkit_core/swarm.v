@@ -1573,6 +1573,20 @@ fn reconcile_swarm_person_sessions(ws string, run_dir string, run_id string, run
 	close_swarm_role_person_sessions(ws, run_dir, run_id, status)
 }
 
+// tmux_session_missing is the evidence bar for a dead tmux worker: the
+// probe must have completed, failed, and said in tmux's own words that
+// the server or session is not there. A timeout or an unrelated failure
+// (load, spawn trouble) proves nothing — accepting any nonzero exit
+// closed a live worker's record under CI load.
+fn tmux_session_missing(probe RunResult) bool {
+	if probe.timed_out || probe.exit_code == 0 {
+		return false
+	}
+	output := (probe.stderr + '\n' + probe.stdout).to_lower()
+	return output.contains('no server running') || output.contains("can't find")
+		|| output.contains('cant find') || output.contains('no such file or directory')
+}
+
 // reconcile_dead_tmux_swarm_sessions closes swarm PersonSession records
 // whose tmux worker surface is provably gone while the run still claims
 // to be running (worker crash, killed tmux server, host reboot). Only a
@@ -1589,9 +1603,9 @@ fn reconcile_dead_tmux_swarm_sessions(ws string, run_dir string, run_id string, 
 	ps := new_process_service()
 	probe := ps.run(RunOptions{
 		argv: ['tmux', '-L', 'agent-toolkit-swarm-' + run_id, 'has-session', '-t', 'swarm-' + run_id]
-		timeout: 5 * time.second
+		timeout: 10 * time.second
 	}) or { return }
-	if probe.exit_code == 0 {
+	if !tmux_session_missing(probe) {
 		return
 	}
 	mut store := new_person_session_store()
