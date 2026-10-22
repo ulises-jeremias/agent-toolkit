@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   real Desktop: destinations, the People primary action, and the
   command palette stay inside the viewport with no horizontal overflow
   at every size.
+- An opt-in Electron E2E now carries a GUI-started swarm through real
+  role handoffs to a real GitHub draft PR: Create draft PR in the run
+  inspector pushes the integrator branch, the inspector reports the
+  live PR status, and Mark PR ready for review flips the real PR. It
+  runs only when `ATK_E2E_GH_PR_REPO` names a disposable repository,
+  so CI still skips it.
 
 ### Fixed
 
