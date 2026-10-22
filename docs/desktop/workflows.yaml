@@ -892,8 +892,10 @@ journeys:
           role or AgentDefinition matches the recipe role, and unmatched roles
           remain ephemeral. The same resolver runs before persistence, the
           resolved IDs are stored with the run and exported as
-          AGENT_TOOLKIT_PERSON_ID adapter hints. The hint is not yet consumed
-          as an AgentSession identity, terminal action, or World character.
+          AGENT_TOOLKIT_PERSON_ID adapter hints; when a role's runner really
+          launches, the hint also becomes a canonical PersonSession record
+          (see the launch evidence below). A binding alone still creates no
+          terminal action or World character.
           Workspace preferences from people/bindings.yaml are considered
           between explicit choices and role/definition matching. Desktop now
           provides a purpose-built per-role editor: pin/clear a workspace
@@ -1038,10 +1040,23 @@ journeys:
         screenshots:
           - assets/electron/swarms/swarm-run-watch-compact.png
           - assets/electron/swarms/swarm-run-watch-large.png
+      - note: >-
+          Adapter-backed worker start is now verified end to end in Desktop:
+          a real tmux swarm launch (skeleton runners, Person bound to the
+          implementer role) records the canonical PersonSession, the run
+          inspector lists it as running and refreshes it live, Stop closes
+          it, and People history shows the swarm origin. The inspector's
+          session list polls while the run is active and is invalidated by
+          lifecycle actions, so it no longer reports a stale "no role has
+          launched yet" or a stale running badge after Stop.
+        build: "7fc25d60 (Linux Electron E2E; swarm-person-session.spec.ts; 1 passed)"
+        tests:
+          - apps/desktop/e2e/electron/swarm-person-session.spec.ts
     blockers:
       - >-
-          Adapter-backed worker starts, handoff progress, and failure recovery
-          are not yet verified in an end-to-end Desktop run.
+          Handoff progress between adapter-backed workers and failure
+          recovery of a launched worker are not yet verified in an
+          end-to-end Desktop run.
   - id: universal-search-actions
     title: Search and launch core actions with safe previews
     destinations: [shell]
