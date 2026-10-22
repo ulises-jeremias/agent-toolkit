@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Person detail now opens with an activity summary derived from the
+  canonical session records (totals, completed/failed, swarm runs,
+  projects, last active), so a collaborator's real track record is
+  visible before the recent-session list.
 - Swarm roles bound to People now become canonical PersonSession
   records when their runner really launches (tmux/herdr spawn or
   handoff autostart), closing when the run stops, is cancelled, or is
