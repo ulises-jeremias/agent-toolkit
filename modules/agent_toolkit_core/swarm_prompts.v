@@ -1,6 +1,7 @@
 module agent_toolkit_core
 
 import os
+import x.json2
 
 const swarm_global_protocol = '# Agent Toolkit Swarm — Global Protocol\n- You are a role in a multi-agent swarm. Work only on your assigned task.\n- Do not push, do not merge to base branch, do not publish releases.\n- Transfer code only via validated Git commits on your Toolkit-owned branch.\n- The swarm is a directed graph of roles: hand work forward to successors, and send feedback/re-work back to your predecessor — roles are started and woken automatically when a handoff reaches them.\n- Use durable handoffs via `agent-toolkit swarm handoff create` and `agent-toolkit swarm task next/complete`.\n- Inside a swarm run, the ONLY way to delegate to another swarm role is `agent-toolkit swarm handoff create`. NEVER use your internal Task/subagent tools to spawn a reviewer/qa/architect — those swarm roles run in isolated worktrees and are reached ONLY via handoffs. Self-review is forbidden.\n- Stay inside your worktree when you have one. Do not write outside `.agent-toolkit/swarm/runs/<run-id>/` except your worktree.\n- Keep artifacts under 1MB, no secrets, no full transcript forwarding.\n- Record decisions in artifacts and trace events.\n'
 
@@ -347,6 +348,24 @@ fn swarm_next_roles(recipe string, role string) []string {
 			return []
 		}
 	}
+}
+
+// swarm_person_memory_section renders a bound Person's durable memory
+// (operator-written notes) for a role prompt. Empty when the role is
+// unbound, the Person is unreadable, or it has no notes — bindings never
+// invent memory.
+pub fn swarm_person_memory_section(workspace string, person_id string) string {
+	if person_id.len == 0 {
+		return ''
+	}
+	person := read_person(workspace, person_id) or { return '' }
+	notes_any := person.person['notes'] or { return '' }
+	notes := notes_any.str().trim_space()
+	if notes.len == 0 {
+		return ''
+	}
+	name_any := person.person['name'] or { json2.Any(person_id) }
+	return '# Person memory\n${name_any.str()} (bound Person `${person_id}`) — durable operator notes:\n${notes}\n'
 }
 
 // swarm_compose_role_prompt mirrors fbb2280 prompts.py:55 compose_role_prompt

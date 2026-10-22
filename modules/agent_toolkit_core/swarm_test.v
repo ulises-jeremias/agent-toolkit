@@ -701,6 +701,26 @@ fn test_swarm_handoff_broadcast_fans_out_per_role() {
 	assert recipients == ['integrator', 'reviewer']
 }
 
+fn test_swarm_person_memory_section_uses_bound_person_notes() {
+	ws := os.join_path(os.temp_dir(), 'atk-swarm-memory-${os.getpid()}')
+	os.mkdir_all(ws) or { panic(err) }
+	defer { os.rmdir_all(ws) or {} }
+	save_person(ws, '{"spec":"agent-toolkit/person@1","id":"lina","name":"Lina","role":"reviewer","goal":"Review changes","notes":"Prefers small PRs.","archived":false}', true) or {
+		panic(err)
+	}
+	section := swarm_person_memory_section(ws, 'lina')
+	assert section.contains('# Person memory')
+	assert section.contains('Lina')
+	assert section.contains('Prefers small PRs.')
+	// Unbound, unknown, and note-less Persons produce no section.
+	assert swarm_person_memory_section(ws, '') == ''
+	assert swarm_person_memory_section(ws, 'ghost') == ''
+	save_person(ws, '{"spec":"agent-toolkit/person@1","id":"noa","name":"Noa","role":"implementer","goal":"Ship","archived":false}', true) or {
+		panic(err)
+	}
+	assert swarm_person_memory_section(ws, 'noa') == ''
+}
+
 fn test_swarm_effective_task_derives_from_issue_ref() {
 	assert swarm_effective_task(SwarmOptions{ task: 'Custom', issue_ref: 'o/r#1' }) == 'Custom'
 	assert swarm_effective_task(SwarmOptions{ issue_ref: 'o/r#42' }) == 'Implement issue o/r#42'

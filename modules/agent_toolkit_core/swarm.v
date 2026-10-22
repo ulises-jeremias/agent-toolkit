@@ -1126,7 +1126,19 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 	for role in swarm_recipe_roles(recipe) {
-		prompt, manifest := swarm_compose_role_prompt(recipe, role, opts.task, '', swarm_role_skills(recipe, role), rid)
+		mut prompt, mut manifest := swarm_compose_role_prompt(recipe, role, opts.task, '', swarm_role_skills(recipe, role), rid)
+		// A bound Person's durable memory joins its role prompt; the
+		// manifest size tracks the exact text written below.
+		if person_id := resolved_person_bindings[role] {
+			section := swarm_person_memory_section(ws, person_id)
+			if section.len > 0 {
+				prompt += '\n' + section
+				manifest = SwarmPromptManifest{
+					...manifest
+					size_chars: prompt.runes().len
+				}
+			}
+		}
 		os.write_file(os.join_path(run_dir, 'prompts', role + '.md'), prompt) or {}
 		os.write_file(os.join_path(run_dir, 'prompts', role + '.manifest.json'), json2.encode(manifest,
 			escape_unicode: true

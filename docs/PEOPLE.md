@@ -100,8 +100,10 @@ with a static message; it never evaluates tampered schemas.
   `budget`, `import_source`, `notes`.
 - `notes` is durable operator-written memory for the coworker
   (preferences, project facts, agreements; max 8192 chars). Desktop shows
-  and edits it on the Person, and the reviewed initial prompt of a local
-  PTY launch carries it verbatim — nothing is summarized or generated.
+  and edits it on the Person, and it reaches real sessions verbatim:
+  the reviewed initial prompt of a local PTY launch, and a `# Person
+  memory` section in the swarm role prompt when the Person is bound to
+  that role. Nothing is summarized or generated.
 - `id` is lowercase `[a-z0-9][a-z0-9_-]*` (max 64) and must match the filename.
 - Reference arrays are bounded at 32 unique entries.
 - No runtime fields, no secrets, no commands, no environment, no grants.
