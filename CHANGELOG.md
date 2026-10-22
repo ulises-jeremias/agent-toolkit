@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The Desktop "Skip to content" link now actually moves keyboard focus
+  into the main landmark. Its `#main` href was parsed by HashRouter as
+  a route change, so keyboard users were redirected instead of being
+  taken to the content; the link now focuses `<main>` explicitly. A new
+  Electron E2E proves Tab traversal reaches the primary destinations
+  with a visible focus ring and that reduced-motion is honored.
+
 - Tmux swarm handoffs now actually launch the waiting role's runner.
   The spawn traced waiting roles as started, so the handoff autostart
   gate only woke a window with no runner in it and the role's bound
