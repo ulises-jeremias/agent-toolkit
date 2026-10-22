@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useModels, useProviders } from '../../data/catalog';
 import { useLiveStatus } from '../../data/live';
 import {
+  swarmRefreshInterval,
   useCreateSwarmDraftPr,
   useMarkSwarmPrReady,
   useResolveSwarmHandoff,
@@ -453,7 +454,11 @@ function SwarmRunBody({
     queryKey: ['person-sessions', workspace],
     queryFn: () => requireClient(client).personSessions(workspace),
     enabled: client !== null && Boolean(workspace),
-    staleTime: 10_000,
+    // Sessions appear and close while the run lives; a mount-once fetch can
+    // otherwise keep claiming no role launched while one is running.
+    refetchOnMount: 'always',
+    refetchInterval: swarmRefreshInterval([data.run.run_state]),
+    refetchIntervalInBackground: false,
   });
   const runPersonSessions = swarmPersonSessionsForRun(personSessions.data?.sessions ?? [], data.run.run_id);
   const { run, budget } = data;

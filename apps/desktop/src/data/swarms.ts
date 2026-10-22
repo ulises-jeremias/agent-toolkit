@@ -70,6 +70,8 @@ export function useSwarmCommand() {
     mutationFn: async ({ sub, body }) => requireOk(await requireClient(client).sub('swarms', sub, body)),
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: qk.domain('swarms') });
+      // Lifecycle commands close swarm PersonSessions; refresh their records.
+      void queryClient.invalidateQueries({ queryKey: ['person-sessions'] });
     },
   });
 }
@@ -90,6 +92,8 @@ export function useSwarmRunAction() {
     onSettled: (_data, _error, variables) => {
       void queryClient.invalidateQueries({ queryKey: qk.swarms.list() });
       if (variables) void queryClient.invalidateQueries({ queryKey: qk.swarms.run(variables.id) });
+      // Stop/cancel closes the run's PersonSessions; refresh their records.
+      void queryClient.invalidateQueries({ queryKey: ['person-sessions'] });
     },
   });
 }
