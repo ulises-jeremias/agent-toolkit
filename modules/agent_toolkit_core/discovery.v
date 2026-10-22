@@ -17,11 +17,12 @@ const version_probe_timeout_ms = 3000
 // AgentInfo is one persona from agents/<id>/AGENT.md.
 pub struct AgentInfo {
 pub:
-	id          string
-	name        string
-	kind        string
-	description string
-	source_file string
+	id            string
+	name          string
+	kind          string
+	description   string
+	source_file   string
+	compatibility []LibraryCompatibility
 }
 
 // ToolInfo is one coding-agent CLI with split discovery planes.
@@ -96,6 +97,7 @@ pub fn list_agents_at(root string) []AgentInfo {
 	if !data_is_dir(root, dir) {
 		return []AgentInfo{}
 	}
+	compatibility := agent_definition_compatibility(root)
 	mut out := []AgentInfo{}
 	mut names := data_ls(root, dir)
 	names.sort()
@@ -115,6 +117,7 @@ pub fn list_agents_at(root string) []AgentInfo {
 			kind: kind
 			description: description
 			source_file: 'agents/${name}/AGENT.md'
+			compatibility: compatibility.clone()
 		}
 	}
 	return out

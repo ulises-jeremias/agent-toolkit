@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Agent Definitions in the Library now declare per-target
+  compatibility from the target registry (`native_custom_agents`),
+  rendered like the Skills catalog instead of Skills-only support.
 - Person detail now opens with an activity summary derived from the
   canonical session records (totals, completed/failed, swarm runs,
   projects, last active), so a collaborator's real track record is

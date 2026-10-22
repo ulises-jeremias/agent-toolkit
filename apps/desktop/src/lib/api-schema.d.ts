@@ -1610,6 +1610,7 @@ export interface components {
             kind: string;
             description: string;
             source_file: string;
+            compatibility: components["schemas"]["LibraryCompatibility"][];
         };
         AgentsResponse: {
             ok: boolean;

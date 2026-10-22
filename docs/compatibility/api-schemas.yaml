@@ -175,6 +175,7 @@ schemas:
       - kind:string
       - description:string
       - source_file:string
+      - 'compatibility:#LibraryCompatibility[]'
 
   - name: AgentsResponse
     fields:
