@@ -35,6 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Herdr handoff progression is verified end-to-end in Desktop: a
+  waiting herdr role auto-starts on handoff and its bound Person
+  session appears in the run inspector. With launch, liveness, and
+  recovery also verified, the swarm-run-watch journey is complete.
 - Dead-worker liveness detection now covers the herdr adapter: when a
   running herdr run's workspace disappears from `herdr workspace list`,
   its PersonSession records close as `interrupted` instead of claiming

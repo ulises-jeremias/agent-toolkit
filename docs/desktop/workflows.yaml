@@ -1056,7 +1056,7 @@ journeys:
   - id: swarm-run-watch
     title: Run a swarm and watch lane progress
     destinations: [operations]
-    status: partial
+    status: ok
     evidence:
       - note: >-
           Operations refreshes active swarm lists and the selected run, shows
@@ -1145,11 +1145,19 @@ journeys:
         tests:
           - modules/agent_toolkit_core/swarm_test.v
           - apps/desktop/e2e/electron/swarm-person-session.spec.ts
-    blockers:
-      - >-
-          Herdr handoff progression (a waiting herdr role auto-starting
-          on handoff) is not yet verified in an end-to-end Desktop run;
-          the herdr test above covers launch, liveness, and recovery.
+      - note: >-
+          Herdr handoff progression is now verified end-to-end in
+          Desktop: a herdr swarm bound to two People launches only the
+          implementer, then a real artifact handoff auto-starts the
+          waiting reviewer in its herdr pane (trace handoff_autostart_ok,
+          reviewer PersonSession running in the inspector), and stopping
+          the run closes both records as stopped. The test skips on
+          hosts without herdr and shares the isolated-HOME server
+          lifecycle helpers with the dead-workspace test.
+        build: "Linux Electron E2E (herdr handoff test in swarm-person-session.spec.ts, passed locally with real herdr)"
+        tests:
+          - apps/desktop/e2e/electron/swarm-person-session.spec.ts
+    blockers: []
   - id: universal-search-actions
     title: Search and launch core actions with safe previews
     destinations: [shell]
