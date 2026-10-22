@@ -21,8 +21,8 @@ describe('Desktop workflow ledger (docs/desktop/workflows.yaml)', () => {
     for (const journey of journeys) {
       expect(['ok', 'partial', 'blocked', 'not-implemented']).toContain(journey.status);
     }
-    // CRUD and import now have Electron coverage with reviewed screenshots;
-    // starting a Person still lacks durable AgentSession recovery semantics.
+    // CRUD, import and Person start now have Electron coverage with
+    // reviewed screenshots and verified runner prompt contracts.
     for (const id of ['people-crud', 'people-import-review']) {
       const journey = journeys.find((j) => j.id === id);
       expect(journey, id).toBeDefined();
@@ -31,7 +31,7 @@ describe('Desktop workflow ledger (docs/desktop/workflows.yaml)', () => {
     for (const id of ['people-start-session']) {
       const journey = journeys.find((j) => j.id === id);
       expect(journey, id).toBeDefined();
-      expect(journey!.status).toBe('partial');
+      expect(journey!.status).toBe('ok');
     }
     for (const id of ['swarm-role-picker']) {
       const journey = journeys.find((j) => j.id === id);

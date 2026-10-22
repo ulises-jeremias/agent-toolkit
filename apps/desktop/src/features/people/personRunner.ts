@@ -5,10 +5,16 @@ import { newProviderSessionId, providerResumeSupport, providerSessionIdFlag } fr
 export type InitialPromptMode = 'positional' | 'opencode-mini' | 'copilot-interactive' | 'unsupported';
 
 /** Runner prompt support is explicit: unknown CLIs open normally and never receive guessed flags. */
+// Positional-prompt runners are verified against their installed CLIs:
+// `cursor-agent [prompt...]` documents the positional as "Initial prompt
+// for the agent" and stays interactive without --print; `muse [PROMPT]`
+// documents "pass a prompt to start a session" in its interactive TUI.
 export function initialPromptMode(providerId: string): InitialPromptMode {
   switch (providerId) {
     case 'claude':
     case 'codex':
+    case 'cursor':
+    case 'muse':
       return 'positional';
     case 'opencode':
       return 'opencode-mini';

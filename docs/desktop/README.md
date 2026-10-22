@@ -98,9 +98,9 @@ separately in [VISUAL_QA.md](VISUAL_QA.md). Person sessions now have durable V
 lifecycle records and recover truthfully as interrupted when the local PTY is
 gone. The Start review now preloads the saved goal into a one-time task, previews
 the role/goal/task prompt, and sends it through documented interactive options
-for Claude, Codex, OpenCode and Copilot. Cursor and Muse open without an initial
-prompt and offer a copy action. The prompt itself is not retained in the
-PersonSession record.
+for Claude, Codex, OpenCode, Copilot, Cursor and Muse. Runners without a
+verified initial-prompt contract open without one and offer a copy action. The
+prompt itself is not retained in the PersonSession record.
 
 The table below is a user-facing summary of that ledger. “Partial” means the
 GUI path exists but a documented end-to-end capability or recovery case is

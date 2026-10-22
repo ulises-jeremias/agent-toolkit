@@ -207,10 +207,11 @@ file authoring as the user interface:
   (opencode, gemini, cursor and unknown CLIs). Their sessions still run, but
   no conversation id is recorded and Start always opens a fresh conversation.
   Conversation history browsing is likewise not implemented.
-- Cursor and Muse currently open interactively without a submitted initial
-  task because their runner-specific interactive prompt contracts have not
-  been verified. The Start review lets the user copy the reviewed prompt into
-  those terminals.
+- Runners without a verified interactive prompt contract open without a
+  submitted initial task. The Start review lets the user copy the reviewed
+  prompt into those terminals. (Cursor and Muse were verified against their
+  installed CLIs: `cursor-agent [prompt...]` and `muse [PROMPT]` both take
+  the initial task positionally and stay interactive.)
 - Runtime enforcement of token/cost limits and non-inherited isolation for the
   local PTY Start flow. `max_seconds` is enforced by Desktop and stops the PTY
   when its time budget expires.

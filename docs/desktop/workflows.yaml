@@ -792,7 +792,7 @@ journeys:
   - id: people-start-session
     title: Start a session as a Person
     destinations: [people, terminal, world]
-    status: partial
+    status: ok
     evidence:
       - note: >-
           People validates the selected Person, linked project and provider with
@@ -911,8 +911,21 @@ journeys:
           carry the provider-native conversation id, assigned at launch or
           attached write-once after spawn, and the start flow offers resume
           only where the runner contract is verified.
-    blockers:
-      - initial-task submission is not supported for Cursor or Muse; no runner-specific argument contract is assumed
+      - note: >-
+          Initial-task submission now covers every discovered interactive
+          runner with a verified contract: Cursor and Muse were checked
+          against their installed CLIs (`cursor-agent --help` documents
+          `[prompt...]` as "Initial prompt for the agent" and stays
+          interactive without `--print`; `muse --help` documents
+          `[PROMPT]` as "pass a prompt to start a session" in the
+          interactive TUI), so both take the reviewed prompt positionally
+          after `--model`. Runners without a verified contract still open
+          interactively with the copy action and never receive guessed
+          flags.
+        build: "personRunner unit tests (10 passed) against installed cursor-agent and muse --help contracts"
+        tests:
+          - apps/desktop/src/features/people/personRunner.test.ts
+    blockers: []
   - id: swarm-role-picker
     title: Choose People for swarm roles before start
     destinations: [operations, people]
