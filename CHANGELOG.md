@@ -12,6 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Tmux swarm handoffs now actually launch the waiting role's runner.
+  The spawn traced waiting roles as started, so the handoff autostart
+  gate only woke a window with no runner in it and the role's bound
+  PersonSession was never recorded. Waiting roles now trace
+  `agent_waiting`, matching the herdr path.
+- A swarm PersonSession no longer claims `running` forever when its
+  tmux worker surface dies mid-run: the typed run reads the Desktop
+  polls reconcile a provably missing tmux session to `interrupted`.
+  The run state itself stays operator-owned.
 - The swarm run inspector now refreshes PersonSession records while
   the run is active and after lifecycle actions, instead of keeping a
   stale "no role has launched yet" answer while a worker is running

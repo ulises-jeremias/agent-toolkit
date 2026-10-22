@@ -128,6 +128,8 @@ pub fn list_swarm_runs_typed(workspace string) SwarmListResponse {
 	mut runs := []SwarmRunInfo{}
 	for rd in list_all_swarm_runs(ws) {
 		st := read_swarm_state(rd) or { continue }
+		reconcile_swarm_person_sessions(ws, rd, st.run_id, st.run_state)
+		reconcile_dead_tmux_swarm_sessions(ws, rd, st.run_id, st.run_state, st.backend)
 		runs << swarm_run_info(st)
 	}
 	return SwarmListResponse{
@@ -138,7 +140,12 @@ pub fn list_swarm_runs_typed(workspace string) SwarmListResponse {
 
 pub fn get_swarm_run_typed(workspace string, run_id string) !SwarmRunResponse {
 	ws, rd, st := require_swarm_run(workspace, run_id)!
-	_ = ws
+	// The Desktop polls this read path, so it must apply the same
+	// PersonSession reconciliation as the CLI status/list paths:
+	// terminal runs close orphaned records, and a running tmux run whose
+	// worker surface is provably gone closes them as interrupted.
+	reconcile_swarm_person_sessions(ws, rd, st.run_id, st.run_state)
+	reconcile_dead_tmux_swarm_sessions(ws, rd, st.run_id, st.run_state, st.backend)
 	return SwarmRunResponse{
 		ok: true
 		run: swarm_run_info(st)
