@@ -110,6 +110,14 @@ import swarmWatch from "../../../../docs/desktop/assets/electron/swarms/swarm-ru
         <ul>
           <li>Approvals and human input surface in Attention</li>
           <li>Artifacts and handoffs stay attached to the run</li>
+          <li>
+            A bound Person becomes a real session record only when their
+            role's runner actually launches — including on handoff
+          </li>
+          <li>
+            If a worker's terminal surface dies mid-run, its record stops
+            claiming to run instead of staying green forever
+          </li>
           <li>Completed work isn't falsely queued for review</li>
           <li>A headless record is never presented as a live agent</li>
         </ul>
