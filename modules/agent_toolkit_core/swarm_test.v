@@ -224,6 +224,28 @@ fn test_tmux_session_missing_requires_tmuxs_own_words() {
 	assert !tmux_session_missing(RunResult{ exit_code: -1 })
 }
 
+fn test_herdr_workspace_missing_requires_a_successful_list_without_the_label() {
+	// The herdr server answered and the run's workspace is not there.
+	assert herdr_workspace_missing(RunResult{
+		exit_code: 0
+		stdout: '{"workspaces":[{"label":"swarm-other","workspace_id":"w1"}]}'
+	}, 's20261021T231500Z')
+	assert herdr_workspace_missing(RunResult{ exit_code: 0, stdout: '{"workspaces":[]}' }, 's20261021T231500Z')
+	// The run's workspace is still listed: the worker surface is alive.
+	assert !herdr_workspace_missing(RunResult{
+		exit_code: 0
+		stdout: '{"workspaces":[{"label":"swarm-s20261021T231500Z","workspace_id":"w2"}]}'
+	}, 's20261021T231500Z')
+	// A dead or struggling herdr server proves nothing (real herdr exits 1
+	// with a server_not_running error when no server is running).
+	assert !herdr_workspace_missing(RunResult{
+		exit_code: 1
+		stderr: '{"error":{"code":"server_not_running"}}'
+	}, 's20261021T231500Z')
+	assert !herdr_workspace_missing(RunResult{ exit_code: 0, stdout: '{"workspaces":[]}', timed_out: true }, 's20261021T231500Z')
+	assert !herdr_workspace_missing(RunResult{ exit_code: -1 }, 's20261021T231500Z')
+}
+
 fn test_swarm_role_already_started_ignores_waiting_roles() {
 	ws := os.join_path(os.temp_dir(), 'at-swarm-waiting-${os.getpid()}')
 	os.mkdir_all(os.join_path(ws, '.git')) or { panic(err) }

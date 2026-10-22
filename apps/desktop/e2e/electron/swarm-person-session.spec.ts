@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtures';
 
@@ -72,7 +72,11 @@ async function createPerson(name: string, id: string, role: string): Promise<voi
   await expect(personDialog).toBeHidden();
 }
 
-async function startTmuxSwarm(task: string, bindings: Record<string, string>): Promise<string> {
+async function startTmuxSwarm(
+  task: string,
+  bindings: Record<string, string>,
+  adapterName: 'tmux' | 'herdr' = 'tmux',
+): Promise<string> {
   const { page, workspace } = desktop;
   initRepo(workspace);
   const link = path.join(workspace, 'projects', 'e2e-workspace');
@@ -90,10 +94,10 @@ async function startTmuxSwarm(task: string, bindings: Record<string, string>): P
   const adapter = dialog.getByLabel('Session adapter');
   const adapterOptions = await adapter.locator('option').allTextContents();
   test.skip(
-    !adapterOptions.some((label) => label.startsWith('tmux')),
-    `tmux session adapter unavailable on this host (options: ${adapterOptions.join(', ')})`,
+    !adapterOptions.some((label) => label.startsWith(adapterName)),
+    `${adapterName} session adapter unavailable on this host (options: ${adapterOptions.join(', ')})`,
   );
-  await adapter.selectOption('tmux');
+  await adapter.selectOption(adapterName);
   for (const role of ['implementer', 'reviewer', 'integrator']) {
     const roleRuntime = dialog.getByRole('group', { name: `Runtime settings for ${role}` });
     await roleRuntime.locator('summary').click();
@@ -350,5 +354,74 @@ test('a dead tmux worker surface closes its Person session as interrupted, then 
     execFileSync('tmux', ['-L', `agent-toolkit-swarm-${runId}`, 'kill-server'], { stdio: 'pipe' });
   } catch {
     // Already gone with the run stop; nothing to clean.
+  }
+});
+
+test('a lost herdr workspace closes its Person session as interrupted, then the run still stops', async () => {
+  test.setTimeout(240_000);
+  const { page } = desktop;
+  let herdrAvailable = true;
+  try {
+    execFileSync('herdr', ['--version'], { stdio: 'pipe' });
+  } catch {
+    herdrAvailable = false;
+  }
+  test.skip(!herdrAvailable, 'herdr session adapter unavailable on this host');
+  // `herdr workspace create` needs a running server; start the headless
+  // server for this test only when none is answering, and stop it again
+  // afterwards only if this test started it.
+  // The backend spawns herdr with the isolated test HOME, so every herdr
+  // call in this test must use that same environment and socket.
+  const herdrEnv = {
+    ...process.env,
+    HOME: desktop.home,
+    XDG_CONFIG_HOME: path.join(desktop.home, '.config'),
+    XDG_DATA_HOME: path.join(desktop.home, '.local', 'share'),
+  };
+  const herdrList = () => execFileSync('herdr', ['workspace', 'list'], { env: herdrEnv, encoding: 'utf8' });
+  let startedServer = false;
+  try {
+    herdrList();
+  } catch {
+    const server = spawn('herdr', ['server'], { detached: true, stdio: 'ignore', env: herdrEnv });
+    server.unref();
+    startedServer = true;
+    await expect
+      .poll(
+        () => {
+          try {
+            herdrList();
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        { timeout: 20_000 },
+      )
+      .toBe(true);
+  }
+  await waitForBackend(page);
+  await createPerson('Mira', 'mira', 'implementer');
+  const runId = await startTmuxSwarm('Lose the herdr workspace mid-run', { implementer: 'mira' }, 'herdr');
+  await expect(inspectorSessionRow('Mira')).toContainText('running', { timeout: 30_000 });
+
+  // The herdr workspace dies without the run reaching a terminal state:
+  // the record must not keep claiming `running` once anyone looks.
+  const list = herdrList();
+  const labelAt = list.indexOf(`"label":"swarm-${runId}"`);
+  expect(labelAt).toBeGreaterThanOrEqual(0);
+  const idMarker = '"workspace_id":"';
+  const idAt = list.indexOf(idMarker, labelAt);
+  const workspaceId = list.slice(idAt + idMarker.length, list.indexOf('"', idAt + idMarker.length));
+  expect(workspaceId).not.toBe('');
+  execFileSync('herdr', ['workspace', 'close', workspaceId], { env: herdrEnv, stdio: 'pipe' });
+
+  await expect(inspectorSessionRow('Mira')).toContainText('interrupted', { timeout: 30_000 });
+  await expect.poll(() => sessionRecords(), { timeout: 20_000 }).toContain('"interrupted"');
+
+  // Recovery stays operator-driven: stopping the run still resolves it.
+  await stopRunFromInspector();
+  if (startedServer) {
+    execFileSync('herdr', ['server', 'stop'], { env: herdrEnv, stdio: 'pipe' });
   }
 });

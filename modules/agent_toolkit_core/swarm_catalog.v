@@ -129,7 +129,7 @@ pub fn list_swarm_runs_typed(workspace string) SwarmListResponse {
 	for rd in list_all_swarm_runs(ws) {
 		st := read_swarm_state(rd) or { continue }
 		reconcile_swarm_person_sessions(ws, rd, st.run_id, st.run_state)
-		reconcile_dead_tmux_swarm_sessions(ws, rd, st.run_id, st.run_state, st.backend)
+		reconcile_dead_worker_sessions(ws, rd, st.run_id, st.run_state, st.backend)
 		runs << swarm_run_info(st)
 	}
 	return SwarmListResponse{
@@ -145,7 +145,7 @@ pub fn get_swarm_run_typed(workspace string, run_id string) !SwarmRunResponse {
 	// terminal runs close orphaned records, and a running tmux run whose
 	// worker surface is provably gone closes them as interrupted.
 	reconcile_swarm_person_sessions(ws, rd, st.run_id, st.run_state)
-	reconcile_dead_tmux_swarm_sessions(ws, rd, st.run_id, st.run_state, st.backend)
+	reconcile_dead_worker_sessions(ws, rd, st.run_id, st.run_state, st.backend)
 	return SwarmRunResponse{
 		ok: true
 		run: swarm_run_info(st)
