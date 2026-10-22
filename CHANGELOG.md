@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   live PR status, and Mark PR ready for review flips the real PR. It
   runs only when `ATK_E2E_GH_PR_REPO` names a disposable repository,
   so CI still skips it.
+- An Operations job-log Electron E2E now proves the GUI job journey in
+  the real Desktop: start a `version` job from Operations, read its
+  persisted log in the inspector without leaving the panel, and delete
+  it back to the empty board.
 
 ### Fixed
 
