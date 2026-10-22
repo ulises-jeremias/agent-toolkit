@@ -159,6 +159,27 @@ fn test_workspace_swarm_person_defaults_roundtrip_preserves_other_roles() {
 	}
 }
 
+fn test_person_notes_roundtrip_and_validation() {
+	ws := os.join_path(os.temp_dir(), 'atk-people-notes-${os.getpid()}')
+	os.mkdir_all(ws) or { panic(err) }
+	defer { os.rmdir_all(ws) or {} }
+	with_notes := lina_json.replace('"archived":false', '"notes":"Prefers small PRs. Knows the release checklist.","archived":false')
+	created := save_person(ws, with_notes, true)!
+	assert created.person['notes']!.str() == 'Prefers small PRs. Knows the release checklist.'
+	assert read_person(ws, 'lina')!.person['notes']!.str().contains('release checklist')
+	// Notes are optional and can be cleared by omitting the field.
+	cleared := save_person(ws, lina_json, false)!
+	assert 'notes' !in cleared.person
+	for invalid in [
+		lina_json.replace('"archived":false', '"notes":42,"archived":false'),
+		lina_json.replace('"archived":false', '"notes":"","archived":false'),
+	] {
+		if _ := validate_person_json(invalid) {
+			assert false, 'invalid notes accepted'
+		}
+	}
+}
+
 fn test_people_reject_invalid_runtime_and_symlink_storage() {
 	for invalid in [
 		lina_json.replace('"id":"lina"', '"id":"../lina"'),

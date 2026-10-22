@@ -97,6 +97,7 @@ export interface Person {
   name: string;
   role: string;
   goal: string;
+  notes?: string;
   archived: boolean;
   definition_id?: string;
   avatar?: { character?: string; accent?: string };

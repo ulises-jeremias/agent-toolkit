@@ -154,6 +154,21 @@ function PersonForm({
           />
         )}
       </Field>
+      <Field
+        label="Durable notes"
+        hint="Operator-written memory for this coworker — preferences, project facts, agreements. Included in the reviewed initial prompt when a local session starts."
+      >
+        {(control) => (
+          <textarea
+            {...control}
+            className={styles.textarea}
+            maxLength={8192}
+            rows={3}
+            value={draft.notes ?? ''}
+            onChange={(event) => update({ notes: optionalText(event.target.value) })}
+          />
+        )}
+      </Field>
       <details className={styles.details}>
         <summary>Runner and appearance</summary>
         <div className={styles.formGrid}>
@@ -695,6 +710,12 @@ export default function People() {
                     <ErrorState title="Session history is unavailable" error={sessionHistory.error} />
                   ) : null}
                   <dl>
+                    {selected.notes ? (
+                      <>
+                        <dt>Durable notes</dt>
+                        <dd>{selected.notes}</dd>
+                      </>
+                    ) : null}
                     <dt>Definition</dt>
                     <dd>{selected.definition_id || 'Choose when starting'}</dd>
                     <dt>Project</dt>

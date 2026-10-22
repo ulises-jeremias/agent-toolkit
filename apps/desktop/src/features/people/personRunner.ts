@@ -27,7 +27,9 @@ export function initialPromptMode(providerId: string): InitialPromptMode {
 
 export function personInitialPrompt(person: Person, task: string): string | null {
   if (!task.trim()) return null;
-  return `Role: ${person.role}\nConfigured goal: ${person.goal}\n\nTask for this session:\n${task.trim()}`;
+  const notes = person.notes?.trim();
+  const memory = notes ? `\nDurable notes: ${notes}` : '';
+  return `Role: ${person.role}\nConfigured goal: ${person.goal}${memory}\n\nTask for this session:\n${task.trim()}`;
 }
 
 /** Build an argv-only PTY launch from real Toolkit runner discovery. */

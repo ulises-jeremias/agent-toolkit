@@ -117,7 +117,7 @@ fn person_number(doc map[string]json2.Any, field string, limit f64, integer bool
 pub fn validate_person_json(raw string) !map[string]json2.Any {
 	if raw.len == 0 || raw.len > person_limit { return error('person document has invalid size') }
 	doc := json2.decode[map[string]json2.Any](raw) or { return error('person document is not valid JSON') }
-	person_allowed(doc, ['spec', 'id', 'name', 'role', 'goal', 'archived', 'definition_id', 'avatar',
+	person_allowed(doc, ['spec', 'id', 'name', 'role', 'goal', 'notes', 'archived', 'definition_id', 'avatar',
 		'preferred_provider', 'preferred_model', 'capabilities', 'skills', 'mcp_servers', 'isolation',
 		'budget', 'import_source'])!
 	if person_string(doc, 'spec', true, 64, '')! != 'agent-toolkit/person@1' { return error('unsupported person spec') }
@@ -125,6 +125,10 @@ pub fn validate_person_json(raw string) !map[string]json2.Any {
 	person_string(doc, 'name', true, 128, '')!
 	person_string(doc, 'role', true, 64, 'id')!
 	person_string(doc, 'goal', true, 2048, '')!
+	// Durable operator-written memory for this coworker (preferences,
+	// project facts, working agreements). Optional; carried into the
+	// reviewed initial prompt of local PTY launches.
+	person_string(doc, 'notes', false, 8192, '')!
 	archived := doc['archived'] or { return error('archived is required') }
 	if archived !is bool { return error('archived must be a boolean') }
 	for field in ['definition_id', 'preferred_provider', 'preferred_model'] {
