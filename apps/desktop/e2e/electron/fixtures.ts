@@ -35,8 +35,9 @@ function backendBinary(): string {
  * the worker process — alive forever (#1622). Depth-capped so a pid
  * surprise cannot walk the whole process table.
  */
-export function killDescendants(pid: number | undefined): void {
-  if (!pid || process.platform === 'win32') return;
+/** Snapshot every descendant pid of `pid` (POSIX only), deepest first. */
+export function collectDescendants(pid: number | undefined): number[] {
+  if (!pid || process.platform === 'win32') return [];
   const childrenOf = (parent: number): number[] => {
     try {
       return execFileSync('pgrep', ['-P', String(parent)], { encoding: 'utf8' })
@@ -48,18 +49,26 @@ export function killDescendants(pid: number | undefined): void {
       return [];
     }
   };
+  const out: number[] = [];
   const walk = (parent: number, depth: number): void => {
     if (depth > 6) return;
     for (const child of childrenOf(parent)) {
       walk(child, depth + 1);
-      try {
-        process.kill(child, 'SIGKILL');
-      } catch {
-        // Already exited between listing and signalling.
-      }
+      out.push(child);
     }
   };
   walk(pid, 0);
+  return out;
+}
+
+export function killDescendants(pid: number | undefined): void {
+  for (const child of collectDescendants(pid)) {
+    try {
+      process.kill(child, 'SIGKILL');
+    } catch {
+      // Already exited between listing and signalling.
+    }
+  }
 }
 
 function assertBuilt(): void {
@@ -160,6 +169,10 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
     backendBin,
     close: async () => {
       const process = app.process();
+      // Snapshot descendants before close: once the Electron main exits,
+      // survivors are reparented and can no longer be found by walking
+      // from its pid — yet they still hold Playwright's pipes (#1622).
+      const descendantsAtClose = collectDescendants(process.pid);
       let killTimer: ReturnType<typeof setTimeout> | undefined;
       try {
         await Promise.race([
@@ -181,13 +194,27 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
         ]);
       } finally {
         if (killTimer) clearTimeout(killTimer);
+        // Kill any pre-close descendants that survived on either path;
+        // the timeout path already walked the live tree, this covers the
+        // clean-close path where survivors were reparented (#1622).
+        for (const pid of descendantsAtClose) {
+          try {
+            globalThis.process.kill(pid, 'SIGKILL');
+          } catch {
+            // Already exited during close; nothing to reap.
+          }
+        }
+        killDescendants(process.pid);
         // The detached PTY host outlives the app by design; in tests it must
         // not outlive the launch, or its PTYs leak into the shared worker.
         try {
           const registry = JSON.parse(fs.readFileSync(path.join(root, 'pty-runtime', 'pty-registry.json'), 'utf8')) as {
             pid?: number;
           };
-          if (typeof registry.pid === 'number') globalThis.process.kill(registry.pid, 'SIGTERM');
+          if (typeof registry.pid === 'number') {
+            killDescendants(registry.pid);
+            globalThis.process.kill(registry.pid, 'SIGTERM');
+          }
         } catch {
           // No host was spawned for this launch, or it already exited.
         }
