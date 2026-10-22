@@ -28,6 +28,40 @@ function backendBinary(): string {
   return found;
 }
 
+/**
+ * SIGKILLs every descendant of `pid` (POSIX only). Used on the close()
+ * timeout path: Electron children inherit the main process's stdio, so a
+ * surviving backend or renderer keeps Playwright's pipes — and therefore
+ * the worker process — alive forever (#1622). Depth-capped so a pid
+ * surprise cannot walk the whole process table.
+ */
+export function killDescendants(pid: number | undefined): void {
+  if (!pid || process.platform === 'win32') return;
+  const childrenOf = (parent: number): number[] => {
+    try {
+      return execFileSync('pgrep', ['-P', String(parent)], { encoding: 'utf8' })
+        .split(/\s+/)
+        .filter(Boolean)
+        .map(Number)
+        .filter((child) => Number.isFinite(child) && child > 0);
+    } catch {
+      return [];
+    }
+  };
+  const walk = (parent: number, depth: number): void => {
+    if (depth > 6) return;
+    for (const child of childrenOf(parent)) {
+      walk(child, depth + 1);
+      try {
+        process.kill(child, 'SIGKILL');
+      } catch {
+        // Already exited between listing and signalling.
+      }
+    }
+  };
+  walk(pid, 0);
+}
+
 function assertBuilt(): void {
   if (packagedApp) {
     if (!fs.existsSync(packagedApp)) throw new Error(`Missing packaged Desktop: ${packagedApp}`);
@@ -137,6 +171,10 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
               } catch {
                 // The Electron process may have exited while shutdown was pending.
               }
+              // Electron children (renderer, backend, PTY host) inherit the
+              // main process's stdio. If any survive the SIGKILL they keep
+              // Playwright's pipes open and the worker never exits (#1622).
+              killDescendants(process.pid);
               resolve();
             }, 20_000);
           }),
