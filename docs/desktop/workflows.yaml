@@ -954,9 +954,25 @@ journeys:
         tests:
           - modules/agent_toolkit_core/sessions_test.v
           - apps/desktop/src/features/operations/swarmPreview.test.ts
+      - note: >-
+          Swarm workers are now projected into the World truthfully: a live
+          (launching/running) swarm PersonSession places the Person's
+          character at the project house named by its swarm run, and only
+          for as long as the record is live. The character's detail names
+          the swarm role and run, and activating it opens the Operations
+          run inspector — never a fabricated Desktop terminal for a
+          tmux/herdr session. Bindings, queued roles, and terminal records
+          produce no character.
+        build: "Linux Electron E2E (World character test in swarm-person-session.spec.ts); compact/large captures opened"
+        tests:
+          - apps/desktop/src/features/world/swarmPersonWorld.test.ts
+          - apps/desktop/src/features/world/model/worldModel.test.ts
+          - apps/desktop/e2e/electron/swarm-person-session.spec.ts
+        screenshots:
+          - assets/electron/world-swarm-person-compact.png
+          - assets/electron/world-swarm-person-large.png
     blockers:
-      - swarm role sessions are not yet projected into truthful World characters (swarm workers are tmux/herdr processes, not Desktop PTYs)
-      - Person-specific terminal actions do not yet resolve to a swarm AgentSession
+      - People session-history rows for swarm sessions have no direct open action; the World character and the Operations inspector are the inspection paths for adapter-backed work
   - id: swarm-start-review
     title: Review canonical recipe topology and runtime settings before starting
     destinations: [operations]

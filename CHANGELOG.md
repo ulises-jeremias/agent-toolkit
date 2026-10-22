@@ -35,6 +35,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Running swarm workers now appear as World characters at their run's
+  project house. Presence comes only from a live canonical swarm
+  PersonSession; the character names the swarm role and run and opens
+  the Operations run inspector — never a fabricated terminal for a
+  tmux/herdr session. The character disappears when the session ends.
 - The Library now discovers workspace context bundles beside Skills
   and Agent Definitions. The same Library search filters bundles by
   name, description, and related projects; bundles stay read-only
