@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The swarm run inspector now refreshes PersonSession records while
+  the run is active and after lifecycle actions, instead of keeping a
+  stale "no role has launched yet" answer while a worker is running
+  or a stale `running` badge after the run stops.
 - Desktop mutations without a payload now send an explicit `{}`
   JSON body; an empty body with a JSON content type could be
   rejected by the backend framework before routing, which broke
