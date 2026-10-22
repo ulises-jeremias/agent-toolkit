@@ -35,6 +35,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Dead-worker liveness detection now covers the herdr adapter: when a
+  running herdr run's workspace disappears from `herdr workspace list`,
+  its PersonSession records close as `interrupted` instead of claiming
+  `running` forever. A failed probe (herdr server down) closes nothing.
+  Herdr spawn and handoff autostart also gained the skeleton wake
+  fast-path, so skeleton roles no longer wait out the full wake poll.
 - Running swarm workers now appear as World characters at their run's
   project house. Presence comes only from a live canonical swarm
   PersonSession; the character names the swarm role and run and opens

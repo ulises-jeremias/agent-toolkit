@@ -1587,6 +1587,52 @@ fn tmux_session_missing(probe RunResult) bool {
 		|| output.contains('cant find') || output.contains('no such file or directory')
 }
 
+// herdr_workspace_missing is the evidence bar for a dead herdr worker:
+// `herdr workspace list` must have completed successfully (the herdr
+// server answered) while reporting no workspace labelled for this run.
+// A failed or timed-out probe — herdr down, missing, or struggling —
+// proves nothing, the same bar as the tmux predicate.
+fn herdr_workspace_missing(probe RunResult, run_id string) bool {
+	if probe.timed_out || probe.exit_code != 0 {
+		return false
+	}
+	return !probe.stdout.contains('"label":"swarm-${run_id}"')
+}
+
+// reconcile_dead_worker_sessions dispatches the dead-surface liveness
+// reconcile for whichever adapter backs the run.
+fn reconcile_dead_worker_sessions(ws string, run_dir string, run_id string, run_state string, backend string) {
+	reconcile_dead_tmux_swarm_sessions(ws, run_dir, run_id, run_state, backend)
+	reconcile_dead_herdr_swarm_sessions(ws, run_dir, run_id, run_state, backend)
+}
+
+// reconcile_dead_herdr_swarm_sessions closes swarm PersonSession records
+// whose herdr workspace is provably gone while the run still claims to
+// be running (workspace closed, herdr workspace deleted). Records are
+// closed as `interrupted`, never `failed`, and the run state itself is
+// left for the operator to resolve — the herdr twin of the tmux probe.
+fn reconcile_dead_herdr_swarm_sessions(ws string, run_dir string, run_id string, run_state string, backend string) {
+	if run_state != 'running' || backend != 'herdr' {
+		return
+	}
+	ps := new_process_service()
+	probe := ps.run(RunOptions{
+		argv: ['herdr', 'workspace', 'list']
+		timeout: 10 * time.second
+	}) or { return }
+	if !herdr_workspace_missing(probe, run_id) {
+		return
+	}
+	mut store := new_person_session_store()
+	closed := store.close_swarm_person_sessions(ws, run_id, 'interrupted') or {
+		append_swarm_trace(run_dir, 'person_session_close_failed', run_id + ':' + err.msg())
+		return
+	}
+	if closed > 0 {
+		append_swarm_trace(run_dir, 'person_session_worker_lost', '${run_id}: herdr workspace gone; closed ${closed} record(s) as interrupted')
+	}
+}
+
 // reconcile_dead_tmux_swarm_sessions closes swarm PersonSession records
 // whose tmux worker surface is provably gone while the run still claims
 // to be running (worker crash, killed tmux server, host reboot). Only a
@@ -2038,7 +2084,13 @@ fn swarm_autostart_role(ws string, run_id string, recipe string, role string, ru
 		os.write_file(start_marker, 'started\n') or {}
 		role_lock.release()
 		lock_held = false
-		swarm_wake_agent(run_id, role, 'herdr', pane_id, '')
+		if effective_runner == 'skeleton' {
+			// Skeleton never registers as a herdr agent; do not burn the
+			// wake poll budget waiting for one (mirrors the tmux fast path).
+			append_swarm_trace(run_dir, 'role_woken', role + ':herdr:skeleton')
+		} else {
+			swarm_wake_agent(run_id, role, 'herdr', pane_id, '')
+		}
 		return SwarmReport{
 			ok: true
 			message: 'role ${role} auto-started (${effective_runner}) in herdr pane ${pane_id}'
@@ -2180,7 +2232,10 @@ fn spawn_herdr_workspace(workspace string, repo_root string, run_id string, task
 				append_swarm_trace(run_dir, 'herdr_agent_started', first_role + '=' + effective_runner + ' pane=' + root_pane)
 				record_swarm_role_person_session(workspace, run_dir, run_id, first_role, person_bindings,
 					effective_runner, effective_model, first_role_root)
-				swarm_wake_agent(run_id, first_role, 'herdr', root_pane, '')
+				// The skeleton runner has no prompt to nudge and never
+				// registers as a herdr agent; waiting for one would burn
+				// the full wake poll budget (mirrors the tmux fast path).
+				append_swarm_trace(run_dir, 'role_woken', first_role + ':herdr:skeleton')
 			} else if res2.stderr.len > 0 || res2.stdout.len > 0 || res2.exit_code != -1 {
 				mut m2 := if res2.stderr.len > 0 {
 					res2.stderr.trim_space()
@@ -2335,7 +2390,7 @@ fn swarm_list(ws string, opts SwarmOptions) SwarmReport {
 		for rd in all {
 			st := read_swarm_state(rd) or { continue }
 			reconcile_swarm_person_sessions(ws, rd, st.run_id, st.run_state)
-			reconcile_dead_tmux_swarm_sessions(ws, rd, st.run_id, st.run_state, st.backend)
+			reconcile_dead_worker_sessions(ws, rd, st.run_id, st.run_state, st.backend)
 			entries << SwarmListEntry{
 				run_id: st.run_id
 				recipe: st.recipe
@@ -2380,7 +2435,7 @@ fn swarm_list(ws string, opts SwarmOptions) SwarmReport {
 	for rd in all {
 		st := read_swarm_state(rd) or { continue }
 		reconcile_swarm_person_sessions(ws, rd, st.run_id, st.run_state)
-		reconcile_dead_tmux_swarm_sessions(ws, rd, st.run_id, st.run_state, st.backend)
+		reconcile_dead_worker_sessions(ws, rd, st.run_id, st.run_state, st.backend)
 		lines << '${st.run_id}\t${st.recipe}\t${st.run_state}\t${st.created_at}'
 		count++
 	}
@@ -2422,7 +2477,7 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 	reconcile_swarm_person_sessions(ws, rd, opts.run_id, st.run_state)
-	reconcile_dead_tmux_swarm_sessions(ws, rd, opts.run_id, st.run_state, st.backend)
+	reconcile_dead_worker_sessions(ws, rd, opts.run_id, st.run_state, st.backend)
 	gates := read_swarm_approvals(rd)
 	mut gtxt := []string{}
 	for g in gates {

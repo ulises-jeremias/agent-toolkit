@@ -1113,11 +1113,29 @@ journeys:
         tests:
           - modules/agent_toolkit_core/swarm_test.v
           - apps/desktop/e2e/electron/swarm-person-session.spec.ts
+      - note: >-
+          Dead-worker liveness detection now covers herdr too: when a
+          running herdr run's workspace no longer appears in a successful
+          `herdr workspace list`, its PersonSession records close as
+          `interrupted` (traced person_session_worker_lost), the same
+          evidence bar as tmux — a failed or timed-out probe (herdr
+          server down exits 1 with server_not_running) closes nothing.
+          The Electron journey starts a real herdr swarm with a bound
+          Person, closes the workspace externally, watches the record
+          become interrupted, and stops the run; it skips on hosts
+          without herdr (CI runners have no herdr). The same change adds
+          the skeleton wake fast-path for herdr, mirroring tmux: a
+          skeleton pane never registers as a herdr agent, so spawn and
+          handoff autostart no longer burn the ~35s wake poll.
+        build: "Linux Electron E2E (herdr test in swarm-person-session.spec.ts, 5/5 spec passed locally with real herdr)"
+        tests:
+          - modules/agent_toolkit_core/swarm_test.v
+          - apps/desktop/e2e/electron/swarm-person-session.spec.ts
     blockers:
       - >-
-          Dead-worker liveness detection covers the tmux adapter only;
-          a lost herdr workspace is not yet detected, and herdr handoff
-          progression is not yet verified in an end-to-end Desktop run.
+          Herdr handoff progression (a waiting herdr role auto-starting
+          on handoff) is not yet verified in an end-to-end Desktop run;
+          the herdr test above covers launch, liveness, and recovery.
   - id: universal-search-actions
     title: Search and launch core actions with safe previews
     destinations: [shell]
