@@ -39,6 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   waiting herdr role auto-starts on handoff and its bound Person
   session appears in the run inspector. With launch, liveness, and
   recovery also verified, the swarm-run-watch journey is complete.
+- People session history now opens swarm work directly: a swarm
+  PersonSession row carries an **Open run** action that navigates to
+  the Operations inspector for that exact run, matching the World
+  character's destination. This closes the last `swarm-role-picker`
+  ledger blocker.
 - Dead-worker liveness detection now covers the herdr adapter: when a
   running herdr run's workspace disappears from `herdr workspace list`,
   its PersonSession records close as `interrupted` instead of claiming

@@ -667,6 +667,14 @@ export default function People() {
                               {session.provider}
                               {session.model ? ` · ${session.model}` : ''}
                             </small>
+                            {session.source === 'swarm' && session.swarm_run_id ? (
+                              <Button
+                                variant="secondary"
+                                onClick={() => navigate(href('/operations', { swarm: session.swarm_run_id }))}
+                              >
+                                Open run
+                              </Button>
+                            ) : null}
                             {session.status !== 'running' && session.source !== 'swarm' ? (
                               <Button
                                 variant="secondary"
