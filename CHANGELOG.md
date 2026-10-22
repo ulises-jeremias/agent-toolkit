@@ -45,6 +45,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   waiting herdr role auto-starts on handoff and its bound Person
   session appears in the run inspector. With launch, liveness, and
   recovery also verified, the swarm-run-watch journey is complete.
+- People now carry durable operator-written memory: an optional
+  `notes` field on `agent-toolkit/person@1` (validated by the V
+  backend, shown and edited in the People form and detail, persisted
+  in `people/<id>.json`). The reviewed initial prompt of a local PTY
+  launch includes the notes verbatim, so what a coworker should
+  remember actually reaches the session — visible in the Start review
+  before anything runs.
 - A single continuous Electron journey now covers the definition-of-done
   flow in one Desktop launch: apply a context pack, create a Person,
   start a People-bound tmux swarm, observe the live PersonSession in

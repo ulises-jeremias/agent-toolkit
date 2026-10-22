@@ -30,6 +30,7 @@ test('People can edit durable identity and archive or restore while remaining of
     await page.getByRole('button', { name: 'Edit Person' }).click();
     const edit = page.getByRole('dialog', { name: 'Edit Milo' });
     await edit.getByRole('textbox', { name: 'Goal' }).fill('Maintain reliable project tools and workflows.');
+    await edit.getByRole('textbox', { name: 'Durable notes' }).fill('Prefers small, reviewable changes.');
     await edit.getByText('Runner and appearance').click();
     await edit.getByRole('combobox', { name: 'Character' }).selectOption('maker');
     if (CAPTURE) {
@@ -46,6 +47,7 @@ test('People can edit durable identity and archive or restore while remaining of
     await edit.getByRole('button', { name: 'Save changes' }).click();
     await expect(edit).toBeHidden();
     await expect(page.getByText('Maintain reliable project tools and workflows.')).toBeVisible();
+    await expect(page.getByText('Prefers small, reviewable changes.')).toBeVisible();
     await expect(page.getByRole('button', { name: /Milo.*toolsmith.*Offline/ })).toBeVisible();
 
     await page.getByRole('button', { name: 'Archive' }).click();

@@ -11,6 +11,7 @@
     "name": {"type": "string", "minLength": 1, "maxLength": 128},
     "role": {"$ref": "#/$defs/id"},
     "goal": {"type": "string", "minLength": 1, "maxLength": 2048},
+    "notes": {"description": "Durable operator-written memory for this coworker; carried into the reviewed initial prompt of local PTY launches.", "type": "string", "minLength": 1, "maxLength": 8192},
     "archived": {"type": "boolean"},
     "definition_id": {"$ref": "#/$defs/ref"},
     "avatar": {

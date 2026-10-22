@@ -133,6 +133,15 @@ describe('personSessionOptions', () => {
     ).toEqual([]);
   });
 
+  it('carries durable notes into the reviewed initial prompt', () => {
+    expect(personInitialPrompt({ ...person, notes: 'Prefers small PRs.' }, 'Review this PR')).toBe(
+      'Role: reviewer\nConfigured goal: Review changes\nDurable notes: Prefers small PRs.\n\nTask for this session:\nReview this PR',
+    );
+    expect(personInitialPrompt({ ...person, notes: '   ' }, 'Review this PR')).toBe(
+      'Role: reviewer\nConfigured goal: Review changes\n\nTask for this session:\nReview this PR',
+    );
+  });
+
   it('does not send a prompt when the user clears the one-time task', () => {
     expect(personInitialPrompt(person, '  ')).toBeNull();
     const options = personSessionOptions(person, provider, undefined, '/work/project', 'project', '');
