@@ -86,6 +86,42 @@
   font-size: var(--text-xs);
 }
 
+.bundleList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bundleCard {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 2px solid var(--border-default);
+  background: var(--surface-sunken);
+  box-shadow: var(--shadow-panel);
+}
+
+.bundleCard > p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.bundleCard > p > span {
+  color: var(--text-primary);
+}
+
+.bundleHeading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
 .compatibilitySummary {
   display: flex;
   flex-wrap: wrap;
