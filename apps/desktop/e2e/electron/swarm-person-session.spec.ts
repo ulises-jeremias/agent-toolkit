@@ -79,9 +79,14 @@ test('tmux swarm launch records a PersonSession that closes on stop', async () =
     `tmux session adapter unavailable on this host (options: ${adapterOptions.join(', ')})`,
   );
   await adapter.selectOption('tmux');
-  const roleRuntime = dialog.getByRole('group', { name: 'Runtime settings for implementer' });
-  await roleRuntime.locator('summary').click();
-  await dialog.getByLabel('Runner for implementer').selectOption('skeleton');
+  // Every role must use the skeleton runner: the default runner binary is
+  // not guaranteed to exist on the test host (notably CI), and the engine
+  // validates launchable runners at start.
+  for (const role of ['implementer', 'reviewer', 'integrator']) {
+    const roleRuntime = dialog.getByRole('group', { name: `Runtime settings for ${role}` });
+    await roleRuntime.locator('summary').click();
+    await dialog.getByLabel(`Runner for ${role}`).selectOption('skeleton');
+  }
   await expect(dialog.getByLabel('Launch real role sessions')).toBeChecked();
   await dialog.getByRole('button', { name: 'Start swarm' }).click();
   await expect(dialog).toBeHidden();
