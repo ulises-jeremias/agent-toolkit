@@ -916,7 +916,7 @@ journeys:
   - id: swarm-role-picker
     title: Choose People for swarm roles before start
     destinations: [operations, people]
-    status: partial
+    status: ok
     evidence:
       - note: >-
           Operations loads the active roster and asks the live V backend to
@@ -985,8 +985,18 @@ journeys:
         screenshots:
           - assets/electron/world-swarm-person-compact.png
           - assets/electron/world-swarm-person-large.png
-    blockers:
-      - People session-history rows for swarm sessions have no direct open action; the World character and the Operations inspector are the inspection paths for adapter-backed work
+      - note: >-
+          People session-history rows for swarm sessions now carry a direct
+          Open run action that navigates to the Operations inspector for
+          that exact run (`/operations?swarm=<run_id>`), matching the World
+          character's destination. The tmux Electron swarm test stops a
+          real run, finds the durable swarm record in Mara's People
+          history, clicks Open run, and asserts the Operations inspector
+          for the run is visible with the run id in the URL.
+        build: "Linux Electron E2E (tmux swarm launch test in swarm-person-session.spec.ts, 1 passed locally)"
+        tests:
+          - apps/desktop/e2e/electron/swarm-person-session.spec.ts
+    blockers: []
   - id: swarm-start-review
     title: Review canonical recipe topology and runtime settings before starting
     destinations: [operations]

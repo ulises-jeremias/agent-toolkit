@@ -247,6 +247,11 @@ test('tmux swarm launch records a PersonSession that closes on stop', async () =
   await page.getByRole('button', { name: 'Mara implementer Offline' }).click();
   await expect(page.getByText(/Swarm implementer · run/)).toBeVisible();
 
+  // The history row opens the Operations inspector for that exact run.
+  await page.getByRole('button', { name: 'Open run' }).click();
+  await expect(page.getByRole('region', { name: 'pair' })).toBeVisible({ timeout: 20_000 });
+  await expect(page).toHaveURL(new RegExp(`swarm=${runId}`));
+
   // Best-effort: the run's tmux server must not leak past the test.
   try {
     execFileSync('tmux', ['-L', `agent-toolkit-swarm-${runId}`, 'kill-server'], { stdio: 'pipe' });
