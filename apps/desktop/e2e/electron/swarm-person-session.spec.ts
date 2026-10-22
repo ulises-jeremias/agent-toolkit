@@ -303,4 +303,9 @@ test('a dead tmux worker surface closes its Person session as interrupted, then 
 
   // Recovery stays operator-driven: stopping the run still resolves it.
   await stopRunFromInspector();
+  try {
+    execFileSync('tmux', ['-L', `agent-toolkit-swarm-${runId}`, 'kill-server'], { stdio: 'pipe' });
+  } catch {
+    // Already gone with the run stop; nothing to clean.
+  }
 });

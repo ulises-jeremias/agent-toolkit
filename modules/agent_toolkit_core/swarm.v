@@ -1722,6 +1722,13 @@ fn swarm_wake_agent(run_id string, role string, backend string, pane_id string, 
 				timeout: 5 * time.second
 			}) or { return }
 			lower := cap.stdout.to_lower()
+			if cap.stdout.len > 0 && lower.contains('[skeleton:') {
+				// The skeleton runner has no prompt to nudge; its ready
+				// line is the confirmation, so do not burn the full poll
+				// budget waiting for a TUI that will never paint.
+				append_swarm_trace(swarm_run_dir_from_run_id(run_id), 'role_woken', role + ':tmux:skeleton')
+				return
+			}
 			if cap.stdout.len > 0 && (lower.contains('opencode') || lower.contains('claude') || lower.contains('ask anything')) {
 				time.sleep(2 * time.second)
 				ps.run(RunOptions{
