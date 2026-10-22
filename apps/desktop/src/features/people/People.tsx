@@ -29,6 +29,7 @@ import { personCharacter } from './avatar';
 import { personSessionStatusLabel } from '../../data/personSessionStatus';
 import { activePersonSessionsForWorkspace, selectActivePersonSession } from '../../data/personSessionScope';
 import { ReferenceMultiSelect, type ReferenceOption } from './ReferenceMultiSelect';
+import { personActivityLine, personActivitySummary } from './personActivity';
 
 const blank: Person = {
   spec: 'agent-toolkit/person@1',
@@ -438,6 +439,9 @@ export default function People() {
   const selectedSessionHistory = selected
     ? (sessionHistory.data?.sessions.filter((session) => session.person_id === selected.id).slice(0, 5) ?? [])
     : [];
+  const selectedActivity = selected
+    ? personActivitySummary(sessionHistory.data?.sessions ?? [], selected.id)
+    : undefined;
   const displaySession = selectedSession ?? selectedRecentSession;
   const activePersonIds = useMemo(
     () => new Set(workspacePersonSessions.flatMap((session) => (session.personId ? [session.personId] : []))),
@@ -632,6 +636,9 @@ export default function People() {
                         ? `Last local PTY stopped at its ${selectedRecentSession.maxSeconds}s runtime limit.`
                         : `Last local PTY exited with code ${selectedRecentSession.exitCode ?? 'unknown'}.`}
                     </p>
+                  ) : null}
+                  {selectedActivity && sessionHistory.isSuccess ? (
+                    <p aria-label={`${selected.name} activity summary`}>{personActivityLine(selectedActivity)}</p>
                   ) : null}
                   {selectedSessionHistory.length > 0 ? (
                     <section aria-label={`${selected.name} session history`}>
