@@ -1567,7 +1567,11 @@ pub fn (app &App) jobs_events(mut ctx Ctx, id string) veb.Result {
 					sent_lines++
 				}
 			}
-			if is_terminal(current.status) {
+			// Gate done on the final log write: cancel flips status
+			// before the watcher appends [exit]/[canceled], and clients
+			// refetch the persisted log on done — sending done early
+			// would cache the pre-final [running] log forever.
+			if is_terminal(current.status) && runner.is_finalized(id) {
 				stream_conn.send_message(event: 'done', data: current.status, id: id) or {}
 				break
 			}

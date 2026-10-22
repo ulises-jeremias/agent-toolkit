@@ -27,9 +27,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the real Desktop: start a `version` job from Operations, read its
   persisted log in the inspector without leaving the panel, and delete
   it back to the empty board.
+- The Operations job-log Electron E2E now also covers the live path:
+  a running job streams its output into the inspector's Live output
+  section without leaving Operations, Cancel from the same inspector
+  lands it in the canceled state with the pre-kill lines preserved in
+  the persisted log, and deleting it returns to the empty board.
 
 ### Fixed
 
+- A canceled job's final log no longer races its status in Operations.
+  Cancel flipped the job to `canceled` before the watcher wrote the
+  final log (with the `[canceled]` marker), but the SSE stream sent
+  `done` on the status alone, so the Desktop refetched and cached the
+  pre-final `[running]` log. The backend now tracks log finalization
+  per job and only sends `done` after the final log is on disk.
 - The Desktop "Skip to content" link now actually moves keyboard focus
   into the main landmark. Its `#main` href was parsed by HashRouter as
   a route change, so keyboard users were redirected instead of being
