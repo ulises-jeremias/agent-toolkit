@@ -152,8 +152,16 @@ fn classify_api(rest []string) string {
 	mut method_explicit := false
 	mut path := ''
 	mut has_field := false
+	mut has_input := false
+	mut fields := []string{}
 	mut skip_next := false
+	mut capture_field := false
 	for a in rest[1..].clone() {
+		if capture_field {
+			capture_field = false
+			fields << a
+			continue
+		}
 		if skip_next {
 			skip_next = false
 			continue
@@ -170,13 +178,22 @@ fn classify_api(rest []string) string {
 		if a.starts_with('-') {
 			if a in ['-F', '-f', '--field', '--raw-field'] {
 				has_field = true
-				skip_next = true
+				capture_field = true
 			} else if (a.starts_with('-F') || a.starts_with('-f')) && a.contains('=') {
 				// attached field form (-Ffoo=, -ffoo=): implies a body
 				// without consuming the next arg (Python gh_gate parity)
 				has_field = true
+				fields << a[2..]
+			} else if a.starts_with('--field=') || a.starts_with('--raw-field=') {
+				has_field = true
+				fields << a.all_after('=')
 			} else if a in ['-H', '--header', '--input', '-i'] {
+				if a == '--input' {
+					has_input = true
+				}
 				skip_next = true
+			} else if a.starts_with('--input=') {
+				has_input = true
 			}
 			continue
 		}
@@ -192,6 +209,15 @@ fn classify_api(rest []string) string {
 	}
 	if has_field && !method_explicit {
 		method = 'POST'
+	}
+	// GraphQL is decided by the document, not the HTTP method: only inline
+	// read-only queries pass; bodies we cannot inspect (--input, @file) and
+	// anything naming a mutation/subscription fail closed as push.
+	if path.trim_left('/') == 'graphql' {
+		if !has_input && gate_graphql_read_only(fields) {
+			return ''
+		}
+		return 'push'
 	}
 	if method in ['POST', 'PUT', 'PATCH', 'DELETE'] {
 		if path.contains('/merge') {
@@ -217,6 +243,30 @@ fn classify_api(rest []string) string {
 		return 'push'
 	}
 	return ''
+}
+
+// gate_graphql_read_only reports whether the GraphQL fields carry exactly
+// inline `query` documents with no mutation or subscription operation.
+// A `query=@file` body cannot be inspected, so it fails closed.
+fn gate_graphql_read_only(fields []string) bool {
+	mut found := false
+	for f in fields {
+		eq := f.index('=') or { return false }
+		key := f[..eq]
+		if key != 'query' {
+			continue
+		}
+		val := f[eq + 1..]
+		if val.starts_with('@') {
+			return false
+		}
+		doc := val.to_lower()
+		if doc.contains('mutation') || doc.contains('subscription') {
+			return false
+		}
+		found = true
+	}
+	return found
 }
 
 // gate_path_numbered reports whether path ends with <needle><digits>
