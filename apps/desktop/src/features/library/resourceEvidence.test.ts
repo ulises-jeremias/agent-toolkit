@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { InstallReceiptSummary } from '../../lib/api';
-import { libraryResourceEvidence } from './resourceEvidence';
+import { libraryResourceEvidence, libraryResourceFiles } from './resourceEvidence';
 
 function receipt(target: string, artifacts: InstallReceiptSummary['artifacts']): InstallReceiptSummary {
   return {
@@ -110,5 +110,37 @@ describe('libraryResourceEvidence', () => {
         ]),
       ]),
     ).toEqual({ state: 'none', targets: [] });
+  });
+});
+
+describe('libraryResourceFiles', () => {
+  it('lists only the files a receipt owns for the named skill, sorted by path', () => {
+    const files = libraryResourceFiles('skill', 'review', [
+      receipt('claude-code', [
+        {
+          path: '/home/example/.claude/skills/review/references/checklist.md',
+          ownership: 'created',
+          status: 'unchanged',
+        },
+        { path: '/home/example/.claude/skills/review/SKILL.md', ownership: 'created', status: 'unchanged' },
+        { path: '/home/example/.claude/skills/assistant/SKILL.md', ownership: 'created', status: 'unchanged' },
+      ]),
+      receipt('cursor', [
+        { path: '/home/example/.cursor/skills/review/SKILL.md', ownership: 'created', status: 'modified' },
+      ]),
+    ]);
+    expect(files).toEqual([
+      {
+        path: '/home/example/.claude/skills/review/references/checklist.md',
+        status: 'unchanged',
+        target: 'claude-code',
+      },
+      { path: '/home/example/.claude/skills/review/SKILL.md', status: 'unchanged', target: 'claude-code' },
+      { path: '/home/example/.cursor/skills/review/SKILL.md', status: 'modified', target: 'cursor' },
+    ]);
+  });
+
+  it('returns an empty list when no receipt owns the skill', () => {
+    expect(libraryResourceFiles('skill', 'assistant', [])).toEqual([]);
   });
 });

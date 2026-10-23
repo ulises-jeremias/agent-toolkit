@@ -18,7 +18,7 @@ import {
 } from '../../lib/api';
 import { invalidateDomains, OPERATION_EFFECTS } from '../../lib/query/invalidation';
 import { parsePluginBundles } from '../../lib/reports';
-import { libraryResourceEvidence, type LibraryResourceKind } from './resourceEvidence';
+import { libraryResourceEvidence, libraryResourceFiles, type LibraryResourceKind } from './resourceEvidence';
 import {
   Button,
   ButtonRow,
@@ -343,6 +343,22 @@ export default function Library() {
       .toLocaleLowerCase()
       .includes(catalogNeedle),
   );
+  const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
+  const selectedSkill = skillRows.find((skill) => skill.id === selectedSkillId) ?? skillRows[0] ?? null;
+  const onSkillKeyDown = (event: React.KeyboardEvent, index: number) => {
+    const last = skillRows.length - 1;
+    let nextIndex: number | null = null;
+    if (event.key === 'ArrowDown') nextIndex = Math.min(last, index + 1);
+    else if (event.key === 'ArrowUp') nextIndex = Math.max(0, index - 1);
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = last;
+    if (nextIndex === null) return;
+    event.preventDefault();
+    const next = skillRows[nextIndex];
+    if (!next) return;
+    setSelectedSkillId(next.id);
+    document.getElementById(`skill-option-${next.id}`)?.focus();
+  };
   const agentRows = (agents.data?.agents ?? []).filter((agent) =>
     [agent.id, agent.name, agent.kind, agent.description, agent.source_file]
       .join(' ')
@@ -1121,58 +1137,87 @@ export default function Library() {
                         'The catalog returned no Skills. Local installation receipts remain a separate record.'}
                   </EmptyState>
                 ) : (
-                  <Table>
-                    <thead>
-                      <tr>
-                        <th scope="col">Skill</th>
-                        <th scope="col">Domain</th>
-                        <th scope="col">Installation evidence</th>
-                        <th scope="col">Compatibility</th>
-                        <th scope="col">About this Skill</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {skillRows.map((row) => {
-                        return (
-                          <tr key={row.id}>
-                            <th scope="row">
-                              <Mono className={styles.resourceName}>{row.name}</Mono>
-                            </th>
-                            <td>{row.domain}</td>
-                            <td>
-                              <span className={styles.resourceEvidence}>
-                                <StatusBadge tone="ok" label="In catalog" />
-                                <ResourceReceipt kind="skill" name={row.name} receipts={installReceipts} />
-                              </span>
-                            </td>
-                            <td>
-                              <CompatibilityCell compatibility={row.compatibility} />
-                            </td>
-                            <td>
-                              {row.description || 'Description unavailable.'}
-                              <details className={styles.resourceDetails}>
-                                <summary>Provenance and requirements</summary>
-                                <dl>
-                                  <dt>Origin</dt>
-                                  <dd>{row.origin || 'Unspecified'}</dd>
-                                  <dt>Source</dt>
-                                  <dd>
-                                    <Mono>{row.source_file}</Mono>
-                                  </dd>
-                                  <dt>Requires</dt>
-                                  <dd>{row.requires.length ? row.requires.join(', ') : 'None declared'}</dd>
-                                  <dt>Prerequisites</dt>
-                                  <dd>{row.prerequisites.length ? row.prerequisites.join(', ') : 'None declared'}</dd>
-                                  <dt>MCP</dt>
-                                  <dd>{row.mcp_required.length ? row.mcp_required.join(', ') : 'None declared'}</dd>
-                                </dl>
-                              </details>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </Table>
+                  <div className={styles.masterDetail}>
+                    <div className={styles.skillList} role="list" aria-label="Skills in catalog">
+                      {skillRows.map((row, index) => (
+                        <button
+                          key={row.id}
+                          id={`skill-option-${row.id}`}
+                          type="button"
+                          aria-pressed={selectedSkill?.id === row.id}
+                          className={styles.skillOption}
+                          onClick={() => setSelectedSkillId(row.id)}
+                          onKeyDown={(event) => onSkillKeyDown(event, index)}
+                        >
+                          <Mono className={styles.resourceName}>{row.name}</Mono>
+                          <span className={styles.skillOptionMeta}>
+                            <span>{row.domain}</span>
+                            <ResourceReceipt kind="skill" name={row.name} receipts={installReceipts} />
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    {selectedSkill ? (
+                      <section className={styles.skillDetail} aria-label={`Details for ${selectedSkill.name}`}>
+                        <h3>
+                          <Mono>{selectedSkill.name}</Mono>
+                        </h3>
+                        <p>{selectedSkill.description || 'Description unavailable.'}</p>
+                        <dl className={styles.skillFacts}>
+                          <dt>Domain</dt>
+                          <dd>{selectedSkill.domain}</dd>
+                          <dt>Origin</dt>
+                          <dd>{selectedSkill.origin || 'Unspecified'}</dd>
+                          <dt>Source</dt>
+                          <dd>
+                            <Mono>{selectedSkill.source_file}</Mono>
+                          </dd>
+                          <dt>Requires</dt>
+                          <dd>{selectedSkill.requires.length ? selectedSkill.requires.join(', ') : 'None declared'}</dd>
+                          <dt>Prerequisites</dt>
+                          <dd>
+                            {selectedSkill.prerequisites.length
+                              ? selectedSkill.prerequisites.join(', ')
+                              : 'None declared'}
+                          </dd>
+                          <dt>MCP</dt>
+                          <dd>
+                            {selectedSkill.mcp_required.length
+                              ? selectedSkill.mcp_required.join(', ')
+                              : 'None declared'}
+                          </dd>
+                          <dt>Compatibility</dt>
+                          <dd>
+                            <CompatibilityCell compatibility={selectedSkill.compatibility} />
+                          </dd>
+                        </dl>
+                        <div className={styles.skillReceipt}>
+                          <p className={styles.previewLabel}>Toolkit receipt</p>
+                          <ResourceReceipt kind="skill" name={selectedSkill.name} receipts={installReceipts} />
+                          {(() => {
+                            const files = libraryResourceFiles('skill', selectedSkill.name, installReceipts);
+                            return files.length > 0 ? (
+                              <ul
+                                className={styles.skillFiles}
+                                aria-label={`Files installed for ${selectedSkill.name}`}
+                              >
+                                {files.map((file) => (
+                                  <li key={`${file.target}/${file.path}`}>
+                                    <Mono>{file.path}</Mono> <span>{file.status}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p>
+                                No Toolkit receipt owns files for this Skill on this machine. It may still be installed
+                                independently; only receipt-backed installs are reported here.
+                              </p>
+                            );
+                          })()}
+                        </div>
+                      </section>
+                    ) : null}
+                  </div>
                 )
               }
             </QueryView>

@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The Library Skills catalog is now a master-detail view: a compact
+  selectable list (receipt state stays visible per Skill) beside a
+  detail pane with the full description, domain, origin, source
+  path, requires/prerequisites/MCP, compatibility, and the Toolkit
+  receipt card including the exact receipt-owned files. Arrow keys
+  move the selection and the detail follows; an honest "no Toolkit
+  receipt" note replaces any claim about independent installs. This
+  covers the master-detail half of the Skills issue; per-skill bulk
+  install remains open because the engine install is per-target
+  today and needs a filtered install contract first.
 - Loops now have an Edit cadence action in the Desktop: a new typed
   `POST /api/v1/loops/{name}/cadence` route validates the cadence
   against the canonical scheduler contract (`<N>m` 1-59, `<N>h` 1-24,
