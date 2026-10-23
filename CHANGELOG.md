@@ -20,6 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Website gains a visual onboarding guide at `/start/` ("Your
+  first hour"): 12 steps from download to reviewed agent work,
+  the four core concepts, a first-hour checklist and the three
+  keys that run the place. Linked from the main navigation and
+  the homepage; `docs/GETTING_STARTED.md` grows matching sections
+  (World shortcuts, context packs, Changes→PR review, checklist).
+
 - Project Changes now stages or unstages a single diff hunk:
   each hunk in the diff pane carries its own Stage/Unstage action,
   backed by a new typed `git/stage-hunk` route that applies exactly
