@@ -61,6 +61,28 @@ pub fn (app &App) project_git_diff(mut ctx Ctx, id string) veb.Result {
 	return ctx.json(agent_toolkit_core.project_git_diff_typed(root, id, path, staged))
 }
 
+@['/api/v1/projects/:id/git/log'; get]
+pub fn (app &App) project_git_log(mut ctx Ctx, id string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	root := project_git_root(mut ctx, id, '') or { return respond_sub_error(mut ctx, err) }
+	limit := (ctx.query['limit'] or { '50' }).int()
+	return ctx.json(agent_toolkit_core.project_git_log_typed(root, id, limit))
+}
+
+@['/api/v1/projects/:id/git/show'; get]
+pub fn (app &App) project_git_show(mut ctx Ctx, id string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	root := project_git_root(mut ctx, id, '') or { return respond_sub_error(mut ctx, err) }
+	hash := ctx.query['hash'] or { '' }
+	return ctx.json(agent_toolkit_core.project_git_show_typed(root, id, hash))
+}
+
 @['/api/v1/projects/:id/git/stage'; post]
 pub fn (app &App) project_git_stage(mut ctx Ctx, id string) veb.Result {
 	deny := deny_if_remote(app, ctx)

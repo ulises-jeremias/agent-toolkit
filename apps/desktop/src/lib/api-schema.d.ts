@@ -411,6 +411,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{id}/git/log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List recent commits of a registered project repository */
+        get: operations["project_git_log"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{id}/git/show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the full diff of one commit in a registered project repository */
+        get: operations["project_git_show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{id}/git/stage": {
         parameters: {
             query?: never;
@@ -2256,6 +2290,27 @@ export interface components {
             truncated: boolean;
             detail: string;
         };
+        GitCommitInfo: {
+            hash: string;
+            short: string;
+            subject: string;
+            author: string;
+            date: string;
+        };
+        ProjectGitLogResponse: {
+            ok: boolean;
+            project: string;
+            commits: components["schemas"]["GitCommitInfo"][];
+            detail: string;
+        };
+        ProjectGitShowResponse: {
+            ok: boolean;
+            project: string;
+            hash: string;
+            diff: string;
+            truncated: boolean;
+            detail: string;
+        };
         ProjectGitPathsRequest: {
             workspace: string;
             paths: string[];
@@ -3391,6 +3446,92 @@ export interface operations {
                 };
             };
             /** @description invalid project id or path */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description project not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    project_git_log: {
+        parameters: {
+            query?: {
+                workspace?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectGitLogResponse"];
+                };
+            };
+            /** @description invalid project id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description project not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    project_git_show: {
+        parameters: {
+            query: {
+                workspace?: string;
+                hash: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectGitShowResponse"];
+                };
+            };
+            /** @description invalid project id or commit hash */
             400: {
                 headers: {
                     [name: string]: unknown;

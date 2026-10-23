@@ -1291,6 +1291,138 @@
         }
       }
     },
+    "/api/v1/projects/{id}/git/log": {
+      "get": {
+        "operationId": "project_git_log",
+        "summary": "List recent commits of a registered project repository",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectGitLogResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid project id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/git/show": {
+      "get": {
+        "operationId": "project_git_show",
+        "summary": "Read the full diff of one commit in a registered project repository",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hash",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectGitShowResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid project id or commit hash",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{id}/git/stage": {
       "post": {
         "operationId": "project_git_stage",
@@ -7229,6 +7361,90 @@
           "project",
           "path",
           "staged",
+          "diff",
+          "truncated",
+          "detail"
+        ]
+      },
+      "GitCommitInfo": {
+        "type": "object",
+        "properties": {
+          "hash": {
+            "type": "string"
+          },
+          "short": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "hash",
+          "short",
+          "subject",
+          "author",
+          "date"
+        ]
+      },
+      "ProjectGitLogResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "project": {
+            "type": "string"
+          },
+          "commits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GitCommitInfo"
+            }
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "project",
+          "commits",
+          "detail"
+        ]
+      },
+      "ProjectGitShowResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "project": {
+            "type": "string"
+          },
+          "hash": {
+            "type": "string"
+          },
+          "diff": {
+            "type": "string"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "project",
+          "hash",
           "diff",
           "truncated",
           "detail"
