@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Shortcut map (`?`) now lists the full audited keymap: shell
+  bindings (Ctrl/Cmd+K, Esc, ?) and World bindings (WASD/arrows,
+  E, Home), each marked with its scope. A unit test guards against
+  duplicate keys within a scope.
+
 - Responsive layout E2E now covers the full supported matrix per
   size (1280x800, 1024x768, 1024x640): shell chrome, a primary
   action, a dense destination (Library board), the terminal dock,

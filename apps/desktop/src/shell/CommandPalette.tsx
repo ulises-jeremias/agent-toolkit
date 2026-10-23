@@ -239,7 +239,7 @@ export function CommandPalette() {
         title={shortcuts ? 'Keyboard shortcuts' : 'Commands'}
         description={
           shortcuts
-            ? 'Bindings that work anywhere in the shell. Destination-specific shortcuts stay on those screens.'
+            ? 'Shell bindings work anywhere; World bindings apply while the world holds focus. Other destinations keep their own shortcuts on those screens.'
             : 'Go to a destination or run a session action. Type to filter.'
         }
         initialFocus={inputRef}
@@ -265,7 +265,10 @@ export function CommandPalette() {
             <tbody>
               {SHORTCUTS.map((row) => (
                 <tr key={row.action}>
-                  <th scope="row">{row.action}</th>
+                  <th scope="row">
+                    {row.action}{' '}
+                    <span className={styles.paletteItemHint}>{row.scope === 'world' ? '· in the World' : ''}</span>
+                  </th>
                   <td>
                     <Kbd keys={row.keys} />
                   </td>

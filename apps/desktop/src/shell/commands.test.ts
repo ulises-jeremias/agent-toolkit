@@ -7,6 +7,7 @@ import {
   PALETTE_COMMANDS,
   personCommands,
   recoverableSwarmCommands,
+  SHORTCUTS,
 } from './commands';
 
 describe('filterCommands', () => {
@@ -162,6 +163,26 @@ describe('filterCommands', () => {
       type: 'library-workflow',
       intent: 'review-installation',
     });
+  });
+
+  it('keymap audit: no duplicate keys within a scope, shell and world bindings listed', () => {
+    for (const scope of ['shell', 'world'] as const) {
+      const rows = SHORTCUTS.filter((row) => row.scope === scope);
+      expect(rows.length).toBeGreaterThan(0);
+      const seen = new Set<string>();
+      for (const row of rows) {
+        for (const key of row.keys) {
+          const normalized = key.toLowerCase();
+          expect(seen.has(normalized), `${scope} key ${key} duplicated`).toBe(false);
+          seen.add(normalized);
+        }
+      }
+    }
+    const shellActions = SHORTCUTS.filter((row) => row.scope === 'shell').map((row) => row.action);
+    expect(shellActions.join(' ')).toMatch(/command palette/i);
+    const worldActions = SHORTCUTS.filter((row) => row.scope === 'world').map((row) => row.action);
+    expect(worldActions.join(' ')).toMatch(/walk/i);
+    expect(worldActions.join(' ')).toMatch(/interact/i);
   });
 
   it('hides People create and import commands until a workspace exists', () => {
