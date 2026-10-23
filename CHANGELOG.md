@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Project Changes gains a History view: recent commits from a
+  typed `git/log` route, and clicking a commit renders its full
+  diff (`git/show`) in the pane. Diff lines now carry old/new
+  line-number gutters.
+
 - Project Changes now stages or unstages a single diff hunk:
   each hunk in the diff pane carries its own Stage/Unstage action,
   backed by a new typed `git/stage-hunk` route that applies exactly

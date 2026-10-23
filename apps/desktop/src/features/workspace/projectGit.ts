@@ -43,3 +43,27 @@ export function splitDiffHunks(diff: string): DiffHunk[] {
   }
   return hunks;
 }
+
+/** One rendered diff line with its old/new line numbers (gutter). */
+export interface DiffLine {
+  text: string;
+  oldNo: number | null;
+  newNo: number | null;
+}
+
+/** Parses a hunk header `@@ -oldStart,oldCount +newStart,newCount @@`. */
+export function hunkStarts(header: string): { oldStart: number; newStart: number } {
+  const match = /@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/.exec(header);
+  return { oldStart: match ? Number(match[1]) : 0, newStart: match ? Number(match[2]) : 0 };
+}
+
+/** Annotates hunk body lines with gutter line numbers. */
+export function annotateHunk(hunk: DiffHunk): DiffLine[] {
+  let { oldStart: oldNo, newStart: newNo } = hunkStarts(hunk.header);
+  return hunk.lines.map((text) => {
+    if (text.startsWith('-')) return { text, oldNo: oldNo++, newNo: null };
+    if (text.startsWith('+')) return { text, oldNo: null, newNo: newNo++ };
+    if (text.startsWith('\\')) return { text, oldNo: null, newNo: null };
+    return { text, oldNo: oldNo++, newNo: newNo++ };
+  });
+}
