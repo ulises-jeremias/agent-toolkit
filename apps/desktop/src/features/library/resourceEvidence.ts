@@ -59,3 +59,30 @@ export function libraryResourceEvidence(
     targets: [...new Set(matched.map(({ target }) => target))].sort(),
   };
 }
+
+export interface LibraryResourceFile {
+  path: string;
+  status: string;
+  target: string;
+}
+
+/**
+ * Files a Toolkit receipt owns for one catalog resource, sorted by path.
+ * Powers the master-detail "files touched" list; absence stays an honest
+ * "no Toolkit receipt" rather than a claim about the machine.
+ */
+export function libraryResourceFiles(
+  kind: LibraryResourceKind,
+  name: string,
+  receipts: readonly InstallReceiptSummary[],
+): LibraryResourceFile[] {
+  const files = receipts.flatMap((receipt) =>
+    receipt.artifacts.flatMap((artifact) => {
+      const resource = resourceFromPath(artifact.path);
+      return resource?.kind === kind && resource.name === name && typeof artifact.path === 'string'
+        ? [{ path: artifact.path, status: artifact.status, target: receipt.target }]
+        : [];
+    }),
+  );
+  return files.sort((a, b) => a.path.localeCompare(b.path));
+}

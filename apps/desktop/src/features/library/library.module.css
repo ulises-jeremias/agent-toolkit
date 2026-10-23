@@ -327,6 +327,117 @@
   color: var(--text-muted);
 }
 
+.masterDetail {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.skillList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 34rem;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.skillOption {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.skillOption:hover {
+  border-color: var(--border-strong);
+}
+
+.skillOption[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--surface-raised);
+}
+
+.skillOption:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.skillOptionMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.skillDetail {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  padding: var(--space-4);
+  min-width: 0;
+  position: sticky;
+  top: var(--space-3);
+}
+
+.skillDetail h3 {
+  margin: 0 0 var(--space-2);
+}
+
+.skillFacts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-3) 0;
+}
+
+.skillFacts dt {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.skillFacts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.previewLabel {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0 0 var(--space-2);
+}
+
+.skillFiles {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-4);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 60rem) {
+  .masterDetail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .skillDetail {
+    position: static;
+  }
+}
+
 @media (max-width: 36rem) {
   .catalogSearch {
     grid-template-columns: minmax(0, 1fr);

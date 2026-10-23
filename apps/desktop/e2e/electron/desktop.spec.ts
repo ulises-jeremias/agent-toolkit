@@ -509,14 +509,14 @@ test('Library installs Skills and preserves user changes during reviewed removal
   await expect(evidence).toContainText('Cursor');
   await expect(evidence).toContainText(/File evidence · .*unchanged/);
   const skillCatalog = page.getByRole('region', { name: 'Skills catalog' });
-  const installedSkill = skillCatalog.getByRole('row', { name: /pr-fallback core/ });
+  const installedSkill = skillCatalog.getByRole('button', { name: /pr-fallback/ });
   await expect(installedSkill).toContainText('verified');
   await expect(installedSkill).toContainText('Claude Code');
   const agentCatalog = page.getByRole('region', { name: 'Agent definitions' });
   const installedAgent = agentCatalog.getByRole('row', { name: /reviewer holistic/ });
   await expect(installedAgent).toContainText('verified');
   await expect(installedAgent).toContainText('Claude Code');
-  const userOwnedSkill = skillCatalog.getByRole('row', { name: /review accessibility/ });
+  const userOwnedSkill = skillCatalog.getByRole('button', { name: /review accessibility/ });
   await expect(userOwnedSkill).toContainText('partial receipt');
   if (CAPTURE) {
     fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
@@ -662,19 +662,28 @@ test('Library searches typed catalog metadata and reveals provenance and compati
   await expect(page.getByText('Loading the skills catalog')).toBeHidden();
   const search = page.getByRole('searchbox', { name: 'Find a capability' });
   await search.fill('mcp-audit');
-  const skill = page.getByRole('row').filter({ hasText: /mcp.audit/ });
+  const skillList = page.getByRole('list', { name: 'Skills in catalog' });
+  const skill = skillList.getByRole('button', { name: /mcp-audit/ });
   await expect(skill).toHaveCount(1);
-  await expect(skill.locator('th[scope="row"] span')).toHaveCSS('white-space', 'nowrap');
+  await expect(skill.locator('span').first()).toHaveCSS('white-space', 'nowrap');
   await expect(skill).toContainText('agentic-security');
-  await skill.getByText('Targets').click();
-  await skill.getByText('Provenance and requirements').click();
-  await expect(skill).toContainText('Claude Code: supported');
-  await expect(skill).toContainText('Windsurf: partial');
-  await expect(skill).toContainText('skills/agentic-security/mcp-audit/SKILL.md');
-  await expect(skill).toContainText('None declared');
-  await skill.getByText('Targets').click();
+  // Master-detail: the detail pane shows the full typed facts for the
+  // selected skill without expanding per-row disclosures.
+  const detail = page.getByRole('region', { name: 'Details for mcp-audit' });
+  await expect(detail).toContainText('Claude Code: supported');
+  await expect(detail).toContainText('Windsurf: partial');
+  await expect(detail).toContainText('skills/agentic-security/mcp-audit/SKILL.md');
+  await expect(detail).toContainText('None declared');
+  await expect(detail).toContainText('No Toolkit receipt owns files for this Skill');
   await skill.scrollIntoViewIfNeeded();
   const skillsPanel = page.getByRole('region', { name: 'Skills catalog' });
+
+  // Arrow keys move the selection (and the detail pane follows).
+  await search.fill('');
+  const options = skillList.getByRole('button');
+  await options.first().click();
+  await options.first().press('ArrowDown');
+  await expect(options.nth(1)).toHaveAttribute('aria-pressed', 'true');
 
   if (CAPTURE) {
     fs.mkdirSync(LIBRARY_CAPTURE_DIR, { recursive: true });
