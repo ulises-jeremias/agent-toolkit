@@ -31,6 +31,17 @@ test('Operations: a job started from the GUI streams/persists its log in the ins
     await expect(logSection).toContainText(/agent-toolkit \d+\.\d+\.\d+/);
     await expect(page.getByText('completed', { exact: false }).first()).toBeVisible();
 
+    // Copy-a-line (#1103): the version line's own Copy action puts
+    // exactly that line on the clipboard and confirms it in place.
+    const versionRow = logSection
+      .getByText(/agent-toolkit \d+\.\d+\.\d+/)
+      .first()
+      .locator('xpath=..');
+    await versionRow.getByRole('button', { name: /Copy log line/ }).click();
+    await expect(logSection.getByRole('status')).toContainText('copied to clipboard.');
+    const clipboard = await page.evaluate(() => navigator.clipboard.readText());
+    expect(clipboard).toMatch(/agent-toolkit \d+\.\d+\.\d+/);
+
     // Recovery/cleanup: delete the job from the same inspector.
     await page.getByRole('button', { name: 'Delete' }).click();
     const confirm = page.getByRole('dialog');

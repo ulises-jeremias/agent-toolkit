@@ -27,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the real Desktop: start a `version` job from Operations, read its
   persisted log in the inspector without leaving the panel, and delete
   it back to the empty board.
+- Job logs in the Operations inspector now offer copy-a-line: every
+  line of the live output and the persisted log carries its own Copy
+  action on the existing clipboard path, with an in-place confirmation
+  and a manual-copy fallback when the clipboard is unavailable. This
+  completes the remaining acceptance item of the per-job log drawer
+  issue in the inspector's current form.
 - The Operations job-log Electron E2E now also covers the live path:
   a running job streams its output into the inspector's Live output
   section without leaving Operations, Cancel from the same inspector

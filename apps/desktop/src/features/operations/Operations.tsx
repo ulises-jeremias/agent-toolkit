@@ -37,6 +37,7 @@ import {
   useActionReceipt,
 } from '../../ui';
 import { DoctorPanel } from './Doctor';
+import { LogLines } from './LogLines';
 import { LoopsPanel } from './Loops';
 import { SwarmsPanel } from './Swarms';
 import styles from './operations.module.css';
@@ -430,6 +431,13 @@ function JobDetail({ job, onClose, onRetried }: { job: Job; onClose: () => void;
   );
 }
 
+/** Split persisted log text into lines, dropping the trailing newline run. */
+function logLines(text: string): string[] {
+  const lines = text.split('\n');
+  while (lines.length > 0 && lines[lines.length - 1] === '') lines.pop();
+  return lines;
+}
+
 function LiveOutput({ jobId }: { jobId: string }) {
   const lines = useJobLiveLines(jobId);
   const { streams } = useLiveStatus();
@@ -441,7 +449,7 @@ function LiveOutput({ jobId }: { jobId: string }) {
       {lines.length === 0 ? (
         <EmptyState title="No output yet.">Lines appear here as the job writes them.</EmptyState>
       ) : (
-        <Report text={lines.join('\n')} label="Live output" />
+        <LogLines lines={lines} label="Live output" />
       )}
     </section>
   );
@@ -459,7 +467,7 @@ function PersistedLog({ jobId }: { jobId: string }) {
       ) : log.data.trim() === '' ? (
         <EmptyState title="The job wrote no output." />
       ) : (
-        <Report text={log.data} label="Job log" />
+        <LogLines lines={logLines(log.data)} label="Job log" />
       )}
     </section>
   );
