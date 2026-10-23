@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Fixed
+
+- Desktop packaging no longer bundles an arbitrarily stale backend:
+  `stage:backend` resolved its binary as explicit path → release
+  `dist/` → whatever `agent-toolkit` was on PATH, so a local
+  `pnpm dist:dir` could silently package an old installed binary
+  (same version string, missing current routes — the loop cadence
+  route 404'd in a packaged build this way). It now prefers this
+  checkout's own `build/agent-toolkit` before falling back to PATH.
+
 ### Added
 
 - Capability installs now show determinate progress: the reviewed
