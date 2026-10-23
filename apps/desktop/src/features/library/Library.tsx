@@ -39,6 +39,7 @@ import {
 } from '../../ui';
 import styles from './library.module.css';
 import { ContextBundlesPanel } from './ContextBundlesPanel';
+import { DelegationGraph } from './DelegationGraph';
 import { McpProvidersPanel } from './McpProvidersPanel';
 
 function yesNo(value: boolean): { tone: Tone; label: string } {
@@ -1213,6 +1214,7 @@ export default function Library() {
                   )
                 }
               </QueryView>
+              {agents.data ? <DelegationGraph agents={agents.data.agents} /> : null}
             </Panel>
             <Panel
               title="Swarm runners"

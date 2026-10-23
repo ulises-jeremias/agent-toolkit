@@ -1,0 +1,56 @@
+.graph {
+  margin-top: 0.9rem;
+  border-top: 1px solid var(--border-default);
+  padding-top: 0.7rem;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+.nodes,
+.edges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+}
+
+.node {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  font-size: 0.78rem;
+}
+
+.nodeActive {
+  border-color: var(--tone-ok, #2e7d32);
+  background: var(--surface-raised);
+  font-weight: 700;
+}
+
+.edge {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.edgeActive {
+  border-color: var(--tone-ok, #2e7d32);
+  background: var(--surface-raised);
+  font-weight: 700;
+}
+
+.readout {
+  margin: 0;
+  color: var(--text-secondary);
+}

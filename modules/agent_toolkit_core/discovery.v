@@ -22,6 +22,7 @@ pub:
 	kind          string
 	description   string
 	source_file   string
+	delegates     []string
 	compatibility []LibraryCompatibility
 }
 
@@ -110,13 +111,14 @@ pub fn list_agents_at(root string) []AgentInfo {
 			continue
 		}
 		text := data_read_file(root, agent_md) or { continue }
-		fm_name, kind, description := parse_agent_frontmatter(text)
+		fm_name, kind, description, delegates := parse_agent_frontmatter(text)
 		out << AgentInfo{
 			id: name
 			name: if fm_name.len > 0 { fm_name } else { name }
 			kind: kind
 			description: description
 			source_file: 'agents/${name}/AGENT.md'
+			delegates: delegates
 			compatibility: compatibility.clone()
 		}
 	}
@@ -211,27 +213,44 @@ pub fn list_models() []ModelInfo {
 	return out
 }
 
-fn parse_agent_frontmatter(text string) (string, string, string) {
+fn parse_agent_frontmatter(text string) (string, string, string, []string) {
 	if !text.starts_with('---') {
-		return '', '', ''
+		return '', '', '', []string{}
 	}
 	rest := text[3..]
-	end := rest.index('\n---') or { return '', '', '' }
+	end := rest.index('\n---') or { return '', '', '', []string{} }
 	block := rest[..end]
 	mut name := ''
 	mut kind := ''
 	mut description := ''
+	mut delegates := []string{}
+	mut in_delegates := false
 	for raw in block.split_into_lines() {
 		line := raw.trim_space()
+		if in_delegates && line.starts_with('- ') {
+			item := line[2..].trim_space().trim("'").trim('"')
+			if item.len > 0 {
+				delegates << item
+			}
+			continue
+		}
+		in_delegates = false
 		if line.starts_with('name:') && name.len == 0 {
 			name = line.all_after(':').trim_space().trim("'").trim('"')
 		} else if line.starts_with('kind:') && kind.len == 0 {
 			kind = line.all_after(':').trim_space().trim("'").trim('"')
 		} else if line.starts_with('description:') && description.len == 0 {
 			description = line.all_after(':').trim_space().trim("'").trim('"')
+		} else if line.starts_with('delegates:') {
+			inline := line.all_after(':').trim_space()
+			if inline.len > 0 {
+				delegates << split_tool_list(inline.trim('[').trim(']'))
+			} else {
+				in_delegates = true
+			}
 		}
 	}
-	return name, kind, description
+	return name, kind, description, delegates
 }
 
 fn coding_tool_probe(id string, home string) (string, string, []string) {

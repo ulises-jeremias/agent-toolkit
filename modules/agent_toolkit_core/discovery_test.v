@@ -21,6 +21,27 @@ fn test_list_agents_at_reads_frontmatter() {
 	assert got[0].source_file == 'agents/architect/AGENT.md'
 }
 
+fn test_list_agents_at_reads_delegates_list() {
+	dir := os.join_path(os.temp_dir(), 'atk-agents-delegates-' + os.getpid().str())
+	os.mkdir_all(os.join_path(dir, 'agents', 'assistant')) or { panic(err.msg()) }
+	os.mkdir_all(os.join_path(dir, 'agents', 'worker')) or { panic(err.msg()) }
+	defer {
+		os.rmdir_all(dir) or {}
+	}
+	os.write_file(os.join_path(dir, 'agents', 'assistant', 'AGENT.md'), '---\nname: assistant\nkind: orchestrator\ndescription: Routes work.\ndelegates:\n  - architect\n  - worker\ncollaborates_with:\n  - planner\n---\n\nbody\n') or {
+		panic(err.msg())
+	}
+	os.write_file(os.join_path(dir, 'agents', 'worker', 'AGENT.md'), '---\nname: worker\ndescription: Does work.\ndelegates: [reviewer]\n---\n\nbody\n') or {
+		panic(err.msg())
+	}
+	got := list_agents_at(dir)
+	assert got.len == 2
+	assert got[0].id == 'assistant'
+	assert got[0].delegates == ['architect', 'worker']
+	assert got[1].id == 'worker'
+	assert got[1].delegates == ['reviewer']
+}
+
 fn test_list_agents_at_declares_native_custom_agent_target_compatibility() {
 	dir := os.join_path(os.temp_dir(), 'atk-agents-compat-' + os.getpid().str())
 	os.mkdir_all(os.join_path(dir, 'agents', 'architect')) or { panic(err.msg()) }
