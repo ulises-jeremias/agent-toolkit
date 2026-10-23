@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Responsive layout E2E now covers the full supported matrix per
+  size (1280x800, 1024x768, 1024x640): shell chrome, a primary
+  action, a dense destination (Library board), the terminal dock,
+  and per-size screenshots; plus the Dusk theme at the minimum size
+  and a HiDPI launch at device scale factor 2.
+
 - Doctor in Operations now shows a live Terminal sessions row:
   PTY host availability, running/exited session counts from real
   exit codes, and the coding-agent runners detected by the backend.

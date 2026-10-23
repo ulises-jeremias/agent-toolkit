@@ -68,9 +68,56 @@ test('Responsive matrix: shell and primary actions stay usable at baseline, mini
       await page.keyboard.press('Escape');
       await expect(paletteInput.first()).toBeHidden();
 
-      // Back to World for the next size.
+      // A dense destination (Library board) also fits without overflow.
+      await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
+      await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+      await expectNoHorizontalOverflow(page, size, `${size.key} (library)`);
+
+      // Back to World; the terminal dock bar stays inside the window.
       await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
+      await expectWithinViewport(
+        page.getByRole('complementary', { name: 'Terminal dock' }),
+        size,
+        `${size.key}: terminal dock`,
+      );
+      await page.screenshot({ path: `test-results/review/responsive-${size.key}.png`, fullPage: true });
     }
+
+    // The second theme at the minimum size: switch via the command palette,
+    // then re-check chrome fit and overflow.
+    const minimum = SIZES[1];
+    await setViewport(app, minimum.width, minimum.height);
+    await page.keyboard.press('Control+k');
+    await page.getByLabel('Filter commands').first().fill('Use Dusk theme');
+    await page.getByRole('option', { name: 'Use Dusk theme' }).click();
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.theme)).toBe('dusk');
+    await expectWithinViewport(
+      page.getByRole('navigation', { name: 'Destinations' }),
+      minimum,
+      'minimum (dusk): destinations navigation',
+    );
+    await expectNoHorizontalOverflow(page, minimum, 'minimum (dusk)');
+    await page.screenshot({ path: 'test-results/review/responsive-minimum-dusk.png', fullPage: true });
+  } finally {
+    await desktop.close();
+  }
+});
+
+test('HiDPI: shell stays usable at device scale factor 2', async () => {
+  const desktop = await openDesktop({ launchArgs: ['--force-device-scale-factor=2'] });
+  try {
+    const { app, page } = desktop;
+    await waitForBackend(page);
+    await expect.poll(() => page.evaluate(() => window.devicePixelRatio)).toBe(2);
+    const size = { width: 1024, height: 768 };
+    await setViewport(app, size.width, size.height);
+    await expectWithinViewport(
+      page.getByRole('navigation', { name: 'Destinations' }),
+      size,
+      'hidpi: destinations navigation',
+    );
+    await expectNoHorizontalOverflow(page, size, 'hidpi (world)');
+    await page.screenshot({ path: 'test-results/review/responsive-hidpi.png', fullPage: true });
   } finally {
     await desktop.close();
   }

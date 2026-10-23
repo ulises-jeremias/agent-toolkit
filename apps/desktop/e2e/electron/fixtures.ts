@@ -100,6 +100,8 @@ export interface OpenDesktopOptions {
   initWorkspace?: boolean;
   /** Persist first-run complete so existing specs land on World. Default true. */
   skipOnboarding?: boolean;
+  /** Extra Chromium/Electron launch args (e.g. --force-device-scale-factor=2 for HiDPI). */
+  launchArgs?: string[];
 }
 
 /**
@@ -147,7 +149,11 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
     });
   }
 
-  const args = [...(packagedApp ? [] : [APP_DIR]), `--user-data-dir=${path.join(root, 'user-data')}`];
+  const args = [
+    ...(packagedApp ? [] : [APP_DIR]),
+    `--user-data-dir=${path.join(root, 'user-data')}`,
+    ...(options.launchArgs ?? []),
+  ];
   // GitHub runners have no setuid sandbox helper for Chromium.
   if (process.env.CI) args.push('--no-sandbox');
   const app = await electron.launch({ executablePath: packagedApp, args, cwd: initWorkspace ? workspace : home, env });
