@@ -145,7 +145,12 @@ pub fn loop_run_prompt(loop_dir string, meta_request string) string {
 // loop_runner_sysprompt mirrors bin/loop-run-llm: report + STATE discipline.
 pub fn loop_runner_sysprompt(loop_name string, run_id string, tier string, run_dir string, loop_dir string, verifier string) string {
 	who := if verifier != '' { verifier } else { '(none — treat all mutating actions as escalations)' }
-	return "You are executing loop '${loop_name}' (run ${run_id}, tier ${tier}). Verifier for mutating actions: ${who}. When finished, write your full report to ${run_dir}/report.md and refresh ${loop_dir}/report.md with the same content. Keep STATE.md checkpointing as instructed in the prompt."
+	proposals := if verifier != '' {
+		" For receipt-gated actions (merge, close) do NOT call gh merge/close directly — the gate will deny it. Instead append one JSON line per intended action to ${run_dir}/proposals.jsonl: {\"action\":\"merge\",\"repo\":\"owner/name\",\"number\":\"123\",\"rationale\":\"why\"}. The supervisor runs the verifier separately and executes approved actions itself."
+	} else {
+		''
+	}
+	return "You are executing loop '${loop_name}' (run ${run_id}, tier ${tier}). Verifier for mutating actions: ${who}.${proposals} When finished, write your full report to ${run_dir}/report.md and refresh ${loop_dir}/report.md with the same content. Keep STATE.md checkpointing as instructed in the prompt."
 }
 
 // sh_quote renders one argv element safe for POSIX sh -c.
@@ -381,6 +386,12 @@ fn run_loop_llm(ws string, loop_name string, meta LoopMeta, loop_dir string, rid
 				'status':     'spawn_failed'
 				'runner':     runner_name
 			}
+		}
+	}
+	if meta.verifier != '' {
+		summary := loop_supervisor_verify_and_execute(ws, meta, run_dir, runner_name, wall, model)
+		if summary != '' {
+			lines << summary
 		}
 	}
 	trace := '{"kind":"run_end","status":"completed","runner":' + json2.encode(runner_name,
