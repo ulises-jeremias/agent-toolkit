@@ -67,6 +67,18 @@ export function useProjectGitUnstage(workspace: string, project: string) {
   );
 }
 
+export interface GitHunkSelection {
+  path: string;
+  staged: boolean;
+  hunk: number;
+}
+
+export function useProjectGitStageHunk(workspace: string, project: string) {
+  return useProjectGitMutation(workspace, project, (client, input: GitHunkSelection) =>
+    client.projectGitStageHunk(workspace, project, input.path, input.staged, input.hunk),
+  );
+}
+
 export function useProjectGitCommit(workspace: string, project: string) {
   return useProjectGitMutation(workspace, project, (client, message: string) =>
     client.projectGitCommit(workspace, project, message),

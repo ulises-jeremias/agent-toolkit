@@ -27,6 +27,13 @@ struct ProjectGitCommitReq {
 	message   string
 }
 
+struct ProjectGitHunkReq {
+	workspace string
+	path      string
+	staged    bool
+	hunk      int
+}
+
 fn project_git_root(mut ctx Ctx, id string, body_ws string) !string {
 	ws := serve_memory_workspace(ctx, body_ws)!
 	return agent_toolkit_core.resolve_project_root(ws, id)
@@ -82,6 +89,22 @@ pub fn (app &App) project_git_unstage(mut ctx Ctx, id string) veb.Result {
 		return respond_sub_error(mut ctx, err)
 	}
 	return ctx.json(agent_toolkit_core.project_git_unstage_typed(root, id, req.paths))
+}
+
+@['/api/v1/projects/:id/git/stage-hunk'; post]
+pub fn (app &App) project_git_stage_hunk(mut ctx Ctx, id string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	req := decode_sub_body[ProjectGitHunkReq](ctx.req.data) or {
+		return respond_sub_error(mut ctx, err)
+	}
+	root := project_git_root(mut ctx, id, req.workspace) or {
+		return respond_sub_error(mut ctx, err)
+	}
+	return ctx.json(agent_toolkit_core.project_git_stage_hunk_typed(root, id, req.path, req.staged,
+		req.hunk))
 }
 
 @['/api/v1/projects/:id/git/commit'; post]

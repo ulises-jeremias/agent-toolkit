@@ -493,6 +493,20 @@ export class ApiClient {
     );
   }
 
+  projectGitStageHunk(
+    workspace: string,
+    projectId: string,
+    path: string,
+    staged: boolean,
+    hunk: number,
+  ): Promise<ProjectGitStatusResponse> {
+    return this.json(
+      'POST',
+      fillPath('/api/v1/projects/{id}/git/stage-hunk' satisfies PathWith<'post'>, { id: projectId }),
+      { body: { workspace, path, staged, hunk } },
+    );
+  }
+
   projectGitCommit(workspace: string, projectId: string, message: string): Promise<ProjectGitStatusResponse> {
     return this.json(
       'POST',

@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Project Changes now stages or unstages a single diff hunk:
+  each hunk in the diff pane carries its own Stage/Unstage action,
+  backed by a new typed `git/stage-hunk` route that applies exactly
+  one hunk to the index (`git apply --cached`, reversed to unstage).
+
 - Shortcut map (`?`) now lists the full audited keymap: shell
   bindings (Ctrl/Cmd+K, Esc, ?) and World bindings (WASD/arrows,
   E, Home), each marked with its scope. A unit test guards against
