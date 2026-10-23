@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Doctor in Operations now shows a live Terminal sessions row:
+  PTY host availability, running/exited session counts from real
+  exit codes, and the coding-agent runners detected by the backend.
+  When the PTY bridge is unavailable the row reports that honestly
+  instead of implying terminal health.
+
 ### Fixed
 
 - Starting a Person session with OpenCode no longer dies instantly
