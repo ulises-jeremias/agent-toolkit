@@ -28,6 +28,8 @@ import type {
   Person,
   ProjectGitDiffResponse,
   ProjectGitStatusResponse,
+  ProjectGitLogResponse,
+  ProjectGitShowResponse,
   ProjectIssuesResponse,
   ProjectListResponse,
   ProvidersResponse,
@@ -491,6 +493,18 @@ export class ApiClient {
       fillPath('/api/v1/projects/{id}/git/unstage' satisfies PathWith<'post'>, { id: projectId }),
       { body: { workspace, paths } },
     );
+  }
+
+  projectGitLog(workspace: string, projectId: string, limit = 50): Promise<ProjectGitLogResponse> {
+    return this.json('GET', fillPath('/api/v1/projects/{id}/git/log' satisfies PathWith<'get'>, { id: projectId }), {
+      query: { workspace, limit: String(limit) },
+    });
+  }
+
+  projectGitShow(workspace: string, projectId: string, hash: string): Promise<ProjectGitShowResponse> {
+    return this.json('GET', fillPath('/api/v1/projects/{id}/git/show' satisfies PathWith<'get'>, { id: projectId }), {
+      query: { workspace, hash },
+    });
   }
 
   projectGitStageHunk(

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import {
   useProjectGitCommit,
   useProjectGitDiff,
+  useProjectGitLog,
+  useProjectGitShow,
   useProjectGitStage,
   useProjectGitStageHunk,
   useProjectGitStatus,
@@ -10,7 +12,7 @@ import {
 import { errorMessage } from '../../lib/api';
 import type { GitFileChange } from '../../lib/api';
 import { Button, ButtonRow, EmptyState, ErrorState, Field, LoadingState, Panel, StatusBadge, TextArea } from '../../ui';
-import { diffLineTone, isClean, splitDiffHunks } from './projectGit';
+import { annotateHunk, diffLineTone, isClean, splitDiffHunks } from './projectGit';
 import styles from './changes.module.css';
 
 type Selection = { path: string; staged: boolean } | null;
@@ -42,6 +44,9 @@ export function ProjectChangesPanel({
   const unstage = useProjectGitUnstage(workspace, active);
   const commit = useProjectGitCommit(workspace, active);
   const stageHunk = useProjectGitStageHunk(workspace, active);
+  const [commitHash, setCommitHash] = useState('');
+  const log = useProjectGitLog(workspace, active);
+  const show = useProjectGitShow(workspace, active, commitHash);
   const busy = stage.isPending || unstage.isPending || commit.isPending || stageHunk.isPending;
 
   useEffect(() => {
@@ -92,7 +97,10 @@ export function ProjectChangesPanel({
                   type="button"
                   className={selected ? `${styles.fileButton} ${styles.selected}` : styles.fileButton}
                   aria-current={selected ? 'true' : undefined}
-                  onClick={() => setSelection({ path: file.path, staged: stagedGroup })}
+                  onClick={() => {
+                    setCommitHash('');
+                    setSelection({ path: file.path, staged: stagedGroup });
+                  }}
                 >
                   <StatusBadge tone={stagedGroup ? 'ok' : 'warn'} label={file.code} />
                   <span>{file.path}</span>
@@ -104,6 +112,34 @@ export function ProjectChangesPanel({
             );
           })}
         </ul>
+      )}
+    </div>
+  );
+
+  const renderHistory = () => (
+    <div>
+      <h3 className={styles.groupTitle}>History ({log.data?.commits.length ?? 0})</h3>
+      {log.data?.commits.length ? (
+        <ul className={styles.fileList} aria-label="Commit history">
+          {log.data.commits.map((commit) => (
+            <li key={commit.hash} className={styles.fileRow}>
+              <button
+                type="button"
+                className={commitHash === commit.hash ? `${styles.fileButton} ${styles.selected}` : styles.fileButton}
+                aria-current={commitHash === commit.hash ? 'true' : undefined}
+                onClick={() => {
+                  setSelection(null);
+                  setCommitHash(commit.hash);
+                }}
+              >
+                <StatusBadge tone="info" label={commit.short} />
+                <span>{commit.subject}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className={styles.groupEmpty}>No commits yet.</p>
       )}
     </div>
   );
@@ -141,8 +177,11 @@ export function ProjectChangesPanel({
 
       {data?.ok ? (
         <>
-          {isClean(data) ? (
-            <EmptyState title="Working tree clean.">Nothing staged, changed, or untracked in {active}.</EmptyState>
+          {isClean(data) && !commitHash ? (
+            <>
+              <EmptyState title="Working tree clean.">Nothing staged, changed, or untracked in {active}.</EmptyState>
+              {renderHistory()}
+            </>
           ) : (
             <div className={styles.split}>
               <div className={styles.groups}>
@@ -155,9 +194,41 @@ export function ProjectChangesPanel({
                 {renderGroup('Untracked', data.untracked, false, 'Stage', (path) =>
                   runAction(() => stage.mutateAsync([path])),
                 )}
+                {renderHistory()}
               </div>
               <div className={styles.diffPane} aria-live="polite">
-                {!selection ? (
+                {commitHash ? (
+                  show.isPending ? (
+                    <LoadingState label="Reading commit" />
+                  ) : show.data && !show.data.ok ? (
+                    <p role="alert">{show.data.detail || 'Could not read this commit.'}</p>
+                  ) : show.data ? (
+                    <>
+                      <p className={styles.diffMeta}>
+                        <strong>Commit {show.data.hash.slice(0, 7)}</strong>
+                        {show.data.truncated ? <StatusBadge tone="warn" label="truncated" /> : null}
+                      </p>
+                      <div aria-label={`Diff for commit ${show.data.hash.slice(0, 7)}`}>
+                        {splitDiffHunks(show.data.diff).map((hunk, hunkIndex) => (
+                          <div key={hunkIndex} className={styles.hunk}>
+                            <p className={styles.hunkBar}>
+                              <span className={styles[diffLineTone(hunk.header)]}>{hunk.header}</span>
+                            </p>
+                            <div className={styles.diff}>
+                              {annotateHunk(hunk).map((row, index) => (
+                                <div key={index} className={styles.diffRow}>
+                                  <span className={styles.gutter}>{row.oldNo ?? ''}</span>
+                                  <span className={styles.gutter}>{row.newNo ?? ''}</span>
+                                  <span className={styles[diffLineTone(row.text)]}>{row.text}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : null
+                ) : !selection ? (
                   <EmptyState title="Select a file.">Choose a changed file to inspect its diff.</EmptyState>
                 ) : diff.isPending ? (
                   <LoadingState label={`Reading diff for ${selection.path}`} />
@@ -197,14 +268,15 @@ export function ProjectChangesPanel({
                                 {selection.staged ? `Unstage hunk ${hunkIndex + 1}` : `Stage hunk ${hunkIndex + 1}`}
                               </Button>
                             </p>
-                            <pre className={styles.diff}>
-                              {hunk.lines.map((line, index) => (
-                                <span key={index} className={styles[diffLineTone(line)]}>
-                                  {line}
-                                  {'\n'}
-                                </span>
+                            <div className={styles.diff}>
+                              {annotateHunk(hunk).map((row, index) => (
+                                <div key={index} className={styles.diffRow}>
+                                  <span className={styles.gutter}>{row.oldNo ?? ''}</span>
+                                  <span className={styles.gutter}>{row.newNo ?? ''}</span>
+                                  <span className={styles[diffLineTone(row.text)]}>{row.text}</span>
+                                </div>
                               ))}
-                            </pre>
+                            </div>
                           </div>
                         ))}
                       </div>
