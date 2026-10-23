@@ -31,6 +31,7 @@ import {
   TextInput,
   useActionReceipt,
 } from '../../ui';
+import { BurnDownChart } from './BurnDownChart';
 import { parseLoopNames, type LoopListEntry } from './loopList';
 import styles from './operations.module.css';
 
@@ -237,29 +238,41 @@ function LoopDetail({ loop, onRun, onSchedule }: { loop: LoopInfo; onRun: () => 
                 The first real run will appear here with its backend status.
               </EmptyState>
             ) : (
-              <Table>
-                <thead>
-                  <tr>
-                    <th scope="col">Run</th>
-                    <th scope="col">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...report.runs]
-                    .reverse()
-                    .slice(0, 8)
-                    .map((run) => (
-                      <tr key={run.id}>
-                        <th scope="row">
-                          <Mono>{run.id}</Mono>
-                        </th>
-                        <td>
-                          <StatusBadge tone={toneForLoop(run.status)} label={run.status} />
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </Table>
+              <>
+                <Table>
+                  <thead>
+                    <tr>
+                      <th scope="col">Run</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Tokens</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...report.runs]
+                      .reverse()
+                      .slice(0, 8)
+                      .map((run) => (
+                        <tr key={run.id}>
+                          <th scope="row">
+                            <Mono>{run.id}</Mono>
+                          </th>
+                          <td>
+                            <StatusBadge tone={toneForLoop(run.status)} label={run.status} />
+                          </td>
+                          <td>{run.tokens > 0 ? run.tokens.toLocaleString() : 'Not recorded'}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </Table>
+                <p className={styles.previewLabel}>Token burn-down</p>
+                {report.runs.length >= 2 && (status.data?.budget.max_tokens ?? 0) > 0 ? (
+                  <BurnDownChart runs={report.runs} maxTokens={status.data?.budget.max_tokens ?? 0} />
+                ) : (
+                  <p className={styles.burnDownCaption}>
+                    The burn-down chart appears once at least two runs and a token budget are recorded.
+                  </p>
+                )}
+              </>
             )}
           </section>
         )}

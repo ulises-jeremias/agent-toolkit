@@ -2033,6 +2033,7 @@ export interface components {
         LoopHistoryEntry: {
             id: string;
             status: string;
+            tokens: number;
         };
         LoopHistoryResponse: {
             ok: boolean;

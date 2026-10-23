@@ -6413,11 +6413,15 @@
           },
           "status": {
             "type": "string"
+          },
+          "tokens": {
+            "type": "integer"
           }
         },
         "required": [
           "id",
-          "status"
+          "status",
+          "tokens"
         ]
       },
       "LoopHistoryResponse": {

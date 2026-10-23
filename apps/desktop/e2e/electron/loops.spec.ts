@@ -109,6 +109,13 @@ test('adds a loop from the Library template, runs it, and reads its typed report
     await expect(loops.getByRole('region', { name: 'daily-triage run history' })).toContainText(/completed|failed/, {
       timeout: 45_000,
     });
+    // The skeleton run records no token usage: the history shows that
+    // honestly ("Not recorded", never a fabricated 0 spend), and the
+    // burn-down chart waits for a second recorded run.
+    await expect(loops.getByRole('region', { name: 'daily-triage run history' })).toContainText('Not recorded');
+    await expect(loops.getByRole('region', { name: 'daily-triage run history' })).toContainText(
+      'burn-down chart appears once at least two runs',
+    );
     await expect(loops.getByRole('region', { name: 'daily-triage audit' })).toContainText('Completed');
     await expect(loops.getByRole('region', { name: 'daily-triage cost report' })).toContainText('Unavailable');
     if (process.env.ATK_CAPTURE === '1') {

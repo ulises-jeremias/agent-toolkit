@@ -41,6 +41,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Loop token accounting is real now: the audit total was a stub that
+  always reported 0, and run history carried no spend at all. The
+  backend now sums the tokens each run's trace actually recorded
+  (`token_usage` / `prompt` / `completion` events; `run_end` budget
+  markers never count), exposes per-run `tokens` in loop history,
+  and the Operations loop detail shows them in the runs table plus a
+  token burn-down chart against the declared budget (over-budget
+  runs marked in the error tone). Runs whose traces recorded no
+  usage honestly show "Not recorded".
 - A canceled job's final log no longer races its status in Operations.
   Cancel flipped the job to `canceled` before the watcher wrote the
   final log (with the `[canceled]` marker), but the SSE stream sent
