@@ -1099,6 +1099,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/loops/{name}/cadence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Update a loop cadence in its definition and return the refreshed status */
+        post: operations["update_loop_cadence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/loops/{name}/audit": {
         parameters: {
             query?: never;
@@ -1966,6 +1983,9 @@ export interface components {
         };
         SwarmDraftPrRequest: {
             workspace: string;
+        };
+        LoopCadenceRequest: {
+            cadence: string;
         };
         SwarmDraftPrResponse: {
             ok: boolean;
@@ -4838,6 +4858,46 @@ export interface operations {
                 };
             };
             /** @description invalid loop name */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description loop not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    update_loop_cadence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoopStatusResponse"];
+                };
+            };
+            /** @description invalid cadence */
             400: {
                 headers: {
                     [name: string]: unknown;

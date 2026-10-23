@@ -83,6 +83,52 @@ pub fn list_loops_typed(workspace string) LoopListResponse {
 	}
 }
 
+// update_loop_cadence_typed validates the cadence against the canonical
+// contract (cadence_to_cron: <N>m 1-59, <N>h 1-24, <N>d, 1w) and rewrites
+// only the top-level `cadence:` line of the loop definition, preserving
+// every other byte of the user's file. Returns the refreshed status.
+pub fn update_loop_cadence_typed(workspace string, name string, cadence string) !LoopStatusResponse {
+	d := require_loop_dir(workspace, name)!
+	trimmed := cadence.trim_space()
+	cadence_to_cron(trimmed)!
+	path := os.join_path(d, 'loop.yaml')
+	text := os.read_file(path) or { return error('loop definition not found: ${name}') }
+	mut lines := text.split_into_lines()
+	mut replaced := false
+	for i, line in lines {
+		if line.starts_with('cadence:') {
+			lines[i] = 'cadence: ${trimmed}'
+			replaced = true
+			break
+		}
+	}
+	if !replaced {
+		mut inserted := false
+		for i, line in lines {
+			if line.starts_with('name:') {
+				lines.insert(i + 1, 'cadence: ${trimmed}')
+				inserted = true
+				break
+			}
+		}
+		if !inserted {
+			lines.insert(0, 'cadence: ${trimmed}')
+		}
+	}
+	tmp := path + '.${os.getpid()}.tmp'
+	if os.exists(tmp) || os.is_link(tmp) {
+		return error('loop definition write is busy: ${name}')
+	}
+	os.write_file(tmp, lines.join('\n') + '\n') or {
+		return error('could not update loop definition: ${err.msg()}')
+	}
+	os.mv(tmp, path) or {
+		os.rm(tmp) or {}
+		return error('could not update loop definition: ${err.msg()}')
+	}
+	return get_loop_status_typed(workspace, name)!
+}
+
 pub fn get_loop_status_typed(workspace string, name string) !LoopStatusResponse {
 	d := require_loop_dir(workspace, name)!
 	meta := parse_loop_meta(d)

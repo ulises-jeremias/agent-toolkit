@@ -18,6 +18,10 @@ struct SwarmDraftPrRequest {
 	workspace string
 }
 
+struct LoopCadenceRequest {
+	cadence string
+}
+
 @['/api/v1/swarms/runs/:id'; get]
 pub fn (app &App) swarm_run_get(mut ctx Ctx, id string) veb.Result {
 	deny := deny_if_remote(app, ctx)
@@ -267,6 +271,26 @@ pub fn (app &App) loops_history(mut ctx Ctx, name string) veb.Result {
 	}
 	ws := serve_memory_workspace(ctx, '') or { return respond_sub_error(mut ctx, err) }
 	got := agent_toolkit_core.get_loop_history_typed(ws, name) or {
+		return work_catalog_error(mut ctx, err)
+	}
+	return ctx.json(got)
+}
+
+@['/api/v1/loops/:name/cadence'; post]
+pub fn (app &App) loops_cadence(mut ctx Ctx, name string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	if !is_valid_loop_name(name) {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'invalid loop name' })
+	}
+	req := decode_sub_body[LoopCadenceRequest](ctx.req.data) or {
+		return respond_sub_error(mut ctx, err)
+	}
+	ws := serve_memory_workspace(ctx, '') or { return respond_sub_error(mut ctx, err) }
+	got := agent_toolkit_core.update_loop_cadence_typed(ws, name, req.cadence) or {
 		return work_catalog_error(mut ctx, err)
 	}
 	return ctx.json(got)

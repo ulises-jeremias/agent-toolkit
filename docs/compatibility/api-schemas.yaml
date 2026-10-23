@@ -592,6 +592,10 @@ schemas:
     fields:
       - workspace:string
 
+  - name: LoopCadenceRequest
+    fields:
+      - cadence:string
+
   - name: SwarmDraftPrResponse
     fields:
       - ok:boolean
@@ -1204,6 +1208,16 @@ native:
     response: '#LoopStatusResponse'
     errors:
       - '400:invalid loop name'
+      - '404:loop not found'
+  - path: /api/v1/loops/{name}/cadence
+    method: post
+    op: update_loop_cadence
+    summary: Update a loop cadence in its definition and return the refreshed status
+    request: '#LoopCadenceRequest'
+    response: '#LoopStatusResponse'
+    errors:
+      - '400:invalid loop name'
+      - '400:invalid cadence'
       - '404:loop not found'
   - path: /api/v1/loops/{name}/audit
     method: get

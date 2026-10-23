@@ -614,6 +614,7 @@ const registered_api_routes = [
 	'/api/v1/loops/:name/status',
 	'/api/v1/loops/:name/audit',
 	'/api/v1/loops/:name/history',
+	'/api/v1/loops/:name/cadence',
 	'/api/v1/loops/:name/cost',
 	'/api/v1/loops/:name/run',
 	'/api/v1/loops/:name/schedule',

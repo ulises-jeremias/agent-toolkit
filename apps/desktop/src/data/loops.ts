@@ -78,3 +78,17 @@ export function useInitializeLoop() {
     },
   });
 }
+
+export function useUpdateLoopCadence() {
+  const { client } = useBackend();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: ['loops', 'cadence'],
+    mutationFn: (input: { name: string; cadence: string }) =>
+      requireClient(client).updateLoopCadence(input.name, input.cadence),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: qk.loops.list() });
+      void queryClient.invalidateQueries({ queryKey: qk.domain('loops') });
+    },
+  });
+}
