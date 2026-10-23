@@ -1,5 +1,6 @@
 module agent_toolkit_core
 
+import os
 import time
 
 // project_git.v — typed git working-tree surface for one registered
@@ -323,4 +324,98 @@ pub fn project_git_commit_typed(root string, project string, message string) Pro
 		status.detail = res.stdout.trim_space()
 	}
 	return status
+}
+
+// split_diff_hunks splits a unified diff into one patch per hunk, each
+// carrying the file header (diff/---/+++ lines) so `git apply` accepts
+// it standalone. Pure so the splitting contract is unit-testable.
+pub fn split_diff_hunks(diff string) []string {
+	if diff.trim_space() == '' {
+		return []string{}
+	}
+	mut header := []string{}
+	mut hunks := [][]string{}
+	mut current := []string{}
+	mut in_hunk := false
+	for line in diff.split_into_lines() {
+		if line.starts_with('@@') {
+			if in_hunk && current.len > 0 {
+				hunks << current
+			}
+			current = [line]
+			in_hunk = true
+			continue
+		}
+		if in_hunk {
+			current << line
+		} else {
+			header << line
+		}
+	}
+	if in_hunk && current.len > 0 {
+		hunks << current
+	}
+	mut out := []string{}
+	for hunk in hunks {
+		mut patch := header.clone()
+		patch << hunk
+		out << patch.join('\n') + '\n'
+	}
+	return out
+}
+
+// project_git_stage_hunk_typed stages (staged=false) or unstages
+// (staged=true) exactly one hunk, addressed by its index in the file's
+// current diff. The backend recomputes the diff, so the index always
+// refers to fresh state; the patch is applied with git apply --cached
+// (reversed for unstage) and never through a shell.
+pub fn project_git_stage_hunk_typed(root string, project string, path string, staged bool, hunk int) ProjectGitStatusResponse {
+	diff := project_git_diff_typed(root, project, path, staged)
+	if !diff.ok {
+		return ProjectGitStatusResponse{
+			ok: false
+			project: project
+			detail: diff.detail
+		}
+	}
+	hunks := split_diff_hunks(diff.diff)
+	if hunk < 0 || hunk >= hunks.len {
+		return ProjectGitStatusResponse{
+			ok: false
+			project: project
+			detail: 'hunk index ${hunk} out of range (${hunks.len} hunk(s))'
+		}
+	}
+	patch_path := os.join_path(os.temp_dir(), 'at-hunk-${os.getpid()}-${hunk}.patch')
+	os.write_file(patch_path, hunks[hunk]) or {
+		return ProjectGitStatusResponse{
+			ok: false
+			project: project
+			detail: 'could not write hunk patch: ${err.msg()}'
+		}
+	}
+	defer {
+		os.rm(patch_path) or {}
+	}
+	mut args := ['apply', '--cached']
+	if staged {
+		args << '--reverse'
+	}
+	args << patch_path
+	res := git_run(root, args) or {
+		return ProjectGitStatusResponse{
+			ok: false
+			project: project
+			detail: err.msg()
+		}
+	}
+	if res.exit_code != 0 {
+		msg := res.stderr.trim_space()
+		return ProjectGitStatusResponse{
+			ok: false
+			project: project
+			detail: if msg.len > 0 { msg } else { 'git apply exited with code ${res.exit_code}' }
+		}
+	}
+	return project_git_status_typed(root, project)
 }

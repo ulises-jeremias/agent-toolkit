@@ -19,3 +19,27 @@ export function totalChanges(status: ProjectGitStatusResponse): number {
 export function isClean(status: ProjectGitStatusResponse): boolean {
   return status.ok && totalChanges(status) === 0;
 }
+
+/** One hunk of a unified diff: header line plus its body lines. */
+export interface DiffHunk {
+  header: string;
+  lines: string[];
+}
+
+/**
+ * Splits a unified diff into hunks for display and per-hunk staging.
+ * The hunk index matches the backend's split of the same diff text.
+ */
+export function splitDiffHunks(diff: string): DiffHunk[] {
+  const hunks: DiffHunk[] = [];
+  let current: DiffHunk | null = null;
+  for (const line of diff.split('\n')) {
+    if (line.startsWith('@@')) {
+      current = { header: line, lines: [] };
+      hunks.push(current);
+    } else if (current) {
+      current.lines.push(line);
+    }
+  }
+  return hunks;
+}

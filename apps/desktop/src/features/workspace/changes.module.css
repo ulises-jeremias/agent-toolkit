@@ -110,3 +110,18 @@
   margin-top: 0.9rem;
   max-width: 36rem;
 }
+
+.hunk {
+  margin-bottom: 0.6rem;
+}
+
+.hunkBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 0.5rem;
+  margin: 0 0 0.25rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+}

@@ -3,13 +3,14 @@ import {
   useProjectGitCommit,
   useProjectGitDiff,
   useProjectGitStage,
+  useProjectGitStageHunk,
   useProjectGitStatus,
   useProjectGitUnstage,
 } from '../../data/projects';
 import { errorMessage } from '../../lib/api';
 import type { GitFileChange } from '../../lib/api';
 import { Button, ButtonRow, EmptyState, ErrorState, Field, LoadingState, Panel, StatusBadge, TextArea } from '../../ui';
-import { diffLineTone, isClean } from './projectGit';
+import { diffLineTone, isClean, splitDiffHunks } from './projectGit';
 import styles from './changes.module.css';
 
 type Selection = { path: string; staged: boolean } | null;
@@ -40,7 +41,8 @@ export function ProjectChangesPanel({
   const stage = useProjectGitStage(workspace, active);
   const unstage = useProjectGitUnstage(workspace, active);
   const commit = useProjectGitCommit(workspace, active);
-  const busy = stage.isPending || unstage.isPending || commit.isPending;
+  const stageHunk = useProjectGitStageHunk(workspace, active);
+  const busy = stage.isPending || unstage.isPending || commit.isPending || stageHunk.isPending;
 
   useEffect(() => {
     setSelection(null);
@@ -174,14 +176,38 @@ export function ProjectChangesPanel({
                       {diff.data.truncated ? <StatusBadge tone="warn" label="truncated" /> : null}
                     </p>
                     {diff.data.diff ? (
-                      <pre className={styles.diff} aria-label={`Diff for ${selection.path}`}>
-                        {diff.data.diff.split('\n').map((line, index) => (
-                          <span key={index} className={styles[diffLineTone(line)]}>
-                            {line}
-                            {'\n'}
-                          </span>
+                      <div aria-label={`Diff for ${selection.path}`}>
+                        {splitDiffHunks(diff.data.diff).map((hunk, hunkIndex) => (
+                          <div key={hunkIndex} className={styles.hunk}>
+                            <p className={styles.hunkBar}>
+                              <span className={styles[diffLineTone(hunk.header)]}>{hunk.header}</span>
+                              <Button
+                                variant="ghost"
+                                disabled={busy}
+                                onClick={() =>
+                                  runAction(() =>
+                                    stageHunk.mutateAsync({
+                                      path: selection.path,
+                                      staged: selection.staged,
+                                      hunk: hunkIndex,
+                                    }),
+                                  )
+                                }
+                              >
+                                {selection.staged ? `Unstage hunk ${hunkIndex + 1}` : `Stage hunk ${hunkIndex + 1}`}
+                              </Button>
+                            </p>
+                            <pre className={styles.diff}>
+                              {hunk.lines.map((line, index) => (
+                                <span key={index} className={styles[diffLineTone(line)]}>
+                                  {line}
+                                  {'\n'}
+                                </span>
+                              ))}
+                            </pre>
+                          </div>
                         ))}
-                      </pre>
+                      </div>
                     ) : (
                       <EmptyState title="No textual diff.">
                         This file may be new, binary, or unchanged in the selected view.

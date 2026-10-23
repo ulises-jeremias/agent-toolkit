@@ -656,6 +656,7 @@ const registered_api_routes = [
 	'/api/v1/projects/:id/git/status',
 	'/api/v1/projects/:id/git/diff',
 	'/api/v1/projects/:id/git/stage',
+	'/api/v1/projects/:id/git/stage-hunk',
 	'/api/v1/projects/:id/git/unstage',
 	'/api/v1/projects/:id/git/commit',
 	'/api/v1/workspace/packs/list',

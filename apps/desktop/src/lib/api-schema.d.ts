@@ -445,6 +445,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{id}/git/stage-hunk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stage or unstage exactly one hunk of a file in a registered project repository */
+        post: operations["project_git_stage_hunk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{id}/git/commit": {
         parameters: {
             query?: never;
@@ -2243,6 +2260,12 @@ export interface components {
             workspace: string;
             paths: string[];
         };
+        ProjectGitHunkRequest: {
+            workspace: string;
+            path: string;
+            staged: boolean;
+            hunk: number;
+        };
         ProjectGitCommitRequest: {
             workspace: string;
             message: string;
@@ -3428,6 +3451,46 @@ export interface operations {
         };
     };
     project_git_unstage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectGitStatusResponse"];
+                };
+            };
+            /** @description invalid project id or path */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description project not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    project_git_stage_hunk: {
         parameters: {
             query?: never;
             header?: never;
