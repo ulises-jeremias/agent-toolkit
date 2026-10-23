@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ModelInfo, Person, ProviderInfo } from '../../lib/api';
-import { initialPromptMode, personInitialPrompt, personSessionOptions } from './personRunner';
+import { initialPromptMode, modelIdUsableForRunner, personInitialPrompt, personSessionOptions } from './personRunner';
 
 const person: Person = {
   spec: 'agent-toolkit/person@1',
@@ -21,7 +21,7 @@ const provider: ProviderInfo = {
 
 describe('personSessionOptions', () => {
   it('builds a real runner PTY with argv and project identity metadata', () => {
-    const model: ModelInfo = { profile: 'balanced', runner: 'opencode', model: 'model-x' };
+    const model: ModelInfo = { profile: 'balanced', runner: 'opencode', model: 'opencode/model-x' };
     const options = personSessionOptions(
       { ...person, budget: { max_seconds: 90 } },
       provider,
@@ -36,12 +36,27 @@ describe('personSessionOptions', () => {
       personId: 'lina',
       projectId: 'project',
       provider: 'opencode',
-      model: 'model-x',
+      model: 'opencode/model-x',
       cmd: '/usr/bin/opencode',
-      args: ['--model', 'model-x', '--session', options?.providerSessionId],
+      args: ['--model', 'opencode/model-x', '--session', options?.providerSessionId],
       cwd: '/work/project',
       maxSeconds: 90,
     });
+  });
+
+  it('drops bare profile aliases for opencode instead of killing the session at launch', () => {
+    const alias: ModelInfo = { profile: 'economy', runner: 'opencode', model: 'haiku' };
+    const options = personSessionOptions(person, provider, alias, '/work/project', 'project');
+    expect(options?.model).toBeUndefined();
+    expect(options?.args).not.toContain('--model');
+    // The same shorthand stays usable for runners that accept aliases.
+    expect(modelIdUsableForRunner('claude', 'haiku')).toBe(true);
+    expect(modelIdUsableForRunner('opencode', 'opencode/flint-40b-free')).toBe(true);
+    expect(modelIdUsableForRunner('opencode', 'github-copilot/claude-sonnet-5#high')).toBe(true);
+    expect(modelIdUsableForRunner('opencode', 'haiku')).toBe(false);
+    expect(modelIdUsableForRunner('opencode', 'Flint 40B Free')).toBe(false);
+    expect(modelIdUsableForRunner('opencode', '/model-x')).toBe(false);
+    expect(modelIdUsableForRunner('opencode', 'provider/')).toBe(false);
   });
 
   it('refuses unavailable, skeleton, or unresolved runners', () => {
@@ -72,7 +87,7 @@ describe('personSessionOptions', () => {
       [
         'mini',
         '--model',
-        'model-x',
+        'opencode/model-x',
         '--prompt',
         'Role: reviewer\nConfigured goal: Review changes\n\nTask for this session:\nReview this PR',
       ],
@@ -106,7 +121,11 @@ describe('personSessionOptions', () => {
     const options = personSessionOptions(
       person,
       { ...provider, id: providerId },
-      { profile: 'balanced', runner: providerId, model: 'model-x' },
+      {
+        profile: 'balanced',
+        runner: providerId,
+        model: providerId === 'opencode' ? 'opencode/model-x' : 'model-x',
+      },
       '/work/project',
       'project',
       '  Review this PR  ',

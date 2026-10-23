@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Starting a Person session with OpenCode no longer dies instantly
+  when a swarm model profile is selected: profiles carry shorthand
+  ids (`haiku`, `sonnet`, `opus`) that OpenCode v2 rejects
+  (`--model must use the format provider/model[#variant]`). The
+  Person Start dialog no longer offers unusable ids for OpenCode,
+  and the launch path drops them instead of passing `--model`, so
+  OpenCode falls back to its configured default model.
+
 - Desktop packaging no longer bundles an arbitrarily stale backend:
   `stage:backend` resolved its binary as explicit path → release
   `dist/` → whatever `agent-toolkit` was on PATH, so a local

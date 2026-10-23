@@ -32,6 +32,19 @@ export function personInitialPrompt(person: Person, task: string): string | null
   return `Role: ${person.role}\nConfigured goal: ${person.goal}${memory}\n\nTask for this session:\n${task.trim()}`;
 }
 
+/**
+ * OpenCode v2 rejects any --model that is not provider/model[#variant].
+ * Swarm profile shorthands (haiku, sonnet, ...) are meaningful for other
+ * runners but kill an OpenCode session at launch, so they must never
+ * reach its argv.
+ */
+export function modelIdUsableForRunner(runner: string, model: string): boolean {
+  if (runner !== 'opencode') return model.trim().length > 0;
+  const base = model.split('#')[0] ?? '';
+  const slash = base.indexOf('/');
+  return slash > 0 && slash < base.length - 1 && !/\s/.test(model);
+}
+
 /** Build an argv-only PTY launch from real Toolkit runner discovery. */
 export function personSessionOptions(
   person: Person,
@@ -42,7 +55,8 @@ export function personSessionOptions(
   task = '',
 ): PtyCreateOptions | null {
   if (!provider.available || provider.id === 'skeleton' || !provider.bin || !cwd) return null;
-  const args = model?.model ? ['--model', model.model] : [];
+  const usableModel = model?.model && modelIdUsableForRunner(provider.id, model.model) ? model.model : undefined;
+  const args = usableModel ? ['--model', usableModel] : [];
   // Assign-strategy runners (claude, copilot, opencode) get a session id
   // we choose, so the conversation can be resumed later. It must precede
   // the prompt; opencode uses --session with a ses_-prefixed id.
@@ -69,7 +83,7 @@ export function personSessionOptions(
     personId: person.id,
     projectId,
     provider: provider.id,
-    model: model?.model,
+    model: usableModel,
     ...(providerSessionId ? { providerSessionId } : {}),
     cmd: provider.bin,
     args,
