@@ -45,6 +45,26 @@ fn test_classify_api_attached_field_and_pulls_patch() {
 	assert classify_gh_argv(['api', '-X', 'PATCH', 'repos/o/r/issues/3']) == 'push'
 }
 
+fn test_classify_api_graphql_reads_and_mutations() {
+	// inline read-only queries are reads (the oss-triage scan pattern)
+	assert classify_gh_argv(['api', 'graphql', '-f', 'query={ viewer { login } }']) == ''
+	assert classify_gh_argv(['api', 'graphql', '-f', 'query=query($o: String!) { repository(owner: $o, name: "r") { issues(first: 5) { totalCount } } }',
+		'-F', 'o=x']) == ''
+	assert classify_gh_argv(['api', 'graphql', '-fquery=query { viewer { login } }']) == ''
+	assert classify_gh_argv(['api', '/graphql', '--raw-field=query={ viewer { login } }']) == ''
+	// mutations, subscriptions and uninspectable bodies fail closed
+	assert classify_gh_argv(['api', 'graphql', '-f', 'query=mutation { addComment(input: {}) { clientMutationId } }']) == 'push'
+	assert classify_gh_argv(['api', 'graphql', '-f', 'query=  MUTATION { x }']) == 'push'
+	assert classify_gh_argv(['api', 'graphql', '-f', 'query=subscription { x }']) == 'push'
+	assert classify_gh_argv(['api', 'graphql', '-F', 'query=@q.graphql']) == 'push'
+	assert classify_gh_argv(['api', 'graphql', '--input', 'body.json']) == 'push'
+	assert classify_gh_argv(['api', 'graphql', '--input=-']) == 'push'
+	assert classify_gh_argv(['api', 'graphql']) == 'push'
+	assert classify_gh_argv(['api', '-X', 'GET', 'graphql', '-f', 'query=mutation { x }']) == 'push'
+	// a field value is never mistaken for the api path
+	assert classify_gh_argv(['api', '-f', 'query={ viewer { login } }', 'graphql']) == ''
+}
+
 fn test_loop_gate_l2_forbids_writes() {
 	// Python tier_forbids parity: L2 allows comment/label/assign only
 	assert loop_gate_allows('L2', ['push'], [], 'push') == false
