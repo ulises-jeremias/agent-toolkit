@@ -8,12 +8,17 @@ const appDir = path.resolve(here, '..');
 const destDir = path.resolve(appDir, 'resources', 'bin');
 const exe = process.platform === 'win32' ? 'agent-toolkit.exe' : 'agent-toolkit';
 
-/** Resolve the V backend binary: explicit path, release dist, or PATH. */
+/** Resolve the V backend binary: explicit path, release dist, repo build, or PATH. */
 function resolveSource() {
   const explicit = process.env.ATK_BACKEND_BIN;
   if (explicit && fs.existsSync(explicit)) return explicit;
   const repoDist = path.resolve(appDir, '..', '..', 'dist', 'agent-toolkit');
   if (fs.existsSync(repoDist)) return repoDist;
+  // Prefer this checkout's own build over whatever happens to be on PATH:
+  // a PATH binary can be an arbitrarily old install with the same version
+  // string, which would silently package a backend missing current routes.
+  const repoBuild = path.resolve(appDir, '..', '..', 'build', 'agent-toolkit');
+  if (fs.existsSync(repoBuild)) return repoBuild;
   try {
     const found = execFileSync(process.platform === 'win32' ? 'where' : 'which', [exe], {
       encoding: 'utf8',
