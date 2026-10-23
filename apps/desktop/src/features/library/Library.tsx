@@ -18,6 +18,7 @@ import {
 } from '../../lib/api';
 import { invalidateDomains, OPERATION_EFFECTS } from '../../lib/query/invalidation';
 import { parsePluginBundles } from '../../lib/reports';
+import { applyInstallTargets, type TargetApplyProgress } from './installProgress';
 import { libraryResourceEvidence, libraryResourceFiles, type LibraryResourceKind } from './resourceEvidence';
 import {
   Button,
@@ -101,6 +102,40 @@ function installSummary(preview: CommandEnvelope): string {
   const targets = Number(preview.data['tools_ok'] ?? 0);
   const files = Number(preview.data['files_written'] ?? 0);
   return `${targets} ${targets === 1 ? 'tool target' : 'tool targets'} reviewed · ${files} ${files === 1 ? 'file' : 'files'} to write or merge`;
+}
+
+function targetLabel(id: string): string {
+  return INSTALL_TARGETS.find((target) => target.id === id)?.label ?? id;
+}
+
+function ApplyProgressView({ progress }: { progress: TargetApplyProgress }) {
+  const settled = progress.done.length + progress.failed.length;
+  const percent = progress.total > 0 ? Math.round((settled / progress.total) * 100) : 0;
+  return (
+    <div className={styles.applyProgress}>
+      <div
+        className={styles.applyProgressBar}
+        role="progressbar"
+        aria-label="Installation progress"
+        aria-valuemin={0}
+        aria-valuemax={progress.total}
+        aria-valuenow={settled}
+      >
+        <span style={{ width: `${percent}%` }} />
+      </div>
+      <p role="status">
+        {progress.current
+          ? `Installing ${targetLabel(progress.current)} — ${settled} of ${progress.total} targets settled`
+          : `${settled} of ${progress.total} targets settled`}
+      </p>
+      {progress.done.length > 0 ? <p>Installed: {progress.done.map(targetLabel).join(', ')}</p> : null}
+      {progress.failed.map((failure) => (
+        <p key={failure.target} role="alert">
+          {targetLabel(failure.target)}: {failure.message}
+        </p>
+      ))}
+    </div>
+  );
 }
 
 const INSTALL_TARGETS = [
@@ -222,8 +257,16 @@ export default function Library() {
   const queryClient = useQueryClient();
   const skills = useLibrarySkills();
   const plugins = useSubQuery('plugin', 'check', undefined, { failureIsData: true });
+  const [applyProgress, setApplyProgress] = useState<TargetApplyProgress | null>(null);
   const install = useMutation({
-    mutationFn: async (targets: string[]) => requireOk(await requireClient(client).installReviewed(targets)),
+    mutationFn: async (args: { targets: string[]; skills?: string[] }) =>
+      applyInstallTargets(
+        args.targets,
+        async (target) => {
+          requireOk(await requireClient(client).installReviewed([target], args.skills));
+        },
+        setApplyProgress,
+      ),
     onSettled: () => invalidateDomains(queryClient, OPERATION_EFFECTS.install),
   });
   const uninstall = useMutation({
@@ -238,11 +281,6 @@ export default function Library() {
     mutationFn: (args: { targets: string[]; skills: string[] }) =>
       requireClient(client).installPreview(args.targets, args.skills),
     onSuccess: (response) => setSkillPreview(response),
-  });
-  const installSkills = useMutation({
-    mutationFn: async (args: { targets: string[]; skills: string[] }) =>
-      requireOk(await requireClient(client).installReviewed(args.targets, args.skills)),
-    onSettled: () => invalidateDomains(queryClient, OPERATION_EFFECTS.install),
   });
   const skillInstallReceipt = useActionReceipt('Selected Skills installed');
   const [installPreview, setInstallPreview] = useState<CommandEnvelope | null>(null);
@@ -435,6 +473,7 @@ export default function Library() {
               busyLabel="Inspecting targets…"
               onClick={() => {
                 setInstallPreview(null);
+                setApplyProgress(null);
                 previewInstall.mutate();
               }}
             >
@@ -581,6 +620,7 @@ export default function Library() {
         onClose={() => {
           setInstallPreview(null);
           setSelectedTargets([]);
+          setApplyProgress(null);
           previewInstall.reset();
         }}
         title="Review capability installation"
@@ -614,18 +654,37 @@ export default function Library() {
               disabled={!installPreview?.ok || !sameTargets(selectedTargets, installPreview) || install.isPending}
               busy={install.isPending}
               busyLabel="Installing…"
-              onClick={() =>
-                install.mutate(selectedTargets, {
-                  ...installReceipt,
-                  onSuccess: (result) => {
-                    installReceipt.onSuccess?.(result);
-                    setInstallPreview(null);
-                    setSelectedTargets([]);
+              onClick={() => {
+                const failedTargets = applyProgress?.failed.map((failure) => failure.target) ?? [];
+                const targets =
+                  failedTargets.length > 0 && applyProgress && applyProgress.done.length > 0
+                    ? failedTargets
+                    : selectedTargets;
+                install.mutate(
+                  { targets },
+                  {
+                    onSuccess: (progress) => {
+                      if (progress.failed.length === 0) {
+                        installReceipt.onSuccess();
+                        setInstallPreview(null);
+                        setSelectedTargets([]);
+                        setApplyProgress(null);
+                      } else {
+                        installReceipt.onError(
+                          new Error(
+                            `${progress.failed.length} of ${progress.total} targets failed; installed targets kept their receipts.`,
+                          ),
+                        );
+                      }
+                    },
+                    onError: (error) => installReceipt.onError(error),
                   },
-                })
-              }
+                );
+              }}
             >
-              Install reviewed targets
+              {applyProgress && applyProgress.failed.length > 0 && applyProgress.done.length > 0 && !install.isPending
+                ? `Retry remaining (${applyProgress.failed.length})`
+                : 'Install reviewed targets'}
             </Button>
           </ButtonRow>
         }
@@ -650,6 +709,7 @@ export default function Library() {
                       disabled={previewInstall.isPending || install.isPending}
                       checked={selectedTargets.includes(target.id)}
                       onChange={(event) => {
+                        setApplyProgress(null);
                         setSelectedTargets((current) =>
                           event.target.checked
                             ? [...current, target.id].sort()
@@ -671,6 +731,7 @@ export default function Library() {
             </pre>
           </>
         ) : null}
+        {applyProgress ? <ApplyProgressView progress={applyProgress} /> : null}
       </Dialog>
       <Dialog
         open={uninstallPreview !== null || previewUninstall.isError}
@@ -747,13 +808,14 @@ export default function Library() {
       </Dialog>
       <Dialog
         open={skillInstallOpen}
-        closeDisabled={installSkills.isPending}
+        closeDisabled={install.isPending}
         onClose={() => {
-          if (installSkills.isPending) return;
+          if (install.isPending) return;
           setSkillInstallOpen(false);
           setSkillPreview(null);
           previewSkills.reset();
-          installSkills.reset();
+          install.reset();
+          setApplyProgress(null);
         }}
         title={`Install ${checkedSkills.length} selected Skill${checkedSkills.length === 1 ? '' : 's'}`}
         description="Only the selected Skills' files are written, for each chosen target. Profiles, Agent Definitions, and other Skills are untouched; existing user files are preserved, and installation receipts keep covering Skills installed earlier. Cursor and Windsurf profiles do not carry catalog Skills, so they are not offered here."
@@ -761,12 +823,13 @@ export default function Library() {
         footer={
           <ButtonRow>
             <Button
-              disabled={installSkills.isPending}
+              disabled={install.isPending}
               onClick={() => {
                 setSkillInstallOpen(false);
                 setSkillPreview(null);
                 previewSkills.reset();
-                installSkills.reset();
+                install.reset();
+                setApplyProgress(null);
               }}
             >
               Cancel
@@ -782,25 +845,39 @@ export default function Library() {
             </Button>
             <Button
               variant="primary"
-              disabled={!skillPreview?.ok || installSkills.isPending}
-              busy={installSkills.isPending}
+              disabled={!skillPreview?.ok || install.isPending}
+              busy={install.isPending}
               busyLabel="Installing…"
-              onClick={() =>
-                installSkills.mutate(
-                  { targets: skillTargets, skills: checkedSkills },
+              onClick={() => {
+                const failedTargets = applyProgress?.failed.map((failure) => failure.target) ?? [];
+                const targets =
+                  failedTargets.length > 0 && applyProgress && applyProgress.done.length > 0
+                    ? failedTargets
+                    : skillTargets;
+                install.mutate(
+                  { targets, skills: checkedSkills },
                   {
-                    onSuccess: (result) => {
-                      skillInstallReceipt.onSuccess(result);
-                      setCheckedSkills([]);
-                      setSkillPreview(null);
-                      setSkillInstallOpen(false);
+                    onSuccess: (progress) => {
+                      if (progress.failed.length === 0) {
+                        skillInstallReceipt.onSuccess();
+                        setCheckedSkills([]);
+                        setSkillPreview(null);
+                        setApplyProgress(null);
+                        setSkillInstallOpen(false);
+                      } else {
+                        skillInstallReceipt.onError(
+                          new Error(`${progress.failed.length} of ${progress.total} targets failed.`),
+                        );
+                      }
                     },
                     onError: (error) => skillInstallReceipt.onError(error),
                   },
-                )
-              }
+                );
+              }}
             >
-              Install reviewed Skills
+              {applyProgress && applyProgress.failed.length > 0 && applyProgress.done.length > 0 && !install.isPending
+                ? `Retry remaining (${applyProgress.failed.length})`
+                : 'Install reviewed Skills'}
             </Button>
           </ButtonRow>
         }
@@ -819,10 +896,11 @@ export default function Library() {
                 <label key={target.id}>
                   <input
                     type="checkbox"
-                    disabled={previewSkills.isPending || installSkills.isPending}
+                    disabled={previewSkills.isPending || install.isPending}
                     checked={skillTargets.includes(target.id)}
                     onChange={(event) => {
                       setSkillPreview(null);
+                      setApplyProgress(null);
                       setSkillTargets((current) =>
                         event.target.checked
                           ? [...current, target.id].sort()
@@ -837,12 +915,13 @@ export default function Library() {
           </div>
         </fieldset>
         {previewSkills.isError ? <p role="alert">{errorMessage(previewSkills.error)}</p> : null}
-        {installSkills.isError ? <p role="alert">{errorMessage(installSkills.error)}</p> : null}
+        {install.isError ? <p role="alert">{errorMessage(install.error)}</p> : null}
         {skillPreview ? (
           <pre className={styles.installPreview} aria-label="Selected Skills installation preview">
             {skillPreview.message}
           </pre>
         ) : null}
+        {applyProgress ? <ApplyProgressView progress={applyProgress} /> : null}
       </Dialog>
       <div className={styles.shelves}>
         <Stack>

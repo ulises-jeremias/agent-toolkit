@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Capability installs now show determinate progress: the reviewed
+  apply runs one backend transaction per target (each already lands
+  its own receipt), and both the full install dialog and the
+  per-Skill dialog render a real progress bar — current target,
+  settled count, installed list, and per-target failure messages.
+  A failed target never blocks the rest, installed targets keep
+  their receipts, and the dialog offers an explicit "Retry
+  remaining" for only the failed targets. This covers the install
+  progress item of the Targets issue (receipt evidence and the
+  reviewed rollback flow already shipped).
 - Skills can now be installed individually: the engine accepts a
   Skill selection (`agent-toolkit install --skills review,planner`,
   also on the typed install preview/reviewed routes) that writes
