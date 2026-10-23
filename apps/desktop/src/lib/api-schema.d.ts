@@ -1515,6 +1515,7 @@ export interface components {
         };
         InstallReviewedRequest: {
             tools: string[];
+            skills: string[];
         };
         CopilotProjectInstallRequest: {
             workspace: string;
@@ -3381,6 +3382,7 @@ export interface operations {
         parameters: {
             query?: {
                 tools?: string;
+                skills?: string;
             };
             header?: never;
             path?: never;

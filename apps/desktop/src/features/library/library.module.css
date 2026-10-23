@@ -343,6 +343,21 @@
   min-width: 0;
 }
 
+.skillRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.skillRow > input {
+  margin-top: var(--space-3);
+}
+
+.skillRow > button {
+  flex: 1;
+}
+
 .skillOption {
   display: flex;
   flex-direction: column;

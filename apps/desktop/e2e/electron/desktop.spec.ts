@@ -713,6 +713,33 @@ test('Library searches typed catalog metadata and reveals provenance and compati
   await expect(page.getByRole('region', { name: 'Agent definitions' })).toContainText('agentic-security-reviewer');
 });
 
+test('Library installs only the checked Skills for a target', async () => {
+  const isolated = await openDesktop();
+  try {
+    const { page } = isolated;
+    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+    await expect(page.getByText('Loading the skills catalog')).toBeHidden();
+    const catalog = page.getByRole('region', { name: 'Skills catalog' });
+    // Check exactly one Skill, review it, and install it for Claude Code.
+    await catalog.getByLabel('Select review for installation').check();
+    await catalog.getByRole('button', { name: 'Install selected (1)' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Install 1 selected Skill' });
+    await dialog.getByRole('button', { name: 'Review installation' }).click();
+    const preview = dialog.getByLabel('Selected Skills installation preview');
+    await expect(preview).toContainText('skills/review/SKILL.md');
+    await expect(preview).not.toContainText('skills/pr-fallback/SKILL.md');
+    await dialog.getByRole('button', { name: 'Install reviewed Skills' }).click();
+    await expect(dialog).toBeHidden();
+    // Only the selected Skill landed; the rest of the catalog did not.
+    expect(fs.existsSync(path.join(isolated.home, '.claude', 'skills', 'review', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(isolated.home, '.claude', 'skills', 'pr-fallback', 'SKILL.md'))).toBe(false);
+    await expect(catalog.getByRole('button', { name: /review accessibility/ })).toContainText('verified');
+  } finally {
+    await isolated.close();
+  }
+});
+
 test('Library discovers workspace context bundles beside the catalog without installing them', async () => {
   const { page } = desktop;
   await page.route('**/api/v1/workspace/packs/list**', (route) =>

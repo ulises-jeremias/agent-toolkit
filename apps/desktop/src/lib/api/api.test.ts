@@ -154,7 +154,15 @@ describe('ApiClient', () => {
     await api.installReviewed(['cursor', 'opencode']);
     expect(calls[1]?.url).toBe('http://127.0.0.1:9/api/v1/install/reviewed');
     expect(calls[1]?.init?.method).toBe('POST');
-    expect(calls[1]?.init?.body).toBe('{"tools":["cursor","opencode"]}');
+    expect(calls[1]?.init?.body).toBe('{"tools":["cursor","opencode"],"skills":[]}');
+  });
+
+  it('previews and installs an explicit Skill selection', async () => {
+    const api = client({ ok: true, message: 'reviewed', data: { targets: 'claude-code' } });
+    await api.installPreview(['claude-code'], ['review', 'planner']);
+    expect(calls[0]?.url).toBe('http://127.0.0.1:9/api/v1/install/preview?tools=claude-code&skills=review%2Cplanner');
+    await api.installReviewed(['claude-code'], ['review', 'planner']);
+    expect(calls[1]?.init?.body).toBe('{"tools":["claude-code"],"skills":["review","planner"]}');
   });
 
   it('reviews and installs Copilot instructions only for a linked project', async () => {

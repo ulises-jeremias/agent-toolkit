@@ -101,6 +101,11 @@ fn install_command() cli.Command {
 				description: 'Comma-separated tools (default: auto-detect)'
 			},
 			cli.Flag{
+				flag: .string
+				name: 'skills'
+				description: 'Comma-separated catalog Skill names to install (default: all Skills)'
+			},
+			cli.Flag{
 				flag: .bool
 				name: 'dry-run'
 				description: 'Show what would happen without making changes'

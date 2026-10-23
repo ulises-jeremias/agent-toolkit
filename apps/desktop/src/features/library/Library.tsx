@@ -230,6 +230,21 @@ export default function Library() {
     mutationFn: async (reviewToken: string) => requireOk(await requireClient(client).uninstallReviewed(reviewToken)),
     onSettled: () => invalidateDomains(queryClient, OPERATION_EFFECTS.uninstall),
   });
+  const [checkedSkills, setCheckedSkills] = useState<string[]>([]);
+  const [skillInstallOpen, setSkillInstallOpen] = useState(false);
+  const [skillTargets, setSkillTargets] = useState<string[]>(['claude-code']);
+  const [skillPreview, setSkillPreview] = useState<CommandEnvelope | null>(null);
+  const previewSkills = useMutation({
+    mutationFn: (args: { targets: string[]; skills: string[] }) =>
+      requireClient(client).installPreview(args.targets, args.skills),
+    onSuccess: (response) => setSkillPreview(response),
+  });
+  const installSkills = useMutation({
+    mutationFn: async (args: { targets: string[]; skills: string[] }) =>
+      requireOk(await requireClient(client).installReviewed(args.targets, args.skills)),
+    onSettled: () => invalidateDomains(queryClient, OPERATION_EFFECTS.install),
+  });
+  const skillInstallReceipt = useActionReceipt('Selected Skills installed');
   const [installPreview, setInstallPreview] = useState<CommandEnvelope | null>(null);
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
   const [uninstallPreview, setUninstallPreview] = useState<CommandEnvelope | null>(null);
@@ -730,6 +745,105 @@ export default function Library() {
           </>
         ) : null}
       </Dialog>
+      <Dialog
+        open={skillInstallOpen}
+        closeDisabled={installSkills.isPending}
+        onClose={() => {
+          if (installSkills.isPending) return;
+          setSkillInstallOpen(false);
+          setSkillPreview(null);
+          previewSkills.reset();
+          installSkills.reset();
+        }}
+        title={`Install ${checkedSkills.length} selected Skill${checkedSkills.length === 1 ? '' : 's'}`}
+        description="Only the selected Skills' files are written, for each chosen target. Profiles, Agent Definitions, and other Skills are untouched; existing user files are preserved, and installation receipts keep covering Skills installed earlier. Cursor and Windsurf profiles do not carry catalog Skills, so they are not offered here."
+        size="wide"
+        footer={
+          <ButtonRow>
+            <Button
+              disabled={installSkills.isPending}
+              onClick={() => {
+                setSkillInstallOpen(false);
+                setSkillPreview(null);
+                previewSkills.reset();
+                installSkills.reset();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={skillTargets.length === 0 || checkedSkills.length === 0 || previewSkills.isPending}
+              busy={previewSkills.isPending}
+              busyLabel="Reviewing…"
+              onClick={() => previewSkills.mutate({ targets: skillTargets, skills: checkedSkills })}
+            >
+              Review installation
+            </Button>
+            <Button
+              variant="primary"
+              disabled={!skillPreview?.ok || installSkills.isPending}
+              busy={installSkills.isPending}
+              busyLabel="Installing…"
+              onClick={() =>
+                installSkills.mutate(
+                  { targets: skillTargets, skills: checkedSkills },
+                  {
+                    onSuccess: (result) => {
+                      skillInstallReceipt.onSuccess(result);
+                      setCheckedSkills([]);
+                      setSkillPreview(null);
+                      setSkillInstallOpen(false);
+                    },
+                    onError: (error) => skillInstallReceipt.onError(error),
+                  },
+                )
+              }
+            >
+              Install reviewed Skills
+            </Button>
+          </ButtonRow>
+        }
+      >
+        <p className={styles.previewLabel}>Selected Skills</p>
+        <p>
+          {checkedSkills.map((name) => (
+            <Mono key={name}>{name} </Mono>
+          ))}
+        </p>
+        <fieldset className={styles.targetPicker}>
+          <legend>Install these Skills for which tools?</legend>
+          <div className={styles.targetGrid}>
+            {INSTALL_TARGETS.filter((target) => ['claude-code', 'opencode', 'pi', 'muse-code'].includes(target.id)).map(
+              (target) => (
+                <label key={target.id}>
+                  <input
+                    type="checkbox"
+                    disabled={previewSkills.isPending || installSkills.isPending}
+                    checked={skillTargets.includes(target.id)}
+                    onChange={(event) => {
+                      setSkillPreview(null);
+                      setSkillTargets((current) =>
+                        event.target.checked
+                          ? [...current, target.id].sort()
+                          : current.filter((value) => value !== target.id),
+                      );
+                    }}
+                  />
+                  <span>{target.label}</span>
+                </label>
+              ),
+            )}
+          </div>
+        </fieldset>
+        {previewSkills.isError ? <p role="alert">{errorMessage(previewSkills.error)}</p> : null}
+        {installSkills.isError ? <p role="alert">{errorMessage(installSkills.error)}</p> : null}
+        {skillPreview ? (
+          <pre className={styles.installPreview} aria-label="Selected Skills installation preview">
+            {skillPreview.message}
+          </pre>
+        ) : null}
+      </Dialog>
       <div className={styles.shelves}>
         <Stack>
           <Panel title="GitHub Copilot" meta="Repository instructions, Skills and agents">
@@ -1122,6 +1236,20 @@ export default function Library() {
                 ? `${skillRows.length} of ${skills.data.count} shown · catalog and receipts are separate`
                 : 'Toolkit receipts shown per resource'
             }
+            actions={
+              <Button
+                size="sm"
+                variant="primary"
+                disabled={checkedSkills.length === 0}
+                onClick={() => {
+                  setSkillPreview(null);
+                  previewSkills.reset();
+                  setSkillInstallOpen(true);
+                }}
+              >
+                Install selected ({checkedSkills.length})
+              </Button>
+            }
           >
             <QueryView
               query={skills}
@@ -1140,21 +1268,34 @@ export default function Library() {
                   <div className={styles.masterDetail}>
                     <div className={styles.skillList} role="list" aria-label="Skills in catalog">
                       {skillRows.map((row, index) => (
-                        <button
-                          key={row.id}
-                          id={`skill-option-${row.id}`}
-                          type="button"
-                          aria-pressed={selectedSkill?.id === row.id}
-                          className={styles.skillOption}
-                          onClick={() => setSelectedSkillId(row.id)}
-                          onKeyDown={(event) => onSkillKeyDown(event, index)}
-                        >
-                          <Mono className={styles.resourceName}>{row.name}</Mono>
-                          <span className={styles.skillOptionMeta}>
-                            <span>{row.domain}</span>
-                            <ResourceReceipt kind="skill" name={row.name} receipts={installReceipts} />
-                          </span>
-                        </button>
+                        <div key={row.id} className={styles.skillRow}>
+                          <input
+                            type="checkbox"
+                            aria-label={`Select ${row.name} for installation`}
+                            checked={checkedSkills.includes(row.name)}
+                            onChange={(event) =>
+                              setCheckedSkills((current) =>
+                                event.target.checked
+                                  ? [...current, row.name]
+                                  : current.filter((name) => name !== row.name),
+                              )
+                            }
+                          />
+                          <button
+                            id={`skill-option-${row.id}`}
+                            type="button"
+                            aria-pressed={selectedSkill?.id === row.id}
+                            className={styles.skillOption}
+                            onClick={() => setSelectedSkillId(row.id)}
+                            onKeyDown={(event) => onSkillKeyDown(event, index)}
+                          >
+                            <Mono className={styles.resourceName}>{row.name}</Mono>
+                            <span className={styles.skillOptionMeta}>
+                              <span>{row.domain}</span>
+                              <ResourceReceipt kind="skill" name={row.name} receipts={installReceipts} />
+                            </span>
+                          </button>
+                        </div>
                       ))}
                     </div>
                     {selectedSkill ? (

@@ -41,6 +41,7 @@ schemas:
     v_struct: InstallReviewedReq
     fields:
       - 'tools:string[]'
+      - 'skills:string[]'
 
   - name: CopilotProjectInstallRequest
     v_struct: CopilotProjectInstallReq
@@ -908,7 +909,7 @@ native:
     method: get
     op: install_preview
     summary: Preview profile installation targets and conflicts without writing files
-    query_params: ['tools?:string']
+    query_params: ['tools?:string', 'skills?:string']
     response: '#InstallPreviewResponse'
   - path: /api/v1/install/reviewed
     method: post
