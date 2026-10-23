@@ -8,7 +8,7 @@ import { errorMessage, type Person, type PersonSession } from '../../lib/api';
 import { useTerminalSessions } from '../../data/terminal';
 import { useSessionContext } from '../../shell/useSessionContext';
 import { Button, ButtonRow, Dialog, ErrorState, Field, Panel, Select } from '../../ui';
-import { initialPromptMode, personInitialPrompt, personSessionOptions } from './personRunner';
+import { initialPromptMode, modelIdUsableForRunner, personInitialPrompt, personSessionOptions } from './personRunner';
 import { canResumeConversation, personResumeOptions, providerResumeSupport } from './providerResume';
 import styles from './people.module.css';
 
@@ -58,8 +58,13 @@ export function PersonStartDialog({
     [liveQuery.data, matchingModels],
   );
   const offeredModels = useMemo(
-    () => [...matchingModels.map((model) => ({ ...model, name: '' })), ...liveModels],
-    [matchingModels, liveModels],
+    () => [
+      ...matchingModels
+        .filter((model) => modelIdUsableForRunner(providerId, model.model))
+        .map((model) => ({ ...model, name: '' })),
+      ...liveModels,
+    ],
+    [matchingModels, liveModels, providerId],
   );
   const chosenProvider = providers.find((provider) => provider.id === providerId);
   const hasInstalledRunner = providers.some((provider) => provider.available && provider.id !== 'skeleton');
