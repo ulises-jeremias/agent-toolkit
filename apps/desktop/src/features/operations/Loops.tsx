@@ -8,6 +8,7 @@ import {
   useLoopStatus,
   useLoops,
   useRunLoop,
+  useUpdateLoopCadence,
 } from '../../data/loops';
 import { envelopeText, type CommandEnvelope, type LoopInfo } from '../../lib/api';
 import { jobCommandLine } from '../../lib/format';
@@ -32,6 +33,7 @@ import {
   useActionReceipt,
 } from '../../ui';
 import { BurnDownChart } from './BurnDownChart';
+import { cadenceIntervalSeconds, nextCadenceRuns } from './cadence';
 import { parseLoopNames, type LoopListEntry } from './loopList';
 import styles from './operations.module.css';
 
@@ -192,7 +194,97 @@ function TemplateDetail({ entry, onInitialized }: { entry: LoopListEntry; onInit
   );
 }
 
+function EditLoopCadenceDialog({ open, loop, onClose }: { open: boolean; loop: LoopInfo; onClose: () => void }) {
+  const update = useUpdateLoopCadence();
+  const receipt = useActionReceipt('Loop cadence updated');
+  const [value, setValue] = useState(loop.cadence);
+  const [submitted, setSubmitted] = useState('');
+
+  useEffect(() => {
+    if (open) {
+      setValue(loop.cadence);
+      setSubmitted('');
+    }
+  }, [open, loop.cadence]);
+
+  const changed = value.trim() !== loop.cadence;
+  const valid = cadenceIntervalSeconds(value) !== null;
+  const preview = nextCadenceRuns(value, new Date());
+  const showError = update.error !== null && submitted === value.trim();
+
+  const save = () => {
+    setSubmitted(value.trim());
+    update.mutate(
+      { name: loop.name, cadence: value.trim() },
+      {
+        onSuccess: (result) => {
+          receipt.onSuccess(result);
+          onClose();
+        },
+        onError: (error) => receipt.onError(error),
+      },
+    );
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title={`Cadence ${loop.name}`}
+      description="The cadence lives in the loop definition (loops/<name>/loop.yaml). Saving rewrites only that one line; everything else in the file is preserved. An already-installed schedule keeps its old cadence until you reinstall it from Manage schedule."
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            Close
+          </Button>
+          <Button
+            variant="primary"
+            onClick={save}
+            disabled={!changed || !valid}
+            busy={update.isPending}
+            busyLabel="Saving…"
+          >
+            Save cadence
+          </Button>
+        </>
+      }
+    >
+      <KeyValue
+        items={[
+          { label: 'Loop', value: <Mono>{loop.name}</Mono> },
+          { label: 'Current cadence', value: loop.cadence },
+        ]}
+      />
+      <Field label="New cadence" hint="Format: <N>m (1-59), <N>h (1-24), <N>d, or 1w — e.g. 15m, 4h, 1d.">
+        {(control) => (
+          <TextInput {...control} value={value} onChange={(event) => setValue(event.target.value)} required />
+        )}
+      </Field>
+      {value.trim() !== '' && !valid ? (
+        <p className={styles.burnDownCaption}>That cadence is outside the supported contract, so it cannot be saved.</p>
+      ) : null}
+      {valid && preview.length > 0 ? (
+        <section className={styles.subsection} aria-label="Next runs preview">
+          <p className={styles.previewLabel}>Next five runs at this cadence</p>
+          <ol>
+            {preview.map((when) => (
+              <li key={when.toISOString()}>
+                <Mono>{when.toLocaleString()}</Mono>
+              </li>
+            ))}
+          </ol>
+          <p className={styles.burnDownCaption}>
+            Interval estimates from now; an installed OS schedule may align its fires differently.
+          </p>
+        </section>
+      ) : null}
+      {showError && update.error ? <ErrorState title="The cadence was not saved" error={update.error} /> : null}
+    </Dialog>
+  );
+}
+
 function LoopDetail({ loop, onRun, onSchedule }: { loop: LoopInfo; onRun: () => void; onSchedule: () => void }) {
+  const [cadenceOpen, setCadenceOpen] = useState(false);
   const status = useLoopStatus(loop.name);
   const history = useLoopHistory(loop.name);
   const audit = useLoopAudit(loop.name);
@@ -205,6 +297,7 @@ function LoopDetail({ loop, onRun, onSchedule }: { loop: LoopInfo; onRun: () => 
           <h3>{loop.name}</h3>
         </div>
         <ButtonRow>
+          <Button onClick={() => setCadenceOpen(true)}>Edit cadence</Button>
           <Button onClick={onSchedule}>Manage schedule</Button>
           <Button variant="primary" onClick={onRun}>
             Run once
@@ -300,6 +393,7 @@ function LoopDetail({ loop, onRun, onSchedule }: { loop: LoopInfo; onRun: () => 
           </section>
         )}
       </QueryView>
+      <EditLoopCadenceDialog open={cadenceOpen} loop={loop} onClose={() => setCadenceOpen(false)} />
     </div>
   );
 }

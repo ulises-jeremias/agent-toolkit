@@ -12,6 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Loops now have an Edit cadence action in the Desktop: a new typed
+  `POST /api/v1/loops/{name}/cadence` route validates the cadence
+  against the canonical scheduler contract (`<N>m` 1-59, `<N>h` 1-24,
+  `<N>d`, `1w`) before touching anything, rewrites only the cadence
+  line of `loops/<name>/loop.yaml` (preserving every other byte,
+  atomically), and returns the fresh typed status. The dialog blocks
+  out-of-contract values with the reason, previews the next five
+  fires as interval estimates from now, and states plainly that an
+  already-installed schedule keeps its old cadence until reinstalled
+  from Manage schedule. This completes the remaining item of the
+  loops-insight issue (burn-down chart and real token accounting
+  landed earlier).
 - A responsive-layout Electron E2E now exercises the supported window
   matrix (1280×800, 1024×768, and the declared 1024×640 minimum) in the
   real Desktop: destinations, the People primary action, and the

@@ -20,6 +20,29 @@ fn setup_catalog_loop() string {
 	return base
 }
 
+fn test_update_loop_cadence_rewrites_only_the_cadence_line() {
+	base := setup_catalog_loop()
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	updated := update_loop_cadence_typed(base, 'triage', '30m') or { panic(err.msg()) }
+	assert updated.info.cadence == '30m'
+	text := os.read_file(os.join_path(base, 'loops', 'triage', 'loop.yaml')) or { panic(err.msg()) }
+	assert text.contains('cadence: 30m')
+	// Everything else in the definition is preserved verbatim.
+	assert text.contains('name: triage')
+	assert text.contains('max_tokens: 1000')
+	assert text.contains('goal: triage inbox')
+	// Invalid cadences are rejected before touching the file.
+	update_loop_cadence_typed(base, 'triage', '90m') or {
+		assert err.msg().contains('invalid cadence')
+		after := os.read_file(os.join_path(base, 'loops', 'triage', 'loop.yaml')) or { panic(err.msg()) }
+		assert after.contains('cadence: 30m')
+		return
+	}
+	panic('expected invalid cadence to be rejected')
+}
+
 fn test_list_and_status_loop() {
 	base := setup_catalog_loop()
 	defer {

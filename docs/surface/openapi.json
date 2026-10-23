@@ -3119,6 +3119,56 @@
         }
       }
     },
+    "/api/v1/loops/{name}/cadence": {
+      "post": {
+        "operationId": "update_loop_cadence",
+        "summary": "Update a loop cadence in its definition and return the refreshed status",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoopStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid cadence",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "loop not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/loops/{name}/audit": {
       "get": {
         "operationId": "loop_audit_by_name",
@@ -6156,6 +6206,17 @@
         },
         "required": [
           "workspace"
+        ]
+      },
+      "LoopCadenceRequest": {
+        "type": "object",
+        "properties": {
+          "cadence": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cadence"
         ]
       },
       "SwarmDraftPrResponse": {

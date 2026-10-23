@@ -413,6 +413,15 @@ export class ApiClient {
     return this.json('GET', fillPath('/api/v1/loops/{name}/cost' satisfies PathWith<'get'>, { name }));
   }
 
+  updateLoopCadence(
+    name: string,
+    cadence: string,
+  ): Promise<ResponseOf<OperationOf<'/api/v1/loops/{name}/cadence', 'post'>, LoopStatusResponse>> {
+    return this.json('POST', fillPath('/api/v1/loops/{name}/cadence' satisfies PathWith<'post'>, { name }), {
+      body: { cadence },
+    });
+  }
+
   runLoop(name: string): Promise<Job> {
     return this.json('POST', fillPath('/api/v1/loops/{name}/run' satisfies PathWith<'post'>, { name }));
   }

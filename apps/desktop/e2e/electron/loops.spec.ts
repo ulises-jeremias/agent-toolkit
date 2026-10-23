@@ -89,6 +89,26 @@ test('adds a loop from the Library template, runs it, and reads its typed report
     await expect(schedule).toContainText('No scheduled loops found.');
     await schedule.getByRole('button', { name: 'Close' }).click();
 
+    // Edit cadence: an out-of-contract value is blocked with its reason,
+    // a valid value previews its next fires, and saving rewrites only the
+    // cadence line of the workspace loop definition (issue #1102).
+    await loops.getByRole('button', { name: 'Edit cadence' }).click();
+    const cadence = page.getByRole('dialog', { name: 'Cadence daily-triage' });
+    await expect(cadence).toContainText('Current cadence');
+    const cadenceField = cadence.getByLabel('New cadence');
+    await cadenceField.fill('25h');
+    await expect(cadence).toContainText('outside the supported contract');
+    await expect(cadence.getByRole('button', { name: 'Save cadence' })).toBeDisabled();
+    await cadenceField.fill('2h');
+    await expect(cadence.getByRole('region', { name: 'Next runs preview' })).toBeVisible();
+    await cadence.getByRole('button', { name: 'Save cadence' }).click();
+    await expect(cadence).toBeHidden();
+    await expect(loops).toContainText('L1 · 2h');
+    const updatedYaml = fs.readFileSync(path.join(desktop.workspace, 'loops', 'daily-triage', 'loop.yaml'), 'utf8');
+    expect(updatedYaml).toContain('cadence: 2h');
+    expect(updatedYaml).toContain('name: daily-triage');
+    expect(updatedYaml).toContain('Tier: L1 (report-only)');
+
     if (process.env.ATK_CAPTURE === '1') {
       const receipts = page.locator('button[aria-label^="Dismiss:"]');
       while ((await receipts.count()) > 0) await receipts.first().click();
