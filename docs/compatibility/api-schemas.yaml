@@ -184,6 +184,7 @@ schemas:
       - kind:string
       - description:string
       - source_file:string
+      - 'delegates:string[]'
       - 'compatibility:#LibraryCompatibility[]'
 
   - name: AgentsResponse

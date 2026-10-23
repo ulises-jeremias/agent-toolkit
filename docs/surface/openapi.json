@@ -5091,6 +5091,12 @@
           "source_file": {
             "type": "string"
           },
+          "delegates": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "compatibility": {
             "type": "array",
             "items": {
@@ -5104,6 +5110,7 @@
           "kind",
           "description",
           "source_file",
+          "delegates",
           "compatibility"
         ]
       },

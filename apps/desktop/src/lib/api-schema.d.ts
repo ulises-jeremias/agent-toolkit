@@ -1720,6 +1720,7 @@ export interface components {
             kind: string;
             description: string;
             source_file: string;
+            delegates: string[];
             compatibility: components["schemas"]["LibraryCompatibility"][];
         };
         AgentsResponse: {

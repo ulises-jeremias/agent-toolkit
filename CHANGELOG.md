@@ -22,6 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Library agent definitions now show a delegation graph: the
+  backend reports each definition's real `delegates` frontmatter
+  on `AgentInfo`, and the Agent definitions panel renders the
+  resulting edges (assistant → architect, implementer → tdd-guide,
+  and the rest of the catalog topology). Selecting an edge
+  highlights exactly that pair. This is definition topology from
+  the catalog, not live runtime activity.
 - Workspace now has a real Project Changes panel: pick a linked
   project to see its staged, changed, and untracked files on the
   current branch, inspect a per-file unified diff, stage or unstage
