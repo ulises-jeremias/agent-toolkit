@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Fixed
+
+- L3 loops can now actually merge/close: the supervisor runs the
+  loop's verifier as a separate read-only pass over the acting
+  runner's `proposals.jsonl`, mints target-bound receipts itself
+  (the acting runner never can), and executes approved actions.
+  Refused actions never execute; outcomes land in `executed.jsonl`.
+
 ### Added
 
 - Shortcut map (`?`) now lists the full audited keymap: shell
