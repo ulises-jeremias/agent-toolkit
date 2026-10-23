@@ -425,7 +425,9 @@ test('Operations shows doctor, loops and swarms from live endpoints', async () =
   await expect(page.getByRole('region', { name: 'Loops' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Swarms' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Swarms' })).toContainText(/GET \/api\/v1\/swarms|No swarm runs/);
-  await expect(page.getByRole('region', { name: 'Terminal sessions' })).toContainText(/Terminal healthy|No terminal sessions open/);
+  await expect(page.getByRole('region', { name: 'Terminal sessions' })).toContainText(
+    /Terminal healthy|No terminal sessions open/,
+  );
 });
 
 test('Library installs Skills and preserves user changes during reviewed removal', async () => {
