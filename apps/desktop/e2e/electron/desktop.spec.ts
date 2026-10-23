@@ -437,7 +437,10 @@ test('Library installs Skills and preserves user changes during reviewed removal
   fs.writeFileSync(preservedSkill, 'User-owned skill, keep this file.\n');
   await page.route('**/api/v1/install/reviewed', async (route) => {
     applyRequests += 1;
-    appliedTargets = (route.request().postDataJSON() as { tools: string[] }).tools;
+    appliedTargets = [...appliedTargets, ...(route.request().postDataJSON() as { tools: string[] }).tools];
+    // Slow each per-target transaction down so determinate progress is
+    // observable while the sequential apply runs.
+    await new Promise((resolve) => setTimeout(resolve, 1200));
     await route.continue();
   });
   await page.route('**/api/v1/uninstall/reviewed**', async (route) => {
@@ -500,8 +503,13 @@ test('Library installs Skills and preserves user changes during reviewed removal
     'Tools to install: claude-code, cursor',
   );
   await reviewedInstall.getByRole('button', { name: 'Install reviewed targets' }).click();
+  // Determinate per-target progress: each target is its own reviewed
+  // transaction, so the bar advances as receipts land.
+  const progressBar = reviewedInstall.getByRole('progressbar', { name: 'Installation progress' });
+  await expect(progressBar).toHaveAttribute('aria-valuemax', '2');
+  await expect(reviewedInstall).toContainText('1 of 2 targets settled');
   await expect(page.getByRole('region', { name: 'Receipts' })).toContainText('Toolkit capabilities installed');
-  expect(applyRequests).toBe(1);
+  expect(applyRequests).toBe(2);
   expect(appliedTargets).toEqual(['claude-code', 'cursor']);
   const evidence = page.getByRole('region', { name: 'Installation evidence' });
   await expect(evidence).toContainText('receipts');
