@@ -43,6 +43,38 @@ fn test_list_and_status_loop() {
 	assert cost.cost_status == 'unavailable'
 }
 
+fn test_history_and_audit_report_recorded_tokens() {
+	base := os.join_path(os.temp_dir(), 'atk-loopcat-tokens-${os.getpid()}')
+	os.rmdir_all(base) or {}
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	dir := os.join_path(base, 'loops', 'triage')
+	os.mkdir_all(os.join_path(dir, 'runs', 'run-1')) or { panic(err.msg()) }
+	os.mkdir_all(os.join_path(dir, 'runs', 'run-2')) or { panic(err.msg()) }
+	os.write_file(os.join_path(base, 'AGENTS.md'), '# Workspace\n') or { panic(err.msg()) }
+	os.write_file(os.join_path(dir, 'loop.yaml'), 'name: triage\ntier: L1\ncadence: 1h\ngoal: triage inbox\nbudget:\n  max_tokens: 1000\n  max_runs_per_day: 3\n  max_wall_seconds: 60\n') or {
+		panic(err.msg())
+	}
+	os.write_file(os.join_path(dir, 'STATE.md'), 'last_run: 2026-09-30\nlast_run_status: completed\nlast_run_id: run-2\nruns_today: 2\n') or {
+		panic(err.msg())
+	}
+	// run-1 spent 120 tokens; run-2 spent 30 via prompt/completion parts.
+	// budget_exhausted run_end markers never count as spend.
+	os.write_file(os.join_path(dir, 'runs', 'run-1', 'trace.jsonl'), '{"kind":"token_usage","total_tokens":120}\n{"kind":"run_end","status":"completed"}\n') or {
+		panic(err.msg())
+	}
+	os.write_file(os.join_path(dir, 'runs', 'run-2', 'trace.jsonl'), '{"kind":"prompt","prompt_tokens":10,"completion_tokens":20}\n{"kind":"run_end","status":"budget_exhausted","tokens_used":999,"max_tokens":1000}\n') or {
+		panic(err.msg())
+	}
+	hist := get_loop_history_typed(base, 'triage') or { panic(err.msg()) }
+	assert hist.runs.len == 2
+	assert hist.runs[0].tokens == 120
+	assert hist.runs[1].tokens == 30
+	audit := get_loop_audit_typed(base, 'triage') or { panic(err.msg()) }
+	assert audit.tokens == 150
+}
+
 fn test_missing_loop() {
 	base := setup_catalog_loop()
 	defer {

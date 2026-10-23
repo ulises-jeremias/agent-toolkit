@@ -666,6 +666,7 @@ schemas:
     fields:
       - id:string
       - status:string
+      - tokens:integer
 
   - name: LoopHistoryResponse
     fields:

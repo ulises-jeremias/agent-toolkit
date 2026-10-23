@@ -2482,12 +2482,11 @@ fn audit_loop_dir(loop_dir string) (int, int, int) {
 					failed++
 				}
 			}
-			if line.contains('prompt_tokens') {
-				// best-effort; skeleton traces have none
-			}
 		}
+		// Real recorded spend only: token_usage / prompt / completion
+		// trace events. Traces without them (e.g. skeleton runs) add 0.
+		tokens += tokens_from_trace_text(text)
 	}
-	_ = tokens
 	return completed, failed, tokens
 }
 

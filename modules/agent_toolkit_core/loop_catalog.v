@@ -48,6 +48,9 @@ pub struct LoopHistoryEntry {
 pub:
 	id     string
 	status string
+	// tokens is the run's recorded spend from its trace (token_usage /
+	// prompt / completion events); 0 when the trace records none.
+	tokens int
 }
 
 pub struct LoopHistoryResponse {
@@ -123,9 +126,16 @@ pub fn get_loop_history_typed(workspace string, name string) !LoopHistoryRespons
 			p := os.join_path(rd, n)
 			if os.is_dir(p) {
 				status := loop_run_status(p)
+				trace := os.join_path(p, 'trace.jsonl')
+				tokens := if os.is_file(trace) {
+					tokens_from_trace_text(os.read_file(trace) or { '' })
+				} else {
+					0
+				}
 				runs << LoopHistoryEntry{
 					id: n
 					status: status
+					tokens: tokens
 				}
 			}
 		}
