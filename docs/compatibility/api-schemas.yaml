@@ -786,11 +786,13 @@ schemas:
       - detail:string
 
   - name: ProjectGitPathsRequest
+    v_struct: ProjectGitPathsReq
     fields:
       - workspace:string
       - 'paths:string[]'
 
   - name: ProjectGitCommitRequest
+    v_struct: ProjectGitCommitReq
     fields:
       - workspace:string
       - message:string
