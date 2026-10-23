@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ProjectGitStatusResponse } from '../../lib/api';
-import { diffLineTone, isClean, totalChanges } from './projectGit';
+import { diffLineTone, isClean, splitDiffHunks, totalChanges } from './projectGit';
 
 const status = (over: Partial<ProjectGitStatusResponse>): ProjectGitStatusResponse => ({
   ok: true,
@@ -36,5 +36,28 @@ describe('status helpers', () => {
     expect(isClean(dirty)).toBe(false);
     expect(isClean(status({}))).toBe(true);
     expect(isClean(status({ ok: false, detail: 'not a git repository' }))).toBe(false);
+  });
+});
+
+describe('splitDiffHunks', () => {
+  it('splits hunks with headers and bodies, ignoring the file header', () => {
+    const diff = [
+      'diff --git a/a.txt b/a.txt',
+      '--- a/a.txt',
+      '+++ b/a.txt',
+      '@@ -1,2 +1,3 @@',
+      ' one',
+      '+two',
+      '@@ -5,2 +6,2 @@',
+      ' five',
+      '-six',
+      '+sixx',
+    ].join('\n');
+    const hunks = splitDiffHunks(diff);
+    expect(hunks).toHaveLength(2);
+    expect(hunks[0]?.header).toBe('@@ -1,2 +1,3 @@');
+    expect(hunks[0]?.lines).toContain('+two');
+    expect(hunks[1]?.lines).toContain('+sixx');
+    expect(splitDiffHunks('')).toEqual([]);
   });
 });

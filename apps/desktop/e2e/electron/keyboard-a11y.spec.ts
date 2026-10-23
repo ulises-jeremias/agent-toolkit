@@ -101,3 +101,35 @@ test('Keyboard-only: reduced-motion preference is honored by the shell', async (
     await desktop.close();
   }
 });
+
+test('Keyboard: shortcut map lists shell and world bindings; Esc closes only the innermost layer', async () => {
+  const desktop = await openDesktop();
+  try {
+    const { page } = desktop;
+    await waitForBackend(page);
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+
+    // '?' opens the audited shortcut map.
+    await page.keyboard.press('?');
+    const map = page.getByRole('dialog', { name: 'Keyboard shortcuts' });
+    await expect(map).toBeVisible();
+    await expect(map).toContainText(/command palette/i);
+    await expect(map).toContainText(/in the World/i);
+    await expect(map).toContainText(/Interact with the nearest place/i);
+
+    // Esc closes the map — and nothing else: the app stays on World.
+    await page.keyboard.press('Escape');
+    await expect(map).toBeHidden();
+    await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+
+    // Ctrl+K opens the palette; Esc closes it without quitting.
+    await page.keyboard.press('Control+k');
+    await expect(page.getByLabel('Filter commands').first()).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByLabel('Filter commands').first()).toBeHidden();
+    await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
+  } finally {
+    await desktop.close();
+  }
+});

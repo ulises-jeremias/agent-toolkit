@@ -334,10 +334,26 @@ export function recoverableSwarmCommands(
     }));
 }
 
-export const SHORTCUTS: ReadonlyArray<{ keys: readonly string[]; action: string }> = [
-  { keys: ['Ctrl', 'K'], action: 'Open the command palette' },
-  { keys: ['Esc'], action: 'Close the innermost dialog' },
-  { keys: ['?'], action: 'Show this shortcut map' },
+export interface ShortcutRow {
+  keys: readonly string[];
+  action: string;
+  scope: 'shell' | 'world';
+}
+
+/**
+ * The audited keymap (#1117). Shell bindings are registered globally in
+ * CommandPalette; world bindings live in WorldEntityMap and only apply
+ * while the world region holds focus and the user is not typing. Keys may
+ * repeat across scopes (Esc, arrows) because scope decides precedence —
+ * never within one scope.
+ */
+export const SHORTCUTS: ReadonlyArray<ShortcutRow> = [
+  { keys: ['Ctrl', 'K'], action: 'Open the command palette', scope: 'shell' },
+  { keys: ['Esc'], action: 'Close the innermost dialog or leave the current overlay', scope: 'shell' },
+  { keys: ['?'], action: 'Show this shortcut map', scope: 'shell' },
+  { keys: ['W', 'A', 'S', 'D'], action: 'Walk (or use the arrow keys)', scope: 'world' },
+  { keys: ['E'], action: 'Interact with the nearest place', scope: 'world' },
+  { keys: ['Home'], action: 'Fit the whole world in view', scope: 'world' },
 ];
 
 export function filterCommands(commands: readonly PaletteCommand[], query: string): PaletteCommand[] {

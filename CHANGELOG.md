@@ -12,6 +12,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- L3 loops can now actually merge/close: the supervisor runs the
+  loop's verifier as a separate read-only pass over the acting
+  runner's `proposals.jsonl`, mints target-bound receipts itself
+  (the acting runner never can), and executes approved actions.
+  Refused actions never execute; outcomes land in `executed.jsonl`.
+
+### Added
+
+- Project Changes now stages or unstages a single diff hunk:
+  each hunk in the diff pane carries its own Stage/Unstage action,
+  backed by a new typed `git/stage-hunk` route that applies exactly
+  one hunk to the index (`git apply --cached`, reversed to unstage).
+
+- Shortcut map (`?`) now lists the full audited keymap: shell
+  bindings (Ctrl/Cmd+K, Esc, ?) and World bindings (WASD/arrows,
+  E, Home), each marked with its scope. A unit test guards against
+  duplicate keys within a scope.
+
+- Responsive layout E2E now covers the full supported matrix per
+  size (1280x800, 1024x768, 1024x640): shell chrome, a primary
+  action, a dense destination (Library board), the terminal dock,
+  and per-size screenshots; plus the Dusk theme at the minimum size
+  and a HiDPI launch at device scale factor 2.
+
+- Doctor in Operations now shows a live Terminal sessions row:
+  PTY host availability, running/exited session counts from real
+  exit codes, and the coding-agent runners detected by the backend.
+  When the PTY bridge is unavailable the row reports that honestly
+  instead of implying terminal health.
+
+### Fixed
+
 - Starting a Person session with OpenCode no longer dies instantly
   when a swarm model profile is selected: profiles carry shorthand
   ids (`haiku`, `sonnet`, `opus`) that OpenCode v2 rejects

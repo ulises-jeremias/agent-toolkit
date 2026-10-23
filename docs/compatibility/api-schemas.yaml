@@ -792,6 +792,14 @@ schemas:
       - workspace:string
       - 'paths:string[]'
 
+  - name: ProjectGitHunkRequest
+    v_struct: ProjectGitHunkReq
+    fields:
+      - workspace:string
+      - path:string
+      - staged:boolean
+      - hunk:integer
+
   - name: ProjectGitCommitRequest
     v_struct: ProjectGitCommitReq
     fields:
@@ -936,6 +944,15 @@ native:
     op: project_git_unstage
     summary: Unstage selected files in a registered project repository without touching working-tree contents
     request: '#ProjectGitPathsRequest'
+    response: '#ProjectGitStatusResponse'
+    errors:
+      - '400:invalid project id or path'
+      - '404:project not found'
+  - path: /api/v1/projects/{id}/git/stage-hunk
+    method: post
+    op: project_git_stage_hunk
+    summary: Stage or unstage exactly one hunk of a file in a registered project repository
+    request: '#ProjectGitHunkRequest'
     response: '#ProjectGitStatusResponse'
     errors:
       - '400:invalid project id or path'

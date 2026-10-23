@@ -1391,6 +1391,56 @@
         }
       }
     },
+    "/api/v1/projects/{id}/git/stage-hunk": {
+      "post": {
+        "operationId": "project_git_stage_hunk",
+        "summary": "Stage or unstage exactly one hunk of a file in a registered project repository",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectGitStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid project id or path",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "project not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/{id}/git/commit": {
       "post": {
         "operationId": "project_git_commit",
@@ -7200,6 +7250,29 @@
         "required": [
           "workspace",
           "paths"
+        ]
+      },
+      "ProjectGitHunkRequest": {
+        "type": "object",
+        "properties": {
+          "workspace": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "staged": {
+            "type": "boolean"
+          },
+          "hunk": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "workspace",
+          "path",
+          "staged",
+          "hunk"
         ]
       },
       "ProjectGitCommitRequest": {

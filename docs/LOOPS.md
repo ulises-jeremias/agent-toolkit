@@ -74,6 +74,7 @@ When a loop posts a GitHub comment or review body via `gh`, the V runner's in-pr
 
 - **Default:** enabled for every loop run (no config required).
 - **Identity:** actions are bound to the current run; L3 merge and close actions require a fresh verifier receipt.
+- **Verifier receipts (#1650):** the acting runner never mints receipts. It records intended merge/close actions in `run_dir/proposals.jsonl`; after the run, the supervisor invokes the loop's `verifier` as a separate read-only runner pass (`run_dir/verdicts.jsonl`), mints a target-bound receipt per approved action, and executes the real `gh` argv itself. Outcomes are recorded in `run_dir/executed.jsonl`; refused or unproposed actions never execute. The verifier pass is skipped when the acting run failed (non-zero exit or wall timeout), so proposals from a failed run never execute.
 - **Idempotent:** bodies that already start with `> 🤖 AI-assisted` are left unchanged.
 - **Disable per loop:**
 
