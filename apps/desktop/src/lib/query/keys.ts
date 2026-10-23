@@ -55,6 +55,9 @@ export const qk = {
 
   projects: {
     list: (workspace = '') => ['projects', 'list', workspace] as const,
+    gitStatus: (workspace = '', project = '') => ['projects', 'git-status', workspace, project] as const,
+    gitDiff: (workspace = '', project = '', path = '', staged = false) =>
+      ['projects', 'git-diff', workspace, project, path, staged] as const,
   },
 
   workspacePacks: {

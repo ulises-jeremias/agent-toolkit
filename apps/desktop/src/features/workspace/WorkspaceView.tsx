@@ -20,6 +20,7 @@ import {
   useActionReceipt,
 } from '../../ui';
 import { FilesPanel } from './FilesPanel';
+import { ProjectChangesPanel } from './ProjectChangesPanel';
 import { WorkspacePacksPanel } from './WorkspacePacksPanel';
 import { displayLocationName } from '../../shell/sessionContext';
 import { useSessionContext } from '../../shell/useSessionContext';
@@ -227,6 +228,7 @@ export default function WorkspaceView() {
             ) : null}
           </Panel>
         </div>
+        {path ? <ProjectChangesPanel workspace={path} projects={linkedProjects} /> : null}
         <Grid>
           <Panel
             title="Personas"
