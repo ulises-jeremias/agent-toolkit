@@ -459,7 +459,8 @@ pub:
 }
 
 struct InstallReviewedReq {
-	tools []string
+	tools  []string
+	skills []string
 }
 
 struct CopilotProjectInstallReq {
@@ -1008,9 +1009,12 @@ pub fn (app &App) install_preview(mut ctx Ctx) veb.Result {
 	}
 	tools_raw := ctx.query['tools'] or { '' }
 	tools := if tools_raw.len > 0 { tools_raw.split(',') } else { []string{} }
+	skills_raw := ctx.query['skills'] or { '' }
+	skills := if skills_raw.len > 0 { skills_raw.split(',') } else { []string{} }
 	return ctx.json(cmd_resp(agent_toolkit_core.install_result(agent_toolkit_core.run_install(agent_toolkit_core.InstallOptions{
 		dry_run: true
 		tools: tools
+		skills: skills
 	}))))
 }
 
@@ -1044,9 +1048,22 @@ pub fn (app &App) install_reviewed(mut ctx Ctx) veb.Result {
 		}
 		seen << tool
 	}
+	if req.skills.len > 64 {
+		ctx.res.set_status(.unprocessable_entity)
+		return ctx.json(DenyErr{ ok: false, error: 'too many skills selected' })
+	}
+	mut seen_skills := []string{}
+	for skill in req.skills {
+		if skill in seen_skills {
+			ctx.res.set_status(.unprocessable_entity)
+			return ctx.json(DenyErr{ ok: false, error: 'duplicate skill selected: ${skill}' })
+		}
+		seen_skills << skill
+	}
 	return ctx.json(app.run_install_action('install', fn [req] () agent_toolkit_core.CommandResult {
 		return agent_toolkit_core.install_result(agent_toolkit_core.run_install(agent_toolkit_core.InstallOptions{
 			tools: req.tools
+			skills: req.skills
 		}))
 	}))
 }

@@ -15,6 +15,7 @@ const install_muse_products = ['agent-toolkit-complete', 'agent-toolkit-core']
 pub struct InstallOptions {
 pub:
 	tools             []string
+	skills            []string // empty → every catalog Skill; non-empty → only these Skill names
 	dry_run           bool
 	force             bool
 	offline           bool
@@ -89,6 +90,25 @@ pub fn run_install(opts InstallOptions) InstallReport {
 			return report
 		}
 	}
+	// A Skill selection is validated against the catalog layout before any
+	// tool runs, so an unknown name can never produce a partial install.
+	if opts.skills.len > 0 {
+		layout := load_skills_layout(data_root) or {
+			report.ok = false
+			report.message = 'cannot read the skills layout to validate the selection: ${err}'
+			return report
+		}
+		known := layout.skills.map(it.name)
+		unknown := opts.skills.filter(it !in known)
+		if unknown.len > 0 {
+			report.ok = false
+			report.failures = unknown.clone()
+			report.message = 'unknown skill(s): ${unknown.join(', ')}. Run `agent-toolkit skills list` to see catalog names.'
+			return report
+		}
+		lines << '  [info]  Skills selected: ${opts.skills.join(', ')} (other catalog Skills are left untouched)'
+	}
+
 	mut canonical_tools := []string{}
 	for tool in tools {
 		canonical := canonical_install_tool(tool)
@@ -125,7 +145,8 @@ pub fn run_install(opts InstallOptions) InstallReport {
 			report.skipped++
 			continue
 		}
-		ok, tool_files, tool_lines := install_one_tool(canonical, data_root, home, receipt_dir, opts.dry_run, opts.force)
+		ok, tool_files, tool_lines := install_one_tool(canonical, data_root, home, receipt_dir, opts.dry_run,
+			opts.force, opts.skills)
 		lines << tool_lines
 		files += tool_files
 		if ok {
@@ -226,7 +247,7 @@ fn install_tool_on_path(name string) bool {
 	return true
 }
 
-fn install_one_tool(tool string, data_root string, home string, receipt_dir string, dry_run bool, force bool) (bool, int, string) {
+fn install_one_tool(tool string, data_root string, home string, receipt_dir string, dry_run bool, force bool, skills []string) (bool, int, string) {
 	mut lines := []string{}
 	lines << ''
 	lines << if dry_run { '  [info]  Reviewing: ${tool}' } else { '  [info]  Installing: ${tool}' }
@@ -234,13 +255,28 @@ fn install_one_tool(tool string, data_root string, home string, receipt_dir stri
 		lines << '  ⚠  Profile source not found for ${tool}'
 		return false, 0, lines.join('\n')
 	}
-	mappings := install_file_mappings(tool, data_root, home) or {
+	mut mappings := install_file_mappings(tool, data_root, home) or {
 		lines << '  ✗  Cannot prepare install mappings: ${err}'
 		return false, 0, lines.join('\n')
 	}
 	if mappings.len == 0 {
 		lines << '  ⚠  No installable files for ${tool}'
 		return false, 0, lines.join('\n')
+	}
+	// Filtered installs write only the selected Skills' files. The prior
+	// receipt is captured now because commit replaces the receipt file:
+	// its entries for other Skills are union-merged back afterwards, and
+	// stale cleanup is skipped entirely so a subset install can never
+	// delete files belonging to Skills outside the selection.
+	filtered := skills.len > 0
+	prior_receipt := load_install_receipt(tool, profiles_product, receipt_dir)
+	if filtered {
+		mappings = filter_skill_mappings(mappings, skills, data_root)
+		if mappings.len == 0 {
+			lines << '  ✗  The Skill selection does not apply to ${tool}: it has no catalog Skill files to install'
+			return false, 0, lines.join('\n')
+		}
+		lines << '  [info]  Installing only the selected Skills for ${tool}; previously installed files are kept'
 	}
 	mut tx := new_install_transaction(tool, InstallTxOptions{
 		dry_run: dry_run
@@ -302,10 +338,14 @@ fn install_one_tool(tool string, data_root string, home string, receipt_dir stri
 	// Safe migration: remove stale Toolkit-owned files that are in the prior receipt
 	// but no longer present in the new install set (#872). Preserves user files:
 	// only removes paths listed in the prior receipt with ownership == 'created'
-	// and not in current mappings. Skips path escapes.
-	stale := cleanup_stale_install_files(tool, receipt_dir, home, mappings, dry_run)
-	for s in stale {
-		lines << s
+	// and not in current mappings. Skips path escapes. Filtered installs skip
+	// this: the new mapping set deliberately omits other Skills, so treating
+	// them as stale would delete them.
+	if !filtered {
+		stale := cleanup_stale_install_files(tool, receipt_dir, home, mappings, dry_run)
+		for s in stale {
+			lines << s
+		}
 	}
 	path := tx.commit() or {
 		lines << '  ✗  Install commit failed: ${err}'
@@ -313,6 +353,12 @@ fn install_one_tool(tool string, data_root string, home string, receipt_dir stri
 	}
 	if path.len > 0 {
 		lines << '  ✓  Saved install receipt for ${tool}'
+		if filtered {
+			merge_note := merge_filtered_receipt(tool, receipt_dir, prior_receipt)
+			if merge_note.len > 0 {
+				lines << merge_note
+			}
+		}
 	}
 	if planned == 0 {
 		lines << if dry_run {
@@ -516,6 +562,88 @@ fn install_file_mappings(tool string, data_root string, home string) ![]FileMapp
 		else {}
 	}
 	return mappings
+}
+
+// skill_name_for_src resolves the catalog Skill name a mapping source
+// belongs to: `skills/<domain>/<name>/…` in the catalog tree, or
+// `skills/<name>/…` in compiled bundle trees. Returns '' when the source
+// is not a Skill file (profiles, agent definitions, configs).
+fn skill_name_for_src(src string, domains map[string]bool, names map[string]bool) string {
+	parts := src.replace('\\', '/').split('/')
+	for i, seg in parts {
+		if seg != 'skills' || i + 1 >= parts.len {
+			continue
+		}
+		first := parts[i + 1]
+		if first in domains {
+			if i + 2 < parts.len && parts[i + 2] in names {
+				return parts[i + 2]
+			}
+			continue
+		}
+		if first in names {
+			return first
+		}
+	}
+	return ''
+}
+
+// filter_skill_mappings keeps only mappings whose source file belongs to
+// one of the selected catalog Skills. Profile files, Agent Definitions,
+// and other Skills' files are excluded, so a filtered install writes
+// exactly the reviewed selection.
+fn filter_skill_mappings(mappings []FileMapping, selected []string, data_root string) []FileMapping {
+	mut domains := map[string]bool{}
+	mut names := map[string]bool{}
+	layout := load_skills_layout(data_root) or { SkillsLayoutFile{} }
+	for skill in layout.skills {
+		domains[skill.domain] = true
+		names[skill.name] = true
+	}
+	for name in selected {
+		names[name] = true
+	}
+	selected_set := map_from_list(selected)
+	return mappings.filter(skill_name_for_src(it.src, domains, names) in selected_set)
+}
+
+fn map_from_list(items []string) map[string]bool {
+	mut out := map[string]bool{}
+	for item in items {
+		out[item] = true
+	}
+	return out
+}
+
+// merge_filtered_receipt unions the artifacts recorded before a filtered
+// install into the receipt the commit just saved, so receipt-backed
+// evidence and uninstall keep covering Skills installed by earlier runs.
+// New entries win on path conflicts. Returns a report line ('' when there
+// was nothing to keep).
+fn merge_filtered_receipt(tool string, receipt_dir string, prior ?InstallReceipt) string {
+	prior_receipt := prior or { return '' }
+	if prior_receipt.artifacts.len == 0 {
+		return ''
+	}
+	mut current := load_install_receipt(tool, profiles_product, receipt_dir) or { return '' }
+	mut known := map[string]bool{}
+	for artifact in current.artifacts {
+		known[artifact.path] = true
+	}
+	mut kept := 0
+	for artifact in prior_receipt.artifacts {
+		if artifact.path !in known {
+			current.artifacts << artifact
+			kept++
+		}
+	}
+	if kept == 0 {
+		return ''
+	}
+	save_install_receipt(mut current, receipt_dir) or {
+		return '  ⚠  Could not keep prior receipt entries: ${err}'
+	}
+	return '  [info]  Kept ${kept} receipt file(s) from earlier installs of other Skills'
 }
 
 // catalog_skill_mappings installs each reusable skill as a complete directory,

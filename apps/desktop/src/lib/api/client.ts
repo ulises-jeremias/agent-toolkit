@@ -186,15 +186,19 @@ export class ApiClient {
     return toEnvelope(await this.json<unknown>('POST', OPERATION_PATHS[kind]));
   }
 
-  async installPreview(tools?: readonly string[]): Promise<InstallPreviewResponse> {
+  async installPreview(tools?: readonly string[], skills?: readonly string[]): Promise<InstallPreviewResponse> {
+    const query = {
+      ...(tools?.length ? { tools: tools.join(',') } : {}),
+      ...(skills?.length ? { skills: skills.join(',') } : {}),
+    };
     return this.json<InstallPreviewResponse>('GET', '/api/v1/install/preview' satisfies PathWith<'get'>, {
-      query: tools?.length ? { tools: tools.join(',') } : undefined,
+      query: Object.keys(query).length > 0 ? query : undefined,
     });
   }
 
-  async installReviewed(tools: readonly string[]): Promise<InstallPreviewResponse> {
+  async installReviewed(tools: readonly string[], skills?: readonly string[]): Promise<InstallPreviewResponse> {
     return this.json<InstallPreviewResponse>('POST', '/api/v1/install/reviewed' satisfies PathWith<'post'>, {
-      body: { tools },
+      body: { tools, skills: skills ?? [] },
     });
   }
 

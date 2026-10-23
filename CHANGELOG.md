@@ -12,6 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Skills can now be installed individually: the engine accepts a
+  Skill selection (`agent-toolkit install --skills review,planner`,
+  also on the typed install preview/reviewed routes) that writes
+  only the selected Skills' files for each target. Subset installs
+  are receipt-safe by construction: stale-file cleanup is skipped
+  (a subset can never delete Skills outside the selection), the
+  saved receipt union-merges entries from earlier installs, unknown
+  Skill names abort before anything is written, and targets without
+  catalog Skill files fail loudly instead of installing their whole
+  profile. The Library gains per-Skill checkboxes and an
+  "Install selected (N)" reviewed dialog (preview must be `ok`
+  before applying). This completes the remaining item of the Skills
+  master-detail/batch-install issue.
 - The Library Skills catalog is now a master-detail view: a compact
   selectable list (receipt state stays visible per Skill) beside a
   detail pane with the full description, domain, origin, source

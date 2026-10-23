@@ -1403,6 +1403,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "skills",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4305,10 +4313,17 @@
             "items": {
               "type": "string"
             }
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
-          "tools"
+          "tools",
+          "skills"
         ]
       },
       "CopilotProjectInstallRequest": {

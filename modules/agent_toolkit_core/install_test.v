@@ -3,6 +3,92 @@ module agent_toolkit_core
 import crypto.sha256
 import os
 
+fn test_install_skills_filter_installs_subset_and_never_removes_other_skills() {
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-filter-${os.getpid()}')
+	data := os.join_path(base, 'data')
+	home := os.join_path(base, 'home')
+	receipt_dir := os.join_path(base, 'receipts')
+	os.mkdir_all(os.join_path(data, 'profiles', 'claude-code')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(data, 'profiles', 'cursor', 'rules')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(data, 'catalogs')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(data, 'skills', 'review', 'reviewer')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(data, 'skills', 'core', 'planner')) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	os.write_file(os.join_path(data, 'catalogs', 'skills-layout.json'), '{"skills":[{"id":"review/reviewer","name":"reviewer","domain":"review"},{"id":"core/planner","name":"planner","domain":"core"}]}') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(data, 'skills', 'review', 'reviewer', 'SKILL.md'), 'Reviewer skill\n') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(data, 'skills', 'core', 'planner', 'SKILL.md'), 'Planner skill\n') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(data, 'profiles', 'cursor', 'rules', 'base.md'), 'Rule\n') or {
+		assert false, err.msg()
+	}
+	reviewer_dst := os.join_path(home, '.claude', 'skills', 'reviewer', 'SKILL.md')
+	planner_dst := os.join_path(home, '.claude', 'skills', 'planner', 'SKILL.md')
+
+	// Subset install writes only the selected Skill.
+	first := run_install(InstallOptions{
+		tools: ['claude-code']
+		skills: ['reviewer']
+		home_dir: home
+		data_root: data
+		receipt_dir: receipt_dir
+	})
+	assert first.ok, first.message
+	assert os.is_file(reviewer_dst)
+	assert !os.is_file(planner_dst)
+
+	// A second subset install must not delete the first Skill (stale
+	// cleanup is skipped for filtered installs) and the receipt must keep
+	// covering both Skills (union merge, not replacement).
+	second := run_install(InstallOptions{
+		tools: ['claude-code']
+		skills: ['planner']
+		home_dir: home
+		data_root: data
+		receipt_dir: receipt_dir
+	})
+	assert second.ok, second.message
+	assert os.is_file(planner_dst)
+	assert os.is_file(reviewer_dst), 'filtered install removed a Skill outside the selection'
+	receipt := load_install_receipt('claude-code', profiles_product, receipt_dir) or {
+		assert false, 'receipt missing after filtered installs'
+		return
+	}
+	paths := receipt.artifacts.map(it.path)
+	assert reviewer_dst in paths, 'receipt lost the first Skill after the second filtered install'
+	assert planner_dst in paths
+
+	// Unknown names abort before anything is written.
+	unknown := run_install(InstallOptions{
+		tools: ['claude-code']
+		skills: ['nope']
+		home_dir: home
+		data_root: data
+		receipt_dir: receipt_dir
+	})
+	assert !unknown.ok
+	assert unknown.message.contains('unknown skill')
+
+	// A target without catalog Skill files fails loudly instead of
+	// silently installing its whole profile.
+	not_applicable := run_install(InstallOptions{
+		tools: ['cursor']
+		skills: ['reviewer']
+		home_dir: home
+		data_root: data
+		receipt_dir: receipt_dir
+	})
+	assert !not_applicable.ok, not_applicable.message
+	assert not_applicable.message.contains('does not apply to cursor')
+	assert !os.is_file(os.join_path(home, '.cursor', 'rules', 'base.md'))
+}
+
 fn test_install_claude_previews_complete_skills_and_preserves_user_conflicts() {
 	base := os.join_path(os.real_path(os.temp_dir()), 'at-ins-skills-${os.getpid()}')
 	data := os.join_path(base, 'data')

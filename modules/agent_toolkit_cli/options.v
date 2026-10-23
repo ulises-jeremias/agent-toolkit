@@ -161,6 +161,7 @@ fn parse_install_options(args []string) !agent_toolkit_core.InstallOptions {
 	mut force := false
 	mut offline := false
 	mut tools_raw := ''
+	mut skills_raw := ''
 	mut i := 0
 	for i < args.len {
 		a := args[i]
@@ -180,6 +181,19 @@ fn parse_install_options(args []string) !agent_toolkit_core.InstallOptions {
 		}
 		if a == '--offline' {
 			offline = true
+			i++
+			continue
+		}
+		if a == '--skills' {
+			if i + 1 >= args.len {
+				return error('--skills requires an argument')
+			}
+			skills_raw = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--skills=') {
+			skills_raw = a.all_after('=')
 			i++
 			continue
 		}
@@ -207,8 +221,18 @@ fn parse_install_options(args []string) !agent_toolkit_core.InstallOptions {
 			}
 		}
 	}
+	mut skills := []string{}
+	if skills_raw.len > 0 {
+		for part in skills_raw.split(',') {
+			s := part.trim_space()
+			if s.len > 0 {
+				skills << s
+			}
+		}
+	}
 	return agent_toolkit_core.InstallOptions{
 		tools: tools
+		skills: skills
 		dry_run: dry_run
 		force: force
 		offline: offline
