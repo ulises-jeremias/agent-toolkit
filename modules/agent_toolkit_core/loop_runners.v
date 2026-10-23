@@ -383,29 +383,41 @@ fn run_loop_llm(ws string, loop_name string, meta LoopMeta, loop_dir string, rid
 			}
 		}
 	}
-	trace := '{"kind":"run_end","status":"completed","runner":' + json2.encode(runner_name,
+	status := runner_run_status(res)
+	trace := '{"kind":"run_end","status":"${status}","runner":' + json2.encode(runner_name,
 		escape_unicode: true
 	) + ',"run_id":' + json2.encode(rid,
 		escape_unicode: true
 	) + ',"transcript":"transcript.log","exit_code":${res.exit_code},"timed_out":${res.timed_out},"elapsed_sec":${res.elapsed_sec}}\n'
 	os.write_file(os.join_path(run_dir, 'trace.jsonl'), trace) or {}
-	write_state_md(loop_dir, time.utc().format_rfc3339(), 'completed', rid, runs_today + 1, escalations)
+	write_state_md(loop_dir, time.utc().format_rfc3339(), status, rid, runs_today + 1, escalations)
 	lines << '[loop] transcript → ${res.transcript} (exit ${res.exit_code}, ${res.elapsed_sec}s)'
 	if res.timed_out {
 		lines << '[loop] wall timeout hit — runner killed, token accounting skipped (PR2 tailer)'
+	} else if res.exit_code != 0 {
+		lines << '[loop] runner ${runner_name} exited ${res.exit_code} — run marked failed; see transcript'
 	}
-	lines << '[loop] STATE.md updated (completed, runs_today+1)'
+	lines << '[loop] STATE.md updated (${status}, runs_today+1)'
 	return LoopReport{
-		ok:      true
+		ok:      status == 'completed'
 		message: lines.join('\n')
 		data:    {
 			'subcommand': 'run'
 			'workspace':  ws
 			'name':       loop_name
 			'run_id':     rid
-			'status':     'completed'
+			'status':     status
 			'runner':     runner_name
 			'transcript': res.transcript
 		}
 	}
+}
+
+// runner_run_status maps a finished runner to the run_end/STATE status: a
+// non-zero exit or a wall timeout is a failed run, not a completed one.
+pub fn runner_run_status(res RunnerResult) string {
+	if res.timed_out || res.exit_code != 0 {
+		return 'failed'
+	}
+	return 'completed'
 }
