@@ -22,6 +22,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Workspace now has a real Project Changes panel: pick a linked
+  project to see its staged, changed, and untracked files on the
+  current branch, inspect a per-file unified diff, stage or unstage
+  individual files, and commit the staged set with an explicit
+  message — all through new typed backend git routes
+  (`/api/v1/projects/{id}/git/status|diff|stage|unstage|commit`)
+  that run the user's own git with argv only and validate every
+  path as repository-relative before git sees it.
 - Capability installs now show determinate progress: the reviewed
   apply runs one backend transaction per target (each already lands
   its own receipt), and both the full install dialog and the

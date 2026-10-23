@@ -26,6 +26,8 @@ import type {
   PersonSessionResponse,
   PersonSessionsResponse,
   Person,
+  ProjectGitDiffResponse,
+  ProjectGitStatusResponse,
   ProjectIssuesResponse,
   ProjectListResponse,
   ProvidersResponse,
@@ -459,6 +461,44 @@ export class ApiClient {
     return this.json('GET', fillPath('/api/v1/projects/{id}/issues' satisfies PathWith<'get'>, { id: projectId }), {
       query: { workspace },
     });
+  }
+
+  projectGitStatus(workspace: string, projectId: string): Promise<ProjectGitStatusResponse> {
+    return this.json('GET', fillPath('/api/v1/projects/{id}/git/status' satisfies PathWith<'get'>, { id: projectId }), {
+      query: { workspace },
+    });
+  }
+
+  projectGitDiff(workspace: string, projectId: string, path: string, staged: boolean): Promise<ProjectGitDiffResponse> {
+    return this.json('GET', fillPath('/api/v1/projects/{id}/git/diff' satisfies PathWith<'get'>, { id: projectId }), {
+      query: { workspace, path, staged: staged ? '1' : '0' },
+    });
+  }
+
+  projectGitStage(workspace: string, projectId: string, paths: string[]): Promise<ProjectGitStatusResponse> {
+    return this.json(
+      'POST',
+      fillPath('/api/v1/projects/{id}/git/stage' satisfies PathWith<'post'>, { id: projectId }),
+      {
+        body: { workspace, paths },
+      },
+    );
+  }
+
+  projectGitUnstage(workspace: string, projectId: string, paths: string[]): Promise<ProjectGitStatusResponse> {
+    return this.json(
+      'POST',
+      fillPath('/api/v1/projects/{id}/git/unstage' satisfies PathWith<'post'>, { id: projectId }),
+      { body: { workspace, paths } },
+    );
+  }
+
+  projectGitCommit(workspace: string, projectId: string, message: string): Promise<ProjectGitStatusResponse> {
+    return this.json(
+      'POST',
+      fillPath('/api/v1/projects/{id}/git/commit' satisfies PathWith<'post'>, { id: projectId }),
+      { body: { workspace, message } },
+    );
   }
 
   workspacePacks(workspace: string): Promise<WorkspacePacksResponse> {

@@ -757,6 +757,46 @@ schemas:
       - 'issues:#GithubIssueView[]'
       - detail:string
 
+  - name: GitFileChange
+    v_struct: GitFileChange
+    fields:
+      - path:string
+      - code:string
+
+  - name: ProjectGitStatusResponse
+    v_struct: ProjectGitStatusResponse
+    fields:
+      - ok:boolean
+      - project:string
+      - branch:string
+      - 'staged:#GitFileChange[]'
+      - 'unstaged:#GitFileChange[]'
+      - 'untracked:#GitFileChange[]'
+      - detail:string
+
+  - name: ProjectGitDiffResponse
+    v_struct: ProjectGitDiffResponse
+    fields:
+      - ok:boolean
+      - project:string
+      - path:string
+      - staged:boolean
+      - diff:string
+      - truncated:boolean
+      - detail:string
+
+  - name: ProjectGitPathsRequest
+    v_struct: ProjectGitPathsReq
+    fields:
+      - workspace:string
+      - 'paths:string[]'
+
+  - name: ProjectGitCommitRequest
+    v_struct: ProjectGitCommitReq
+    fields:
+      - workspace:string
+      - message:string
+
   - name: ProjectListResponse
     v_struct: ProjectListResponse
     fields:
@@ -862,6 +902,51 @@ native:
     response: '#ProjectIssuesResponse'
     errors:
       - '400:invalid project id'
+      - '404:project not found'
+  - path: /api/v1/projects/{id}/git/status
+    method: get
+    op: project_git_status
+    summary: Read staged, unstaged and untracked changes for a registered project repository
+    query_params: ['workspace?:string']
+    response: '#ProjectGitStatusResponse'
+    errors:
+      - '400:invalid project id'
+      - '404:project not found'
+  - path: /api/v1/projects/{id}/git/diff
+    method: get
+    op: project_git_diff
+    summary: Read the unified diff for one file in a registered project repository
+    query_params: ['workspace?:string', 'path:string', 'staged?:string']
+    response: '#ProjectGitDiffResponse'
+    errors:
+      - '400:invalid project id or path'
+      - '404:project not found'
+  - path: /api/v1/projects/{id}/git/stage
+    method: post
+    op: project_git_stage
+    summary: Stage selected files in a registered project repository
+    request: '#ProjectGitPathsRequest'
+    response: '#ProjectGitStatusResponse'
+    errors:
+      - '400:invalid project id or path'
+      - '404:project not found'
+  - path: /api/v1/projects/{id}/git/unstage
+    method: post
+    op: project_git_unstage
+    summary: Unstage selected files in a registered project repository without touching working-tree contents
+    request: '#ProjectGitPathsRequest'
+    response: '#ProjectGitStatusResponse'
+    errors:
+      - '400:invalid project id or path'
+      - '404:project not found'
+  - path: /api/v1/projects/{id}/git/commit
+    method: post
+    op: project_git_commit
+    summary: Commit the staged index of a registered project repository with an explicit message
+    request: '#ProjectGitCommitRequest'
+    response: '#ProjectGitStatusResponse'
+    errors:
+      - '400:invalid project id or empty commit message'
       - '404:project not found'
   - path: /api/v1/workspace/packs/list
     method: get
