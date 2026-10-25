@@ -786,6 +786,30 @@ schemas:
       - truncated:boolean
       - detail:string
 
+  - name: GitCommitInfo
+    fields:
+      - hash:string
+      - short:string
+      - subject:string
+      - author:string
+      - date:string
+
+  - name: ProjectGitLogResponse
+    fields:
+      - ok:boolean
+      - project:string
+      - 'commits:#GitCommitInfo[]'
+      - detail:string
+
+  - name: ProjectGitShowResponse
+    fields:
+      - ok:boolean
+      - project:string
+      - hash:string
+      - diff:string
+      - truncated:boolean
+      - detail:string
+
   - name: ProjectGitPathsRequest
     v_struct: ProjectGitPathsReq
     fields:
@@ -929,6 +953,24 @@ native:
     response: '#ProjectGitDiffResponse'
     errors:
       - '400:invalid project id or path'
+      - '404:project not found'
+  - path: /api/v1/projects/{id}/git/log
+    method: get
+    op: project_git_log
+    summary: List recent commits of a registered project repository
+    query_params: ['workspace?:string', 'limit?:integer']
+    response: '#ProjectGitLogResponse'
+    errors:
+      - '400:invalid project id'
+      - '404:project not found'
+  - path: /api/v1/projects/{id}/git/show
+    method: get
+    op: project_git_show
+    summary: Read the full diff of one commit in a registered project repository
+    query_params: ['workspace?:string', 'hash:string']
+    response: '#ProjectGitShowResponse'
+    errors:
+      - '400:invalid project id or commit hash'
       - '404:project not found'
   - path: /api/v1/projects/{id}/git/stage
     method: post

@@ -125,3 +125,17 @@
   font-family: var(--font-mono, monospace);
   font-size: 0.78rem;
 }
+
+.diffRow {
+  display: flex;
+  gap: 0.5rem;
+  white-space: pre;
+}
+
+.gutter {
+  flex: none;
+  width: 3ch;
+  text-align: right;
+  opacity: 0.55;
+  user-select: none;
+}

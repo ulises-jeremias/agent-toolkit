@@ -147,3 +147,15 @@ fn test_project_git_stage_and_unstage_single_hunk() {
 	assert staged2.diff == '', staged2.diff
 	assert after_unstage.staged.len == 0
 }
+
+fn test_parse_git_log_lines() {
+	text := 'abc1234full\x1fab1234\x1fDocument the garden\x1fTest\x1f2026-10-23\n' +
+		'def5678full\x1fdef5678\x1fInitial commit\x1fTest\x1f2026-10-22\n'
+	commits := parse_git_log('demo', text)
+	assert commits.ok
+	assert commits.commits.len == 2
+	assert commits.commits[0].hash == 'abc1234full'
+	assert commits.commits[0].subject == 'Document the garden'
+	assert commits.commits[1].date == '2026-10-22'
+	assert parse_git_log('demo', '').commits.len == 0
+}

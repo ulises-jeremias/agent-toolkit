@@ -419,3 +419,130 @@ pub fn project_git_stage_hunk_typed(root string, project string, path string, st
 	}
 	return project_git_status_typed(root, project)
 }
+
+pub struct GitCommitInfo {
+pub:
+	hash    string
+	short   string
+	subject string
+	author  string
+	date    string
+}
+
+pub struct ProjectGitLogResponse {
+pub:
+	ok      bool
+	project string
+	detail  string
+pub mut:
+	commits []GitCommitInfo
+}
+
+pub struct ProjectGitShowResponse {
+pub:
+	ok        bool
+	project   string
+	hash      string
+	diff      string
+	truncated bool
+	detail    string
+}
+
+// parse_git_log parses `git log --format=%H%x1f%h%x1f%s%x1f%an%x1f%ad`
+// output (unit-separated fields, newline-separated records).
+pub fn parse_git_log(project string, text string) ProjectGitLogResponse {
+	mut resp := ProjectGitLogResponse{
+		ok: true
+		project: project
+	}
+	for line in text.split_into_lines() {
+		parts := line.split('\x1f')
+		if parts.len < 5 {
+			continue
+		}
+		resp.commits << GitCommitInfo{
+			hash: parts[0]
+			short: parts[1]
+			subject: parts[2]
+			author: parts[3]
+			date: parts[4]
+		}
+	}
+	return resp
+}
+
+// project_git_log_typed lists recent commits of the project repository.
+pub fn project_git_log_typed(root string, project string, limit int) ProjectGitLogResponse {
+	n := if limit > 0 && limit <= 200 { limit } else { 50 }
+	res := git_run(root, ['log', '-n', '${n}', '--date=short', '--format=%H%x1f%h%x1f%s%x1f%an%x1f%ad']) or {
+		return ProjectGitLogResponse{
+			ok: false
+			project: project
+			detail: err.msg()
+		}
+	}
+	if res.exit_code != 0 {
+		msg := res.stderr.trim_space()
+		return ProjectGitLogResponse{
+			ok: false
+			project: project
+			detail: if msg.len > 0 { msg } else { 'git log exited with code ${res.exit_code}' }
+		}
+	}
+	return parse_git_log(project, res.stdout)
+}
+
+fn valid_commit_hash(hash string) bool {
+	if hash.len < 7 || hash.len > 64 {
+		return false
+	}
+	for c in hash.bytes() {
+		is_hex := (c >= `0` && c <= `9`) || (c >= `a` && c <= `f`) || (c >= `A` && c <= `F`)
+		if !is_hex {
+			return false
+		}
+	}
+	return true
+}
+
+// project_git_show_typed returns the full diff of one commit.
+pub fn project_git_show_typed(root string, project string, hash string) ProjectGitShowResponse {
+	if !valid_commit_hash(hash) {
+		return ProjectGitShowResponse{
+			ok: false
+			project: project
+			hash: hash
+			detail: 'invalid commit hash'
+		}
+	}
+	res := git_run(root, ['show', '--no-color', '--format=', hash]) or {
+		return ProjectGitShowResponse{
+			ok: false
+			project: project
+			hash: hash
+			detail: err.msg()
+		}
+	}
+	if res.exit_code != 0 {
+		msg := res.stderr.trim_space()
+		return ProjectGitShowResponse{
+			ok: false
+			project: project
+			hash: hash
+			detail: if msg.len > 0 { msg } else { 'git show exited with code ${res.exit_code}' }
+		}
+	}
+	mut diff := res.stdout
+	mut truncated := false
+	if diff.len > max_git_diff_chars {
+		diff = diff[..max_git_diff_chars]
+		truncated = true
+	}
+	return ProjectGitShowResponse{
+		ok: true
+		project: project
+		hash: hash
+		diff: diff
+		truncated: truncated
+	}
+}
