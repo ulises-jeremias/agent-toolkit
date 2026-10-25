@@ -130,3 +130,50 @@ agent-toolkit --help
 
 The CLI and Desktop use the same canonical Toolkit operations. Prefer `--help`
 for the installed version instead of copying commands from an older guide.
+
+## World basics: moving and shortcuts
+
+Walk with **WASD** or the **arrow keys**, click to move, and press **E** near a
+building or landmark to open it. Navigation is never mandatory: the top
+navigation and the command palette (**Ctrl/Cmd+K**) reach every destination.
+
+Three keys run the place:
+
+- **Ctrl/Cmd+K** — command palette.
+- **?** — the audited shortcut map (shell keys plus World keys; while you are
+  typing, `?` types a question mark instead).
+- **Esc** — closes only the innermost dialog or overlay; it never quits.
+
+## Choosing context before starting agents
+
+Context packs in **Workspace Hall** bundle the projects and knowledge that
+matter for a kind of work. Activate the pack that fits your task and review
+the effective-context preview before starting a Person or Swarm. Agents get
+the pack you picked — no silent extras — and switching packs never touches
+sessions that are already running.
+
+## Reviewing work: Changes, hunks, history and the road to a PR
+
+Inside a project, **Changes** is a real git surface:
+
+1. Read the diff (every line shows old/new line numbers).
+2. Stage whole files, or stage/unstage a single hunk when only part of a
+   file is ready.
+3. Commit with an explicit message.
+4. Open **History** to click any commit and read its full diff.
+
+When a Swarm does the work, the same review applies: inspect its changes,
+then create or inspect the pull request from the run. Nothing merges behind
+your back; approvals and merges are explicit actions with receipts.
+
+## First-hour checklist
+
+- [ ] Desktop installed and workspace created
+- [ ] At least one coding tool detected in the Library
+- [ ] First project linked and visible in the World
+- [ ] One Person created with a runner you can sign in to
+- [ ] First real session started, watched, and stopped
+- [ ] A change reviewed and committed from Changes
+
+Prefer a visual walkthrough? The website version of this guide lives at
+<https://agent-toolkit.io/start/>.
