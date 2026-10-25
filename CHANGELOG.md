@@ -10,13 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
-### Fixed
-
-- L3 loops can now actually merge/close: the supervisor runs the
-  loop's verifier as a separate read-only pass over the acting
-  runner's `proposals.jsonl`, mints target-bound receipts itself
-  (the acting runner never can), and executes approved actions.
-  Refused actions never execute; outcomes land in `executed.jsonl`.
+## [1.48.0] — 2026-10-25
 
 ### Added
 
@@ -42,7 +36,191 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   When the PTY bridge is unavailable the row reports that honestly
   instead of implying terminal health.
 
+- Library agent definitions now show a delegation graph: the
+  backend reports each definition's real `delegates` frontmatter
+  on `AgentInfo`, and the Agent definitions panel renders the
+  resulting edges (assistant → architect, implementer → tdd-guide,
+  and the rest of the catalog topology). Selecting an edge
+  highlights exactly that pair. This is definition topology from
+  the catalog, not live runtime activity.
+
+- Workspace now has a real Project Changes panel: pick a linked
+  project to see its staged, changed, and untracked files on the
+  current branch, inspect a per-file unified diff, stage or unstage
+  individual files, and commit the staged set with an explicit
+  message — all through new typed backend git routes
+  (`/api/v1/projects/{id}/git/status|diff|stage|unstage|commit`)
+  that run the user's own git with argv only and validate every
+  path as repository-relative before git sees it.
+
+- Capability installs now show determinate progress: the reviewed
+  apply runs one backend transaction per target (each already lands
+  its own receipt), and both the full install dialog and the
+  per-Skill dialog render a real progress bar — current target,
+  settled count, installed list, and per-target failure messages.
+  A failed target never blocks the rest, installed targets keep
+  their receipts, and the dialog offers an explicit "Retry
+  remaining" for only the failed targets. This covers the install
+  progress item of the Targets issue (receipt evidence and the
+  reviewed rollback flow already shipped).
+
+- Skills can now be installed individually: the engine accepts a
+  Skill selection (`agent-toolkit install --skills review,planner`,
+  also on the typed install preview/reviewed routes) that writes
+  only the selected Skills' files for each target. Subset installs
+  are receipt-safe by construction: stale-file cleanup is skipped
+  (a subset can never delete Skills outside the selection), the
+  saved receipt union-merges entries from earlier installs, unknown
+  Skill names abort before anything is written, and targets without
+  catalog Skill files fail loudly instead of installing their whole
+  profile. The Library gains per-Skill checkboxes and an
+  "Install selected (N)" reviewed dialog (preview must be `ok`
+  before applying). This completes the remaining item of the Skills
+  master-detail/batch-install issue.
+
+- The Library Skills catalog is now a master-detail view: a compact
+  selectable list (receipt state stays visible per Skill) beside a
+  detail pane with the full description, domain, origin, source
+  path, requires/prerequisites/MCP, compatibility, and the Toolkit
+  receipt card including the exact receipt-owned files. Arrow keys
+  move the selection and the detail follows; an honest "no Toolkit
+  receipt" note replaces any claim about independent installs. This
+  covers the master-detail half of the Skills issue; per-skill bulk
+  install remains open because the engine install is per-target
+  today and needs a filtered install contract first.
+
+- Loops now have an Edit cadence action in the Desktop: a new typed
+  `POST /api/v1/loops/{name}/cadence` route validates the cadence
+  against the canonical scheduler contract (`<N>m` 1-59, `<N>h` 1-24,
+  `<N>d`, `1w`) before touching anything, rewrites only the cadence
+  line of `loops/<name>/loop.yaml` (preserving every other byte,
+  atomically), and returns the fresh typed status. The dialog blocks
+  out-of-contract values with the reason, previews the next five
+  fires as interval estimates from now, and states plainly that an
+  already-installed schedule keeps its old cadence until reinstalled
+  from Manage schedule. This completes the remaining item of the
+  loops-insight issue (burn-down chart and real token accounting
+  landed earlier).
+
+- A responsive-layout Electron E2E now exercises the supported window
+  matrix (1280×800, 1024×768, and the declared 1024×640 minimum) in the
+  real Desktop: destinations, the People primary action, and the
+  command palette stay inside the viewport with no horizontal overflow
+  at every size.
+
+- An opt-in Electron E2E now carries a GUI-started swarm through real
+  role handoffs to a real GitHub draft PR: Create draft PR in the run
+  inspector pushes the integrator branch, the inspector reports the
+  live PR status, and Mark PR ready for review flips the real PR. It
+  runs only when `ATK_E2E_GH_PR_REPO` names a disposable repository,
+  so CI still skips it.
+
+- An Operations job-log Electron E2E now proves the GUI job journey in
+  the real Desktop: start a `version` job from Operations, read its
+  persisted log in the inspector without leaving the panel, and delete
+  it back to the empty board.
+
+- Job logs in the Operations inspector now offer copy-a-line: every
+  line of the live output and the persisted log carries its own Copy
+  action on the existing clipboard path, with an in-place confirmation
+  and a manual-copy fallback when the clipboard is unavailable. This
+  completes the remaining acceptance item of the per-job log drawer
+  issue in the inspector's current form.
+
+- The Operations job-log Electron E2E now also covers the live path:
+  a running job streams its output into the inspector's Live output
+  section without leaving Operations, Cancel from the same inspector
+  lands it in the canceled state with the pre-kill lines preserved in
+  the persisted log, and deleting it returns to the empty board.
+
+- Person start now submits the reviewed initial task to Cursor and
+  Muse sessions: both CLIs were verified to take an initial prompt
+  positionally while staying interactive (`cursor-agent [prompt...]`,
+  `muse [PROMPT]`). Runners without a verified contract still open
+  interactively with a copy action. This closes the last
+  `people-start-session` ledger blocker.
+
+- Herdr handoff progression is verified end-to-end in Desktop: a
+  waiting herdr role auto-starts on handoff and its bound Person
+  session appears in the run inspector. With launch, liveness, and
+  recovery also verified, the swarm-run-watch journey is complete.
+
+- A bound Person's durable notes now join swarm work too: at run
+  creation, the backend appends a `# Person memory` section with the
+  bound Person's operator notes to that role's prompt (manifest size
+  updated to match). Unbound roles and note-less People get nothing.
+
+- People now carry durable operator-written memory: an optional
+  `notes` field on `agent-toolkit/person@1` (validated by the V
+  backend, shown and edited in the People form and detail, persisted
+  in `people/<id>.json`). The reviewed initial prompt of a local PTY
+  launch includes the notes verbatim, so what a coworker should
+  remember actually reaches the session — visible in the Start review
+  before anything runs.
+
+- A single continuous Electron journey now covers the definition-of-done
+  flow in one Desktop launch: apply a context pack, create a Person,
+  start a People-bound tmux swarm, observe the live PersonSession in
+  Operations and the World, stop the run, and reopen it from the
+  Person's history. It passes against both the dev build and the
+  packaged app (`full-journey.spec.ts`).
+
+- People session history now opens swarm work directly: a swarm
+  PersonSession row carries an **Open run** action that navigates to
+  the Operations inspector for that exact run, matching the World
+  character's destination. This closes the last `swarm-role-picker`
+  ledger blocker.
+
+- Dead-worker liveness detection now covers the herdr adapter: when a
+  running herdr run's workspace disappears from `herdr workspace list`,
+  its PersonSession records close as `interrupted` instead of claiming
+  `running` forever. A failed probe (herdr server down) closes nothing.
+  Herdr spawn and handoff autostart also gained the skeleton wake
+  fast-path, so skeleton roles no longer wait out the full wake poll.
+
+- Running swarm workers now appear as World characters at their run's
+  project house. Presence comes only from a live canonical swarm
+  PersonSession; the character names the swarm role and run and opens
+  the Operations run inspector — never a fabricated terminal for a
+  tmux/herdr session. The character disappears when the session ends.
+
+- The Library's GitHub Copilot project setup now installs the full
+  compiled repository set — instructions, Skills under
+  `.github/skills`, and Agent Definitions as `.github/agents/*.agent.md`
+  — instead of only the instruction profile. The review lists every
+  file with its state; existing project files are preserved, and
+  receipt-backed removal deletes only unchanged Toolkit-owned files
+  (if any file was edited, nothing is removed).
+
+- The Library now discovers workspace context bundles beside Skills
+  and Agent Definitions. The same Library search filters bundles by
+  name, description, and related projects; bundles stay read-only
+  there — creating, editing, or selecting one still happens in
+  Workspace, and finding a bundle installs nothing.
+
+- Agent Definitions in the Library now declare per-target
+  compatibility from the target registry (`native_custom_agents`),
+  rendered like the Skills catalog instead of Skills-only support.
+
+- Person detail now opens with an activity summary derived from the
+  canonical session records (totals, completed/failed, swarm runs,
+  projects, last active), so a collaborator's real track record is
+  visible before the recent-session list.
+
+- Swarm roles bound to People now become canonical PersonSession
+  records when their runner really launches (tmux/herdr spawn or
+  handoff autostart), closing when the run stops, is cancelled, or is
+  cleaned up. The Desktop run inspector lists them per role, and
+  People history shows the swarm origin. A binding alone still
+  creates no session.
+
 ### Fixed
+
+- L3 loops can now actually merge/close: the supervisor runs the
+  loop's verifier as a separate read-only pass over the acting
+  runner's `proposals.jsonl`, mints target-bound receipts itself
+  (the acting runner never can), and executes approved actions.
+  Refused actions never execute; outcomes land in `executed.jsonl`.
 
 - Starting a Person session with OpenCode no longer dies instantly
   when a swarm model profile is selected: profiles carry shorthand
@@ -60,97 +238,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   route 404'd in a packaged build this way). It now prefers this
   checkout's own `build/agent-toolkit` before falling back to PATH.
 
-### Added
-
-- Library agent definitions now show a delegation graph: the
-  backend reports each definition's real `delegates` frontmatter
-  on `AgentInfo`, and the Agent definitions panel renders the
-  resulting edges (assistant → architect, implementer → tdd-guide,
-  and the rest of the catalog topology). Selecting an edge
-  highlights exactly that pair. This is definition topology from
-  the catalog, not live runtime activity.
-- Workspace now has a real Project Changes panel: pick a linked
-  project to see its staged, changed, and untracked files on the
-  current branch, inspect a per-file unified diff, stage or unstage
-  individual files, and commit the staged set with an explicit
-  message — all through new typed backend git routes
-  (`/api/v1/projects/{id}/git/status|diff|stage|unstage|commit`)
-  that run the user's own git with argv only and validate every
-  path as repository-relative before git sees it.
-- Capability installs now show determinate progress: the reviewed
-  apply runs one backend transaction per target (each already lands
-  its own receipt), and both the full install dialog and the
-  per-Skill dialog render a real progress bar — current target,
-  settled count, installed list, and per-target failure messages.
-  A failed target never blocks the rest, installed targets keep
-  their receipts, and the dialog offers an explicit "Retry
-  remaining" for only the failed targets. This covers the install
-  progress item of the Targets issue (receipt evidence and the
-  reviewed rollback flow already shipped).
-- Skills can now be installed individually: the engine accepts a
-  Skill selection (`agent-toolkit install --skills review,planner`,
-  also on the typed install preview/reviewed routes) that writes
-  only the selected Skills' files for each target. Subset installs
-  are receipt-safe by construction: stale-file cleanup is skipped
-  (a subset can never delete Skills outside the selection), the
-  saved receipt union-merges entries from earlier installs, unknown
-  Skill names abort before anything is written, and targets without
-  catalog Skill files fail loudly instead of installing their whole
-  profile. The Library gains per-Skill checkboxes and an
-  "Install selected (N)" reviewed dialog (preview must be `ok`
-  before applying). This completes the remaining item of the Skills
-  master-detail/batch-install issue.
-- The Library Skills catalog is now a master-detail view: a compact
-  selectable list (receipt state stays visible per Skill) beside a
-  detail pane with the full description, domain, origin, source
-  path, requires/prerequisites/MCP, compatibility, and the Toolkit
-  receipt card including the exact receipt-owned files. Arrow keys
-  move the selection and the detail follows; an honest "no Toolkit
-  receipt" note replaces any claim about independent installs. This
-  covers the master-detail half of the Skills issue; per-skill bulk
-  install remains open because the engine install is per-target
-  today and needs a filtered install contract first.
-- Loops now have an Edit cadence action in the Desktop: a new typed
-  `POST /api/v1/loops/{name}/cadence` route validates the cadence
-  against the canonical scheduler contract (`<N>m` 1-59, `<N>h` 1-24,
-  `<N>d`, `1w`) before touching anything, rewrites only the cadence
-  line of `loops/<name>/loop.yaml` (preserving every other byte,
-  atomically), and returns the fresh typed status. The dialog blocks
-  out-of-contract values with the reason, previews the next five
-  fires as interval estimates from now, and states plainly that an
-  already-installed schedule keeps its old cadence until reinstalled
-  from Manage schedule. This completes the remaining item of the
-  loops-insight issue (burn-down chart and real token accounting
-  landed earlier).
-- A responsive-layout Electron E2E now exercises the supported window
-  matrix (1280×800, 1024×768, and the declared 1024×640 minimum) in the
-  real Desktop: destinations, the People primary action, and the
-  command palette stay inside the viewport with no horizontal overflow
-  at every size.
-- An opt-in Electron E2E now carries a GUI-started swarm through real
-  role handoffs to a real GitHub draft PR: Create draft PR in the run
-  inspector pushes the integrator branch, the inspector reports the
-  live PR status, and Mark PR ready for review flips the real PR. It
-  runs only when `ATK_E2E_GH_PR_REPO` names a disposable repository,
-  so CI still skips it.
-- An Operations job-log Electron E2E now proves the GUI job journey in
-  the real Desktop: start a `version` job from Operations, read its
-  persisted log in the inspector without leaving the panel, and delete
-  it back to the empty board.
-- Job logs in the Operations inspector now offer copy-a-line: every
-  line of the live output and the persisted log carries its own Copy
-  action on the existing clipboard path, with an in-place confirmation
-  and a manual-copy fallback when the clipboard is unavailable. This
-  completes the remaining acceptance item of the per-job log drawer
-  issue in the inspector's current form.
-- The Operations job-log Electron E2E now also covers the live path:
-  a running job streams its output into the inspector's Live output
-  section without leaving Operations, Cancel from the same inspector
-  lands it in the canceled state with the pre-kill lines preserved in
-  the persisted log, and deleting it returns to the empty board.
-
-### Fixed
-
 - Loop token accounting is real now: the audit total was a stub that
   always reported 0, and run history carried no spend at all. The
   backend now sums the tokens each run's trace actually recorded
@@ -160,12 +247,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   token burn-down chart against the declared budget (over-budget
   runs marked in the error tone). Runs whose traces recorded no
   usage honestly show "Not recorded".
+
 - A canceled job's final log no longer races its status in Operations.
   Cancel flipped the job to `canceled` before the watcher wrote the
   final log (with the `[canceled]` marker), but the SSE stream sent
   `done` on the status alone, so the Desktop refetched and cached the
   pre-final `[running]` log. The backend now tracks log finalization
   per job and only sends `done` after the final log is on disk.
+
 - The Desktop "Skip to content" link now actually moves keyboard focus
   into the main landmark. Its `#main` href was parsed by HashRouter as
   a route change, so keyboard users were redirected instead of being
@@ -178,92 +267,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   gate only woke a window with no runner in it and the role's bound
   PersonSession was never recorded. Waiting roles now trace
   `agent_waiting`, matching the herdr path.
+
 - A swarm PersonSession no longer claims `running` forever when its
   tmux worker surface dies mid-run: the typed run reads the Desktop
   polls reconcile a provably missing tmux session to `interrupted`.
   The run state itself stays operator-owned.
+
 - The swarm run inspector now refreshes PersonSession records while
   the run is active and after lifecycle actions, instead of keeping a
   stale "no role has launched yet" answer while a worker is running
   or a stale `running` badge after the run stops.
+
 - Desktop mutations without a payload now send an explicit `{}`
   JSON body; an empty body with a JSON content type could be
   rejected by the backend framework before routing, which broke
   swarm run actions such as Stop on stricter server builds.
+
 - Orphaned swarm PersonSession records now reconcile to a terminal
   status when the run's authoritative state is terminal, instead of
   staying `running` forever.
 
-### Added
+- A loop run whose LLM runner exits non-zero or hits the wall timeout
+  is now recorded as `failed` instead of `completed`, and the
+  verifier pass is skipped so proposals from a failed run never
+  execute.
 
-- Person start now submits the reviewed initial task to Cursor and
-  Muse sessions: both CLIs were verified to take an initial prompt
-  positionally while staying interactive (`cursor-agent [prompt...]`,
-  `muse [PROMPT]`). Runners without a verified contract still open
-  interactively with a copy action. This closes the last
-  `people-start-session` ledger blocker.
-- Herdr handoff progression is verified end-to-end in Desktop: a
-  waiting herdr role auto-starts on handoff and its bound Person
-  session appears in the run inspector. With launch, liveness, and
-  recovery also verified, the swarm-run-watch journey is complete.
-- A bound Person's durable notes now join swarm work too: at run
-  creation, the backend appends a `# Person memory` section with the
-  bound Person's operator notes to that role's prompt (manifest size
-  updated to match). Unbound roles and note-less People get nothing.
-- People now carry durable operator-written memory: an optional
-  `notes` field on `agent-toolkit/person@1` (validated by the V
-  backend, shown and edited in the People form and detail, persisted
-  in `people/<id>.json`). The reviewed initial prompt of a local PTY
-  launch includes the notes verbatim, so what a coworker should
-  remember actually reaches the session — visible in the Start review
-  before anything runs.
-- A single continuous Electron journey now covers the definition-of-done
-  flow in one Desktop launch: apply a context pack, create a Person,
-  start a People-bound tmux swarm, observe the live PersonSession in
-  Operations and the World, stop the run, and reopen it from the
-  Person's history. It passes against both the dev build and the
-  packaged app (`full-journey.spec.ts`).
-- People session history now opens swarm work directly: a swarm
-  PersonSession row carries an **Open run** action that navigates to
-  the Operations inspector for that exact run, matching the World
-  character's destination. This closes the last `swarm-role-picker`
-  ledger blocker.
-- Dead-worker liveness detection now covers the herdr adapter: when a
-  running herdr run's workspace disappears from `herdr workspace list`,
-  its PersonSession records close as `interrupted` instead of claiming
-  `running` forever. A failed probe (herdr server down) closes nothing.
-  Herdr spawn and handoff autostart also gained the skeleton wake
-  fast-path, so skeleton roles no longer wait out the full wake poll.
-- Running swarm workers now appear as World characters at their run's
-  project house. Presence comes only from a live canonical swarm
-  PersonSession; the character names the swarm role and run and opens
-  the Operations run inspector — never a fabricated terminal for a
-  tmux/herdr session. The character disappears when the session ends.
-- The Library's GitHub Copilot project setup now installs the full
-  compiled repository set — instructions, Skills under
-  `.github/skills`, and Agent Definitions as `.github/agents/*.agent.md`
-  — instead of only the instruction profile. The review lists every
-  file with its state; existing project files are preserved, and
-  receipt-backed removal deletes only unchanged Toolkit-owned files
-  (if any file was edited, nothing is removed).
-- The Library now discovers workspace context bundles beside Skills
-  and Agent Definitions. The same Library search filters bundles by
-  name, description, and related projects; bundles stay read-only
-  there — creating, editing, or selecting one still happens in
-  Workspace, and finding a bundle installs nothing.
-- Agent Definitions in the Library now declare per-target
-  compatibility from the target registry (`native_custom_agents`),
-  rendered like the Skills catalog instead of Skills-only support.
-- Person detail now opens with an activity summary derived from the
-  canonical session records (totals, completed/failed, swarm runs,
-  projects, last active), so a collaborator's real track record is
-  visible before the recent-session list.
-- Swarm roles bound to People now become canonical PersonSession
-  records when their runner really launches (tmux/herdr spawn or
-  handoff autostart), closing when the run stops, is cancelled, or is
-  cleaned up. The Desktop run inspector lists them per role, and
-  People history shows the swarm origin. A binding alone still
-  creates no session.
+- The loop gh gate no longer denies read-only `gh api graphql`
+  queries as pushes. Mutations, subscriptions and bodies the gate
+  cannot inspect still fail closed.
 
 ## [1.47.6] — 2026-10-21
 
