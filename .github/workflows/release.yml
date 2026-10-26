@@ -119,7 +119,7 @@ jobs:
               raise SystemExit("missing manylinux_2_38_x86_64 wheel")
           PY
       - name: Publish to PyPI (Trusted Publishing)
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
         with:
           skip-existing: true
       - name: Verify PyPI shows this version
@@ -493,7 +493,7 @@ jobs:
               raise SystemExit("missing manylinux_2_38_x86_64 wheel")
           PY
       - name: Publish (Trusted Publishing)
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
         with:
           skip-existing: true
           repository-url: ${{ inputs.environment == 'testpypi' && 'https://test.pypi.org/legacy/' || '' }}
