@@ -758,6 +758,9 @@ def test_updates_discovery_reports_update_when_remote_ahead(monkeypatch):
                     return (src["requested"]["ref"], src["resolved"]["commit"])
         return None, None
 
+    # The fake commit does not exist upstream; the path is present at it by construction.
+    monkeypatch.setattr(prov, "_path_exists_at", lambda repo, path, commit: True)
+
     monkeypatch.setattr(prov, "_fetch_latest_commit", _mock)
     monkeypatch.setattr(prov, "_fetch_latest_semver_tag", _mock_tag)
     import contextlib

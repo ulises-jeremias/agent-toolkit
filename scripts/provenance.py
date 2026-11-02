@@ -1129,6 +1129,30 @@ def _fetch_latest_semver_tag(repository: str) -> tuple[str | None, str | None]:
     return None, None
 
 
+def _path_exists_at(repository: str, path: str, commit: str) -> bool | None:
+    """Return True/False if `path` exists at `commit`; None if GitHub could not be asked.
+
+    A 404 means the path is absent at that commit (False). Any other failure is
+    None, so a transient API error never hides a real update.
+    """
+    url_path = f"repos/{repository}/contents/{urllib.parse.quote(path.rstrip('/'))}?ref={commit}"
+    try:
+        subprocess.run(
+            ["gh", "api", url_path],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        return True
+    except subprocess.CalledProcessError as e:
+        if "404" in (e.stderr or "") or "Not Found" in (e.stderr or ""):
+            return False
+        return None
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+
+
 def _discover_updates(lock: dict) -> list[dict]:
     """Compare locked sources to path-scoped HEAD / newer semver tags."""
     updates: list[dict] = []
@@ -1163,6 +1187,16 @@ def _discover_updates(lock: dict) -> list[dict]:
             if not latest_commit:
                 continue
             if latest_commit == locked and (latest_ref is None or latest_ref == locked_ref):
+                continue
+            # The newest commit touching a path can be the one that removed it
+            # (e.g. upstream consolidated per-skill folders into one skill).
+            # Proposing that commit would fail at apply time, so skip it and say why.
+            if req_type != "tag" and path and _path_exists_at(repo, path, latest_commit) is False:
+                print(
+                    f"warn: {repo}/{path} is not present at {latest_commit[:7]} (removed upstream?); "
+                    "keeping the locked commit",
+                    file=sys.stderr,
+                )
                 continue
 
             entry = {
