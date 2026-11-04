@@ -495,7 +495,7 @@ skills:
   - id: quality/unslop
     name: unslop
     domain: quality
-    description: Cut AI tells from any writing. Must always apply.
+    description: Cut AI tells from any writing.
     stability: stable
   - id: tooling/chrome-devtools
     name: chrome-devtools

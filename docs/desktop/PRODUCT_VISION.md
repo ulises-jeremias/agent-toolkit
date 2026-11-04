@@ -1,5 +1,7 @@
 # Agent Toolkit Desktop product vision
 
+> **2026-11-04 daily-driver reset:** The owner reports that current Desktop is not usable as a real coding-agent daily driver. The current architecture and 18/18 `ok` component workflow ledger do **not** constitute user acceptance. Mission [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667), [RFC](../rfcs/1667-agent-toolkit-daily-driver.md) and [real-provider acceptance contract](DAILY_DRIVER_ACCEPTANCE.md) take priority for the new product direction. Provider orchestration and V-only ownership are under explicit Gate 1 evaluation; no fork or Swarm deletion has been approved merely by this note. Existing product safety and semantic-world principles remain in force.
+
 Status: **CURRENT CONTRACT** — governing product direction, adopted
 2026-09-05, re-confirmed 2026-09-13 at `ecc4d67c`; **visual direction reset
 2026-09-30** ([ADR-035](../adrs/ADR-035-cozy-pixel-world.md)): Cozy Pixel

@@ -15,19 +15,19 @@ origin:
 upstream:
   repository: oxsecurity/megalinter
   path: skills/megalinter-setup
-  ref: v10.1.0
-  commit: 9949bad031045f366be2467e00e8371a7328a2e2
+  ref: v10.2.0
+  commit: f2fe8c1cba37091848df3e524066c8c23ef353ed
   license: AGPL-3.0
-  version: v10.1.0
+  version: v10.2.0
   role: setup
 trust:
   tier: experimental
-  reviewed_at: '2026-09-14'
+  reviewed_at: '2026-11-02'
   reviewed_by: ulises-jeremias
 maintenance:
   status: active
   last_activity: '2026-08-08'
-  last_checked: '2026-09-14'
+  last_checked: '2026-11-02'
 distribution:
   mode: vendored
   redistribution_allowed: true
