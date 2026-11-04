@@ -51,6 +51,7 @@ export function ProjectChangesPanel({
 
   useEffect(() => {
     setSelection(null);
+    setCommitHash('');
     setReceipt('');
     setActionError('');
   }, [active]);
@@ -119,7 +120,13 @@ export function ProjectChangesPanel({
   const renderHistory = () => (
     <div>
       <h3 className={styles.groupTitle}>History ({log.data?.commits.length ?? 0})</h3>
-      {log.data?.commits.length ? (
+      {log.isPending ? (
+        <LoadingState label="Reading commit history" />
+      ) : log.isError ? (
+        <ErrorState title="Could not read history" error={log.error} onRetry={() => void log.refetch()} />
+      ) : log.data && !log.data.ok ? (
+        <p role="alert">{log.data.detail || 'Could not read commit history.'}</p>
+      ) : log.data?.commits.length ? (
         <ul className={styles.fileList} aria-label="Commit history">
           {log.data.commits.map((commit) => (
             <li key={commit.hash} className={styles.fileRow}>
@@ -200,6 +207,8 @@ export function ProjectChangesPanel({
                 {commitHash ? (
                   show.isPending ? (
                     <LoadingState label="Reading commit" />
+                  ) : show.isError ? (
+                    <ErrorState title="Could not read commit" error={show.error} onRetry={() => void show.refetch()} />
                   ) : show.data && !show.data.ok ? (
                     <p role="alert">{show.data.detail || 'Could not read this commit.'}</p>
                   ) : show.data ? (
