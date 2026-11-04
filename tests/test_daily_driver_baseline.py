@@ -92,3 +92,14 @@ def test_explicit_outdir_required():
     run = run_preflight()
     assert run.returncode != 0
     assert "--output-dir is required" in run.stderr
+
+
+def test_refuses_symlink_ancestor_outdir(tmp_path):
+    target = tmp_path / "target"
+    target.mkdir()
+    link = tmp_path / "link"
+    link.symlink_to(target, target_is_directory=True)
+    run = run_preflight("--output-dir", str(link / "nested"))
+    assert run.returncode != 0
+    assert "symlink" in run.stderr
+    assert list(target.iterdir()) == []
