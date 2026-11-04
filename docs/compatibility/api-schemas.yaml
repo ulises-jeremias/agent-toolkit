@@ -966,7 +966,7 @@ native:
   - path: /api/v1/projects/{id}/git/show
     method: get
     op: project_git_show
-    summary: Read the full diff of one commit in a registered project repository
+    summary: Read the diff of one commit in a registered project repository, capped at 200,000 bytes; check `truncated`
     query_params: ['workspace?:string', 'hash:string']
     response: '#ProjectGitShowResponse'
     errors:
