@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
-## [1.48.0] — 2026-10-25
+## [1.49.0] — 2026-11-04
 
 ### Added
 
@@ -20,6 +20,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   keys that run the place. Linked from the main navigation and
   the homepage; `docs/GETTING_STARTED.md` grows matching sections
   (World shortcuts, context packs, Changes→PR review, checklist).
+
+- Project Changes adds a History list backed by typed Git log/show endpoints, with commit diff navigation and line-number gutters.
+
+### Changed
+
+- Refresh pinned vendored upstream skills, including MegaLinter v10.2.0, while retaining explicit license provenance and experimental trust status.
+
+## [1.48.0] — 2026-10-25
+
+### Added
 
 - Project Changes now stages or unstages a single diff hunk:
   each hunk in the diff pane carries its own Stage/Unstage action,
