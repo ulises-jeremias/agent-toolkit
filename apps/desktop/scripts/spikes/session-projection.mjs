@@ -49,6 +49,7 @@ export class SessionProjection {
       }
       if (event.type === 'approval_resolved') {
         if (this.nodes.get(event.nodeId) !== 'pending_approval') throw new Error('unknown approval');
+        if (typeof event.approved !== 'boolean') throw new Error('explicit boolean approval decision required');
         this.nodes.set(event.nodeId, event.approved === true ? 'approved' : 'denied');
         this.status = [...this.nodes.values()].some(s => s === 'pending_approval')
           ? 'needs_approval' : 'running';

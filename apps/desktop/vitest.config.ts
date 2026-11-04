@@ -12,7 +12,8 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     setupFiles: ['./src/test-setup.ts'],
-    exclude: ['e2e/**', 'node_modules/**', 'dist/**', 'dist-electron/**', 'release/**'],
+    // Node's built-in test runner owns hermetic runtime spikes; Vitest cannot collect node:test suites.
+    exclude: ['e2e/**', 'scripts/spikes/**', 'node_modules/**', 'dist/**', 'dist-electron/**', 'release/**'],
     css: true,
     coverage: {
       provider: 'v8',
