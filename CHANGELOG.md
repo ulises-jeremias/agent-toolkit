@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Define the Daily Driver Reboot mission, provider architecture evaluation and
+  installed-product acceptance contract. Release sign-off requires passing
+  packaged real-provider evidence for every D01–D07 journey; component tests
+  alone do not establish daily-driver readiness.
+
 ## [1.48.0] — 2026-10-25
 
 ### Added
