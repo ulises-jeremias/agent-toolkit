@@ -33,7 +33,10 @@ export interface DiffHunk {
 export function splitDiffHunks(diff: string): DiffHunk[] {
   const hunks: DiffHunk[] = [];
   let current: DiffHunk | null = null;
-  for (const line of diff.split('\n')) {
+  const lines = diff.split('\n');
+  // A terminal newline is a delimiter, not an extra context line.
+  if (lines[lines.length - 1] === '') lines.pop();
+  for (const line of lines) {
     if (line.startsWith('@@')) {
       current = { header: line, lines: [] };
       hunks.push(current);
