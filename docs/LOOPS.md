@@ -74,7 +74,7 @@ When a loop posts a GitHub comment or review body via `gh`, the V runner's in-pr
 
 - **Default:** enabled for every loop run (no config required).
 - **Identity:** actions are bound to the current run; L3 merge and close actions require a fresh verifier receipt.
-- **Verifier receipts (#1650):** the acting runner never mints receipts. It records intended merge/close actions in `run_dir/proposals.jsonl`; after the run, the supervisor invokes the loop's `verifier` as a separate read-only runner pass (`run_dir/verdicts.jsonl`), mints a target-bound receipt per approved action, and executes the real `gh` argv itself. Outcomes are recorded in `run_dir/executed.jsonl`; refused or unproposed actions never execute.
+- **Verifier receipts (#1650):** the acting runner never mints receipts. It records intended merge/close actions in `run_dir/proposals.jsonl`; after the run, the supervisor invokes the loop's `verifier` as a separate read-only runner pass (`run_dir/verdicts.jsonl`), mints a target-bound receipt per approved action, and executes the real `gh` argv itself. Outcomes are recorded in `run_dir/executed.jsonl`; refused or unproposed actions never execute. The verifier pass is skipped when the acting run failed (non-zero exit or wall timeout), so proposals from a failed run never execute.
 - **Idempotent:** bodies that already start with `> 🤖 AI-assisted` are left unchanged.
 - **Disable per loop:**
 
@@ -270,6 +270,8 @@ last_run_status: partial (budget_exhausted)
 ```
 
 On the next scheduled run, the loop picks up at `owner/repo-18` and continues.
+
+When an LLM runner exits non-zero or hits the wall timeout, the supervisor records `last_run_status: failed` (and `"status":"failed"` in the run's `trace.jsonl` `run_end` event) and `loop run` exits non-zero. A failed run still counts toward `max_runs_per_day`; use `--force` to retry the same day.
 
 Do not manually edit `STATE.md` during a run. Between runs, you can safely reset it by clearing `last_processed_repo` to force a full re-scan.
 

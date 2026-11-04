@@ -812,3 +812,61 @@ fn test_parse_loop_meta_request_legacy_forms_untouched() {
 	commented := parse_loop_meta_text('name: x\nrequest: | # full prompt\n  body here\n', 'x')
 	assert commented.request == 'body here\n'
 }
+
+fn test_runner_run_status() {
+	assert runner_run_status(RunnerResult{ ok: true, exit_code: 0 }) == 'completed'
+	assert runner_run_status(RunnerResult{ ok: true, exit_code: 1 }) == 'failed'
+	assert runner_run_status(RunnerResult{ ok: true, exit_code: 0, timed_out: true }) == 'failed'
+}
+
+fn test_loop_run_llm_failed_runner_is_not_completed() {
+	with_clean_runner_env(fn () {
+		old_h := os.getenv('HARNESS_DIR')
+		old_ws := os.getenv('AGENT_TOOLKIT_WORKSPACE')
+		os.unsetenv('HARNESS_DIR')
+		os.unsetenv('AGENT_TOOLKIT_WORKSPACE')
+		base := os.join_path(os.temp_dir(), 'at-loop-fail-${os.getpid()}')
+		fake := os.join_path(base, 'bin')
+		os.mkdir_all(fake) or { assert false, err.msg() }
+		defer {
+			if old_h.len > 0 {
+				os.setenv('HARNESS_DIR', old_h, true)
+			}
+			if old_ws.len > 0 {
+				os.setenv('AGENT_TOOLKIT_WORKSPACE', old_ws, true)
+			}
+			os.rmdir_all(base) or {}
+		}
+		os.write_file(os.join_path(base, 'AGENTS.md'), '# ws\n') or { assert false, err.msg() }
+		tpl := os.join_path(base, 'templates', 'loops')
+		os.mkdir_all(tpl) or { assert false, err.msg() }
+		os.write_file(os.join_path(tpl, 'daily.yaml'), 'name: daily\ntier: L1\ncadence: 1d\nmax_runs_per_day: 5\nmax_wall_seconds: 60\ngoal: |\n  observe\nrequest: |\n  report status\n') or {
+			assert false, err.msg()
+		}
+		// A runner that fails the way an expired provider key does.
+		os.write_file(os.join_path(fake, 'opencode'), '#!/bin/sh\necho "Error: This API key has expired."\nexit 1\n') or {
+			assert false, err.msg()
+		}
+		os.chmod(os.join_path(fake, 'opencode'), 0o755) or { assert false, err.msg() }
+		os.setenv('PATH', '${fake}:${os.getenv('PATH')}', true)
+
+		init := run_loop(LoopOptions{
+			subcommand:     'init'
+			workspace_path: base
+			name:           'daily'
+		})
+		assert init.ok, init.message
+		run := run_loop(LoopOptions{
+			subcommand:     'run'
+			workspace_path: base
+			name:           'daily'
+			runner:         'opencode'
+		})
+		assert !run.ok, run.message
+		assert run.data['status'] == 'failed'
+		assert run.message.contains('exited 1')
+		state := os.read_file(os.join_path(base, 'loops', 'daily', 'STATE.md')) or { '' }
+		assert state.contains('last_run_status: failed'), state
+		assert state.contains('runs_today: 1'), state
+	})
+}
