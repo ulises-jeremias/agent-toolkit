@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Project Changes gains a History view: recent commits from a
-  typed `git/log` route, and clicking a commit renders its full
-  diff (`git/show`) in the pane. Diff lines now carry old/new
+  typed `git/log` route, and clicking a commit renders its diff (`git/show`, capped at
+  200,000 bytes with a `truncated` flag) in the pane. Diff lines now carry old/new
   line-number gutters.
 
 ## [1.48.0] — 2026-10-25
