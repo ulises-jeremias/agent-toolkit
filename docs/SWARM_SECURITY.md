@@ -7,9 +7,13 @@ Threat model for `agent-toolkit swarm`.
 Swarm worktrees isolate Git changes, not a runner's operating-system access.
 Recipe role policies and gate fields describe orchestration intent; they do
 not provide a cross-provider filesystem, network, credential, or subprocess
-sandbox. The Claude adapter currently passes
-`--dangerously-skip-permissions`; treat that runner as having the local user's
-permissions. Do not run untrusted prompts or repository content under the
+sandbox. The Claude adapter now launches with provider-native permission prompts,
+**not** `--dangerously-skip-permissions`. This reduces the default risk but
+**does not** sandbox Claude or any other runner: each runner can still access
+resources allowed by its own native permission configuration and the local OS.
+When a tool requires an interactive approval, attach the worker's actual
+Herdr/tmux session and approve or reject it there; an unattended run can wait
+for user input. Never interpret a stalled approval as successful autonomous work. Do not run untrusted prompts or repository content under the
 assumption that `read-only`, `allow_push: false`, or a worktree is a security
 boundary. Use provider-native sandboxing or an external OS/container boundary
 when isolation is required.

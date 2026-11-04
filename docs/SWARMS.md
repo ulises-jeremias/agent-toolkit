@@ -100,7 +100,7 @@ Each run under `.agent-toolkit/swarm/runs/<run-id>/` produces `run.yaml`, `state
 
 ## Security, Permissions & Human Gates
 
-See [SWARM_SECURITY.md](SWARM_SECURITY.md). Toolkit validates selected orchestration inputs and fails closed on unclear ownership. Recipe permission declarations are not OS sandbox rules; runner processes may have the local user's access. Claude currently starts with `--dangerously-skip-permissions`.
+See [SWARM_SECURITY.md](SWARM_SECURITY.md). Toolkit validates selected orchestration inputs and fails closed on unclear ownership. Recipe permission declarations are not OS sandbox rules; runner processes may have the local user's access. Claude now launches with its native permission prompts; attach the Herdr/tmux worker to respond to approvals. Do not interpret `read-only` recipe prompts as an OS sandbox.
 
 - **Role guidance:** planner `read-only`; implementer `writer`; reviewer `reviewer-writer` (optional); integrator `merge: ask`. These guide orchestration/prompts; they do not constrain shell commands unless the provider independently enforces them. `allow_direct_base_merge: false` and `allow_push: false` are recipe metadata, not command filters.
 - **Human gates:** plan approval, architecture decision, cost escalation, final integration. No auto-merge. `agent-toolkit swarm approve` / `reject`.

@@ -177,11 +177,11 @@ pub fn herdr_runner_cmd(runner string, role string, task string, worktree string
 		'claude' {
 			if has_task {
 				if prompt_file.len > 0 {
-					return 'claude --dangerously-skip-permissions --append-system-prompt-file ' + q_prompt_file + ' ' + cat_expr
+					return 'claude --append-system-prompt-file ' + q_prompt_file + ' ' + cat_expr
 				}
-				return 'claude --dangerously-skip-permissions ' + q_task
+				return 'claude ' + q_task
 			}
-			return 'claude --dangerously-skip-permissions'
+			return 'claude'
 		}
 		'codex' {
 			if has_task {
