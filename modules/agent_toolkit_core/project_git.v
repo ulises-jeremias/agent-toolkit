@@ -515,6 +515,22 @@ pub fn project_git_show_typed(root string, project string, hash string) ProjectG
 			detail: 'invalid commit hash'
 		}
 	}
+	type_res := git_run(root, ['cat-file', '-t', hash]) or {
+		return ProjectGitShowResponse{
+			ok: false
+			project: project
+			hash: hash
+			detail: err.msg()
+		}
+	}
+	if type_res.exit_code != 0 || type_res.stdout.trim_space() != 'commit' {
+		return ProjectGitShowResponse{
+			ok: false
+			project: project
+			hash: hash
+			detail: 'not a commit'
+		}
+	}
 	res := git_run(root, ['show', '--no-color', '--diff-merges=first-parent', '--format=', hash]) or {
 		return ProjectGitShowResponse{
 			ok: false
