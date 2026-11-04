@@ -41,5 +41,5 @@ fn test_claude_swarm_runner_uses_native_approval_not_permission_bypass() {
 	}
 	prompt_command := herdr_runner_cmd('claude', 'reviewer', 'Review this', '.', '/tmp/swarm prompt.md')
 	assert prompt_command.contains('--append-system-prompt-file ' + shell_quote('/tmp/swarm prompt.md'))
-	assert prompt_command.contains('"\\$(cat ' + shell_quote('/tmp/swarm prompt.md') + ')"')
+	assert prompt_command.contains('"\$(cat ' + shell_quote('/tmp/swarm prompt.md') + ')"')
 }
