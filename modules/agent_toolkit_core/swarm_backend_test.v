@@ -27,3 +27,19 @@ fn test_runner_command_uses_quoted_model_for_supported_runners() {
 	assert herdr_runner_cmd_for_model('muse', 'reviewer', 'Review this', '.', '', 'auto') == herdr_runner_cmd('muse',
 		'reviewer', 'Review this', '.', '')
 }
+
+fn test_claude_swarm_runner_uses_native_approval_not_permission_bypass() {
+	for command in [
+		herdr_runner_cmd('claude', 'implementer', '', '.', ''),
+		herdr_runner_cmd('claude', 'implementer', 'Fix the bug', '.', ''),
+		herdr_runner_cmd('claude', 'implementer', 'Fix the bug', '.', '/tmp/swarm prompt.md'),
+		herdr_runner_cmd_for_model('claude', 'implementer', 'Fix the bug', '.', '', 'sonnet'),
+	] {
+		assert command.starts_with('claude')
+		assert !command.contains('--dangerously-skip-permissions')
+		assert !command.contains('--permission-mode bypassPermissions')
+	}
+	prompt_command := herdr_runner_cmd('claude', 'reviewer', 'Review this', '.', '/tmp/swarm prompt.md')
+	assert prompt_command.contains('--append-system-prompt-file ' + shell_quote('/tmp/swarm prompt.md'))
+	assert prompt_command.contains('"\$(cat ' + shell_quote('/tmp/swarm prompt.md') + ')"')
+}
