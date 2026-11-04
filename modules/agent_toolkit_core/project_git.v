@@ -199,7 +199,11 @@ pub fn project_git_diff_typed(root string, project string, path string, staged b
 	mut diff := res.stdout
 	mut truncated := false
 	if diff.len > max_git_diff_chars {
-		diff = diff[..max_git_diff_chars]
+		mut cut := max_git_diff_chars
+		for cut > 0 && (diff[cut] & 0xC0) == 0x80 {
+			cut--
+		}
+		diff = diff[..cut]
 		truncated = true
 	}
 	return ProjectGitDiffResponse{
