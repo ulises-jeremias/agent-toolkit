@@ -515,7 +515,7 @@ pub fn project_git_show_typed(root string, project string, hash string) ProjectG
 			detail: 'invalid commit hash'
 		}
 	}
-	res := git_run(root, ['show', '--no-color', '--format=', hash]) or {
+	res := git_run(root, ['show', '--no-color', '--diff-merges=first-parent', '--format=', hash]) or {
 		return ProjectGitShowResponse{
 			ok: false
 			project: project
