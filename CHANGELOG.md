@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Add an opt-in daily-driver baseline collector with an isolated failing Git
+  fixture and provider executable/version preflight. Authentication and all
+  real-provider journeys remain explicitly unverified until a field trial.
+
 ## [1.48.0] — 2026-10-25
 
 ### Added
