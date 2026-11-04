@@ -435,7 +435,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read the full diff of one commit in a registered project repository */
+        /** Read the diff of one commit in a registered project repository, capped at 200,000 bytes; check `truncated` */
         get: operations["project_git_show"];
         put?: never;
         post?: never;
