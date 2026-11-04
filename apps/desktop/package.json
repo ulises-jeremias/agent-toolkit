@@ -29,7 +29,7 @@
     "type-check": "tsc --noEmit && tsc -p tsconfig.node.json --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "vitest run",
+    "test": "vitest run && node --test scripts/spikes/*.test.mjs",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "preview": "vite preview"
