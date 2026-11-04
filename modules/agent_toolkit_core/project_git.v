@@ -448,15 +448,15 @@ pub:
 	detail    string
 }
 
-// parse_git_log parses `git log --format=%H%x1f%h%x1f%s%x1f%an%x1f%ad`
-// output (unit-separated fields, newline-separated records).
+// parse_git_log parses `git log --format=%H%x00%h%x00%s%x00%an%x00%ad`
+// output (NUL-separated fields, newline-separated records).
 pub fn parse_git_log(project string, text string) ProjectGitLogResponse {
 	mut resp := ProjectGitLogResponse{
 		ok: true
 		project: project
 	}
 	for line in text.split_into_lines() {
-		parts := line.split('\x1f')
+		parts := line.split('\x00')
 		if parts.len < 5 {
 			continue
 		}
@@ -474,7 +474,7 @@ pub fn parse_git_log(project string, text string) ProjectGitLogResponse {
 // project_git_log_typed lists recent commits of the project repository.
 pub fn project_git_log_typed(root string, project string, limit int) ProjectGitLogResponse {
 	n := if limit > 0 && limit <= 200 { limit } else { 50 }
-	res := git_run(root, ['log', '-n', '${n}', '--date=short', '--format=%H%x1f%h%x1f%s%x1f%an%x1f%ad']) or {
+	res := git_run(root, ['log', '-n', '${n}', '--date=short', '--format=%H%x00%h%x00%s%x00%an%x00%ad']) or {
 		return ProjectGitLogResponse{
 			ok: false
 			project: project
