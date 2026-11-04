@@ -1,0 +1,247 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+
+const steps = [
+  {
+    title: "Download and install Desktop",
+    body: "Get the latest release for your system (AppImage or .deb on Linux, .dmg on macOS, installer on Windows). Desktop bundles the matching backend — no CLI install, no config files to edit.",
+    action: { href: "/download/", label: "Download Desktop" },
+  },
+  {
+    title: "Create your workspace",
+    body: "On first launch choose Create a workspace (or open an existing one). The workspace is your valley: projects, People, capabilities, memory and operations all live in this one context, shown in the header so you always know where you are.",
+  },
+  {
+    title: "Meet the World",
+    body: "Projects are buildings; Library, Archive, Operations and Workspace Hall are shared places. Walk with WASD or the arrow keys, click to move, and press E near a place to open it. Walking is optional — every destination is also in the top navigation and the command palette (Ctrl/Cmd+K). Press ? any time for the full shortcut map.",
+    action: { href: "/world/", label: "Tour the World" },
+  },
+  {
+    title: "Connect your coding tools",
+    body: "Open Library → Coding tools to see which runners Desktop detected (Claude Code, OpenCode, Codex, Cursor, Copilot and more). Sign in inside each tool's own app — Agent Toolkit never asks for your provider password. Missing tool? Install it from its publisher and refresh detection.",
+  },
+  {
+    title: "Install only the capabilities you need",
+    body: "Browse Skills, Agent Definitions and MCP in the Library. Every install shows a preview of targets, paths and conflicts before anything is written, and leaves a receipt of what actually changed. Start small; a catalog entry is not an installed capability.",
+    action: { href: "/capabilities/", label: "Browse capabilities" },
+  },
+  {
+    title: "Link your first project",
+    body: "In Workspace, link an existing folder (or clone a repository). The world draws a house for it; the files stay exactly where they are on disk. Inside the project you get Files, Terminal, Knowledge and Changes — a real git view with staging, per-hunk staging, commit and history.",
+  },
+  {
+    title: "Pick or create a context pack",
+    body: "Workspace Hall holds context packs: named bundles of projects and knowledge that tell agents what matters for a kind of work. Activate the pack that fits your task before starting agents, and preview the effective context so there are no surprises. Changing packs never disturbs sessions already running.",
+  },
+  {
+    title: "Create your first Person",
+    body: "People are durable AI collaborators: name, goal, Agent Definition, runner/model, skills and appearance — configured once, reused forever. Creating a Person starts nothing; an offline Person honestly stays off the map.",
+    action: { href: "/people/", label: "Meet People" },
+  },
+  {
+    title: "Start a real session",
+    body: "From the Person, choose Start, pick the project and an available runner/model, review, and launch. You get a real terminal with real output. Stop it when done; where the runner supports it, resume the same conversation later. Unavailable runners are reported, never faked.",
+  },
+  {
+    title: "Review the work like a human",
+    body: "Open the project's Changes: read the diff with line numbers, stage whole files or single hunks, commit, and browse History to open any commit's diff. This is the same git your editor sees — Desktop adds a friendly face, not a copy.",
+  },
+  {
+    title: "Graduate to Swarms and Loops",
+    body: "Swarms coordinate planner/implementer/reviewer roles on one task with approvals, worktrees and budgets you review before starting. Loops repeat bounded work on a schedule with explicit autonomy tiers. Operations is mission control for all of it: live runs, approvals, failures and recovery.",
+    action: { href: "/swarms/", label: "See Swarms" },
+  },
+  {
+    title: "When something looks wrong",
+    body: "Open Doctor in Operations for a live health report (backend checks plus real terminal-session status) and apply suggested fixes. Settings → Self-check explains failures with a next step. Never reinstall over your files to clear a warning — read the preview first.",
+    action: { href: "/docs/trust/", label: "Trust and safety" },
+  },
+];
+
+const checklist = [
+  "Desktop installed and workspace created",
+  "At least one coding tool detected in Library",
+  "First project linked and visible in the World",
+  "One Person created with a runner you can sign in to",
+  "First real session started, watched, and stopped",
+  "A change reviewed and committed from Changes",
+];
+---
+
+<SiteLayout
+  title="Start here — your first hour with Agent Toolkit"
+  description="A step-by-step onboarding guide for new people: install Desktop, create a workspace, link a project, create a Person, run a real session and review the work."
+>
+  <section class="page-hero">
+    <div class="wrap">
+      <p class="eyebrow">New here? Start here</p>
+      <h1>Your first hour with Agent Toolkit.</h1>
+      <p class="lede">
+        Twelve small steps take you from download to real agent work you
+        reviewed yourself. No CLI required, no config files to hand-edit, and
+        nothing on screen pretends to be working when it is not.
+      </p>
+      <div class="button-row">
+        <a class="button" href="/download/">
+          Download Desktop{" "}
+          <span class="arrow" aria-hidden="true">
+            →
+          </span>
+        </a>
+        <a class="button secondary" href="/docs/getting-started/">
+          Prefer reading? The written guide{" "}
+          <span class="arrow" aria-hidden="true">
+            ↗
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--deep">
+    <div class="wrap">
+      <div class="section-intro">
+        <p class="section-kicker">The four ideas behind everything</p>
+        <h2>Identity, behavior, responsibility, runtime.</h2>
+      </div>
+      <div class="definition-rail">
+        <div class="definition">
+          <b>Agent Definition</b>
+          <p>Reusable behavior, like reviewer or architect.</p>
+        </div>
+        <span class="definition-arrow" aria-hidden="true">
+          →
+        </span>
+        <div class="definition">
+          <b>Person</b>
+          <p>Your durable collaborator, configured once.</p>
+        </div>
+        <span class="definition-arrow" aria-hidden="true">
+          →
+        </span>
+        <div class="definition">
+          <b>Agent Session</b>
+          <p>A real process and terminal, bound to a project.</p>
+        </div>
+        <span class="definition-arrow" aria-hidden="true">
+          →
+        </span>
+        <div class="definition">
+          <b>Swarm Role</b>
+          <p>A temporary job inside coordinated work.</p>
+        </div>
+      </div>
+
+      <ol class="start-steps">
+        {steps.map((step, index) => (
+          <li class="start-step">
+            <span class="start-step-number" aria-hidden="true">
+              {index + 1}
+            </span>
+            <div>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+              {step.action && (
+                <a class="quiet-link" href={step.action.href}>
+                  {step.action.label} <span aria-hidden="true">→</span>
+                </a>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <section class="start-checklist" aria-label="First hour checklist">
+        <h2>First-hour checklist</h2>
+        <ul>
+          {checklist.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+        <p>
+          All six ticked? You already know the whole product loop: workspace →
+          project → context → Person → session → review. Everything else —
+          Swarms, Loops, MCP, multi-project districts — is depth on the same
+          map.
+        </p>
+      </section>
+
+      <section aria-label="Keyboard shortcuts">
+        <h2>Three keys that run the place</h2>
+        <div class="capability-list">
+          <article class="capability-item">
+            <div>
+              <h3>Ctrl/Cmd+K</h3>
+              <p>
+                Command palette: jump to any destination or action without
+                walking.
+              </p>
+            </div>
+          </article>
+          <article class="capability-item">
+            <div>
+              <h3>?</h3>
+              <p>
+                The audited shortcut map: shell keys plus World keys
+                (WASD/arrows, E, Home).
+              </p>
+            </div>
+          </article>
+          <article class="capability-item">
+            <div>
+              <h3>Esc</h3>
+              <p>
+                Closes only the innermost dialog or overlay. It never quits the
+                app.
+              </p>
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .start-steps {
+    list-style: none;
+    margin: 2.5rem 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .start-step {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .start-step-number {
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border-default);
+    border-radius: 50%;
+    font-weight: 700;
+  }
+
+  .start-step h3 {
+    margin: 0.15rem 0 0.35rem;
+  }
+
+  .start-step p {
+    margin: 0 0 0.35rem;
+    color: var(--muted);
+  }
+
+  .start-checklist {
+    margin: 2.5rem 0;
+  }
+
+  .start-checklist li {
+    margin-bottom: 0.35rem;
+  }
+</style>

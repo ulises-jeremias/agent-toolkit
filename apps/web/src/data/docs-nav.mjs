@@ -3,7 +3,8 @@ export const publicDocs = [
     slug: "getting-started",
     source: "GETTING_STARTED.md",
     title: "Getting started",
-    description: "Install Agent Toolkit and make your first capability useful.",
+    description:
+      "The written twin of the visual /start/ guide: install, first session, first reviewed change.",
     group: "Start here",
   },
   {
