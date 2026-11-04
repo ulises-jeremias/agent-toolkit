@@ -90,6 +90,6 @@ Linux (including Wayland/Hyprland where available), Windows and macOS should use
 
 ## Release decision
 
-Daily-driver release is blocked if D01–D07 have no P-level proof on the target platform, or if D03–D06 have a known critical usability/security failure. D08–D10 are later release gates, not prerequisites for the first functional MVP. Every gate status and host limitation belongs in the PR/release notes.
+Daily-driver release is blocked unless every D01–D07 journey has an `outcome: pass` run with `evidence_level: P` on the target platform. Daily-driver release is also blocked if D03–D06 have a known critical usability/security failure. D08–D10 are later release gates, not prerequisites for the first functional MVP. Every gate status and host limitation belongs in the PR/release notes.
 
 **Quality target:** An independent developer completes an actual fix and reviews its test/diff/permissions using only the installed Toolkit application. No shell workaround, feature-demo fiction or maintainer intervention.
