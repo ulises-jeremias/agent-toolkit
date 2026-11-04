@@ -41,6 +41,21 @@ function parseArgs(argv) {
 }
 
 function createEmptyOutput(dir) {
+  // Reject symlinks in existing ancestor components as well as the leaf.
+  // Otherwise --output-dir /trusted/link/new could write outside the intended tree.
+  let ancestor = path.resolve(dir);
+  while (true) {
+    try {
+      if (fs.lstatSync(ancestor).isSymbolicLink()) {
+        throw new Error('Refusing symlink in output directory path.');
+      }
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
+    const parent = path.dirname(ancestor);
+    if (parent === ancestor) break;
+    ancestor = parent;
+  }
   if (fs.existsSync(dir)) {
     if (fs.lstatSync(dir).isSymbolicLink()) throw new Error('Refusing symlink output directory.');
     if (!fs.statSync(dir).isDirectory() || fs.readdirSync(dir).length) {
