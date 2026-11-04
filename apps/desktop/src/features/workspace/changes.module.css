@@ -134,7 +134,7 @@
 
 .gutter {
   flex: none;
-  width: 3ch;
+  width: 5ch;
   text-align: right;
   opacity: 0.55;
   user-select: none;
