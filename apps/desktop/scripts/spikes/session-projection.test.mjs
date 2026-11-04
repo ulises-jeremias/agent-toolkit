@@ -57,3 +57,17 @@ test('unverified provider capabilities are not inferred from a native cursor', (
   assert.equal(p.status, 'running');
   assert.equal('resumeSupported' in p, false);
 });
+
+test('resolving one of two approvals does not clear the remaining approval', () => {
+  const p = new SessionProjection(ids);
+  p.apply(event(1, 'started'));
+  p.apply(event(2, 'approval_requested', { nodeId: 'approval-a' }));
+  p.apply(event(3, 'approval_requested', { nodeId: 'approval-b' }));
+  p.apply(event(4, 'approval_resolved', { nodeId: 'approval-a', approved: true }));
+  assert.equal(p.status, 'needs_approval');
+  assert.throws(() => p.apply(event(5, 'root_completed')), /unfinished/);
+  p.apply(event(5, 'approval_resolved', { nodeId: 'approval-b', approved: false }));
+  assert.equal(p.status, 'running');
+  p.apply(event(6, 'root_completed'));
+  assert.equal(p.status, 'root_completed');
+});
