@@ -69,6 +69,13 @@ test('reviews, stages, and commits real project changes from the GUI', async () 
     expect(execFileSync('git', ['log', '-1', '--format=%s'], { cwd: projectPath, encoding: 'utf8' }).trim()).toBe(
       'Document the garden',
     );
+
+    // History: clicking a commit renders its diff in the pane.
+    await changes
+      .getByRole('list', { name: 'Commit history' })
+      .getByRole('button', { name: /initial/ })
+      .click();
+    await expect(changes.getByLabel(/Diff for commit/)).toContainText('+# Garden API');
   } finally {
     await desktop.close();
   }
