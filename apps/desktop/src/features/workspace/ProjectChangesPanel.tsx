@@ -217,6 +217,9 @@ export function ProjectChangesPanel({
                         <strong>Commit {show.data.hash.slice(0, 7)}</strong>
                         {show.data.truncated ? <StatusBadge tone="warn" label="truncated" /> : null}
                       </p>
+                      {splitDiffHunks(show.data.diff).length === 0 ? (
+                        <EmptyState title="No textual diff.">This commit may change only binary files.</EmptyState>
+                      ) : null}
                       <div aria-label={`Diff for commit ${show.data.hash.slice(0, 7)}`}>
                         {splitDiffHunks(show.data.diff).map((hunk, hunkIndex) => (
                           <div key={hunkIndex} className={styles.hunk}>
