@@ -71,3 +71,19 @@ test('resolving one of two approvals does not clear the remaining approval', () 
   p.apply(event(6, 'root_completed'));
   assert.equal(p.status, 'root_completed');
 });
+
+
+test('approval resolution requires explicit provider decision and preserves cursor on malformed events', () => {
+  const p = new SessionProjection(ids);
+  p.apply(event(1, 'started'));
+  p.apply(event(2, 'approval_requested', { nodeId: 'approval-1' }));
+  for (const approved of [undefined, null, 'false', 0]) {
+    assert.throws(() => p.apply(event(3, 'approval_resolved', { nodeId: 'approval-1', approved })), /explicit boolean/);
+    assert.equal(p.lastSequence, 2);
+    assert.equal(p.nodes.get('approval-1'), 'pending_approval');
+    assert.equal(p.status, 'needs_approval');
+  }
+  p.apply(event(3, 'approval_resolved', { nodeId: 'approval-1', approved: false }));
+  assert.equal(p.nodes.get('approval-1'), 'denied');
+  assert.equal(p.lastSequence, 3);
+});
