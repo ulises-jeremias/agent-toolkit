@@ -50,7 +50,8 @@ export class SessionProjection {
       if (event.type === 'approval_resolved') {
         if (this.nodes.get(event.nodeId) !== 'pending_approval') throw new Error('unknown approval');
         this.nodes.set(event.nodeId, event.approved === true ? 'approved' : 'denied');
-        this.status = 'running';
+        this.status = [...this.nodes.values()].some(s => s === 'pending_approval')
+          ? 'needs_approval' : 'running';
       }
       if (event.type === 'root_completed') {
         if ([...this.nodes.values()].some(s => s === 'running' || s === 'pending_approval'))
