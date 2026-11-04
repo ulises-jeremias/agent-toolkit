@@ -1360,7 +1360,7 @@
     "/api/v1/projects/{id}/git/show": {
       "get": {
         "operationId": "project_git_show",
-        "summary": "Read the full diff of one commit in a registered project repository",
+        "summary": "Read the diff of one commit in a registered project repository, capped at 200,000 bytes; check `truncated`",
         "x-scope": "read:*",
         "x-confirm-required": false,
         "parameters": [
