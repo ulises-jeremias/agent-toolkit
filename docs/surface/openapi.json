@@ -3,7 +3,7 @@
   "info": {
     "title": "agent-toolkit serve API",
     "version": "1.48.0",
-    "description": "Generated from docs/compatibility/cli-contract.yaml — do not hand-edit."
+    "description": "Generated from docs/compatibility/cli-contract.yaml \u2014 do not hand-edit."
   },
   "paths": {
     "/api/v1/help": {
@@ -1044,7 +1044,7 @@
     "/api/v1/insights": {
       "get": {
         "operationId": "insights",
-        "summary": "AI tool usage insights — opencode, cursor, claude, windsurf, copilot, codex, all",
+        "summary": "AI tool usage insights \u2014 opencode, cursor, claude, windsurf, copilot, codex, all",
         "tags": [
           "advanced"
         ],
@@ -2038,8 +2038,8 @@
               }
             }
           },
-          "409": {
-            "description": "project changed since review; no mutation is applied",
+          "422": {
+            "description": "required field is missing or action is unsupported",
             "content": {
               "application/json": {
                 "schema": {
@@ -2048,8 +2048,8 @@
               }
             }
           },
-          "422": {
-            "description": "required field is missing or action is unsupported",
+          "409": {
+            "description": "project changed since review; no mutation is applied",
             "content": {
               "application/json": {
                 "schema": {
