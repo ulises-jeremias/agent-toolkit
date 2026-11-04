@@ -122,7 +122,7 @@ export function ProjectChangesPanel({
       <h3 className={styles.groupTitle}>History ({log.data?.commits.length ?? 0})</h3>
       {log.isPending ? (
         <LoadingState label="Reading commit history" />
-      ) : log.isError ? (
+      ) : log.isError && !log.data ? (
         <ErrorState title="Could not read history" error={log.error} onRetry={() => void log.refetch()} />
       ) : log.data && !log.data.ok ? (
         <p role="alert">{log.data.detail || 'Could not read commit history.'}</p>
@@ -207,7 +207,7 @@ export function ProjectChangesPanel({
                 {commitHash ? (
                   show.isPending ? (
                     <LoadingState label="Reading commit" />
-                  ) : show.isError ? (
+                  ) : show.isError && !show.data ? (
                     <ErrorState title="Could not read commit" error={show.error} onRetry={() => void show.refetch()} />
                   ) : show.data && !show.data.ok ? (
                     <p role="alert">{show.data.detail || 'Could not read this commit.'}</p>
