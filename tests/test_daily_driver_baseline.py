@@ -1,4 +1,5 @@
 """No scripted preflight can masquerade as a passing real-provider acceptance."""
+
 import json
 import shutil
 import subprocess
