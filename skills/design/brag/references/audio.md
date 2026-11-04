@@ -1,6 +1,6 @@
 # Audio reference
 
-All SFX are CC0 (Kenney.nl, public domain). Music and SFX should be used by default unless the user passes `--no-music`, `--no-sfx`, the required assets are missing, or the plan explicitly chooses silence as the strongest creative move.
+All SFX are CC0 (Kenney.nl, public domain). The bundled music is CC BY 4.0 by Sascha Ende (ende.app); see `assets/music/README.md`. Music and SFX should be used by default unless the user passes `--no-music`, `--no-sfx`, the required assets are missing, or the plan explicitly chooses silence as the strongest creative move.
 
 Bias toward a smooth, professional result: one tasteful music bed plus a small number of well-timed SFX usually feels better than silence.
 
@@ -27,7 +27,7 @@ Suggested plan notation:
 Audio-reactive treatment: subtle; use music RMS/bass to make the hero glow and product card presence breathe. No waveform/equalizer visuals.
 ```
 
-Hyperframes implementation note: follow the audio-reactive guidance owned by the `hyperframes-creative` skill (let that skill locate its own files), to extract per-frame audio data and sample it synchronously inside the composition timeline. The extraction helper ships with that skill — `/brag` does not provide it, so don't hardcode a path to it.
+Hyperframes implementation note: follow the audio-reactive guidance owned by the `media-use` skill (`audio/references/captions/motion.md`; let that skill locate its own files), to extract per-frame audio data and sample it synchronously inside the composition timeline. That file is written for captions: use its build-time audio modulation pattern on brand elements (glow, halo, card presence), not on caption groups. The extraction helper (`audio/scripts/extract-audio-data.py`) ships with that skill — `/brag` does not provide it, so don't hardcode a path to it.
 
 ---
 
@@ -128,6 +128,9 @@ More physical and cinematic. Excellent for big moments and transitions.
 | `impactGlass_medium_000.ogg`, `_002.ogg`, `_004.ogg` | Glass tap | Mid-weight accent |
 | `impactGlass_heavy_002.ogg` | Glass shatter | Chaotic hit |
 | `impactMining_001.ogg` | Mining strike | Industrial, heavy |
+| `footstep_wood_000.ogg`, `_001.ogg`, `_002.ogg`, `_004.ogg` | Soft wood footstep | Light tap, step-through or scroll accent |
+
+The other `footstep_*` files (wood `_003`, concrete, grass, snow, carpet) are not approved.
 
 ### `casino/` — Card and chip sounds
 

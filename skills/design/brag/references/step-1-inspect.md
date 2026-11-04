@@ -104,7 +104,7 @@ Write down:
 - Accent/brand color
 - Any gradient or special treatment
 
-These colors are recorded in `composition-brief.md` and carry into the design spec the current hyperframes-creative workflow scaffolds.
+These colors are recorded in `composition-brief.md` and carry into the composition's look (see the `hyperframes` skill's `references/look.md`).
 
 ## Font extraction
 

@@ -70,7 +70,7 @@ Scene summary:
 - Audio files: copy the chosen music and any Hyperframes-selected SFX into `<output-dir>/composition/assets/`
 
 ## Hyperframes Instructions
-Load the composition-building Hyperframes domain skills — `hyperframes-core` (composition contract + `data-*` timing), `hyperframes-animation` (motion), `hyperframes-creative` (design spec, beats, audio-reactive), `hyperframes-keyframes` (seek-safe keyframes), and `hyperframes-cli` (lint/check/render). /brag is its own workflow: do not enter the `hyperframes` entry-point intent interview and do not route into its generic promo / launch-video workflow. Prefer native Hyperframes conventions over anything in `/brag`.
+Load the composition-building Hyperframes skills — `hyperframes` (composition contract + `data-*` timing, `references/format.md`; motion, eases and seek-safe keyframes in `references/motion.md`; look in `references/look.md`), `hyperframes-registry` (ready-made effects, transitions, titles), `media-use` (music, SFX, audio-reactive data), and `hyperframes-cli` (lint/check/render). /brag is its own workflow: skip the `hyperframes` storyline step: don't read `references/types/*` or `references/story.md`, don't propose storylines, and don't write a `SPEC.md`. The brag plan and composition brief replace them, including the LOOK line `references/look.md` asks for. Also skip its `usage`, `history`, `feedback` and REVIEW.md steps; `check` is brag's gate. Do not route into its generic launch-video workflow. Prefer native Hyperframes conventions over anything in `/brag`.
 
 Requirements:
 - Show at least one real UI, copy, or visual element from the source project.
@@ -144,7 +144,7 @@ The 15-25 second window holds whether or not narration is on. Write the narratio
 
 When music is present and the treatment is not `none`, the composition can react to per-frame audio data. **Delegate the extraction to the Hyperframes audio-reactive workflow** — `/brag` does not ship an extraction script and must not hardcode a path to one.
 
-In the composition step, follow the audio-reactive guidance owned by the `hyperframes-creative` skill (let that skill locate its own files). It owns the data format, the extraction helper (which ships with that skill, not with `/brag`, so don't hardcode a path to it), and the per-frame sampling pattern. Ask Hyperframes to extract the audio data and wire at least one visual element to it.
+In the composition step, follow the audio-reactive guidance owned by the `media-use` skill (`audio/references/captions/motion.md`; let that skill locate its own files). That file is written for captions: use its build-time audio modulation pattern on brand elements (glow, halo, card presence), not on caption groups. It owns the data format, the extraction helper (`audio/scripts/extract-audio-data.py`, which ships with that skill, not with `/brag`, so resolve it through the skill's own directory), and the per-frame sampling pattern. Ask Hyperframes to extract the audio data and wire at least one visual element to it.
 
 If extraction is unavailable (no helper, or ffmpeg missing), note it in the brief and skip audio-reactive — do not block the render.
 
@@ -185,7 +185,7 @@ If SFX are enabled, also pass `<skill-dir>/assets/sfx/sfx-analysis.md` as select
 
 After `<output-dir>/brag-plan.md`, `<output-dir>/composition-brief.md`, and selected audio assets exist:
 
-1. Load the Hyperframes domain skills (`hyperframes-core`, `hyperframes-animation`, `hyperframes-creative`, `hyperframes-keyframes`, `hyperframes-cli`) to create or update `<output-dir>/composition/`. /brag is its own workflow — do not enter the `hyperframes` entry-point intent interview or route into its generic promo / launch-video workflow.
+1. Load the Hyperframes skills (`hyperframes`, `hyperframes-registry`, `media-use`, `hyperframes-cli`) to create or update `<output-dir>/composition/`. /brag is its own workflow — skip the `hyperframes` storyline step: don't read `references/types/*` or `references/story.md`, don't propose storylines, and don't write a `SPEC.md`. The brag plan and composition brief replace them, including the LOOK line `references/look.md` asks for. Also skip its `usage`, `history`, `feedback` and REVIEW.md steps; `check` is brag's gate. Do not route into its generic launch-video workflow.
 2. Pass Hyperframes the composition brief, the brag plan, and the source files it should reference.
 3. Let Hyperframes choose the implementation details.
 4. Run Hyperframes check (the single gate before render).
