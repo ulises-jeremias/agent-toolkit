@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add an opt-in daily-driver baseline collector with an isolated failing Git
+  fixture and provider executable/version preflight. Authentication and all
+  real-provider journeys remain explicitly unverified until a field trial.
+
 - Define the Daily Driver Reboot mission, provider architecture evaluation and
   installed-product acceptance contract. Release sign-off requires passing
   packaged real-provider evidence for every D01–D07 journey; component tests
