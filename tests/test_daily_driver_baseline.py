@@ -43,7 +43,7 @@ def test_creates_failing_fixture_without_faking_provider_evidence(tmp_path):
     assert data["fixture"]["failing_test_confirmed"] is True
     assert (output / "fixture" / ".git").is_dir()
     check = subprocess.run(
-        ["node", "--test"],
+        ["node", "--test", "--test-reporter=tap"],
         cwd=output / "fixture",
         check=False,
         capture_output=True,
