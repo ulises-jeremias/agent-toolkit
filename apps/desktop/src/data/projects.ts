@@ -51,6 +51,7 @@ function useProjectGitMutation<I>(
       Promise.all([
         queryClient.invalidateQueries({ queryKey: qk.projects.gitStatus(workspace, project) }),
         queryClient.invalidateQueries({ queryKey: ['projects', 'git-diff', workspace, project] }),
+        queryClient.invalidateQueries({ queryKey: ['projects', 'git-log', workspace, project] }),
       ]),
   });
 }
