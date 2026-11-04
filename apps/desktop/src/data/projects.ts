@@ -67,6 +67,7 @@ function useProjectGitMutation<I>(
         ...(error || !result?.ok
           ? [queryClient.invalidateQueries({ queryKey: qk.projects.gitStatus(workspace, project) })]
           : []),
+        queryClient.invalidateQueries({ queryKey: ['projects', 'git-log', workspace, project] }),
       ]),
   });
 }
