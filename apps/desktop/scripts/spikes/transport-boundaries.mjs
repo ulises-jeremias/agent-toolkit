@@ -2,6 +2,13 @@
 // Both shapes feed the same app-owned projection. No provider capabilities inferred.
 import { SessionProjection } from './session-projection.mjs';
 
+const terminalStatuses = new Set(['root_completed', 'root_failed', 'cancelled', 'interrupted']);
+
+function requireTerminal(projection) {
+  if (!terminalStatuses.has(projection.status)) throw new Error('transport ended before root terminal event');
+  return projection;
+}
+
 export async function consumePull({ events, ids, signal }) {
   const projection = new SessionProjection(ids);
   for await (const event of events) {
@@ -9,7 +16,7 @@ export async function consumePull({ events, ids, signal }) {
     projection.apply(event);
   }
   if (signal?.aborted) throw new Error('transport cancelled');
-  return projection;
+  return requireTerminal(projection);
 }
 
 // Push sources must have a close/error signal; silence is NOT completion.
@@ -30,7 +37,9 @@ export function consumePush({ subscribe, ids, signal }) {
       settled = true;
       cleanup();
       if (error) reject(error);
-      else resolve(projection);
+      else {
+        try { resolve(requireTerminal(projection)); } catch (incomplete) { reject(incomplete); }
+      }
     };
     const onAbort = () => finish(new Error('transport cancelled'));
     if (signal?.aborted) return finish(new Error('transport cancelled'));
