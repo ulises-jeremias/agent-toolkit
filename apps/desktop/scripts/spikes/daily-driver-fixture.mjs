@@ -4,9 +4,9 @@
  * Desktop D01-D07 field trial. Never touches the user's existing projects.
  * This is a fixture, NOT evidence of a live provider or Desktop acceptance.
  */
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
@@ -28,7 +28,7 @@ export function createFixture({ root = tmpdir() } = {}) {
   return directory;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const directory = createFixture();
   console.log(JSON.stringify({
     directory,
