@@ -1,13 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createFixture } from './daily-driver-fixture.mjs';
 
-test('field-trial fixture starts failing, is committed and becomes green only after source fix', () => {
+test('field-trial fixture starts failing, is committed and becomes green only after source fix', (t) => {
   const directory = createFixture();
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
   const original = spawnSync(process.execPath, ['--test'], { cwd: directory, encoding: 'utf8' });
   assert.notEqual(original.status, 0, 'baseline must fail, not accidentally pass');
   assert.match(original.stdout + original.stderr, /not ok/);
@@ -22,7 +23,7 @@ test('field-trial fixture starts failing, is committed and becomes green only af
 });
 
 
-test('fixture ignores inherited Git overrides and commit signing', () => {
+test('fixture ignores inherited Git overrides and commit signing', (t) => {
   const fixtureModule = pathToFileURL(join(import.meta.dirname, 'daily-driver-fixture.mjs')).href;
   const env = { ...process.env, GIT_DIR: '/nonexistent/atk-foreign-git-dir', GIT_WORK_TREE: '/nonexistent/atk-foreign-worktree', GIT_INDEX_FILE: '/nonexistent/atk-foreign-index' };
   const child = spawnSync(process.execPath, ['--input-type=module', '-e',
@@ -30,6 +31,7 @@ test('fixture ignores inherited Git overrides and commit signing', () => {
     { encoding: 'utf8', env });
   assert.equal(child.status, 0, child.stderr);
   const directory = child.stdout.trim();
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
   const cleanEnv = { ...process.env };
   for (const name of Object.keys(cleanEnv)) if (name.startsWith('GIT_')) delete cleanEnv[name];
   assert.equal(execFileSync('git', ['-C', directory, 'status', '--porcelain'], { encoding: 'utf8', env: cleanEnv }).trim(), '');
