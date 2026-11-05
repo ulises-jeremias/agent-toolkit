@@ -61,3 +61,38 @@ test('push synchronously ending source unsubscribes once', async () => {
   assert.equal(projection.status, 'root_completed');
   assert.equal(count, 1);
 });
+
+test('normal end without root terminal event is an error in both transports', async () => {
+  const incomplete = [trace[0], trace[1]];
+  await assert.rejects(
+    consumePull({ ids, events: (async function* () { yield* incomplete; })() }),
+    /before root terminal event/
+  );
+  await assert.rejects(
+    consumePush({ ids, subscribe: push(incomplete) }),
+    /before root terminal event/
+  );
+});
+
+test('a clean root failure or interruption is a terminal transport outcome', async () => {
+  for (const type of ['root_failed', 'cancelled', 'interrupted']) {
+    const events = [trace[0], e(2, type)];
+    const pull = await consumePull({ ids, events: (async function* () { yield* events; })() });
+    const pushed = await consumePush({ ids, subscribe: push(events) });
+    assert.equal(pull.status, type);
+    assert.equal(pushed.status, type);
+  }
+});
+
+test('push synchronous end without a root terminal event still unsubscribes', async () => {
+  let unsubscribed = 0;
+  await assert.rejects(consumePush({
+    ids,
+    subscribe: (onEvent, onEnd) => {
+      onEvent(trace[0]);
+      onEnd();
+      return () => { unsubscribed++; };
+    }
+  }), /before root terminal event/);
+  assert.equal(unsubscribed, 1);
+});
