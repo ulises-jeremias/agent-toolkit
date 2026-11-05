@@ -160,3 +160,18 @@ fn test_parse_git_log_lines() {
 	assert commits.commits[1].date == '2026-10-22'
 	assert parse_git_log('demo', '').commits.len == 0
 }
+
+fn test_project_git_log_empty_repository_returns_git_error() {
+	git_path := os.find_abs_path_of_executable('git') or { return }
+	_ := git_path
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-projlog-empty-${os.getpid()}')
+	os.mkdir_all(base) or { panic(err.msg()) }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	git_fixture(['git', 'init', '-q', '-b', 'main'], base)
+	resp := project_git_log_typed(base, 'demo', 50)
+	assert !resp.ok
+	assert resp.commits.len == 0
+	assert resp.detail.len > 0
+}
