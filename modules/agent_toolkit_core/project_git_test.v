@@ -175,3 +175,39 @@ fn test_project_git_log_empty_repository_returns_git_error() {
 	assert resp.commits.len == 0
 	assert resp.detail.len > 0
 }
+
+
+fn test_project_git_show_reads_patch_file_and_truncates_large_diff() {
+	git_path := os.find_abs_path_of_executable('git') or { return }
+	_ := git_path
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-projshow-large-${os.getpid()}')
+	os.mkdir_all(base) or { panic(err.msg()) }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	git_fixture(['git', 'init', '-q', '-b', 'main'], base)
+	git_fixture(['git', 'config', 'user.email', 'test@example.com'], base)
+	git_fixture(['git', 'config', 'user.name', 'Test'], base)
+	os.write_file(os.join_path(base, 'large.txt'), 'hello world\n') or { panic(err.msg()) }
+	git_fixture(['git', 'add', 'large.txt'], base)
+	git_fixture(['git', 'commit', '-q', '-m', 'initial'], base)
+	first := git_run(base, ['rev-parse', 'HEAD']) or { panic(err.msg()) }
+	small := project_git_show_typed(base, 'demo', first.stdout.trim_space())
+	assert small.ok, small.detail
+	assert small.diff.contains('+hello world')
+	assert !small.truncated
+
+	mut content := ''
+	for i in 0 .. 16000 {
+		content += 'line-${i:06} abcdefghijklmnopqrstuvwxyz\n'
+	}
+	os.write_file(os.join_path(base, 'large.txt'), content) or { panic(err.msg()) }
+	git_fixture(['git', 'add', 'large.txt'], base)
+	git_fixture(['git', 'commit', '-q', '-m', 'large patch'], base)
+	second := git_run(base, ['rev-parse', 'HEAD']) or { panic(err.msg()) }
+	large := project_git_show_typed(base, 'demo', second.stdout.trim_space())
+	assert large.ok, large.detail
+	assert large.truncated
+	assert large.diff.len <= max_git_diff_chars
+	assert large.diff.contains('+line-000000')
+}
