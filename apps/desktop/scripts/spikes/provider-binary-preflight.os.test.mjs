@@ -32,6 +32,14 @@ test('OS subprocess: nonzero exit captures bounded diagnostics', async () => {
   assert.equal(result.diagnostic, 'fixture error');
 });
 
+test('OS subprocess: oversized stderr diagnostics are truncated', async () => {
+  const result = await probeBinary('codex', {
+    spawnFn: nodeFixture("process.stderr.write('x'.repeat(2000)); process.exitCode = 17"),
+  });
+  assert.equal(result.status, 'version_failed');
+  assert.equal(result.diagnostic, 'x'.repeat(512));
+});
+
 test('OS subprocess: missing executable is unavailable', async () => {
   const result = await probeBinary('opencode', {
     spawnFn: (_command, _args, options) =>
