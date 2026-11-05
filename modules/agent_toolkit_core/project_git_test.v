@@ -209,5 +209,5 @@ fn test_project_git_show_reads_patch_file_and_truncates_large_diff() {
 	assert large.ok, large.detail
 	assert large.truncated
 	assert large.diff.len <= max_git_diff_chars
-	assert large.diff.contains('+line-000000')
+	assert large.diff.contains('+line-0 abcdefghijklmnopqrstuvwxyz')
 }
