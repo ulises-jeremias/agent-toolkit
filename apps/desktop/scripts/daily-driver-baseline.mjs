@@ -69,6 +69,8 @@ function createEmptyOutput(dir) {
 function exec(command, argv, cwd) {
   const result = spawnSync(command, argv, {
     cwd,
+    // Avoid inheriting the parent node:test worker protocol in independent child probes.
+    env: Object.fromEntries(Object.entries(process.env).filter(([key]) => key !== 'NODE_TEST_CONTEXT')),
     encoding: 'utf8',
     timeout: 5000,
     maxBuffer: 32768,
