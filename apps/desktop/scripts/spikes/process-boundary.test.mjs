@@ -6,7 +6,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { once } from 'node:events';
 
 const childProgram = [
   "process.stdout.write(JSON.stringify({kind:'started',native_id:'fixture-1'})+'\\n')",
@@ -18,6 +17,7 @@ const childProgram = [
 
 // The supervisor owns process lifecycle; consumers receive an async event stream.
 // A close event is NOT a successful root completion or a resumable cursor.
+/** Launch a disposable child with replayable, normalized process events. */
 function launchFixture() {
   const child = spawn(process.execPath, ['-e', childProgram], {
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -61,6 +61,7 @@ function launchFixture() {
   return { child, read, cancel: () => child.kill('SIGTERM') };
 }
 
+/** Collect events until a predicate matches; cancel a stalled fixture. */
 async function collectUntil(supervisor, predicate, timeoutMs = 3000) {
   const timer = setTimeout(() => supervisor.cancel(), timeoutMs);
   try {
@@ -98,6 +99,10 @@ test('late subscribers replay the same ordered events without inventing success'
     const first = await collectUntil(supervisor, event => event.type === 'process_closed');
     const second = await collectUntil(supervisor, event => event.type === 'process_closed');
     assert.deepEqual(first, second);
+    const payloads = first.filter(event => event.type === 'provider_event').map(event => event.payload);
+    assert.equal(payloads[0]?.kind, 'started');
+    payloads.slice(1).forEach((payload, index) => assert.deepEqual(payload, { kind: 'tick', seq: index + 1 }));
+    assert.equal(first.at(-1).type, 'process_closed');
     assert.equal(first.at(-1).root_status, 'interrupted');
     assert.equal(first.some(event => event.type === 'root_completed'), false);
   } finally { supervisor.cancel(); }
