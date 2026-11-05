@@ -10,6 +10,7 @@ const script = fileURLToPath(new URL('../daily-driver-baseline.mjs', import.meta
 
 function run(output) {
   return spawnSync(process.execPath, [script, '--output-dir', output], {
+    env: Object.fromEntries(Object.entries(process.env).filter(([key]) => key !== 'NODE_TEST_CONTEXT')),
     encoding: 'utf8', timeout: 30000, maxBuffer: 65536,
   });
 }
@@ -29,7 +30,9 @@ test('Gate 0 preflight creates a failing fixture without upgrading real-provider
     assert.equal(data.installed_app.supplied, false);
     assert.match(readFileSync(join(output, 'README.md'), 'utf8'), /No real provider session/);
     const failing = spawnSync(process.execPath, ['--test', 'test/sum.test.mjs'], {
-      cwd: join(output, 'fixture'), encoding: 'utf8', timeout: 10000,
+      cwd: join(output, 'fixture'),
+      env: Object.fromEntries(Object.entries(process.env).filter(([key]) => key !== 'NODE_TEST_CONTEXT')),
+      encoding: 'utf8', timeout: 10000,
     });
     assert.equal(failing.status, 1, 'controlled fixture must actually fail');
     const before = readFileSync(join(output, 'baseline.json'), 'utf8');
