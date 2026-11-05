@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { createFixture } from './daily-driver-fixture.mjs';
 
 test('field-trial fixture starts failing, is committed and becomes green only after source fix', () => {
@@ -18,4 +19,19 @@ test('field-trial fixture starts failing, is committed and becomes green only af
   assert.equal(fixed.status, 0, fixed.stdout + fixed.stderr);
   assert.match(execFileSync('git', ['-C', directory, 'diff', '--', 'src/sum.mjs'], { encoding: 'utf8' }), /a \+ b/);
   assert.equal(execFileSync('git', ['-C', directory, 'diff', '--', 'test/sum.test.mjs'], { encoding: 'utf8' }), '');
+});
+
+
+test('fixture ignores inherited Git overrides and commit signing', () => {
+  const fixtureModule = pathToFileURL(join(import.meta.dirname, 'daily-driver-fixture.mjs')).href;
+  const env = { ...process.env, GIT_DIR: '/nonexistent/atk-foreign-git-dir', GIT_WORK_TREE: '/nonexistent/atk-foreign-worktree', GIT_INDEX_FILE: '/nonexistent/atk-foreign-index' };
+  const child = spawnSync(process.execPath, ['--input-type=module', '-e',
+    `import { createFixture } from ${JSON.stringify(fixtureModule)}; console.log(createFixture());`],
+    { encoding: 'utf8', env });
+  assert.equal(child.status, 0, child.stderr);
+  const directory = child.stdout.trim();
+  const cleanEnv = { ...process.env };
+  for (const name of Object.keys(cleanEnv)) if (name.startsWith('GIT_')) delete cleanEnv[name];
+  assert.equal(execFileSync('git', ['-C', directory, 'status', '--porcelain'], { encoding: 'utf8', env: cleanEnv }).trim(), '');
+  assert.equal(execFileSync('git', ['-C', directory, 'log', '-1', '--format=%s'], { encoding: 'utf8', env: cleanEnv }).trim(), 'test: establish failing fixture');
 });
