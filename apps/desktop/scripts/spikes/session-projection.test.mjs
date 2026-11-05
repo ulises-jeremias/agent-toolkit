@@ -87,3 +87,16 @@ test('approval resolution requires explicit provider decision and preserves curs
   assert.equal(p.nodes.get('approval-1'), 'denied');
   assert.equal(p.lastSequence, 3);
 });
+
+
+test('replayed event with reordered object keys is idempotent, but changed payload conflicts', () => {
+  const p = new SessionProjection(ids);
+  const original = event(1, 'started', { providerCursor: 'native', metadata: { a: 1, b: 2 } });
+  assert.equal(p.apply(original), true);
+  const reordered = { metadata: { b: 2, a: 1 }, providerCursor: 'native', type: 'started', sequence: 1, runId: ids.runId, threadId: ids.threadId };
+  assert.equal(p.apply(reordered), false);
+  assert.equal(p.lastSequence, 1);
+  assert.equal(p.events.length, 1);
+  assert.throws(() => p.apply({ ...reordered, providerCursor: 'different' }), /conflicting/);
+  assert.equal(p.lastSequence, 1);
+});

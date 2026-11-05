@@ -1,3 +1,5 @@
+import { isDeepStrictEqual } from 'node:util';
+
 // Gate 1 (#1669): transport-independent, hermetic session projection spike.
 // No provider integration or real-provider acceptance is implied.
 export class SessionProjection {
@@ -19,7 +21,7 @@ export class SessionProjection {
       throw new Error('cross-session event rejected');
     if (event.sequence <= this.lastSequence) {
       const previous = this.events.find(item => item.sequence === event.sequence);
-      if (previous && JSON.stringify(previous) === JSON.stringify(event)) return false;
+      if (previous && isDeepStrictEqual(previous, event)) return false;
       throw new Error('conflicting or stale event');
     }
     if (event.sequence !== this.lastSequence + 1) throw new Error('event gap: replay required');
