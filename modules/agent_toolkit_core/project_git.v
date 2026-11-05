@@ -565,7 +565,16 @@ pub fn project_git_show_typed(root string, project string, hash string) ProjectG
 			detail: if msg.len > 0 { msg } else { 'git show exited with code ${res.exit_code}' }
 		}
 	}
-	mut diff := res.stdout
+	// --output writes the patch to disk, so stdout is intentionally empty.
+	// Read the generated patch after git exits; do not silently return an empty diff.
+	mut diff := os.read_file(patch_path) or {
+		return ProjectGitShowResponse{
+			ok: false
+			project: project
+			hash: hash
+			detail: 'failed to read git show patch: ${err.msg()}'
+		}
+	}
 	mut truncated := false
 	if diff.len > max_git_diff_chars {
 		mut cut := max_git_diff_chars
