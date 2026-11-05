@@ -6,14 +6,15 @@
  */
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
 export function createFixture({ root = tmpdir() } = {}) {
   const directory = mkdtempSync(join(root, 'atk-daily-driver-'));
   mkdirSync(join(directory, 'src'));
   mkdirSync(join(directory, 'test'));
-  writeFileSync(join(directory, 'src', 'sum.mjs'), 'export const sum = (a, b) => a - b;\\n'.replace('\\n', '\n'));
+  writeFileSync(join(directory, 'src', 'sum.mjs'), 'export const sum = (a, b) => a - b;\n');
   writeFileSync(join(directory, 'test', 'sum.test.mjs'),
     "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { sum } from '../src/sum.mjs';\ntest('sum', () => assert.equal(sum(2, 3), 5));\n");
   execFileSync('git', ['init', '-q', directory]);
@@ -22,7 +23,7 @@ export function createFixture({ root = tmpdir() } = {}) {
   return directory;
 }
 
-if (process.argv[1] && import.meta.url === new URL('file://' + process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const directory = createFixture();
   console.log(JSON.stringify({
     directory,
