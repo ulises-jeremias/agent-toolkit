@@ -196,7 +196,14 @@ pub fn project_git_diff_typed(root string, project string, path string, staged b
 			detail: if msg.len > 0 { msg } else { 'git diff exited with code ${res.exit_code}' }
 		}
 	}
-	mut diff := res.stdout
+	mut diff := os.read_file(patch_path) or {
+		return ProjectGitShowResponse{
+			ok: false
+			project: project
+			hash: hash
+			detail: 'could not read git show output: ${err.msg()}'
+		}
+	}
 	mut truncated := false
 	if diff.len > max_git_diff_chars {
 		mut cut := max_git_diff_chars
@@ -535,7 +542,13 @@ pub fn project_git_show_typed(root string, project string, hash string) ProjectG
 			detail: 'not a commit'
 		}
 	}
-	res := git_run(root, ['show', '--no-color', '--diff-merges=first-parent', '--format=', hash]) or {
+	// Write the potentially large patch to disk instead of a redirected stdout pipe.
+	// ProcessService.run waits before draining stdout; large patches otherwise deadlock.
+	patch_path := os.join_path(os.temp_dir(), 'at-git-show-${os.getpid()}-${time.now().unix_milli()}-${hash}.patch')
+	defer {
+		os.rm(patch_path) or {}
+	}
+	res := git_run(root, ['show', '--no-color', '--diff-merges=first-parent', '--format=', '--output=${patch_path}', hash]) or {
 		return ProjectGitShowResponse{
 			ok: false
 			project: project
