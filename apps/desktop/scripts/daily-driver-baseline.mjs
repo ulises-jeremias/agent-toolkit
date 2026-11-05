@@ -101,8 +101,9 @@ function makeFixture(dir) {
     '-c', 'user.email=baseline@agent-toolkit.invalid', '-c', 'commit.gpgsign=false',
     'commit', '--quiet', '-m', 'test: failing baseline']);
   if (!init.ok || !add.ok || !commit.ok) throw new Error('Could not create disposable Git fixture.');
-  if (exec('node', ['--test'], root).status !== 1) {
-    throw new Error('The disposable regression test did not fail as expected.');
+  const regression = exec(process.execPath, ['--test', 'test/sum.test.mjs'], root);
+  if (regression.status !== 1) {
+    throw new Error('The disposable regression test did not fail as expected (exit=' + String(regression.status) + ').');
   }
   return { directory: 'fixture/', failing_test_confirmed: true,
     instruction: 'Fix the sum implementation without changing the test; run node --test and show the diff.' };
