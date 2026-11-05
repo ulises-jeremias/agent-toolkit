@@ -45,7 +45,6 @@ export async function probeBinary(command, { timeoutMs = 2500, spawnFn = spawn }
       child.kill();
       finish({ status: 'timeout', timeoutMs });
     }, timeoutMs);
-    timer.unref?.();
   });
 }
 
