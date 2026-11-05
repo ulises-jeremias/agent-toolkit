@@ -199,7 +199,7 @@ fn test_project_git_show_reads_patch_file_and_truncates_large_diff() {
 
 	mut content := ''
 	for i in 0 .. 16000 {
-		content += 'line-${i:06} abcdefghijklmnopqrstuvwxyz\n'
+		content += 'line-${i} abcdefghijklmnopqrstuvwxyz\n'
 	}
 	os.write_file(os.join_path(base, 'large.txt'), content) or { panic(err.msg()) }
 	git_fixture(['git', 'add', 'large.txt'], base)
