@@ -18,8 +18,8 @@ const childProgram = [
 // The supervisor owns process lifecycle; consumers receive an async event stream.
 // A close event is NOT a successful root completion or a resumable cursor.
 /** Launch a disposable child with replayable, normalized process events. */
-function launchFixture() {
-  const child = spawn(process.execPath, ['-e', childProgram], {
+function launchFixture(program = childProgram) {
+  const child = spawn(process.execPath, ['-e', program], {
     stdio: ['ignore', 'pipe', 'pipe'],
     shell: false,
     env: { PATH: process.env.PATH || '' },
@@ -44,8 +44,15 @@ function launchFixture() {
       catch { emit({ type: 'malformed_output' }); }
     }
   });
+  child.stderr.setEncoding('utf8');
+  child.stderr.on('data', chunk => emit({ type: 'stderr', text: chunk }));
   child.once('error', error => emit({ type: 'spawn_error', code: error.code || 'unknown' }));
   child.once('close', (code, signal) => {
+    if (buffer.length > 0) {
+      try { emit({ type: 'provider_event', payload: JSON.parse(buffer) }); }
+      catch { emit({ type: 'malformed_output' }); }
+      buffer = '';
+    }
     emit({ type: 'process_closed', code, signal, root_status: 'interrupted', resumable: false });
     done = true;
     while (waiters.length) waiters.shift()();
@@ -106,4 +113,25 @@ test('late subscribers replay the same ordered events without inventing success'
     assert.equal(first.at(-1).root_status, 'interrupted');
     assert.equal(first.some(event => event.type === 'root_completed'), false);
   } finally { supervisor.cancel(); }
+});
+
+test('unterminated final stdout frame is retained before close, without inventing completion', async () => {
+  const program = "process.stdout.write(JSON.stringify({kind:'last',seq:1}))";
+  const supervisor = launchFixture(program);
+  const events = await collectUntil(supervisor, event => event.type === 'process_closed');
+  assert.deepEqual(events.map(event => event.type), ['provider_event', 'process_closed']);
+  assert.deepEqual(events[0].payload, { kind: 'last', seq: 1 });
+  assert.equal(events[1].root_status, 'interrupted');
+  assert.equal(events[1].resumable, false);
+});
+
+test('stderr and malformed trailing stdout remain observable without being treated as success', async () => {
+  const program = "process.stderr.write('provider failed\\n');process.stdout.write('{invalid');process.exitCode=1";
+  const supervisor = launchFixture(program);
+  const events = await collectUntil(supervisor, event => event.type === 'process_closed');
+  assert.ok(events.some(event => event.type === 'stderr' && event.text.includes('provider failed')));
+  assert.ok(events.some(event => event.type === 'malformed_output'));
+  assert.equal(events.at(-1).type, 'process_closed');
+  assert.equal(events.at(-1).root_status, 'interrupted');
+  assert.equal(events.at(-1).code, 1);
 });
