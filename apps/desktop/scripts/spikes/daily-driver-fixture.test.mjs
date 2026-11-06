@@ -8,7 +8,9 @@ import { createFixture } from './daily-driver-fixture.mjs';
 
 // Node's test runner propagates NODE_TEST_CONTEXT to children. Nested `node --test`
 // otherwise skips the fixture tests and exits 0, hiding the intended failure.
-// Force TAP: Node 22+ defaults to the spec reporter in CI terminals, where\n// failures are rendered as ✖ instead of TAP's `not ok`.\nconst fixtureTestEnv = { ...process.env };
+// Force TAP: Node 22+ defaults to the spec reporter in CI terminals, where
+// failures are rendered as ✖ instead of TAP's `not ok`.
+const fixtureTestEnv = { ...process.env };
 delete fixtureTestEnv.NODE_TEST_CONTEXT;
 
 test('field-trial fixture starts failing, is committed and becomes green only after source fix', (t) => {
