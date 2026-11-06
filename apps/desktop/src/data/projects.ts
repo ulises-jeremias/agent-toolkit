@@ -46,6 +46,9 @@ function useProjectGitMutation<I>(
   const { client } = useBackend();
   const queryClient = useQueryClient();
   return useMutation({
+    // TanStack Query serializes mutations with the same scope across hook instances.
+    // Stage, unstage, hunk and commit operations must not publish out-of-order snapshots.
+    scope: { id: JSON.stringify(['project-git', workspace, project]) },
     mutationFn: (input: I) => fn(requireClient(client), input),
     // The V git mutation returns the authoritative post-operation index.
     // Publish it directly: an older in-flight status read must not overwrite
