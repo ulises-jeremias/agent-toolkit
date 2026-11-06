@@ -1,0 +1,73 @@
+{
+  "mission": 1667,
+  "gate": 0,
+  "status": "unverified",
+  "evidence_level": "U",
+  "description": "Initial absence-of-evidence baseline; never infer acceptance from workflows.yaml or CI.",
+  "journeys": {
+    "D01": {
+      "outcome": "unverified",
+      "evidence_level": "U",
+      "runs": []
+    },
+    "D02": {
+      "outcome": "unverified",
+      "evidence_level": "U",
+      "runs": []
+    },
+    "D03": {
+      "outcome": "unverified",
+      "evidence_level": "U",
+      "runs": []
+    },
+    "D04": {
+      "outcome": "unverified",
+      "evidence_level": "U",
+      "runs": []
+    },
+    "D05": {
+      "outcome": "unverified",
+      "evidence_level": "U",
+      "runs": []
+    },
+    "D06": {
+      "outcome": "unverified",
+      "evidence_level": "U",
+      "runs": []
+    },
+    "D07": {
+      "outcome": "unverified",
+      "evidence_level": "U",
+      "runs": []
+    },
+    "D08": {
+      "outcome": "unverified",
+      "evidence_level": "U",
+      "runs": []
+    },
+    "D09": {
+      "outcome": "unverified",
+      "evidence_level": "U",
+      "runs": []
+    },
+    "D10": {
+      "outcome": "unverified",
+      "evidence_level": "U",
+      "runs": []
+    }
+  },
+  "required_real_providers": [
+    "claude",
+    "codex",
+    "opencode"
+  ],
+  "packaged_field_trial": {
+    "outcome": "unverified",
+    "evidence_level": "U",
+    "runs": []
+  },
+  "limitations": [
+    "No accessible installed user Desktop host or authenticated local provider session in GitHub CI.",
+    "Run the installed Desktop field trial described in DAILY_DRIVER_ACCEPTANCE.md and attach sanitized P-level records before acceptance."
+  ]
+}
