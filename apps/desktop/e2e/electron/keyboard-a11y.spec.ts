@@ -135,9 +135,28 @@ test('Keyboard: shortcut map lists shell and world bindings; Esc closes only the
       });
     });
 
+    // Regression: a focused editable control (terminal-like keyboard consumer)
+    // must not receive the palette chord as text or a local shortcut.
+    // This is a hermetic keyboard-boundary test, NOT a real PTY acceptance test.
+    const editor = page.locator('[data-testid="palette-keyboard-probe"]');
+    await page.evaluate(() => {
+      const input = document.createElement('input');
+      input.dataset.testid = 'palette-keyboard-probe';
+      input.setAttribute('aria-label', 'Keyboard probe');
+      input.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.key.toLowerCase() === 'k') {
+          input.dataset.receivedPaletteChord = 'true';
+          event.stopPropagation();
+        }
+      });
+      document.body.appendChild(input);
+    });
+    await editor.focus();
+
     // Ctrl+K opens the palette; Esc closes it without quitting.
     await page.keyboard.press('Control+k');
     await expect(page.getByLabel('Filter commands').first()).toBeVisible();
+    await expect(editor).not.toHaveAttribute('data-received-palette-chord', 'true');
     await page.keyboard.press('Escape');
     await expect(page.getByLabel('Filter commands').first()).toBeHidden();
     await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
