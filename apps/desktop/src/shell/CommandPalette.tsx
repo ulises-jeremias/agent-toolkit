@@ -88,11 +88,10 @@ export function CommandPalette() {
         // Editable controls and embedded terminals own their keyboard input.
         // Keep capture for non-editable widgets that stop bubbling events.
         const target = event.target;
-        if (
-          target instanceof HTMLElement &&
-          (target.isContentEditable ||
-            target.closest('input, textarea, [contenteditable="true"], [role="textbox"]'))
-        ) return;
+        if (target instanceof HTMLElement) {
+          if (target.isContentEditable) return;
+          if (target.closest('input, textarea, [contenteditable="true"], [role="textbox"]')) return;
+        }
         event.preventDefault();
         event.stopPropagation();
         setOpen(true);
