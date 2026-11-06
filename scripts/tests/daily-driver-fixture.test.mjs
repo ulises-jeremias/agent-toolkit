@@ -5,8 +5,8 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-function runFixture(env = process.env) {
-  const created = spawnSync(process.execPath, ['scripts/daily-driver-fixture.mjs'], { encoding: 'utf8', env });
+function independentNodeEnv(env = process.env) {\n  const isolated = { ...env };\n  delete isolated.NODE_TEST_CONTEXT;\n  return isolated;\n}\n\nfunction runFixture(env = process.env) {
+  const created = spawnSync(process.execPath, ['scripts/daily-driver-fixture.mjs'], { encoding: 'utf8', env: independentNodeEnv(env) });
   assert.equal(created.status, 0, created.stderr);
   const result = JSON.parse(created.stdout);
   assert.equal(result.baseline, 'failing-test-confirmed');
@@ -21,7 +21,7 @@ test('field fixture is an isolated committed repo with a failing test', () => {
     assert.equal(baseline.status, 0);
     assert.equal(baseline.stdout.trim(), '');
     assert.match(readFileSync(join(path, 'src/sum.mjs'), 'utf8'), /a - b/);
-    const failed = spawnSync(process.execPath, ['--test'], { cwd: path, encoding: 'utf8' });
+    const failed = spawnSync(process.execPath, ['--test', 'test/sum.test.mjs'], { cwd: path, encoding: 'utf8', env: independentNodeEnv() });
     assert.equal(failed.status, 1);
   } finally {
     rmSync(path, { recursive: true, force: true });
