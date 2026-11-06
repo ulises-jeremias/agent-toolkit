@@ -106,10 +106,11 @@ export function CommandPalette() {
       setOpen(true);
       setShortcuts(false);
     };
-    window.addEventListener('keydown', onKey);
+    // Capture global shortcuts before a focused child can stop propagation.
+    window.addEventListener('keydown', onKey, true);
     window.addEventListener(OPEN_PALETTE_EVENT, onOpen);
     return () => {
-      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('keydown', onKey, true);
       window.removeEventListener(OPEN_PALETTE_EVENT, onOpen);
     };
   }, []);
