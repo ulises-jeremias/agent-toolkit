@@ -86,6 +86,7 @@ export function CommandPalette() {
     const onKey = (event: KeyboardEvent) => {
       if (isPaletteChord(event)) {
         event.preventDefault();
+        event.stopPropagation();
         setOpen(true);
         setShortcuts(false);
         return;
