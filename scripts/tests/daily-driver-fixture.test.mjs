@@ -5,7 +5,13 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-function independentNodeEnv(env = process.env) {\n  const isolated = { ...env };\n  delete isolated.NODE_TEST_CONTEXT;\n  return isolated;\n}\n\nfunction runFixture(env = process.env) {
+function independentNodeEnv(env = process.env) {
+  const isolated = { ...env };
+  delete isolated.NODE_TEST_CONTEXT;
+  return isolated;
+}
+
+function runFixture(env = process.env) {
   const created = spawnSync(process.execPath, ['scripts/daily-driver-fixture.mjs'], { encoding: 'utf8', env: independentNodeEnv(env) });
   assert.equal(created.status, 0, created.stderr);
   const result = JSON.parse(created.stdout);
