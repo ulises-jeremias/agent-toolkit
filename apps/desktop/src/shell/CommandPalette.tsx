@@ -92,8 +92,7 @@ export function CommandPalette() {
           target instanceof HTMLElement &&
           (target.isContentEditable ||
             target.closest('input, textarea, [contenteditable="true"], [role="textbox"]'))
-        )
-          return;
+        ) return;
         event.preventDefault();
         event.stopPropagation();
         setOpen(true);
