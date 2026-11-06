@@ -23,11 +23,19 @@ function validPackagedRun(run) {
     typeof run.tested_by === 'string' && run.tested_by.length > 0;
 }
 
+/** Fail closed if any run has an invalid timestamp, including nonlatest runs. */
+function latestRun(entry) {
+  if (!entry.runs.every((run) =>
+    typeof run?.timestamp_utc === 'string' && !Number.isNaN(Date.parse(run.timestamp_utc)))) {
+    return undefined;
+  }
+  return [...entry.runs].sort((a, b) =>
+    Date.parse(a.timestamp_utc) - Date.parse(b.timestamp_utc)).at(-1);
+}
+
 /** A later failure or blocked attempt invalidates earlier passes until retested. */
 function latestRunIsPass(entry) {
-  const chronological = [...entry.runs].sort((a, b) =>
-    Date.parse(a.timestamp_utc || 0) - Date.parse(b.timestamp_utc || 0));
-  const latest = chronological.at(-1);
+  const latest = latestRun(entry);
   return Boolean(latest && validPackagedRun(latest));
 }
 
@@ -54,8 +62,7 @@ test('Gate 0 ledger has all ten independent journey rows', () => {
 test('Gate 0 never declares accepted without seven packaged journey passes and a field trial', () => {
   verifyJourney('packaged_field_trial', ledger.packaged_field_trial);
   const trial = ledger.packaged_field_trial;
-  const trialRun = [...trial.runs].sort((a, b) =>
-    Date.parse(a.timestamp_utc || 0) - Date.parse(b.timestamp_utc || 0)).at(-1);
+  const trialRun = latestRun(trial);
   const providers = ledger.required_real_providers;
   const providerCoverage = providers.every((provider) =>
     trialRun?.provider_results?.[provider]?.outcome === 'blocked' ||
