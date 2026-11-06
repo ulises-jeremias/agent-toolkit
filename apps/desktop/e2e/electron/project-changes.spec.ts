@@ -55,9 +55,9 @@ test('reviews, stages, and commits real project changes from the GUI', async () 
     await changes.getByRole('list', { name: 'Changed files' }).getByRole('button', { name: 'Stage' }).click();
     await expect(changes.getByRole('heading', { name: 'Staged (1)' })).toBeVisible();
     // A staged heading must correspond to the real index, not an optimistic counter.
-    expect(execFileSync('git', ['diff', '--cached', '--name-only'], { cwd: projectPath, encoding: 'utf8' }).trim()).toBe(
-      'README.md',
-    );
+    expect(
+      execFileSync('git', ['diff', '--cached', '--name-only'], { cwd: projectPath, encoding: 'utf8' }).trim(),
+    ).toBe('README.md');
     await changes.getByRole('list', { name: 'Untracked files' }).getByRole('button', { name: 'Stage' }).click();
     await expect(changes.getByRole('heading', { name: 'Staged (2)' })).toBeVisible();
     expect(
