@@ -8,13 +8,13 @@ import { createFixture } from './daily-driver-fixture.mjs';
 
 // Node's test runner propagates NODE_TEST_CONTEXT to children. Nested `node --test`
 // otherwise skips the fixture tests and exits 0, hiding the intended failure.
-const fixtureTestEnv = { ...process.env };
+// Force TAP: Node 22+ defaults to the spec reporter in CI terminals, where\n// failures are rendered as ✖ instead of TAP's `not ok`.\nconst fixtureTestEnv = { ...process.env };
 delete fixtureTestEnv.NODE_TEST_CONTEXT;
 
 test('field-trial fixture starts failing, is committed and becomes green only after source fix', (t) => {
   const directory = createFixture();
   t.after(() => rmSync(directory, { recursive: true, force: true }));
-  const original = spawnSync(process.execPath, ['--test', 'test/sum.test.mjs'], { cwd: directory, encoding: 'utf8', env: fixtureTestEnv });
+  const original = spawnSync(process.execPath, ['--test', '--test-reporter=tap', 'test/sum.test.mjs'], { cwd: directory, encoding: 'utf8', env: fixtureTestEnv });
   assert.notEqual(original.status, 0, 'baseline must fail, not accidentally pass');
   assert.match(original.stdout + original.stderr, /not ok/);
   assert.match(original.stdout + original.stderr, /Expected values to be strictly equal/);
@@ -23,7 +23,7 @@ test('field-trial fixture starts failing, is committed and becomes green only af
   const source = join(directory, 'src', 'sum.mjs');
   assert.match(readFileSync(source, 'utf8'), /a - b/);
   writeFileSync(source, 'export const sum = (a, b) => a + b;\n');
-  const fixed = spawnSync(process.execPath, ['--test', 'test/sum.test.mjs'], { cwd: directory, encoding: 'utf8', env: fixtureTestEnv });
+  const fixed = spawnSync(process.execPath, ['--test', '--test-reporter=tap', 'test/sum.test.mjs'], { cwd: directory, encoding: 'utf8', env: fixtureTestEnv });
   assert.equal(fixed.status, 0, fixed.stdout + fixed.stderr);
   assert.match(execFileSync('git', ['-C', directory, 'diff', '--', 'src/sum.mjs'], { encoding: 'utf8' }), /a \+ b/);
   assert.equal(execFileSync('git', ['-C', directory, 'diff', '--', 'test/sum.test.mjs'], { encoding: 'utf8' }), '');
