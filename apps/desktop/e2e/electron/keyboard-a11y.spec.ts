@@ -123,6 +123,16 @@ test('Keyboard: shortcut map lists shell and world bindings; Esc closes only the
     await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 
+    // A focused child can consume bubbling keyboard events (e.g. terminal or
+    // embedded widget). The global palette shortcut must still be available.
+    const worldLink = page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' });
+    await worldLink.focus();
+    await worldLink.evaluate((element) => {
+      element.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.key.toLowerCase() === 'k') event.stopPropagation();
+      });
+    });
+
     // Ctrl+K opens the palette; Esc closes it without quitting.
     await page.keyboard.press('Control+k');
     await expect(page.getByLabel('Filter commands').first()).toBeVisible();
