@@ -135,7 +135,31 @@ test('Keyboard: shortcut map lists shell and world bindings; Esc closes only the
       });
     });
 
-    // Ctrl+K opens the palette; Esc closes it without quitting.
+    // Regression: editable controls retain keyboard precedence even though
+    // the global palette listener runs in capture phase.
+    // This is a hermetic keyboard-boundary test, NOT a real PTY acceptance test.
+    const editor = page.locator('[data-testid="palette-keyboard-probe"]');
+    await page.evaluate(() => {
+      const input = document.createElement('input');
+      input.dataset.testid = 'palette-keyboard-probe';
+      input.setAttribute('aria-label', 'Keyboard probe');
+      input.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.key.toLowerCase() === 'k') {
+          input.dataset.receivedPaletteChord = 'true';
+          event.stopPropagation();
+        }
+      });
+      document.body.appendChild(input);
+    });
+    await editor.focus();
+
+    // Ctrl+K belongs to the focused editable control, not the palette.
+    await page.keyboard.press('Control+k');
+    await expect(editor).toHaveAttribute('data-received-palette-chord', 'true');
+    await expect(page.getByLabel('Filter commands').first()).toBeHidden();
+
+    // Non-editable focus still opens the palette despite a bubbling consumer.
+    await worldLink.focus();
     await page.keyboard.press('Control+k');
     await expect(page.getByLabel('Filter commands').first()).toBeVisible();
     await page.keyboard.press('Escape');
