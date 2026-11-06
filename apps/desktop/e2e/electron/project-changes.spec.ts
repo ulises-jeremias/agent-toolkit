@@ -63,7 +63,7 @@ test('reviews, stages, and commits real project changes from the GUI', async () 
     expect(
       execFileSync('git', ['diff', '--cached', '--name-only'], { cwd: projectPath, encoding: 'utf8' })
         .trim()
-        .split('\\n')
+        .split(String.fromCharCode(10))
         .sort(),
     ).toEqual(['README.md', 'notes.txt']);
     expect(execFileSync('git', ['status', '--porcelain'], { cwd: projectPath, encoding: 'utf8' })).toContain(
