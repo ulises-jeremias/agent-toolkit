@@ -39,7 +39,7 @@ try {
   git('add', 'src/sum.mjs', 'test/sum.test.mjs');
   git('-c', 'commit.gpgsign=false', 'commit', '-qm', 'test: establish failing fixture');
 
-  const result = spawnSync(process.execPath, ['--test'], { cwd: root, encoding: 'utf8' });
+  // Node's test runner exports NODE_TEST_CONTEXT to descendants; remove it so this\n  // independent fixture test is not mistaken for a recursive nested test.\n  const testEnv = { ...process.env };\n  delete testEnv.NODE_TEST_CONTEXT;\n  const result = spawnSync(process.execPath, ['--test', 'test/sum.test.mjs'], { cwd: root, env: testEnv, encoding: 'utf8' });
   if (result.error || result.status !== 1) {
     throw new Error(`Expected deliberately failing test (exit 1); got ${result.status}: ${result.stderr}`);
   }
