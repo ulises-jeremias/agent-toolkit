@@ -46,11 +46,27 @@ function useProjectGitMutation<I>(
   const { client } = useBackend();
   const queryClient = useQueryClient();
   return useMutation({
+    // TanStack Query serializes mutations with the same scope across hook instances.
+    // Stage, unstage, hunk and commit operations must not publish out-of-order snapshots.
+    scope: { id: JSON.stringify(['project-git', workspace, project]) },
     mutationFn: (input: I) => fn(requireClient(client), input),
-    onSettled: () =>
+    // The V git mutation returns the authoritative post-operation index.
+    // Publish it directly: an older in-flight status read must not overwrite
+    // the result and leave the Changes panel showing a stale staged count.
+    onSuccess: async (result) => {
+      if (!result.ok) return;
+      const key = qk.projects.gitStatus(workspace, project);
+      await queryClient.cancelQueries({ queryKey: key });
+      queryClient.setQueryData<ProjectGitStatusResponse>(key, result);
+    },
+    onSettled: (result, error) =>
       Promise.all([
-        queryClient.invalidateQueries({ queryKey: qk.projects.gitStatus(workspace, project) }),
+        // The diff response is not included in the mutation result.
         queryClient.invalidateQueries({ queryKey: ['projects', 'git-diff', workspace, project] }),
+        // A failed request has no trustworthy post-operation status.
+        ...(error || !result?.ok
+          ? [queryClient.invalidateQueries({ queryKey: qk.projects.gitStatus(workspace, project) })]
+          : []),
       ]),
   });
 }
