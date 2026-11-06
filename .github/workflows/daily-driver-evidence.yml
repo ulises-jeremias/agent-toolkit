@@ -5,12 +5,16 @@ on:
     paths:
       - 'docs/desktop/daily-driver-evidence.json'
       - 'scripts/tests/daily-driver-evidence.test.mjs'
+      - 'scripts/daily-driver-fixture.mjs'
+      - 'scripts/tests/daily-driver-fixture.test.mjs'
       - '.github/workflows/daily-driver-evidence.yml'
   push:
     branches: [main]
     paths:
       - 'docs/desktop/daily-driver-evidence.json'
       - 'scripts/tests/daily-driver-evidence.test.mjs'
+      - 'scripts/daily-driver-fixture.mjs'
+      - 'scripts/tests/daily-driver-fixture.test.mjs'
       - '.github/workflows/daily-driver-evidence.yml'
   workflow_dispatch:
 
@@ -28,4 +32,4 @@ jobs:
         with:
           node-version: '22'
       - name: Reject unsupported acceptance claims
-        run: node --test scripts/tests/daily-driver-evidence.test.mjs
+        run: node --test scripts/tests/daily-driver-evidence.test.mjs scripts/tests/daily-driver-fixture.test.mjs
