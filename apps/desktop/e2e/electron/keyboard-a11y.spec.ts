@@ -135,8 +135,8 @@ test('Keyboard: shortcut map lists shell and world bindings; Esc closes only the
       });
     });
 
-    // Regression: a focused editable control (terminal-like keyboard consumer)
-    // must not receive the palette chord as text or a local shortcut.
+    // Regression: editable controls retain keyboard precedence even though
+    // the global palette listener runs in capture phase.
     // This is a hermetic keyboard-boundary test, NOT a real PTY acceptance test.
     const editor = page.locator('[data-testid="palette-keyboard-probe"]');
     await page.evaluate(() => {
@@ -153,10 +153,15 @@ test('Keyboard: shortcut map lists shell and world bindings; Esc closes only the
     });
     await editor.focus();
 
-    // Ctrl+K opens the palette; Esc closes it without quitting.
+    // Ctrl+K belongs to the focused editable control, not the palette.
+    await page.keyboard.press('Control+k');
+    await expect(editor).toHaveAttribute('data-received-palette-chord', 'true');
+    await expect(page.getByLabel('Filter commands').first()).toBeHidden();
+
+    // Non-editable focus still opens the palette despite a bubbling consumer.
+    await worldLink.focus();
     await page.keyboard.press('Control+k');
     await expect(page.getByLabel('Filter commands').first()).toBeVisible();
-    await expect(editor).not.toHaveAttribute('data-received-palette-chord', 'true');
     await page.keyboard.press('Escape');
     await expect(page.getByLabel('Filter commands').first()).toBeHidden();
     await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
