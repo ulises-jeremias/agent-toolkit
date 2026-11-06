@@ -128,7 +128,7 @@ test('Keyboard: shortcut map lists shell and world bindings; Esc closes only the
     const worldLink = page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' });
     await worldLink.focus();
     await worldLink.evaluate((element) => {
-      element.addEventListener('keydown', (event) => {
+      element.addEventListener('keydown', (event: KeyboardEvent) => {
         if (event.ctrlKey && event.key.toLowerCase() === 'k') event.stopPropagation();
       });
     });
