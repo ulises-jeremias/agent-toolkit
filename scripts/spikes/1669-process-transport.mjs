@@ -7,9 +7,9 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
   if (typeof command !== 'string' || !command) throw new TypeError('command required');
   const child = spawn(command, args, { cwd, signal, stdio: ['ignore', 'pipe', 'pipe'], shell: false });
   const lines = createInterface({ input: child.stdout, crlfDelay: Infinity });
-  let stderr = '';
-  child.stderr.setEncoding('utf8');
-  child.stderr.on('data', chunk => { stderr = (stderr + chunk).slice(-4096); });
+  // Drain stderr so the child cannot block on a full pipe. Never surface raw
+  // provider stderr in an exception: it may contain prompts, paths or tokens.
+  child.stderr.resume();
   const closed = new Promise((resolve, reject) => {
     child.once('error', reject);
     child.once('close', (code, childSignal) => resolve({ code, childSignal }));
@@ -25,7 +25,7 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
       yield event;
     }
     const { code, childSignal } = await closed;
-    if (code !== 0) throw new Error(`transport exited ${childSignal ?? code}: ${stderr}`);
+    if (code !== 0) throw new Error(`transport exited ${childSignal ?? code}`);
   } finally {
     lines.close();
     if (child.exitCode === null && child.signalCode === null) child.kill('SIGTERM');
