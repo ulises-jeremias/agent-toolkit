@@ -63,3 +63,24 @@ test('child stderr is drained but never exposed in errors or session events', as
   assert.ok(!JSON.stringify(journal.snapshot()).includes(secret));
   assert.equal(journal.status, 'interrupted');
 });
+
+test('completion followed by child crash never reports successful journal state', async () => {
+  const journal = new SessionJournal('crash-after-complete');
+  await assert.rejects(projectTransport(processEvents(process.execPath, args(`
+    console.log(JSON.stringify({type:'start',runId:'r'}));
+    console.log(JSON.stringify({type:'completed',runId:'r'}));
+    process.exit(12);
+  `)), journal), /transport exited 12/);
+  assert.equal(journal.status, 'interrupted');
+  assert.ok(!journal.events.some(event => event.type === 'completed'));
+});
+
+test('events after completion are rejected rather than silently accepted', async () => {
+  const journal = new SessionJournal('after-complete');
+  await assert.rejects(projectTransport(processEvents(process.execPath, args(`
+    console.log(JSON.stringify({type:'start',runId:'r'}));
+    console.log(JSON.stringify({type:'completed',runId:'r'}));
+    console.log(JSON.stringify({type:'output',runId:'r',text:'late'}));
+  `)), journal), /event after transport completion/);
+  assert.equal(journal.status, 'interrupted');
+});
