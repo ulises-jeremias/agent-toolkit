@@ -16,16 +16,26 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
   });
   // An early spawn error must not produce an unhandled rejection.
   closed.catch(() => {});
+  let pendingCompletion = null;
   try {
     for await (const line of lines) {
       if (!line.trim()) continue;
       if (line.length > 1024 * 1024) throw new Error('oversized transport event');
       let event;
       try { event = JSON.parse(line); } catch { throw new Error('invalid JSONL transport event'); }
-      yield event;
+      // A provider-like completion is not authoritative until its supervising
+      // process exits successfully. Never publish success before a later crash.
+      if (event?.type === 'completed') {
+        if (pendingCompletion) throw new Error('duplicate transport completion');
+        pendingCompletion = event;
+      } else {
+        if (pendingCompletion) throw new Error('event after transport completion');
+        yield event;
+      }
     }
     const { code, childSignal } = await closed;
     if (code !== 0) throw new Error(`transport exited ${childSignal ?? code}`);
+    if (pendingCompletion) yield pendingCompletion;
   } finally {
     lines.close();
     if (child.exitCode === null && child.signalCode === null) child.kill('SIGTERM');
