@@ -35,3 +35,35 @@ test('abort of a running child interrupts rather than completing the journal', a
     await projection.catch(() => {});
   }
 });
+
+test('a completion frame followed by a hung child cannot become success on abort', async () => {
+  const controller = new AbortController();
+  const journal = new SessionJournal('abort-after-completion');
+  const body = `
+    console.log(JSON.stringify({type:'start',runId:'pending-run'}));
+    console.log(JSON.stringify({type:'completed',runId:'pending-run'}));
+    setInterval(() => {}, 1000);
+  `;
+  const projection = projectTransport(
+    processEvents(process.execPath, ['--input-type=module', '-e', body], {
+      signal: controller.signal,
+    }),
+    journal,
+  );
+  try {
+    const deadline = Date.now() + 5000;
+    while (journal.status === 'idle' && Date.now() < deadline) {
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    assert.equal(journal.status, 'running');
+    // The transport must withhold the child's completion until successful exit.
+    assert.ok(!journal.events.some(event => event.type === 'completed'));
+    controller.abort();
+    await assert.rejects(projection, error => error?.name === 'AbortError' || /abort/i.test(error?.message ?? ''));
+    assert.equal(journal.status, 'interrupted');
+    assert.ok(!journal.events.some(event => event.type === 'completed'));
+  } finally {
+    controller.abort();
+    await projection.catch(() => {});
+  }
+});
