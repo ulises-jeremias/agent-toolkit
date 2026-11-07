@@ -16,7 +16,6 @@ export class SessionJournal {
     if (typeof runId !== 'string' || !runId) throw new TypeError('runId required');
     if (this.run === null) {
       if (type !== 'start') throw new Error('run must start first');
-      this.run = runId;
     } else if (this.run !== runId) throw new Error('cross-run event rejected');
     if (this.status === 'idle' && type !== 'start') throw new Error('run must start first');
     if (['completed', 'failed', 'cancelled', 'interrupted'].includes(this.status)) throw new Error('terminal run cannot accept more events');
@@ -32,6 +31,7 @@ export class SessionJournal {
     if (type === 'start' && event.nativeCursor !== undefined && typeof event.nativeCursor !== 'string') throw new TypeError('invalid native cursor');
     const entry = Object.freeze({ ...event, sequence: this.events.length + 1, threadId: this.threadId });
     this.events.push(entry);
+    if (type === 'start') this.run = runId;
     if (type === 'start') { this.status = 'running'; this.nativeCursor = event.nativeCursor ?? null; }
     if (type === 'approval_required') this.status = 'awaiting_approval';
     if (type === 'approval_observed') this.status = 'running';
