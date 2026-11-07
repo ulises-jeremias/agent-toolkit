@@ -5,12 +5,16 @@ on:
     paths:
       - 'scripts/spikes/1669-session-journal.mjs'
       - 'test/spikes/1669-session-journal.test.mjs'
+      - 'scripts/spikes/1669-process-transport.mjs'
+      - 'test/spikes/1669-process-transport.test.mjs'
       - '.github/workflows/gate1-session-contract.yml'
   push:
     branches: [main]
     paths:
       - 'scripts/spikes/1669-session-journal.mjs'
       - 'test/spikes/1669-session-journal.test.mjs'
+      - 'scripts/spikes/1669-process-transport.mjs'
+      - 'test/spikes/1669-process-transport.test.mjs'
       - '.github/workflows/gate1-session-contract.yml'
   workflow_dispatch:
 
@@ -19,7 +23,7 @@ permissions:
 
 jobs:
   contract:
-    name: Validate simulated transport contract (not Gate 1 acceptance)
+    name: Validate hermetic and subprocess fixture contracts (not Gate 1 acceptance)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -27,4 +31,4 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '22'
-      - run: node --test test/spikes/1669-session-journal.test.mjs
+      - run: node --test test/spikes/1669-session-journal.test.mjs test/spikes/1669-process-transport.test.mjs
