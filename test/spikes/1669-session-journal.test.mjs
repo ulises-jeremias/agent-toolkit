@@ -42,3 +42,11 @@ test('rejects foreign run, corrupt replay, and unsupported transition', () => {
   assert.throws(() => j.append({ type: 'approval_observed', runId: 'r', approved: true }), /invalid transition/);
   assert.throws(() => SessionJournal.replay('other', j.snapshot().events), /corrupt/);
 });
+
+test('rejected start leaves journal pristine and permits a different valid run', () => {
+  const j = new SessionJournal('t');
+  assert.throws(() => j.append({ type: 'start', runId: 'invalid', nativeCursor: 42 }), /invalid native cursor/);
+  assert.deepEqual(j.snapshot(), { threadId: 't', runId: null, status: 'idle', nativeCursor: null, events: [] });
+  j.append({ type: 'start', runId: 'valid' });
+  assert.equal(j.snapshot().runId, 'valid');
+});
