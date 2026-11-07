@@ -1,0 +1,30 @@
+name: Gate 0 Evidence Contract (Hermetic)
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/spikes/1668-validate-evidence.mjs'
+      - 'test/spikes/1668-validate-evidence.test.mjs'
+      - '.github/workflows/gate0-evidence-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/spikes/1668-validate-evidence.mjs'
+      - 'test/spikes/1668-validate-evidence.test.mjs'
+      - '.github/workflows/gate0-evidence-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    name: Validate evidence schema only (not installed Desktop acceptance)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+      - run: node --test test/spikes/1668-validate-evidence.test.mjs

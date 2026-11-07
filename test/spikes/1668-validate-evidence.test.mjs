@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { packagedGateStatus, validateLedger } from '../../scripts/spikes/1668-validate-evidence.mjs';
+
+test('empty ledger cannot certify packaged daily driver', () => {
+  assert.deepEqual(packagedGateStatus([]).missing, ['D01','D02','D03','D04','D05','D06','D07']);
+});
+test('mock or source-only passes do not satisfy packaged gate', () => {
+  assert.equal(packagedGateStatus([{ journey_id: 'D01', outcome: 'pass', evidence_level: 'M' }]).ready, false);
+});
+test('unverified evidence cannot be called pass', () => {
+  assert.match(validateLedger([{ journey_id: 'D01', outcome: 'pass', evidence_level: 'U' }])[0], /cannot pass/);
+});
+test('packaged evidence must include reproducible provenance', () => {
+  assert.ok(validateLedger([{ journey_id: 'D01', outcome: 'pass', evidence_level: 'P' }]).length > 5);
+});
+test('complete P rows can satisfy the gate', () => {
+  const rows = Array.from({length: 7}, (_, i) => ({journey_id:`D0${i+1}`, outcome:'pass', evidence_level:'P', toolkit_sha:'a'.repeat(40), package_version:'test+sha256:abc', platform:'Linux', provider:'authenticated provider', timestamp_utc:'2026-11-07T00:00:00Z', steps_to_reproduce:'open installed app', observed:'test observed', tested_by:'tester', logs:['redacted artifact reference']}));
+  assert.equal(packagedGateStatus(rows).ready, true);
+});
