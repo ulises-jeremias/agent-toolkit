@@ -43,3 +43,23 @@ test('missing executable is reported without hanging', async () => {
     /ENOENT/,
   );
 });
+
+test('child stderr is drained but never exposed in errors or session events', async () => {
+  const secret = 'fixture-sensitive-provider-token-123';
+  const journal = new SessionJournal('stderr-redaction');
+  let failure;
+  try {
+    await projectTransport(processEvents(process.execPath, args(`
+      console.log(JSON.stringify({type:'start',runId:'r'}));
+      console.error('fixture-sensitive-provider-token-123');
+      process.exit(9);
+    `)), journal);
+  } catch (error) {
+    failure = error;
+  }
+  assert.ok(failure);
+  assert.match(failure.message, /transport exited 9/);
+  assert.ok(!failure.message.includes(secret));
+  assert.ok(!JSON.stringify(journal.snapshot()).includes(secret));
+  assert.equal(journal.status, 'interrupted');
+});
