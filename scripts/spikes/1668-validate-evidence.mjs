@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs';
 export const JOURNEYS = Array.from({ length: 10 }, (_, i) => `D${String(i + 1).padStart(2, '0')}`);
 const LEVELS = new Set(['P', 'S', 'R', 'M', 'U']);
 const OUTCOMES = new Set(['pass', 'fail', 'blocked', 'unverified']);
+const PLACEHOLDER = /^(?:<[^>]+>|todo|tbd|unknown|n\/a|none|placeholder|test|example|dummy)$/i;
+const meaningful = value => typeof value === 'string' && value.trim() !== '' && !PLACEHOLDER.test(value.trim());
 
 export function validateLedger(rows) {
   const errors = [];
@@ -17,9 +19,10 @@ export function validateLedger(rows) {
     if (row.outcome === 'pass' && row.evidence_level === 'U') errors.push(`${at}: unverified evidence cannot pass`);
     if (row.evidence_level === 'P') {
       for (const field of ['toolkit_sha', 'package_version', 'platform', 'provider', 'timestamp_utc', 'steps_to_reproduce', 'observed', 'tested_by']) {
-        if (typeof row[field] !== 'string' || !row[field].trim()) errors.push(`${at}: P evidence missing ${field}`);
+        if (!meaningful(row[field])) errors.push(`${at}: P evidence missing ${field}`);
       }
-      if (!Array.isArray(row.logs) || row.logs.length === 0) errors.push(`${at}: P evidence needs redacted artifact reference in logs`);
+      if (!Array.isArray(row.logs) || row.logs.length === 0 || !row.logs.every(meaningful)) errors.push(`${at}: P evidence needs non-placeholder redacted artifact references in logs`);
+      if (typeof row.timestamp_utc === 'string' && (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(row.timestamp_utc) || Number.isNaN(Date.parse(row.timestamp_utc)))) errors.push(`${at}: timestamp_utc must be valid UTC ISO-8601`);
       if (typeof row.toolkit_sha === 'string' && !/^[a-f0-9]{40}$/i.test(row.toolkit_sha)) errors.push(`${at}: invalid toolkit_sha`);
     }
   }
