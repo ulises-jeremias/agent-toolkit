@@ -38,7 +38,17 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
     if (pendingCompletion) yield pendingCompletion;
   } finally {
     lines.close();
-    if (child.exitCode === null && child.signalCode === null) child.kill('SIGTERM');
-    await closed.catch(() => {});
+    if (child.exitCode === null && child.signalCode === null) {
+      // A provider process may ignore SIGTERM (or keep stdout open). Do not
+      // hang session teardown indefinitely while awaiting its close event.
+      child.kill('SIGTERM');
+      const escalation = setTimeout(() => {
+        if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
+      }, 500);
+      escalation.unref();
+      try { await closed.catch(() => {}); } finally { clearTimeout(escalation); }
+    } else {
+      await closed.catch(() => {});
+    }
   }
 }
