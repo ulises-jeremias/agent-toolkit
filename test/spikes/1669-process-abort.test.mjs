@@ -21,10 +21,17 @@ test('abort of a running child interrupts rather than completing the journal', a
   while (journal.status === 'idle' && Date.now() < deadline) {
     await new Promise(resolve => setTimeout(resolve, 10));
   }
-  assert.equal(journal.status, 'running', 'child must start before cancellation');
-  controller.abort();
-  await assert.rejects(projection, error => error?.name === 'AbortError' || /abort/i.test(error?.message ?? ''));
-  assert.equal(journal.status, 'interrupted');
-  assert.equal(journal.events.at(-1).reason, 'transport-error');
-  assert.ok(!journal.events.some(event => event.type === 'completed'));
+  try {
+    assert.equal(journal.status, 'running', 'child must start before cancellation');
+    controller.abort();
+    await assert.rejects(projection, error => error?.name === 'AbortError' || /abort/i.test(error?.message ?? ''));
+    assert.equal(journal.status, 'interrupted');
+    assert.equal(journal.events.at(-1).reason, 'transport-error');
+    assert.ok(!journal.events.some(event => event.type === 'completed'));
+  } finally {
+    // A failed assertion before abort must not leave the interval child alive
+    // and hang the Node test runner. Always settle the projection as well.
+    controller.abort();
+    await projection.catch(() => {});
+  }
 });
