@@ -67,3 +67,22 @@ test('a completion frame followed by a hung child cannot become success on abort
     await projection.catch(() => {});
   }
 });
+
+test('malformed transport kills a child that ignores graceful termination', async () => {
+  if (process.platform === 'win32') return; // POSIX signal behavior is required.
+  const body = `
+    process.on('SIGTERM', () => {});
+    console.log('not-json');
+    setInterval(() => {}, 1000);
+  `;
+  const started = Date.now();
+  await assert.rejects(
+    async () => {
+      for await (const _event of processEvents(process.execPath, ['--input-type=module', '-e', body])) {
+        // Invalid JSON must reject before any event is yielded.
+      }
+    },
+    /invalid JSONL transport event/,
+  );
+  assert.ok(Date.now() - started < 4000, 'teardown must not wait forever for SIGTERM');
+});
