@@ -50,3 +50,36 @@ test('rejected start leaves journal pristine and permits a different valid run',
   j.append({ type: 'start', runId: 'valid' });
   assert.equal(j.snapshot().runId, 'valid');
 });
+
+test('stream EOF without a terminal event is interrupted, not completed', async () => {
+  async function* ended() {
+    yield { type: 'start', runId: 'r' };
+    yield { type: 'output', runId: 'r', text: 'partial' };
+  }
+  const snapshot = await projectTransport(ended(), new SessionJournal('t'));
+  assert.equal(snapshot.status, 'interrupted');
+  assert.equal(snapshot.events.at(-1).reason, 'transport-eof');
+  assert.deepEqual(SessionJournal.replay('t', snapshot.events).snapshot(), snapshot);
+});
+
+test('transport error preserves rejection and records interruption', async () => {
+  async function* broken() {
+    yield { type: 'start', runId: 'r' };
+    throw new Error('socket lost');
+  }
+  const journal = new SessionJournal('t');
+  await assert.rejects(projectTransport(broken(), journal), /socket lost/);
+  assert.equal(journal.status, 'interrupted');
+  assert.equal(journal.snapshot().events.at(-1).reason, 'transport-error');
+});
+
+test('EOF during pending approval or cancellation never means success', async () => {
+  for (const type of ['approval_required', 'cancel_requested']) {
+    async function* ended() {
+      yield { type: 'start', runId: 'r' };
+      yield { type, runId: 'r' };
+    }
+    const result = await projectTransport(ended(), new SessionJournal('t'));
+    assert.equal(result.status, 'interrupted');
+  }
+});
