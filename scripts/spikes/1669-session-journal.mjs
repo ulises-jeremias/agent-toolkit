@@ -53,5 +53,20 @@ export class SessionJournal {
 // This proves boundary neutrality only; it does not prove provider fidelity.
 export function projectTransport(transport, journal) {
   if (!transport || typeof transport[Symbol.asyncIterator] !== 'function') throw new TypeError('async event transport required');
-  return (async () => { for await (const event of transport) journal.append(event); return journal.snapshot(); })();
+  return (async () => {
+    try {
+      for await (const event of transport) journal.append(event);
+    } catch (error) {
+      // A broken transport is not a successful run; preserve the original error.
+      if (['running', 'awaiting_approval', 'cancelling'].includes(journal.status)) {
+        journal.append({ type: 'interrupted', runId: journal.run, reason: 'transport-error' });
+      }
+      throw error;
+    }
+    // EOF is not provider confirmation of completion or cancellation.
+    if (['running', 'awaiting_approval', 'cancelling'].includes(journal.status)) {
+      journal.append({ type: 'interrupted', runId: journal.run, reason: 'transport-eof' });
+    }
+    return journal.snapshot();
+  })();
 }
