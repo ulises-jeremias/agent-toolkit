@@ -43,7 +43,10 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
       // hang session teardown indefinitely while awaiting its close event.
       child.kill('SIGTERM');
       const escalation = setTimeout(() => {
-        // signalCode can already be SIGTERM immediately after kill(), even\n        // while a stubborn process is still alive. Only close settles `closed`;\n        // do not suppress escalation based on signalCode.\n        if (child.exitCode === null) child.kill('SIGKILL');
+        // signalCode can already be SIGTERM immediately after kill(), even
+        // while a stubborn process is still alive. Only close settles `closed`;
+        // do not suppress escalation based on signalCode.
+        if (child.exitCode === null) child.kill('SIGKILL');
       }, 500);
       escalation.unref();
       try { await closed.catch(() => {}); } finally { clearTimeout(escalation); }
