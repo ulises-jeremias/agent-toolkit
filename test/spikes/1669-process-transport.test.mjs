@@ -84,3 +84,19 @@ test('events after completion are rejected rather than silently accepted', async
   `)), journal), /event after transport completion/);
   assert.equal(journal.status, 'interrupted');
 });
+
+test('large stderr output cannot deadlock the supervised process or leak secrets', async () => {
+  const secret = 'fixture-secret-stderr-backpressure';
+  const journal = new SessionJournal('stderr-backpressure');
+  const result = await Promise.race([
+    projectTransport(processEvents(process.execPath, args(`
+      console.log(JSON.stringify({type:'start',runId:'r'}));
+      const chunk = 'fixture-secret-stderr-backpressure'.repeat(2048);
+      for (let i = 0; i < 128; i++) process.stderr.write(chunk);
+      console.log(JSON.stringify({type:'completed',runId:'r'}));
+    `)), journal),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('stderr drain timed out')), 10000)),
+  ]);
+  assert.equal(result.status, 'completed');
+  assert.ok(!JSON.stringify(result).includes(secret));
+});
