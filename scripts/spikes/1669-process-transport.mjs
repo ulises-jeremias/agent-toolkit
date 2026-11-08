@@ -3,6 +3,14 @@ import { createInterface } from 'node:readline';
 
 // Gate 1 subprocess-boundary experiment, NOT a coding-provider adapter.
 // JSONL is a fixture protocol, not a claimed Claude/Codex/OpenCode interface.
+// child.kill() can refuse a second signal once Node marks the first as sent.
+// Use the OS PID for escalation; an exited process is already handled.
+function forceKill(child) {
+  if (child.exitCode !== null || child.pid == null) return;
+  try { process.kill(child.pid, 'SIGKILL'); }
+  catch (error) { if (error?.code !== 'ESRCH') throw error; }
+}
+
 export async function* processEvents(command, args = [], { cwd, signal } = {}) {
   if (typeof command !== 'string' || !command) throw new TypeError('command required');
   const child = spawn(command, args, { cwd, signal, stdio: ['ignore', 'pipe', 'pipe'], shell: false });
@@ -10,12 +18,33 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
   // Drain stderr so the child cannot block on a full pipe. Never surface raw
   // provider stderr in an exception: it may contain prompts, paths or tokens.
   child.stderr.resume();
-  const closed = new Promise((resolve, reject) => {
-    child.once('error', reject);
+  // AbortSignal's spawn integration sends SIGTERM, but a stubborn child may
+  // keep stdout open forever. Unblock the async line iterator on abort.
+  let abortEscalation;
+  let spawnError;
+  const onAbort = () => {
+    // Closing readline explicitly settles its async iterator; destroying only
+    // the underlying stream can leave a pending next() unresolved in Node 22.
+    lines.close();
+    child.stdout.destroy();
+    // The line iterator can finish before the child exits. Start the bounded
+    // escalation here, not only in finally (which may be waiting on `closed`).
+    if (child.exitCode === null) {
+      child.kill('SIGTERM');
+      abortEscalation = setTimeout(() => {
+        forceKill(child);
+      }, 500);
+    }
+  };
+  if (signal?.aborted) onAbort();
+  else signal?.addEventListener('abort', onAbort, { once: true });
+  // An AbortSignal may emit an 'error' before 'close'. Never treat that
+  // error as process reaping: the child can still be alive and own pipes.
+  // Keep waiting for the authoritative close event before clearing SIGKILL.
+  const closed = new Promise(resolve => {
+    child.once('error', error => { spawnError = error; });
     child.once('close', (code, childSignal) => resolve({ code, childSignal }));
   });
-  // An early spawn error must not produce an unhandled rejection.
-  closed.catch(() => {});
   let pendingCompletion = null;
   try {
     for await (const line of lines) {
@@ -34,11 +63,14 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
       }
     }
     const { code, childSignal } = await closed;
+    if (spawnError) throw spawnError;
+    if (signal?.aborted) throw Object.assign(new Error('transport aborted'), { name: 'AbortError' });
     if (code !== 0) throw new Error(`transport exited ${childSignal ?? code}`);
     if (pendingCompletion) yield pendingCompletion;
   } finally {
+    signal?.removeEventListener('abort', onAbort);
     lines.close();
-    if (child.exitCode === null && child.signalCode === null) {
+    if (child.exitCode === null) {
       // A provider process may ignore SIGTERM (or keep stdout open). Do not
       // hang session teardown indefinitely while awaiting its close event.
       child.kill('SIGTERM');
@@ -46,12 +78,12 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
         // signalCode can already be SIGTERM immediately after kill(), even
         // while a stubborn process is still alive. Only close settles `closed`;
         // do not suppress escalation based on signalCode.
-        if (child.exitCode === null) child.kill('SIGKILL');
+        forceKill(child);
       }, 500);
-      escalation.unref();
-      try { await closed.catch(() => {}); } finally { clearTimeout(escalation); }
+      try { await closed; } finally { clearTimeout(escalation); clearTimeout(abortEscalation); }
     } else {
       await closed.catch(() => {});
+      clearTimeout(abortEscalation);
     }
   }
 }
