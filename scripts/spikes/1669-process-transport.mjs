@@ -36,8 +36,6 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
       }, 500);
     }
   };
-  if (signal?.aborted) onAbort();
-  else signal?.addEventListener('abort', onAbort, { once: true });
   // An AbortSignal may emit an 'error' before 'close'. Never treat that
   // error as process reaping: the child can still be alive and own pipes.
   // Keep waiting for the authoritative close event before clearing SIGKILL.
@@ -45,6 +43,10 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
     child.once('error', error => { spawnError = error; });
     child.once('close', (code, childSignal) => resolve({ code, childSignal }));
   });
+  // Install close/error listeners before handling an already-aborted signal.
+  // Otherwise a rapidly closing child can race the close promise.
+  if (signal?.aborted) onAbort();
+  else signal?.addEventListener('abort', onAbort, { once: true });
   let pendingCompletion = null;
   try {
     for await (const line of lines) {
