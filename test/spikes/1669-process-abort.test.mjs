@@ -146,3 +146,30 @@ test('already-aborted signal settles transport without publishing completion', a
   );
   assert.ok(!journal.events.some(event => event.type === 'completed'));
 });
+
+
+test('nonzero child exit cannot commit a reported completion', async () => {
+  const journal = new SessionJournal('failed-exit');
+  const body = `
+    console.log(JSON.stringify({type:'start',runId:'failed-run'}));
+    console.log(JSON.stringify({type:'completed',runId:'failed-run'}));
+    process.exitCode = 7;
+  `;
+  await assert.rejects(
+    projectTransport(processEvents(process.execPath, ['--input-type=module', '-e', body]), journal),
+    /transport exited 7/,
+  );
+  assert.equal(journal.status, 'interrupted');
+  assert.ok(!journal.events.some(event => event.type === 'completed'));
+});
+
+test('missing executable rejects without claiming a provider session started', async () => {
+  const journal = new SessionJournal('missing-executable');
+  const missing = '__agent_toolkit_missing_provider_executable_1669__';
+  await assert.rejects(
+    projectTransport(processEvents(missing), journal),
+    error => error?.code === 'ENOENT',
+  );
+  assert.equal(journal.status, 'idle');
+  assert.deepEqual(journal.events, []);
+});
