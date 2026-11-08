@@ -3,6 +3,14 @@ import { createInterface } from 'node:readline';
 
 // Gate 1 subprocess-boundary experiment, NOT a coding-provider adapter.
 // JSONL is a fixture protocol, not a claimed Claude/Codex/OpenCode interface.
+// child.kill() can refuse a second signal once Node marks the first as sent.
+// Use the OS PID for escalation; an exited process is already handled.
+function forceKill(child) {
+  if (child.exitCode !== null || child.pid == null) return;
+  try { process.kill(child.pid, 'SIGKILL'); }
+  catch (error) { if (error?.code !== 'ESRCH') throw error; }
+}
+
 export async function* processEvents(command, args = [], { cwd, signal } = {}) {
   if (typeof command !== 'string' || !command) throw new TypeError('command required');
   const child = spawn(command, args, { cwd, signal, stdio: ['ignore', 'pipe', 'pipe'], shell: false });
@@ -23,7 +31,7 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
     if (child.exitCode === null) {
       child.kill('SIGTERM');
       abortEscalation = setTimeout(() => {
-        if (child.exitCode === null) child.kill('SIGKILL');
+        forceKill(child);
       }, 500);
     }
   };
@@ -66,7 +74,7 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
         // signalCode can already be SIGTERM immediately after kill(), even
         // while a stubborn process is still alive. Only close settles `closed`;
         // do not suppress escalation based on signalCode.
-        if (child.exitCode === null) child.kill('SIGKILL');
+        forceKill(child);
       }, 500);
       try { await closed.catch(() => {}); } finally { clearTimeout(escalation); clearTimeout(abortEscalation); }
     } else {
