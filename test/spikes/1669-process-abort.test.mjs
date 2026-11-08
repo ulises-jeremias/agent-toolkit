@@ -173,3 +173,18 @@ test('missing executable rejects without claiming a provider session started', a
   assert.equal(journal.status, 'idle');
   assert.deepEqual(journal.events, []);
 });
+
+test('events after a completion frame fail closed even when the child exits zero', async () => {
+  const journal = new SessionJournal('trailing-event');
+  const body = `
+    console.log(JSON.stringify({type:'start',runId:'trailing-run'}));
+    console.log(JSON.stringify({type:'completed',runId:'trailing-run'}));
+    console.log(JSON.stringify({type:'progress',runId:'trailing-run',message:'late'}));
+  `;
+  await assert.rejects(
+    projectTransport(processEvents(process.execPath, ['--input-type=module', '-e', body]), journal),
+    /event after transport completion/,
+  );
+  assert.equal(journal.status, 'interrupted');
+  assert.ok(!journal.events.some(event => event.type === 'completed'));
+});
