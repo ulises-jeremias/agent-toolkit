@@ -125,3 +125,24 @@ test('abort of SIGTERM-resistant child settles without claiming completion', { s
     await projection.catch(() => {});
   }
 });
+
+test('already-aborted signal settles transport without publishing completion', async () => {
+  const controller = new AbortController();
+  controller.abort();
+  const journal = new SessionJournal('pre-aborted');
+  const projection = projectTransport(
+    processEvents(process.execPath, ['--input-type=module', '-e',
+      "console.log(JSON.stringify({type:'completed'}))"], { signal: controller.signal }),
+    journal,
+  );
+  // A missing close event used to strand teardown. Bound the assertion so CI
+  // reports the regression rather than waiting indefinitely for the runner.
+  await assert.rejects(
+    Promise.race([
+      projection,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('pre-abort transport hung')), 3000)),
+    ]),
+    error => error?.name === 'AbortError' || /abort/i.test(error?.message ?? ''),
+  );
+  assert.ok(!journal.events.some(event => event.type === 'completed'));
+});
