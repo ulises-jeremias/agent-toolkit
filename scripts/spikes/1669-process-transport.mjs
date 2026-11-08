@@ -10,6 +10,11 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
   // Drain stderr so the child cannot block on a full pipe. Never surface raw
   // provider stderr in an exception: it may contain prompts, paths or tokens.
   child.stderr.resume();
+  // AbortSignal's spawn integration sends SIGTERM, but a stubborn child may
+  // keep stdout open forever. Unblock the async line iterator on abort.
+  const onAbort = () => child.stdout.destroy();
+  if (signal?.aborted) onAbort();
+  else signal?.addEventListener('abort', onAbort, { once: true });
   const closed = new Promise((resolve, reject) => {
     child.once('error', reject);
     child.once('close', (code, childSignal) => resolve({ code, childSignal }));
@@ -37,8 +42,9 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
     if (code !== 0) throw new Error(`transport exited ${childSignal ?? code}`);
     if (pendingCompletion) yield pendingCompletion;
   } finally {
+    signal?.removeEventListener('abort', onAbort);
     lines.close();
-    if (child.exitCode === null && child.signalCode === null) {
+    if (child.exitCode === null) {
       // A provider process may ignore SIGTERM (or keep stdout open). Do not
       // hang session teardown indefinitely while awaiting its close event.
       child.kill('SIGTERM');
