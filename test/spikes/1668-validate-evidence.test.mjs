@@ -42,3 +42,19 @@ test('malformed or non-UTC timestamps cannot certify P evidence', () => {
   row.timestamp_utc = '2026-11-07T00:00:00-03:00';
   assert.match(validateLedger([row]).join(' '), /timestamp_utc/);
 });
+
+test('conflicting packaged results cannot be cherry-picked into a passing gate', () => {
+  const rows = Array.from({ length: 7 }, (_, i) => ({
+    journey_id: `D0${i + 1}`, outcome: 'pass', evidence_level: 'P',
+    toolkit_sha: 'a'.repeat(40), package_version: 'v1.49.0 sha256:abc',
+    platform: 'Linux', provider: 'authenticated provider',
+    timestamp_utc: '2026-11-07T00:00:00Z',
+    steps_to_reproduce: 'open installed app', observed: 'actual event',
+    tested_by: 'tester', logs: ['artifact://redacted-log']
+  }));
+  assert.equal(packagedGateStatus(rows).ready, true);
+  rows.push({ ...rows[2], outcome: 'fail', observed: 'provider crashed' });
+  const status = packagedGateStatus(rows);
+  assert.equal(status.ready, false);
+  assert.match(status.errors.join(' '), /D03: conflicting packaged outcomes/);
+});
