@@ -14,6 +14,9 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
   // keep stdout open forever. Unblock the async line iterator on abort.
   let abortEscalation;
   const onAbort = () => {
+    // Closing readline explicitly settles its async iterator; destroying only
+    // the underlying stream can leave a pending next() unresolved in Node 22.
+    lines.close();
     child.stdout.destroy();
     // The line iterator can finish before the child exits. Start the bounded
     // escalation here, not only in finally (which may be waiting on `closed`).
