@@ -94,7 +94,7 @@ test('abort of SIGTERM-resistant child settles without claiming completion', { s
   const journal = new SessionJournal('stubborn-abort');
   const body = `
     process.on('SIGTERM', () => {});
-    console.log(JSON.stringify({type:'start',runId:'stubborn-run'}));
+    console.log(JSON.stringify({type:'start',runId:'stubborn-run',pid:process.pid}));
     setInterval(() => {}, 1000);
   `;
   const projection = projectTransport(
@@ -115,6 +115,11 @@ test('abort of SIGTERM-resistant child settles without claiming completion', { s
     assert.ok(Date.now() - started < 4000, 'abort must not hang on open stdout');
     assert.equal(journal.status, 'interrupted');
     assert.ok(!journal.events.some(event => event.type === 'completed'));
+    // A settled iterator is not sufficient: verify the OS child was reaped.
+    // The PID comes from the synthetic child itself, not from an inferred status.
+    const pid = journal.events.find(event => event.type === 'start')?.pid;
+    assert.ok(Number.isInteger(pid) && pid > 0, 'fixture must expose child PID');
+    assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' }, 'aborted child must no longer exist');
   } finally {
     controller.abort();
     await projection.catch(() => {});
