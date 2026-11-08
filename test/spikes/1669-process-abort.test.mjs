@@ -88,3 +88,35 @@ test('malformed transport kills a child that ignores graceful termination', asyn
   );
   assert.ok(Date.now() - started < 4000, 'teardown must not wait forever for SIGTERM');
 });
+
+test('abort of SIGTERM-resistant child settles without claiming completion', { skip: process.platform === 'win32' }, async () => {
+  const controller = new AbortController();
+  const journal = new SessionJournal('stubborn-abort');
+  const body = `
+    process.on('SIGTERM', () => {});
+    console.log(JSON.stringify({type:'start',runId:'stubborn-run'}));
+    setInterval(() => {}, 1000);
+  `;
+  const projection = projectTransport(
+    processEvents(process.execPath, ['--input-type=module', '-e', body], {
+      signal: controller.signal,
+    }),
+    journal,
+  );
+  const deadline = Date.now() + 5000;
+  try {
+    while (journal.status === 'idle' && Date.now() < deadline) {
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    assert.equal(journal.status, 'running');
+    const started = Date.now();
+    controller.abort();
+    await assert.rejects(projection, error => error?.name === 'AbortError' || /abort/i.test(error?.message ?? ''));
+    assert.ok(Date.now() - started < 4000, 'abort must not hang on open stdout');
+    assert.equal(journal.status, 'interrupted');
+    assert.ok(!journal.events.some(event => event.type === 'completed'));
+  } finally {
+    controller.abort();
+    await projection.catch(() => {});
+  }
+});
