@@ -32,6 +32,13 @@ export function validateLedger(rows) {
 export function packagedGateStatus(rows) {
   const errors = validateLedger(rows);
   if (errors.length) return { ready: false, errors };
+  // A ledger is a single acceptance attempt, not a best-of history of contradictory runs.
+  // Fail closed when the same journey has conflicting packaged outcomes.
+  for (const id of JOURNEYS.slice(0, 7)) {
+    const outcomes = new Set(rows.filter(row => row.journey_id === id && row.evidence_level === 'P').map(row => row.outcome));
+    if (outcomes.size > 1) errors.push(`${id}: conflicting packaged outcomes; record separate acceptance attempts`);
+  }
+  if (errors.length) return { ready: false, errors };
   const missing = JOURNEYS.slice(0, 7).filter(id => !rows.some(row => row.journey_id === id && row.outcome === 'pass' && row.evidence_level === 'P'));
   return { ready: missing.length === 0, missing };
 }
