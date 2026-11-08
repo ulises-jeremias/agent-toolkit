@@ -68,7 +68,9 @@ test('a completion frame followed by a hung child cannot become success on abort
   }
 });
 
-// Regression: child.kill('SIGTERM') may set signalCode before the process\n// exits; escalation must still SIGKILL the live child within the deadline.\ntest('malformed transport kills a child that ignores graceful termination', async () => {
+// Regression: child.kill('SIGTERM') may set signalCode before the process
+// exits; escalation must still SIGKILL the live child within the deadline.
+test('malformed transport kills a child that ignores graceful termination', async () => {
   if (process.platform === 'win32') return; // POSIX signal behavior is required.
   const body = `
     process.on('SIGTERM', () => {});
