@@ -12,7 +12,18 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
   child.stderr.resume();
   // AbortSignal's spawn integration sends SIGTERM, but a stubborn child may
   // keep stdout open forever. Unblock the async line iterator on abort.
-  const onAbort = () => child.stdout.destroy();
+  let abortEscalation;
+  const onAbort = () => {
+    child.stdout.destroy();
+    // The line iterator can finish before the child exits. Start the bounded
+    // escalation here, not only in finally (which may be waiting on `closed`).
+    if (child.exitCode === null) {
+      child.kill('SIGTERM');
+      abortEscalation = setTimeout(() => {
+        if (child.exitCode === null) child.kill('SIGKILL');
+      }, 500);
+    }
+  };
   if (signal?.aborted) onAbort();
   else signal?.addEventListener('abort', onAbort, { once: true });
   const closed = new Promise((resolve, reject) => {
@@ -54,10 +65,10 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
         // do not suppress escalation based on signalCode.
         if (child.exitCode === null) child.kill('SIGKILL');
       }, 500);
-      escalation.unref();
-      try { await closed.catch(() => {}); } finally { clearTimeout(escalation); }
+      try { await closed.catch(() => {}); } finally { clearTimeout(escalation); clearTimeout(abortEscalation); }
     } else {
       await closed.catch(() => {});
+      clearTimeout(abortEscalation);
     }
   }
 }
