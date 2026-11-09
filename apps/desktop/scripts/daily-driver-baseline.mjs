@@ -88,13 +88,24 @@ function filePresence(filename) {
   let exists = false;
   try {
     const resolved = path.resolve(filename);
-    const stat = fs.statSync(resolved);
-    // macOS packaged applications are .app directories, not regular files.
-    // Presence alone is NOT evidence that the app launches or is signed.
-    exists = stat.isFile() || (stat.isDirectory() && resolved.endsWith('.app') &&
-      fs.statSync(path.join(resolved, 'Contents', 'Info.plist')).isFile() &&
-      fs.readdirSync(path.join(resolved, 'Contents', 'MacOS')).some(name =>
-        fs.statSync(path.join(resolved, 'Contents', 'MacOS', name)).isFile()));
+    const stat = fs.lstatSync(resolved);
+    // Do not follow a symlink supplied as the package: it could point to an
+    // unrelated tree and produce a misleading positive preflight result.
+    // Presence is still NOT proof of launch, signing or provider authentication.
+    if (!stat.isSymbolicLink()) {
+      if (stat.isFile()) {
+        exists = true;
+      } else if (stat.isDirectory() && resolved.endsWith('.app')) {
+        const contents = path.join(resolved, 'Contents');
+        const info = path.join(contents, 'Info.plist');
+        const macos = path.join(contents, 'MacOS');
+        exists = fs.lstatSync(contents).isDirectory() &&
+          fs.lstatSync(info).isFile() &&
+          fs.lstatSync(macos).isDirectory() &&
+          fs.readdirSync(macos).some(name =>
+            fs.lstatSync(path.join(macos, name)).isFile());
+      }
+    }
   } catch { /* Absent or incomplete package by design. */ }
   return { supplied: true, executable_exists: exists };
 }
