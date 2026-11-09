@@ -1,15 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, symlinkSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, readFileSync, symlinkSync, rmSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const script = fileURLToPath(new URL('../daily-driver-baseline.mjs', import.meta.url));
 
-function run(output) {
-  return spawnSync(process.execPath, [script, '--output-dir', output], {
+function run(output, app) {
+  return spawnSync(process.execPath, [script, '--output-dir', output, ...(app ? ['--app', app] : [])], {
     env: Object.fromEntries(Object.entries(process.env).filter(([key]) => key !== 'NODE_TEST_CONTEXT')),
     encoding: 'utf8', timeout: 30000, maxBuffer: 65536,
   });
@@ -56,6 +56,29 @@ test('Gate 0 preflight refuses symlinked output ancestors', () => {
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /symlink/i);
     assert.equal(existsSync(real), false);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+
+test('Gate 0 preflight recognizes complete macOS .app bundles without claiming launch', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'atk-gate0-macos-'));
+  try {
+    const bundle = join(dir, 'Toolkit.app');
+    const macos = join(bundle, 'Contents', 'MacOS');
+    mkdirSync(macos, { recursive: true });
+    writeFileSync(join(bundle, 'Contents', 'Info.plist'), '<plist/>');
+    writeFileSync(join(macos, 'Toolkit'), 'placeholder');
+    const result = run(join(dir, 'complete'), bundle);
+    assert.equal(result.status, 0, result.stderr);
+    const data = JSON.parse(readFileSync(join(dir, 'complete', 'baseline.json'), 'utf8'));
+    assert.deepEqual(data.installed_app, { supplied: true, executable_exists: true });
+    assert.ok(data.journeys.every(j => j.outcome === 'unverified' && j.evidence_level === 'U'));
+    rmSync(join(macos, 'Toolkit'));
+    const incomplete = run(join(dir, 'incomplete'), bundle);
+    assert.equal(incomplete.status, 0, incomplete.stderr);
+    assert.equal(JSON.parse(readFileSync(join(dir, 'incomplete', 'baseline.json'), 'utf8')).installed_app.executable_exists, false);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
