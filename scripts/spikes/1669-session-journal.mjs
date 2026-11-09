@@ -39,7 +39,8 @@ export class SessionJournal {
     if (type === 'approval_observed') this.status = 'running';
     if (type === 'cancel_requested') this.status = 'cancelling';
     if (['cancelled', 'completed', 'failed', 'interrupted'].includes(type)) this.status = type;
-    return entry;
+    // Do not expose the journal-owned nested payload through the append return value.
+    return structuredClone(entry);
   }
   snapshot() { return { threadId: this.threadId, runId: this.run, status: this.status, nativeCursor: this.nativeCursor, events: this.events.map(e => structuredClone(e)) }; }
   static replay(threadId, entries) {
