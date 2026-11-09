@@ -86,7 +86,16 @@ function exec(command, argv, cwd) {
 function filePresence(filename) {
   if (!filename) return { supplied: false, executable_exists: false };
   let exists = false;
-  try { exists = fs.statSync(path.resolve(filename)).isFile(); } catch { /* Absent by design. */ }
+  try {
+    const resolved = path.resolve(filename);
+    const stat = fs.statSync(resolved);
+    // macOS packaged applications are .app directories, not regular files.
+    // Presence alone is NOT evidence that the app launches or is signed.
+    exists = stat.isFile() || (stat.isDirectory() && resolved.endsWith('.app') &&
+      fs.statSync(path.join(resolved, 'Contents', 'Info.plist')).isFile() &&
+      fs.readdirSync(path.join(resolved, 'Contents', 'MacOS')).some(name =>
+        fs.statSync(path.join(resolved, 'Contents', 'MacOS', name)).isFile()));
+  } catch { /* Absent or incomplete package by design. */ }
   return { supplied: true, executable_exists: exists };
 }
 
