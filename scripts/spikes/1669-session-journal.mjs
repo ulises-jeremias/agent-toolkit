@@ -29,7 +29,9 @@ export class SessionJournal {
     if (type === 'approval_observed' && typeof event.approved !== 'boolean') throw new TypeError('approval observation required');
     if (type === 'output' && typeof event.text !== 'string') throw new TypeError('output text required');
     if (type === 'start' && event.nativeCursor !== undefined && typeof event.nativeCursor !== 'string') throw new TypeError('invalid native cursor');
-    const entry = Object.freeze({ ...event, sequence: this.events.length + 1, threadId: this.threadId });
+    // Preserve the event as observed: providers may reuse/mutate nested payload objects.
+    // Cloning also prevents caller-held references from rewriting replay evidence.
+    const entry = Object.freeze({ ...structuredClone(event), sequence: this.events.length + 1, threadId: this.threadId });
     this.events.push(entry);
     if (type === 'start') this.run = runId;
     if (type === 'start') { this.status = 'running'; this.nativeCursor = event.nativeCursor ?? null; }
@@ -39,7 +41,7 @@ export class SessionJournal {
     if (['cancelled', 'completed', 'failed', 'interrupted'].includes(type)) this.status = type;
     return entry;
   }
-  snapshot() { return { threadId: this.threadId, runId: this.run, status: this.status, nativeCursor: this.nativeCursor, events: this.events.map(e => ({ ...e })) }; }
+  snapshot() { return { threadId: this.threadId, runId: this.run, status: this.status, nativeCursor: this.nativeCursor, events: this.events.map(e => structuredClone(e)) }; }
   static replay(threadId, entries) {
     const journal = new SessionJournal(threadId);
     for (const entry of entries) {
