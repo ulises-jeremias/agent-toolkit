@@ -88,6 +88,17 @@ function filePresence(filename) {
   let exists = false;
   try {
     const resolved = path.resolve(filename);
+    // A package reached through a symlinked parent is not an independently
+    // located installed artifact; do not report it as present.
+    let ancestor = path.dirname(resolved);
+    while (true) {
+      if (fs.lstatSync(ancestor).isSymbolicLink()) {
+        return { supplied: true, executable_exists: false };
+      }
+      const parent = path.dirname(ancestor);
+      if (parent === ancestor) break;
+      ancestor = parent;
+    }
     const stat = fs.lstatSync(resolved);
     // Do not follow a symlink supplied as the package: it could point to an
     // unrelated tree and produce a misleading positive preflight result.
