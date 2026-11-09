@@ -83,3 +83,24 @@ test('EOF during pending approval or cancellation never means success', async ()
     assert.equal(result.status, 'interrupted');
   }
 });
+
+test('provider transport cannot spoof app thread or sequence provenance', async () => {
+  const j = new SessionJournal('app-thread');
+  assert.throws(() => j.append({ type: 'start', runId: 'r', threadId: 'other' }), /foreign thread/);
+  assert.throws(() => j.append({ type: 'start', runId: 'r', sequence: 99 }), /out-of-order/);
+  assert.equal(j.status, 'idle');
+  assert.equal(j.snapshot().events.length, 0);
+  j.append({ type: 'start', runId: 'r' });
+  assert.throws(() => j.append({ type: 'output', runId: 'r', text: 'x', sequence: 1 }), /out-of-order/);
+  assert.throws(() => j.append({ type: 'output', runId: 'r', text: 'x', threadId: 'foreign' }), /foreign thread/);
+  assert.equal(j.snapshot().events.length, 1);
+  j.append({ type: 'completed', runId: 'r' });
+  assert.deepEqual(SessionJournal.replay('app-thread', j.snapshot().events).snapshot(), j.snapshot());
+
+  async function* spoofed() {
+    yield { type: 'start', runId: 'r', threadId: 'forged' };
+  }
+  const other = new SessionJournal('app-thread');
+  await assert.rejects(projectTransport(spoofed(), other), /foreign thread/);
+  assert.equal(other.status, 'idle');
+});

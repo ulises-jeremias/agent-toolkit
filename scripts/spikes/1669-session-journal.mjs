@@ -14,6 +14,10 @@ export class SessionJournal {
     const { type, runId } = event;
     if (!['start', 'output', 'approval_required', 'approval_observed', 'cancel_requested', 'cancelled', 'completed', 'failed', 'interrupted'].includes(type)) throw new Error('unknown event type');
     if (typeof runId !== 'string' || !runId) throw new TypeError('runId required');
+    // Never silently overwrite a provider-supplied app identity or sequence.
+    // A mismatched value is evidence of a broken or spoofed transport boundary.
+    if (Object.hasOwn(event, 'threadId') && event.threadId !== this.threadId) throw new Error('foreign thread event rejected');
+    if (Object.hasOwn(event, 'sequence') && event.sequence !== this.events.length + 1) throw new Error('out-of-order event rejected');
     if (this.run === null) {
       if (type !== 'start') throw new Error('run must start first');
     } else if (this.run !== runId) throw new Error('cross-run event rejected');
