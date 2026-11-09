@@ -110,3 +110,25 @@ test('Gate 0 preflight rejects symlinked macOS app and bundle components', () =>
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('Gate 0 preflight rejects app paths through symlinked parent directories', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'atk-gate0-app-parent-link-'));
+  try {
+    const real = join(dir, 'real');
+    mkdirSync(real);
+    const bundle = join(real, 'Toolkit.app');
+    const macos = join(bundle, 'Contents', 'MacOS');
+    mkdirSync(macos, { recursive: true });
+    writeFileSync(join(bundle, 'Contents', 'Info.plist'), '<plist/>');
+    writeFileSync(join(macos, 'Toolkit'), 'placeholder');
+    symlinkSync(real, join(dir, 'alias'), 'dir');
+
+    const result = run(join(dir, 'evidence'), join(dir, 'alias', 'Toolkit.app'));
+    assert.equal(result.status, 0, result.stderr);
+    const data = JSON.parse(readFileSync(join(dir, 'evidence', 'baseline.json'), 'utf8'));
+    assert.deepEqual(data.installed_app, { supplied: true, executable_exists: false });
+    assert.ok(data.journeys.every(j => j.outcome === 'unverified' && j.evidence_level === 'U'));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
