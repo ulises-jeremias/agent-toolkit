@@ -83,3 +83,30 @@ test('Gate 0 preflight recognizes complete macOS .app bundles without claiming l
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('Gate 0 preflight rejects symlinked macOS app and bundle components', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'atk-gate0-app-link-'));
+  try {
+    const bundle = join(dir, 'Real.app');
+    const macos = join(bundle, 'Contents', 'MacOS');
+    mkdirSync(macos, { recursive: true });
+    writeFileSync(join(bundle, 'Contents', 'Info.plist'), '<plist/>');
+    writeFileSync(join(macos, 'Toolkit'), 'placeholder');
+    const alias = join(dir, 'Alias.app');
+    symlinkSync(bundle, alias, 'dir');
+    let result = run(join(dir, 'alias'), alias);
+    assert.equal(result.status, 0, result.stderr);
+    let data = JSON.parse(readFileSync(join(dir, 'alias', 'baseline.json'), 'utf8'));
+    assert.equal(data.installed_app.executable_exists, false);
+    rmSync(join(macos, 'Toolkit'));
+    writeFileSync(join(dir, 'external'), 'placeholder');
+    symlinkSync(join(dir, 'external'), join(macos, 'Toolkit'));
+    result = run(join(dir, 'inner-link'), bundle);
+    assert.equal(result.status, 0, result.stderr);
+    data = JSON.parse(readFileSync(join(dir, 'inner-link', 'baseline.json'), 'utf8'));
+    assert.equal(data.installed_app.executable_exists, false);
+    assert.ok(data.journeys.every(j => j.outcome === 'unverified' && j.evidence_level === 'U'));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
