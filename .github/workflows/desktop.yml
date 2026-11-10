@@ -46,7 +46,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Check generated world assets
-        run: node apps/desktop/scripts/gen-world-assets.mjs --check
+        run: |
+          node apps/desktop/scripts/gen-world-assets-pxl.mjs --check
+          node apps/desktop/scripts/gen-world-assets.mjs --check
       - name: Setup pinned V
         uses: ./.github/actions/setup-v
         with:
