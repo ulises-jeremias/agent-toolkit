@@ -112,7 +112,9 @@ function filePresence(filename) {
     // Presence is still NOT proof of launch, signing or provider authentication.
     if (!stat.isSymbolicLink()) {
       if (stat.isFile()) {
-        exists = true;
+        // POSIX file presence alone does not establish an executable.
+        // Windows has no meaningful POSIX execute bit in fs.stat().
+        exists = process.platform === 'win32' || (stat.mode & 0o111) !== 0;
       } else if (stat.isDirectory() && resolved.endsWith('.app')) {
         const contents = path.join(resolved, 'Contents');
         const info = path.join(contents, 'Info.plist');
