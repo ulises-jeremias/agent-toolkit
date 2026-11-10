@@ -8,9 +8,9 @@ import { fileURLToPath } from 'node:url';
 
 const script = fileURLToPath(new URL('../daily-driver-baseline.mjs', import.meta.url));
 
-function run(output, app) {
+function run(output, app, envOverrides = {}) {
   return spawnSync(process.execPath, [script, '--output-dir', output, ...(app ? ['--app', app] : [])], {
-    env: Object.fromEntries(Object.entries(process.env).filter(([key]) => key !== 'NODE_TEST_CONTEXT')),
+    env: { ...Object.fromEntries(Object.entries(process.env).filter(([key]) => key !== 'NODE_TEST_CONTEXT')), ...envOverrides },
     encoding: 'utf8', timeout: 30000, maxBuffer: 65536,
   });
 }
@@ -128,6 +128,40 @@ test('Gate 0 preflight rejects app paths through symlinked parent directories', 
     const data = JSON.parse(readFileSync(join(dir, 'evidence', 'baseline.json'), 'utf8'));
     assert.deepEqual(data.installed_app, { supplied: true, executable_exists: false });
     assert.ok(data.journeys.every(j => j.outcome === 'unverified' && j.evidence_level === 'U'));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('Gate 0 preflight ignores hostile inherited Git directory and worktree', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'atk-gate0-git-env-'));
+  try {
+    const external = join(dir, 'external');
+    mkdirSync(external);
+    const init = spawnSync('git', ['init', '-q', external], { encoding: 'utf8' });
+    assert.equal(init.status, 0, init.stderr);
+    const gitDir = join(external, '.git');
+    const result = run(join(dir, 'evidence'), undefined, {
+      GIT_DIR: gitDir,
+      GIT_WORK_TREE: external,
+      GIT_INDEX_FILE: join(external, 'injected-index'),
+      GIT_CONFIG_COUNT: '1',
+      GIT_CONFIG_KEY_0: 'core.hooksPath',
+      GIT_CONFIG_VALUE_0: external,
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(existsSync(join(external, 'injected-index')), false);
+    const fixture = join(dir, 'evidence', 'fixture');
+    const fixtureHead = spawnSync('git', ['-C', fixture, 'rev-parse', '--verify', 'HEAD'], {
+      encoding: 'utf8',
+      env: Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))),
+    });
+    assert.equal(fixtureHead.status, 0, fixtureHead.stderr);
+    const externalHead = spawnSync('git', ['-C', external, 'rev-parse', '--verify', 'HEAD'], {
+      encoding: 'utf8',
+      env: Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))),
+    });
+    assert.notEqual(externalHead.status, 0, 'external repository must remain without commits');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

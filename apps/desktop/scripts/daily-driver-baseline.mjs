@@ -70,7 +70,14 @@ function exec(command, argv, cwd) {
   const result = spawnSync(command, argv, {
     cwd,
     // Avoid inheriting the parent node:test worker protocol in independent child probes.
-    env: Object.fromEntries(Object.entries(process.env).filter(([key]) => key !== 'NODE_TEST_CONTEXT')),
+    // No inherited GIT_DIR/GIT_WORK_TREE/config overrides; no global hooks or
+    // identity overrides from the user's machine. Provider probes get this too.
+    env: {
+      ...Object.fromEntries(Object.entries(process.env).filter(([key]) =>
+        key !== 'NODE_TEST_CONTEXT' && !key.startsWith('GIT_'))),
+      GIT_CONFIG_NOSYSTEM: '1',
+      GIT_CONFIG_GLOBAL: process.platform === 'win32' ? 'NUL' : '/dev/null',
+    },
     encoding: 'utf8',
     timeout: 5000,
     maxBuffer: 32768,
