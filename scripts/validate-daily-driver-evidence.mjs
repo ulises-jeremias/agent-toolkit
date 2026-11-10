@@ -56,8 +56,14 @@ export function validateLedger(ledger) {
     // An accepted field trial is one installed-app traversal, not seven
     // unrelated runs stitched together from different builds or hosts.
     const trialRuns = Array.isArray(field.runs) ? field.runs : [];
-    const ordered = ids.slice(0, 7).map(id => trialRuns.find(run =>
-      run?.journey_id === id && run.outcome === 'pass' && run.evidence_level === 'P'));
+    // A field trial is one ordered traversal, not a set of matching records.
+    // Reject duplicates, extra journeys and out-of-order execution even when
+    // every individual record matches the journey ledger.
+    check(trialRuns.length === 7 && trialRuns.every((run, index) =>
+      run?.journey_id === ids[index] && run.outcome === 'pass' &&
+      run.evidence_level === 'P'),
+      'packaged field trial requires exactly ordered D01-D07 P-level runs');
+    const ordered = trialRuns.length === 7 ? trialRuns : [];
     if (ordered.every(Boolean)) {
       for (const key of ['toolkit_sha', 'package_version', 'platform']) {
         check(ordered.every(run => run[key] === ordered[0][key]),
