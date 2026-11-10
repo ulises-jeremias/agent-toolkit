@@ -94,3 +94,23 @@ professional surfaces (terminal, diffs, forms, tables) stay in the IBM
 Plex text faces at normal weights — pixel display type is reserved for
 navigation, titles and plaques, never for technical text. Meadow and Dusk
 share this chrome; Dusk deepens the canvas and warms the gold.
+
+## Visual QA evidence (PRs B–E)
+
+- Sprite level: every PXL build inspected at native + upscaled preview;
+  two fix iterations (bridge/library/archive identity, shingle texture,
+  grass density) driven by contact-sheet review.
+- App level: production bundle rendered (Chromium, no backend — the
+  honest offline state) and screens captured/reviewed: World Meadow at
+  1024×640, 1440×900, 1920×1080; World Dusk at 1440×900; Library,
+  People, Settings and the Ctrl+K command palette at 1440×900.
+- Accessibility (WCAG 2.2 AA, curated `review` modes): jsx-a11y via
+  `pnpm lint` (automatically detectable) clean; static token contrast
+  for the new ink-plum ramp passes all claimed pairs (text 8.5–15.5:1,
+  gold action 10.5:1, terracotta non-text 4.4:1); keyboard order, focus
+  rings, World list fallback and reduced-motion paths are unchanged
+  contracts covered by unit/E2E suites. Screen-reader pass and
+  real-backend Electron captures remain human QA items — not assessed
+  here, not claimed.
+- Known polish backlog (tracked in #1741): forest density on the east
+  bank, Dusk halo softening, flower-box detail on house-cottage.
