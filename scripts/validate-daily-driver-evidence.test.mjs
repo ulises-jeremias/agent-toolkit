@@ -87,3 +87,26 @@ test('accepted field trial rejects a backwards journey chronology', () => {
   ledger.journeys.D05.runs[0] = run;
   assert.match(validateLedger(ledger).join('\\n'), /timestamps must be chronological/);
 });
+
+
+test('packaged field trial rejects reordered D01-D07 despite matching journey evidence', () => {
+  const ledger = acceptedFixture();
+  [ledger.packaged_field_trial.runs[0], ledger.packaged_field_trial.runs[1]] =
+    [ledger.packaged_field_trial.runs[1], ledger.packaged_field_trial.runs[0]];
+  assert.match(validateLedger(ledger).join('\n'),
+    /requires exactly ordered D01-D07 P-level runs/);
+});
+
+test('packaged field trial rejects duplicate or extra records', () => {
+  const ledger = acceptedFixture();
+  ledger.packaged_field_trial.runs.push(ledger.packaged_field_trial.runs[6]);
+  assert.match(validateLedger(ledger).join('\n'),
+    /requires exactly ordered D01-D07 P-level runs/);
+});
+
+test('packaged field trial rejects missing journey despite a duplicate replacement', () => {
+  const ledger = acceptedFixture();
+  ledger.packaged_field_trial.runs[4] = ledger.packaged_field_trial.runs[3];
+  assert.match(validateLedger(ledger).join('\n'),
+    /requires exactly ordered D01-D07 P-level runs/);
+});
