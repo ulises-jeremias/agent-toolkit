@@ -4,7 +4,7 @@ import { districtIdForPack, planDistricts, UNFILED_DISTRICT_ID } from './distric
 import { layoutWorld } from './layout';
 import { paintInterior, paintTerrain } from './terrain';
 import type { MemoryEntryRecord, MemorySummary, ToolRecord, WorldDomainInput } from './types';
-import { cozyValleyTheme } from '../theme/cozyValley';
+import { horneroValleyTheme } from '../theme/horneroValley';
 import { resolveDecor } from '../theme/types';
 
 function emptyMemory(available: boolean, entries: MemoryEntryRecord[] = []): MemorySummary {
@@ -580,7 +580,7 @@ describe('buildWorldModel', () => {
         .map((cell) => `${cell.x},${cell.y}`),
     );
     for (const cell of terrain.cells.filter(({ tile }) => tile.startsWith('trail-'))) {
-      expect(resolveDecor(cozyValleyTheme, cell.tile), `missing world sprite for ${cell.tile}`).toBeDefined();
+      expect(resolveDecor(horneroValleyTheme, cell.tile), `missing world sprite for ${cell.tile}`).toBeDefined();
     }
     for (const landmark of landmarks) {
       const doorX = landmark.x + Math.floor(landmark.w / 2);

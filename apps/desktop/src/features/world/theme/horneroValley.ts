@@ -1,0 +1,202 @@
+import type { WorldThemePack } from './types';
+
+const sprite = (name: string, label: string, frames = 1) => ({
+  kind: 'sprite' as const,
+  src: `/world/${name}.png`,
+  label,
+  frames,
+});
+
+const trailShapes = [
+  'dot',
+  'end-n',
+  'end-s',
+  'v',
+  'end-w',
+  'turn-nw',
+  'turn-sw',
+  'tee-e',
+  'end-e',
+  'turn-ne',
+  'turn-se',
+  'tee-w',
+  'h',
+  'tee-s',
+  'tee-n',
+  'cross',
+] as const;
+
+const naturalTrailTiles = Object.fromEntries(
+  trailShapes.flatMap((shape) =>
+    Array.from({ length: 4 }, (_, variant) => {
+      const name = `trail-${shape}-${variant}`;
+      return [name, sprite(name, 'Worn footpath')];
+    }),
+  ),
+);
+
+/**
+ * Hornero Valley — the Pixel Renaissance world pack (ADR-042, mission
+ * #1741). All assets are original, authored in PXL sources under
+ * `scripts/world-art-pxl/` and rendered by the pinned vendored renderer.
+ * Semantic keys map to authored sprites; terrain/décor/ambient ids feed
+ * the ground renderer. 16px source tiles, displayed at integer zoom.
+ * This is the only world pack: Meadow/Dusk are appearance modes of this
+ * same valley (design/theme), not separate asset packs.
+ */
+export const horneroValleyTheme: WorldThemePack = {
+  id: 'hornero-valley',
+  label: 'Hornero Valley',
+  tileSize: 48,
+  sourceTile: 16,
+  assets: {
+    'workspace.grounds': sprite('landmark-workspace', 'Workspace hall'),
+    'knowledge.workspace': sprite('knowledge-shelf', 'Workspace knowledge'),
+    'knowledge.project': sprite('knowledge-shelf', 'Project knowledge'),
+    'files.workspace': sprite('landmark-files', 'Workspace files'),
+    'files.project': sprite('desk-files', 'Project files'),
+    'project.building': sprite('house-cottage', 'Project building'),
+    'memory.entry': sprite('memory-entry', 'Memory record'),
+    'memory.index': sprite('landmark-archive', 'Memory archive'),
+    'tool.terminal': sprite('landmark-terminal', 'Terminal'),
+    'tool.coding': sprite('tool-rack', 'Coding tool'),
+    'capability.shelf': sprite('landmark-library', 'Library'),
+    'agent.catalog': sprite('agent-plate', 'Agent (catalog)'),
+    'agent.working': sprite('char-teal', 'Working', 2),
+    'agent.blocked': sprite('char-teal', 'Blocked', 2),
+    'agent.idle': sprite('char-teal', 'Idle', 2),
+    'swarm.table': sprite('swarm-table', 'Swarm'),
+    'loop.clock': sprite('loop-clock', 'Loop'),
+    'ops.crate': sprite('landmark-operations', 'Operations'),
+    'attention.inbox': sprite('landmark-attention', 'Needs you'),
+    'ops.lamp': sprite('landmark-settings', 'Settings'),
+  },
+  facades: {
+    'project-board': sprite('project-board', 'Project overview board'),
+    'door-exit': sprite('door-exit', 'Exit door'),
+    'desk-files': sprite('desk-files', 'Project filing cabinet'),
+    'house-cottage': sprite('house-cottage', 'Cottage'),
+    'house-studio': sprite('house-studio', 'Studio'),
+    'house-workshop': sprite('house-workshop', 'Workshop'),
+    'house-tower': sprite('house-tower', 'Tower'),
+    'house-cabin': sprite('house-cabin', 'Cabin'),
+    'house-brick': sprite('house-brick', 'Brick'),
+    'landmark-workspace': sprite('landmark-workspace', 'Workspace hall'),
+    'landmark-archive': sprite('landmark-archive', 'Memory archive'),
+    'landmark-library': sprite('landmark-library', 'Library'),
+    'landmark-workshop': sprite('landmark-workshop', 'Tools workshop'),
+    'landmark-files': sprite('landmark-files', 'Files depot'),
+    'landmark-operations': sprite('landmark-operations', 'Operations workshop'),
+    'landmark-settings': sprite('landmark-settings', 'Settings pavilion'),
+    'landmark-terminal': sprite('landmark-terminal', 'Terminal station'),
+    'landmark-attention': sprite('landmark-attention', 'Notice post'),
+  },
+  decor: {
+    'grass-0': sprite('grass-a', 'Grass'),
+    'grass-1': sprite('grass-b', 'Grass'),
+    'grass-2': sprite('grass-c', 'Grass'),
+    'grass-3': sprite('grass-d', 'Grass'),
+    'grass-4': sprite('grass-e', 'Grass'),
+    'grass-5': sprite('grass-f', 'Grass'),
+    'grass-6': sprite('grass-g', 'Grass'),
+    'grass-7': sprite('grass-h', 'Grass'),
+    'grass-8': sprite('grass-i', 'Grass'),
+    'grass-9': sprite('grass-j', 'Grass'),
+    'grass-10': sprite('grass-k', 'Grass'),
+    'grass-11': sprite('grass-l', 'Grass'),
+    'grass-12': sprite('grass-m', 'Grass'),
+    'grass-13': sprite('grass-n', 'Grass'),
+    'grass-14': sprite('grass-o', 'Grass'),
+    'grass-15': sprite('grass-p', 'Grass'),
+    'grass-16': sprite('grass-q', 'Grass'),
+    'grass-17': sprite('grass-r', 'Grass'),
+    'grass-18': sprite('grass-s', 'Grass'),
+    'grass-19': sprite('grass-t', 'Grass'),
+    'grass-20': sprite('grass-u', 'Grass'),
+    'grass-21': sprite('grass-v', 'Grass'),
+    'grass-22': sprite('grass-w', 'Grass'),
+    'grass-23': sprite('grass-x', 'Grass'),
+    'flowers-poppy': sprite('flowers-poppy', 'Poppies'),
+    'flowers-daisy': sprite('flowers-daisy', 'Daisies'),
+    'flowers-lavender': sprite('flowers-lavender', 'Lavender'),
+    'flowers-gold': sprite('flowers-gold', 'Flowers'),
+    'wildflower-patch-rose': sprite('wildflower-patch-rose', 'Wild rose clump'),
+    'wildflower-patch-lilac': sprite('wildflower-patch-lilac', 'Lilac clump'),
+    'wildflower-patch-gold': sprite('wildflower-patch-gold', 'Golden wildflowers'),
+    dirt: sprite('dirt', 'Dirt road'),
+    ...naturalTrailTiles,
+    'dirt-n': sprite('dirt-n', 'Road edge'),
+    'dirt-s': sprite('dirt-s', 'Road edge'),
+    'dirt-e': sprite('dirt-e', 'Road edge'),
+    'dirt-w': sprite('dirt-w', 'Road edge'),
+    'dirt-nw': sprite('dirt-nw', 'Road corner'),
+    'dirt-ne': sprite('dirt-ne', 'Road corner'),
+    'dirt-sw': sprite('dirt-sw', 'Road corner'),
+    'dirt-se': sprite('dirt-se', 'Road corner'),
+    plaza: sprite('plaza', 'Plaza stone'),
+    'plaza-b': sprite('plaza-b', 'Plaza stone'),
+    water: sprite('water', 'Creek', 2),
+    'water-edge-n': sprite('water-edge-n', 'Shore'),
+    'water-edge-s': sprite('water-edge-s', 'Shore'),
+    'water-edge-e': sprite('water-edge-e', 'Shore'),
+    'water-edge-w': sprite('water-edge-w', 'Shore'),
+    bridge: sprite('bridge', 'Bridge'),
+    'tree-round': sprite('tree-round', 'Tree'),
+    'tree-blossom': sprite('tree-blossom', 'Flowering tree'),
+    'tree-amber': sprite('tree-amber', 'Amber tree'),
+    'tree-rune': sprite('tree-rune', 'Rune-lit tree'),
+    'tree-pine': sprite('tree-pine', 'Pine'),
+    'tree-willow': sprite('tree-willow', 'Creek willow'),
+    bush: sprite('bush', 'Bush'),
+    rock: sprite('rock', 'Rock'),
+    'tall-grass': sprite('tall-grass', 'Tall grass'),
+    mushroom: sprite('mushroom', 'Mushroom'),
+    reeds: sprite('reeds', 'Reeds'),
+    lily: sprite('lily', 'Water lily'),
+    stump: sprite('stump', 'Stump'),
+    'fence-h': sprite('fence-h', 'Fence'),
+    'fence-v': sprite('fence-v', 'Fence'),
+    sign: sprite('sign', 'Sign'),
+    'lamp-glow': sprite('lamp-glow', 'Lantern glow'),
+    lamp: sprite('lamp', 'Lamp', 2),
+    hornero: sprite('hornero', 'Hornero', 2),
+    butterfly: sprite('butterfly', 'Butterfly', 2),
+    firefly: sprite('firefly', 'Firefly', 2),
+    mote: sprite('mote', 'Floating mote', 2),
+    'water-sparkle': sprite('water-sparkle', 'Water sparkle', 2),
+    'ops-crate': sprite('ops-crate', 'Crates'),
+    'memory-index-object': sprite('memory-index', 'Card catalog'),
+    'tool-terminal-desk': sprite('tool-terminal-desk', 'Terminal desk'),
+    'attention-inbox': sprite('attention-inbox', 'Mailbox'),
+    'bubble-alert': sprite('bubble-alert', 'Alert'),
+  },
+  interior: {
+    'floor-a': sprite('floor-wood', 'Plank floor'),
+    'floor-rune': sprite('floor-rune', 'Quiet floor inlay'),
+    wall: sprite('wall-top', 'Wall'),
+    'wall-mural': sprite('wall-mural', 'Moonlit wall panel'),
+    'window-valley': sprite('window-valley', 'Moonlit valley window'),
+    'wall-sconce': sprite('wall-sconce', 'Lantern sconce'),
+    exit: sprite('door-exit', 'Exit door'),
+    rug: sprite('rug', 'Rug'),
+    plant: sprite('plant', 'Plant'),
+    'desk-terminal': sprite('desk-terminal', 'Terminal desk'),
+    'desk-files': sprite('desk-files', 'Project filing cabinet'),
+    'shelf-books': sprite('shelf-books', 'Bookshelf'),
+    'cabinet-memory': sprite('cabinet-memory', 'Memory cabinet'),
+    'bench-tools': sprite('bench-tools', 'Workbench'),
+    'board-map': sprite('board-map', 'Map board'),
+    crate: sprite('crate', 'Crate'),
+    'tool-rack': sprite('tool-rack', 'Tool rack'),
+  },
+};
+
+export { resolveDecor, resolveEntityAsset, resolveInterior, resolveThemeAsset } from './types';
+export type { ThemeAsset, WorldThemePack } from './types';
+
+/** The single Renaissance pack; unknown/legacy ids resolve to it. */
+export const WORLD_THEME_PACKS: readonly WorldThemePack[] = [horneroValleyTheme];
+
+export function worldThemePack(id: string | null | undefined): WorldThemePack {
+  return WORLD_THEME_PACKS.find((pack) => pack.id === id) ?? horneroValleyTheme;
+}
