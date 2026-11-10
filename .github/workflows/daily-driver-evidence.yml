@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'docs/desktop/daily-driver-evidence.json'
+      - 'scripts/validate-daily-driver-evidence.mjs'
+      - 'scripts/validate-daily-driver-evidence.test.mjs'
       - 'scripts/tests/daily-driver-evidence.test.mjs'
       - 'scripts/daily-driver-fixture.mjs'
       - 'scripts/tests/daily-driver-fixture.test.mjs'
@@ -12,6 +14,8 @@ on:
     branches: [main]
     paths:
       - 'docs/desktop/daily-driver-evidence.json'
+      - 'scripts/validate-daily-driver-evidence.mjs'
+      - 'scripts/validate-daily-driver-evidence.test.mjs'
       - 'scripts/tests/daily-driver-evidence.test.mjs'
       - 'scripts/daily-driver-fixture.mjs'
       - 'scripts/tests/daily-driver-fixture.test.mjs'
@@ -32,4 +36,6 @@ jobs:
         with:
           node-version: '22'
       - name: Reject unsupported acceptance claims
-        run: node --test scripts/tests/daily-driver-evidence.test.mjs scripts/tests/daily-driver-fixture.test.mjs
+        run: node --test scripts/tests/daily-driver-evidence.test.mjs scripts/tests/daily-driver-fixture.test.mjs scripts/validate-daily-driver-evidence.test.mjs
+      - name: Validate current unverified baseline
+        run: node scripts/validate-daily-driver-evidence.mjs docs/desktop/daily-driver-evidence.json
