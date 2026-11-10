@@ -54,6 +54,7 @@ export function validateLedger(ledger) {
     }
   }
   if (ledger?.status === 'accepted') {
+    check(ledger.evidence_level === 'P', 'accepted gate requires P-level gate evidence');
     check(ids.slice(0, 7).every(id => journeys[id]?.outcome === 'pass' && journeys[id]?.evidence_level === 'P'), 'accepted gate requires D01-D07 P-level passes');
     check(field?.outcome === 'pass' && field?.evidence_level === 'P', 'accepted gate requires packaged field trial');
   }
