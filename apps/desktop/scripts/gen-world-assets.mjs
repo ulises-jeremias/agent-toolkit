@@ -1930,7 +1930,7 @@ const PLAYER_OUTFITS = {
   river: { coat: 'rs', shade: 'rsd', highlight: 'rsl', accent: 'gg' },
   grove: { coat: 'rm', shade: 'rmd', highlight: 'em', accent: 'wy' },
   ember: { coat: 'rt', shade: 'rtd', highlight: 'rtl', accent: 'gg' },
-  neon: { coat: 'nv', shade: 'asd', highlight: 'nm', accent: 'cy' },
+  dusk: { coat: 'nv', shade: 'asd', highlight: 'nm', accent: 'cy' },
 };
 
 /** Human world navigator: distinct from runtime People, with clear facings and authored outfits. */
@@ -2089,77 +2089,6 @@ function hornero() {
  * 11. Registry + output. Frames are packed horizontally in one PNG.
  * ------------------------------------------------------------------ */
 
-/* Cyberpunk City tiles: neon-lit asphalt, canal, holo flora. Small code-drawn
-   tiles sit beside the generated cyber facades in the same theme pack. */
-function cyberAsphalt(seed) {
-  const img = new Img(16, 16).rect(0, 0, 15, 15, 'as');
-  if (seed % 2 === 0) img.hline(0, 15, 15, 'asd');
-  for (let i = 0; i < 7; i++) img.set((seed * 5 + i * 7) % 15, (seed * 3 + i * 5) % 15, 'asl');
-  if (seed === 1) img.set(11, 11, 'nm');
-  if (seed === 2) img.set(4, 5, 'cy');
-  if (seed === 3) img.set(12, 3, 'ctl');
-  return img;
-}
-function cyberCanal(seed) {
-  const img = new Img(16, 16).rect(0, 0, 15, 15, 'cw');
-  img.rect(0, 0, 15, 4, 'cwl');
-  img.hline(2 + seed, 5 + seed, 3, 'cy').hline(9 - seed, 13 - seed, 8, 'ctl');
-  img.hline(4 + seed, 6 + seed, 12, 'cwl');
-  img.set(12 - seed, 5, 'nm').set(3 + seed, 13, 'cy');
-  return img;
-}
-function cyberShore(dir) {
-  const img = cyberCanal(0);
-  // Neon rim light on the bank side, dark metal lip behind it.
-  if (dir === 'n') { img.rect(0, 0, 15, 2, 'asd'); img.hline(0, 15, 3, 'cy'); }
-  if (dir === 's') { img.rect(0, 13, 15, 15, 'asd'); img.hline(0, 15, 12, 'cy'); }
-  if (dir === 'w') { img.rect(0, 0, 2, 15, 'asd'); img.vline(3, 0, 15, 'cy'); }
-  if (dir === 'e') { img.rect(13, 0, 15, 15, 'asd'); img.vline(12, 0, 15, 'cy'); }
-  return img;
-}
-function cyberBridge() {
-  const img = new Img(48, 48).rect(0, 10, 47, 37, 'asd');
-  for (let y = 14; y < 37; y += 6) img.hline(0, 47, y, 'as');
-  img.rect(0, 10, 47, 13, 'as').rect(0, 34, 47, 37, 'as');
-  img.hline(0, 47, 11, 'nm').hline(0, 47, 36, 'cy');
-  for (let x = 4; x < 48; x += 10) { img.set(x, 12, 'nm'); img.set(x, 35, 'cy'); }
-  return img;
-}
-function cyberLamp() {
-  const img = new Img(16, 24);
-  img.vline(7, 8, 22, 'asd').vline(8, 8, 22, 'asl');
-  img.rect(5, 21, 10, 23, 'asd');
-  img.ellipse(8, 5, 4, 4, 'nm');
-  img.ellipse(8, 5, 2, 2, 'iv');
-  img.set(8, 0, 'cy');
-  return img;
-}
-function cyberTree() {
-  return new Img(48, 48);
-}
-function cyberBush() {
-  const img = new Img(16, 12);
-  img.ellipse(8, 8, 7, 4, 'ctd');
-  img.ellipse(6, 6, 4, 3, 'ct');
-  img.ellipse(11, 7, 3, 2, 'ct');
-  img.set(4, 5, 'cy').set(9, 4, 'ctl').set(12, 7, 'nm').set(7, 8, 'cy');
-  return img;
-}
-function cyberFlower(seed) {
-  void seed;
-  const img = new Img(16, 16);
-  img.vline(4, 9, 14, 'ct').vline(11, 8, 14, 'ct').vline(7, 11, 14, 'ct');
-  img.set(4, 8, 'nm').set(11, 7, 'cy').set(7, 10, 'wy');
-  img.set(3, 7, 'ctl').set(12, 6, 'nm');
-  return img;
-}
-function cyberGlow() {
-  const img = new Img(32, 32);
-  img.set(16, 8, 'cy').set(8, 16, 'nm').set(24, 18, 'ctl').set(16, 25, 'nv');
-  img.set(12, 12, 'ctl').set(20, 13, 'cy');
-  return img;
-}
-
 function collect() {
   const sprites = new Map();
   const put = (name, img, frames) => {
@@ -2235,25 +2164,6 @@ function collect() {
   for (const t of dirtTiles()) put(t.name, t.img);
   for (const t of plazaTiles()) put(t.name, t.img);
   for (const t of waterTiles()) put(t.name, t.img, t.frames);
-  for (let i = 0; i < 4; i++) put(`cyber-asphalt-${i}`, cyberAsphalt(i));
-  put('cyber-canal', cyberCanal(0), [cyberCanal(0), cyberCanal(1)]);
-  for (const dir of ['n', 's', 'e', 'w']) put(`cyber-shore-${dir}`, cyberShore(dir));
-  put('cyber-bridge', cyberBridge());
-  put('cyber-lamp', cyberLamp(), [cyberLamp(), cyberLamp()]);
-  put('cyber-glow', cyberGlow());
-  put('cyber-tree', cyberTree());
-  for (const facade of [
-    'cyber-house-neon',
-    'cyber-house-capsule',
-    'cyber-house-deco',
-    'cyber-house-noodle',
-    'cyber-landmark-spire',
-    'cyber-landmark-station',
-    'cyber-landmark-vault',
-  ])
-    put(facade, new Img(48, 64));
-  put('cyber-bush', cyberBush());
-  put('cyber-flower', cyberFlower(0));
   for (const [name, ch] of [
     ['char-teal', character('re', 'red', 'cy')],
     ['char-gold', character('rw', 'rwd', 'gg')],
@@ -2262,13 +2172,6 @@ function collect() {
     ['char-maker', character('rw', 'rwd', 'gg', 'rrd', 'skd')],
     ['char-scholar', character('rs', 'rsd', 'lv', 'inkd')],
     ['char-keeper', character('rm', 'rmd', 'wy', 'rw', 'skd')],
-    ['char-cyber-teal', character('nv', 'asd', 'cy', 'nm')],
-    ['char-cyber-gold', character('nmd', 'asd', 'wy', 'nv', 'skd')],
-    ['char-cyber-brick', character('nm', 'nmd', 'cy', 'asd')],
-    ['char-cyber-scout', character('nv', 'asd', 'cy', 'nm')],
-    ['char-cyber-maker', character('nmd', 'asd', 'wy', 'nv', 'skd')],
-    ['char-cyber-scholar', character('as', 'asd', 'cy', 'nm', 'skd')],
-    ['char-cyber-keeper', character('nm', 'nmd', 'wy', 'nv', 'skd')],
   ])
     put(name, ch.frames[0], ch.frames);
   for (const [outfit] of Object.entries(PLAYER_OUTFITS)) {

@@ -1,1001 +1,45 @@
 {
   "generated": "gen-world-assets.mjs",
   "sprites": {
-    "memory-index": {
-      "file": "memory-index.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "knowledge-shelf": {
-      "file": "knowledge-shelf.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "memory-entry": {
-      "file": "memory-entry.png",
-      "w": 16,
-      "h": 24,
-      "frames": 1
-    },
-    "tool-rack": {
-      "file": "tool-rack.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "tool-terminal-desk": {
-      "file": "tool-terminal-desk.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "agent-plate": {
-      "file": "agent-plate.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "swarm-table": {
-      "file": "swarm-table.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "loop-clock": {
-      "file": "loop-clock.png",
-      "w": 16,
-      "h": 24,
-      "frames": 1
-    },
-    "ops-crate": {
-      "file": "ops-crate.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "attention-inbox": {
-      "file": "attention-inbox.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "lamp-glow": {
-      "file": "lamp-glow.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "lamp": {
-      "file": "lamp.png",
-      "w": 16,
-      "h": 24,
-      "frames": 2
-    },
-    "floor-wood": {
-      "file": "floor-wood.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "floor-rune": {
-      "file": "floor-rune.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "wall-top": {
-      "file": "wall-top.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "wall-mural": {
-      "file": "wall-mural.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "window-valley": {
-      "file": "window-valley.png",
-      "w": 32,
-      "h": 24,
-      "frames": 1
-    },
-    "wall-sconce": {
-      "file": "wall-sconce.png",
-      "w": 16,
-      "h": 24,
-      "frames": 1
-    },
-    "door-exit": {
-      "file": "door-exit.png",
-      "w": 16,
-      "h": 24,
-      "frames": 1
-    },
-    "rug": {
-      "file": "rug.png",
-      "w": 32,
-      "h": 16,
-      "frames": 1
-    },
-    "plant": {
-      "file": "plant.png",
-      "w": 24,
-      "h": 24,
-      "frames": 1
-    },
-    "desk-terminal": {
-      "file": "desk-terminal.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "desk-files": {
-      "file": "desk-files.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "shelf-books": {
-      "file": "shelf-books.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "cabinet-memory": {
-      "file": "cabinet-memory.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "bench-tools": {
-      "file": "bench-tools.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "board-map": {
-      "file": "board-map.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "project-board": {
-      "file": "project-board.png",
-      "w": 64,
-      "h": 50,
-      "frames": 1,
-      "source": "scripts/world-art/project-board.png",
-      "sha256": "9b92574156b39c2c15a1c0dbffe56237884b0514c21aea4a91bd66b369b8185f"
-    },
-    "crate": {
-      "file": "crate.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "bubble-alert": {
-      "file": "bubble-alert.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
     "butterfly": {
       "file": "butterfly.png",
       "w": 8,
       "h": 8,
-      "frames": 2
+      "frames": 2,
+      "source": "scripts/world-art-pxl/ambient.px.js",
+      "sha256": "92b9731d4761a214ad85ed9c6ccb079dfbee3afb30c4d149ddd2a0f9c50e0222"
     },
     "firefly": {
       "file": "firefly.png",
       "w": 12,
       "h": 12,
-      "frames": 2
-    },
-    "mote": {
-      "file": "mote.png",
-      "w": 10,
-      "h": 10,
-      "frames": 2
-    },
-    "water-sparkle": {
-      "file": "water-sparkle.png",
-      "w": 10,
-      "h": 10,
-      "frames": 2
+      "frames": 2,
+      "source": "scripts/world-art-pxl/ambient.px.js",
+      "sha256": "de326fd8256d782be24c48f57170c67de4c3de32e75883d14c3020df4925a01c"
     },
     "hornero": {
       "file": "hornero.png",
       "w": 16,
       "h": 12,
-      "frames": 2
-    },
-    "grass-i": {
-      "file": "grass-i.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-j": {
-      "file": "grass-j.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-k": {
-      "file": "grass-k.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-l": {
-      "file": "grass-l.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-m": {
-      "file": "grass-m.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-n": {
-      "file": "grass-n.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-o": {
-      "file": "grass-o.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-p": {
-      "file": "grass-p.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-q": {
-      "file": "grass-q.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-r": {
-      "file": "grass-r.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-s": {
-      "file": "grass-s.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-t": {
-      "file": "grass-t.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-u": {
-      "file": "grass-u.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-v": {
-      "file": "grass-v.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-w": {
-      "file": "grass-w.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "grass-x": {
-      "file": "grass-x.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "wildflower-patch-rose": {
-      "file": "wildflower-patch-rose.png",
-      "w": 40,
-      "h": 28,
-      "frames": 1
-    },
-    "wildflower-patch-lilac": {
-      "file": "wildflower-patch-lilac.png",
-      "w": 40,
-      "h": 28,
-      "frames": 1
-    },
-    "wildflower-patch-gold": {
-      "file": "wildflower-patch-gold.png",
-      "w": 40,
-      "h": 28,
-      "frames": 1
-    },
-    "trail-dot-0": {
-      "file": "trail-dot-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-dot-1": {
-      "file": "trail-dot-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-dot-2": {
-      "file": "trail-dot-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-dot-3": {
-      "file": "trail-dot-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-n-0": {
-      "file": "trail-end-n-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-n-1": {
-      "file": "trail-end-n-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-n-2": {
-      "file": "trail-end-n-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-n-3": {
-      "file": "trail-end-n-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-s-0": {
-      "file": "trail-end-s-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-s-1": {
-      "file": "trail-end-s-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-s-2": {
-      "file": "trail-end-s-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-s-3": {
-      "file": "trail-end-s-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-v-0": {
-      "file": "trail-v-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-v-1": {
-      "file": "trail-v-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-v-2": {
-      "file": "trail-v-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-v-3": {
-      "file": "trail-v-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-w-0": {
-      "file": "trail-end-w-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-w-1": {
-      "file": "trail-end-w-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-w-2": {
-      "file": "trail-end-w-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-w-3": {
-      "file": "trail-end-w-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-nw-0": {
-      "file": "trail-turn-nw-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-nw-1": {
-      "file": "trail-turn-nw-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-nw-2": {
-      "file": "trail-turn-nw-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-nw-3": {
-      "file": "trail-turn-nw-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-sw-0": {
-      "file": "trail-turn-sw-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-sw-1": {
-      "file": "trail-turn-sw-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-sw-2": {
-      "file": "trail-turn-sw-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-sw-3": {
-      "file": "trail-turn-sw-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-e-0": {
-      "file": "trail-tee-e-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-e-1": {
-      "file": "trail-tee-e-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-e-2": {
-      "file": "trail-tee-e-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-e-3": {
-      "file": "trail-tee-e-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-e-0": {
-      "file": "trail-end-e-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-e-1": {
-      "file": "trail-end-e-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-e-2": {
-      "file": "trail-end-e-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-end-e-3": {
-      "file": "trail-end-e-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-ne-0": {
-      "file": "trail-turn-ne-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-ne-1": {
-      "file": "trail-turn-ne-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-ne-2": {
-      "file": "trail-turn-ne-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-ne-3": {
-      "file": "trail-turn-ne-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-se-0": {
-      "file": "trail-turn-se-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-se-1": {
-      "file": "trail-turn-se-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-se-2": {
-      "file": "trail-turn-se-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-turn-se-3": {
-      "file": "trail-turn-se-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-w-0": {
-      "file": "trail-tee-w-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-w-1": {
-      "file": "trail-tee-w-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-w-2": {
-      "file": "trail-tee-w-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-w-3": {
-      "file": "trail-tee-w-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-h-0": {
-      "file": "trail-h-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-h-1": {
-      "file": "trail-h-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-h-2": {
-      "file": "trail-h-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-h-3": {
-      "file": "trail-h-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-s-0": {
-      "file": "trail-tee-s-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-s-1": {
-      "file": "trail-tee-s-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-s-2": {
-      "file": "trail-tee-s-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-s-3": {
-      "file": "trail-tee-s-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-n-0": {
-      "file": "trail-tee-n-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-n-1": {
-      "file": "trail-tee-n-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-n-2": {
-      "file": "trail-tee-n-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-tee-n-3": {
-      "file": "trail-tee-n-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-cross-0": {
-      "file": "trail-cross-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-cross-1": {
-      "file": "trail-cross-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-cross-2": {
-      "file": "trail-cross-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "trail-cross-3": {
-      "file": "trail-cross-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "cyber-asphalt-0": {
-      "file": "cyber-asphalt-0.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "cyber-asphalt-1": {
-      "file": "cyber-asphalt-1.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "cyber-asphalt-2": {
-      "file": "cyber-asphalt-2.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "cyber-asphalt-3": {
-      "file": "cyber-asphalt-3.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "cyber-canal": {
-      "file": "cyber-canal.png",
-      "w": 16,
-      "h": 16,
-      "frames": 2
-    },
-    "cyber-shore-n": {
-      "file": "cyber-shore-n.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "cyber-shore-s": {
-      "file": "cyber-shore-s.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "cyber-shore-e": {
-      "file": "cyber-shore-e.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "cyber-shore-w": {
-      "file": "cyber-shore-w.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "cyber-bridge": {
-      "file": "cyber-bridge.png",
-      "w": 48,
-      "h": 48,
-      "frames": 1
-    },
-    "cyber-lamp": {
-      "file": "cyber-lamp.png",
-      "w": 16,
-      "h": 24,
-      "frames": 2
-    },
-    "cyber-glow": {
-      "file": "cyber-glow.png",
-      "w": 32,
-      "h": 32,
-      "frames": 1
-    },
-    "cyber-tree": {
-      "file": "cyber-tree.png",
-      "w": 48,
-      "h": 48,
-      "frames": 1,
-      "source": "scripts/world-art/cyber-tree.png",
-      "sha256": "1298a92c3cd5e57b7ad8dd6c15bf656a4cb795f586c058fd2930f330f9cc61ae"
-    },
-    "cyber-house-neon": {
-      "file": "cyber-house-neon.png",
-      "w": 48,
-      "h": 64,
-      "frames": 1,
-      "source": "scripts/world-art/cyber-house-neon.png",
-      "sha256": "9bfd15cd448e87122000113934a94889c370c3c7132731107e62cf38b22b2015"
-    },
-    "cyber-house-capsule": {
-      "file": "cyber-house-capsule.png",
-      "w": 48,
-      "h": 64,
-      "frames": 1,
-      "source": "scripts/world-art/cyber-house-capsule.png",
-      "sha256": "583422f8bc40daff3cc7ffacb010dcbf8af082f330314787d58e48300bb5fa9b"
-    },
-    "cyber-house-deco": {
-      "file": "cyber-house-deco.png",
-      "w": 48,
-      "h": 64,
-      "frames": 1,
-      "source": "scripts/world-art/cyber-house-deco.png",
-      "sha256": "58f5cfafa19c62c62fcff52464e46e1dc940102f40f786403e1997dc11275216"
-    },
-    "cyber-house-noodle": {
-      "file": "cyber-house-noodle.png",
-      "w": 48,
-      "h": 64,
-      "frames": 1,
-      "source": "scripts/world-art/cyber-house-noodle.png",
-      "sha256": "11ccd010fdf10105aece29e595bf62a8f13eb4da7f6dc8839f4660d16ac01084"
-    },
-    "cyber-landmark-spire": {
-      "file": "cyber-landmark-spire.png",
-      "w": 64,
-      "h": 64,
-      "frames": 1,
-      "source": "scripts/world-art/cyber-landmark-spire.png",
-      "sha256": "b61d2396a042d9c1887ebe31ba015bde122c08b4b487367ac67d4b138582016a"
-    },
-    "cyber-landmark-station": {
-      "file": "cyber-landmark-station.png",
-      "w": 64,
-      "h": 64,
-      "frames": 1,
-      "source": "scripts/world-art/cyber-landmark-station.png",
-      "sha256": "ec649db2cc859888886ffd9b32b84d739a7e31038acb7159027ca8f8fb8cae7e"
-    },
-    "cyber-landmark-vault": {
-      "file": "cyber-landmark-vault.png",
-      "w": 64,
-      "h": 64,
-      "frames": 1,
-      "source": "scripts/world-art/cyber-landmark-vault.png",
-      "sha256": "0a8d8578a80eaf64d71fc69ec41630ddba491d995a4238a6228679bcd1a769ff"
-    },
-    "cyber-bush": {
-      "file": "cyber-bush.png",
-      "w": 16,
-      "h": 12,
-      "frames": 1
-    },
-    "cyber-flower": {
-      "file": "cyber-flower.png",
-      "w": 16,
-      "h": 16,
-      "frames": 1
-    },
-    "char-cyber-teal": {
-      "file": "char-cyber-teal.png",
-      "w": 16,
-      "h": 24,
-      "frames": 2
-    },
-    "char-cyber-gold": {
-      "file": "char-cyber-gold.png",
-      "w": 16,
-      "h": 24,
-      "frames": 2
-    },
-    "char-cyber-brick": {
-      "file": "char-cyber-brick.png",
-      "w": 16,
-      "h": 24,
-      "frames": 2
-    },
-    "char-cyber-scout": {
-      "file": "char-cyber-scout.png",
-      "w": 16,
-      "h": 24,
-      "frames": 2
-    },
-    "char-cyber-maker": {
-      "file": "char-cyber-maker.png",
-      "w": 16,
-      "h": 24,
-      "frames": 2
-    },
-    "char-cyber-scholar": {
-      "file": "char-cyber-scholar.png",
-      "w": 16,
-      "h": 24,
-      "frames": 2
-    },
-    "char-cyber-keeper": {
-      "file": "char-cyber-keeper.png",
-      "w": 16,
-      "h": 24,
-      "frames": 2
-    },
-    "char-player-river-south": {
-      "file": "char-player-river-south.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-river-west": {
-      "file": "char-player-river-west.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-river-east": {
-      "file": "char-player-river-east.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-river-north": {
-      "file": "char-player-river-north.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-grove-south": {
-      "file": "char-player-grove-south.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-grove-west": {
-      "file": "char-player-grove-west.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-grove-east": {
-      "file": "char-player-grove-east.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-grove-north": {
-      "file": "char-player-grove-north.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-ember-south": {
-      "file": "char-player-ember-south.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-ember-west": {
-      "file": "char-player-ember-west.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-ember-east": {
-      "file": "char-player-ember-east.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-ember-north": {
-      "file": "char-player-ember-north.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-neon-south": {
-      "file": "char-player-neon-south.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-neon-west": {
-      "file": "char-player-neon-west.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-neon-east": {
-      "file": "char-player-neon-east.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
-    },
-    "char-player-neon-north": {
-      "file": "char-player-neon-north.png",
-      "w": 16,
-      "h": 24,
-      "frames": 4
+      "frames": 2,
+      "source": "scripts/world-art-pxl/ambient.px.js",
+      "sha256": "d6dbeddb956840b5df43d7944d6f451e4360b10acfc4b5d3094f0fa66f752f74"
+    },
+    "mote": {
+      "file": "mote.png",
+      "w": 10,
+      "h": 10,
+      "frames": 2,
+      "source": "scripts/world-art-pxl/ambient.px.js",
+      "sha256": "5df898931153f124774eb799df3f7e231e11f6df082498e74db60b1f3f76d102"
+    },
+    "water-sparkle": {
+      "file": "water-sparkle.png",
+      "w": 10,
+      "h": 10,
+      "frames": 2,
+      "source": "scripts/world-art-pxl/ambient.px.js",
+      "sha256": "6cb931c6b0dd7501d7f1b4190478da49e83322c61a9a0bcff9e5813eeb6c08e6"
     },
     "char-brick": {
       "file": "char-brick.png",
@@ -1101,6 +145,142 @@
       "source": "scripts/world-art-pxl/houses.px.js",
       "sha256": "f3ec312802e2a972132c8472c04471e85aafeae4e6ccb0249f767bc7770e37db"
     },
+    "bench-tools": {
+      "file": "bench-tools.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "70911280a2b877342cd12546ecef33c211c2d2f73b3962c4780df6c98ec6d66a"
+    },
+    "board-map": {
+      "file": "board-map.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "fbdf68e8418fde9e72e21e42e5eba47e47263c52fb2298ddd3badaa84b81ae2c"
+    },
+    "cabinet-memory": {
+      "file": "cabinet-memory.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "418a3736e627ca55869c4866d91e06d0c4e0185ec2ffdd58f1c9c91d24ee0f67"
+    },
+    "crate": {
+      "file": "crate.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "14e7c6563fcce0c6940051b33a249b1ea8d82b0fa8792bf044190bb14ec9497c"
+    },
+    "desk-files": {
+      "file": "desk-files.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "98b5aa393a874a96eaddca044820c93be9abd5644b43d9a3b513ba5d0b3c717a"
+    },
+    "desk-terminal": {
+      "file": "desk-terminal.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "52f28716d33df9a79f4e59c5e460da389414b4458300c6d6112b0fa27a0085a8"
+    },
+    "door-exit": {
+      "file": "door-exit.png",
+      "w": 16,
+      "h": 24,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "e9e7bca710e5b46cac89f9334ee3608c178af58119592b60790fd485ecb5d137"
+    },
+    "floor-rune": {
+      "file": "floor-rune.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "22ee775299d3a84d413b20f5433caae842d227fc03d916377306d9bee2f26c18"
+    },
+    "floor-wood": {
+      "file": "floor-wood.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "ae2396a1f9fb27584bb56d17b85f21e605137e2a3c91dfff261d32b7363fda00"
+    },
+    "plant": {
+      "file": "plant.png",
+      "w": 24,
+      "h": 24,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "f01ae925186cbee211da55e27f927a7e0fb32bc5b5b50f04c07a233617fbb3ce"
+    },
+    "project-board": {
+      "file": "project-board.png",
+      "w": 64,
+      "h": 50,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "cb971c49325fbee22ad54861efe98f9b67b1f4dbedaaca646eeebc9575ea47ff"
+    },
+    "rug": {
+      "file": "rug.png",
+      "w": 32,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "dfdf7895be21a2dac40e581834bec74a6eb770556f395ff02cdba38c903492b2"
+    },
+    "shelf-books": {
+      "file": "shelf-books.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "b39e270479363da8d6334ade89203b35dc75b656008f1fffc200b86e95730dc2"
+    },
+    "wall-mural": {
+      "file": "wall-mural.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "618e506ec344193b067caabf3ee0e3609c8366fb2c6b362b4e7ed34799ecb217"
+    },
+    "wall-sconce": {
+      "file": "wall-sconce.png",
+      "w": 16,
+      "h": 24,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "952c462244f5376dd216cf97dc7a581660a8c81d32bf3304652f76adf15470e8"
+    },
+    "wall-top": {
+      "file": "wall-top.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "62eca29070899d422c14e0982f52fff993bf433627eff93f0d52161d479663a8"
+    },
+    "window-valley": {
+      "file": "window-valley.png",
+      "w": 32,
+      "h": 24,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/interiors.px.js",
+      "sha256": "9e5c5f106472cf151d02273dbe3c8b041bf94c5705c2bdbb7222548eb314a3ff"
+    },
     "landmark-archive": {
       "file": "landmark-archive.png",
       "w": 48,
@@ -1172,6 +352,238 @@
       "frames": 1,
       "source": "scripts/world-art-pxl/landmarks.px.js",
       "sha256": "bfeca552a2922bfdd7b6522c523d07341fdbd1a0801529dcf41c1aa1d5249080"
+    },
+    "agent-plate": {
+      "file": "agent-plate.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/objects.px.js",
+      "sha256": "ac59c8bc9df2075bd0e319a9a5ac1d95431acf54c86746778a4203893fdbf616"
+    },
+    "attention-inbox": {
+      "file": "attention-inbox.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/objects.px.js",
+      "sha256": "eb02859c21be0605a7111bba393923ffa84fb5a66b2d89c5edc3f27e2342031f"
+    },
+    "bubble-alert": {
+      "file": "bubble-alert.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/objects.px.js",
+      "sha256": "0389f5051c1ea1cc4138422f78c3b30c436a4041002a90b687137775d28a215e"
+    },
+    "knowledge-shelf": {
+      "file": "knowledge-shelf.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/objects.px.js",
+      "sha256": "db08c0367b10e1abdac9918d9fd4f4733efde5caf5ec8484518efce1d9282fa5"
+    },
+    "lamp-glow": {
+      "file": "lamp-glow.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/objects.px.js",
+      "sha256": "4ee833ec56b8fa1ebc1d27b7114658fd791ab87143dbd712cc1429e4a67008b0"
+    },
+    "lamp": {
+      "file": "lamp.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2,
+      "source": "scripts/world-art-pxl/objects.px.js",
+      "sha256": "da08211aa1848c0c81ca791d602f3be183407d4759db7cd78277e6019b44dc12"
+    },
+    "loop-clock": {
+      "file": "loop-clock.png",
+      "w": 16,
+      "h": 24,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/objects.px.js",
+      "sha256": "5a3be62360b78d97b47cded745efc196d7b431059c53f857b909cf4d71110c03"
+    },
+    "memory-entry": {
+      "file": "memory-entry.png",
+      "w": 16,
+      "h": 24,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/objects.px.js",
+      "sha256": "ba5d77732d99ab1dde8074881b175b2a596d8fe3d06538185c3b6df7c91aa6ff"
+    },
+    "memory-index": {
+      "file": "memory-index.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/objects.px.js",
+      "sha256": "f8bc05a797292e5e9644cc27fca755f523751fdb5408fe895dfbc1c864a399fe"
+    },
+    "ops-crate": {
+      "file": "ops-crate.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/objects.px.js",
+      "sha256": "b926af3473d97a37f9cb57b1139a44568fb4870aa9283e6c7186d2f5dafd74d5"
+    },
+    "swarm-table": {
+      "file": "swarm-table.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/objects.px.js",
+      "sha256": "e5d8d6d4197059b07acf1ed144f94ba202f42684e40e2c83d73ffa66082151b9"
+    },
+    "tool-rack": {
+      "file": "tool-rack.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/objects.px.js",
+      "sha256": "128271bdfd21a74f3de652e0d7ac4bbe12fef6c92827e938b9eecfc6d027ea04"
+    },
+    "tool-terminal-desk": {
+      "file": "tool-terminal-desk.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/objects.px.js",
+      "sha256": "fb3a5aefde873586150d207ec2bb1e0825e4070832ec4d93dde766ec85dc9ef4"
+    },
+    "char-player-dusk-east": {
+      "file": "char-player-dusk-east.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "4f1b1720dbaec1622d7613f8f4094638a8642d2450d307f482d6b7970c38166c"
+    },
+    "char-player-dusk-north": {
+      "file": "char-player-dusk-north.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "2f52293c3a87cd2a3ad6b5c0e353d7d28784aa79695287a85f2e061be8489002"
+    },
+    "char-player-dusk-south": {
+      "file": "char-player-dusk-south.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "ec0edd4b149427f8bfd9da5e9c677ee1054d9d40cc7279f4bb122a01dfb1254d"
+    },
+    "char-player-dusk-west": {
+      "file": "char-player-dusk-west.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "325c1390a324325d736ca4b79fea6fe1b52a8df60be89d54d19246e1376be80d"
+    },
+    "char-player-ember-east": {
+      "file": "char-player-ember-east.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "9ed96edd73beea89fbbff5b87e7b1d60a5ab2d5649b5c507d30bad4a4014612d"
+    },
+    "char-player-ember-north": {
+      "file": "char-player-ember-north.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "f4b07d049592967b301cf21c464c033b475171c05ee6743b319e0e393ba45d68"
+    },
+    "char-player-ember-south": {
+      "file": "char-player-ember-south.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "b7f2a1e98ce7363a5383e6cc3242cb76fba6ba1b2e426218c080fcab1428913b"
+    },
+    "char-player-ember-west": {
+      "file": "char-player-ember-west.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "6b6ede1fe67b634fbec831af099a94f32a852555331ed31cfd422462728de951"
+    },
+    "char-player-grove-east": {
+      "file": "char-player-grove-east.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "f146b130821e4f9772bf7c780c94dee6c123444156f57339f2e7f2b00836da3c"
+    },
+    "char-player-grove-north": {
+      "file": "char-player-grove-north.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "e26b90d626689b97d90954fc9612306112c5bc8ccf7fab72c0fadd8302c3faca"
+    },
+    "char-player-grove-south": {
+      "file": "char-player-grove-south.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "6741d741bff5b7bd1eb228ce89d943ce676075415e27be91aea99d004c691fb7"
+    },
+    "char-player-grove-west": {
+      "file": "char-player-grove-west.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "60670c7fd4893f7d1a95255a0a8bda82e3f783360439f4e60bc6ab298281fbe4"
+    },
+    "char-player-river-east": {
+      "file": "char-player-river-east.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "5bdbb626281015fc7750a085256c9e7f8d578854dab9c6fa2df8d9ab3cb232e7"
+    },
+    "char-player-river-north": {
+      "file": "char-player-river-north.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "ff72e11c49c6cac35a40a1a2ffb8ef9ef1e6ad1a639ce8af345d7d283c31b2d6"
+    },
+    "char-player-river-south": {
+      "file": "char-player-river-south.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "eba1e36711d1bb2c4092263c1e5fa302fbec03bcae6e9dc1db25b9c67482da70"
+    },
+    "char-player-river-west": {
+      "file": "char-player-river-west.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "source": "scripts/world-art-pxl/player.px.js",
+      "sha256": "7a7e1992d37922c86a600eaeb49cb4cb41b8cdc59498b8a64a539d304a901345"
     },
     "bridge": {
       "file": "bridge.png",
@@ -1283,7 +695,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "c5457a2a4f7f15ed4f880bf0d873dbc5a74a7c618203e8671ff17f6364f44098"
+      "sha256": "fea0a88b39a408a5d565b97b337bd7889953ec7e885689840a55c185e2eaf3f5"
     },
     "flowers-gold": {
       "file": "flowers-gold.png",
@@ -1291,7 +703,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "1c3ee4e4feb11cf21ad2b363629644edbd1eeb54ff447e3cad98cfcf37497731"
+      "sha256": "dfb7cdd99c18af242f465362a9de894a9e2063852af6837604d7bfa62f87682e"
     },
     "flowers-lavender": {
       "file": "flowers-lavender.png",
@@ -1299,7 +711,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "b1efab49643eebed341f3123a263b39d1b03da209d23974a625ff441cd1f82da"
+      "sha256": "433fe6b62b92e010b72500313ecfd77567fd15062116855b9b3585eff57382f4"
     },
     "flowers-poppy": {
       "file": "flowers-poppy.png",
@@ -1307,7 +719,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "a3061bb29f6dbcf766d0f8f9b0af134e666eb4ed77cccc466c8f348d9cd54ebb"
+      "sha256": "699d725844e6609e9e9a36e27dda8f167cf79293258a84680a0d458a704afbbe"
     },
     "grass-a": {
       "file": "grass-a.png",
@@ -1315,7 +727,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "0facab4b709626d1e3521efcef2776dec113830429979ace029f8ec5876e1f67"
+      "sha256": "0ed264cde4c64a0b7942994a11021187264911cc1a6d4ef2c5d07f585df5c5da"
     },
     "grass-b": {
       "file": "grass-b.png",
@@ -1323,7 +735,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "42a2412d6007616811aed5a05ee9b66783516048b34e124710c8c234f9c9334a"
+      "sha256": "87f4002efd66febdc7b8cca15a3429c8af044530ceb048a4500b869d149b5b3d"
     },
     "grass-c": {
       "file": "grass-c.png",
@@ -1331,7 +743,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "a5e952209fc3f6d8c077577cb3cfe0fc513f57c624f135da14678a6d4fe4dfda"
+      "sha256": "48439da348799f77ccbfaa938a47b03e586ab04c49f3016ccc7fedf5b4b7a525"
     },
     "grass-d": {
       "file": "grass-d.png",
@@ -1339,7 +751,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "c0349dcf1895ceadf2341d2acfdcc7650c9144c9c2fcbe258fd1358c635af95b"
+      "sha256": "769ec357696fdc139f48554e017e5fa54d3c2e4c2f1906c3884d27c33b0d7a62"
     },
     "grass-e": {
       "file": "grass-e.png",
@@ -1347,7 +759,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "f6c3da06512a50a30295dd5bbb24e47ae7fab913b5565625524642280949cc97"
+      "sha256": "79f791057c53c20efad5ef53993b10935ae0e407e379e4581c3c30782616d4c6"
     },
     "grass-f": {
       "file": "grass-f.png",
@@ -1355,7 +767,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "02b3450c40c6d2b8847ad27fa91b8deac97875942b9204d1a403db61e5aaa94c"
+      "sha256": "4b84d6705123cd12d4abae4c53e1554bca6858b4b003da4eef776bcdce1d73bf"
     },
     "grass-g": {
       "file": "grass-g.png",
@@ -1363,7 +775,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "f29d236a5a7badfe9ddaa04d13fc8c40ad5f14e16167a77ebad62861b0c01486"
+      "sha256": "83b52ceab8a023819a06bad01f3d62d0e710e67465ee721d8b496e4ff98902dc"
     },
     "grass-h": {
       "file": "grass-h.png",
@@ -1371,7 +783,135 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "d4ef4aaf624da8d21bcd996cc72bf3f16d8f82a2b775aca642e7ae8e9b2153f3"
+      "sha256": "04339c263f6e7abf34d956dd5ab0c3363b83f8ac23ad9bff032cf18bc3438f20"
+    },
+    "grass-i": {
+      "file": "grass-i.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "9c416350d7b4926201314f3c55c7a47b949dc6c9128df86d041e8f29686b1578"
+    },
+    "grass-j": {
+      "file": "grass-j.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "bbbe67e3b0069466112293765b3772b1595c91eb23783f6286fdd9a62a82786f"
+    },
+    "grass-k": {
+      "file": "grass-k.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "3ab8a702d44ca6499cf50b3d87ed99d95e110eebe0836147a8818b47a9bb015e"
+    },
+    "grass-l": {
+      "file": "grass-l.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "f1a75a7846303e5f925c771aef2414c68e77ae6ac54dc2d7dc10a1f8dc4ec78c"
+    },
+    "grass-m": {
+      "file": "grass-m.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "8c1d5bb96bf33fa62c8fe082438a83425fd9048f96dd1f859871cbaaeeef3df3"
+    },
+    "grass-n": {
+      "file": "grass-n.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "9a1e5e1b12e58276b715b1b8bba11934a91bdf1ec664bf68c3ae32c0f19ec4da"
+    },
+    "grass-o": {
+      "file": "grass-o.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "434218f4e9306a0c62a71d26e7ce056c35b94c0399a1e3d97584830069a741bf"
+    },
+    "grass-p": {
+      "file": "grass-p.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "a11aa388dd30db22977651e6e828c02506616611a83b424da1aa6e984bce6f04"
+    },
+    "grass-q": {
+      "file": "grass-q.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "7ec9110ba8f908fb63da2022e126193e67e0a96ed45420b8753a0a35fd2813eb"
+    },
+    "grass-r": {
+      "file": "grass-r.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "4a613152160816521e276284c4f5f209801b3edb27cda7256c58ef13ade2c0ba"
+    },
+    "grass-s": {
+      "file": "grass-s.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "518b0f9bfcffef719c36b9a0d1bf506c65b6360ad9200264f7ea2bac07f393b7"
+    },
+    "grass-t": {
+      "file": "grass-t.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "59b6d3890b8ae3dc660cbf527752cc93e74cb3b51007223b6bf0c2f600444e07"
+    },
+    "grass-u": {
+      "file": "grass-u.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "654553d6096f700f4f232fcb57778da23e3ffdd333bf9834313806d0894e0d36"
+    },
+    "grass-v": {
+      "file": "grass-v.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "c0a7c64c3c4f2dbaf2670260acccfd66ba813013af44525b657442d88e2903ca"
+    },
+    "grass-w": {
+      "file": "grass-w.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "9d28231256bd285111d3a97b3a57e1b6461bba152cee6fcf65981498e846b0ce"
+    },
+    "grass-x": {
+      "file": "grass-x.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "533eadebce1ba93c1cfa569472bab6f6a110dd353f222e1e21bb1c2ec24b07ed"
     },
     "lily": {
       "file": "lily.png",
@@ -1445,6 +985,518 @@
       "source": "scripts/world-art-pxl/terrain.px.js",
       "sha256": "83fcb74a7472a05b6bca398d4f6ef1b7fd5e665dbcdef71c47c73a3fd2c4c631"
     },
+    "trail-cross-0": {
+      "file": "trail-cross-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "93738879509717ea67007255ed52c5fc56ff02ed139b752b4a78ba9df22143f3"
+    },
+    "trail-cross-1": {
+      "file": "trail-cross-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "af499a3475d6ec9060821db03fa2715a90f74246f92cc75c10a183cba2b73854"
+    },
+    "trail-cross-2": {
+      "file": "trail-cross-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "3969f8f28b7dec0c81451dfb2bd2ad2785ad73173cf603d0dd3b3e2a8eba1c0a"
+    },
+    "trail-cross-3": {
+      "file": "trail-cross-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "8798113544e70406214506386a68918f865ce2630a99a674677b1037a87bb157"
+    },
+    "trail-dot-0": {
+      "file": "trail-dot-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "2c0db0b1cc68bd757a1e183d7e9bb30c7e39e653ac8520192df89405fe998958"
+    },
+    "trail-dot-1": {
+      "file": "trail-dot-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "6c635a078469e7231654064cfb547b29cbfca6b5cbee61be3d22bcda75c3f13b"
+    },
+    "trail-dot-2": {
+      "file": "trail-dot-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "1b9abaa46c43312464977876e7dd788989e42e25d21198b5ea2afefac0a25bb9"
+    },
+    "trail-dot-3": {
+      "file": "trail-dot-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "6a466ea5f60b76f58d2cdf9427461a924dddfa3d4d72f84247365e352ee0c1fa"
+    },
+    "trail-end-e-0": {
+      "file": "trail-end-e-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "cce0d1a61b2263a972021f3280f053a692442caf368bee94ac250bf7b1869acb"
+    },
+    "trail-end-e-1": {
+      "file": "trail-end-e-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "dc1c115db8aec832bfd6cce93eefa69f4d85c40cb2c7e22310e964d8aac58b34"
+    },
+    "trail-end-e-2": {
+      "file": "trail-end-e-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "a8f3ee8d6bfe52b181983449b559d10a3db0f3336833fc4317333e1eedd1e113"
+    },
+    "trail-end-e-3": {
+      "file": "trail-end-e-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "5cfd3b6382aa71a37d5f482789c9521037d4ee53102e9c53aff875cdebc9141a"
+    },
+    "trail-end-n-0": {
+      "file": "trail-end-n-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "7a0a40446bd9ba86dfb5a86bb236386a164a91020de6ae78d38a14343f7750fc"
+    },
+    "trail-end-n-1": {
+      "file": "trail-end-n-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "5a8dc087024697c20a1daf2aaeb4b3c8c8bc6dd93e16220b940992cace4bb22b"
+    },
+    "trail-end-n-2": {
+      "file": "trail-end-n-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "5048294dcbf7244179f0e750ecc72b441ce01852aab8e128ba96ca49d4c6a51d"
+    },
+    "trail-end-n-3": {
+      "file": "trail-end-n-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "5080a8777e1831eaf2df421acd01779c8d2a53bba67c7d4b37d8b7a289383210"
+    },
+    "trail-end-s-0": {
+      "file": "trail-end-s-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "499a74ce21c291e47a67fc32d1ca044bbf1329a564f2713c560e2807aff1b70d"
+    },
+    "trail-end-s-1": {
+      "file": "trail-end-s-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "5021f58034afc78286b9536088c04561dee215be6e6fec0734b09fbfcb7ef383"
+    },
+    "trail-end-s-2": {
+      "file": "trail-end-s-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "10e8e04a1a97fb3493fd3f0bf0392e1e381fcc95ec8012759af1ddbcf1f15a6d"
+    },
+    "trail-end-s-3": {
+      "file": "trail-end-s-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "dbeafd0bbc1711d60faef0e1ff6defaf9acec92f5f48b53384e0b222219ae63e"
+    },
+    "trail-end-w-0": {
+      "file": "trail-end-w-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "4222c27160fc43732fd4520228e078defe0ebc762ccb47855e29059d9d881a29"
+    },
+    "trail-end-w-1": {
+      "file": "trail-end-w-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "28ecfd506f6bb9283bdfa9b8336b044d920b867f13016ad80955301f5ddcfdc0"
+    },
+    "trail-end-w-2": {
+      "file": "trail-end-w-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "5c9db89d6c290374d9e77a5138963744f84f9e010b262455ec2b7537fd1570f4"
+    },
+    "trail-end-w-3": {
+      "file": "trail-end-w-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "43cfc83415bd1186698f2b6d0b2575b46caf92d83d0b65b70f8f40c93a610ea2"
+    },
+    "trail-h-0": {
+      "file": "trail-h-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "fc7802c4615b93f12dcb5d99128621bd2f1b8463f314fc008449dd6575169c56"
+    },
+    "trail-h-1": {
+      "file": "trail-h-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "2485d1dc70953f30aa6a1cd6c82cc7f8ad7a345ec9c1b25ecde6219a6e111d6b"
+    },
+    "trail-h-2": {
+      "file": "trail-h-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "fe4d437aa9e387992f7690b31a7cdfa4369b4af54cdb81161167e900d66afbe9"
+    },
+    "trail-h-3": {
+      "file": "trail-h-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "9f36ae8b658ce2e3c511b22c6f4d98ad6bc79e401f1e47b74e9a55d38ffc0a7b"
+    },
+    "trail-tee-e-0": {
+      "file": "trail-tee-e-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "39dd6cc7551bf168d538f4e50701a1e9c9bc7f228806cd377aec4b2894a9b89d"
+    },
+    "trail-tee-e-1": {
+      "file": "trail-tee-e-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "9c426e21b7ad118e141e6bb50afaa2ff7451e3c1b8a9159811925ec032b7acbd"
+    },
+    "trail-tee-e-2": {
+      "file": "trail-tee-e-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "f92e80a31f006399930265cc46e9d7c2e3d479811c0a10d149f1f9fbb653cf2f"
+    },
+    "trail-tee-e-3": {
+      "file": "trail-tee-e-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "75721610c5aacfc8451a334dd45453e05e535bbfa2087d8d292fb54f0c8b0751"
+    },
+    "trail-tee-n-0": {
+      "file": "trail-tee-n-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "f4b98dc4e3c64c3689426e7d58ccfbf4fb025b1e588cfc2375962d5c61fdea26"
+    },
+    "trail-tee-n-1": {
+      "file": "trail-tee-n-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "8be28aebe2bcf7f99c05b25264e01fa4f1c2937ac02baf9046954ac09a997d5d"
+    },
+    "trail-tee-n-2": {
+      "file": "trail-tee-n-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "6b184da8ee5a0bed1f7224f5411cabe2ae3a964fbb452092e242e2716eec1645"
+    },
+    "trail-tee-n-3": {
+      "file": "trail-tee-n-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "0ce375b2b75502e06019e78ae6c17ec2bee5d4f348627f520af841ddaae2959e"
+    },
+    "trail-tee-s-0": {
+      "file": "trail-tee-s-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "12f4a87e905bcc89d931d190d66d9244384200a927376c3121295502792df0b0"
+    },
+    "trail-tee-s-1": {
+      "file": "trail-tee-s-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "2ab63970f2fb665d1db0945d0d50f0c437a6f40ffc02a2c10b2fe489b6122b61"
+    },
+    "trail-tee-s-2": {
+      "file": "trail-tee-s-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "1f1ca820bafba954fd86b6d8a393ef60baf6e5998d8983486b5435d6aff49818"
+    },
+    "trail-tee-s-3": {
+      "file": "trail-tee-s-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "9371c70dd98b6d130ec106297467736baf889be39832c676fdbde99458d501a0"
+    },
+    "trail-tee-w-0": {
+      "file": "trail-tee-w-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "b105e751574a96cbe57c883051d0fa2255cb8f58dda9b0596bc45c12421b08cf"
+    },
+    "trail-tee-w-1": {
+      "file": "trail-tee-w-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "27d3f16473761580376e333ed2d8397e38064eab74637b80c01829c4f6f1d97a"
+    },
+    "trail-tee-w-2": {
+      "file": "trail-tee-w-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "e99280f306071f3dad2ced20a8e645b68d4c2764fec02e368cd323595cd2251d"
+    },
+    "trail-tee-w-3": {
+      "file": "trail-tee-w-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "b4a9448b1ffff122fd3c651f926f13b21126e9d6088fa1ab66f77a49ac334230"
+    },
+    "trail-turn-ne-0": {
+      "file": "trail-turn-ne-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "a8d2f5991b9b713858a50f3e3d1823f22cb573df0922bad02bd19541f0dba6bd"
+    },
+    "trail-turn-ne-1": {
+      "file": "trail-turn-ne-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "fb8c783766bb970ed7574dfaf845d1941c825c1b42b6c0a47bf2da209baa35de"
+    },
+    "trail-turn-ne-2": {
+      "file": "trail-turn-ne-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "66e097fc7ce57e7cbe66f2e1bb9a21de9056d0560409268b849d1f190bf80938"
+    },
+    "trail-turn-ne-3": {
+      "file": "trail-turn-ne-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "1bfe5a9e4e5d62594073f06c2a115f414a5fa6bd698122ebab20b71f99e2936d"
+    },
+    "trail-turn-nw-0": {
+      "file": "trail-turn-nw-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "ca785b369e80f90bac7662b93953acee4e343b6ba46047ca8aa06e8178df3308"
+    },
+    "trail-turn-nw-1": {
+      "file": "trail-turn-nw-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "a3e045300dc2e98b4de5fdf4abf5171df37f8d770fd4d21ee5d3f5ddaa73a466"
+    },
+    "trail-turn-nw-2": {
+      "file": "trail-turn-nw-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "da9321e9eb0fad6af96d1a6425917c220bfcb5afca1cde46583aa8dc88e2b98e"
+    },
+    "trail-turn-nw-3": {
+      "file": "trail-turn-nw-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "6507aef26352c6962dea73b06ad71d9e410d88558dd4f51458df022bb6eaa547"
+    },
+    "trail-turn-se-0": {
+      "file": "trail-turn-se-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "4ca9b669a467a4f12fd90af0464ff698d4375f42a2bc48337ed8302914bb2008"
+    },
+    "trail-turn-se-1": {
+      "file": "trail-turn-se-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "b82b6ac366f3a92ec917520e34385fffe49e3e1e392e0774343843c9d4ad9b5a"
+    },
+    "trail-turn-se-2": {
+      "file": "trail-turn-se-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "e5c2351ad721c9cda7f5cc575cac55a544d8015402738a0e36c285e25141a845"
+    },
+    "trail-turn-se-3": {
+      "file": "trail-turn-se-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "afb59bbae0ff10273459119549f719f1b31767449e7b3e339bef5e55d2ff1dbd"
+    },
+    "trail-turn-sw-0": {
+      "file": "trail-turn-sw-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "2746f753f75e079553aff7c1eb68860ae70cf29b64cc39710b243116a6e875fe"
+    },
+    "trail-turn-sw-1": {
+      "file": "trail-turn-sw-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "8174795232e1e547fe629243569e1fdb421bcfcc18d6f7a3da920cc8ae50e403"
+    },
+    "trail-turn-sw-2": {
+      "file": "trail-turn-sw-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "f402745fb72aaac048c5a9ffcdc5fa64c75c9e3041746b2d0fb3c87b0b866da8"
+    },
+    "trail-turn-sw-3": {
+      "file": "trail-turn-sw-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "032492ef4b834070462731a3e9e448a4ab8371618c5de8bbe1f03f60453f41e9"
+    },
+    "trail-v-0": {
+      "file": "trail-v-0.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "e5ab5bc75bc92335847b74c3762bb22f06d09518834cbe2b97cd5b596ae81b92"
+    },
+    "trail-v-1": {
+      "file": "trail-v-1.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "dd692837ce13eb218858f97331569bddda5f91c63fd6b9b7c095792fc4bf02b4"
+    },
+    "trail-v-2": {
+      "file": "trail-v-2.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "a4a0f7182d12c8dbf02427190b63cc6085d24310ed6afa2b19420e25eec0dd3d"
+    },
+    "trail-v-3": {
+      "file": "trail-v-3.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "3fd3c626cdcc8b337ae3ba603f02f1630a092abc7bacbd09b104679c9fd30d87"
+    },
     "water-edge-e": {
       "file": "water-edge-e.png",
       "w": 16,
@@ -1484,6 +1536,30 @@
       "frames": 2,
       "source": "scripts/world-art-pxl/terrain.px.js",
       "sha256": "d850c13566c70ff8817e2094782403a7f5e942a654467fa90566a6f378ad6731"
+    },
+    "wildflower-patch-gold": {
+      "file": "wildflower-patch-gold.png",
+      "w": 40,
+      "h": 28,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "e440646a14f7e243831ff663c39b1802a39bfcbe2172a6275abd9907ee32f0b0"
+    },
+    "wildflower-patch-lilac": {
+      "file": "wildflower-patch-lilac.png",
+      "w": 40,
+      "h": 28,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "057a65f8b7a0d26cf96ad04c09246e72403c086254f236065dbfda1a2260d462"
+    },
+    "wildflower-patch-rose": {
+      "file": "wildflower-patch-rose.png",
+      "w": 40,
+      "h": 28,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "8aa94dc165857cc73eb49062bff9d51e4c7edb090237cba2928260692ebb4b34"
     },
     "tree-amber": {
       "file": "tree-amber.png",
