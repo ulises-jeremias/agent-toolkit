@@ -6,7 +6,7 @@ function canopy(c,cols,seed,blossom){const [dark,mid,lit]=cols;c.circ(24,20,15,d
   c.circ(17,13,7,lit);c.circ(11,20,4,lit);c.circ(24,10,5,lit);c.px(14,10,lit);c.px(20,7,lit);
   const r=c.rng(seed);for(let i=0;i<26;i++){const x=8+Math.floor(r()*32),y=6+Math.floor(r()*26);if((x-24)**2+(y-20)**2<210)c.px(x,y,r()<.5?dark:lit)}
   if(blossom){const r2=c.rng(seed+7);for(let i=0;i<22;i++){const x=9+Math.floor(r2()*30),y=7+Math.floor(r2()*24);if((x-24)**2+(y-20)**2<200)c.px(x,y,r2()<.6?"h":"H")}}}
-function tree(name,cols,seed,blossom,extra){sprite(name,{w:48,h:48},(c)=>{shadowTrunk(c);canopy(c,cols,seed,blossom);extra&&extra(c)})}
+function tree(name,cols,seed,blossom,extra){sprite(name,{w:48,h:48},(c)=>{shadowTrunk(c);canopy(c,cols,seed,blossom);if(extra)extra(c)})}
 tree("tree-round",["F","G","g"],11,false)
 tree("tree-blossom",["f","G","g"],12,true)
 tree("tree-amber",["f","J","j"],13,false,c=>{c.px(16,18,"Y");c.px(30,14,"Y");c.px(24,24,"L")})

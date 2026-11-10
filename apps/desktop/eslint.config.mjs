@@ -77,6 +77,29 @@ export default [
       },
     },
   },
+  {
+    // PXL art sources run inside the vendored renderer's DSL sandbox;
+    // these names are injected globals, not imports (see
+    // skills/design/pxl-pixel-art/types/pxl.d.ts).
+    files: ['scripts/world-art-pxl/**/*.px.js'],
+    languageOptions: {
+      globals: {
+        pal: 'readonly',
+        ramps: 'readonly',
+        sprite: 'readonly',
+        scene: 'readonly',
+        anim: 'readonly',
+        frame: 'readonly',
+        layer: 'readonly',
+        group: 'readonly',
+        sheet: 'readonly',
+        include: 'readonly',
+        stamp: 'readonly',
+        shade: 'readonly',
+        light: 'readonly',
+      },
+    },
+  },
   js.configs.recommended,
   // Template-faithful: base recommended set (no type-aware rules).
   // Strict type safety is enforced by `pnpm type-check` (tsc, both projects).
