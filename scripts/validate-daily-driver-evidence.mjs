@@ -28,15 +28,15 @@ export function validateLedger(ledger) {
         }
         check(/^[0-9a-f]{40}$/i.test(run.toolkit_sha ?? ''), `${prefix}: invalid toolkit SHA`);
         check(typeof run.timestamp_utc === 'string' &&
-          /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$/.test(run.timestamp_utc) &&
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(run.timestamp_utc) &&
           Number.isFinite(Date.parse(run.timestamp_utc)), `${prefix}: invalid UTC timestamp`);
         const artifacts = [...(Array.isArray(run.logs) ? run.logs : []),
           ...(Array.isArray(run.screenshots) ? run.screenshots : [])];
         // Reject fixture-only pseudo URLs and placeholders; references are not proof
         // of authenticity, which still requires independent human review.
         check(artifacts.some(ref => typeof ref === 'string' &&
-          (/^https:\\/\\/[^\\s/]+\\/\\S+$/.test(ref) ||
-            /^(?:\\.\\/)?[\\w.-]+(?:\\/[\\w.-]+)+$/.test(ref)) &&
+          (/^https:\/\/[^\s/]+\/\S+$/.test(ref) ||
+            /^(?:\.\/)?[\w.-]+(?:\/[\w.-]+)+$/.test(ref)) &&
           !/placeholder|fixture|synthetic|example/i.test(ref)),
           `${prefix}: missing concrete artifact reference`);
       }
