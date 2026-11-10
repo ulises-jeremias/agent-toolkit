@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, symlinkSync, rmSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, symlinkSync, rmSync, existsSync, mkdirSync, writeFileSync, chmodSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -162,6 +162,27 @@ test('Gate 0 preflight ignores hostile inherited Git directory and worktree', ()
       env: Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))),
     });
     assert.notEqual(externalHead.status, 0, 'external repository must remain without commits');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('Gate 0 preflight does not report a non-executable POSIX file as an installed app', { skip: process.platform === 'win32' }, () => {
+  const dir = mkdtempSync(join(tmpdir(), 'atk-gate0-executable-'));
+  try {
+    const app = join(dir, 'not-an-executable');
+    writeFileSync(app, 'placeholder');
+    chmodSync(app, 0o644);
+    const result = run(join(dir, 'non-executable'), app);
+    assert.equal(result.status, 0, result.stderr);
+    const data = JSON.parse(readFileSync(join(dir, 'non-executable', 'baseline.json'), 'utf8'));
+    assert.deepEqual(data.installed_app, { supplied: true, executable_exists: false });
+    chmodSync(app, 0o755);
+    const executable = run(join(dir, 'executable'), app);
+    assert.equal(executable.status, 0, executable.stderr);
+    const positive = JSON.parse(readFileSync(join(dir, 'executable', 'baseline.json'), 'utf8'));
+    assert.deepEqual(positive.installed_app, { supplied: true, executable_exists: true });
+    assert.ok(positive.journeys.every(j => j.evidence_level === 'U' && j.outcome === 'unverified'));
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
