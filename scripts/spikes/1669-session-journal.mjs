@@ -2,14 +2,19 @@
 // No auth, process supervision, or provider capabilities are implied by this contract.
 export class SessionJournal {
   #events = [];
+  #threadId;
+  #run = null;
+  #status = 'idle';
+  #nativeCursor = null;
+  get threadId() { return this.#threadId; }
+  get run() { return this.#run; }
+  get status() { return this.#status; }
+  get nativeCursor() { return this.#nativeCursor; }
   // Public inspection must never expose mutable journal-owned event references.
   get events() { return this.#events.map(event => structuredClone(event)); }
   constructor(threadId) {
     if (!threadId || typeof threadId !== 'string') throw new TypeError('threadId required');
-    this.threadId = threadId;
-    this.run = null;
-    this.status = 'idle';
-    this.nativeCursor = null;
+    this.#threadId = threadId;
   }
   append(event) {
     if (!event || typeof event !== 'object' || Array.isArray(event)) throw new TypeError('event object required');
@@ -20,10 +25,10 @@ export class SessionJournal {
     // A mismatched value is evidence of a broken or spoofed transport boundary.
     if (Object.hasOwn(event, 'threadId') && event.threadId !== this.threadId) throw new Error('foreign thread event rejected');
     if (Object.hasOwn(event, 'sequence') && event.sequence !== this.#events.length + 1) throw new Error('out-of-order event rejected');
-    if (this.run === null) {
+    if (this.#run === null) {
       if (type !== 'start') throw new Error('run must start first');
     } else if (this.run !== runId) throw new Error('cross-run event rejected');
-    if (this.status === 'idle' && type !== 'start') throw new Error('run must start first');
+    if (this.#status === 'idle' && type !== 'start') throw new Error('run must start first');
     if (['completed', 'failed', 'cancelled', 'interrupted'].includes(this.status)) throw new Error('terminal run cannot accept more events');
     const allowed = {
       idle: ['start'],
@@ -39,12 +44,12 @@ export class SessionJournal {
     // Cloning also prevents caller-held references from rewriting replay evidence.
     const entry = Object.freeze({ ...structuredClone(event), sequence: this.#events.length + 1, threadId: this.threadId });
     this.#events.push(entry);
-    if (type === 'start') this.run = runId;
-    if (type === 'start') { this.status = 'running'; this.nativeCursor = event.nativeCursor ?? null; }
-    if (type === 'approval_required') this.status = 'awaiting_approval';
-    if (type === 'approval_observed') this.status = 'running';
-    if (type === 'cancel_requested') this.status = 'cancelling';
-    if (['cancelled', 'completed', 'failed', 'interrupted'].includes(type)) this.status = type;
+    if (type === 'start') this.#run = runId;
+    if (type === 'start') { this.#status = 'running'; this.#nativeCursor = event.nativeCursor ?? null; }
+    if (type === 'approval_required') this.#status = 'awaiting_approval';
+    if (type === 'approval_observed') this.#status = 'running';
+    if (type === 'cancel_requested') this.#status = 'cancelling';
+    if (['cancelled', 'completed', 'failed', 'interrupted'].includes(type)) this.#status = type;
     // Do not expose the journal-owned nested payload through the append return value.
     return structuredClone(entry);
   }

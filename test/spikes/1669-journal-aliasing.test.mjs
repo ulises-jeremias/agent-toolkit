@@ -38,3 +38,17 @@ test('direct journal.events inspection cannot rewrite canonical provenance or hi
   assert.equal(journal.status, 'running');
   assert.deepEqual(SessionJournal.replay(journal.threadId, journal.events).snapshot(), before);
 });
+
+
+test('public state inspection cannot rewrite app-owned session identity or lifecycle', () => {
+  const journal = new SessionJournal('authoritative-thread');
+  journal.append({ type: 'start', runId: 'authoritative-run', nativeCursor: 'provider-cursor' });
+  const before = journal.snapshot();
+  for (const [field, forged] of Object.entries({ threadId: 'forged-thread', run: 'forged-run', status: 'completed', nativeCursor: 'forged-cursor' })) {
+    assert.throws(() => { journal[field] = forged; }, TypeError);
+  }
+  assert.deepEqual(journal.snapshot(), before);
+  journal.append({ type: 'output', runId: 'authoritative-run', text: 'still running' });
+  assert.equal(journal.status, 'running');
+  assert.deepEqual(SessionJournal.replay(journal.threadId, journal.events).snapshot(), journal.snapshot());
+});
