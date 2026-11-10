@@ -67,6 +67,7 @@
       "figma-implement-design",
       "frontend-design",
       "frontend-design-review",
+      "pxl-pixel-art",
       "scroll-world",
       "web-design-guidelines"
     ],
@@ -390,6 +391,11 @@
     {
       "id": "design/frontend-design-review",
       "name": "frontend-design-review",
+      "domain": "design"
+    },
+    {
+      "id": "design/pxl-pixel-art",
+      "name": "pxl-pixel-art",
       "domain": "design"
     },
     {

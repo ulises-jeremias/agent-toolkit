@@ -75,6 +75,25 @@ capabilities:
             spdx: MIT
           resolved_at: '2026-09-14T15:51:22.926753Z'
           version: cbfd1b6
+  design/pxl-pixel-art:
+    provenance_digest: sha256:420d56b5b01c73fb9f32a9246fa722380929a5df9e294e7a0b14223c49ea8d37
+    sources:
+      upstream:
+        path: .
+        repository: crsolver/claude-pxl
+        requested:
+          ref: 21fee41f7ecce00bc868d7567f24ffd0f3acc8fa
+          type: commit
+        resolved:
+          body_checksum: sha256:f8626f60e2970838500ac3905241db48aad7244850010629f7c9768c5780292a
+          commit: 21fee41f7ecce00bc868d7567f24ffd0f3acc8fa
+          content_checksum: sha256:ceb9519a499b3fe3071b41f263df6222be76a91b2730b8f8ec823aebb7d0efe6
+          license:
+            checksum: sha256:533fb75ff225f6b8568170ca596bf201ec7f30b7509616bff7cfe250e52e77d8
+            source_path: skills/design/pxl-pixel-art/LICENSE
+            spdx: MIT
+          resolved_at: '2026-11-10T19:35:40.821514Z'
+          version: 21fee41
   design/scroll-world:
     provenance_digest: sha256:ae98e445ac7fe03c515e260c16ceec23b1efce52f2d5fc8d6d7ce22affe2ec50
     sources:

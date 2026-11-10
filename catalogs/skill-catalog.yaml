@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 106
+count: 107
 skills:
   - id: accessibility/review
     name: review
@@ -256,6 +256,11 @@ skills:
     name: frontend-design-review
     domain: design
     description: 'Review and create distinctive, production-grade frontend interfaces with high design quality and design system compliance. Evaluates using three pillars: frictionless insight-to-action, quality craft,'
+    stability: stable
+  - id: design/pxl-pixel-art
+    name: pxl-pixel-art
+    domain: design
+    description: 'Create pixel art (game sprites, characters, items, tiles, tilesets, icons, scenes, sprite sheets) with pxl, a compact JavaScript DSL that renders PNGs and lets the user watch the painting live in a br'
     stability: stable
   - id: design/scroll-world
     name: scroll-world

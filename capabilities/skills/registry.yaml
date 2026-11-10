@@ -3,7 +3,7 @@
 # Do not hand-edit counts; validate with: python3 scripts/validate-skill-capability.py --check
 # Schema: schemas/skill-capability-registry.schema.json
 version: 1
-count: 106
+count: 107
 generated: true
 skills:
 - id: accessibility/review
@@ -1447,6 +1447,46 @@ skills:
   specialist_justified: false
   contraindications: Consume assessment findings; do not invent findings; preserve design-system tokens;
     rendered evidence required before good
+- id: design/pxl-pixel-art
+  domain: design
+  purpose: Create pixel art (game sprites, characters, tilesets, icons, scenes, animated sprites and sprite sheets) with the vendored pxl DSL that renders deterministic PNGs, sheets and previews; art files are trusted executable code.
+  origin: upstream
+  holistic_owner: designer
+  role: creation
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires:
+  - node>=22.18
+  triggers:
+  - pixel art
+  - game sprites
+  - character sprites
+  - tilesets
+  - animated sprites
+  - sprite sheets
+  - pixel-art icons
+  - pixel-art environments
+  - pixel-art scenes
+  overlap:
+  - design/frontend-design
+  complementary:
+  - design/frontend-design
+  - tooling/playwright-cli
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - implementer
+  - qa-engineer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Never build or serve untrusted .px.js art files (trusted executable code, no sandbox); do not activate for unrelated design or coding requests.
+  upstream:
+    repository: crsolver/claude-pxl
+    path: .
+    ref: 21fee41f7ecce00bc868d7567f24ffd0f3acc8fa
+    license: MIT
+    version: 21fee41
 - id: design/scroll-world
   domain: design
   purpose: Build an immersive scroll-driven product journey with connected scenes and a portable scrub engine.
