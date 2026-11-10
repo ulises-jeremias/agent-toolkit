@@ -53,6 +53,21 @@ export function validateLedger(ledger) {
     // A single arbitrary object must not certify an installed D01-D07 journey.
     // Cross-reference each field-trial record to a P-level journey run with
     // identical package, host, provider, commit and timestamp provenance.
+    // An accepted field trial is one installed-app traversal, not seven
+    // unrelated runs stitched together from different builds or hosts.
+    const trialRuns = Array.isArray(field.runs) ? field.runs : [];
+    const ordered = ids.slice(0, 7).map(id => trialRuns.find(run =>
+      run?.journey_id === id && run.outcome === 'pass' && run.evidence_level === 'P'));
+    if (ordered.every(Boolean)) {
+      for (const key of ['toolkit_sha', 'package_version', 'platform']) {
+        check(ordered.every(run => run[key] === ordered[0][key]),
+          `packaged field trial D01-D07 must share ${key}`);
+      }
+      check(ordered.every((run, index) => index === 0 ||
+        (Number.isFinite(Date.parse(run.timestamp_utc)) &&
+          Date.parse(run.timestamp_utc) >= Date.parse(ordered[index - 1].timestamp_utc))),
+        'packaged field trial D01-D07 timestamps must be chronological');
+    }
     for (const id of ids.slice(0, 7)) {
       const trialRuns = Array.isArray(field.runs) ? field.runs : [];
       const evidenceRuns = Array.isArray(journeys[id]?.runs) ? journeys[id].runs : [];

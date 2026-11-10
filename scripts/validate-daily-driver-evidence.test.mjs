@@ -59,3 +59,31 @@ test('P-level acceptance rejects malformed SHA and timestamps', () => {
   assert.match(errors, /D02.runs\[0\]: invalid toolkit SHA/);
   assert.match(errors, /D03.runs\[0\]: invalid UTC timestamp/);
 });
+
+test('accepted field trial cannot stitch together different installed builds or hosts', () => {
+  const ledger = acceptedFixture();
+  ledger.packaged_field_trial.runs[3] = {
+    ...ledger.packaged_field_trial.runs[3],
+    package_version: 'different-package@2',
+    platform: 'windows-x64',
+    toolkit_sha: 'b'.repeat(40)
+  };
+  // Keep the journey record linked: the defect is cross-journey coherence,
+  // not the existing trial-to-journey provenance check.
+  ledger.journeys.D04.runs[0] = ledger.packaged_field_trial.runs[3];
+  const errors = validateLedger(ledger).join('\\n');
+  assert.match(errors, /D01-D07 must share toolkit_sha/);
+  assert.match(errors, /D01-D07 must share package_version/);
+  assert.match(errors, /D01-D07 must share platform/);
+});
+
+test('accepted field trial rejects a backwards journey chronology', () => {
+  const ledger = acceptedFixture();
+  const run = {
+    ...ledger.packaged_field_trial.runs[4],
+    timestamp_utc: '2026-11-10T11:59:59Z'
+  };
+  ledger.packaged_field_trial.runs[4] = run;
+  ledger.journeys.D05.runs[0] = run;
+  assert.match(validateLedger(ledger).join('\\n'), /timestamps must be chronological/);
+});
