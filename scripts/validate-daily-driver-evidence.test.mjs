@@ -48,7 +48,7 @@ test('unverified baseline remains valid without P-level gate evidence', () => {
 test('P-level acceptance rejects pseudo artifact URLs', () => {
   const ledger = acceptedFixture();
   ledger.journeys.D01.runs[0].logs = ['synthetic://fixture'];
-  assert.match(validateLedger(ledger).join('\n'), /D01.runs\\[0\\]: missing concrete artifact reference/);
+  assert.match(validateLedger(ledger).join('\n'), /D01.runs\[0\]: missing concrete artifact reference/);
 });
 
 test('P-level acceptance rejects malformed SHA and timestamps', () => {
@@ -56,6 +56,6 @@ test('P-level acceptance rejects malformed SHA and timestamps', () => {
   ledger.journeys.D02.runs[0].toolkit_sha = 'not-a-commit';
   ledger.journeys.D03.runs[0].timestamp_utc = 'tomorrow';
   const errors = validateLedger(ledger).join('\n');
-  assert.match(errors, /D02.runs\\[0\\]: invalid toolkit SHA/);
-  assert.match(errors, /D03.runs\\[0\\]: invalid UTC timestamp/);
+  assert.match(errors, /D02.runs\[0\]: invalid toolkit SHA/);
+  assert.match(errors, /D03.runs\[0\]: invalid UTC timestamp/);
 });
