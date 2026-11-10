@@ -85,3 +85,13 @@ Findings (severity per design-assessment):
 - Not assessed: real-provider session characters, screen-reader pass,
   WCAG conformance beyond static token contrast + jsx-a11y (never
   claimed from static tests).
+## Desktop UI language (PR D)
+
+The surrounding application speaks the same material language as the
+valley: warm ink-plum menu chrome (derived from the PXL ink `#2b2135`),
+cream ivory text, gold for primary actions, terracotta for the brand mark
+and attention, hard pixel shadows and 2px carved panel frames. Dense
+professional surfaces (terminal, diffs, forms, tables) stay in the IBM
+Plex text faces at normal weights — pixel display type is reserved for
+navigation, titles and plaques, never for technical text. Meadow and Dusk
+share this chrome; Dusk deepens the canvas and warms the gold.

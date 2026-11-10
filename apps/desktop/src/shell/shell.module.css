@@ -45,13 +45,15 @@
   place-items: center;
   width: 1.5rem;
   height: 1.5rem;
-  border: 2px solid var(--accent-gold);
+  border: 2px solid var(--cw-terracotta);
   font-family: var(--font-display);
   font-size: 12px;
   font-weight: 700;
-  color: var(--accent-gold);
-  background: var(--surface-chrome-raised);
-  box-shadow: var(--shadow-chip);
+  color: var(--accent-gold-strong);
+  background: var(--cw-terracotta-deep);
+  box-shadow:
+    var(--shadow-chip),
+    inset 0 0 0 1px var(--cw-menu-950);
 }
 
 .brandName {
@@ -98,7 +100,9 @@
   background: var(--surface-chrome-selected);
   border-color: var(--accent-gold);
   color: var(--text-on-chrome);
-  box-shadow: var(--shadow-chip);
+  box-shadow:
+    var(--shadow-chip),
+    inset 3px 0 0 var(--cw-terracotta);
 }
 
 .navLink:focus-visible {
