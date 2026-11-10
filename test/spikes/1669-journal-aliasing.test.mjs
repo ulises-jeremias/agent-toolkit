@@ -23,3 +23,18 @@ test('editing a returned snapshot cannot corrupt live journal or future replay',
   assert.equal(journal.snapshot().events[1].payload.tool.name, 'test');
   assert.deepEqual(SessionJournal.replay(journal.threadId, journal.snapshot().events).snapshot(), journal.snapshot());
 });
+
+test('direct journal.events inspection cannot rewrite canonical provenance or history', () => {
+  const journal = new SessionJournal('protected-thread');
+  journal.append({ type: 'start', runId: 'protected-run' });
+  journal.append({ type: 'output', runId: 'protected-run', text: 'original', payload: { tool: { path: 'safe.txt' } } });
+  const before = journal.snapshot();
+  const exposed = journal.events;
+  exposed[0].threadId = 'forged-thread';
+  exposed[0].sequence = 999;
+  exposed[1].payload.tool.path = 'forged.txt';
+  exposed.push({ type: 'completed', runId: 'protected-run' });
+  assert.deepEqual(journal.snapshot(), before);
+  assert.equal(journal.status, 'running');
+  assert.deepEqual(SessionJournal.replay(journal.threadId, journal.events).snapshot(), before);
+});
