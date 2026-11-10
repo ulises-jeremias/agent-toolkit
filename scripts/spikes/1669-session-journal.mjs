@@ -1,10 +1,12 @@
 // Gate 1 hermetic spike: transport-neutral session journal, NOT a provider adapter.
 // No auth, process supervision, or provider capabilities are implied by this contract.
 export class SessionJournal {
+  #events = [];
+  // Public inspection must never expose mutable journal-owned event references.
+  get events() { return this.#events.map(event => structuredClone(event)); }
   constructor(threadId) {
     if (!threadId || typeof threadId !== 'string') throw new TypeError('threadId required');
     this.threadId = threadId;
-    this.events = [];
     this.run = null;
     this.status = 'idle';
     this.nativeCursor = null;
@@ -17,7 +19,7 @@ export class SessionJournal {
     // Never silently overwrite a provider-supplied app identity or sequence.
     // A mismatched value is evidence of a broken or spoofed transport boundary.
     if (Object.hasOwn(event, 'threadId') && event.threadId !== this.threadId) throw new Error('foreign thread event rejected');
-    if (Object.hasOwn(event, 'sequence') && event.sequence !== this.events.length + 1) throw new Error('out-of-order event rejected');
+    if (Object.hasOwn(event, 'sequence') && event.sequence !== this.#events.length + 1) throw new Error('out-of-order event rejected');
     if (this.run === null) {
       if (type !== 'start') throw new Error('run must start first');
     } else if (this.run !== runId) throw new Error('cross-run event rejected');
@@ -35,8 +37,8 @@ export class SessionJournal {
     if (type === 'start' && event.nativeCursor !== undefined && typeof event.nativeCursor !== 'string') throw new TypeError('invalid native cursor');
     // Preserve the event as observed: providers may reuse/mutate nested payload objects.
     // Cloning also prevents caller-held references from rewriting replay evidence.
-    const entry = Object.freeze({ ...structuredClone(event), sequence: this.events.length + 1, threadId: this.threadId });
-    this.events.push(entry);
+    const entry = Object.freeze({ ...structuredClone(event), sequence: this.#events.length + 1, threadId: this.threadId });
+    this.#events.push(entry);
     if (type === 'start') this.run = runId;
     if (type === 'start') { this.status = 'running'; this.nativeCursor = event.nativeCursor ?? null; }
     if (type === 'approval_required') this.status = 'awaiting_approval';
@@ -46,7 +48,7 @@ export class SessionJournal {
     // Do not expose the journal-owned nested payload through the append return value.
     return structuredClone(entry);
   }
-  snapshot() { return { threadId: this.threadId, runId: this.run, status: this.status, nativeCursor: this.nativeCursor, events: this.events.map(e => structuredClone(e)) }; }
+  snapshot() { return { threadId: this.threadId, runId: this.run, status: this.status, nativeCursor: this.nativeCursor, events: this.events }; }
   static replay(threadId, entries) {
     const journal = new SessionJournal(threadId);
     for (const entry of entries) {
