@@ -36,7 +36,23 @@ export function validateLedger(ledger) {
   }
   const field = ledger?.packaged_field_trial;
   check(field && outcomes.has(field.outcome) && levels.has(field.evidence_level), 'invalid packaged field trial');
-  if (field?.outcome === 'pass') check(field.evidence_level === 'P' && Array.isArray(field.runs) && field.runs.length > 0, 'packaged field trial pass requires P-level runs');
+  if (field?.outcome === 'pass') {
+    check(field.evidence_level === 'P' && Array.isArray(field.runs) && field.runs.length > 0, 'packaged field trial pass requires P-level runs');
+    // A single arbitrary object must not certify an installed D01-D07 journey.
+    // Cross-reference each field-trial record to a P-level journey run with
+    // identical package, host, provider, commit and timestamp provenance.
+    for (const id of ids.slice(0, 7)) {
+      const trialRuns = Array.isArray(field.runs) ? field.runs : [];
+      const evidenceRuns = Array.isArray(journeys[id]?.runs) ? journeys[id].runs : [];
+      const keys = ['journey_id', 'toolkit_sha', 'package_version', 'platform', 'provider', 'timestamp_utc'];
+      const matches = trialRuns.some(trial => trial?.journey_id === id &&
+        trial.outcome === 'pass' && trial.evidence_level === 'P' &&
+        evidenceRuns.some(record => record?.outcome === 'pass' && record?.evidence_level === 'P' &&
+          keys.every(key => typeof trial[key] === 'string' && trial[key].trim() &&
+            trial[key] === record[key])));
+      check(matches, `packaged field trial missing matching P-level ${id} run`);
+    }
+  }
   if (ledger?.status === 'accepted') {
     check(ids.slice(0, 7).every(id => journeys[id]?.outcome === 'pass' && journeys[id]?.evidence_level === 'P'), 'accepted gate requires D01-D07 P-level passes');
     check(field?.outcome === 'pass' && field?.evidence_level === 'P', 'accepted gate requires packaged field trial');
