@@ -57,7 +57,9 @@ export class SessionJournal {
   static replay(threadId, entries) {
     const journal = new SessionJournal(threadId);
     for (const entry of entries) {
-      if (entry.threadId !== threadId || entry.sequence !== journal.events.length + 1) throw new Error('corrupt event ordering');
+      // Validate against the private append cursor. Reading `events` clones the entire
+      // history, turning large replay into quadratic time and allocation.
+      if (entry.threadId !== threadId || entry.sequence !== journal.#events.length + 1) throw new Error('corrupt event ordering');
       journal.append(entry);
     }
     return journal;
