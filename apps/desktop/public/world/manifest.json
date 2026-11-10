@@ -1,5 +1,5 @@
 {
-  "generated": "gen-world-assets.mjs",
+  "generated": "gen-world-assets-pxl.mjs",
   "sprites": {
     "butterfly": {
       "file": "butterfly.png",

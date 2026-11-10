@@ -9,10 +9,8 @@
  *   - scripts/world-art-pxl/pxl-manifest.json  (name -> {file,w,h,frames,source,sha256})
  *   - scripts/world-art-pxl/preview/<name>.png (upscaled review previews)
  *
- * gen-world-assets.mjs merges pxl-manifest entries into the world manifest
- * and skips PXL-owned sprites; it remains the single writer of
- * src/features/world/manifest.json + public/world/manifest.json until the
- * legacy painters are retired (PR E), when this script takes over.
+ * This script is the sole asset pipeline and manifest writer: the legacy
+ * gen-world-assets.mjs generator was retired in PR E (mission #1741).
  *
  * Deterministic: PXL uses seeded rng only; --check rebuilds and byte-compares.
  * Security: .px.js files are trusted executable code. Only the reviewed
@@ -152,18 +150,23 @@ function main() {
   }
 
   const manifestJson = JSON.stringify({ generated: 'gen-world-assets-pxl.mjs', sprites: manifest }, null, 2) + '\n';
+  // Sole manifest writer since the legacy generator retired (PR E): the
+  // world manifest consumed by the renderer is this exact document.
+  const worldManifests = [PXL_MANIFEST, path.join(OUT, 'manifest.json'), path.resolve(desktopRoot, 'src', 'features', 'world', 'manifest.json')];
   if (check) {
-    const prev = fs.existsSync(PXL_MANIFEST) ? fs.readFileSync(PXL_MANIFEST, 'utf8') : null;
-    if (prev !== manifestJson) diffs.push('pxl-manifest.json');
+    for (const file of worldManifests) {
+      const prev = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
+      if (prev !== manifestJson) diffs.push(path.basename(file));
+    }
     if (diffs.length) {
       console.error(`pxl world assets out of date: ${diffs.join(', ')}`);
-      console.error('run: node scripts/gen-world-assets-pxl.mjs && node scripts/gen-world-assets.mjs');
+      console.error('run: node scripts/gen-world-assets-pxl.mjs');
       process.exit(1);
     }
     console.log(`pxl world assets up to date (${Object.keys(manifest).length} sprites)`);
   } else {
-    fs.writeFileSync(PXL_MANIFEST, manifestJson);
-    console.log(`generated ${Object.keys(manifest).length} pxl sprites -> public/world (+preview)`);
+    for (const file of worldManifests) fs.writeFileSync(file, manifestJson);
+    console.log(`generated ${Object.keys(manifest).length} pxl sprites -> public/world (+preview, manifests)`);
   }
 }
 

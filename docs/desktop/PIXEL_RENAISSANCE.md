@@ -41,14 +41,13 @@ apps/desktop/scripts/world-art-pxl/*.px.js   (editable PXL sources)
   -> skills/design/pxl-pixel-art/bin/pxl.js  (vendored renderer, pinned 21fee41)
   -> apps/desktop/scripts/gen-world-assets-pxl.mjs
   -> public/world/<name>.png + scripts/world-art-pxl/pxl-manifest.json
-  -> gen-world-assets.mjs merges entries into src/features/world/manifest.json
+  -> src/features/world/manifest.json (sole writer: gen-world-assets-pxl.mjs)
   -> WorldEntityMap / TerrainRenderer (manifest-driven, semantic ids stable)
 ```
 
 - `node scripts/gen-world-assets-pxl.mjs` regenerates; `--check` rebuilds
   and byte-compares (deterministic, seeded rng only).
-- `node scripts/gen-world-assets.mjs --check` remains the CI gate during
-  migration; it skips PXL-owned sprites and merges their manifest entries.
+- `node scripts/gen-world-assets-pxl.mjs --check` is the CI asset gate.
 - Previews for human review land in `scripts/world-art-pxl/preview/`.
 - Security: `.px.js` is trusted executable code. CI builds only the
   reviewed in-repo sources; external art files are never built.
@@ -58,8 +57,8 @@ apps/desktop/scripts/world-art-pxl/*.px.js   (editable PXL sources)
 1. PR B (this): pipeline + terrain/trees/houses/landmarks/characters core set.
 2. PR C: new world composition/theme (Meadow + Dusk), interiors, player set;
    remaining legacy sprites migrated or retired.
-3. PR E: delete `gen-world-assets.mjs` painters + `scripts/world-art/` PNG
-   sources; `gen-world-assets-pxl.mjs` becomes sole manifest writer.
+3. PR E (done): legacy `gen-world-assets.mjs` + `scripts/world-art/` PNG
+   sources deleted; `gen-world-assets-pxl.mjs` is the sole manifest writer.
 
 Semantic contracts (ids, hrefs, truth gating in `model/buildWorld.ts`) do
 not change. See `SEMANTIC_WORLD.md`.

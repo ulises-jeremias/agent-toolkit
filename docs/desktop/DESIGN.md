@@ -193,7 +193,7 @@ terminal output.
 ## 7. Pixel-art grammar
 
 All world art shares one craft system. The generator
-(`apps/desktop/scripts/gen-world-assets.mjs`) and the theme packs are the
+(`apps/desktop/scripts/gen-world-assets-pxl.mjs`) and the theme packs are the
 executable form of these rules.
 
 ### Grid and rendering
@@ -250,7 +250,7 @@ executable form of these rules.
 ### Asset licensing
 
 Production artwork is **original and generated in-repo**
-(`apps/desktop/scripts/gen-world-assets.mjs`) or appropriately licensed with
+(`apps/desktop/scripts/gen-world-assets-pxl.mjs`) or appropriately licensed with
 recorded attribution. Never import copyrighted assets from Zelda, Pokémon,
 Stardew Valley, Animal Crossing, Earthbound, Munder Difflin, Agent Office, or
 Pixel Agents.
