@@ -1,7 +1,7 @@
 // Characters 32x24 — two 16x24 frames side by side; frame2 = frame1 bobbed 1px. Hood-shadow faces, no skin.
 include("palette.px.js")
 function figure(c,ox,dy,hood,cloak,accent,kind){
-  const x=ox+8,y=dy
+  const x=ox+8
   // legs / boots
   c.rect(ox+5,20+dy,3,3,"b");c.rect(ox+9,20+dy,3,3,"b")
   // cloak body (tapered block, hard shadow on right)
