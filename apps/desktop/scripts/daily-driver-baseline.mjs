@@ -70,7 +70,10 @@ function exec(command, argv, cwd) {
   const result = spawnSync(command, argv, {
     cwd,
     // Avoid inheriting the parent node:test worker protocol in independent child probes.
-    env: Object.fromEntries(Object.entries(process.env).filter(([key]) => key !== 'NODE_TEST_CONTEXT')),
+    env: Object.fromEntries(Object.entries(process.env).filter(([key]) =>
+      key !== 'NODE_TEST_CONTEXT' && !key.startsWith('GIT_'))),
+    // Do not let a user's global Git configuration or hooks redirect fixture writes.
+    // Provider version probes also use this sanitized environment.
     encoding: 'utf8',
     timeout: 5000,
     maxBuffer: 32768,
