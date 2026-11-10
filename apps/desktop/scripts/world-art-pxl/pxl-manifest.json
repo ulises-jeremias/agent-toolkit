@@ -119,7 +119,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "27d83d7dd8f35614c09e3a0d28b134efd58e91d34194d1716c9f20ee476ca701"
+      "sha256": "4c52c6bace99138e8453791ee7be7f3b2fe91b17ea43348b3dc8a062f703d231"
     },
     "house-studio": {
       "file": "house-studio.png",

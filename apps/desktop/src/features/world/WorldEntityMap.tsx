@@ -605,7 +605,7 @@ export function WorldEntityMap({
       ref={regionRef}
       className={styles.mapRegion}
       style={{
-        backgroundImage: `url('${theme.id === 'cyberpunk-city' ? '/world/cyber-asphalt-0.png' : '/world/grass-a.png'}')`,
+        backgroundImage: `url('/world/grass-a.png')`,
         backgroundSize: `${zoom}px ${zoom}px`,
       }}
       role="application"
