@@ -327,7 +327,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art-pxl/landmarks.px.js",
-      "sha256": "edea9f86e2a3d7e0befa51a93e583a124825af9a04e518e8bab8919125dde212"
+      "sha256": "d2f20a9879a513bc4fa0e5c95b9685c3a554019eaac583dd84b19a2ca8ecfc6d"
     },
     "landmark-terminal": {
       "file": "landmark-terminal.png",
@@ -1567,7 +1567,7 @@
       "h": 48,
       "frames": 1,
       "source": "scripts/world-art-pxl/trees.px.js",
-      "sha256": "614b34c424038370cb4b49f18c4ff05d4d1577b99565017a234c2cfea995044d"
+      "sha256": "de13d1222af7d242abf783ca83d858e083df68f5e2e88dcab9cfc348656c5cc4"
     },
     "tree-blossom": {
       "file": "tree-blossom.png",
