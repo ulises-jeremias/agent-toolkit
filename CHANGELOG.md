@@ -22,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fixture and provider executable/version preflight. Authentication and all
   real-provider journeys remain explicitly unverified until a field trial.
 
+- Add `design/pxl-pixel-art`: vendored PXL pixel-art DSL and renderer
+  (crsolver/claude-pxl @ 21fee41, MIT) in Agent Toolkit Complete. Agents can
+  create deterministic sprites, tilesets, scenes and sprite sheets locally
+  with Node >=22.18. Art `.px.js` files are trusted executable code; the
+  capability ships at trust tier experimental pending human review binding.
+
 - Define the Daily Driver Reboot mission, provider architecture evaluation and
   installed-product acceptance contract. Release sign-off requires passing
   packaged real-provider evidence for every D01–D07 journey; component tests

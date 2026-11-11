@@ -253,7 +253,7 @@ fn emit_skills_under(mut result CompilationResult, mut records []ArtifactRecord,
 		}
 		dst := os.join_path(dst_dir, 'SKILL.md')
 		write_text_artifact(dst, content, skill.source_path, output_root, mut result, mut records)
-		copy_skill_references(skill, dst_dir, output_root, mut result, mut records)
+		copy_skill_resources(skill, dst_dir, output_root, mut result, mut records)
 		result.emitted << 'skill:${skill_id}'
 	}
 }
@@ -285,28 +285,76 @@ fn emit_agents_under(mut result CompilationResult, mut records []ArtifactRecord,
 	}
 }
 
-fn copy_skill_references(skill LoadedSkill, dst_dir string, output_root string, mut result CompilationResult, mut records []ArtifactRecord) {
-	refs_src := os.join_path(os.dir(skill.source_path), 'references')
-	if !os.is_dir(refs_src) {
-		return
-	}
-	files := collect_all_files(refs_src)
+const skill_resource_text_exts = ['.md', '.txt', '.js', '.mjs', '.cjs', '.ts', '.mts', '.cts', '.json', '.yaml', '.yml', '.toml', '.html', '.css', '.py', '.sh', '.ipynb']
+const skill_resource_no_ext_names = ['LICENSE', 'NOTICE', 'UPSTREAM', 'DOWNSTREAM']
+
+// copy_skill_resources ships `references/` (historical convention) plus any
+// files/directories a skill explicitly declares in
+// `distribution.resources` (e.g. an executable engine under bin/ + src/).
+// Undeclared files are never copied: skills may carry large or
+// license-restricted assets that must stay out of plugin bundles.
+// Declared resources fail closed: relative paths only, no `..`, must exist,
+// must stay inside the skill directory, and must be text files.
+fn copy_skill_resources(skill LoadedSkill, dst_dir string, output_root string, mut result CompilationResult, mut records []ArtifactRecord) {
 	skill_root := os.dir(skill.source_path)
-	for src in files {
-		rel := relative_to(src, skill_root) or {
+	mut seen := map[string]bool{}
+	copy_one := fn [skill, dst_dir, output_root, mut result, mut records, mut seen] (src string) {
+		rel := relative_to(src, os.dir(skill.source_path)) or {
 			result.errors << 'skill:${skill.id}: path escapes containment root'
-			continue
+			return
+		}
+		if rel in seen {
+			return
+		}
+		seen[rel] = true
+		base := os.file_name(src)
+		ext := os.file_ext(src).to_lower()
+		if ext !in skill_resource_text_exts && base !in skill_resource_no_ext_names {
+			result.errors << 'skill:${skill.id}: resource ${rel} is not a supported text file'
+			return
 		}
 		dst := os.join_path(dst_dir, rel)
 		os.mkdir_all(os.dir(dst)) or {
-			result.errors << 'mkdir references failed: ${err}'
+			result.errors << 'mkdir skill resource failed: ${err}'
 			return
 		}
 		content := os.read_file(src) or {
-			result.errors << 'read reference failed: ${err}'
+			result.errors << 'read skill resource failed: ${err}'
 			return
 		}
 		write_text_artifact(dst, content, src, output_root, mut result, mut records)
+	}
+	refs_src := os.join_path(skill_root, 'references')
+	if os.is_dir(refs_src) {
+		for src in collect_all_files(refs_src) {
+			copy_one(src)
+		}
+	}
+	for resource in skill.resources {
+		rel := resource.trim_space().replace('\\', '/')
+		if rel.len == 0 || rel == 'SKILL.md' || rel.starts_with('/') || rel.contains(':') {
+			result.errors << 'skill:${skill.id}: invalid distribution resource ${resource}'
+			continue
+		}
+		segments := rel.split('/')
+		if segments.any(it == '..' || it == '.' || it.len == 0) {
+			result.errors << 'skill:${skill.id}: invalid distribution resource ${resource}'
+			continue
+		}
+		src := os.join_path(skill_root, rel)
+		if os.is_link(src) {
+			result.errors << 'skill:${skill.id}: distribution resource ${rel} must not be a symlink'
+			continue
+		}
+		if os.is_dir(src) {
+			for f in collect_all_files(src) {
+				copy_one(f)
+			}
+		} else if os.is_file(src) {
+			copy_one(src)
+		} else {
+			result.errors << 'skill:${skill.id}: distribution resource ${rel} not found'
+		}
 	}
 }
 

@@ -84,6 +84,7 @@ Reserved for anti-slop, static analysis, and deep review. Skills in this section
 | Scenario | Route to |
 |----------|----------|
 | New visual direction / creative frontend (greenfield or intentional reshaping) | `design/frontend-design` |
+| Pixel art / sprites / tilesets / sprite sheets / pixel-art scenes | `design/pxl-pixel-art` |
 | Scroll-driven brand/product journey (authored scenes; use real-time/local assets when paid generation is unavailable or not approved) | `design/scroll-world` |
 | Existing frontend quality / design review (PR, component, flow, theme, design-system compliance) | `design/frontend-design-review` |
 | Concrete web-interface best-practice audit (`file:line`, forms/focus/animation, Vercel WIG) | `design/web-design-guidelines` |

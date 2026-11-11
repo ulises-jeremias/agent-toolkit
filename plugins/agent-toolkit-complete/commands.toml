@@ -359,6 +359,15 @@ Follow the `frontend-design-review` skill instructions for {{args}}.
 """
 
 [[commands]]
+name = "pxl_pixel_art"
+description = "design/pxl-pixel-art"
+prompt = """
+Follow the `pxl-pixel-art` skill instructions for {{args}}.
+
+@{skills/pxl-pixel-art/SKILL.md}
+"""
+
+[[commands]]
 name = "scroll_world"
 description = "design/scroll-world"
 prompt = """

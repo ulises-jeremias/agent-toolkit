@@ -215,6 +215,12 @@
         "attribution_file": {
           "type": "string",
           "description": "Path to LICENSE/NOTICE preserved alongside vendored content"
+        },
+        "resources": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Opt-in skill-relative files/directories (text only) the compiler must ship beside SKILL.md, e.g. an executable engine under bin/ + src/. Paths must be relative, contain no '..' segment, and exist. Undeclared files are not copied (references/ is always copied)."
         }
       },
       "required": ["mode"]
