@@ -17,6 +17,25 @@ test('actual child process projects ordered events and terminal completion', asy
   assert.deepEqual(SessionJournal.replay('fixture-thread', result.events).snapshot(), result);
 });
 
+test('zero-exit child without a start event fails closed instead of returning idle', async () => {
+  const journal = new SessionJournal('empty-transport');
+  await assert.rejects(
+    projectTransport(processEvents(process.execPath, args('')), journal),
+    /transport ended before start/,
+  );
+  assert.equal(journal.status, 'idle');
+  assert.deepEqual(journal.events, []);
+});
+
+test('whitespace-only stdout cannot masquerade as a valid session', async () => {
+  const journal = new SessionJournal('blank-transport');
+  await assert.rejects(
+    projectTransport(processEvents(process.execPath, args("console.log('   ')")), journal),
+    /transport ended before start/,
+  );
+  assert.equal(journal.status, 'idle');
+});
+
 test('zero exit without terminal event is interruption, not success', async () => {
   const result = await run(`console.log(JSON.stringify({type:'start',runId:'r'}))`);
   assert.equal(result.status, 'interrupted');
