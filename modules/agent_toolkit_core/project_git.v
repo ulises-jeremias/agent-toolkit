@@ -196,14 +196,7 @@ pub fn project_git_diff_typed(root string, project string, path string, staged b
 			detail: if msg.len > 0 { msg } else { 'git diff exited with code ${res.exit_code}' }
 		}
 	}
-	mut diff := os.read_file(patch_path) or {
-		return ProjectGitShowResponse{
-			ok: false
-			project: project
-			hash: hash
-			detail: 'could not read git show output: ${err.msg()}'
-		}
-	}
+	mut diff := res.stdout
 	mut truncated := false
 	if diff.len > max_git_diff_chars {
 		mut cut := max_git_diff_chars
