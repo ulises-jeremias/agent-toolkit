@@ -25,6 +25,9 @@
   --muted-ink: #4a5a48;
   --line: #57736a;
   --line-light: #d3c9a8;
+  --sun-text: #8a6d00;
+  --leaf-text: #3f7038;
+  --ember-text: #a34d28;
   --pixel: "Silkscreen", "IBM Plex Sans", sans-serif;
   --body: "IBM Plex Sans", sans-serif;
   --code: "IBM Plex Mono", monospace;
@@ -193,7 +196,7 @@ summary {
   align-items: center;
   gap: 9px;
   margin: 0 0 17px;
-  color: var(--leaf);
+  color: var(--leaf-text);
   font: 400 10px/1.7 var(--pixel);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -251,6 +254,10 @@ h3 {
 .section--deep .section-intro p:last-child,
 .section--glow .section-intro p:last-child {
   color: var(--muted);
+}
+.section--deep .eyebrow,
+.section--glow .eyebrow {
+  color: var(--leaf-bright);
 }
 .pixel-frame {
   position: relative;
@@ -319,11 +326,13 @@ h3 {
 }
 .section--deep {
   background: var(--night-deep);
+  color: var(--cream);
 }
 .section--green {
   background: #142f31;
 }
 .section--glow {
+  color: var(--cream);
   overflow: hidden;
   background: radial-gradient(
     ellipse at 80% 0%,
@@ -447,7 +456,7 @@ h3 {
 .quote-strip {
   padding: 26px 0;
   border-block: 1px solid rgb(193 220 191 / 17%);
-  color: var(--sun);
+  color: var(--sun-text);
   font: 400 10px/1.8 var(--pixel);
   text-align: center;
 }
@@ -483,7 +492,7 @@ h3 {
 .destination-card .sign {
   font: 400 9px/1.7 var(--pixel);
   letter-spacing: 0.06em;
-  color: var(--terracotta);
+  color: var(--ember-text);
   text-transform: uppercase;
 }
 .destination-card strong {
@@ -999,17 +1008,17 @@ h3 {
 }
 .docs-summary {
   margin-bottom: 30px;
-  color: var(--muted);
+  color: var(--muted-ink);
 }
 .prose {
-  color: #dce8d8;
+  color: var(--ink);
 }
 .prose h1,
 .prose h2,
 .prose h3,
 .prose h4 {
   margin: 2em 0 0.7em;
-  color: var(--cream);
+  color: var(--pine);
   font: 600 1.3rem/1.45 var(--body);
   letter-spacing: 0;
 }
@@ -1032,10 +1041,10 @@ h3 {
   max-width: 78ch;
 }
 .prose a {
-  color: #a9d77b;
+  color: var(--leaf-text);
 }
 .prose a:hover {
-  color: var(--sun);
+  color: var(--ember-text);
 }
 .prose code {
   padding: 0.14em 0.3em;
@@ -1058,8 +1067,8 @@ h3 {
   margin-inline: 0;
   padding: 8px 18px;
   border-left: 3px solid var(--sun);
-  color: #c5d6c2;
-  background: #193637;
+  color: var(--muted-ink);
+  background: #f1e8cf;
 }
 .prose table {
   display: block;

@@ -77,121 +77,44 @@ test("home explains the product and uses the real world capture", async ({
     "Illustration · not live product state",
   );
   await expect(page.locator(".hero-caption")).toContainText(
-    "Real Desktop captures ↓ in the journey",
+    "Semantic destinations ↓ — no fake live sessions",
   );
-  await expect(page.locator("[data-scene-image='valley']")).toHaveJSProperty(
-    "naturalWidth",
-    1920,
-  );
+  await expect(page.locator(".valley-scene")).toBeVisible();
+  await expect(page.locator(".destination-card")).toHaveCount(9);
   await capturePage(page, "home-desktop.png");
 });
 
-test("scroll journey follows the selected place and supports reduced motion", async ({
+test("semantic destinations link to real routes with reduced motion", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
 
-  const stage = page.locator("[data-journey-stage]");
-  const landscape = page.locator(".journey-landscape");
-  await expect(stage).toHaveAttribute("data-scene", "valley");
-  const valleyCameraOrigin = await landscape.evaluate(
-    (element) => getComputedStyle(element).transformOrigin,
-  );
-  await expect(landscape).toHaveAttribute("src", "/site/valley-journey.webp");
-  await expect(landscape).toBeVisible();
-  await expect(
-    page.locator("[data-scene-image='library']"),
-  ).not.toHaveAttribute("src", /.+/);
-  await expect(
-    page
-      .getByRole("navigation", { name: "Jump to a place in the workspace" })
-      .getByRole("link", { name: /Operations/ }),
-  ).toHaveAttribute("href", "#journey-operations");
-
-  await page
-    .getByRole("navigation", { name: "Jump to a place in the workspace" })
-    .getByRole("link", { name: /Operations/ })
-    .click();
-  await expect(stage).toHaveAttribute("data-scene", "operations");
-  await expect
-    .poll(() =>
-      landscape.evaluate(
-        (element) => getComputedStyle(element).transformOrigin,
-      ),
-    )
-    .not.toBe(valleyCameraOrigin);
-  await expect(page.locator(".journey-proof-window")).toBeVisible();
-  await expect(page.locator("[data-scene-image='operations']")).toHaveAttribute(
-    "src",
-    /\/_astro\/operations\..+\.png$/,
-  );
-  await expect(page.locator("[data-scene-image='operations']")).toHaveAttribute(
-    "aria-hidden",
-    "false",
-  );
-  await expect(page.locator("[data-journey-location]")).toHaveText(
-    "Operations",
-  );
-  await expect
-    .poll(() =>
-      page
-        .locator("[data-scene-image='operations']")
-        .evaluate((element) => getComputedStyle(element).opacity),
-    )
-    .toBe("1");
-  const transitionDuration = await page
-    .locator("[data-scene-image='operations']")
-    .evaluate((element) => getComputedStyle(element).transitionDuration);
-  expect(Number.parseFloat(transitionDuration)).toBeLessThan(0.001);
-  for (const { id, label } of [
-    { id: "valley", label: /The workspace/ },
-    { id: "project", label: /Inside a project/ },
-    { id: "people", label: /People/ },
-    { id: "operations", label: /Operations/ },
-    { id: "library", label: /Library/ },
-  ]) {
-    await page
-      .getByRole("navigation", { name: "Jump to a place in the workspace" })
-      .getByRole("link", { name: label })
-      .click();
-    await expect(stage).toHaveAttribute("data-scene", id);
-    await expect(page.locator(`[data-scene-image='${id}']`)).toHaveAttribute(
-      "aria-hidden",
-      "false",
-    );
-    await expect(page.locator(`[data-scene-image='${id}']`)).toHaveClass(
-      /is-active/,
-    );
+  const cards = page.locator(".destination-card");
+  await expect(cards).toHaveCount(9);
+  for (const [href, label] of [
+    ["/start/", /Trailhead/i],
+    ["/docs/", /Library/i],
+    ["/people/", /Guild Hall/i],
+    ["/download/", /Waystation/i],
+    ["/changelog/", /Chronicles/i],
+  ] as const) {
     await expect(
-      page
-        .getByRole("navigation", { name: "Jump to a place in the workspace" })
-        .locator(`[data-journey-link='${id}']`),
-    ).toHaveAttribute("aria-current", "step");
-    await expect(page.locator("[data-journey-location]")).toHaveText(
-      id === "valley"
-        ? "The workspace"
-        : id === "project"
-          ? "Inside a project"
-          : id === "people"
-            ? "People"
-            : id === "operations"
-              ? "Operations"
-              : "Library",
-    );
-    await expect
-      .poll(() =>
-        page
-          .locator(`[data-scene-image='${id}']`)
-          .evaluate((element) => getComputedStyle(element).opacity),
-      )
-      .toBe("1");
-    await captureViewport(page, `journey-${id}-desktop.png`);
+      page.locator(`.destination-card[href$='${href.replace(/\//g, "\\/")}']`),
+    ).toHaveCount(1);
+    expect(label).toBeTruthy();
   }
+  // Keyboard: first card is reachable and visibly focused.
+  await page.locator("body").press("Tab");
+  const focusedHref = await page.evaluate(
+    () => document.activeElement?.getAttribute("href") ?? "",
+  );
+  expect(typeof focusedHref).toBe("string");
+  await captureViewport(page, "destinations-desktop.png");
 });
 
-test("journey copy and direct links remain available without JavaScript", async ({
+test("destination copy and direct links remain available without JavaScript", async ({
   browser,
 }) => {
   const page = await browser.newPage({ javaScriptEnabled: false });
@@ -199,26 +122,13 @@ test("journey copy and direct links remain available without JavaScript", async 
   await page.goto("/");
 
   await expect(
-    page.getByRole("heading", { name: /Follow the paths/ }),
+    page.getByRole("heading", { name: /Follow a signpost/ }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: /A building opens/ }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: /Swarms coordinate/ }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("navigation", { name: "Jump to a place in the workspace" }),
-  ).toBeVisible();
+  await expect(page.locator(".destination-card")).toHaveCount(9);
   await page
-    .getByRole("navigation", { name: "Jump to a place in the workspace" })
-    .getByRole("link", { name: /People/ })
+    .locator(".destination-card[href$='/people/']")
     .click();
-  await expect(page).toHaveURL(/#journey-people$/);
-  await expect(page.locator("[data-journey-stage]")).toHaveAttribute(
-    "data-scene",
-    "valley",
-  );
+  await expect(page).toHaveURL(/\/people\/$/);
   await page.close();
 });
 
@@ -382,22 +292,10 @@ test("mobile navigation, touch layout and reduced motion remain usable", async (
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await captureViewport(page, "home-mobile.png");
-  await page
-    .getByRole("navigation", { name: "Jump to a place in the workspace" })
-    .getByRole("link", { name: /People/ })
-    .click();
-  await expect(page.locator("[data-journey-stage]")).toHaveAttribute(
-    "data-scene",
-    "people",
-  );
-  await expect
-    .poll(() =>
-      page
-        .locator("[data-scene-image='people']")
-        .evaluate((element) => getComputedStyle(element).opacity),
-    )
-    .toBe("1");
-  await captureViewport(page, "journey-people-mobile.png");
+  await page.locator(".destination-card[href$='/people/']").click();
+  await expect(page).toHaveURL(/\/people\/$/);
+  await page.goto("/");
+  await captureViewport(page, "destinations-mobile.png");
   await page.evaluate(() => window.scrollTo(0, 0));
   await expect
     .poll(() => page.locator("html").evaluate((element) => element.scrollWidth))
