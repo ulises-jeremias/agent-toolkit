@@ -114,3 +114,25 @@ share this chrome; Dusk deepens the canvas and warms the gold.
   here, not claimed.
 - Known polish backlog (tracked in #1741): forest density on the east
   bank, Dusk halo softening, flower-box detail on house-cottage.
+
+## Finalization review (post-merge, from packaged captures)
+
+Independent critique of the actual packaged application (CI
+`electron-review-screenshots` artifact, backend commit `b861837` —
+World Meadow 1280×800, World Dusk 1024×768, Library and Settings
+1440×900), not isolated sprites:
+
+- Composition/craft: coherent warm valley, distinct house silhouettes,
+  readable semantic plaques, rich river/forest east bank; Settings and
+  Library remain legible professional surfaces with honest empty
+  states. No blocker or major defect found.
+- Minor (owner's aesthetic call, not fixed unilaterally): Operations
+  satellite dishes can read as plates at zoom 2; at 1024×768 Dusk the
+  terrain stays daylight-green with window/lantern glow doing the
+  evening work; Library/People empty states leave large empty canvas.
+- Assistive-technology matrix: automatically detectable checks
+  (jsx-a11y lint) clean; keyboard order/focus/reduced-motion contracts
+  covered by the unit and packaged-Electron journeys; **screen reader
+  (Orca/NVDA) not assessed** — no suitable environment was available,
+  and full WCAG 2.2 AA conformance is not claimed from automated
+  checks alone.
