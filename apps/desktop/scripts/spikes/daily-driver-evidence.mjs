@@ -8,7 +8,6 @@ const nonempty = (v) => typeof v === 'string' && v.trim().length > 0;
 export function validateEvidence(rows) {
   if (!Array.isArray(rows)) return ['Evidence must be an array'];
   const errors = [];
-  const seen = new Set();
   for (const [i, row] of rows.entries()) {
     const prefix = `row ${i + 1}`;
     if (!row || typeof row !== 'object' || Array.isArray(row)) {
@@ -32,7 +31,6 @@ export function validateEvidence(rows) {
         errors.push(`${prefix}: real-provider evidence requires a trace/log reference`);
       }
     }
-    if (row.outcome === 'pass' && row.evidence_level === 'P') seen.add(row.journey_id);
   }
   return errors;
 }
@@ -41,5 +39,10 @@ export function packagedGateStatus(rows) {
   const errors = validateEvidence(rows);
   const passed = new Set(Array.isArray(rows) ? rows.filter((r) => r?.outcome === 'pass' && r.evidence_level === 'P').map((r) => r.journey_id) : []);
   const missing = JOURNEYS.slice(0, 7).filter((id) => !passed.has(id));
+  // A collection of unrelated installed builds cannot prove one uninterrupted
+  // D01-D07 journey. Group by exact binary identity and target platform.
+  const packaged = Array.isArray(rows) ? rows.filter((r) => r?.outcome === 'pass' && r.evidence_level === 'P' && JOURNEYS.slice(0, 7).includes(r.journey_id)) : [];
+  const identities = new Set(packaged.map((r) => JSON.stringify([r.toolkit_sha, r.package_version, r.platform])));
+  if (identities.size > 1) errors.push('D01-D07 packaged evidence spans multiple builds/platforms; run one coherent installed journey');
   return { status: errors.length || missing.length ? 'unverified' : 'evidence-recorded-needs-human-review', missing, errors };
 }
