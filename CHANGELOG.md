@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Define the experimental capability lifecycle in `docs/TRUST.md`:
+  experimental means merged but not human-reviewed; `--trust-art`-style
+  flags acknowledge trusted code and are not sandboxes. Graduation requires
+  a named human binding `trust.reviewed_provenance`; `design/pxl-pixel-art`
+  remains experimental until then.
+
 - Stop adding Claude's permission-bypass flag to legacy Swarm worker commands.
   Workers use provider-native approvals and may require an attached supervised
   session; recipe permissions and Git worktrees are not OS sandboxes.
