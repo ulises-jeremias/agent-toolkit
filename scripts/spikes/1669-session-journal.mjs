@@ -79,6 +79,10 @@ export function projectTransport(transport, journal) {
       }
       throw error;
     }
+    // A child that exits zero without a start event did not establish a run.
+    // Fail closed rather than returning an idle snapshot that callers could
+    // mistake for a successfully executed (but empty) provider session.
+    if (journal.status === 'idle') throw new Error('transport ended before start');
     // EOF is not provider confirmation of completion or cancellation.
     if (['running', 'awaiting_approval', 'cancelling'].includes(journal.status)) {
       journal.append({ type: 'interrupted', runId: journal.run, reason: 'transport-eof' });
