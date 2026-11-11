@@ -217,26 +217,30 @@ export function ProjectChangesPanel({
                         <strong>Commit {show.data.hash.slice(0, 7)}</strong>
                         {show.data.truncated ? <StatusBadge tone="warn" label="truncated" /> : null}
                       </p>
-                      {show.data.diff.split(/(?=^diff --git )/m).flatMap((section) => splitDiffHunks(section)).length === 0 ? (
+                      {show.data.diff.split(/(?=^diff --git )/m).flatMap((section) => splitDiffHunks(section))
+                        .length === 0 ? (
                         <EmptyState title="No textual diff.">This commit may change only binary files.</EmptyState>
                       ) : null}
                       <div aria-label={`Diff for commit ${show.data.hash.slice(0, 7)}`}>
-                        {show.data.diff.split(/(?=^diff --git )/m).flatMap((section) => splitDiffHunks(section)).map((hunk, hunkIndex) => (
-                          <div key={hunkIndex} className={styles.hunk}>
-                            <p className={styles.hunkBar}>
-                              <span className={styles[diffLineTone(hunk.header)]}>{hunk.header}</span>
-                            </p>
-                            <div className={styles.diff}>
-                              {annotateHunk(hunk).map((row, index) => (
-                                <div key={index} className={styles.diffRow}>
-                                  <span className={styles.gutter}>{row.oldNo ?? ''}</span>
-                                  <span className={styles.gutter}>{row.newNo ?? ''}</span>
-                                  <span className={styles[diffLineTone(row.text)]}>{row.text}</span>
-                                </div>
-                              ))}
+                        {show.data.diff
+                          .split(/(?=^diff --git )/m)
+                          .flatMap((section) => splitDiffHunks(section))
+                          .map((hunk, hunkIndex) => (
+                            <div key={hunkIndex} className={styles.hunk}>
+                              <p className={styles.hunkBar}>
+                                <span className={styles[diffLineTone(hunk.header)]}>{hunk.header}</span>
+                              </p>
+                              <div className={styles.diff}>
+                                {annotateHunk(hunk).map((row, index) => (
+                                  <div key={index} className={styles.diffRow}>
+                                    <span className={styles.gutter}>{row.oldNo ?? ''}</span>
+                                    <span className={styles.gutter}>{row.newNo ?? ''}</span>
+                                    <span className={styles[diffLineTone(row.text)]}>{row.text}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     </>
                   ) : null
