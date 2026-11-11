@@ -69,7 +69,10 @@ jobs:
       - run: pnpm --filter agent-toolkit-desktop type-check
       - run: pnpm --filter agent-toolkit-desktop test
       - run: pnpm --filter agent-toolkit-desktop build:all
-      - run: pnpm --filter agent-toolkit-desktop exec playwright install chromium --with-deps
+      # No --with-deps: GitHub's Ubuntu images already ship Chromium's system
+      # libraries, and apt currently cannot resolve the Ubuntu archive from
+      # the runners (DNS), which made every browser job fail repo-wide.
+      - run: pnpm --filter agent-toolkit-desktop exec playwright install chromium
       - name: E2E (renderer)
         run: pnpm --filter agent-toolkit-desktop exec playwright test --project=renderer
       - name: Prepare Electron for world capture

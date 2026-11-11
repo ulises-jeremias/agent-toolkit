@@ -34,7 +34,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Install display and browser dependencies
-        run: pnpm --filter agent-toolkit-desktop exec playwright install chromium --with-deps
+        run: pnpm --filter agent-toolkit-desktop exec playwright install chromium # no --with-deps (see desktop.yml)
       - name: Setup pinned V
         uses: ./.github/actions/setup-v
       - name: Build canonical backend
