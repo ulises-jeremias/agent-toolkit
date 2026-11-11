@@ -34,16 +34,20 @@
   --cw-plaster: #f2e6c9;
   --cw-brick: #b5654a;
 
-  /* Primitives: game menu (deep indigo-spruce) */
-  --cw-menu-950: #171a2b;
-  --cw-menu-900: #1d2136;
-  --cw-menu-850: #232842;
-  --cw-menu-800: #2a2f4d;
-  --cw-menu-700: #3a4166;
-  --cw-menu-500: #5a628f;
+  /* Primitives: game menu (warm ink-plum, from the PXL valley palette:
+     ink #2b2135 warmed toward wood/terracotta; same lightness steps as the
+     previous indigo ramp so token contrast pairs are unchanged) */
+  --cw-menu-950: #1a1322;
+  --cw-menu-900: #211a2e;
+  --cw-menu-850: #282036;
+  --cw-menu-800: #322a44;
+  --cw-menu-700: #463a5e;
+  --cw-menu-500: #6d5f8f;
   --cw-ivory: #f3edda;
   --cw-ivory-dim: #d8d0b6;
-  --cw-menu-muted: #b9b4ce;
+  --cw-menu-muted: #bfb4ce;
+  --cw-terracotta: #c65f3d;
+  --cw-terracotta-deep: #9e3f2f;
   --cw-gold: #f0bd5e;
   --cw-gold-strong: #ffd97a;
   --cw-gold-deep: #c99a3f;

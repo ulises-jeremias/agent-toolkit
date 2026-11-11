@@ -137,7 +137,11 @@
   min-width: 0;
   background: var(--surface-panel);
   border: 2px solid var(--border-default);
-  box-shadow: var(--shadow-panel);
+  /* Pixel-menu frame: hard drop shadow + an inner 1px bench line, so panels
+     read as carved game-menu plaques rather than flat web cards. */
+  box-shadow:
+    var(--shadow-panel),
+    inset 0 0 0 1px var(--surface-sunken);
 }
 
 .panel::before {
