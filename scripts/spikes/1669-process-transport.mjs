@@ -73,7 +73,8 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
   else signal?.addEventListener('abort', onAbort, { once: true });
   let pendingCompletion = null;
   try {
-    for await (const line of boundedLines(child.stdout)) {
+    try {
+      for await (const line of boundedLines(child.stdout)) {
       if (!line.trim()) continue;
       let event;
       try { event = JSON.parse(line); } catch { throw new Error('invalid JSONL transport event'); }
@@ -86,6 +87,12 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
         if (pendingCompletion) throw new Error('event after transport completion');
         yield event;
       }
+    }
+    } catch (error) {
+      // Destroying stdout on abort makes Node's async stream iterator reject
+      // with ERR_STREAM_PREMATURE_CLOSE. Preserve cancellation semantics only
+      // when an actual abort was requested; other stream errors remain fatal.
+      if (!(signal?.aborted && error?.code === 'ERR_STREAM_PREMATURE_CLOSE')) throw error;
     }
     const { code, childSignal } = await closed;
     if (spawnError) throw spawnError;
