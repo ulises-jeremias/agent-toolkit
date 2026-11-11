@@ -122,8 +122,12 @@ function filePresence(filename) {
         exists = fs.lstatSync(contents).isDirectory() &&
           fs.lstatSync(info).isFile() &&
           fs.lstatSync(macos).isDirectory() &&
-          fs.readdirSync(macos).some(name =>
-            fs.lstatSync(path.join(macos, name)).isFile());
+          fs.readdirSync(macos).some(name => {
+            const executable = fs.lstatSync(path.join(macos, name));
+            // A text placeholder or symlink is not a usable bundle executable.
+            return executable.isFile() &&
+              (process.platform === 'win32' || (executable.mode & 0o111) !== 0);
+          });
       }
     }
   } catch { /* Absent or incomplete package by design. */ }
