@@ -125,9 +125,7 @@ test("destination copy and direct links remain available without JavaScript", as
     page.getByRole("heading", { name: /Follow a signpost/ }),
   ).toBeVisible();
   await expect(page.locator(".destination-card")).toHaveCount(9);
-  await page
-    .locator(".destination-card[href$='/people/']")
-    .click();
+  await page.locator(".destination-card[href$='/people/']").click();
   await expect(page).toHaveURL(/\/people\/$/);
   await page.close();
 });
