@@ -70,6 +70,7 @@ test('Gate 0 preflight recognizes complete macOS .app bundles without claiming l
     mkdirSync(macos, { recursive: true });
     writeFileSync(join(bundle, 'Contents', 'Info.plist'), '<plist/>');
     writeFileSync(join(macos, 'Toolkit'), 'placeholder');
+    chmodSync(join(macos, 'Toolkit'), 0o755);
     const result = run(join(dir, 'complete'), bundle);
     assert.equal(result.status, 0, result.stderr);
     const data = JSON.parse(readFileSync(join(dir, 'complete', 'baseline.json'), 'utf8'));
@@ -187,3 +188,29 @@ test('Gate 0 preflight does not report a non-executable POSIX file as an install
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('Gate 0 macOS bundle rejects non-executable payloads without claiming real acceptance', { skip: process.platform === 'win32' }, () => {
+  const dir = mkdtempSync(join(tmpdir(), 'atk-gate0-macos-mode-'));
+  try {
+    const bundle = join(dir, 'Toolkit.app');
+    const macos = join(bundle, 'Contents', 'MacOS');
+    mkdirSync(macos, { recursive: true });
+    writeFileSync(join(bundle, 'Contents', 'Info.plist'), '<plist/>');
+    const binary = join(macos, 'Toolkit');
+    writeFileSync(binary, 'placeholder');
+    chmodSync(binary, 0o644);
+    let result = run(join(dir, 'not-executable'), bundle);
+    assert.equal(result.status, 0, result.stderr);
+    let data = JSON.parse(readFileSync(join(dir, 'not-executable', 'baseline.json'), 'utf8'));
+    assert.equal(data.installed_app.executable_exists, false);
+    chmodSync(binary, 0o755);
+    result = run(join(dir, 'executable'), bundle);
+    assert.equal(result.status, 0, result.stderr);
+    data = JSON.parse(readFileSync(join(dir, 'executable', 'baseline.json'), 'utf8'));
+    assert.equal(data.installed_app.executable_exists, true);
+    assert.ok(data.journeys.every(j => j.outcome === 'unverified' && j.evidence_level === 'U'));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
