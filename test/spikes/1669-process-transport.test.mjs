@@ -107,6 +107,7 @@ test('oversized unterminated stdout fails closed and reaps a stubborn child', as
   const started = Date.now();
   await assert.rejects(projectTransport(processEvents(process.execPath, args(`
     process.on('SIGTERM', () => {});
+    process.stdout.write(JSON.stringify({type:'start',runId:'oversized-unterminated'}) + '\\n');
     process.stdout.write('x'.repeat(1024 * 1024 + 128));
     setInterval(() => {}, 1000);
   `)), journal), /oversized transport event/);
@@ -118,6 +119,7 @@ test('oversized unterminated stdout fails closed and reaps a stubborn child', as
 test('multibyte JSONL bytes are bounded before decoding', async () => {
   const journal = new SessionJournal('oversized-multibyte');
   await assert.rejects(projectTransport(processEvents(process.execPath, args(`
+    console.log(JSON.stringify({type:'start',runId:'oversized-multibyte'}));
     console.log(JSON.stringify({type:'output',text:'🪺'.repeat(300000)}));
   `)), journal), /oversized transport event/);
   assert.equal(journal.status, 'interrupted');
