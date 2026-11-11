@@ -76,8 +76,12 @@ function main() {
   try {
     for (const source of sources) {
       const outDir = path.join(tmp, source.replace(/\.px\.js$/, ''));
-      execFileSync(process.execPath, [PXL, 'build', path.join(SRC_DIR, source), '--out', outDir], {
+      // --trust-art: these are the reviewed in-repo sources; the CLI refuses
+      // to execute art without this explicit acknowledgement.
+      execFileSync(process.execPath, [PXL, 'build', '--trust-art', path.join(SRC_DIR, source), '--out', outDir], {
         stdio: ['ignore', 'pipe', 'inherit'],
+        timeout: 120_000,
+        maxBuffer: 16 * 1024 * 1024,
       });
       const spritesDir = path.join(outDir, 'sprites');
       for (const file of fs.readdirSync(spritesDir).sort()) {
@@ -87,6 +91,11 @@ function main() {
         const png = fs.readFileSync(path.join(spritesDir, file));
         const { w: totalW, h } = pngSize(png, name);
         const fw = frameWidth(name, totalW);
+        if (manifest[name]) {
+          throw new Error(
+            `duplicate sprite id '${name}': ${manifest[name].source} and scripts/world-art-pxl/${source} both produce it; rename one`,
+          );
+        }
         manifest[name] = {
           file: `${name}.png`,
           w: fw,
@@ -115,6 +124,26 @@ function main() {
     }
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
+  }
+
+  // Obsolete outputs: sprites the previous pxl-manifest owned that no
+  // source produces anymore (the preview gallery is fully PXL-owned, so
+  // any unlisted preview is stale too). Sprites owned by other generators
+  // are never touched. --check reports; a normal run removes.
+  const prevNames = new Set(
+    fs.existsSync(PXL_MANIFEST) ? Object.keys(JSON.parse(fs.readFileSync(PXL_MANIFEST, 'utf8')).sprites ?? {}) : [],
+  );
+  const staleSprites = [...prevNames].filter((name) => !manifest[name]).map((name) => `${name}.png`);
+  const stalePreviews = fs.existsSync(PREVIEW_DIR)
+    ? fs.readdirSync(PREVIEW_DIR).filter((f) => f.endsWith('.png') && !manifest[f.replace(/\.png$/, '')])
+    : [];
+  for (const file of staleSprites) {
+    if (check) diffs.push(`stale:${file}`);
+    else if (fs.existsSync(path.join(OUT, file))) fs.rmSync(path.join(OUT, file));
+  }
+  for (const file of stalePreviews) {
+    if (check) diffs.push(`stale:preview/${file}`);
+    else fs.rmSync(path.join(PREVIEW_DIR, file));
   }
 
   const manifestJson = JSON.stringify({ generated: 'gen-world-assets-pxl.mjs', sprites: manifest }, null, 2) + '\n';
