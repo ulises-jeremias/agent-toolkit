@@ -7,7 +7,7 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adrs/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-11-10T19:35:49.488026Z
+Generated: 2026-11-11T03:37:31.130196Z
 Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 
 ## `design/brag`
@@ -102,7 +102,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Maintenance:** `active` last_activity=?
 - **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=True shell=True network=False cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:420d56b5b01c73fb9f32a9246fa722380929a5df9e294e7a0b14223c49ea8d37`
+- **Provenance digest:** `sha256:2a9158ccdcd6311248e660cd3a5e5c7caa053e70693b5ebc2b2760eac5c089ce`
 
 ### Source `upstream` — `crsolver/claude-pxl/.`
 
@@ -110,11 +110,11 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Path:** `.`
 - **Requested:** `commit` `21fee41f7ecce00bc868d7567f24ffd0f3acc8fa` (declaration intent)
 - **Resolved commit:** `21fee41f7ecce00bc868d7567f24ffd0f3acc8fa`
-- **Content checksum:** `sha256:ceb9519a499b3fe3071b41f263df6222be76a91b2730b8f8ec823aebb7d0efe6`
+- **Content checksum:** `sha256:df7e520ca2dc44814a6467198086d6afb4f400fa0720f3b91356d758f60e85dd`
 - **Body checksum:** `sha256:f8626f60e2970838500ac3905241db48aad7244850010629f7c9768c5780292a` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/pxl-pixel-art/LICENSE` checksum=`sha256:533fb75ff225f6b8568170ca596bf201ec7f30b7509616bff7cfe250e52e77d8`
   - Declaration expected `license: MIT` — mismatch requires review
-- **Resolved at:** `2026-11-10T19:35:40.821514Z` version=`21fee41`
+- **Resolved at:** `2026-11-11T03:37:30.727566Z` version=`21fee41`
 
 - **Per-skill attribution:** `skills/design/pxl-pixel-art/UPSTREAM.md`
 

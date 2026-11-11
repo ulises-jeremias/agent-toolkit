@@ -88,7 +88,7 @@ export function serve(file: string, opts: ServeOptions = {}): Promise<{ url: str
     const t0 = performance.now();
     const next: State = { version: state.version + 1, file: basename(abs), time: new Date().toLocaleTimeString(), ms: 0, assets: [], sheets: [], errors: [] };
     try {
-      project = loadProject(abs, { trace: true });
+      project = loadProject(abs, { trace: true, timeoutMs: opts.timeoutMs });
     } catch (e) {
       project = undefined;
       next.error = errInfo(wrap(e));
@@ -122,7 +122,7 @@ export function serve(file: string, opts: ServeOptions = {}): Promise<{ url: str
         next.errors = r.errors.filter((e) => !next.assets.some((a) => a.error?.message === e.message)).map(errInfo);
       }
       watch(project.files);
-    } else watch([abs]);
+    } else watch([abs, ...watched]);
     next.ms = Math.round(performance.now() - t0);
     state = next;
     const bad = next.error ? 1 : next.assets.filter((a) => a.error).length + next.errors.length;
@@ -170,12 +170,13 @@ export function serve(file: string, opts: ServeOptions = {}): Promise<{ url: str
     const url = new URL(req.url ?? "/", "http://x");
     try {
       if (url.pathname === "/") {
+        const html = readFileSync(join(viewerDir, "index.html"));
         res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-        res.end(readFileSync(join(viewerDir, "index.html")));
+        res.end(html);
       } else if (url.pathname === "/app.js") {
-        const src = readFileSync(join(viewerDir, "app.ts"), "utf8");
+        const js = stripTypeScriptTypes(readFileSync(join(viewerDir, "app.ts"), "utf8"), { mode: "strip" });
         res.writeHead(200, { "content-type": "text/javascript; charset=utf-8" });
-        res.end(stripTypeScriptTypes(src, { mode: "strip" }));
+        res.end(js);
       } else if (url.pathname === "/events") {
         res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive" });
         res.write(`event: build\ndata: ${JSON.stringify(state)}\n\n`);
@@ -193,16 +194,21 @@ export function serve(file: string, opts: ServeOptions = {}): Promise<{ url: str
         res.end("not found");
       }
     } catch (e) {
-      res.writeHead(500);
-      res.end(String(e));
+      if (!res.headersSent) {
+        res.writeHead(500);
+        res.end(String(e));
+      } else {
+        res.end();
+      }
     }
   });
 
-  const ping = setInterval(() => { for (const c of clients) c.write(": ping\n\n"); }, 15000);
+  let ping: NodeJS.Timeout | undefined;
 
   return new Promise((ok, fail) => {
     server.on("error", fail);
     server.listen(opts.port ?? 4321, "127.0.0.1", () => {
+      ping = setInterval(() => { for (const c of clients) c.write(": ping\n\n"); }, 15000);
       const addr = server.address();
       const port = typeof addr === "object" && addr ? addr.port : opts.port;
       const url = `http://127.0.0.1:${port}/`;

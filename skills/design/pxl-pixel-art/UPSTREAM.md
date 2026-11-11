@@ -8,9 +8,13 @@
   review binding (`trust.reviewed_provenance`); a named human must audit the
   engine and only then set `tier: reviewed`. Do not fabricate that binding.
 - **Distribution:** Agent Toolkit Complete only (opt-in design capability; not core/craft/forge)
-- **Fidelity:** Upstream SKILL.md body, `reference.md`, `lighting.md`, `examples/`,
-  `bin/`, `src/`, `types/`, `test/` and `package.json` are preserved verbatim.
-  Toolkit overlay lives only in SKILL.md frontmatter.
+- **Fidelity:** The upstream SKILL.md **body** is byte-identical and
+  `reference.md`, `lighting.md`, `examples/`, `types/` and `package.json`
+  are verbatim. The engine is **not** byte-identical: Agent Toolkit carries
+  downstream patches (CodeRabbit fixes, execution limits, the CLI
+  `--trust-art` gate) itemized in `DOWNSTREAM.md`. Toolkit overlay lives in
+  SKILL.md frontmatter (including the `distribution.resources` declaration
+  that ships this engine beside SKILL.md in plugin bundles).
 - **Safety:** `.px.js` art files are **trusted executable code**, not passive
   data. Upstream `src/node/load.ts` evaluates them with host-realm access
   (verified escape: `pal.constructor('return process')()` reaches the host

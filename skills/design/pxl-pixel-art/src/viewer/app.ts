@@ -421,7 +421,9 @@ stage.addEventListener("mousemove", (e) => {
 stage.addEventListener("mouseleave", () => { hover = undefined; draw(); });
 window.addEventListener("resize", draw);
 window.addEventListener("keydown", (e) => {
-  if ((e.target as HTMLElement).tagName === "INPUT" && (e.target as HTMLInputElement).type === "text") return;
+  const t = e.target as HTMLInputElement;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (t.tagName === "SELECT" || (t.tagName === "INPUT" && (t.type === "text" || t.type === "range"))) return;
   if (e.key === " ") { e.preventDefault(); play(!playing); }
   else if (e.key === "ArrowLeft") { play(false); setStep(step - 1); }
   else if (e.key === "ArrowRight") { play(false); setStep(step + 1); }

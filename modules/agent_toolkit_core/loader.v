@@ -44,6 +44,7 @@ pub:
 	name        string
 	domain      string
 	source_path string
+	resources   []string
 }
 
 // LoadedAgent is a persona node from agents/<name>/AGENT.md.
@@ -168,6 +169,49 @@ pub fn load_products_file(path string) ([]LoadedProduct, []string) {
 	return out, errors
 }
 
+// skill_distribution_resources reads the opt-in `distribution.resources`
+// list from a SKILL.md frontmatter. A small line parser is used on purpose:
+// vlib/yaml rejects sequence items at the parent key's indentation, which
+// is valid YAML and common in skill frontmatter. The emitter validates
+// existence, containment and file type (fail closed).
+fn skill_distribution_resources(skill_md string) []string {
+	text := os.read_file(skill_md) or { return []string{} }
+	if !text.starts_with('---') {
+		return []string{}
+	}
+	rest := text[3..]
+	end := rest.index('\n---') or { return []string{} }
+	mut out := []string{}
+	mut in_distribution := false
+	mut in_resources := false
+	for line in rest[..end].split_into_lines() {
+		trimmed := line.trim_space()
+		if trimmed.len == 0 || trimmed.starts_with('#') {
+			continue
+		}
+		indent := line.len - line.trim_left(' \t').len
+		if indent == 0 {
+			in_distribution = trimmed == 'distribution:'
+			in_resources = false
+			continue
+		}
+		if !in_distribution {
+			continue
+		}
+		if !trimmed.starts_with('-') {
+			in_resources = trimmed == 'resources:'
+			continue
+		}
+		if in_resources {
+			value := trimmed[1..].trim_space().trim('"').trim("'")
+			if value.len > 0 {
+				out << value
+			}
+		}
+	}
+	return out
+}
+
 fn load_skill_ids(skills_root string) map[string]LoadedSkill {
 	mut out := map[string]LoadedSkill{}
 	files := collect_named_files(skills_root, 'SKILL.md')
@@ -183,6 +227,7 @@ fn load_skill_ids(skills_root string) map[string]LoadedSkill {
 			name: name
 			domain: domain
 			source_path: p
+			resources: skill_distribution_resources(p)
 		}
 	}
 	return out

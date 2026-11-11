@@ -52,6 +52,73 @@ fn test_compile_cursor_temp_product() {
 	assert os.is_file(os.join_path(out, 'agent-toolkit-core', '.provenance.json'))
 }
 
+fn test_compile_skill_declared_resources() {
+	root := os.join_path(os.temp_dir(), 'at-emit-resources-${os.getpid()}')
+	os.mkdir_all(os.join_path(root, 'skills', 'core', 'assistant', 'bin')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(root, 'skills', 'core', 'assistant', 'src')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(root, 'skills', 'core', 'assistant', 'references')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(root, 'distributions')) or { assert false, err.msg() }
+	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'SKILL.md'), '---\nname: assistant\ndistribution:\n  mode: vendored\n  resources:\n  - bin\n  - src/note.txt\n---\nbody\n') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'bin', 'tool.js'), 'console.log(1)\n') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'src', 'note.txt'), 'note\n') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'src', 'undeclared.txt'), 'secret\n') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'references', 'ref.md'), '# ref\n') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(root, 'distributions', 'products.yaml'), 'products:\n  - id: demo\n    includes:\n      skills:\n        - core/assistant\n      agents: []\n') or {
+		assert false, err.msg()
+	}
+	defer {
+		os.rmdir_all(root) or {}
+	}
+	g := load_graph(root)
+	assert g.is_valid(), g.errors.str()
+	product := g.select_product('demo') or {
+		assert false, 'missing product'
+		return
+	}
+	out := os.join_path(root, 'out')
+	r := compile_tier1('cursor', g, product, out, root)
+	assert r.is_valid(), r.errors.str()
+	skill_out := os.join_path(out, 'demo', 'skills', 'assistant')
+	assert os.is_file(os.join_path(skill_out, 'SKILL.md'))
+	assert os.is_file(os.join_path(skill_out, 'bin', 'tool.js'))
+	assert os.is_file(os.join_path(skill_out, 'src', 'note.txt'))
+	assert os.is_file(os.join_path(skill_out, 'references', 'ref.md'))
+	assert !os.is_file(os.join_path(skill_out, 'src', 'undeclared.txt'))
+}
+
+fn test_compile_skill_missing_declared_resource_fails() {
+	root := os.join_path(os.temp_dir(), 'at-emit-resources-missing-${os.getpid()}')
+	os.mkdir_all(os.join_path(root, 'skills', 'core', 'assistant')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(root, 'distributions')) or { assert false, err.msg() }
+	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'SKILL.md'), '---\nname: assistant\ndistribution:\n  mode: vendored\n  resources:\n  - bin/missing.js\n---\nbody\n') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(root, 'distributions', 'products.yaml'), 'products:\n  - id: demo\n    includes:\n      skills:\n        - core/assistant\n      agents: []\n') or {
+		assert false, err.msg()
+	}
+	defer {
+		os.rmdir_all(root) or {}
+	}
+	g := load_graph(root)
+	product := g.select_product('demo') or {
+		assert false, 'missing product'
+		return
+	}
+	r := compile_tier1('cursor', g, product, os.join_path(root, 'out'), root)
+	assert !r.is_valid()
+	assert r.errors.any(it.contains('distribution resource bin/missing.js not found')), r.errors.str()
+}
+
 fn test_compile_opencode_and_claude() {
 	root := os.join_path(os.temp_dir(), 'at-emit2-${os.getpid()}')
 	os.mkdir_all(os.join_path(root, 'skills', 'core', 'assistant')) or { assert false, err.msg() }

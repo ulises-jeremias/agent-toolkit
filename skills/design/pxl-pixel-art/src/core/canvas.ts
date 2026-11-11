@@ -449,6 +449,7 @@ export class Canvas {
     }
     if (!opts.hang || x1 === x0) return;
     const every = opts.every ?? 6, span = Math.abs(x1 - x0), dir = Math.sign(x1 - x0);
+    if (!(every >= 1)) throw new PxError(`wire every must be >= 1, got ${every}`);
     for (let d = opts.start ?? Math.floor(every / 2); d < span; d += every) {
       const [, fy] = at(d / span);
       const hx = x0 + dir * d, hy = Math.round(fy);

@@ -98,6 +98,13 @@ test("ramps: shade/light step along, regions and density", () => {
   eq(art(base + 'sprite("a", { w: 2, h: 1 }, rect(0, 0, 2, 1, "w"), recolor({ w: "g" }, [0, 0, 1, 1]))', "a"), "gw");
 });
 
+test("wire: non-positive or non-finite 'every' is rejected, not an infinite loop", () => {
+  for (const bad of ["0", "-2", "NaN"]) {
+    const e = failure(PAL + `sprite("_b", "w"); sprite("s", {w:8,h:8}, c => c.wire(0,0,7,0,1,"r",{hang:"_b",every:${bad}}))`, "s");
+    assert.match(e.message, /wire every must be >= 1/);
+  }
+});
+
 test("wire with hangs, text", () => {
   eq(art(PAL + 'sprite("_b", "w"); sprite("a", { w: 9, h: 4 }, wire(0, 0, 8, 0, 2, "r", { hang: "_b", every: 4, start: 4 }))', "a"),
     "r.......r\n.rr...rr.\n..rrrrr..\n....w....");

@@ -9,6 +9,8 @@ import { pack } from "../src/core/color.ts";
 import { encodePng } from "../src/node/png.ts";
 import { main } from "../src/node/cli.ts";
 import { serve } from "../src/node/server.ts";
+import { loadSource } from "../src/node/load.ts";
+import { createServer } from "node:net";
 
 function chunks(buf: Buffer): { type: string; data: Buffer; crcOk: boolean }[] {
   const out = [];
@@ -56,7 +58,7 @@ sheet("all", ["*"], { pad: 1 })`);
   const log = console.log;
   const lines: string[] = [];
   console.log = (s: string) => lines.push(s);
-  try { assert.equal(await main(["build", file]), 0); } finally { console.log = log; }
+  try { assert.equal(await main(["build", file, "--trust-art"]), 0); } finally { console.log = log; }
   for (const p of ["sprites/dot.png", "sprites/lay.png", "sprites/lay/a.png", "sprites/lay/b.png", "_preview/dot.png", "all.png", "all.json"])
     assert.ok(existsSync(join(dir, "out", p)), p);
   assert.ok(!existsSync(join(dir, "out", "sprites", "_part.png")));
@@ -66,13 +68,27 @@ sheet("all", ["*"], { pad: 1 })`);
   assert.ok(lines.some((l) => l.startsWith("sprite dot 3x3")));
 });
 
+test("cli refuses to execute art without --trust-art", async () => {
+  const { file, out } = await tmpArt('sprite("ok", { w: 2, h: 2 }, (c) => c.rect(0, 0, 2, 2, "r"))');
+  assert.equal(await main(["build", file, "--trust-art", "--out", out]), 2);
+  assert.equal(existsSync(out), false);
+});
+
+test("loader bounds runaway art with a timeout", () => {
+  assert.throws(() => loadSource("while (true) {}", "loop.px.js", { timeoutMs: 25 }), /timed out/);
+});
+
+test("loader rejects string code generation inside the art context", () => {
+  assert.throws(() => loadSource('Function("return 1")()', "eval.px.js"), /Code generation from strings disallowed/);
+});
+
 test("cli build reports per-asset errors and still writes the rest", async () => {
   const { dir, file } = tmpArt(`use("pico8")\nsprite("good", "8")\nsprite("bad", "z")`);
   const err = console.error, log = console.log;
   const errors: string[] = [];
   console.error = (s: string) => errors.push(s);
   console.log = () => {};
-  try { assert.equal(await main(["build", file]), 1); } finally { console.error = err; console.log = log; }
+  try { assert.equal(await main(["build", file, "--trust-art"]), 1); } finally { console.error = err; console.log = log; }
   assert.ok(existsSync(join(dir, "out", "sprites", "good.png")));
   assert.ok(errors.some((e) => e.includes("a.px.js:3:1") && e.includes("unknown color key 'z'")), errors.join("\n"));
 });
@@ -108,5 +124,47 @@ test("server: state, asset frames, rebuild on change", async () => {
     assert.ok(v > 1, "rebuild did not happen");
   } finally {
     s.close();
+  }
+});
+
+test("server: an included file keeps being watched after a failed rebuild", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "pxl-serve-inc-"));
+  const inc = join(dir, "inc.px.js");
+  const file = join(dir, "a.px.js");
+  writeFileSync(inc, `sprite("inc", { w: 2, h: 1 }, px(0, 0, "8"))`);
+  writeFileSync(file, `use("pico8")\ninclude("inc.px.js")`);
+  const s = await serve(file, { port: 0, out: false, log: () => {} });
+  try {
+    const waitFor = async (pred: (st: { version: number; error?: string; assets?: { w?: number; error?: unknown }[] }) => boolean) => {
+      const t0 = Date.now();
+      while (Date.now() - t0 < 5000) {
+        const st = await (await fetch(s.url + "api/state")).json();
+        if (pred(st)) return st;
+        await new Promise((r) => setTimeout(r, 100));
+      }
+      throw new Error("timed out waiting for server state");
+    };
+    await waitFor((st) => st.version >= 1 && !st.error);
+    const v0 = (await (await fetch(s.url + "api/state")).json()).version as number;
+    writeFileSync(inc, `sprite("inc", { w: 2, h: 1 }, px(0, 0, "z"))`);
+    await waitFor((st) => st.version > v0 && !!st.assets?.[0]?.error);
+    writeFileSync(inc, `sprite("inc", { w: 3, h: 1 }, px(0, 0, "8"))`);
+    const fixed = await waitFor((st) => !st.assets?.[0]?.error && st.assets?.[0]?.w === 3);
+    assert.equal(fixed.assets[0].w, 3);
+  } finally {
+    s.close();
+  }
+});
+
+test("server: a failed listen rejects without leaking the ping timer", async () => {
+  const blocker = createServer();
+  await new Promise<void>((ok) => blocker.listen(0, "127.0.0.1", ok));
+  const addr = blocker.address();
+  assert.ok(addr && typeof addr === "object");
+  const { file } = tmpArt(`sprite("a", "8")`);
+  try {
+    await assert.rejects(serve(file, { port: addr.port, out: false, log: () => {} }));
+  } finally {
+    await new Promise<void>((ok) => blocker.close(() => ok()));
   }
 });

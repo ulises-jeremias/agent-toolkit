@@ -19,6 +19,19 @@ distribution:
   mode: vendored
   redistribution_allowed: true
   attribution_file: LICENSE
+  resources:
+  - LICENSE
+  - UPSTREAM.md
+  - DOWNSTREAM.md
+  - README.md
+  - reference.md
+  - lighting.md
+  - package.json
+  - bin
+  - src
+  - types
+  - examples
+  - scripts/build.js
 security:
   scripts: true
   shell: true

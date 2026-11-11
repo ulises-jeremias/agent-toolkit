@@ -131,7 +131,7 @@ fn emit_gemini_cli(mut result CompilationResult, mut records []ArtifactRecord, g
 			return
 		}
 		write_text_artifact(os.join_path(dst_dir, 'SKILL.md'), content, skill.source_path, output_root, mut result, mut records)
-		copy_skill_references(skill, dst_dir, output_root, mut result, mut records)
+		copy_skill_resources(skill, dst_dir, output_root, mut result, mut records)
 		rel := 'skills/${skill.name}/SKILL.md'
 		safe_name := skill.name.replace('-', '_').replace(' ', '_')
 		desc := skill.id.replace('"', "'")

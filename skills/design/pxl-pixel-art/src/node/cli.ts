@@ -8,17 +8,19 @@ import { serve } from "./server.ts";
 
 const USAGE = `pxl — pixel-art DSL
 
-  pxl build <art.px.js> [--out DIR] [--only a,b] [--scale N] [--no-preview]
+  pxl build <art.px.js> --trust-art [--out DIR] [--only a,b] [--scale N] [--no-preview] [--timeout-ms N]
       Build PNGs (out/sprites, out/scenes, out/anims strips + JSON + GIF, sheets + JSON) and
       previews (out/_preview; animated assets also get a .gif).
-  pxl serve <art.px.js> [--port 4321] [--out DIR | --no-out] [--no-preview]
+  pxl serve <art.px.js> --trust-art [--port 4321] [--out DIR | --no-out] [--no-preview] [--timeout-ms N]
       Live viewer: rebuilds on save and replays each asset's painting steps.
-  pxl ascii <art.px.js> <name>
+  pxl ascii <art.px.js> <name> --trust-art
       Print an asset as palette keys with x/y rulers (anims: every frame).
-  pxl list  <art.px.js>
+  pxl list  <art.px.js> --trust-art
       List assets, groups and sheets with their source locations.
 
-Art files may be .js or .ts. Default out dir: <art file dir>/out.`;
+Art files may be .js or .ts. Default out dir: <art file dir>/out.
+Art files are trusted executable code: they run with your privileges
+(Node's vm is not a sandbox). Pass --trust-art only for art you reviewed.`;
 
 interface Args {
   cmd?: string;
@@ -29,6 +31,8 @@ interface Args {
   scale?: number;
   preview?: boolean;
   port?: number;
+  trustArt?: boolean;
+  timeoutMs?: number;
 }
 
 function parse(argv: string[]): Args {
@@ -45,6 +49,8 @@ function parse(argv: string[]): Args {
     else if (v === "--only") a.only = val().split(",").map((s) => s.trim()).filter(Boolean);
     else if (v === "--scale") a.scale = Number(val());
     else if (v === "--port") a.port = Number(val());
+    else if (v === "--trust-art") a.trustArt = true;
+    else if (v === "--timeout-ms") a.timeoutMs = Number(val());
     else if (v === "--no-preview") a.preview = false;
     else if (v === "-h" || v === "--help") a.cmd = "help";
     else if (v.startsWith("--")) throw new PxError(`unknown flag ${v}\n\n${USAGE}`);
@@ -62,12 +68,28 @@ export async function main(argv: string[]): Promise<number> {
     console.log(USAGE);
     return a.cmd === "help" ? 0 : 2;
   }
+  if (!["build", "ascii", "list", "serve"].includes(a.cmd)) {
+    console.error(`unknown command '${a.cmd}'\n\n${USAGE}`);
+    return 2;
+  }
+  if (!a.trustArt) {
+    console.error(
+      `refusing to execute art file '${a.file}' without --trust-art.\n` +
+      `Art files are trusted executable code (Node's vm is not a sandbox). ` +
+      `Review the file and its includes, then re-run with --trust-art.`);
+    return 2;
+  }
+  if (a.timeoutMs !== undefined && (!Number.isFinite(a.timeoutMs) || a.timeoutMs < 1 || a.timeoutMs > 60_000)) {
+    console.error("--timeout-ms must be between 1 and 60000");
+    return 2;
+  }
   const file = resolve(a.file);
   const outDir = typeof a.out === "string" ? resolve(a.out) : join(dirname(file), "out");
+  const loadOpts = { timeoutMs: a.timeoutMs };
   try {
     switch (a.cmd) {
       case "build": {
-        const p = loadProject(file);
+        const p = loadProject(file, loadOpts);
         const r = writeOutputs(p, outDir, { only: a.only, preview: a.preview, scale: a.scale });
         for (const l of r.lines) console.log(l);
         for (const e of r.errors) console.error("error: " + e.message);
@@ -77,7 +99,7 @@ export async function main(argv: string[]): Promise<number> {
       case "ascii": {
         const name = a.rest[0];
         if (!name) throw new PxError("ascii needs an asset name: pxl ascii <file> <name>");
-        const p = loadProject(file);
+        const p = loadProject(file, loadOpts);
         const pal = p.assets.get(name)?.pal ?? p.pal;
         if (p.assets.get(name)?.kind === "anim")
           p.frames(name).forEach((f, i) => console.log(`frame ${i} (${f.ms}ms)\n${ascii(f.img, pal)}\n`));
@@ -85,7 +107,7 @@ export async function main(argv: string[]): Promise<number> {
         return 0;
       }
       case "list": {
-        const p = loadProject(file);
+        const p = loadProject(file, loadOpts);
         for (const n of p.order) {
           const d = p.assets.get(n)!;
           console.log(`${d.kind.padEnd(6)} ${n.padEnd(24)} ${d.loc ?? ""}`);
@@ -95,7 +117,7 @@ export async function main(argv: string[]): Promise<number> {
         return 0;
       }
       case "serve": {
-        const s = await serve(file, { port: a.port, out: a.out === false ? false : outDir, preview: a.preview });
+        const s = await serve(file, { port: a.port, out: a.out === false ? false : outDir, preview: a.preview, timeoutMs: a.timeoutMs });
         console.log(`pxl live viewer: ${s.url}  (watching ${file}; Ctrl+C to stop)`);
         return await new Promise<number>(() => {});
       }
