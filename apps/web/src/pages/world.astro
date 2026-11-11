@@ -1,8 +1,6 @@
 ---
 import SiteLayout from "@/layouts/SiteLayout.astro";
-import world from "../../../../static/screenshots/world.png";
 import room from "../../../../docs/desktop/assets/electron/world-review-2026-10-09/project-interior-large.png";
-import cyberpunk from "../../../../static/screenshots/world-cyberpunk.png";
 ---
 
 <SiteLayout
@@ -18,17 +16,18 @@ import cyberpunk from "../../../../static/screenshots/world-cyberpunk.png";
         Toolkit's information architecture: each place represents a real domain
         and opens its canonical workflow.
       </p>
-      <figure class="pixel-frame page-hero-art">
-        <img
-          src={world.src}
-          alt="Actual Agent Toolkit Desktop workspace map, with projects represented by separate buildings and shared concepts gathered around the valley"
-          fetchpriority="high"
-        />
-        <figcaption class="screen-caption">
-          <span>ONE WORKSPACE · ONE MAP</span>
-          <span>real project roster</span>
-        </figcaption>
-      </figure>
+      <!-- TODO(#1759-B): replace this CSS valley scene with governed PXL website art. -->
+      <div
+        class="valley-scene"
+        role="img"
+        aria-label="Layered Hornero Valley scene: green hills, a sunlit path and dark pine ridges"
+      ></div>
+      <p class="hero-caption">
+        <span>Illustration · not live product state</span>
+        <span>
+          Hornero Valley is the current world; Cyberpunk City is retired
+        </span>
+      </p>
     </div>
   </section>
   <section class="section section--deep">
@@ -124,46 +123,18 @@ import cyberpunk from "../../../../static/screenshots/world-cyberpunk.png";
       </figure>
     </div>
   </section>
-  <section class="section section--neon">
-    <div class="wrap scene-grid">
-      <div class="scene-copy">
-        <p class="section-kicker">Two worlds, one workspace</p>
-        <h2>Or move downtown: Cyberpunk City.</h2>
-        <p>
-          The world theme is not a palette swap. Cyberpunk City replaces the
-          valley wholesale — neon tower homes and capsule houses, an HQ spire, a
-          transit-station workshop, neon asphalt and canals, holo trees and
-          neon-coated people — while every place keeps its name sign and its
-          meaning. Walk up to any building and its plaque tells you what it is
-          and what it needs, no hover required.
-        </p>
-        <p class="neon-sign" aria-hidden="true">
-          CYBERPUNK CITY · NOW BOARDING
-        </p>
-      </div>
-      <div
-        class="neon-card"
-        role="img"
-        aria-label="Stylised neon sign reading Cyberpunk City over a pixel skyline"
-      >
-        <span class="neon-card-title">
-          CYBERPUNK
-          <br />
-          CITY
-        </span>
-        <span class="neon-card-sub">
-          neon towers · capsule homes · holo trees
-        </span>
-      </div>
-    </div>
-  </section>
   <section class="section section--deep">
     <div class="wrap closing-banner">
       <p class="section-kicker">Find your place</p>
-      <h2>Start with the whole valley — or the neon city.</h2>
+      <h2>Start with the whole valley.</h2>
       <p>
         Projects and landmarks stay one click away through the map, app
-        navigation and command palette.
+        navigation and command palette. v1.49.0 is released; daily-driver
+        real-provider acceptance is still in development (
+        <a href="https://github.com/ulises-jeremias/agent-toolkit/issues/1673">
+          issue #1673
+        </a>
+        ).
       </p>
       <div class="button-row">
         <a class="button" href="/download/">
