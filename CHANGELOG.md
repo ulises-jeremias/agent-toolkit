@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Project Changes gains a History view: recent commits from a
+  typed `git/log` route, and clicking a commit renders its diff (`git/show`, capped at
+  200,000 bytes with a `truncated` flag) in the pane. Diff lines now carry old/new
+  line-number gutters.
+
 - Add an opt-in daily-driver baseline collector with an isolated failing Git
   fixture and provider executable/version preflight. Authentication and all
   real-provider journeys remain explicitly unverified until a field trial.

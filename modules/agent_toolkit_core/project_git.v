@@ -199,7 +199,11 @@ pub fn project_git_diff_typed(root string, project string, path string, staged b
 	mut diff := res.stdout
 	mut truncated := false
 	if diff.len > max_git_diff_chars {
-		diff = diff[..max_git_diff_chars]
+		mut cut := max_git_diff_chars
+		for cut > 0 && (diff[cut] & 0xC0) == 0x80 {
+			cut--
+		}
+		diff = diff[..cut]
 		truncated = true
 	}
 	return ProjectGitDiffResponse{
@@ -418,4 +422,166 @@ pub fn project_git_stage_hunk_typed(root string, project string, path string, st
 		}
 	}
 	return project_git_status_typed(root, project)
+}
+
+pub struct GitCommitInfo {
+pub:
+	hash    string
+	short   string
+	subject string
+	author  string
+	date    string
+}
+
+pub struct ProjectGitLogResponse {
+pub:
+	ok      bool
+	project string
+	detail  string
+pub mut:
+	commits []GitCommitInfo
+}
+
+pub struct ProjectGitShowResponse {
+pub:
+	ok        bool
+	project   string
+	hash      string
+	diff      string
+	truncated bool
+	detail    string
+}
+
+// parse_git_log parses `git log --format=%H%x00%h%x00%s%x00%an%x00%ad`
+// output (NUL-separated fields, newline-separated records).
+pub fn parse_git_log(project string, text string) ProjectGitLogResponse {
+	mut resp := ProjectGitLogResponse{
+		ok: true
+		project: project
+	}
+	for line in text.split_into_lines() {
+		parts := line.split('\x00')
+		if parts.len < 5 {
+			continue
+		}
+		resp.commits << GitCommitInfo{
+			hash: parts[0]
+			short: parts[1]
+			subject: parts[2]
+			author: parts[3]
+			date: parts[4]
+		}
+	}
+	return resp
+}
+
+// project_git_log_typed lists recent commits of the project repository.
+pub fn project_git_log_typed(root string, project string, limit int) ProjectGitLogResponse {
+	n := if limit > 0 && limit <= 200 { limit } else { 50 }
+	res := git_run(root, ['log', '-n', '${n}', '--date=short', '--format=%H%x00%h%x00%s%x00%an%x00%ad']) or {
+		return ProjectGitLogResponse{
+			ok: false
+			project: project
+			detail: err.msg()
+		}
+	}
+	if res.exit_code != 0 {
+		msg := res.stderr.trim_space()
+		return ProjectGitLogResponse{
+			ok: false
+			project: project
+			detail: if msg.len > 0 { msg } else { 'git log exited with code ${res.exit_code}' }
+		}
+	}
+	return parse_git_log(project, res.stdout)
+}
+
+fn valid_commit_hash(hash string) bool {
+	if hash.len < 7 || hash.len > 64 {
+		return false
+	}
+	for c in hash.bytes() {
+		is_hex := (c >= `0` && c <= `9`) || (c >= `a` && c <= `f`) || (c >= `A` && c <= `F`)
+		if !is_hex {
+			return false
+		}
+	}
+	return true
+}
+
+// project_git_show_typed returns the full diff of one commit.
+pub fn project_git_show_typed(root string, project string, hash string) ProjectGitShowResponse {
+	if !valid_commit_hash(hash) {
+		return ProjectGitShowResponse{
+			ok: false
+			project: project
+			hash: hash
+			detail: 'invalid commit hash'
+		}
+	}
+	type_res := git_run(root, ['cat-file', '-t', hash]) or {
+		return ProjectGitShowResponse{
+			ok: false
+			project: project
+			hash: hash
+			detail: err.msg()
+		}
+	}
+	if type_res.exit_code != 0 || type_res.stdout.trim_space() != 'commit' {
+		return ProjectGitShowResponse{
+			ok: false
+			project: project
+			hash: hash
+			detail: 'not a commit'
+		}
+	}
+	// Write the potentially large patch to disk instead of a redirected stdout pipe.
+	// ProcessService.run waits before draining stdout; large patches otherwise deadlock.
+	patch_path := os.join_path(os.temp_dir(), 'at-git-show-${os.getpid()}-${time.now().unix_milli()}-${hash}.patch')
+	defer {
+		os.rm(patch_path) or {}
+	}
+	res := git_run(root, ['show', '--no-color', '--diff-merges=first-parent', '--format=', '--output=${patch_path}', hash]) or {
+		return ProjectGitShowResponse{
+			ok: false
+			project: project
+			hash: hash
+			detail: err.msg()
+		}
+	}
+	if res.exit_code != 0 {
+		msg := res.stderr.trim_space()
+		return ProjectGitShowResponse{
+			ok: false
+			project: project
+			hash: hash
+			detail: if msg.len > 0 { msg } else { 'git show exited with code ${res.exit_code}' }
+		}
+	}
+	// --output writes the patch to disk, so stdout is intentionally empty.
+	// Read the generated patch after git exits; do not silently return an empty diff.
+	mut diff := os.read_file(patch_path) or {
+		return ProjectGitShowResponse{
+			ok: false
+			project: project
+			hash: hash
+			detail: 'failed to read git show patch: ${err.msg()}'
+		}
+	}
+	mut truncated := false
+	if diff.len > max_git_diff_chars {
+		mut cut := max_git_diff_chars
+		for cut > 0 && (diff[cut] & 0xC0) == 0x80 {
+			cut--
+		}
+		diff = diff[..cut]
+		truncated = true
+	}
+	return ProjectGitShowResponse{
+		ok: true
+		project: project
+		hash: hash
+		diff: diff
+		truncated: truncated
+	}
 }

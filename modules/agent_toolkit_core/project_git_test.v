@@ -147,3 +147,67 @@ fn test_project_git_stage_and_unstage_single_hunk() {
 	assert staged2.diff == '', staged2.diff
 	assert after_unstage.staged.len == 0
 }
+
+fn test_parse_git_log_lines() {
+	text := 'abc1234full\x00ab1234\x00Document the garden\x00Test\x002026-10-23\n' +
+		'def5678full\x00def5678\x00Initial commit\x00Test\x002026-10-22\n'
+	commits := parse_git_log('demo', text)
+	assert commits.ok
+	assert commits.commits.len == 2
+	assert commits.commits[0].hash == 'abc1234full'
+	assert commits.commits[0].subject == 'Document the garden'
+	assert parse_git_log('demo', 'abc1234full\x00ab1234\x00Subject with \x1f control\x00Test\x002026-10-23\n').commits[0].subject == 'Subject with \x1f control'
+	assert commits.commits[1].date == '2026-10-22'
+	assert parse_git_log('demo', '').commits.len == 0
+}
+
+fn test_project_git_log_empty_repository_returns_git_error() {
+	git_path := os.find_abs_path_of_executable('git') or { return }
+	_ := git_path
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-projlog-empty-${os.getpid()}')
+	os.mkdir_all(base) or { panic(err.msg()) }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	git_fixture(['git', 'init', '-q', '-b', 'main'], base)
+	resp := project_git_log_typed(base, 'demo', 50)
+	assert !resp.ok
+	assert resp.commits.len == 0
+	assert resp.detail.len > 0
+}
+
+
+fn test_project_git_show_reads_patch_file_and_truncates_large_diff() {
+	git_path := os.find_abs_path_of_executable('git') or { return }
+	_ := git_path
+	base := os.join_path(os.real_path(os.temp_dir()), 'at-projshow-large-${os.getpid()}')
+	os.mkdir_all(base) or { panic(err.msg()) }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	git_fixture(['git', 'init', '-q', '-b', 'main'], base)
+	git_fixture(['git', 'config', 'user.email', 'test@example.com'], base)
+	git_fixture(['git', 'config', 'user.name', 'Test'], base)
+	os.write_file(os.join_path(base, 'large.txt'), 'hello world\n') or { panic(err.msg()) }
+	git_fixture(['git', 'add', 'large.txt'], base)
+	git_fixture(['git', 'commit', '-q', '-m', 'initial'], base)
+	first := git_run(base, ['rev-parse', 'HEAD']) or { panic(err.msg()) }
+	small := project_git_show_typed(base, 'demo', first.stdout.trim_space())
+	assert small.ok, small.detail
+	assert small.diff.contains('+hello world')
+	assert !small.truncated
+
+	mut content := ''
+	for i in 0 .. 16000 {
+		content += 'line-${i} abcdefghijklmnopqrstuvwxyz\n'
+	}
+	os.write_file(os.join_path(base, 'large.txt'), content) or { panic(err.msg()) }
+	git_fixture(['git', 'add', 'large.txt'], base)
+	git_fixture(['git', 'commit', '-q', '-m', 'large patch'], base)
+	second := git_run(base, ['rev-parse', 'HEAD']) or { panic(err.msg()) }
+	large := project_git_show_typed(base, 'demo', second.stdout.trim_space())
+	assert large.ok, large.detail
+	assert large.truncated
+	assert large.diff.len <= max_git_diff_chars
+	assert large.diff.contains('+line-0 abcdefghijklmnopqrstuvwxyz')
+}

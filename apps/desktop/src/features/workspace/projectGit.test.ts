@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ProjectGitStatusResponse } from '../../lib/api';
-import { diffLineTone, isClean, splitDiffHunks, totalChanges } from './projectGit';
+import { annotateHunk, diffLineTone, hunkStarts, isClean, splitDiffHunks, totalChanges } from './projectGit';
 
 const status = (over: Partial<ProjectGitStatusResponse>): ProjectGitStatusResponse => ({
   ok: true,
@@ -59,5 +59,22 @@ describe('splitDiffHunks', () => {
     expect(hunks[0]?.lines).toContain('+two');
     expect(hunks[1]?.lines).toContain('+sixx');
     expect(splitDiffHunks('')).toEqual([]);
+  });
+});
+
+describe('annotateHunk', () => {
+  it('numbers added, removed, and context lines in the gutter', () => {
+    const rows = annotateHunk({
+      header: '@@ -10,3 +10,4 @@',
+      lines: [' context', '-old', '+new', '+more', ' tail'],
+    });
+    expect(rows.map((r) => [r.oldNo, r.newNo])).toEqual([
+      [10, 10],
+      [11, null],
+      [null, 11],
+      [null, 12],
+      [12, 13],
+    ]);
+    expect(hunkStarts('@@ -1 +1 @@')).toEqual({ oldStart: 1, newStart: 1 });
   });
 });

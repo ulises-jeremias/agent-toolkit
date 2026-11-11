@@ -67,6 +67,7 @@ function useProjectGitMutation<I>(
         ...(error || !result?.ok
           ? [queryClient.invalidateQueries({ queryKey: qk.projects.gitStatus(workspace, project) })]
           : []),
+        queryClient.invalidateQueries({ queryKey: ['projects', 'git-log', workspace, project] }),
       ]),
   });
 }
@@ -81,6 +82,29 @@ export function useProjectGitUnstage(workspace: string, project: string) {
   return useProjectGitMutation(workspace, project, (client, paths: string[]) =>
     client.projectGitUnstage(workspace, project, paths),
   );
+}
+
+/** Recent commits of one registered project repository. */
+export function useProjectGitLog(workspace: string, project: string) {
+  const { client } = useBackend();
+  return useQuery({
+    queryKey: ['projects', 'git-log', workspace, project],
+    queryFn: () => requireClient(client).projectGitLog(workspace, project),
+    enabled: client !== null && workspace.trim().length > 0 && project.length > 0,
+    staleTime: 0,
+    refetchOnMount: 'always' as const,
+  });
+}
+
+/** Full diff of one commit in the project repository. */
+export function useProjectGitShow(workspace: string, project: string, hash: string) {
+  const { client } = useBackend();
+  return useQuery({
+    queryKey: ['projects', 'git-show', workspace, project, hash],
+    queryFn: () => requireClient(client).projectGitShow(workspace, project, hash),
+    enabled: client !== null && workspace.trim().length > 0 && project.length > 0 && hash.length > 0,
+    staleTime: 0,
+  });
 }
 
 export interface GitHunkSelection {
