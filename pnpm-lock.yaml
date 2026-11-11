@@ -81,7 +81,7 @@ importers:
         specifier: ^6.0.3
         version: 6.1.1(vite@8.3.1(@types/node@26.6.3)(jiti@2.7.0)(sass@1.105.0)(yaml@2.9.1))
       electron:
-        specifier: '44'
+        specifier: ^44.11.0
         version: 44.11.0(supports-color@10.2.2)
       electron-builder:
         specifier: ^26.15.3
