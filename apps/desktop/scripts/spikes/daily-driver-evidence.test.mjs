@@ -37,3 +37,17 @@ test('missing journey or invalid row stays unverified', () => {
   assert.deepEqual(packagedGateStatus([]).missing, ['D01','D02','D03','D04','D05','D06','D07']);
   assert.match(validateEvidence([null]).join(' '), /expected object/);
 });
+
+test('mixed packaged versions or target platforms cannot be treated as one installed journey', () => {
+  const rows = Array.from({ length: 7 }, (_, i) => real(`D0${i + 1}`));
+  for (const patch of [
+    { toolkit_sha: 'another-commit' },
+    { package_version: 'different-installer sha256:other' },
+    { platform: 'Windows x64' },
+  ]) {
+    const mixed = rows.map((row, i) => i === 3 ? { ...row, ...patch } : row);
+    const gate = packagedGateStatus(mixed);
+    assert.equal(gate.status, 'unverified');
+    assert.match(gate.errors.join(' '), /multiple builds\/platforms/);
+  }
+});
