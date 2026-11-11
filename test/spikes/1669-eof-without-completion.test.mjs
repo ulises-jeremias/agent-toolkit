@@ -17,13 +17,13 @@ test('zero exit after start but without completion remains interrupted', async (
   assert.ok(!snapshot.events.some(event => event.type === 'completed'));
 });
 
-test('zero exit without any session events remains idle', async () => {
+test('zero exit without any session events rejects without fabricating a run', async () => {
   const journal = new SessionJournal('empty-eof');
-  const snapshot = await projectTransport(
-    processEvents(process.execPath, ['--input-type=module', '-e', '']),
-    journal,
+  await assert.rejects(
+    projectTransport(processEvents(process.execPath, ['--input-type=module', '-e', '']), journal),
+    /transport ended before start/,
   );
-  assert.equal(snapshot.status, 'idle');
-  assert.equal(snapshot.runId, null);
-  assert.deepEqual(snapshot.events, []);
+  assert.equal(journal.status, 'idle');
+  assert.equal(journal.run, null);
+  assert.deepEqual(journal.events, []);
 });
