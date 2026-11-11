@@ -100,3 +100,25 @@ test('large stderr output cannot deadlock the supervised process or leak secrets
   assert.equal(result.status, 'completed');
   assert.ok(!JSON.stringify(result).includes(secret));
 });
+
+// Regression #1755: a child may emit unbounded bytes without a newline.
+test('oversized unterminated stdout fails closed and reaps a stubborn child', async () => {
+  const journal = new SessionJournal('oversized-unterminated');
+  const started = Date.now();
+  await assert.rejects(projectTransport(processEvents(process.execPath, args(`
+    process.on('SIGTERM', () => {});
+    process.stdout.write('x'.repeat(1024 * 1024 + 128));
+    setInterval(() => {}, 1000);
+  `)), journal), /oversized transport event/);
+  assert.ok(Date.now() - started < 8000, 'oversized child must be reaped promptly');
+  assert.equal(journal.status, 'interrupted');
+  assert.ok(!journal.events.some(event => event.type === 'completed'));
+});
+
+test('multibyte JSONL bytes are bounded before decoding', async () => {
+  const journal = new SessionJournal('oversized-multibyte');
+  await assert.rejects(projectTransport(processEvents(process.execPath, args(`
+    console.log(JSON.stringify({type:'output',text:'🪺'.repeat(300000)}));
+  `)), journal), /oversized transport event/);
+  assert.equal(journal.status, 'interrupted');
+});

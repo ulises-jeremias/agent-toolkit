@@ -1,5 +1,31 @@
 import { spawn } from 'node:child_process';
-import { createInterface } from 'node:readline';
+// Bound raw bytes before parsing: readline buffers unbounded lines until newline.
+const MAX_EVENT_BYTES = 1024 * 1024;
+
+async function* boundedLines(stream) {
+  let fragments = [];
+  let size = 0;
+  for await (const chunk of stream) {
+    let start = 0;
+    for (let i = 0; i < chunk.length; i++) {
+      if (chunk[i] !== 10) continue;
+      const part = chunk.subarray(start, i);
+      if (size + part.length > MAX_EVENT_BYTES) throw new Error('oversized transport event');
+      const line = Buffer.concat([...fragments, part], size + part.length).toString('utf8');
+      yield line.endsWith('\r') ? line.slice(0, -1) : line;
+      fragments = [];
+      size = 0;
+      start = i + 1;
+    }
+    if (start < chunk.length) {
+      const part = chunk.subarray(start);
+      if (size + part.length > MAX_EVENT_BYTES) throw new Error('oversized transport event');
+      fragments.push(part);
+      size += part.length;
+    }
+  }
+  if (size) yield Buffer.concat(fragments, size).toString('utf8');
+}
 
 // Gate 1 subprocess-boundary experiment, NOT a coding-provider adapter.
 // JSONL is a fixture protocol, not a claimed Claude/Codex/OpenCode interface.
@@ -14,7 +40,7 @@ function forceKill(child) {
 export async function* processEvents(command, args = [], { cwd, signal } = {}) {
   if (typeof command !== 'string' || !command) throw new TypeError('command required');
   const child = spawn(command, args, { cwd, signal, stdio: ['ignore', 'pipe', 'pipe'], shell: false });
-  const lines = createInterface({ input: child.stdout, crlfDelay: Infinity });
+
   // Drain stderr so the child cannot block on a full pipe. Never surface raw
   // provider stderr in an exception: it may contain prompts, paths or tokens.
   child.stderr.resume();
@@ -23,9 +49,7 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
   let abortEscalation;
   let spawnError;
   const onAbort = () => {
-    // Closing readline explicitly settles its async iterator; destroying only
-    // the underlying stream can leave a pending next() unresolved in Node 22.
-    lines.close();
+    // Destroy the byte-bounded stdout iterator immediately on cancellation.
     child.stdout.destroy();
     // The line iterator can finish before the child exits. Start the bounded
     // escalation here, not only in finally (which may be waiting on `closed`).
@@ -49,9 +73,8 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
   else signal?.addEventListener('abort', onAbort, { once: true });
   let pendingCompletion = null;
   try {
-    for await (const line of lines) {
+    for await (const line of boundedLines(child.stdout)) {
       if (!line.trim()) continue;
-      if (line.length > 1024 * 1024) throw new Error('oversized transport event');
       let event;
       try { event = JSON.parse(line); } catch { throw new Error('invalid JSONL transport event'); }
       // A provider-like completion is not authoritative until its supervising
@@ -71,7 +94,7 @@ export async function* processEvents(command, args = [], { cwd, signal } = {}) {
     if (pendingCompletion) yield pendingCompletion;
   } finally {
     signal?.removeEventListener('abort', onAbort);
-    lines.close();
+    child.stdout.destroy();
     if (child.exitCode === null) {
       // A provider process may ignore SIGTERM (or keep stdout open). Do not
       // hang session teardown indefinitely while awaiting its close event.
