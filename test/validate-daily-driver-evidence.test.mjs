@@ -61,3 +61,25 @@ test('packaged field trial requires matching provenance for every D01-D07 run', 
   ledger.packaged_field_trial.runs[3].package_version = 'different-package';
   assert.match(validateLedger(ledger).join(' '), /missing matching P-level D04 run/);
 });
+
+
+test('field trial cannot reuse provenance while substituting observation or artifacts', () => {
+  const ledger = clone();
+  const makeRun = id => ({ journey_id: id, outcome: 'pass', evidence_level: 'P',
+    toolkit_sha: 'a'.repeat(40), package_version: 'v1.49.0 sha256:real',
+    platform: 'linux-x64', provider: 'claude', timestamp_utc: '2026-11-11T12:00:00Z',
+    steps_to_reproduce: 'Open packaged app', observed: 'Real task result',
+    tested_by: 'tester', logs: ['artifacts/redacted/run.log'] });
+  const ids = ['D01','D02','D03','D04','D05','D06','D07'];
+  for (const id of ids) ledger.journeys[id] = { outcome: 'pass', evidence_level: 'P', runs: [makeRun(id)] };
+  ledger.packaged_field_trial = { outcome: 'pass', evidence_level: 'P', runs: ids.map(makeRun) };
+  ledger.status = 'accepted'; ledger.evidence_level = 'P';
+  assert.deepEqual(validateLedger(ledger), []);
+  ledger.packaged_field_trial.runs[2].observed = 'Unrelated result';
+  assert.match(validateLedger(ledger).join(' '), /missing matching P-level D03 run/);
+  ledger.packaged_field_trial.runs[2].observed = 'Real task result';
+  ledger.packaged_field_trial.runs[2].logs = ['artifacts/redacted/other.log'];
+  assert.match(validateLedger(ledger).join(' '), /missing matching P-level D03 run/);
+  ledger.packaged_field_trial.runs[2].logs = [];
+  assert.match(validateLedger(ledger).join(' '), /missing concrete artifact reference/);
+});

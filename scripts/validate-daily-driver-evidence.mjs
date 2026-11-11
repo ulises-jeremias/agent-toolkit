@@ -74,15 +74,34 @@ export function validateLedger(ledger) {
           Date.parse(run.timestamp_utc) >= Date.parse(ordered[index - 1].timestamp_utc))),
         'packaged field trial D01-D07 timestamps must be chronological');
     }
+    // Trial rows are themselves acceptance claims: validate their evidence,
+    // not just the separately recorded journey rows. Matching metadata alone
+    // must not allow a blank or substituted trial observation to be accepted.
+    for (const [index, run] of trialRuns.entries()) {
+      if (!run || run.outcome !== 'pass' || run.evidence_level !== 'P') continue;
+      for (const key of ['steps_to_reproduce', 'observed', 'tested_by']) {
+        check(typeof run[key] === 'string' && run[key].trim().length > 0,
+          `packaged field trial runs[${index}]: missing ${key}`);
+      }
+      const artifacts = [...(Array.isArray(run.logs) ? run.logs : []),
+        ...(Array.isArray(run.screenshots) ? run.screenshots : [])];
+      check(artifacts.some(ref => typeof ref === 'string' &&
+          (/^https:\/\/[^\s/]+\/\S+$/.test(ref) ||
+            /^(?:\.\/)?[\w.-]+(?:\/[\w.-]+)+$/.test(ref)) &&
+          !/placeholder|fixture|synthetic|example/i.test(ref)),
+          `packaged field trial runs[${index}]: missing concrete artifact reference`);
+    }
     for (const id of ids.slice(0, 7)) {
       const trialRuns = Array.isArray(field.runs) ? field.runs : [];
       const evidenceRuns = Array.isArray(journeys[id]?.runs) ? journeys[id].runs : [];
-      const keys = ['journey_id', 'toolkit_sha', 'package_version', 'platform', 'provider', 'timestamp_utc'];
+      const keys = ['journey_id', 'toolkit_sha', 'package_version', 'platform', 'provider', 'timestamp_utc', 'steps_to_reproduce', 'observed', 'tested_by'];
       const matches = trialRuns.some(trial => trial?.journey_id === id &&
         trial.outcome === 'pass' && trial.evidence_level === 'P' &&
         evidenceRuns.some(record => record?.outcome === 'pass' && record?.evidence_level === 'P' &&
           keys.every(key => typeof trial[key] === 'string' && trial[key].trim() &&
-            trial[key] === record[key])));
+            trial[key] === record[key]) &&
+          JSON.stringify(trial.logs ?? []) === JSON.stringify(record.logs ?? []) &&
+          JSON.stringify(trial.screenshots ?? []) === JSON.stringify(record.screenshots ?? [])));
       check(matches, `packaged field trial missing matching P-level ${id} run`);
     }
   }
