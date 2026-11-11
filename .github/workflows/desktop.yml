@@ -34,7 +34,9 @@ on:
 
 jobs:
   gates:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest (26.04/resolute) has no Ubuntu archive on the
+    # runner mirror yet, so playwright --with-deps (apt) fails. 24.04 LTS works.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
