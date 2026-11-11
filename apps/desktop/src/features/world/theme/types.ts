@@ -32,7 +32,7 @@ export interface WorldThemePack {
   decor?: Readonly<Partial<Record<DecorKind, ThemeAsset>>>;
   /** Interior floor/wall/furniture tiles. */
   interior?: Readonly<Partial<Record<DecorKind, ThemeAsset>>>;
-  /** Character sprite prefix for this pack (e.g. `char-cyber-`). */
+  /** Character sprite prefix for this pack (e.g. `char-`). */
   characterPrefix?: string;
 }
 

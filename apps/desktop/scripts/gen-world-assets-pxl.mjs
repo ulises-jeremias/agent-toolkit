@@ -41,6 +41,11 @@ const FRAME_WIDTHS = [
   [/^water$/, 16],
   [/^char-/, 16],
   [/^lamp$/, 16],
+  [/^hornero$/, 16],
+  [/^butterfly$/, 8],
+  [/^firefly$/, 12],
+  [/^mote$/, 10],
+  [/^water-sparkle$/, 10],
 ];
 
 function frameWidth(name, pngWidth) {

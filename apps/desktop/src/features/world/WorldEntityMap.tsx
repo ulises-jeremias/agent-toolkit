@@ -26,7 +26,7 @@ import {
   worldCellKey,
   type WorldPoint,
 } from './player';
-import { resolveEntityAsset, type WorldThemePack } from './theme/cozyValley';
+import { resolveEntityAsset, type WorldThemePack } from './theme/horneroValley';
 import styles from './world.module.css';
 
 export type WorldHref = (path: string, extra?: Record<string, string | undefined>) => string;
@@ -98,7 +98,7 @@ export interface WorldEntityMapProps {
 
 /** Integer zoom steps (display px per 16px source tile). */
 const ZOOMS = WORLD_ZOOMS;
-const PLAYER_APPEARANCES = ['river', 'grove', 'ember', 'neon'] as const;
+const PLAYER_APPEARANCES = ['river', 'grove', 'ember', 'dusk'] as const;
 type PlayerAppearance = (typeof PLAYER_APPEARANCES)[number];
 
 function isPlayerAppearance(value: string | null): value is PlayerAppearance {
@@ -605,7 +605,7 @@ export function WorldEntityMap({
       ref={regionRef}
       className={styles.mapRegion}
       style={{
-        backgroundImage: `url('${theme.id === 'cyberpunk-city' ? '/world/cyber-asphalt-0.png' : '/world/grass-a.png'}')`,
+        backgroundImage: `url('/world/grass-a.png')`,
         backgroundSize: `${zoom}px ${zoom}px`,
       }}
       role="application"

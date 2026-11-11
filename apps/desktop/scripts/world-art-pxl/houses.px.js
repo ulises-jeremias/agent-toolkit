@@ -9,7 +9,7 @@ function base(c,x,y,w,h,wall){c.ellipse(24,62,20,2,"q");c.rect(x,y,w,h,wall);c.v
 function timber(c,x,y,w){c.vline(x+2,y,22,"D");c.vline(x+w-3,y,22,"D");c.hline(x,y+1,w,"D")}
 sprite("house-cottage",{w:48,h:64},(c)=>{base(c,6,30,36,32,"c");timber(c,6,32,36);
   c.rect(34,12,6,12,"M");c.hline(33,11,8,"k");c.poly([24,6,46,32,2,32],"T");c.poly([24,6,46,32,24,32],"u");shingle(c,24,6,32,22,"u","b");c.hline(4,31,40,"k");c.px(12,18,"t");c.px(20,12,"t");
-  c.line(24,6,2,32,"k");c.line(24,6,46,32,"k");c.rect(9,47,10,3,"u");c.px(11,46,"r");c.px(14,45,"Y");c.px(17,46,"w")},
+  c.line(24,6,2,32,"k");c.line(24,6,46,32,"k");c.rect(9,47,10,3,"u");c.hline(9,47,10,"D");c.px(9,50,"D");c.px(18,50,"D");c.px(10,46,"f");c.px(11,46,"r");c.px(13,45,"f");c.px(14,45,"Y");c.px(16,46,"f");c.px(17,46,"w")},
   stamp("_door",30,46),stamp("_window-lit",10,36))
 sprite("house-studio",{w:48,h:64},(c)=>{base(c,5,32,38,30,"c");c.poly([24,10,45,34,3,34],"S");c.poly([24,10,45,34,24,34],"n");shingle(c,24,10,34,21,"n","k");c.hline(5,33,38,"k");
   c.rect(10,38,20,16,"n");c.rect(11,39,18,14,"A");c.rect(18,43,4,3,"a");c.px(13,41,"w");c.line(24,44,28,40,"a");c.vline(17,39,14,"n");c.vline(23,39,14,"n");c.hline(11,46,18,"n");c.rect(38,14,4,10,"M")},

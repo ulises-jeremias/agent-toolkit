@@ -9,7 +9,7 @@ function canopy(c,cols,seed,blossom){const [dark,mid,lit]=cols;c.circ(24,20,15,d
 function tree(name,cols,seed,blossom,extra){sprite(name,{w:48,h:48},(c)=>{shadowTrunk(c);canopy(c,cols,seed,blossom);if(extra)extra(c)})}
 tree("tree-round",["F","G","g"],11,false)
 tree("tree-blossom",["f","G","g"],12,true)
-tree("tree-amber",["f","J","j"],13,false,c=>{c.px(16,18,"Y");c.px(30,14,"Y");c.px(24,24,"L")})
+tree("tree-amber",["u","J","j"],13,false,c=>{c.px(16,18,"Y");c.px(30,14,"Y");c.px(24,24,"L")})
 tree("tree-rune",["F","f","G"],14,false,c=>{c.px(23,36,"a");c.px(24,35,"a");c.px(24,37,"A");c.px(22,34,"A");c.circ(34,16,2,"F");c.px(34,15,"a")})
 sprite("tree-pine",{w:48,h:48},(c)=>{c.ellipse(24,44,12,3,"F");c.rect(22,34,5,10,"D");c.vline(26,34,10,"b");
   c.poly([24,2,38,26,10,26],"F");c.poly([24,8,34,28,14,28],"f");c.poly([24,16,30,32,18,32],"G");

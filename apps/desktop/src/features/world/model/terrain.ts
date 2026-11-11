@@ -1056,7 +1056,7 @@ function forest(p: Painter, projectlessMeadow = false) {
       // boundary fill, which previously formed continuous tree walls.
       const groveDensity = projectlessMeadow ? 31 : 28;
       const naturallyWooded = edge
-        ? roll < (x >= p.cols - 6 ? 12 : 10)
+        ? roll < (x >= p.cols - 6 ? 6 : 10)
         : nearCreek
           ? roll < creekDensity
           : grove && roll < groveDensity;

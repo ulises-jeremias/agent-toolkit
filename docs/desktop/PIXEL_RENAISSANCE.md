@@ -63,3 +63,25 @@ apps/desktop/scripts/world-art-pxl/*.px.js   (editable PXL sources)
 
 Semantic contracts (ids, hrefs, truth gating in `model/buildWorld.ts`) do
 not change. See `SEMANTIC_WORLD.md`.
+
+## Design-assessment pass (post-review, PR C follow-up)
+
+Evidence: production bundle rendered in Chromium against the real V
+backend (`/api/v1/version` 200; browser shell shows the honest offline
+banner because backend CORS is Electron-bridge only — the packaged
+Electron CI suite with fresh HOME is the real-shell evidence), sprite
+previews, and CI Packaged Electron journeys.
+
+Findings (severity per design-assessment):
+- Major (fixed): east forest read as one solid mass → edge density
+  8/31 → 6/31; amber canopies read as orange blobs → rust-dark canopy
+  base for contrast.
+- Major (fixed): Settings pavilion had no entrance → door added.
+- Minor (accepted): Operations dishes read as plates at zoom 2; label
+  chips can overlap façades at 1024×640 (pre-existing DOM label layout).
+- Minor (accepted): People/Terminal empty states leave large canvas
+  (pre-existing feature layout, honest states, not a Renaissance
+  regression).
+- Not assessed: real-provider session characters, screen-reader pass,
+  WCAG conformance beyond static token contrast + jsx-a11y (never
+  claimed from static tests).

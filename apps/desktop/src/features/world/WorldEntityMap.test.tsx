@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { entityAccessibleName, entityHasInspector } from './inspectors';
 import { buildWorldModel, layoutWorld, paintTerrain } from './model';
 import type { MemoryEntryRecord, WorldDomainInput } from './model/types';
-import { cozyValleyTheme } from './theme/cozyValley';
+import { horneroValleyTheme } from './theme/horneroValley';
 import { nearestWorldNeighbor } from './spatialNavigation';
 import { nearbyWorldTarget, stepWorldPlayer, type WorldInput } from './player';
 import { WorldEntityList, WorldEntityMap } from './WorldEntityMap';
@@ -132,7 +132,7 @@ describe('WorldEntityMap activation', () => {
         <WorldEntityMap
           entities={layout.entities}
           selectedId={null}
-          theme={cozyValleyTheme}
+          theme={horneroValleyTheme}
           cols={layout.cols}
           rows={layout.rows}
           ariaLabel="test world"
@@ -178,7 +178,7 @@ describe('WorldEntityMap activation', () => {
         <WorldEntityMap
           entities={layout.entities}
           selectedId={null}
-          theme={cozyValleyTheme}
+          theme={horneroValleyTheme}
           cols={layout.cols}
           rows={layout.rows}
           ariaLabel="other world"
@@ -482,7 +482,7 @@ describe('WorldEntityMap activation', () => {
   });
 
   it('registers the rune-lit woodland sprite as original decor art', () => {
-    expect(cozyValleyTheme.decor?.['tree-rune']).toEqual(
+    expect(horneroValleyTheme.decor?.['tree-rune']).toEqual(
       expect.objectContaining({ kind: 'sprite', src: '/world/tree-rune.png', label: 'Rune-lit tree' }),
     );
   });
@@ -495,7 +495,7 @@ describe('WorldEntityMap activation', () => {
         <WorldEntityMap
           entities={layout.entities}
           selectedId={null}
-          theme={cozyValleyTheme}
+          theme={horneroValleyTheme}
           cols={layout.cols}
           rows={layout.rows}
           ariaLabel="suspension world"
@@ -514,7 +514,7 @@ describe('WorldEntityMap activation', () => {
         <WorldEntityMap
           entities={layout.entities}
           selectedId={null}
-          theme={cozyValleyTheme}
+          theme={horneroValleyTheme}
           cols={layout.cols}
           rows={layout.rows}
           ariaLabel="suspension world"
@@ -533,7 +533,7 @@ describe('WorldEntityMap activation', () => {
         <WorldEntityMap
           entities={layout.entities}
           selectedId={null}
-          theme={cozyValleyTheme}
+          theme={horneroValleyTheme}
           cols={layout.cols}
           rows={layout.rows}
           ariaLabel="suspension world"

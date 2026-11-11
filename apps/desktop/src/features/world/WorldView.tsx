@@ -26,7 +26,7 @@ import {
   type MemorySummary,
   type ToolRecord,
 } from './model';
-import { WORLD_THEME_PACKS, worldThemePack } from './theme/cyberpunkCity';
+import { WORLD_THEME_PACKS, worldThemePack } from './theme/horneroValley';
 import { ToolRecordInspector } from './ToolRecordInspector';
 import { useWorldDetailEscape } from './useWorldDetailEscape';
 import { WorldEntityList, WorldEntityMap } from './WorldEntityMap';
@@ -311,7 +311,7 @@ export default function WorldView() {
         <span className={styles.worldMeta}>
           {model.focusProjectId ? 'project interior' : worldPack.label} · {layout.entities.length} places
         </span>
-        {!model.focusProjectId ? (
+        {!model.focusProjectId && WORLD_THEME_PACKS.length > 1 ? (
           <div className={styles.worldThemePackPicker} role="group" aria-label="World theme">
             {WORLD_THEME_PACKS.map((pack) => (
               <button
