@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from "astro:content";
 import SiteLayout from "@/layouts/SiteLayout.astro";
+import DocsSearch from "@/components/DocsSearch.astro";
 import { publicDocs } from "@/data/docs-nav.mjs";
 
 export async function getStaticPaths() {
@@ -19,17 +20,33 @@ export async function getStaticPaths() {
 }
 
 const { document, entry } = Astro.props;
-const { Content } = await render(entry);
+const { Content, headings } = await render(entry);
 const currentGroup = document.group;
 const navGroups = [...new Set(publicDocs.map((item) => item.group))];
 const sourceUrl = `https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/${document.source}`;
+const currentIndex = publicDocs.findIndex(
+  (item) => item.slug === document.slug,
+);
+const previous = currentIndex > 0 ? publicDocs[currentIndex - 1] : undefined;
+const next =
+  currentIndex >= 0 && currentIndex < publicDocs.length - 1
+    ? publicDocs[currentIndex + 1]
+    : undefined;
+const toc = headings.filter(
+  (heading) => heading.depth === 2 || heading.depth === 3,
+);
 ---
 
 <SiteLayout
   title={`${document.title} — Agent Toolkit Docs`}
   description={document.description}
 >
-  <div class="wrap docs-shell">
+  <div
+    class:list={[
+      "wrap docs-shell",
+      { "docs-shell--with-toc": toc.length >= 2 },
+    ]}
+  >
     <aside class="docs-sidebar" aria-label="Documentation navigation">
       {navGroups.map((group) => (
         <div>
@@ -47,17 +64,104 @@ const sourceUrl = `https://github.com/ulises-jeremias/agent-toolkit/blob/main/do
         </div>
       ))}
     </aside>
-    <article class="docs-main">
+    <article class="docs-main" data-pagefind-body>
+      <nav
+        class="docs-breadcrumbs"
+        aria-label="Breadcrumb"
+        data-pagefind-ignore
+      >
+        <ol>
+          <li>
+            <a href="/">Home</a>
+          </li>
+          <li>
+            <a href="/docs/">Documentation</a>
+          </li>
+          <li>{currentGroup}</li>
+          <li aria-current="page">{document.title}</li>
+        </ol>
+      </nav>
+      <details class="docs-mobile-nav" data-pagefind-ignore>
+        <summary>Browse documentation</summary>
+        <nav aria-label="Documentation sections">
+          {navGroups.map((group) => (
+            <div>
+              <h2>{group}</h2>
+              {publicDocs
+                .filter((item) => item.group === group)
+                .map((item) => (
+                  <a
+                    href={`/docs/${item.slug}/`}
+                    aria-current={
+                      item.slug === document.slug ? "page" : undefined
+                    }
+                  >
+                    {item.title}
+                  </a>
+                ))}
+            </div>
+          ))}
+        </nav>
+      </details>
       <p class="eyebrow">{currentGroup}</p>
-      <h1>{document.title}</h1>
+      <h1 data-pagefind-meta="title">{document.title}</h1>
       <p class="docs-summary">{document.description}</p>
-      <p class="screen-caption" style="margin-bottom: 30px">
+      <DocsSearch id={`docs-search-${document.slug}`} />
+      <p
+        class="screen-caption"
+        style="margin-bottom: 30px"
+        data-pagefind-ignore
+      >
         <span>CANONICAL SOURCE</span>
         <a href={sourceUrl}>View this guide in GitHub ↗</a>
       </p>
       <div class="prose">
         <Content />
       </div>
+      {(previous || next) && (
+        <nav
+          class="docs-pager"
+          aria-label="Previous and next guides"
+          data-pagefind-ignore
+        >
+          {previous ? (
+            <a
+              class="docs-pager-link"
+              rel="prev"
+              href={`/docs/${previous.slug}/`}
+            >
+              <span>← Previous guide</span>
+              <strong>{previous.title}</strong>
+            </a>
+          ) : (
+            <span />
+          )}
+          {next && (
+            <a
+              class="docs-pager-link docs-pager-next"
+              rel="next"
+              href={`/docs/${next.slug}/`}
+            >
+              <span>Next guide →</span>
+              <strong>{next.title}</strong>
+            </a>
+          )}
+        </nav>
+      )}
     </article>
+    {toc.length >= 2 && (
+      <aside class="docs-toc" aria-label="On this page">
+        <nav aria-label="On this page">
+          <h2>On this page</h2>
+          <ul>
+            {toc.map((heading) => (
+              <li class={heading.depth === 3 ? "docs-toc-sub" : undefined}>
+                <a href={`#${heading.slug}`}>{heading.text}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </aside>
+    )}
   </div>
 </SiteLayout>

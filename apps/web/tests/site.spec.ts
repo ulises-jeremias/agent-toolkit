@@ -375,6 +375,48 @@ test("docs render canonical source with curated navigation", async ({
   await capturePage(page, "docs-index-desktop.png");
 });
 
+test("docs search returns heading-level results from the production index", async ({
+  page,
+}) => {
+  await page.goto("/docs/");
+  const search = page.getByRole("searchbox", {
+    name: /search the documentation/i,
+  });
+  await search.fill("swarm roles");
+  await expect(
+    page.locator(".docs-search-results a[href*='#']").first(),
+  ).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator(".docs-search-status")).toContainText(/match/);
+  const href = await page
+    .locator(".docs-search-results a[href*='#']")
+    .first()
+    .getAttribute("href");
+  expect(href).toMatch(/^\/docs\/[^/]+\/#.+/);
+  await page.locator(".docs-search-results a[href*='#']").first().click();
+  await expect(page).toHaveURL(/#.+/);
+});
+
+test("docs pages expose breadcrumbs, TOC and prev/next navigation", async ({
+  page,
+}) => {
+  await page.goto("/docs/people/");
+  await expect(
+    page.getByRole("navigation", { name: "Breadcrumb" }),
+  ).toContainText("People");
+  await expect(
+    page
+      .getByRole("navigation", { name: "On this page" })
+      .getByRole("link")
+      .first(),
+  ).toHaveAttribute("href", /^#/);
+  await expect(page.getByRole("link", { name: /next guide/i })).toBeVisible();
+  await page.getByRole("link", { name: /next guide/i }).click();
+  await expect(page).toHaveURL(/\/docs\/skills\/$/);
+  await expect(
+    page.getByRole("link", { name: /previous guide/i }),
+  ).toBeVisible();
+});
+
 test("mobile navigation, touch layout and reduced motion remain usable", async ({
   page,
 }) => {
@@ -420,7 +462,12 @@ test("mobile navigation, touch layout and reduced motion remain usable", async (
     .poll(() => page.locator("html").evaluate((element) => element.scrollWidth))
     .toBe(390);
   await page.goto("/docs/people/");
-  await expect(page.locator(".docs-sidebar a").first()).toBeVisible();
+  await page.getByText("Browse documentation").click();
+  await expect(
+    page
+      .getByRole("navigation", { name: "Documentation sections" })
+      .getByRole("link", { name: "Swarms" }),
+  ).toBeVisible();
   await capturePage(page, "docs-mobile.png");
 });
 

@@ -28,7 +28,11 @@ and `docs/desktop/assets/electron/` paths.
 Capability entries are read at build time from generated catalogs, MCP provider
 definitions and distribution manifests. Public documentation is rendered from
 the canonical Markdown under `docs/`; the navigation intentionally exposes a
-curated user-facing subset. Release downloads are queried from the actual
+curated user-facing subset. The production build also runs Pagefind over the
+rendered `/docs/` pages (`dist/pagefind/`), so docs search is full-text with
+heading-level result links; the index is a build artifact, never a second copy
+of the Markdown, and search simply reports itself unavailable under `astro
+dev`. Release downloads are queried from the actual
 latest GitHub Release, with a link to the canonical release page when the API
 is unavailable.
 

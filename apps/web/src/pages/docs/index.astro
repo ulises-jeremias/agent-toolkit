@@ -1,5 +1,6 @@
 ---
 import SiteLayout from "@/layouts/SiteLayout.astro";
+import DocsSearch from "@/components/DocsSearch.astro";
 import { publicDocs } from "@/data/docs-nav.mjs";
 
 const groups = [...new Set(publicDocs.map((document) => document.group))];
@@ -9,7 +10,7 @@ const groups = [...new Set(publicDocs.map((document) => document.group))];
   title="Documentation — Agent Toolkit"
   description="A curated guide to Agent Toolkit Desktop, the CLI, People, capabilities and real agent operations. Content is rendered from canonical repository documentation."
 >
-  <section class="page-hero">
+  <section class="page-hero" data-pagefind-ignore>
     <div class="wrap">
       <p class="eyebrow">The field guide</p>
       <h1>Clear paths into the Toolkit.</h1>
@@ -18,9 +19,14 @@ const groups = [...new Set(publicDocs.map((document) => document.group))];
         The navigation is curated for people using and contributing to the
         product; implementation research remains in GitHub.
       </p>
+      <DocsSearch id="docs-search-index" />
     </div>
   </section>
-  <section class="section section--deep" style="padding-top: 24px">
+  <section
+    class="section section--deep"
+    style="padding-top: 24px"
+    data-pagefind-ignore
+  >
     <div class="wrap">
       {groups.map((group) => (
         <section
