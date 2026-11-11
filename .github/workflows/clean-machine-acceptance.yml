@@ -20,7 +20,8 @@ on:
 jobs:
   linux-clean-machine:
     name: Packaged Electron with fresh HOME
-    runs-on: ubuntu-latest
+    # Pinned: see desktop.yml gates (ubuntu-26.04 archive unavailable).
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -33,7 +34,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Install display and browser dependencies
-        run: pnpm --filter agent-toolkit-desktop exec playwright install chromium --with-deps
+        run: pnpm --filter agent-toolkit-desktop exec playwright install chromium # no --with-deps (see desktop.yml)
       - name: Setup pinned V
         uses: ./.github/actions/setup-v
       - name: Build canonical backend

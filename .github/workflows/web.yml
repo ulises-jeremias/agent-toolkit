@@ -44,7 +44,8 @@ concurrency:
 
 jobs:
   quality:
-    runs-on: ubuntu-latest
+    # Pinned: see desktop.yml gates (ubuntu-26.04 archive unavailable).
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -60,7 +61,7 @@ jobs:
       - run: pnpm --filter agent-toolkit-web check
       - run: pnpm --filter agent-toolkit-web test
       - run: pnpm --filter agent-toolkit-web build
-      - run: pnpm --filter agent-toolkit-web exec playwright install chromium --with-deps
+      - run: pnpm --filter agent-toolkit-web exec playwright install chromium # no --with-deps (see desktop.yml)
       - name: Browser smoke, responsive and accessibility review
         env:
           CI: '1'
