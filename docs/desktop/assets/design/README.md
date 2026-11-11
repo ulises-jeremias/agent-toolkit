@@ -9,4 +9,4 @@ Use [DESIGN.md](../../DESIGN.md) and [SEMANTIC_WORLD.md](../../SEMANTIC_WORLD.md
 for the current visual and interaction contracts. Review current, real Electron
 captures in [`../electron/`](../electron/) and the README gallery. Production
 pixel art is original and generated from the source in
-`apps/desktop/scripts/gen-world-assets.mjs`; never copy third-party game art.
+`apps/desktop/scripts/gen-world-assets-pxl.mjs`; never copy third-party game art.

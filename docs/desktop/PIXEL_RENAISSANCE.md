@@ -41,14 +41,13 @@ apps/desktop/scripts/world-art-pxl/*.px.js   (editable PXL sources)
   -> skills/design/pxl-pixel-art/bin/pxl.js  (vendored renderer, pinned 21fee41)
   -> apps/desktop/scripts/gen-world-assets-pxl.mjs
   -> public/world/<name>.png + scripts/world-art-pxl/pxl-manifest.json
-  -> gen-world-assets.mjs merges entries into src/features/world/manifest.json
+  -> src/features/world/manifest.json (sole writer: gen-world-assets-pxl.mjs)
   -> WorldEntityMap / TerrainRenderer (manifest-driven, semantic ids stable)
 ```
 
 - `node scripts/gen-world-assets-pxl.mjs` regenerates; `--check` rebuilds
   and byte-compares (deterministic, seeded rng only).
-- `node scripts/gen-world-assets.mjs --check` remains the CI gate during
-  migration; it skips PXL-owned sprites and merges their manifest entries.
+- `node scripts/gen-world-assets-pxl.mjs --check` is the CI asset gate.
 - Previews for human review land in `scripts/world-art-pxl/preview/`.
 - Security: `.px.js` is trusted executable code. CI builds only the
   reviewed in-repo sources; external art files are never built.
@@ -58,8 +57,8 @@ apps/desktop/scripts/world-art-pxl/*.px.js   (editable PXL sources)
 1. PR B (this): pipeline + terrain/trees/houses/landmarks/characters core set.
 2. PR C: new world composition/theme (Meadow + Dusk), interiors, player set;
    remaining legacy sprites migrated or retired.
-3. PR E: delete `gen-world-assets.mjs` painters + `scripts/world-art/` PNG
-   sources; `gen-world-assets-pxl.mjs` becomes sole manifest writer.
+3. PR E (done): legacy `gen-world-assets.mjs` + `scripts/world-art/` PNG
+   sources deleted; `gen-world-assets-pxl.mjs` is the sole manifest writer.
 
 Semantic contracts (ids, hrefs, truth gating in `model/buildWorld.ts`) do
 not change. See `SEMANTIC_WORLD.md`.
@@ -95,3 +94,23 @@ professional surfaces (terminal, diffs, forms, tables) stay in the IBM
 Plex text faces at normal weights — pixel display type is reserved for
 navigation, titles and plaques, never for technical text. Meadow and Dusk
 share this chrome; Dusk deepens the canvas and warms the gold.
+
+## Visual QA evidence (PRs B–E)
+
+- Sprite level: every PXL build inspected at native + upscaled preview;
+  two fix iterations (bridge/library/archive identity, shingle texture,
+  grass density) driven by contact-sheet review.
+- App level: production bundle rendered (Chromium, no backend — the
+  honest offline state) and screens captured/reviewed: World Meadow at
+  1024×640, 1440×900, 1920×1080; World Dusk at 1440×900; Library,
+  People, Settings and the Ctrl+K command palette at 1440×900.
+- Accessibility (WCAG 2.2 AA, curated `review` modes): jsx-a11y via
+  `pnpm lint` (automatically detectable) clean; static token contrast
+  for the new ink-plum ramp passes all claimed pairs (text 8.5–15.5:1,
+  gold action 10.5:1, terracotta non-text 4.4:1); keyboard order, focus
+  rings, World list fallback and reduced-motion paths are unchanged
+  contracts covered by unit/E2E suites. Screen-reader pass and
+  real-backend Electron captures remain human QA items — not assessed
+  here, not claimed.
+- Known polish backlog (tracked in #1741): forest density on the east
+  bank, Dusk halo softening, flower-box detail on house-cottage.
