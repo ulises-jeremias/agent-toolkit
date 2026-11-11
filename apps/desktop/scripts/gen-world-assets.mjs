@@ -2302,13 +2302,25 @@ function dimensions(png, name) {
   return { w: png.readUInt32BE(16), h: png.readUInt32BE(20) };
 }
 
+function loadPxlManifest() {
+  // PXL Renaissance sprites (mission #1741) are owned by
+  // gen-world-assets-pxl.mjs; this generator skips them and merges their
+  // manifest entries so the world manifest stays single-writer here until
+  // the legacy painters retire (PR E).
+  const pxlManifestPath = path.join(here, 'world-art-pxl', 'pxl-manifest.json');
+  if (!fs.existsSync(pxlManifestPath)) return {};
+  return JSON.parse(fs.readFileSync(pxlManifestPath, 'utf8')).sprites ?? {};
+}
+
 function main() {
   const check = process.argv.includes('--check');
   const sprites = collect();
+  const pxlSprites = loadPxlManifest();
   const manifest = {};
   const written = [];
   const diffs = [];
   for (const [name, sprite] of sprites) {
+    if (pxlSprites[name]) continue;
     const originalPath = path.join(WORLD_ART, `${name}.png`);
     const originalPng = ORIGINAL_PIXEL_ASSETS.has(name) ? fs.readFileSync(originalPath) : null;
     const png = originalPng ?? render(sprite);
@@ -2334,6 +2346,7 @@ function main() {
       written.push(name);
     }
   }
+  Object.assign(manifest, pxlSprites);
   const manifestJson = JSON.stringify({ generated: 'gen-world-assets.mjs', sprites: manifest }, null, 2) + '\n';
   const manifestDest = path.join(OUT, 'manifest.json');
   if (check) {

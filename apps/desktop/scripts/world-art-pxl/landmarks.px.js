@@ -1,0 +1,19 @@
+// Landmarks — each: distinct silhouette + one signature detail.
+include("palette.px.js")
+function shingle(c,ax,ay,by,half,dl,dr){for(let y=ay+4,i=0;y<by;y+=4,i++){const t=(y-ay)/(by-ay),hw=Math.max(2,Math.round(half*t)),lx=ax-hw,rx=ax+hw;c.hline(lx,y,ax-lx,dl);c.hline(ax,y,rx-ax,dr);const off=(i%2)*3;for(let x=lx+3+off;x<rx-2;x+=7)c.vline(x,y,2,x<ax?dl:dr)}}
+function roofDark(col){return {T:"u",S:"n",v:"k",n:"k",A:"z",u:"b",r:"u",g:"G",G:"f"}[col]||"k"}
+function hall(c,w,h,wall,roof){const cx=w/2;c.ellipse(cx,h-2,w/2-2,2,"q");c.rect(6,30,w-12,h-32,wall);c.poly([cx,14,w-2,32,2,32],roof);shingle(c,cx,14,32,w/2-2,roofDark(roof),roofDark(roof));c.hline(4,31,w-8,"k");c.rect(cx-5,h-18,10,16,"D");c.px(cx+3,h-10,"Y");c.rect(10,40,8,10,"n");c.rect(11,41,6,8,"L");c.rect(w-18,40,8,10,"n");c.rect(w-17,41,6,8,"A")}
+function clock(c,x,y){c.circ(x,y,6,"w");c.ring(x,y,6,"k");c.line(x,y,x,y-4,"k");c.line(x,y,x+3,y+1,"k");c.px(x,y,"r")}
+sprite("landmark-workspace",{w:48,h:72},(c)=>{hall(c,48,72,"c","T");c.rect(18,2,12,16,"c");c.poly([24,0,32,8,16,8],"u");shingle(c,24,0,8,8,"b","b");clock(c,24,12);c.rect(8,58,32,3,"r");c.px(10,59,"L");c.px(37,59,"L");c.rect(13,58,6,3,"w");c.vline(16,58,3,"r");c.hline(22,59,4,"c");c.px(27,59,"w");c.hline(30,59,4,"c");c.px(20,59,"Y")})
+sprite("landmark-archive",{w:48,h:72},(c)=>{hall(c,48,72,"P","S");for(let i=0;i<3;i++){c.rect(9+i*12,34,8,4,"D");c.px(10+i*12,35,"m")}c.circ(24,45,5,"n");c.ring(24,45,5,"j");c.hline(20,45,9,"j");c.vline(24,41,9,"j");c.ring(24,45,2,"j");c.px(24,45,"Y")})
+sprite("landmark-library",{w:48,h:72},(c)=>{hall(c,48,72,"c","v");c.poly([24,0,30,18,18,18],"V");shingle(c,24,0,18,6,"v","v");c.rect(22,16,4,10,"v");c.px(24,4,"Y");
+  c.rect(7,34,34,20,"c");
+  const spines=["r","Y","V","g"];for(let wi=0;wi<3;wi++){const wx=8+wi*11;c.rect(wx,35,9,14,"n");c.rect(wx+1,36,7,12,"D");
+    for(let s=0;s<2;s++){const sy=36+s*6;for(let b=0;b<3;b++)c.vline(wx+1+b*2,sy,5,spines[(wi+b+s)%4]);c.hline(wx+1,sy+5,7,"b")}}
+  c.rect(17,49,14,5,"v");c.rect(18,48,5,4,"w");c.rect(25,48,5,4,"c");c.vline(24,48,5,"v");c.hline(19,50,3,"e");c.hline(26,50,3,"e")})
+sprite("landmark-workshop",{w:48,h:72},(c)=>{hall(c,48,72,"e","S");c.rect(34,6,7,22,"M");c.hline(33,5,9,"k");c.px(36,2,"L");c.px(38,0,"l");c.px(35,4,"J");for(let x=8;x<28;x+=6){c.rect(x,44,3,5,"r");c.rect(x+3,44,3,5,"w")}c.px(12,58,"J");c.line(10,60,16,54,"M")})
+sprite("landmark-operations",{w:48,h:72},(c)=>{hall(c,48,72,"c","n");clock(c,24,22);c.circ(13,54,4,"M");c.ring(13,54,4,"n");c.circ(35,54,4,"M");c.ring(35,54,4,"n");c.px(13,50,"Y");c.px(35,58,"Y");c.px(24,58,"A")})
+sprite("landmark-terminal",{w:48,h:72},(c)=>{hall(c,48,72,"c","A");c.rect(9,39,10,12,"c");c.rect(29,39,10,12,"c");c.vline(23,0,18,"n");c.vline(24,0,18,"n");c.hline(15,6,18,"n");c.hline(15,7,18,"n");c.px(15,6,"r");c.px(16,6,"r");c.px(24,3,"Y");c.px(32,6,"g");c.px(33,6,"g");c.px(24,12,"a");c.rect(15,42,18,10,"n");c.box(15,42,18,10,"m");c.px(17,44,"g");c.px(21,44,"A");c.px(17,48,"Y")})
+sprite("landmark-attention",{w:48,h:72},(c)=>{hall(c,48,72,"c","T");c.rect(14,34,20,16,"d");c.box(14,34,20,16,"b");c.rect(16,36,6,5,"w");c.rect(24,36,8,5,"l");c.rect(17,43,7,5,"V");c.px(28,45,"r");c.poly([24,8,32,20,16,20],"r");shingle(c,24,8,20,8,"u","u");c.px(24,11,"w")})
+sprite("landmark-files",{w:64,h:64},(c)=>{c.ellipse(32,62,28,2,"q");c.rect(6,24,52,38,"P");c.poly([32,8,60,26,4,26],"S");shingle(c,32,8,26,28,"n","n");c.hline(6,25,52,"k");for(let i=0;i<4;i++){c.rect(10+i*12,32,9,12,"D");c.hline(11+i*12,35,7,"m");c.px(17+i*12,40,"Y")}c.rect(26,48,12,14,"n");c.px(34,55,"Y")})
+sprite("landmark-settings",{w:64,h:64},(c)=>{c.ellipse(32,62,28,2,"q");c.rect(10,34,44,28,"c");c.poly([32,10,58,36,6,36],"g");c.poly([32,10,58,36,32,36],"G");shingle(c,32,10,36,26,"G","f");c.hline(8,35,48,"k");c.circ(32,26,5,"M");c.ring(32,26,5,"k");c.px(32,26,"Y");for(let x=16;x<52;x+=12){c.vline(x,38,20,"D");c.px(x,42,"L")}c.hline(12,52,40,"D")})

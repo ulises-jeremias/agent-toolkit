@@ -2,7 +2,7 @@
   "name": "agent-toolkit-desktop",
   "version": "1.48.0",
   "private": true,
-  "description": "Agent Toolkit Desktop — Electron + React workstation over the `agent-toolkit serve` backend",
+  "description": "Agent Toolkit Desktop \u2014 Electron + React workstation over the `agent-toolkit serve` backend",
   "author": "ulises-jeremias",
   "license": "MIT",
   "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
@@ -32,7 +32,9 @@
     "test": "vitest run && node --test scripts/spikes/*.test.mjs",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "gen:world": "node scripts/gen-world-assets-pxl.mjs && node scripts/gen-world-assets.mjs",
+    "check:world": "node scripts/gen-world-assets-pxl.mjs --check && node scripts/gen-world-assets.mjs --check"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",

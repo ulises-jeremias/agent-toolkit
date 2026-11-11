@@ -1,0 +1,541 @@
+{
+  "generated": "gen-world-assets-pxl.mjs",
+  "sprites": {
+    "char-brick": {
+      "file": "char-brick.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2,
+      "source": "scripts/world-art-pxl/characters.px.js",
+      "sha256": "08507a2a40d2214d0a55db8fc2e7d93a31003ea2809eb77daa36270a1f496b28"
+    },
+    "char-gold": {
+      "file": "char-gold.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2,
+      "source": "scripts/world-art-pxl/characters.px.js",
+      "sha256": "1ee6e8fd271747b06679eb698482b6097cc7ef4fe57af5cee2a0128b31dde284"
+    },
+    "char-keeper": {
+      "file": "char-keeper.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2,
+      "source": "scripts/world-art-pxl/characters.px.js",
+      "sha256": "5f0c7424c5b652d61553f0fa61ad12340adef926690620d9f629afae14394cbd"
+    },
+    "char-maker": {
+      "file": "char-maker.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2,
+      "source": "scripts/world-art-pxl/characters.px.js",
+      "sha256": "2de7fc6a0cd1f05f6fc96ce6e217531fd03dbd2393d43175414729ec544d4597"
+    },
+    "char-scholar": {
+      "file": "char-scholar.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2,
+      "source": "scripts/world-art-pxl/characters.px.js",
+      "sha256": "18588ec9cb1ba0043855be479c7684eca96eafe18b02a620b98033eeb567761f"
+    },
+    "char-scout": {
+      "file": "char-scout.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2,
+      "source": "scripts/world-art-pxl/characters.px.js",
+      "sha256": "60b58eee0192cd97cff32018a37bf779c1bcfe2485b9235d013b2806a88b5402"
+    },
+    "char-teal": {
+      "file": "char-teal.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2,
+      "source": "scripts/world-art-pxl/characters.px.js",
+      "sha256": "cf0c7c97196966dc8186038b8b2aa2d6541cbafacc93c3be5b4fa51164487dc0"
+    },
+    "house-brick": {
+      "file": "house-brick.png",
+      "w": 48,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/houses.px.js",
+      "sha256": "6e2aed0bbf7620c147bc83bee0f4dd84b4baf3679da7a0249d1c06817ac73763"
+    },
+    "house-cabin": {
+      "file": "house-cabin.png",
+      "w": 48,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/houses.px.js",
+      "sha256": "f32d916d95e53c31196b89d35fc5f28055eadf48a3111f2aaa130c2b098fbbc0"
+    },
+    "house-cottage": {
+      "file": "house-cottage.png",
+      "w": 48,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/houses.px.js",
+      "sha256": "27d83d7dd8f35614c09e3a0d28b134efd58e91d34194d1716c9f20ee476ca701"
+    },
+    "house-studio": {
+      "file": "house-studio.png",
+      "w": 48,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/houses.px.js",
+      "sha256": "64ed17424bf403a7eef68d650b5de957ce9b67711108e2cc55e7b08cb131bc0e"
+    },
+    "house-tower": {
+      "file": "house-tower.png",
+      "w": 48,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/houses.px.js",
+      "sha256": "c520f0f9c7d78cdc72ae7db97b442d68db6d65dc316a51d2608e03b279ae3dbc"
+    },
+    "house-workshop": {
+      "file": "house-workshop.png",
+      "w": 48,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/houses.px.js",
+      "sha256": "f3ec312802e2a972132c8472c04471e85aafeae4e6ccb0249f767bc7770e37db"
+    },
+    "landmark-archive": {
+      "file": "landmark-archive.png",
+      "w": 48,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/landmarks.px.js",
+      "sha256": "b9c63fde9dd99cf2e262d6f1a7fecd50eced94cc9fa3c272e44a993435c7f69f"
+    },
+    "landmark-attention": {
+      "file": "landmark-attention.png",
+      "w": 48,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/landmarks.px.js",
+      "sha256": "cc2be3a039375283cae7fecd68cf9623d6895bdad401777a809a7ce061bd4812"
+    },
+    "landmark-files": {
+      "file": "landmark-files.png",
+      "w": 64,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/landmarks.px.js",
+      "sha256": "b8b68f925bd7135269b96d971233ddb0dd225b3d407f0234a9dd002340b7fde0"
+    },
+    "landmark-library": {
+      "file": "landmark-library.png",
+      "w": 48,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/landmarks.px.js",
+      "sha256": "161ba84b1c282216d136147b96155cce5746b3792b9c291d8353dfe4b9e7063f"
+    },
+    "landmark-operations": {
+      "file": "landmark-operations.png",
+      "w": 48,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/landmarks.px.js",
+      "sha256": "749f52814212e9b20eb10c4b4e3d529ab779973bbddd23d8f2057617deba9e53"
+    },
+    "landmark-settings": {
+      "file": "landmark-settings.png",
+      "w": 64,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/landmarks.px.js",
+      "sha256": "edea9f86e2a3d7e0befa51a93e583a124825af9a04e518e8bab8919125dde212"
+    },
+    "landmark-terminal": {
+      "file": "landmark-terminal.png",
+      "w": 48,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/landmarks.px.js",
+      "sha256": "6ab9ecf128ea9086ab13debb1169502e8bd7aa629b748732d9290ffa5853502c"
+    },
+    "landmark-workshop": {
+      "file": "landmark-workshop.png",
+      "w": 48,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/landmarks.px.js",
+      "sha256": "e631041a6056705a346e63641a4967428371328955db9f98c3c3862b526b4cc9"
+    },
+    "landmark-workspace": {
+      "file": "landmark-workspace.png",
+      "w": 48,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/landmarks.px.js",
+      "sha256": "bfeca552a2922bfdd7b6522c523d07341fdbd1a0801529dcf41c1aa1d5249080"
+    },
+    "bridge": {
+      "file": "bridge.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "2542b191352b8032eaf55d0a82897509bf58a7064d984e8d17b0903b454cebc4"
+    },
+    "bush": {
+      "file": "bush.png",
+      "w": 16,
+      "h": 12,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "e9519c118ce6968bea219b74111a738af25cc42385c0ffa2477297429344c300"
+    },
+    "dirt-e": {
+      "file": "dirt-e.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "d5b9ba9507750d426995958b81f8f63eef4e0698037a431c3da8f1d882a19401"
+    },
+    "dirt-n": {
+      "file": "dirt-n.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "cb79a1dced9d61394065169ada700a34c897e5c5e35a173028383279e1a7f63a"
+    },
+    "dirt-ne": {
+      "file": "dirt-ne.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "b085db1b19002d1ff26a29eb488b764d28b6f431d0df7316f1b36ac04ad7d0ff"
+    },
+    "dirt-nw": {
+      "file": "dirt-nw.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "f07bf2d117dbc511dac1bd1fe7d9d85b45887acb062b717ef9403ad0d2cafd66"
+    },
+    "dirt-s": {
+      "file": "dirt-s.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "7051eb4f0a4f9aa7067d6069713b3eb5d2cbc8c32e1bf5ddb770d04dd22bb528"
+    },
+    "dirt-se": {
+      "file": "dirt-se.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "4e722076ce4a0b19ef9d5665ebac37963f3d43f1b68d31d9a764369bef707c3a"
+    },
+    "dirt-sw": {
+      "file": "dirt-sw.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "c9e59a3c3833a4422d7b6b91c8d7fbad75213637ab0db7e2fedf9e69c05bfa44"
+    },
+    "dirt-w": {
+      "file": "dirt-w.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "ffe3fd40e2171a680ae5ee4481dd3490bd6828138937961209e80e4b4815892e"
+    },
+    "dirt": {
+      "file": "dirt.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "00f3c6caf26587836d8cf1e8c6ad6917c7df7d215883f9f4994d9b2f4c9b450a"
+    },
+    "fence-h": {
+      "file": "fence-h.png",
+      "w": 16,
+      "h": 12,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "ace23f0e24015b32c95588e0455e9f23622a1b0c552440a8c0a66d4d02b85035"
+    },
+    "fence-v": {
+      "file": "fence-v.png",
+      "w": 12,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "c025a511518cc59e0aeb2904a73390dd410afeef7bcbf5bf029bd9039cb33b0d"
+    },
+    "flowers-daisy": {
+      "file": "flowers-daisy.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "c5457a2a4f7f15ed4f880bf0d873dbc5a74a7c618203e8671ff17f6364f44098"
+    },
+    "flowers-gold": {
+      "file": "flowers-gold.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "1c3ee4e4feb11cf21ad2b363629644edbd1eeb54ff447e3cad98cfcf37497731"
+    },
+    "flowers-lavender": {
+      "file": "flowers-lavender.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "b1efab49643eebed341f3123a263b39d1b03da209d23974a625ff441cd1f82da"
+    },
+    "flowers-poppy": {
+      "file": "flowers-poppy.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "a3061bb29f6dbcf766d0f8f9b0af134e666eb4ed77cccc466c8f348d9cd54ebb"
+    },
+    "grass-a": {
+      "file": "grass-a.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "0facab4b709626d1e3521efcef2776dec113830429979ace029f8ec5876e1f67"
+    },
+    "grass-b": {
+      "file": "grass-b.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "42a2412d6007616811aed5a05ee9b66783516048b34e124710c8c234f9c9334a"
+    },
+    "grass-c": {
+      "file": "grass-c.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "a5e952209fc3f6d8c077577cb3cfe0fc513f57c624f135da14678a6d4fe4dfda"
+    },
+    "grass-d": {
+      "file": "grass-d.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "c0349dcf1895ceadf2341d2acfdcc7650c9144c9c2fcbe258fd1358c635af95b"
+    },
+    "grass-e": {
+      "file": "grass-e.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "f6c3da06512a50a30295dd5bbb24e47ae7fab913b5565625524642280949cc97"
+    },
+    "grass-f": {
+      "file": "grass-f.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "02b3450c40c6d2b8847ad27fa91b8deac97875942b9204d1a403db61e5aaa94c"
+    },
+    "grass-g": {
+      "file": "grass-g.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "f29d236a5a7badfe9ddaa04d13fc8c40ad5f14e16167a77ebad62861b0c01486"
+    },
+    "grass-h": {
+      "file": "grass-h.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "d4ef4aaf624da8d21bcd996cc72bf3f16d8f82a2b775aca642e7ae8e9b2153f3"
+    },
+    "lily": {
+      "file": "lily.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "fe76e2e792d2564ded204a90481a6e9819640eb98ebd1f79ddf5575cf2f3a436"
+    },
+    "mushroom": {
+      "file": "mushroom.png",
+      "w": 16,
+      "h": 12,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "953a514648f56bf95ca84a19e11694721b5dfbaec8990c370b8f319aa8cb2bdf"
+    },
+    "plaza-b": {
+      "file": "plaza-b.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "3e1cb5b7fe0c046a8f7eb9505ad3b8bfb7d664b0a48bc2ac35c64665f4f7a3e5"
+    },
+    "plaza": {
+      "file": "plaza.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "c7508e287ffd9564e27d660ae8cc0df99c34af074cf7f03190ffb9720b8f9c2b"
+    },
+    "reeds": {
+      "file": "reeds.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "64efede96155d35042fd28a6acd5aab286b8c61f7e7468a72737d6743c21e37e"
+    },
+    "rock": {
+      "file": "rock.png",
+      "w": 16,
+      "h": 12,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "07a93f63a023c48d581df0a0098493cbcbd34382fa47a1ed9bf018ba439d1300"
+    },
+    "sign": {
+      "file": "sign.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "e18eb84b0b8fb2cfdf85f46f5e84bbd4d8e059a4c89ccf8c63de46694a4b97ef"
+    },
+    "stump": {
+      "file": "stump.png",
+      "w": 16,
+      "h": 12,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "b0a66efaf91612bd945bdd4f2f59e358b9579650ee027bc36e1b840c2e6947ef"
+    },
+    "tall-grass": {
+      "file": "tall-grass.png",
+      "w": 16,
+      "h": 8,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "83fcb74a7472a05b6bca398d4f6ef1b7fd5e665dbcdef71c47c73a3fd2c4c631"
+    },
+    "water-edge-e": {
+      "file": "water-edge-e.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "0f52295639caf8bd2e29a2ec4dfd1c6b9285c3cff344a6d47e09155c6c6ffeb7"
+    },
+    "water-edge-n": {
+      "file": "water-edge-n.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "a4a04d8522dd5415124afbc37a7b45248cc266bdfc2d485e8d9966ce9ba571c7"
+    },
+    "water-edge-s": {
+      "file": "water-edge-s.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "ec815dd56417bd9abe2826fa5309b4a3212b8d970b60eb68fe1433e6a4c7f422"
+    },
+    "water-edge-w": {
+      "file": "water-edge-w.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "21ea9ef19febfd6b214c49a69512ed0de803b8be6b9b3f40ab14b3b3535714cf"
+    },
+    "water": {
+      "file": "water.png",
+      "w": 16,
+      "h": 16,
+      "frames": 2,
+      "source": "scripts/world-art-pxl/terrain.px.js",
+      "sha256": "d850c13566c70ff8817e2094782403a7f5e942a654467fa90566a6f378ad6731"
+    },
+    "tree-amber": {
+      "file": "tree-amber.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/trees.px.js",
+      "sha256": "614b34c424038370cb4b49f18c4ff05d4d1577b99565017a234c2cfea995044d"
+    },
+    "tree-blossom": {
+      "file": "tree-blossom.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/trees.px.js",
+      "sha256": "3bb000c82ae739daaee4847d5bbb46c513df797ae6df776fc017b2a3eb722cbf"
+    },
+    "tree-pine": {
+      "file": "tree-pine.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/trees.px.js",
+      "sha256": "cb4c699b97a866645cf853f0936a7bd26a8a5c06be780fb891879cde2df7af54"
+    },
+    "tree-round": {
+      "file": "tree-round.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/trees.px.js",
+      "sha256": "520f54b8160f7b32f3e777151b51323be69eff4eebe233ae9c33ab8234ee4a2f"
+    },
+    "tree-rune": {
+      "file": "tree-rune.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/trees.px.js",
+      "sha256": "5552dae8c2607e31e25c98ebb3b959a1f195a25ebda35e946e4a18f76ca2c363"
+    },
+    "tree-willow": {
+      "file": "tree-willow.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/trees.px.js",
+      "sha256": "a5efa2289dabd4fa4f874783e0167b023e9a069b3ee5bb8850bf3d7aed5fd49f"
+    }
+  }
+}
