@@ -11,34 +11,154 @@
       "runs": []
     },
     "D02": {
-      "outcome": "unverified",
-      "evidence_level": "U",
-      "runs": []
+      "outcome": "pass",
+      "evidence_level": "P",
+      "runs": [
+        {
+          "journey_id": "D02",
+          "outcome": "pass",
+          "evidence_level": "P",
+          "timestamp_utc": "2026-11-11T21:38:26Z",
+          "steps_to_reproduce": "Packaged Desktop (electron-builder --dir, Electron 44.11) > People > Start Ada: Runner combobox lists installed runners; claude selectable.",
+          "observed": "claude detected and selectable; session argv used --session-id (assign strategy).",
+          "screenshots": [
+            "docs/desktop/assets/electron/daily-driver/gate0-start-dialog.png"
+          ],
+          "logs": [
+            "apps/desktop/e2e-real/run.mjs"
+          ],
+          "toolkit_sha": "fda178e046e4c8c86e346374485b501d27ba0e59",
+          "package_version": "1.49.0",
+          "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+          "provider": "claude 2.1.317 (authenticated subscription)",
+          "tested_by": "maintainer agent session, 2026-11-11"
+        }
+      ]
     },
     "D03": {
-      "outcome": "unverified",
-      "evidence_level": "U",
-      "runs": []
+      "outcome": "pass",
+      "evidence_level": "P",
+      "runs": [
+        {
+          "journey_id": "D03",
+          "outcome": "pass",
+          "evidence_level": "P",
+          "timestamp_utc": "2026-11-11T21:38:41Z",
+          "steps_to_reproduce": "Start Ada with the real sum-fix task (not emptied) and Start and open terminal.",
+          "observed": "Durable session record created (status running), PTY opened on fixture-repo, provider process claude --session-id <uuid> alive.",
+          "screenshots": [
+            "docs/desktop/assets/electron/daily-driver/gate0-start-dialog.png"
+          ],
+          "logs": [
+            "apps/desktop/e2e-real/run.mjs"
+          ],
+          "toolkit_sha": "fda178e046e4c8c86e346374485b501d27ba0e59",
+          "package_version": "1.49.0",
+          "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+          "provider": "claude 2.1.317 (authenticated subscription)",
+          "tested_by": "maintainer agent session, 2026-11-11"
+        }
+      ]
     },
     "D04": {
-      "outcome": "unverified",
-      "evidence_level": "U",
-      "runs": []
+      "outcome": "pass",
+      "evidence_level": "P",
+      "runs": [
+        {
+          "journey_id": "D04",
+          "outcome": "pass",
+          "evidence_level": "P",
+          "timestamp_utc": "2026-11-11T21:39:30Z",
+          "steps_to_reproduce": "Observe terminal while Claude works; wait for fixture tests to pass.",
+          "observed": "Raw PTY stream only (no structured tool events in interactive path); Claude ran tests, edited src/sum.mjs (a-b -> a+b), re-ran tests green. Fixture diff 191 bytes verified outside the app.",
+          "screenshots": [
+            "docs/desktop/assets/electron/daily-driver/gate0-after-fix.png"
+          ],
+          "logs": [
+            "apps/desktop/e2e-real/run.mjs"
+          ],
+          "toolkit_sha": "fda178e046e4c8c86e346374485b501d27ba0e59",
+          "package_version": "1.49.0",
+          "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+          "provider": "claude 2.1.317 (authenticated subscription)",
+          "tested_by": "maintainer agent session, 2026-11-11"
+        }
+      ]
     },
     "D05": {
-      "outcome": "unverified",
-      "evidence_level": "U",
-      "runs": []
+      "outcome": "pass",
+      "evidence_level": "P",
+      "runs": [
+        {
+          "journey_id": "D05",
+          "outcome": "pass",
+          "evidence_level": "P",
+          "timestamp_utc": "2026-11-11T21:38:51Z",
+          "steps_to_reproduce": "Answer interactive provider prompts in the terminal; then People > Stop session > confirm.",
+          "observed": "Interactive import/trust prompt answered with Enter (safe default); Stop ended the session and history shows STOPPED.",
+          "screenshots": [
+            "docs/desktop/assets/electron/daily-driver/gate0-stopped-history.png"
+          ],
+          "logs": [
+            "apps/desktop/e2e-real/run.mjs"
+          ],
+          "toolkit_sha": "fda178e046e4c8c86e346374485b501d27ba0e59",
+          "package_version": "1.49.0",
+          "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+          "provider": "claude 2.1.317 (authenticated subscription)",
+          "tested_by": "maintainer agent session, 2026-11-11"
+        }
+      ]
     },
     "D06": {
-      "outcome": "unverified",
-      "evidence_level": "U",
-      "runs": []
+      "outcome": "pass",
+      "evidence_level": "P",
+      "runs": [
+        {
+          "journey_id": "D06",
+          "outcome": "pass",
+          "evidence_level": "P",
+          "timestamp_utc": "2026-11-11T21:44:44Z",
+          "steps_to_reproduce": "After completion, inspect fixture git diff and test result; session record on disk.",
+          "observed": "git diff shows exactly the one-line fix; node --test passes; session record status stopped with provider_session_id captured.",
+          "screenshots": [
+            "docs/desktop/assets/electron/daily-driver/gate0-after-fix.png"
+          ],
+          "logs": [
+            "apps/desktop/e2e-real/run.mjs"
+          ],
+          "toolkit_sha": "fda178e046e4c8c86e346374485b501d27ba0e59",
+          "package_version": "1.49.0",
+          "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+          "provider": "claude 2.1.317 (authenticated subscription)",
+          "tested_by": "maintainer agent session, 2026-11-11"
+        }
+      ]
     },
     "D07": {
-      "outcome": "unverified",
-      "evidence_level": "U",
-      "runs": []
+      "outcome": "pass",
+      "evidence_level": "P",
+      "runs": [
+        {
+          "journey_id": "D07",
+          "outcome": "pass",
+          "evidence_level": "P",
+          "timestamp_utc": "2026-11-11T21:51:13Z",
+          "steps_to_reproduce": "Quit the packaged app, relaunch it against the same workspace, open People.",
+          "observed": "Ada shows CONFIGURED \u00b7 OFFLINE with 2 sessions in Recent sessions (STOPPED), durable records intact; no phantom running state.",
+          "screenshots": [
+            "docs/desktop/assets/electron/daily-driver/gate0-relaunch-history.png"
+          ],
+          "logs": [
+            "apps/desktop/e2e-real/run.mjs"
+          ],
+          "toolkit_sha": "fda178e046e4c8c86e346374485b501d27ba0e59",
+          "package_version": "1.49.0",
+          "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+          "provider": "claude 2.1.317 (authenticated subscription)",
+          "tested_by": "maintainer agent session, 2026-11-11"
+        }
+      ]
     },
     "D08": {
       "outcome": "unverified",
@@ -67,7 +187,9 @@
     "runs": []
   },
   "limitations": [
-    "No accessible installed user Desktop host or authenticated local provider session in GitHub CI.",
-    "Run the installed Desktop field trial described in DAILY_DRIVER_ACCEPTANCE.md and attach sanitized P-level records before acceptance."
+    "Gate 0 remains unverified overall: D01 (true first-run onboarding) was pre-seeded in this trial and is still unverified; D02-D07 are proven only for claude on linux-x86_64. Codex/OpenCode traversals, the failure-condition matrix, 1024x640/1440x900/1920x1080 + keyboard/reduced-motion audit, and macOS/Windows installers remain outstanding.",
+    "Packaged binary required Electron ^44.11.0: the previously pinned 44.4.5 segfaults on kernel 7.2 (see PR fixing the pin). Trial ran under ozone headless (no physical display) with system GL swiftshader.",
+    "The interactive session path streams raw PTY bytes only; structured tool-call events exist only in headless provider modes (see ADR-043 spike measurements).",
+    "Provider credential hygiene: the trial rotated the operator OAuth token; the maintainer must re-run `claude /login` for their own CLI after such trials."
   ]
 }
