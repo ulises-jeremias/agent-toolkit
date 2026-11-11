@@ -86,10 +86,10 @@ export function validateLedger(ledger) {
       const artifacts = [...(Array.isArray(run.logs) ? run.logs : []),
         ...(Array.isArray(run.screenshots) ? run.screenshots : [])];
       check(artifacts.some(ref => typeof ref === 'string' &&
-        (/^https:\\/\\/[^\\s/]+\\/\\S+$/.test(ref) ||
-          /^(?:\\.\\/)?[\\w.-]+(?:\\/[\\w.-]+)+$/.test(ref)) &&
-        !/placeholder|fixture|synthetic|example/i.test(ref)),
-        `packaged field trial runs[${index}]: missing concrete artifact reference`);
+          (/^https:\/\/[^\s/]+\/\S+$/.test(ref) ||
+            /^(?:\.\/)?[\w.-]+(?:\/[\w.-]+)+$/.test(ref)) &&
+          !/placeholder|fixture|synthetic|example/i.test(ref)),
+          `packaged field trial runs[${index}]: missing concrete artifact reference`);
     }
     for (const id of ids.slice(0, 7)) {
       const trialRuns = Array.isArray(field.runs) ? field.runs : [];
