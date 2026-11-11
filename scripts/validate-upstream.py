@@ -295,20 +295,34 @@ def validate_one(skill_path: Path, strict: bool = False) -> list[str]:
                     seen_resources: set[str] = set()
                     for resource in resources:
                         if not isinstance(resource, str) or not resource.strip():
-                            errors.append(f"{skill_path}: distribution.resources entries must be non-empty strings")
+                            errors.append(
+                                f"{skill_path}: distribution.resources entries must be non-empty strings"
+                            )
                             continue
                         rel = resource.replace("\\", "/")
                         parts = rel.split("/")
-                        if rel.startswith("/") or ":" in rel or any(part in {"", ".", ".."} for part in parts):
-                            errors.append(f"{skill_path}: distribution.resources entry {resource!r} must be a safe relative path")
+                        if (
+                            rel.startswith("/")
+                            or ":" in rel
+                            or any(part in {"", ".", ".."} for part in parts)
+                        ):
+                            errors.append(
+                                f"{skill_path}: distribution.resources entry {resource!r} must be a safe relative path"
+                            )
                             continue
                         if rel in seen_resources:
-                            errors.append(f"{skill_path}: distribution.resources duplicates {resource!r}")
+                            errors.append(
+                                f"{skill_path}: distribution.resources duplicates {resource!r}"
+                            )
                         seen_resources.add(rel)
                         if rel == "SKILL.md":
-                            errors.append(f"{skill_path}: distribution.resources must not list SKILL.md")
+                            errors.append(
+                                f"{skill_path}: distribution.resources must not list SKILL.md"
+                            )
                         elif not (skill_path.parent / rel).exists():
-                            errors.append(f"{skill_path}: distribution.resources entry {resource!r} does not exist")
+                            errors.append(
+                                f"{skill_path}: distribution.resources entry {resource!r} does not exist"
+                            )
 
     # Validate trust tier
     trust = fm.get("trust")
