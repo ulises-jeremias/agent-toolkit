@@ -1,7 +1,8 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-12. Requested by the owner to preserve the complete mission and
-continue with GPT-6-Luna without repeating expensive discovery.
+Updated: 2026-11-12 (visual QA iteration and exact-head CI queued). Requested by the owner to
+preserve the complete mission and continue with GPT-6-Luna without repeating
+expensive discovery.
 
 **The rescue is NOT complete.** This file is an execution checkpoint, not an
 acceptance report. Continue implementing and validating the product. The owner
@@ -34,17 +35,18 @@ Main integration worktree:
 ```text
 /home/ulisesjcf/.ai-workspace/worktrees/desktop-owner
 branch: rescue/codex-product-integration
-HEAD at handoff: 8a753ec5
+HEAD: rescue handoff sync (clean, 16 commits ahead of origin/main)
 ```
 
-This worktree has IMPORTANT UNCOMMITTED changes. Inspect them before any checkout,
-reset, rebase or cleanup. Do not recreate the implementation from scratch.
+The integration edits described below are committed on this branch. Keep this
+integration worktree intact; it is not the same branch as the pushed follow-up PR.
 
 | Location / branch | State and handling |
-|---|---|
+| --- | --- |
 | `repos/agent-toolkit`, `chore/release-v1.47.5` | Old checkout, unrelated dirty release/version/plugin files and `.claude/`. Preserve; do not use as current product source. |
 | `worktrees/rescue`, `rescue/shell-v2`, `0c730540` | Existing PR #1780; replacement shell, onboarding, Focus, Projects/Context and new Valley. Preserved in integration branch. |
 | `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Nothing from this integration branch has been pushed. |
+| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `3a5821aa`; includes the continuity/runtime follow-up, reviewed Focus fixes, and the responsive World/theme iteration. It is not merged into the integration worktree. |
 | `worktrees/codex-protocol`, `rescue/codex-protocol`, `2b8de6d6` | Reviewed protocol fix; already cherry-picked as `8a753ec5`. Do not apply twice. |
 | `worktrees/workspace-continuity`, `rescue/workspace-continuity` | Uncommitted partial implementation by subagent; NOT reviewed, tested or integrated. See critical persistence flaw below. |
 | `.claude/worktrees/agent-a8c96dfe4dfec7e8d`, `rescue/valley-art` | Existing art work; preserve. Do not infer an active agent from the worktree. |
@@ -53,7 +55,7 @@ reset, rebase or cleanup. Do not recreate the implementation from scratch.
 All paths above are relative to `/home/ulisesjcf/.ai-workspace` unless absolute.
 Run `git worktree list` again to detect changes after this snapshot.
 
-### Uncommitted integration edits
+### Committed integration edits (not yet accepted as shipped)
 
 - `electron/focus/service.ts`: registers Codex adapter; rejects overlapping
   messages when the adapter cannot accept input during a running turn, including
@@ -183,7 +185,7 @@ honestly. Never label a declared Person or installed binary as an active agent.
 - [ ] Verify PTY lifecycle separately. The acceptance package restored a detached
   terminal registry session, expected for ordinary PTYs, but route memory does not
   persist a PTY selection.
-- [ ] Make Focus the normal work entry; World is optional navigation, not a gate.
+- [x] Make Focus the normal work entry; World remains optional navigation, not a gate.
 
 ### P0 — Finish and verify the real Focus runtime
 
@@ -191,13 +193,28 @@ honestly. Never label a declared Person or installed binary as an active agent.
 - [ ] Retain `8a753ec5`: thread/turn filtering, request-bound approval ownership,
   stale turn/start protection, visible unsupported requests, explicit user reviewer,
   failed-interrupt reporting and immediate forced process-group stop.
+- [x] Review high-impact #1780 Focus findings: stale overlapping thread-list reloads now
+  carry a generation guard; pending approval no longer steals focus to `Allow once`;
+  composer drafts are held per thread across session navigation; and indented Markdown
+  headings cannot trap the parser without advancing; and native Dialog closes still notify
+  their owner when focus cannot safely return into a parent modal. Regressions are covered in
+  `src/data/focus.test.ts`, `src/features/focus/Conversation.test.tsx`,
+  `src/features/focus/Markdown.test.tsx`, and `src/ui/ui.test.tsx`. Remaining #1780 review
+  items still need triage.
 - [x] Add bounded 30-second Codex app-server request deadlines; clear pending timers
   on response, close, and disposal; surface timeout errors; and stop an unresponsive
   process after a failed handshake or turn/start request. Fake-server tests cover
-  initialize timeout, turn/start timeout, forced disposal cleanup. The real-provider
-  Codex journey remains open.
-- [ ] Verify token usage: Codex `tokenUsage.last` may be last inference rather than
-  total turn. Use verified cumulative deltas or label unavailable; do not invent totals.
+  initialize timeout, turn/start timeout, forced disposal cleanup. The packaged Codex
+  adapter also completed a separate real task with approval, tool failure recovery, and
+  independent test verification (see the live acceptance record). Broader protocol parity
+  remains open.
+- [x] Keep Codex token usage honest: official app-server schema separates `last`
+  and thread-cumulative `total`, and Codex describes `last` as active context size.
+  Focus aggregates provider usage as per-turn spend, so Codex usage is now reported
+  unavailable (`null`) until turn deltas can be derived safely. Regression coverage
+  confirms neither context nor thread totals are mislabeled. Sources:
+  [generated schema](https://github.com/openai/codex/blob/main/codex-rs/app-server-protocol/schema/json/v2/ThreadTokenUsageUpdatedNotification.json),
+  [Codex TUI usage semantics](https://github.com/openai/codex/blob/main/codex-rs/tui/src/token_usage.rs).
 - [ ] Verify approval scope truth (`availableDecisions`, network context, grantRoot,
   allow-once vs allow-session) against installed schema, not assumed dialects.
 - [ ] Implement interactive questions/new permissions RPCs if needed for normal
@@ -223,12 +240,15 @@ honestly. Never label a declared Person or installed binary as an active agent.
 - [x] Launch the exact unpacked package and verify UI/backend with the same profile
   across a close/reopen. It returned to the completed Focus thread, provider discovery,
   project, transcript, approval/tool events, and diff.
-- [ ] Use a clean Electron userData/profile and disposable Git repository. Keep
-  real provider authentication separate; never copy credentials into fixtures.
+- [x] Use isolated Electron userData/profile and disposable Git repositories. Keep
+  real provider authentication separate; no credentials or private provider traces were
+  copied into fixtures.
 - [ ] Drive the complete 13-step journey in section 9 from the UI. Workspace creation
   was through onboarding; the existing repo was initially registered by CLI, so UI
-  registration/native picker remains open. Other live Focus, terminal, diff, restart,
-  history, and World-context steps have been exercised.
+  registration/native picker remains open. The headless test process cannot access the
+  user session display: DISPLAY=:1 is absent, while DISPLAY=:0 requires the SDDM-owned
+  Xauthority cookie. Do not change desktop login permissions to force this test. Other live
+  Focus, terminal, diff, restart, history, and World-context steps have been exercised.
 - [x] Record sanitized partial live acceptance with app hash, source commit, provider/OS
   versions, tests, screenshots, and remaining gates in
   [LIVE_ACCEPTANCE_2026-11-12.md](audits/LIVE_ACCEPTANCE_2026-11-12.md).
@@ -315,8 +335,14 @@ Use `skills/design/pxl-pixel-art/SKILL.md` and its referenced governance before 
 art. Read current DESIGN/VISUAL_QA/SEMANTIC_WORLD and challenge old decisions against
 actual screenshots. No reference project's proprietary art is permitted.
 
-- [ ] Critique the actual new Valley, not just the earlier 201-sprite set. Re-author assets
-  if quality requires it; asset count is not a quality measure.
+- [x] Critique the actual new Valley, not just the earlier 201-sprite set. A fresh
+  packaged Electron capture exposed a fixed-initial-height scale, compact horizontal
+  clipping and a Meadow/Dusk renderer that always selected `sky_day.png`. Responsive
+  measurement, width-constrained scene composition, scene-edge clipping, Dusk sky,
+  restrained environmental lamps and honest activity-lit buildings are implemented.
+  Real captures were opened for Meadow/Dusk at 1024×640, 1440×900 and 1920×1080;
+  the compact horizontal scrollbar is gone and Dusk is visibly distinct. The World
+  still needs broader layout/art critique; no art has been reauthored yet.
 - [ ] Cozy original pixel world with coherent perspective, light, depth, composition,
   recognizable project buildings and meaningful Library/Archive/Workshop/Operations.
 - [ ] Professional readable technical typography; pixel display type used sparingly.
@@ -326,12 +352,20 @@ actual screenshots. No reference project's proprietary art is permitted.
 - [ ] Preserve project/session context entering/leaving World/interiors.
 - [ ] Restrained animations, reduced motion, efficient rendering and useful empty state.
 - [ ] Multiple capture → open → critique → fix → recapture iterations before visual sign-off.
+  One source-Electron iteration is complete across all three required sizes; repeat
+  after compact-window interaction review, then cover interiors and the other product
+  surfaces. Large-size captures still show substantial vertical negative space.
 - [ ] Reject generic SaaS card grids, PaperCo aesthetics, random clutter, illegible pixel
   text, disconnected palettes and needless configuration.
 
 ### Multi-provider and advanced work
 
-- [ ] Prove Claude and Codex independently; no cross-provider success substitution.
+- [x] Prove Claude and Codex independently with separate bounded live tasks in
+  separate disposable repositories; acceptance evidence is in
+  [LIVE_ACCEPTANCE_2026-11-12.md](audits/LIVE_ACCEPTANCE_2026-11-12.md).
+- [ ] Expand provider parity evidence for approval variants, interruption/resume,
+  errors, model changes, and native child behavior. No Codex success is inferred
+  from the Claude task.
 - [ ] Tighten OpenCode auth parsing: successful nonempty `auth list` output alone is
   insufficient proof. Detect actual account/provider state.
 - [ ] Add OpenCode structured adapter only after verifying current installed protocol,
@@ -348,12 +382,36 @@ Existing mission: [#1775](https://github.com/ulises-jeremias/agent-toolkit/issue
 parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
 **Do not create a duplicate mission.** Update #1775 with verified slice evidence.
 
-- [ ] Refresh #1667, Gates #1668–1676, linked acceptance/docs and current open PRs.
-- [ ] #1773 external repo linking and #1774 true first-run are merged; preserve them.
-- [ ] #1776 Claude runtime and #1779 journal hardening are merged; preserve them.
+- [ ] Refresh #1667, Gates #1668–1676, linked acceptance/docs and current open
+  PRs. A fresh check on 2026-11-12 found #1782 no longer running: its `gates`
+  and packaged Electron jobs failed; independent Python/CLI validation jobs
+  shown on that PR passed.
+- [x] #1773 external repo linking and #1774 true first-run are merged; preserve them.
+- [x] #1776 Claude runtime and #1779 journal hardening are merged; preserve them.
 - [ ] Review #1780 against current code and the final architecture. Update its stale
   description or choose focused follow-up PRs; avoid duplicate giant salvage PRs.
 - [ ] Review outstanding review threads/CI, not merely reported pass counts.
+- [x] Push the continuity/runtime slice as draft [#1783](https://github.com/ulises-jeremias/agent-toolkit/pull/1783),
+  stacked on [#1782](https://github.com/ulises-jeremias/agent-toolkit/pull/1782), which
+  is itself stacked on #1781 and #1780; post verified acceptance status to
+  [#1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
+  #1780/#1781/#1782 have failing required Desktop gates; this draft remains unmerged
+  pending a healthy, reviewed base. Latest head `3a5821aa08ee797fb53eedb2189c987e14d22324`
+  has new hosted `desktop`, `Clean-machine Desktop Acceptance`, `web`, and `Validate`
+  runs `43317323037`, `43317323083`, `43317323108`, and `43317323286`; these were in
+  progress/pending when this checkpoint was updated. Do not report them as passing.
+  #1782 corrects stale shell smoke assertions
+  (empty-state headings and the six-place rail) and disambiguates a project row from
+  its toast. The failing desktop run is specifically four packaged Electron journeys,
+  not those renderer smoke assertions: context pack navigation targeted Projects
+  instead of Library's Context tab; two Git changes tests assumed an obsolete review
+  dialog and selected a nested generic section; workspace switching linked a folder
+  that was not a Git repo and then confused the linked-project toast with its row.
+  The standalone project-link journey passes. These cases are corrected in this
+  branch and reproduced locally with Electron + the real backend. Run IDs:
+  desktop 43298967157; packaged 43298966315. The packaged job's failures match these
+  stale journeys; re-run hosted CI on the corrected branch before drawing a new result.
+  Do not waive these failures or merge the stacked series.
 - [ ] #1771 ImgBot was open; inspect deterministic-art drift before merging or closing.
 - [ ] Preserve author commits through cherry-pick/rebase. Never replace them with one
   newly authored aggregate commit or force-push away independent work.
@@ -449,18 +507,18 @@ not a final acceptance harness. It uses a temporary HOME, initializes workspace
 with CLI, reloads the page and captures onboarding. Therefore it does NOT prove
 UI first-run workspace creation or real-provider acceptance.
 
-## 9. Mandatory installed-app acceptance (all still open)
+## 9. Mandatory installed-app acceptance (partial; live journey still open)
 
 Use a disposable repository; record exact executable/hash, source commit plus dirty
 state, backend version, provider version, OS, profile and sanitized evidence.
 
-1. [ ] Open installed Desktop with clean user profile.
-2. [ ] Create workspace through UI.
-3. [ ] Register existing Git repository through UI (including outside workspace root).
-4. [ ] Discover real authenticated provider; auth success is not quota success.
-5. [ ] Start real coding task.
-6. [ ] Observe messages, structured tool calls and true process state.
-7. [ ] Inspect actual generated file changes and diff.
+1. [x] Open packaged Linux Desktop with clean isolated Electron user profile.
+2. [x] Create workspace through onboarding UI.
+3. [ ] Register existing Git repository through UI (including outside workspace root); the native directory picker remains un-driven in headless mode.
+4. [x] Discover real authenticated Claude and Codex providers; auth and quota are treated separately.
+5. [x] Start real Claude and Codex coding tasks in disposable repositories.
+6. [x] Observe messages, structured tool calls, approvals, failures and process completion.
+7. [x] Inspect actual generated file changes and diffs independently and in Focus.
 8. [x] Use real terminal in project (real `/usr/bin/zsh`, verified cwd and Git status).
 9. [x] Intervene safely: reviewed and approved two scoped Claude tool requests
    (“Allow once”), then verified resulting files and passing tests. A live cancel/deny
@@ -504,6 +562,18 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   passes. Vite still reports a large 670.60 kB main chunk. Tests need
   `TMPDIR=/home/ulisesjcf/.ai-workspace/.audit-private/tmp` because host `/tmp` writes
   fail with quota errors.
+- Latest usage-accounting slice: focused Codex protocol suite passes (9 tests).
+  Type-check and `git diff --check` pass after removing the now-unused parser.
+- Latest stacked-flow fixes: the Electron fixture now marks onboarding complete
+  through the authoritative Electron preference bridge; tests no longer seed a
+  renderer-origin localStorage key. Local Electron + real backend passes:
+  `full-journey.spec.ts` (1), both `project-changes.spec.ts` cases (2), and
+  `workspace-switch.spec.ts` (1), run in two passes while refining strict selectors.
+  Renderer smoke passes all 7 cases, including Focus default for unknown routes,
+  six-place compact rail, and the corrected heading-free destination flow. Focus
+  contract tests pass 12/12; keyboard/a11y Electron checks pass 3/3 after fixing
+  the test's sequential-focus reset for Focus home autofocus; TypeScript and lint
+  pass after all related changes.
 - Electron Builder produced and launched the current Linux x64 package at
   `/home/ulisesjcf/.ai-workspace/.audit-private/package-codex/linux-unpacked`, including
   updated renderer/main, Electron 44.11.0, and backend 1.49.0 staged from rescue commit
@@ -529,9 +599,37 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   in-flight cancel/deny case remains open.
 - The package also completed a separate real Codex task with approval and independent
   test verification. OpenCode remains unsupported; broad provider feature parity is open.
-- Full visual matrix, performance pass, screen-reader/accessibility pass, actual Meadow
-  capture, and macOS/Windows packaged acceptance remain open.
-- No integration branch push/PR/merge/release performed in this session.
+- Packaged Linux Electron E2E run against the previously built package completed 7/7: full
+  context/Person/swarm/recovery journey, skip link, reduced motion, keyboard shortcut/Escape,
+  both Git change journeys (commit and partial staging), and workspace switching. Command
+  used `ATK_E2E_APP_PATH` and `ATK_E2E_BACKEND_BIN` from `package-codex/linux-unpacked`; this
+  is package acceptance for those paths, not a build from the latest `d813ad30` test head.
+- Actual source-Electron World captures have now been opened in Meadow and Dusk at
+  1024×640, 1440×900, and 1920×1080. Files are private local review evidence under
+  `.audit-private/world-review-responsive/`; they are not committed. The responsive
+  scene/theme fix and six-case capture pass are on PR #1783, not yet on this integration
+  branch. Full visual coverage of interiors and the other destinations, compact-window
+  interaction, performance, screen-reader/accessibility, and macOS/Windows packaged
+  acceptance remain open.
+- Draft follow-up [PR #1783](https://github.com/ulises-jeremias/agent-toolkit/pull/1783)
+  is pushed as `rescue/desktop-continuity-focus`, stacked on #1782's
+  `fix/desktop-shell-smoke-navigation-20261112` branch (which carries #1781 and #1780).
+  The owner-authored commits from #1781 and #1782 are preserved in branch history;
+  PR base is retargeted to #1782. The acceptance update is posted to
+  [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6837260918).
+  Packaged Linux E2E passes 7/7 for the listed paths against the existing package
+  described above. Electron keyboard/a11y checks pass 3/3, including the skip link,
+  reduced motion, and Escape precedence. Use the live checks on draft PR #1783 for the
+  current exact branch head. After this visual slice, the head is
+  `3a5821aa08ee797fb53eedb2189c987e14d22324`; hosted runs `43317323037` (desktop),
+  `43317323083` (Clean-machine Desktop Acceptance), `43317323108` (web), and
+  `43317323286` (Validate) are in progress/pending as of this checkpoint. Earlier
+  results do not cover that head. The latest base runs for #1780/#1781/#1782 still
+  show failures in `gates` and `Packaged Electron with fresh HOME` (runs
+  `43259175883`/`43259175954`, `43278716004`/`43278716272`, and
+  `43298967157`/`43298966315` respectively). The failure causes recorded above need
+  review against each run's current logs; do not waive or merge the stack. No release
+  was created.
 
 ## 11. How Luna should execute efficiently
 
