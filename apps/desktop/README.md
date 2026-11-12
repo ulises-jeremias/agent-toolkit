@@ -22,11 +22,11 @@ with **pnpm** only — one canonical lockfile at the repo root.
   (health-gated, version-checked, crash-detected, clean shutdown), narrow
   typed preload bridge (`contextIsolation`, no `nodeIntegration`), and the
   node-pty terminal transport adapter.
-- Destinations: **World** (default home), Attention, Operations, Workspace,
-  Library, People, Insights, Terminal, Settings — domain actions use typed backend
-  endpoints. The journey ledger identifies behavior that still has limits.
-  Spatial contract:
-  [SEMANTIC_WORLD.md](../../docs/desktop/SEMANTIC_WORLD.md).
+- Six places plus Settings: **World** (home), **Focus** (sessions with a
+  coding agent), **Projects**, **People**, **Library** and **Operations**
+  (with Needs you, Terminals and Health as tabs). Domain actions use typed
+  backend endpoints. The journey ledger identifies behavior that still has
+  limits.
 
 Product behavior, real Electron captures and known gaps are indexed in the
 [Desktop guide](../../docs/desktop/README.md). It is the user-facing source for
