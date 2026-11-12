@@ -191,3 +191,17 @@
     animation: none;
   }
 }
+
+.headActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+}
+
+.linkError {
+  max-width: 28rem;
+  font-size: var(--text-sm);
+  color: var(--status-err-fg);
+  text-align: right;
+}

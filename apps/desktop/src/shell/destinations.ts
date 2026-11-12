@@ -9,6 +9,7 @@ export type DestinationPath =
   | '/library'
   | '/operations'
   | '/office'
+  | '/context'
   | '/terminal'
   | '/insights'
   | '/settings';
@@ -54,7 +55,7 @@ export const DESTINATIONS: readonly Destination[] = [
     question: 'Link repositories and review their files and changes',
     icon: 'projects',
     rail: 'main',
-    component: lazy(() => import('../features/workspace/WorkspaceView')),
+    component: lazy(() => import('../features/projects/ProjectsView')),
   },
   {
     path: '/people',
@@ -110,6 +111,16 @@ export const DESTINATIONS: readonly Destination[] = [
     parent: '/operations',
     tab: 'Health',
     component: lazy(() => import('../features/insights/Insights')),
+  },
+  {
+    path: '/context',
+    label: 'Context',
+    question: 'See what every session starts with, and the notes the workspace keeps',
+    icon: 'library',
+    rail: null,
+    parent: '/library',
+    tab: 'Context and memory',
+    component: lazy(() => import('../features/context/ContextView')),
   },
   {
     path: '/settings',

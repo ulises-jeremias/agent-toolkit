@@ -103,7 +103,7 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
       for (const destination of DESTINATIONS) {
         await nav(page).getByRole('link', { name: destination }).click();
         if (destination === 'World') {
-          await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
+          await expect(page.getByRole('group', { name: 'Workspace village' })).toBeVisible();
           // A visible route/header can precede the workspace query. Wait for a
           // real canonical landmark so design-review captures never preserve
           // the loading background as if it were an empty world.

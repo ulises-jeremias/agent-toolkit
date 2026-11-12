@@ -133,7 +133,7 @@ export default function ContextView() {
       <Stack>
         <MemoryPanel />
         <Grid>
-          <Panel title="Context size" meta="How much is added to every session before you type">
+          <Panel title="Context budget" meta="How much is added to every session before you type">
             <QueryView query={budget} loading="Measuring context" errorTitle="Could not measure the context">
               {(envelope) => (
                 <KeyValue

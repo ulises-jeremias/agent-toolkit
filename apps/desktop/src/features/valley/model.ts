@@ -16,14 +16,27 @@ export type FigureFamily = 'ember' | 'river' | 'moss';
 
 export interface ValleyFigure {
   id: string;
-  /** Focus thread behind this figure; clicking opens exactly that session. */
-  threadId: string;
+  /** What the figure is, in words: a session title, a person's name and what they run. */
   title: string;
-  provider: FocusProviderId;
+  /** Where clicking it goes: the exact session or run that is live. */
+  to: string;
+  params: Record<string, string>;
   family: FigureFamily;
   state: 'working' | 'asking';
   /** Lane x of the figure's left edge. */
   x: number;
+}
+
+/** A live Person session or swarm worker, already scoped to the workspace by the caller. */
+export interface ValleyPersonFigure {
+  id: string;
+  name: string;
+  /** Who it is: "Person session" or "Swarm worker". */
+  kind: string;
+  projectId: string;
+  provider: FocusProviderId | string;
+  to: string;
+  params: Record<string, string>;
 }
 
 export type PlaceAction =
@@ -76,6 +89,7 @@ export interface ValleyScene {
 export interface ValleyInput {
   projects: ReadonlyArray<{ name: string; status: string }>;
   threads: ReadonlyArray<Pick<FocusThread, 'id' | 'title' | 'projectName' | 'provider' | 'status'>>;
+  personFigures: readonly ValleyPersonFigure[];
   jobsRunning: number;
   attention: number;
   people: number;
@@ -95,7 +109,7 @@ export const SPRITE_SIZE = {
 
 export const HOUSE_SPRITES = ['house_a', 'house_b', 'house_c', 'house_d'] as const;
 
-const FAMILY: Record<FocusProviderId, FigureFamily> = { claude: 'ember', codex: 'river', opencode: 'moss' };
+const FAMILY: Record<string, FigureFamily> = { claude: 'ember', codex: 'river', opencode: 'moss' };
 const MARGIN = 28;
 const GAP = 30;
 const MAX_FIGURES = 3;
@@ -181,7 +195,7 @@ export function buildValley(input: ValleyInput): ValleyScene {
       id: 'empty-lot',
       kind: 'empty-lot',
       title: 'An empty lot',
-      summary: 'Link a repository and it gets a house here',
+      summary: 'Nothing linked yet. A linked repository becomes a house here',
       sprite: 'signpost',
       w: 48,
       h: 40,
@@ -199,8 +213,9 @@ export function buildValley(input: ValleyInput): ValleyScene {
     const seed = hash(project.name);
     const sessions = input.threads.filter((thread) => thread.projectName === project.name);
     const live = sessions.filter((thread) => thread.status === 'running' || thread.status === 'awaiting-approval');
+    const people = input.personFigures.filter((figure) => figure.projectId === project.name);
     const asking = live.filter((thread) => thread.status === 'awaiting-approval').length;
-    const working = live.length - asking;
+    const working = live.length - asking + people.length;
     const broken = project.status !== 'ok';
     // A tree between some houses, chosen by the project's own name so it never moves.
     if (index > 0 && seed % 3 !== 0) {
@@ -223,7 +238,7 @@ export function buildValley(input: ValleyInput): ValleyScene {
       broken,
       projectName: project.name,
       figures: [],
-      moreFigures: Math.max(0, live.length - MAX_FIGURES),
+      moreFigures: Math.max(0, live.length + people.length - MAX_FIGURES),
       actions: broken
         ? [
             {
@@ -241,16 +256,31 @@ export function buildValley(input: ValleyInput): ValleyScene {
           ],
     });
     // Sessions waiting for you stand first: they are the ones to notice.
-    const ordered = [...live].sort(
-      (a, b) => Number(b.status === 'awaiting-approval') - Number(a.status === 'awaiting-approval'),
-    );
-    placed.figures = ordered.slice(0, MAX_FIGURES).map((thread, slot) => ({
-      id: `figure:${thread.id}`,
-      threadId: thread.id,
-      title: thread.title || 'New session',
-      provider: thread.provider,
-      family: FAMILY[thread.provider],
-      state: thread.status === 'awaiting-approval' ? 'asking' : 'working',
+    // Sessions waiting for you stand first: they are the ones to notice.
+    const ordered: ValleyFigure[] = [
+      ...live
+        .sort((a, b) => Number(b.status === 'awaiting-approval') - Number(a.status === 'awaiting-approval'))
+        .map((thread) => ({
+          id: `figure:${thread.id}`,
+          title: thread.title || 'New session',
+          to: '/focus',
+          params: { thread: thread.id },
+          family: FAMILY[thread.provider] ?? 'ember',
+          state: thread.status === 'awaiting-approval' ? ('asking' as const) : ('working' as const),
+          x: 0,
+        })),
+      ...people.map((figure) => ({
+        id: `figure:${figure.id}`,
+        title: `${figure.name} · ${figure.kind}`,
+        to: figure.to,
+        params: figure.params,
+        family: FAMILY[figure.provider] ?? ('ember' as FigureFamily),
+        state: 'working' as const,
+        x: 0,
+      })),
+    ];
+    placed.figures = ordered.slice(0, MAX_FIGURES).map((figure, slot) => ({
+      ...figure,
       x: placed.x + placed.w - 10 + slot * (SPRITE_SIZE.agent.w - 2),
     }));
     decor.push({

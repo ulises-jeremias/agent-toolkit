@@ -16,7 +16,7 @@ test.describe('desktop smoke', () => {
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 45_000 });
     await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
     await expect(page.getByRole('banner').getByRole('button', { name: /Search or run a command/ })).toBeVisible();
-    await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Workspace village' })).toBeVisible();
     await expect(page.getByRole('alert')).toContainText('Live state may be incomplete or out of date.');
   });
 

@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { buildValley, cameraFor, hash, HOUSE_SPRITES, type ValleyInput } from './model';
 
-const base: ValleyInput = { projects: [], threads: [], jobsRunning: 0, attention: 0, people: 0, minWidth: 360 };
+const base: ValleyInput = {
+  projects: [],
+  threads: [],
+  personFigures: [],
+  jobsRunning: 0,
+  attention: 0,
+  people: 0,
+  minWidth: 360,
+};
 
 const thread = (id: string, projectName: string, status: string, provider = 'claude') =>
   ({ id, title: `Task ${id}`, projectName, status, provider }) as ValleyInput['threads'][number];
@@ -50,9 +58,37 @@ describe('buildValley', () => {
     const house = scene.places.find((place) => place.kind === 'project');
     expect(house).toMatchObject({ lit: true, asking: 1, summary: '1 session needs your answer' });
     // The session waiting for you stands first.
-    expect(house?.figures.map((figure) => [figure.threadId, figure.state, figure.family])).toEqual([
+    expect(house?.figures.map((figure) => [figure.params['thread'], figure.state, figure.family])).toEqual([
       ['th_ask', 'asking', 'ember'],
       ['th_run', 'working', 'river'],
+    ]);
+  });
+
+  it('stands a Person session or swarm worker at its project house, with its own destination', () => {
+    const scene = buildValley({
+      ...base,
+      projects: [{ name: 'garden-api', status: 'ok' }],
+      personFigures: [
+        {
+          id: 'pty-1',
+          name: 'Lina',
+          kind: 'Person session',
+          projectId: 'garden-api',
+          provider: 'claude',
+          to: '/terminal',
+          params: { pty: 'pty-1' },
+        },
+      ],
+    });
+    const house = scene.places.find((place) => place.kind === 'project');
+    expect(house).toMatchObject({ lit: true, summary: '1 session working' });
+    expect(house?.figures).toEqual([
+      expect.objectContaining({
+        title: 'Lina · Person session',
+        to: '/terminal',
+        params: { pty: 'pty-1' },
+        state: 'working',
+      }),
     ]);
   });
 

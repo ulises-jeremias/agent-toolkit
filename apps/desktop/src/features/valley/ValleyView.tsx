@@ -5,11 +5,15 @@ import { requireClient, useBackend } from '../../data/backend';
 import { useFocusThreads } from '../../data/focus';
 import { useJobs, activeJobIds } from '../../data/jobs';
 import { useLinkProject, useProjects } from '../../data/projects';
+import { activePersonSessionsForWorkspace } from '../../data/personSessionScope';
 import { useTerminalSessions } from '../../data/terminal';
+import { useSwarms } from '../../data/swarms';
+import { swarmPersonWorldEntries } from '../world/swarmPersonWorld';
 import { OPEN_TERMINAL_DOCK_EVENT } from '../../shell/events';
 import { useSessionContext } from '../../shell/useSessionContext';
 import { useAttention } from '../office/useAttention';
-import { buildValley, SPRITE_SIZE, type ValleyPlace, type ValleyScene } from './model';
+import { Button } from '../../ui';
+import { buildValley, SPRITE_SIZE, type ValleyPersonFigure, type ValleyPlace, type ValleyScene } from './model';
 import { manifestEntry, valleyUrl, type ValleyManifestEntry } from './assets';
 import styles from './valley.module.css';
 
@@ -97,6 +101,56 @@ export default function ValleyView() {
     staleTime: 15_000,
   });
 
+  // Live Person sessions and swarm workers, scoped to this workspace. A character needs a real session.
+  const canonical = useQuery({
+    queryKey: ['person-sessions', workspace],
+    queryFn: () => requireClient(client).personSessions(workspace),
+    enabled: client !== null && workspace.length > 0,
+    refetchInterval: 5_000,
+  });
+  const swarms = useSwarms();
+  const livePersonPtys = useMemo(
+    () => activePersonSessionsForWorkspace(terminals.sessions, workspace),
+    [terminals.sessions, workspace],
+  );
+  const personFigures: ValleyPersonFigure[] = useMemo(() => {
+    const roster = people.data?.people ?? [];
+    const peopleById = new Map(roster.map((person) => [person.id, person]));
+    const projectNames = (projects.data?.projects ?? []).map((project) => project.name);
+    const pty = livePersonPtys.flatMap((session) => {
+      const person = session.personId ? peopleById.get(session.personId) : undefined;
+      const projectId = session.projectId;
+      if (!person || !projectId || !projectNames.includes(projectId)) return [];
+      return [
+        {
+          id: session.id,
+          name: person.name,
+          kind: 'Person session',
+          projectId,
+          provider: session.provider ?? 'claude',
+          // The person's own page shows the live session and its terminal.
+          to: '/people',
+          params: { person: person.id, session: session.id },
+        },
+      ];
+    });
+    const swarm = swarmPersonWorldEntries({
+      sessions: canonical.data?.sessions ?? [],
+      runs: swarms.data?.runs ?? [],
+      people: roster,
+      projectNames,
+    }).map((entry) => ({
+      id: entry.id,
+      name: entry.name,
+      kind: 'Person session in a swarm',
+      projectId: entry.projectId,
+      provider: entry.provider || 'claude',
+      to: '/operations',
+      params: { swarm: entry.runId },
+    }));
+    return [...pty, ...swarm];
+  }, [livePersonPtys, people.data, projects.data, canonical.data, swarms.data]);
+
   const [scale] = useState(() => scaleFor(window.innerHeight));
   const viewport = useRef<HTMLDivElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -106,12 +160,13 @@ export default function ValleyView() {
       buildValley({
         projects: projects.data?.projects ?? [],
         threads,
+        personFigures,
         jobsRunning: activeJobIds(jobs.data).length,
         attention: attention.items.length,
         people: people.data?.people.length ?? 0,
         minWidth: Math.max(400, Math.round((viewport.current?.clientWidth ?? 1024) / scale)),
       }),
-    [projects.data, threads, jobs.data, attention.items.length, people.data, scale],
+    [projects.data, threads, personFigures, jobs.data, attention.items.length, people.data, scale],
   );
 
   const selected = scene.places.find((place) => place.id === selectedId) ?? null;
@@ -143,6 +198,25 @@ export default function ValleyView() {
             {threads.filter((thread) => thread.status === 'running' || thread.status === 'awaiting-approval').length}{' '}
             sessions working
           </p>
+        </div>
+        <div className={styles.headActions}>
+          <Button
+            variant="secondary"
+            onClick={() =>
+              link.mutate(undefined, {
+                onSuccess: (linked) => linked && navigate(href('/workspace', { project: linked.name })),
+              })
+            }
+            busy={link.isPending}
+            busyLabel="Linking…"
+          >
+            Link a repository
+          </Button>
+          {link.error ? (
+            <p className={styles.linkError} role="alert">
+              {link.error.message}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -207,6 +281,7 @@ export default function ValleyView() {
                 <button
                   type="button"
                   className={styles.hit}
+                  data-entity-id={`place:${place.id}`}
                   aria-pressed={selected?.id === place.id}
                   aria-label={`${place.title}: ${place.summary}`}
                   style={{
@@ -232,21 +307,20 @@ export default function ValleyView() {
           {scene.places.flatMap((place) =>
             place.figures.map((figure) => {
               const state = figure.state === 'asking' ? 'ask' : 'work';
-              const family = figure.family;
-              const name = `agent_${state}_${family}`;
+              const name = `agent_${state}_${figure.family}`;
               return (
                 <button
                   key={figure.id}
                   type="button"
                   className={styles.figure}
-                  aria-label={`${figure.title}, ${figure.state === 'asking' ? 'needs your answer' : 'working'}`}
+                  aria-label={`${figure.title} · session open · ${figure.state === 'asking' ? 'needs your answer' : 'working'}`}
                   style={{
                     left: figure.x * scale,
                     top: (LANE - SPRITE_SIZE.agent.h) * scale,
                     width: SPRITE_SIZE.agent.w * scale,
                     height: SPRITE_SIZE.agent.h * scale,
                   }}
-                  onClick={() => navigate(href('/focus', { thread: figure.threadId }))}
+                  onClick={() => navigate(href(figure.to, figure.params))}
                 >
                   <Sprite name={name} x={0} bottom={SPRITE_SIZE.agent.h} scale={scale} animate />
                 </button>

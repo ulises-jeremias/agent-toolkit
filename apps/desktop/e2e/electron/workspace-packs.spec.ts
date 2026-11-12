@@ -18,7 +18,7 @@ test('reviews workspace context packs and applies or clears one from the GUI', a
     );
     fs.writeFileSync(path.join(packDir, 'invalid.yaml'), 'description: Missing the required name.\n');
 
-    await goTo(page, 'Projects');
+    await goTo(page, 'Context');
     const panel = page.getByRole('region', { name: 'Workspace context packs' });
     await expect(panel).toContainText('Product Team');
     await expect(panel).toContainText('agent-toolkit, my-ai-workspace');
@@ -80,7 +80,7 @@ test('reviews workspace context packs and applies or clears one from the GUI', a
 
     await page.reload();
     await waitForBackend(page);
-    await goTo(page, 'Projects');
+    await goTo(page, 'Context');
     const restoredPanel = page.getByRole('region', { name: 'Workspace context packs' });
     await expect(restoredPanel).toContainText('Used for future sessions');
     await restoredPanel.getByRole('button', { name: 'Clear selected context' }).click();

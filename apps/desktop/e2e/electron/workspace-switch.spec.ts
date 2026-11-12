@@ -55,7 +55,7 @@ test('switches workspaces, reads their own projects, and returns safely', async 
     await waitForBackend(page);
 
     await goTo(page, 'Projects');
-    const linkProject = page.getByRole('button', { name: 'Link existing folder' });
+    const linkProject = page.getByRole('button', { name: 'Link a repository' });
     await expect(linkProject).toBeEnabled({ timeout: 15_000 });
     await chooseFolder(project);
     await linkProject.click();
@@ -86,7 +86,7 @@ test('switches workspaces, reads their own projects, and returns safely', async 
     await expect(page).toHaveURL(new RegExp(encodeURIComponent(workspace)));
     await waitForBackend(page);
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-    await expect(page.getByRole('button', { name: /Add project/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Link a repository' })).toBeVisible();
     if (process.env.ATK_CAPTURE === '1') {
       for (const size of [
         { width: 1024, height: 640, key: 'workspace-return-compact' },

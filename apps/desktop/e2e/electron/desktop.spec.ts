@@ -137,7 +137,7 @@ test.afterAll(async () => {
 test('supervisor starts the real backend and the shell connects', async () => {
   const { page } = desktop;
   await waitForBackend(page);
-  await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
+  await expect(page.getByRole('group', { name: 'Workspace village' })).toBeVisible();
   await expect(page.getByRole('alert')).toHaveCount(0);
 });
 
@@ -277,7 +277,7 @@ test('palette protects backend restart behind a consequence review', async () =>
     page.getByText('Reading workspace, projects, memory, tools, jobs, and active People sessions'),
   ).toBeHidden();
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-  await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
+  await expect(page.getByRole('group', { name: 'Workspace village' })).toBeVisible();
   await page.keyboard.press('Control+k');
   const palette = page.getByRole('dialog', { name: 'Commands' });
   await palette.getByLabel('Filter commands').fill('Restart backend');
@@ -329,7 +329,7 @@ test('every destination renders from live data without a crash boundary', async 
 test('workspace reads the scratch workspace through the backend', async () => {
   const { page } = desktop;
   await waitForBackend(page);
-  await goTo(page, 'Projects');
+  await goTo(page, 'Context');
   await expect(page.getByRole('region', { name: 'Context budget' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Personas' })).toContainText(/architect|implementer/);
 });

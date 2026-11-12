@@ -20,7 +20,7 @@ async function enterWorld(page: Desktop['page'], prefix: string): Promise<void> 
   await expect(
     page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }),
   ).toHaveAttribute('aria-current', 'page');
-  await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
+  await expect(page.getByRole('group', { name: 'Workspace village' })).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(page.getByText('INSTALLED')).toHaveCount(0);
   await capture(page, `${prefix}03-world`);
