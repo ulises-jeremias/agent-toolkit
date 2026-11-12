@@ -41,6 +41,9 @@ export function Dialog({
   const descriptionId = useId();
   const returnFocus = useRef<HTMLElement | null>(null);
 
+  // Runs on every render, not only when `open` changes: the native dialog can
+  // close on its own (Escape) while the parent still says open. Opening again
+  // must then reopen it, even though the prop did not change.
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
@@ -52,13 +55,16 @@ export function Dialog({
       dialog.close();
       restoreFocus(returnFocus);
     }
-  }, [open, initialFocus]);
+  });
 
   // Escape (or any native close) while the parent still says open.
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
     const handleClose = () => {
+      // The native close event is queued: if the dialog was reopened before it ran,
+      // this event is stale and must not close the new session.
+      if (dialog.open) return;
       if (returnFocus.current === null) return;
       restoreFocus(returnFocus);
       onClose();
