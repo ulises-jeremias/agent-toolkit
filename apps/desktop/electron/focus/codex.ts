@@ -91,11 +91,18 @@ function fileChanges(item: Json): FileChange[] {
     const path = asString(change?.['path']);
     if (!change || !path) return [];
     const kind = asRecord(change['kind']);
-    return [{ path, kind: asString(change['kind']) ?? asString(kind?.['type']) ?? 'update', diff: asString(change['diff']) ?? '' }];
+    return [
+      {
+        path,
+        kind: asString(change['kind']) ?? asString(kind?.['type']) ?? 'update',
+        diff: asString(change['diff']) ?? '',
+      },
+    ];
   });
 }
 
 export class CodexSession implements ProviderSession {
+  readonly acceptsInputWhileRunning = false;
   private readonly child: ChildProcessWithoutNullStreams;
   private readonly waiting = new Map<number, (result: Json | null, error: Json | null) => void>();
   private readonly approvals = new Map<string, PendingApproval>();
@@ -104,11 +111,13 @@ export class CodexSession implements ProviderSession {
   private nextId = 1;
   private threadId: string | null = null;
   private turnId: string | null = null;
+  private completedTurnId: string | null = null;
   private lastUsage: FocusUsage | null = null;
   private stderrTail = '';
   private disposed = false;
   private exited = false;
   private failed: string | null = null;
+  private killTimer: NodeJS.Timeout | null = null;
 
   constructor(
     private readonly options: AdapterStartOptions,
@@ -172,7 +181,14 @@ export class CodexSession implements ProviderSession {
   interrupt(): void {
     if (!this.alive || !this.threadId || !this.turnId) return;
     for (const requestId of [...this.approvals.keys()]) this.respondApproval(requestId, 'deny');
-    void this.request('turn/interrupt', { threadId: this.threadId, turnId: this.turnId });
+    void this.request('turn/interrupt', { threadId: this.threadId, turnId: this.turnId }).catch((error: unknown) => {
+      if (!this.alive) return;
+      this.sink.item({
+        type: 'notice',
+        level: 'error',
+        text: `Codex could not interrupt: ${error instanceof Error ? error.message : String(error)}`,
+      });
+    });
   }
 
   dispose(now = false): void {
@@ -180,9 +196,15 @@ export class CodexSession implements ProviderSession {
     this.disposed = true;
     if (this.exited) return;
     if (now) {
-      this.kill('SIGTERM');
+      // Shutdown may exit Electron before a fallback timer runs. Stop the whole
+      // process group now; an interrupt already had its grace period in the service.
+      this.kill('SIGKILL');
       return;
     }
+    this.killTimer = setTimeout(() => {
+      if (!this.exited) this.kill('SIGKILL');
+    }, 5_000);
+    this.killTimer.unref();
     try {
       this.child.stdin.end();
     } catch {
@@ -191,9 +213,6 @@ export class CodexSession implements ProviderSession {
     setTimeout(() => {
       if (!this.exited) this.kill('SIGTERM');
     }, 1_500).unref();
-    setTimeout(() => {
-      if (!this.exited) this.kill('SIGKILL');
-    }, 5_000).unref();
   }
 
   private kill(signal: NodeJS.Signals): void {
@@ -232,7 +251,13 @@ export class CodexSession implements ProviderSession {
       this.write({ method: 'initialized' });
       const policy = CODEX_POLICY[this.options.permissionMode];
       const model = this.options.model && isSafeModelId(this.options.model) ? this.options.model : null;
-      const common = { cwd: this.options.cwd, approvalPolicy: policy.approvalPolicy, sandbox: policy.sandbox, model };
+      const common = {
+        cwd: this.options.cwd,
+        approvalPolicy: policy.approvalPolicy,
+        approvalsReviewer: 'user',
+        sandbox: policy.sandbox,
+        model,
+      };
       const started = this.options.resumeSessionId
         ? await this.request('thread/resume', { threadId: this.options.resumeSessionId, excludeTurns: true, ...common })
         : await this.request('thread/start', common);
@@ -282,7 +307,8 @@ export class CodexSession implements ProviderSession {
       input: [{ type: 'text', text, text_elements: [] }],
     }).then(
       (result) => {
-        this.turnId = asString(asRecord(result['turn'])?.['id']) ?? this.turnId;
+        const id = asString(asRecord(result['turn'])?.['id']);
+        if (id && id !== this.completedTurnId && this.turnId === null) this.turnId = id;
       },
       (error: unknown) => {
         this.sink.turnFinished({
@@ -298,6 +324,8 @@ export class CodexSession implements ProviderSession {
   private onClose(code: number | null, signal: string | null): void {
     if (this.exited) return;
     this.exited = true;
+    if (this.killTimer) clearTimeout(this.killTimer);
+    this.killTimer = null;
     for (const settle of this.waiting.values()) settle(null, { message: 'Codex exited.' });
     this.waiting.clear();
     this.sink.exited({
@@ -333,6 +361,13 @@ export class CodexSession implements ProviderSession {
   }
 
   private onServerRequest(rpcId: number | string, method: string, params: Json): void {
+    if (
+      (params['threadId'] !== undefined && params['threadId'] !== this.threadId) ||
+      (params['turnId'] !== undefined && params['turnId'] !== this.turnId)
+    ) {
+      this.write({ id: rpcId, error: { code: -32602, message: 'This request does not belong to the active turn' } });
+      return;
+    }
     const requestId = `codex-${String(rpcId)}`;
     const itemId = asString(params['itemId']) ?? asString(params['callId']);
     if (method === 'item/commandExecution/requestApproval' || method === 'execCommandApproval') {
@@ -345,7 +380,13 @@ export class CodexSession implements ProviderSession {
         tool: 'Shell',
         kind: 'command',
         title: firstLine(command),
-        input: clipInput({ command, cwd: params['cwd'], reason: params['reason'] }),
+        input: clipInput({
+          command,
+          cwd: params['cwd'],
+          reason: params['reason'],
+          kind: params['kind'],
+          networkApprovalContext: params['networkApprovalContext'],
+        }),
         canAllowForSession: true,
       });
       return;
@@ -360,16 +401,26 @@ export class CodexSession implements ProviderSession {
         tool: 'Edit',
         kind: 'edit',
         title: changes.map((change) => change.path).join(', ') || 'file changes',
-        input: clipInput({ changes, reason: params['reason'] }),
+        input: clipInput({ changes, reason: params['reason'], grantRoot: params['grantRoot'] }),
         canAllowForSession: true,
       });
       return;
     }
     // Anything else would need UI this app does not have yet. Refuse it so the turn can continue or fail visibly.
+    this.sink.item({
+      type: 'notice',
+      level: 'error',
+      text: `Codex requested ${method}, which Focus does not support yet. The request was refused.`,
+    });
     this.write({ id: rpcId, error: { code: -32601, message: `${method} is not supported by this client` } });
   }
 
   private onNotification(method: string, params: Json): void {
+    // Child/native-agent threads share the transport, but not this Focus journal.
+    if (params['threadId'] !== undefined && params['threadId'] !== this.threadId) return;
+    if (params['turnId'] !== undefined && this.turnId !== null && params['turnId'] !== this.turnId) return;
+    const notifiedTurn = asString(asRecord(params['turn'])?.['id']);
+    if (method === 'turn/completed' && notifiedTurn !== this.turnId) return;
     switch (method) {
       case 'item/agentMessage/delta': {
         const itemId = asString(params['itemId']);
@@ -503,7 +554,8 @@ export class CodexSession implements ProviderSession {
       case 'commandExecution': {
         const ok = item['status'] === 'completed' && (item['exitCode'] === 0 || item['exitCode'] === null);
         const output = asString(item['aggregatedOutput']) ?? '';
-        const suffix = typeof item['exitCode'] === 'number' && item['exitCode'] !== 0 ? `\n(exit ${item['exitCode']})` : '';
+        const suffix =
+          typeof item['exitCode'] === 'number' && item['exitCode'] !== 0 ? `\n(exit ${item['exitCode']})` : '';
         this.sink.item({ type: 'tool.finished', itemId: id, ok, ...clipOutput(`${output}${suffix}`) });
         return;
       }
@@ -534,14 +586,22 @@ export class CodexSession implements ProviderSession {
 
   private onTurnCompleted(turn: Json | null): void {
     const status = asString(turn?.['status']);
+    this.completedTurnId = this.turnId;
     this.turnId = null;
+    this.approvals.clear();
+    this.changesByItem.clear();
     const usage = this.lastUsage;
     this.lastUsage = null;
     const error = asRecord(turn?.['error']);
     const details = [asString(error?.['message']), asString(error?.['additionalDetails'])].filter(Boolean).join('\n');
     this.sink.turnFinished({
       outcome: status === 'completed' ? 'completed' : status === 'interrupted' ? 'interrupted' : 'failed',
-      detail: status === 'completed' ? null : status === 'interrupted' ? 'Stopped by you.' : details || 'Codex reported an error.',
+      detail:
+        status === 'completed'
+          ? null
+          : status === 'interrupted'
+            ? 'Stopped by you.'
+            : details || 'Codex reported an error.',
       durationMs: typeof turn?.['durationMs'] === 'number' ? turn['durationMs'] : null,
       usage,
     });
