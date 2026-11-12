@@ -47,6 +47,11 @@ function asString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
 
+function approvalDecisions(value: unknown): string[] | null {
+  if (value === undefined || value === null) return null;
+  return Array.isArray(value) ? value.filter((decision): decision is string => typeof decision === 'string') : [];
+}
+
 function num(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
@@ -76,6 +81,8 @@ interface PendingApproval {
   rpcId: number | string;
   /** v2 requests answer `accept`/`decline`; the legacy pair answers `approved`/`denied`. */
   dialect: 'v2' | 'legacy';
+  /** The server is authoritative when it supplies the choices for this prompt. */
+  availableDecisions: string[] | null;
 }
 
 interface PendingRequest {
@@ -177,11 +184,16 @@ export class CodexSession implements ProviderSession {
   respondApproval(requestId: string, decision: FocusApprovalDecision): boolean {
     const pending = this.approvals.get(requestId);
     if (!pending) return false;
-    this.approvals.delete(requestId);
     const answer =
       pending.dialect === 'v2'
         ? { allow: 'accept', 'allow-session': 'acceptForSession', deny: 'decline' }[decision]
         : { allow: 'approved', 'allow-session': 'approved_for_session', deny: 'denied' }[decision];
+    // A session grant is never inferred. If the server supplied a list,
+    // enforce it exactly; without one only one-shot compatibility decisions
+    // are available.
+    if (decision === 'allow-session' && !pending.availableDecisions?.includes(answer)) return false;
+    if (pending.availableDecisions && !pending.availableDecisions.includes(answer)) return false;
+    this.approvals.delete(requestId);
     this.write({ id: pending.rpcId, result: { decision: answer } });
     return true;
   }
@@ -413,8 +425,22 @@ export class CodexSession implements ProviderSession {
     const requestId = `codex-${String(rpcId)}`;
     const itemId = asString(params['itemId']) ?? asString(params['callId']);
     if (method === 'item/commandExecution/requestApproval' || method === 'execCommandApproval') {
+      const dialect = method.startsWith('item/') ? 'v2' : 'legacy';
+      const decisions = approvalDecisions(params['availableDecisions']);
+      if (decisions && (!decisions.includes('accept') || !decisions.includes('decline'))) {
+        this.sink.item({
+          type: 'notice',
+          level: 'error',
+          text: 'Codex requested an approval choice that Focus cannot present safely. The request was refused.',
+        });
+        this.write({
+          id: rpcId,
+          error: { code: -32601, message: 'This approval choice is not supported by this client' },
+        });
+        return;
+      }
       const command = displayCommand(params['command'], params['commandActions']) || 'command';
-      this.approvals.set(requestId, { rpcId, dialect: method.startsWith('item/') ? 'v2' : 'legacy' });
+      this.approvals.set(requestId, { rpcId, dialect, availableDecisions: decisions });
       this.sink.approval({
         type: 'approval.requested',
         requestId,
@@ -428,14 +454,33 @@ export class CodexSession implements ProviderSession {
           reason: params['reason'],
           kind: params['kind'],
           networkApprovalContext: params['networkApprovalContext'],
+          additionalPermissions: params['additionalPermissions'],
+          proposedExecpolicyAmendment: params['proposedExecpolicyAmendment'],
+          proposedNetworkPolicyAmendments: params['proposedNetworkPolicyAmendments'],
+          availableDecisions: params['availableDecisions'],
         }),
-        canAllowForSession: true,
+        canAllowForSession:
+          decisions?.includes(dialect === 'v2' ? 'acceptForSession' : 'approved_for_session') ?? false,
       });
       return;
     }
     if (method === 'item/fileChange/requestApproval' || method === 'applyPatchApproval') {
+      const dialect = method.startsWith('item/') ? 'v2' : 'legacy';
+      const decisions = approvalDecisions(params['availableDecisions']);
+      if (decisions && (!decisions.includes('accept') || !decisions.includes('decline'))) {
+        this.sink.item({
+          type: 'notice',
+          level: 'error',
+          text: 'Codex requested an approval choice that Focus cannot present safely. The request was refused.',
+        });
+        this.write({
+          id: rpcId,
+          error: { code: -32601, message: 'This approval choice is not supported by this client' },
+        });
+        return;
+      }
       const changes = (itemId ? this.changesByItem.get(itemId) : undefined) ?? [];
-      this.approvals.set(requestId, { rpcId, dialect: method.startsWith('item/') ? 'v2' : 'legacy' });
+      this.approvals.set(requestId, { rpcId, dialect, availableDecisions: decisions });
       this.sink.approval({
         type: 'approval.requested',
         requestId,
@@ -443,8 +488,14 @@ export class CodexSession implements ProviderSession {
         tool: 'Edit',
         kind: 'edit',
         title: changes.map((change) => change.path).join(', ') || 'file changes',
-        input: clipInput({ changes, reason: params['reason'], grantRoot: params['grantRoot'] }),
-        canAllowForSession: true,
+        input: clipInput({
+          changes,
+          reason: params['reason'],
+          grantRoot: params['grantRoot'],
+          availableDecisions: params['availableDecisions'],
+        }),
+        canAllowForSession:
+          decisions?.includes(dialect === 'v2' ? 'acceptForSession' : 'approved_for_session') ?? false,
       });
       return;
     }

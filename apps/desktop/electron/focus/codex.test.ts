@@ -63,12 +63,48 @@ describe('Codex app-server protocol', () => {
     await vi.waitFor(() => expect(sink.approval).toHaveBeenCalledTimes(1));
     expect(sink.approval).toHaveBeenCalledWith(
       expect.objectContaining({
-        input: expect.objectContaining({ kind: 'writeStdin', networkApprovalContext: { host: 'example.test' } }),
+        canAllowForSession: true,
+        input: expect.objectContaining({
+          kind: 'writeStdin',
+          networkApprovalContext: { host: 'example.test' },
+          additionalPermissions: { network: { enabled: true } },
+          availableDecisions: expect.arrayContaining([
+            'accept',
+            'acceptForSession',
+            'decline',
+            { acceptWithExecpolicyAmendment: { execpolicy_amendment: ['echo yes'] } },
+          ]),
+        }),
       }),
     );
     expect(session.respondApproval('codex-approval', 'allow-session')).toBe(true);
     await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(1));
     expect(sink.item).toHaveBeenCalledWith(expect.objectContaining({ text: 'acceptForSession' }));
+  });
+  it('does not offer or accept an unadvertised session grant', async () => {
+    const { session, sink } = harness();
+    session.send('approval-limited');
+    await vi.waitFor(() => expect(sink.approval).toHaveBeenCalledTimes(1));
+    expect(sink.approval).toHaveBeenCalledWith(expect.objectContaining({ canAllowForSession: false }));
+    expect(session.respondApproval('codex-approval', 'allow-session')).toBe(false);
+    expect(session.respondApproval('codex-approval', 'allow')).toBe(true);
+    await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(1));
+    expect(sink.item).toHaveBeenCalledWith(expect.objectContaining({ text: 'accept' }));
+  });
+  it('refuses an approval allowlist that has no safe one-shot allow and deny choices', async () => {
+    const { session, sink } = harness();
+    session.send('approval-unsupported');
+    await vi.waitFor(() =>
+      expect(sink.item).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'notice',
+          level: 'error',
+          text: expect.stringContaining('cannot present safely'),
+        }),
+      ),
+    );
+    expect(sink.approval).not.toHaveBeenCalled();
+    expect(session.respondApproval('codex-approval', 'allow')).toBe(false);
   });
   it('reports an interrupt RPC failure without an unhandled rejection', async () => {
     const { session, sink } = harness();
