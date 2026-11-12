@@ -480,18 +480,18 @@ not a final acceptance harness. It uses a temporary HOME, initializes workspace
 with CLI, reloads the page and captures onboarding. Therefore it does NOT prove
 UI first-run workspace creation or real-provider acceptance.
 
-## 9. Mandatory installed-app acceptance (all still open)
+## 9. Mandatory installed-app acceptance (partial; live journey still open)
 
 Use a disposable repository; record exact executable/hash, source commit plus dirty
 state, backend version, provider version, OS, profile and sanitized evidence.
 
-1. [ ] Open installed Desktop with clean user profile.
-2. [ ] Create workspace through UI.
-3. [ ] Register existing Git repository through UI (including outside workspace root).
-4. [ ] Discover real authenticated provider; auth success is not quota success.
-5. [ ] Start real coding task.
-6. [ ] Observe messages, structured tool calls and true process state.
-7. [ ] Inspect actual generated file changes and diff.
+1. [x] Open packaged Linux Desktop with clean isolated Electron user profile.
+2. [x] Create workspace through onboarding UI.
+3. [ ] Register existing Git repository through UI (including outside workspace root); the native directory picker remains un-driven in headless mode.
+4. [x] Discover real authenticated Claude and Codex providers; auth and quota are treated separately.
+5. [x] Start real Claude and Codex coding tasks in disposable repositories.
+6. [x] Observe messages, structured tool calls, approvals, failures and process completion.
+7. [x] Inspect actual generated file changes and diffs independently and in Focus.
 8. [x] Use real terminal in project (real `/usr/bin/zsh`, verified cwd and Git status).
 9. [x] Intervene safely: reviewed and approved two scoped Claude tool requests
    (“Allow once”), then verified resulting files and passing tests. A live cancel/deny
@@ -572,6 +572,11 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   in-flight cancel/deny case remains open.
 - The package also completed a separate real Codex task with approval and independent
   test verification. OpenCode remains unsupported; broad provider feature parity is open.
+- Packaged Linux Electron E2E run against the previously built package completed 7/7: full
+  context/Person/swarm/recovery journey, skip link, reduced motion, keyboard shortcut/Escape,
+  both Git change journeys (commit and partial staging), and workspace switching. Command
+  used `ATK_E2E_APP_PATH` and `ATK_E2E_BACKEND_BIN` from `package-codex/linux-unpacked`; this
+  is package acceptance for those paths, not a build from the latest `d813ad30` test head.
 - Full visual matrix, performance pass, screen-reader/accessibility pass, actual Meadow
   capture, and macOS/Windows packaged acceptance remain open.
 - Draft follow-up [PR #1783](https://github.com/ulises-jeremias/agent-toolkit/pull/1783)
@@ -580,14 +585,17 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   The owner-authored commits from #1781 and #1782 are preserved in branch history;
   PR base is retargeted to #1782. The acceptance update is posted to
   [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6836270235).
-  Its source quality and local Desktop tests pass. GitHub did not launch Actions
-  for the new head after retargeting this stacked PR, so the `desktop` workflow was
-  dispatched directly against head `d813ad30`; run
+  GitHub Actions are now running automatically on latest head `98e4d716`: desktop run
+  [43310763755](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/43310763755),
+  clean-machine packaged acceptance run
+  [43310763737](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/43310763737),
+  and validation run
+  [43310763944](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/43310763944).
+  The earlier manually dispatched desktop run
   [43310312393](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/43310312393)
-  is in progress. Electron keyboard/a11y checks pass 3/3, including the skip link,
-  reduced motion, and Escape precedence. The clean-HOME workflow has no manual
-  dispatch and its last run is on the earlier base head; packaged evidence still
-  must be refreshed. This PR stays
+  targets test head `d813ad30` and is still in progress. Electron keyboard/a11y checks pass
+  3/3, including the skip link, reduced motion, and Escape precedence. Packaged Linux E2E
+  passes 7/7 for the listed paths against the existing package described above. This PR stays
   draft and unmerged while base PRs have failing required Desktop checks. No release
   was created.
 
