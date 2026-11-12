@@ -1246,6 +1246,190 @@ h3 {
 .docs-main {
   min-width: 0;
 }
+.docs-breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 0;
+  margin: 0 0 22px;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.docs-breadcrumbs li + li::before {
+  margin-right: 10px;
+  color: var(--leaf);
+  content: "›";
+}
+.docs-breadcrumbs a {
+  color: var(--muted);
+}
+.docs-breadcrumbs [aria-current="page"] {
+  color: var(--cream);
+  font-weight: 600;
+}
+.docs-mobile-nav {
+  display: none;
+}
+.docs-search {
+  display: block;
+  max-width: 640px;
+  margin: 0 0 30px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: #132c30;
+}
+.docs-search-label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+.docs-search-sign {
+  color: var(--sun);
+  font: 400 9px/1.7 var(--pixel);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.docs-search-box {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.docs-search-box input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  color: var(--cream);
+  background: var(--night-deep);
+}
+.docs-search-clear {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  color: var(--cream);
+  background: var(--pine);
+  cursor: pointer;
+}
+.docs-search-status {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.docs-search-results {
+  margin-top: 14px;
+}
+.docs-search-list,
+.docs-search-subs {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.docs-search-item {
+  padding: 12px;
+  border-left: 3px solid var(--leaf);
+  background: var(--night-deep);
+}
+.docs-search-page {
+  font-weight: 700;
+}
+.docs-search-subs {
+  gap: 8px;
+  margin-top: 8px;
+}
+.docs-search-subs a {
+  color: var(--sun);
+  font-size: 0.92rem;
+}
+.docs-search-excerpt {
+  display: block;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.docs-search-excerpt mark {
+  color: var(--night-deep);
+  background: var(--sun);
+}
+.docs-toc {
+  position: sticky;
+  top: 24px;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: #132c30;
+}
+.docs-toc h2 {
+  margin: 0 0 8px;
+  color: var(--sun);
+  font: 400 9px/1.8 var(--pixel);
+}
+.docs-toc ul {
+  display: grid;
+  gap: 2px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.docs-toc a {
+  display: block;
+  padding: 5px 8px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  text-decoration: none;
+}
+.docs-toc a:hover {
+  color: var(--cream);
+  background: #1f4641;
+}
+.docs-toc-sub a {
+  padding-left: 22px;
+  font-size: 0.8rem;
+}
+.docs-pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.docs-pager-link {
+  display: grid;
+  gap: 4px;
+  max-width: 46%;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  background: #132c30;
+  text-decoration: none;
+}
+.docs-pager-link span {
+  color: var(--leaf);
+  font-size: 0.82rem;
+}
+.docs-pager-next {
+  margin-left: auto;
+  text-align: right;
+}
+.prose h2,
+.prose h3 {
+  scroll-margin-top: 96px;
+}
+.docs-shell--with-toc {
+  grid-template-columns: 250px minmax(0, 1fr) 230px;
+}
+@media (max-width: 1180px) {
+  .docs-shell--with-toc {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+  .docs-toc {
+    grid-column: 2;
+    position: static;
+    max-height: none;
+  }
+}
 .docs-main h1 {
   max-width: none;
   margin: 0 0 12px;
@@ -1805,6 +1989,53 @@ h3 {
   .docs-sidebar a {
     flex: none;
     padding: 8px 10px;
+  }
+  .docs-shell .docs-sidebar {
+    display: none;
+  }
+  .docs-mobile-nav {
+    display: block;
+    margin-bottom: 26px;
+    border: 1px solid var(--line);
+    background: #132c30;
+  }
+  .docs-mobile-nav summary {
+    min-height: 48px;
+    padding: 13px 16px;
+    cursor: pointer;
+    font-weight: 700;
+  }
+  .docs-mobile-nav nav {
+    display: grid;
+    gap: 16px;
+    padding: 0 16px 16px;
+  }
+  .docs-mobile-nav h2 {
+    margin: 0 0 6px;
+    color: var(--sun);
+    font: 400 9px/1.8 var(--pixel);
+  }
+  .docs-mobile-nav a {
+    display: block;
+    padding: 7px 9px;
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .docs-mobile-nav a[aria-current="page"] {
+    color: var(--cream);
+    background: #1f4641;
+  }
+  .docs-toc {
+    margin-top: 30px;
+  }
+  .docs-pager {
+    flex-direction: column;
+  }
+  .docs-pager-link {
+    max-width: none;
+  }
+  .docs-pager-next {
+    margin-left: 0;
   }
   .prose table {
     width: 100%;
