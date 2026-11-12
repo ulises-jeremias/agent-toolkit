@@ -51,6 +51,25 @@
      "logs": [
       "apps/desktop/e2e-real/run.mjs"
      ]
+    },
+    {
+     "journey_id": "D02",
+     "outcome": "pass",
+     "evidence_level": "P",
+     "timestamp_utc": "2026-11-12T03:35:36Z",
+     "steps_to_reproduce": "Packaged Desktop > People > Start Ada with ATK_PROVIDER=opencode (and ATK_MODEL retry): runner combobox lists opencode:true; Model combobox exposes the live CLI catalogue.",
+     "observed": "opencode detected and selectable; model opencode/deepseek-v4.1-flash-free selectable from the live catalogue.",
+     "screenshots": [
+      "docs/desktop/assets/electron/daily-driver/gate0-opencode-start-dialog.png"
+     ],
+     "toolkit_sha": "b7cf08eee6a1d3c59c298aa95d5a7a483832504a",
+     "package_version": "1.49.0",
+     "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+     "provider": "opencode 2.2.5 (opencode free provider, authenticated)",
+     "tested_by": "maintainer agent session, 2026-11-12",
+     "logs": [
+      "apps/desktop/e2e-real/run.mjs"
+     ]
     }
    ]
   },
@@ -95,6 +114,25 @@
      "logs": [
       "apps/desktop/e2e-real/run.mjs"
      ]
+    },
+    {
+     "journey_id": "D03",
+     "outcome": "pass",
+     "evidence_level": "P",
+     "timestamp_utc": "2026-11-12T03:35:37Z",
+     "steps_to_reproduce": "Start Ada with the real sum-fix task and Start and open terminal.",
+     "observed": "Session started: opencode mini --session ses_... RUNNING in the terminal dock on fixture-repo; durable session record created.",
+     "screenshots": [
+      "docs/desktop/assets/electron/daily-driver/gate0-opencode-streaming.png"
+     ],
+     "toolkit_sha": "b7cf08eee6a1d3c59c298aa95d5a7a483832504a",
+     "package_version": "1.49.0",
+     "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+     "provider": "opencode 2.2.5 (opencode free provider, authenticated)",
+     "tested_by": "maintainer agent session, 2026-11-12",
+     "logs": [
+      "apps/desktop/e2e-real/run.mjs"
+     ]
     }
    ]
   },
@@ -135,6 +173,25 @@
      "package_version": "1.49.0",
      "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
      "provider": "codex 0.166.0 (authenticated ChatGPT)",
+     "tested_by": "maintainer agent session, 2026-11-12",
+     "logs": [
+      "apps/desktop/e2e-real/run.mjs"
+     ]
+    },
+    {
+     "journey_id": "D04",
+     "outcome": "blocked",
+     "evidence_level": "P",
+     "timestamp_utc": "2026-11-12T03:41:40Z",
+     "steps_to_reproduce": "Observe terminal while OpenCode works; wait for fixture tests to pass.",
+     "observed": "BLOCKED by provider, not the app: terminal shows \"Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models.\" Same account-wide limit with Big Pickle (runner default) and DeepSeek V4.1 Flash Free. No edits; fixture diff 0 bytes; tests still failing. Prerequisite: OpenCode Go subscription, a provider API key configured in OpenCode, or free-quota reset.",
+     "screenshots": [
+      "docs/desktop/assets/electron/daily-driver/gate0-opencode-streaming.png"
+     ],
+     "toolkit_sha": "b7cf08eee6a1d3c59c298aa95d5a7a483832504a",
+     "package_version": "1.49.0",
+     "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+     "provider": "opencode 2.2.5 (opencode free provider, authenticated)",
      "tested_by": "maintainer agent session, 2026-11-12",
      "logs": [
       "apps/desktop/e2e-real/run.mjs"
@@ -184,6 +241,26 @@
      "logs": [
       "apps/desktop/e2e-real/run.mjs"
      ]
+    },
+    {
+     "journey_id": "D05",
+     "outcome": "pass",
+     "evidence_level": "P",
+     "timestamp_utc": "2026-11-12T03:41:40Z",
+     "steps_to_reproduce": "People > Stop session > confirm for the quota-blocked session; observe World while active.",
+     "observed": "Stop ended the session (STOPPED label); while active the World index listed Ada as running (2 running labels). No provider prompt required intervention.",
+     "screenshots": [
+      "docs/desktop/assets/electron/daily-driver/gate0-opencode-stopped-history.png",
+      "docs/desktop/assets/electron/daily-driver/gate0-opencode-world.png"
+     ],
+     "toolkit_sha": "b7cf08eee6a1d3c59c298aa95d5a7a483832504a",
+     "package_version": "1.49.0",
+     "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+     "provider": "opencode 2.2.5 (opencode free provider, authenticated)",
+     "tested_by": "maintainer agent session, 2026-11-12",
+     "logs": [
+      "apps/desktop/e2e-real/run.mjs"
+     ]
     }
    ]
   },
@@ -228,6 +305,25 @@
      "logs": [
       "apps/desktop/e2e-real/run.mjs"
      ]
+    },
+    {
+     "journey_id": "D06",
+     "outcome": "blocked",
+     "evidence_level": "P",
+     "timestamp_utc": "2026-11-12T03:41:40Z",
+     "steps_to_reproduce": "Inspect fixture git diff and test result after the OpenCode session.",
+     "observed": "Nothing to inspect: provider produced no changes (diff 0 bytes) due to the free-usage limit above. Not an app defect; the same fixture was fixed by Claude and Codex runs.",
+     "screenshots": [
+      "docs/desktop/assets/electron/daily-driver/gate0-opencode-streaming.png"
+     ],
+     "toolkit_sha": "b7cf08eee6a1d3c59c298aa95d5a7a483832504a",
+     "package_version": "1.49.0",
+     "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+     "provider": "opencode 2.2.5 (opencode free provider, authenticated)",
+     "tested_by": "maintainer agent session, 2026-11-12",
+     "logs": [
+      "apps/desktop/e2e-real/run.mjs"
+     ]
     }
    ]
   },
@@ -268,6 +364,25 @@
      "package_version": "1.49.0",
      "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
      "provider": "codex 0.166.0 (authenticated ChatGPT)",
+     "tested_by": "maintainer agent session, 2026-11-12",
+     "logs": [
+      "apps/desktop/e2e-real/run.mjs"
+     ]
+    },
+    {
+     "journey_id": "D07",
+     "outcome": "pass",
+     "evidence_level": "P",
+     "timestamp_utc": "2026-11-12T03:48:22Z",
+     "steps_to_reproduce": "Quit the packaged app, relaunch against the same workspace, open People.",
+     "observed": "Truthful reattachment: the second session whose harness was killed mid-run still had a live opencode process (verified by pid) and correctly shows RUNNING / SESSION OPEN; the stopped session shows STOPPED in Recent sessions; 2 durable records intact. Orphan process cleaned up after capture.",
+     "screenshots": [
+      "docs/desktop/assets/electron/daily-driver/gate0-opencode-relaunch-history.png"
+     ],
+     "toolkit_sha": "b7cf08eee6a1d3c59c298aa95d5a7a483832504a",
+     "package_version": "1.49.0",
+     "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+     "provider": "opencode 2.2.5 (opencode free provider, authenticated)",
      "tested_by": "maintainer agent session, 2026-11-12",
      "logs": [
       "apps/desktop/e2e-real/run.mjs"
