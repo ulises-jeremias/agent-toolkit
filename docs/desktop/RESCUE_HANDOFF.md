@@ -1,8 +1,8 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-12 (full visual tour and exact-head CI queued). Requested by the owner to
-preserve the complete mission and continue with GPT-6-Luna without repeating
-expensive discovery.
+Updated: 2026-11-12 (Focus-first navigation, even Dusk lighting, Electron capture,
+and exact-head CI queued). Requested by the owner to preserve the complete mission
+and continue with GPT-6-Luna without repeating expensive discovery.
 
 **The rescue is NOT complete.** This file is an execution checkpoint, not an
 acceptance report. Continue implementing and validating the product. The owner
@@ -46,7 +46,7 @@ integration worktree intact; it is not the same branch as the pushed follow-up P
 | `repos/agent-toolkit`, `chore/release-v1.47.5` | Old checkout, unrelated dirty release/version/plugin files and `.claude/`. Preserve; do not use as current product source. |
 | `worktrees/rescue`, `rescue/shell-v2`, `0c730540` | Existing PR #1780; replacement shell, onboarding, Focus, Projects/Context and new Valley. Preserved in integration branch. |
 | `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Nothing from this integration branch has been pushed. |
-| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `e481f9b2`; includes the continuity/runtime follow-up, reviewed Focus fixes, and responsive World/theme and full visual-tour improvements. It is not merged into the integration worktree. |
+| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `8f070792`; includes continuity/runtime follow-up, reviewed Focus fixes, responsive World capture, Focus-first navigation and an even Dusk lighting pass. It is not merged into the integration worktree. |
 | `worktrees/codex-protocol`, `rescue/codex-protocol`, `2b8de6d6` | Reviewed protocol fix; already cherry-picked as `8a753ec5`. Do not apply twice. |
 | `worktrees/workspace-continuity`, `rescue/workspace-continuity` | Uncommitted partial implementation by subagent; NOT reviewed, tested or integrated. See critical persistence flaw below. |
 | `.claude/worktrees/agent-a8c96dfe4dfec7e8d`, `rescue/valley-art` | Existing art work; preserve. Do not infer an active agent from the worktree. |
@@ -406,11 +406,12 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   is itself stacked on #1781 and #1780; post verified acceptance status to
   [#1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
   #1780/#1781/#1782 have failing Desktop gates; this draft remains unmerged pending
-  a healthy, reviewed base. Latest head `e481f9b2099710cd03dcdb9a885aeeb1a808aeb9`
-  has fresh hosted runs: web `quality` (43319795409) passed; `Validate` (43319795404)
-  is queued; `desktop` (43319795522) and `Clean-machine Desktop Acceptance`
-  (43319795449) are in progress as of this checkpoint. Do not report pending or
-  in-progress checks as passing. #1782 corrects stale
+  a healthy, reviewed base. Latest head `8f070792d9c132428c26ef0920ee85e1256faa23`
+  was pushed at about 23:12 UTC. Hosted run 43327491059 has several early
+  validation jobs passed, while required jobs including `gates` (43327491210),
+  Desktop packaging, and clean-machine acceptance (43327491131) remain pending as
+  of 23:17 UTC. Do not report pending or in-progress checks as passing. The local
+  changed-area checks are recorded below. #1782 corrects stale
   shell smoke assertions
   (empty-state headings and the six-place rail) and disambiguates a project row from
   its toast. The failing desktop run is specifically four packaged Electron journeys,
@@ -625,6 +626,19 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   conversation/tool/approval, error/loading/disconnected states, compact interaction,
   performance, screen-reader/accessibility, and macOS/Windows packaged acceptance remain
   open.
+- Continuation after this checkpoint: PR #1783 commit `8f070792` moves Focus ahead
+  of World in the destination rail, routes World to the semantic `WorldView`, replaces
+  the visible multi-radial Dusk overlay with one even blue-hour gradient, and updates
+  Electron capture assertions to wait for a real Library entity in the semantic map.
+  A generated transparent illustration set was inspected against the PXL previews
+  and the running map, then rejected: its 2.5D shading and red edge fringe
+  conflict with the authored pixel-art system. They were not copied into the product.
+  Local `type-check`, `build:all`, full Desktop lint, real Electron World capture
+  (Meadow/Dusk at 1024×640, 1440×900, 1920×1080) and keyboard/reduced-motion E2E
+  pass. The screenshots were opened. The village still needs authored PXL façade and
+  composition work; Dusk still reads too green in the grass surround, so this is not
+  a visual sign-off. Private images are under
+  `.audit-private/world-focustop-final/` and must not be committed.
 - Draft follow-up [PR #1783](https://github.com/ulises-jeremias/agent-toolkit/pull/1783)
   is pushed as `rescue/desktop-continuity-focus`, stacked on #1782's
   `fix/desktop-shell-smoke-navigation-20261112` branch (which carries #1781 and #1780).
@@ -634,7 +648,8 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   Packaged Linux E2E passes 7/7 for the listed paths against the existing package
   described above. Electron keyboard/a11y checks pass 3/3, including the skip link,
   reduced motion, and Escape precedence. Use the live checks on draft PR #1783 for the
-  current exact branch head; earlier CI runs do not cover this newest Focus/Dialog slice.
+  current exact branch head; earlier CI runs do not cover the newest navigation/World
+  slice. CI for `8f070792` was pending when this note was written.
   Keep the draft unmerged until required checks for that head finish and the stacked base
   is healthy. This PR stays
   draft and unmerged while base PRs have failing required Desktop checks. No release
