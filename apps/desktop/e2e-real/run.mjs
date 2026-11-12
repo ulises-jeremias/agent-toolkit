@@ -9,7 +9,7 @@ const APP_DIR = path.resolve(process.cwd());
 const REPO = path.resolve(APP_DIR, '..', '..');
 const PACKAGED = process.env['ATK_PACKAGED'] === '1';
 const PROVIDER = process.env['ATK_PROVIDER'] ?? 'claude';
-if (!['claude', 'codex'].includes(PROVIDER)) throw new Error(`ATK_PROVIDER must be claude|codex, got ${PROVIDER}`);
+if (!['claude', 'codex', 'opencode'].includes(PROVIDER)) throw new Error(`ATK_PROVIDER must be claude|codex|opencode, got ${PROVIDER}`);
 const SUFFIX = PROVIDER === 'claude' ? '' : `-${PROVIDER}`;
 const ROOT = path.join(process.env.HOME, 'dd-journey', (PACKAGED ? 'state-packaged' : 'state') + SUFFIX);
 const HOME_DIR = path.join(ROOT, 'home');
@@ -37,6 +37,15 @@ function setupOnce() {
       const dst = path.join(codexDir, f);
       if (fs.existsSync(src) && !fs.existsSync(dst)) fs.symlinkSync(src, dst);
     }
+  }
+  if (PROVIDER === 'opencode') {
+    // OpenCode stores auth under $XDG_DATA_HOME/opencode (launch() points
+    // XDG_DATA_HOME at HOME_DIR/.local/share).
+    const ocDir = path.join(HOME_DIR, '.local', 'share', 'opencode');
+    fs.mkdirSync(ocDir, { recursive: true });
+    const src = path.join(process.env.HOME, '.local', 'share', 'opencode', 'auth.json');
+    const dst = path.join(ocDir, 'auth.json');
+    if (fs.existsSync(src) && !fs.existsSync(dst)) fs.symlinkSync(src, dst);
   }
   const claudeDir = path.join(HOME_DIR, '.claude');
   fs.mkdirSync(claudeDir, { recursive: true });
@@ -140,6 +149,11 @@ async function phaseStart() {
     for (const o of opts) values.push(`${await o.getAttribute('value')}:${await o.isEnabled()}`);
     note('D02', `runner options: ${values.join(', ')}`);
     await runner.selectOption(PROVIDER);
+    if (process.env['ATK_MODEL']) {
+      const model = start.getByRole('combobox', { name: 'Model' });
+      await model.selectOption({ label: process.env['ATK_MODEL'] }).catch(() => model.selectOption(process.env['ATK_MODEL']));
+      note('D02', `model selected: ${process.env['ATK_MODEL']}`);
+    }
     const ack = start.getByRole('checkbox');
     if (await ack.count()) await ack.first().check();
     const task = start.getByRole('textbox', { name: 'Task for this session' });
