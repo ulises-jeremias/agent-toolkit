@@ -67,7 +67,7 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
         method: 'item/tool/requestUserInput',
         params: { threadId: 'parent', turnId: 'turn-1', itemId: 'q', questions: [] },
       });
-    if (text === 'approval')
+    if (text === 'approval' || text === 'approval-limited' || text === 'approval-unsupported')
       write({
         id: 'approval',
         method: 'item/commandExecution/requestApproval',
@@ -78,6 +78,18 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
           kind: 'writeStdin',
           command: 'yes',
           networkApprovalContext: { host: 'example.test' },
+          additionalPermissions: { network: { enabled: true } },
+          availableDecisions:
+            text === 'approval-limited'
+              ? ['accept', 'decline']
+              : text === 'approval-unsupported'
+                ? ['accept', 'cancel']
+                : [
+                    'accept',
+                    'acceptForSession',
+                    'decline',
+                    { acceptWithExecpolicyAmendment: { execpolicy_amendment: ['echo yes'] } },
+                  ],
         },
       });
   }
