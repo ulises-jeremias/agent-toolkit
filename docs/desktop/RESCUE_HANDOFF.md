@@ -582,10 +582,12 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6836270235).
   Its source quality and local Desktop tests pass. GitHub did not launch Actions
   for the new head after retargeting this stacked PR, so the `desktop` workflow was
-  dispatched directly against head `a6112c49`; run
-  [43308369747](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/43308369747)
-  is in progress. The clean-HOME workflow has no manual dispatch and its last run is
-  on the earlier base head; packaged evidence still must be refreshed. This PR stays
+  dispatched directly against head `d813ad30`; run
+  [43310312393](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/43310312393)
+  is in progress. Electron keyboard/a11y checks pass 3/3, including the skip link,
+  reduced motion, and Escape precedence. The clean-HOME workflow has no manual
+  dispatch and its last run is on the earlier base head; packaged evidence still
+  must be refreshed. This PR stays
   draft and unmerged while base PRs have failing required Desktop checks. No release
   was created.
 
