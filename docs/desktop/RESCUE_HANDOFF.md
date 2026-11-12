@@ -369,7 +369,9 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   description or choose focused follow-up PRs; avoid duplicate giant salvage PRs.
 - [ ] Review outstanding review threads/CI, not merely reported pass counts.
 - [x] Push the continuity/runtime slice as draft [#1783](https://github.com/ulises-jeremias/agent-toolkit/pull/1783),
-  stacked on #1780; post verified acceptance status to [#1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
+  stacked on [#1782](https://github.com/ulises-jeremias/agent-toolkit/pull/1782), which
+  is itself stacked on #1781 and #1780; post verified acceptance status to
+  [#1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
   #1780/#1781/#1782 have failing required Desktop gates; this draft remains unmerged
   pending a healthy, reviewed base. #1782 corrects stale shell smoke assertions
   (empty-state headings and the six-place rail) and disambiguates a project row from
@@ -561,8 +563,11 @@ macOS/Windows when environments are available; otherwise mark those gates open.
 - Full visual matrix, performance pass, screen-reader/accessibility pass, actual Meadow
   capture, and macOS/Windows packaged acceptance remain open.
 - Draft follow-up [PR #1783](https://github.com/ulises-jeremias/agent-toolkit/pull/1783)
-  is pushed as `rescue/desktop-continuity-focus`, stacked on #1780's `rescue/shell-v2`
-  branch. The acceptance update is posted to [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
+  is pushed as `rescue/desktop-continuity-focus`, stacked on #1782's
+  `fix/desktop-shell-smoke-navigation-20261112` branch (which carries #1781 and #1780).
+  The owner-authored commits from #1781 and #1782 are preserved in branch history;
+  PR base is retargeted to #1782. The acceptance update is posted to
+  [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
   Its source quality and local Desktop tests pass. Latest hosted status has the
   required `gates` and packaged Electron jobs still in progress, as are several
   repository validation jobs; recheck before acting. It is intentionally unmerged
