@@ -1,7 +1,8 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-12. Requested by the owner to preserve the complete mission and
-continue with GPT-6-Luna without repeating expensive discovery.
+Updated: 2026-11-12 (latest integration check). Requested by the owner to
+preserve the complete mission and continue with GPT-6-Luna without repeating
+expensive discovery.
 
 **The rescue is NOT complete.** This file is an execution checkpoint, not an
 acceptance report. Continue implementing and validating the product. The owner
@@ -353,7 +354,10 @@ Existing mission: [#1775](https://github.com/ulises-jeremias/agent-toolkit/issue
 parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
 **Do not create a duplicate mission.** Update #1775 with verified slice evidence.
 
-- [ ] Refresh #1667, Gates #1668–1676, linked acceptance/docs and current open PRs.
+- [ ] Refresh #1667, Gates #1668–1676, linked acceptance/docs and current open
+  PRs. A fresh check on 2026-11-12 found #1782 no longer running: its `gates`
+  and packaged Electron jobs failed; independent Python/CLI validation jobs
+  shown on that PR passed.
 - [ ] #1773 external repo linking and #1774 true first-run are merged; preserve them.
 - [ ] #1776 Claude runtime and #1779 journal hardening are merged; preserve them.
 - [ ] Review #1780 against current code and the final architecture. Update its stale
@@ -361,8 +365,16 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
 - [ ] Review outstanding review threads/CI, not merely reported pass counts.
 - [x] Push the continuity/runtime slice as draft [#1783](https://github.com/ulises-jeremias/agent-toolkit/pull/1783),
   stacked on #1780; post verified acceptance status to [#1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
-  #1780/#1781 currently have failing required gates and #1782 checks were still running
-  at the last inspection; this draft remains unmerged pending a healthy, reviewed base.
+  #1780/#1781/#1782 have failing required Desktop gates; this draft remains unmerged
+  pending a healthy, reviewed base. #1782 fixed stale shell selectors and a toast/row
+  ambiguity, but its own CI exposed additional failures rather than validating the fix:
+  smoke still expects a level-one heading on a route with no heading, and the
+  compact-width check still finds two `ul` elements. Its packaged E2E additionally
+  fails workspace context-pack discovery, the project-link review dialog in project
+  changes/workspace switching, and downstream Git-change actions. The project-link
+  journey itself passes, so these must be traced per journey rather than assumed to
+  be one global picker defect. Run IDs: desktop 43298967157; packaged 43298966315.
+  Do not waive these failures or merge the stacked series.
 - [ ] #1771 ImgBot was open; inspect deterministic-art drift before merging or closing.
 - [ ] Preserve author commits through cherry-pick/rebase. Never replace them with one
   newly authored aggregate commit or force-push away independent work.
@@ -543,8 +555,10 @@ macOS/Windows when environments are available; otherwise mark those gates open.
 - Draft follow-up [PR #1783](https://github.com/ulises-jeremias/agent-toolkit/pull/1783)
   is pushed as `rescue/desktop-continuity-focus`, stacked on #1780's `rescue/shell-v2`
   branch. The acceptance update is posted to [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
-  It is intentionally unmerged while #1780/#1781 have failing required checks and
-  #1782 is still running checks. No release was created.
+  Its source quality and local Desktop tests pass. Latest hosted status has the
+  required `gates` and packaged Electron jobs still in progress, as are several
+  repository validation jobs; recheck before acting. It is intentionally unmerged
+  while #1780/#1781/#1782 have failing required Desktop checks. No release was created.
 
 ## 11. How Luna should execute efficiently
 
