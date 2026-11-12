@@ -92,7 +92,10 @@ export function CommandPalette() {
         const target = event.target;
         if (target instanceof HTMLElement) {
           if (target.isContentEditable) return;
-          if (target.closest('input, textarea, [contenteditable="true"], [role="textbox"]')) return;
+          // Only a control the user can see owns the keyboard. A focused control in a
+          // closed dialog (hidden, no client rects) must not swallow the palette shortcut.
+          const editable = target.closest('input, textarea, [contenteditable="true"], [role="textbox"]');
+          if (editable && editable.getClientRects().length > 0) return;
         }
         event.preventDefault();
         event.stopPropagation();
