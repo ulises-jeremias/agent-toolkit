@@ -36,7 +36,7 @@ test('workspace to context pack to Person swarm to recovery in one flow', async 
       path.join(packDir, 'team.yaml'),
       'name: Product Team\ndescription: Shared project context for product work.\nprojects:\n  - e2e-workspace\n',
     );
-    await goTo(page, 'Projects');
+    await goTo(page, 'Context');
     const packPanel = page.getByRole('region', { name: 'Workspace context packs' });
     await expect(packPanel).toContainText('Product Team');
     await packPanel.getByRole('button', { name: 'Use for future sessions' }).first().click();
