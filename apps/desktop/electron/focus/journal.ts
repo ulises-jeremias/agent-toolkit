@@ -33,6 +33,13 @@ export function focusRoot(workspace: string): string {
 
 function assertSafeJournalPath(workspace: string, target: string): void {
   const root = path.resolve(workspace);
+  // The workspace itself can be a symlink; checking only its descendants
+  // would allow the entire journal tree to resolve outside the chosen root.
+  try {
+    if (fs.lstatSync(root).isSymbolicLink()) throw new Error('Symlink in Focus journal path');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  }
   const relative = path.relative(root, target);
   if (relative.startsWith('..') || path.isAbsolute(relative)) throw new Error('Journal path escapes workspace');
   let current = root;
