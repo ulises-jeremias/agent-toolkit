@@ -334,8 +334,14 @@ Use `skills/design/pxl-pixel-art/SKILL.md` and its referenced governance before 
 art. Read current DESIGN/VISUAL_QA/SEMANTIC_WORLD and challenge old decisions against
 actual screenshots. No reference project's proprietary art is permitted.
 
-- [ ] Critique the actual new Valley, not just the earlier 201-sprite set. Re-author assets
-  if quality requires it; asset count is not a quality measure.
+- [x] Critique the actual new Valley, not just the earlier 201-sprite set. A fresh
+  packaged Electron capture exposed a fixed-initial-height scale, compact horizontal
+  clipping and a Meadow/Dusk renderer that always selected `sky_day.png`. Responsive
+  measurement, width-constrained scene composition, scene-edge clipping, Dusk sky,
+  restrained environmental lamps and honest activity-lit buildings are implemented.
+  Real captures were opened for Meadow/Dusk at 1024×640 and 1920×1080; the compact
+  horizontal scrollbar is gone and Dusk is visibly distinct. The World still needs
+  the 1440×900 pass and broader layout/art critique; no art has been reauthored yet.
 - [ ] Cozy original pixel world with coherent perspective, light, depth, composition,
   recognizable project buildings and meaningful Library/Archive/Workshop/Operations.
 - [ ] Professional readable technical typography; pixel display type used sparingly.
@@ -345,6 +351,8 @@ actual screenshots. No reference project's proprietary art is permitted.
 - [ ] Preserve project/session context entering/leaving World/interiors.
 - [ ] Restrained animations, reduced motion, efficient rendering and useful empty state.
 - [ ] Multiple capture → open → critique → fix → recapture iterations before visual sign-off.
+  One source-Electron iteration is complete; repeat after checking 1440×900 and
+  compact-window interaction, then cover interiors and the other product surfaces.
 - [ ] Reject generic SaaS card grids, PaperCo aesthetics, random clutter, illegible pixel
   text, disconnected palettes and needless configuration.
 

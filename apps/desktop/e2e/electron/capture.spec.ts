@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtures';
@@ -39,6 +41,13 @@ let desktop: Desktop;
 
 test.beforeAll(async () => {
   desktop = await openDesktop();
+  const repository = path.join(desktop.home, 'code', 'garden-api');
+  fs.mkdirSync(path.join(repository, 'src'), { recursive: true });
+  fs.writeFileSync(path.join(repository, 'README.md'), '# Garden API\n');
+  execFileSync('git', ['init', '-q'], { cwd: repository });
+  execFileSync(desktop.backendBin, ['project', 'add', repository, '--workspace', desktop.workspace], {
+    stdio: 'pipe',
+  });
 });
 
 test.afterAll(async () => {
@@ -107,7 +116,16 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
           // A visible route/header can precede the workspace query. Wait for a
           // real canonical landmark so design-review captures never preserve
           // the loading background as if it were an empty world.
-          await expect(page.locator('[data-entity-id="object:library"]')).toBeVisible();
+          await expect(page.locator('[data-entity-id="place:library"]')).toBeVisible();
+          const worldViewport = page.getByTestId('valley-viewport');
+          await expect
+            .poll(() => worldViewport.evaluate((element) => element.scrollWidth - element.clientWidth))
+            .toBeLessThanOrEqual(1);
+          await expect(worldViewport).toHaveCSS('overflow-x', 'hidden');
+          await expect(page.getByTestId('valley-sky')).toHaveAttribute(
+            'data-art',
+            theme === 'dusk' ? 'sky_dusk' : 'sky_day',
+          );
         }
         if (destination === 'People' && !createdPerson) {
           await page.getByRole('button', { name: 'Create Person' }).click();

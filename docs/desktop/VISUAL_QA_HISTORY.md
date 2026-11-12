@@ -1,5 +1,32 @@
 > **Historical log.** This file preserves dated visual review records. For the current art direction, acceptance checks, and latest review, see [VISUAL_QA.md](VISUAL_QA.md).
 
+## Responsive Meadow/Dusk renderer iteration — 2026-11-12
+
+Opened actual source-Electron captures at 1024×640 and 1920×1080 with the real
+1.49 backend and a registered disposable Git repository. The previous renderer
+computed scale only once from initial window height, let the village exceed the
+compact viewport, and selected the Meadow sky for both appearance modes. In the
+first compact capture the workshop and map edge were clipped and the viewport had
+a horizontal scroll range. The large capture showed the map confined to a narrow
+part of a wide window. Meadow and Dusk were nearly indistinguishable.
+
+The follow-up iteration measures the viewport with `ResizeObserver`, fits a
+pixelated scene scale to the available width, centers and clips the scene, selects
+the Dusk sky/tint when Dusk is active, and adds environmental lamps without
+pretending that idle buildings contain working agents. Only places backed by
+current sessions/jobs receive the activity glow. The capture test asserts the
+correct sky asset and hidden horizontal overflow. It passes for both themes at
+both sizes. The scene may have a one-CSS-pixel internal overflow from fractional
+pixel scaling; the viewport clips it and exposes no scrollbar.
+
+Opened follow-up captures: `/home/ulisesjcf/.ai-workspace/.audit-private/world-review-responsive/`
+(`meadow-1024x640-world.png`, `meadow-1920x1080-world.png`,
+`dusk-1024x640-world.png`, `dusk-1920x1080-world.png`). The valley now spans the
+content width and the Dusk sunset reads clearly. It still has broad vertical
+negative space at large sizes and needs the 1440×900 pass, interior/other-surface
+review, keyboard interaction review and a second art-direction critique. This is
+one improvement iteration, not visual sign-off.
+
 # Desktop visual QA
 
 ## Packaged v1.45.1 screenshot refresh — 2026-10-16
