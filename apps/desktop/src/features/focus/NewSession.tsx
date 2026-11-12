@@ -11,6 +11,12 @@ export interface NewSessionDefaults {
   project?: string;
 }
 
+/** Never silently substitute a different repository for an explicit project selection. */
+export function selectStartProject(projects: readonly ProjectListEntry[], selected: string): ProjectListEntry | undefined {
+  const usable = projects.filter((entry) => entry.status === 'ok');
+  return selected ? usable.find((entry) => entry.name === selected) : usable[0];
+}
+
 /** The start of every session: where, with whom, how careful, and the task itself. */
 export function NewSession({
   workspace,
@@ -43,7 +49,7 @@ export function NewSession({
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
 
-  const activeProject = project ? usable.find((entry) => entry.name === project) : usable[0];
+  const activeProject = selectStartProject(usable, project);
   const activeProvider = ready.find((entry) => entry.id === providerId) ?? ready[0];
 
   useEffect(() => {
