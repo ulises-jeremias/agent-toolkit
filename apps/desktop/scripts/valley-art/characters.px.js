@@ -4,7 +4,8 @@
 include("lib.px.js")
 
 {
-  const { outline, win } = VA
+  const VA = globalThis.VA
+  const { outline } = VA
 
   // ---------------------------------------------------------------- agent body (16x24)
   // dy shifts the head and shoulders (breathing); the hem and feet stay on the ground line.

@@ -4,7 +4,8 @@
 include("lib.px.js")
 
 {
-  const { outline, stones, win, litwin, halo } = VA
+  const VA = globalThis.VA
+  const { outline, halo } = VA
 
   /** Leaf mass from circles: base colour, sunward rim light, shadow rim on the lower right. */
   const canopy = (c, blobs, base = "F", hi = "G", lo = "S") => {

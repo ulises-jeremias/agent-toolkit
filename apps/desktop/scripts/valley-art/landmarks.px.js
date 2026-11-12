@@ -3,7 +3,8 @@
 include("lib.px.js")
 
 {
-  const { outline, stones, tiles, planks, win, litwin, halo } = VA
+  const VA = globalThis.VA
+  const { outline, stones, planks, win, litwin, halo } = VA
   const rng = (seed) => { let s = seed; return () => ((s = (s * 16807) % 2147483647) / 2147483647) }
 
   // ================================================================ library (80x104)
@@ -98,7 +99,7 @@ include("lib.px.js")
       for (let yy = y + 6; yy < y + h - 1; yy += 6) c.hline(x + 1, yy, w - 2, "l")
     }
     for (const [x, y, w, h] of LIB.wingWins) { c.rect(x + 1, y + 1, w - 2, h - 2, "l"); c.px(x + 1, y + 1, "y") }
-    const [dx, dy, dw] = LIB.door
+    const [dx, dy] = LIB.door
     c.px(dx + 3, dy + 6, "y"); c.px(dx + 4, dy + 6, "w")
     halo(c)
   })

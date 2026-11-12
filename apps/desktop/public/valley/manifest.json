@@ -1,0 +1,565 @@
+{
+  "generated": "gen-valley-art.mjs",
+  "sprites": {
+    "bridge": {
+      "file": "bridge.png",
+      "w": 80,
+      "h": 28,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "c5ec732b81525380dc252e7bca5980c45cfff623ca7d76f0ecb9309d273ffad5"
+    },
+    "bubble_ask": {
+      "file": "bubble_ask.png",
+      "w": 12,
+      "h": 12,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "f1375c78b266021b8b0abf299a1aefb5f9784dd5b9951989f3922c3435717742"
+    },
+    "bubble_done": {
+      "file": "bubble_done.png",
+      "w": 12,
+      "h": 12,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "d5d182ee243fefe3d62622443a9dd4491b93f2f05f822a56a11198fd20ff8fb6"
+    },
+    "bush_1": {
+      "file": "bush_1.png",
+      "w": 20,
+      "h": 12,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "670205a0232729fb4a2edb69aa555753a354db97256b328b3e495cc2a1288b5a"
+    },
+    "bush_2": {
+      "file": "bush_2.png",
+      "w": 28,
+      "h": 14,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "82c1ac41f3fffeff1ed0f5b6de4fa3fb537b57fc2e0b67cd3af2ec86794662b8"
+    },
+    "cloud_1": {
+      "file": "cloud_1.png",
+      "w": 48,
+      "h": 16,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "89dc599c13ab02b101f774cfff8332ca7eeba3ca4811872c707db59bd848c46e"
+    },
+    "cloud_2": {
+      "file": "cloud_2.png",
+      "w": 64,
+      "h": 20,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "d7f62e3b2f17fe90528ca8de106848dd9be3026deff9a7d27e4c7987bbe1f60a"
+    },
+    "cloud_3": {
+      "file": "cloud_3.png",
+      "w": 36,
+      "h": 12,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "8b3b80a40b0a4abab8b255a3d5e73d8ebae9b83d7d68c5a92c2b5ce8e12b7a1d"
+    },
+    "fence": {
+      "file": "fence.png",
+      "w": 32,
+      "h": 12,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "d62ec32c07b1d8e0e6c1949928e34c5c57c1a2f131a778775a61562847ce81e6"
+    },
+    "flowers_1": {
+      "file": "flowers_1.png",
+      "w": 16,
+      "h": 8,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "afa1c1e302640d5700ceb4fb334ebd3eeebf440607aab9b3f1aa042876b23480"
+    },
+    "flowers_2": {
+      "file": "flowers_2.png",
+      "w": 16,
+      "h": 8,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "9d298723bca830fda246c80f61034e490bbd340c0d07f786b25f3c4e8507ea98"
+    },
+    "ground": {
+      "file": "ground.png",
+      "w": 400,
+      "h": 64,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "34c3452ee55e740cd728f2dff5926756e9e4a100c8c150f1958d7c32f8083444"
+    },
+    "hills_far": {
+      "file": "hills_far.png",
+      "w": 400,
+      "h": 80,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "1987690803edce048c3488f994f1a1d97afba6e55ab70f1da2333aef00574e2f"
+    },
+    "hills_mid": {
+      "file": "hills_mid.png",
+      "w": 400,
+      "h": 96,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "fd8d0605f1a4af1bca449367846f7caf103a6f4554d42e638c9480af7d0cdfc9"
+    },
+    "house_a": {
+      "file": "house_a.png",
+      "w": 64,
+      "h": 72,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "800a4ab94d4eb8c91625c284771b375ccc59b8823ccb81271df7e433b8c4a960"
+    },
+    "house_a_lit": {
+      "file": "house_a_lit.png",
+      "w": 64,
+      "h": 72,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "4362ed5df1eb195ef7cb2c18d7133b94990d1cb28a86cb886d78e8bca929bbb3"
+    },
+    "house_b": {
+      "file": "house_b.png",
+      "w": 64,
+      "h": 72,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "3d7d5dc6527b4e17960a28d3e4f161153f06832953efe8b47d2b90c762f4f1f5"
+    },
+    "house_b_lit": {
+      "file": "house_b_lit.png",
+      "w": 64,
+      "h": 72,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "51059024dd49df20f2c56432cbffd640254fa96339b9f6b07e440785450dfe4f"
+    },
+    "house_c": {
+      "file": "house_c.png",
+      "w": 64,
+      "h": 72,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "b24b7e6bfa9f916278d1a25015434582e04d46b843c7c73d43d6cc78c24fe323"
+    },
+    "house_c_lit": {
+      "file": "house_c_lit.png",
+      "w": 64,
+      "h": 72,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "cd8a7beb22bdded8c80a21dcda085a2ec432c62ed3cfdafc0a7c9bbf8192c0a6"
+    },
+    "house_d": {
+      "file": "house_d.png",
+      "w": 64,
+      "h": 72,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "6f7de1a2e4df17ef36845061472a8634293334c49abe8de345e7902afe961395"
+    },
+    "house_d_lit": {
+      "file": "house_d_lit.png",
+      "w": 64,
+      "h": 72,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "96b5849bc5cdff280b13c9d94fc22be4b05b781487c7be7338118b4699232a17"
+    },
+    "lamp_post": {
+      "file": "lamp_post.png",
+      "w": 10,
+      "h": 40,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "76bb99bc6ef801ee41b1836b78d8a21f268ae64303cf1b6c27732f20be541410"
+    },
+    "lamp_post_lit": {
+      "file": "lamp_post_lit.png",
+      "w": 26,
+      "h": 48,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "35c86b0a8e1bf7080c42eb2ac292300fc40b6ecd4d7280b40f15f0194949ab17"
+    },
+    "library": {
+      "file": "library.png",
+      "w": 80,
+      "h": 104,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "9c866a2da04e48ce2a1570e955f9bbe6ecf8a037defefb183e437476d6270ba9"
+    },
+    "library_lit": {
+      "file": "library_lit.png",
+      "w": 80,
+      "h": 104,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "eec6c7687508c9de597e9cd4f7de0942361e3fa9eb98360970cad49c42818d39"
+    },
+    "lodge": {
+      "file": "lodge.png",
+      "w": 96,
+      "h": 76,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "91e26281018da2493877aa43a58e27fcb51e1b0e8649b7ceba095347c6da3e33"
+    },
+    "lodge_lit": {
+      "file": "lodge_lit.png",
+      "w": 96,
+      "h": 76,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "1a78645c0dd51c43139467ec1a1e2e8dcf8e22454c1808020d61008ad1c85c3d"
+    },
+    "nest_post": {
+      "file": "nest_post.png",
+      "w": 16,
+      "h": 36,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "31310dce795e8e7a05ca44b6457a1cc78a407d29733e888975e8c24501712b32"
+    },
+    "reeds": {
+      "file": "reeds.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "da163da0868f0861cf6d753a3032ec6fa9e2328802a4a61cfcf8fc61ddb546ab"
+    },
+    "river": {
+      "file": "river.png",
+      "w": 64,
+      "h": 64,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "5e2c7f38a15a74314029621cefddc81cbe2f30e377513b67cb21ebd33475ff6e"
+    },
+    "rock_1": {
+      "file": "rock_1.png",
+      "w": 14,
+      "h": 9,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "c6ded6c62d0f6ba40ca803bd3b24eab7ec788c216e879f45e00e52500b78c168"
+    },
+    "signpost": {
+      "file": "signpost.png",
+      "w": 14,
+      "h": 24,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "17baef55947f9445b978d7f27181d05e8f64c31f8476609285a1cac30cc2543a"
+    },
+    "sky_day": {
+      "file": "sky_day.png",
+      "w": 16,
+      "h": 200,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "59a11dd11fc6cf15a53cc76466db8d833dacec20b4d9a9bce07e1d27c4890fa7"
+    },
+    "sky_dusk": {
+      "file": "sky_dusk.png",
+      "w": 16,
+      "h": 200,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "008429032492e18e88077f7521cde1d2234d259fc92a8e0256f9957f9482f282"
+    },
+    "tree_birch": {
+      "file": "tree_birch.png",
+      "w": 28,
+      "h": 56,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "9c9fc736327a5fea776d28046d3670afe08042ef96bdeb77942b102155ac9429"
+    },
+    "tree_oak": {
+      "file": "tree_oak.png",
+      "w": 48,
+      "h": 64,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "bbfc1db492b5226670d1bda3ccab36bc570898c663f786a2d8cc191838e15368"
+    },
+    "tree_pine": {
+      "file": "tree_pine.png",
+      "w": 32,
+      "h": 64,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "3e5c525927cf93f9ffc6603a993d6f5f582fb3f313bda75c2d2d2c86a8ad36f7"
+    },
+    "woodpile": {
+      "file": "woodpile.png",
+      "w": 20,
+      "h": 12,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "52d2d39d967872306264b7925ef0b797386673578365bbffa0e3226bda14959b"
+    },
+    "workshop": {
+      "file": "workshop.png",
+      "w": 96,
+      "h": 80,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "227e67ba830d4500860b31ae438726a1c112f7dcf6b4be4da2746eab090be3e6"
+    },
+    "workshop_lit": {
+      "file": "workshop_lit.png",
+      "w": 96,
+      "h": 80,
+      "frames": 1,
+      "frameMs": null,
+      "sha256": "8e379c1c56ee61696ab9864275faf39523c17e0d6d81c183f5b94d4f6599d351"
+    },
+    "agent_ask_ember": {
+      "file": "agent_ask_ember.png",
+      "w": 16,
+      "h": 24,
+      "frames": 6,
+      "frameMs": [
+        167,
+        167,
+        167,
+        167,
+        167,
+        167
+      ],
+      "sha256": "a1a0e9a699c010f753a8f72bdeea9c3c1cdf86f300a5645839ed659c60ab99f4"
+    },
+    "agent_ask_moss": {
+      "file": "agent_ask_moss.png",
+      "w": 16,
+      "h": 24,
+      "frames": 6,
+      "frameMs": [
+        167,
+        167,
+        167,
+        167,
+        167,
+        167
+      ],
+      "sha256": "f4549a832eaad21c85ea804bb95732f6c18acd4aae0952454b25ff71ca363111"
+    },
+    "agent_ask_river": {
+      "file": "agent_ask_river.png",
+      "w": 16,
+      "h": 24,
+      "frames": 6,
+      "frameMs": [
+        167,
+        167,
+        167,
+        167,
+        167,
+        167
+      ],
+      "sha256": "93de66e761ed4c64a74d11d6373b641263cc95f9c8c0cc7939989b40cca51aa1"
+    },
+    "agent_idle_ember": {
+      "file": "agent_idle_ember.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "frameMs": [
+        250,
+        250,
+        250,
+        250
+      ],
+      "sha256": "895f7d0a8902ac9e6601f3f7680ba98f81cc5a0c1219cc036ca4cb479160b8af"
+    },
+    "agent_idle_moss": {
+      "file": "agent_idle_moss.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "frameMs": [
+        250,
+        250,
+        250,
+        250
+      ],
+      "sha256": "d5570aaefb8f882cfe6dc150ba70e6ba2f1cbe8209a3683aa1aa3c83eb08e9a7"
+    },
+    "agent_idle_river": {
+      "file": "agent_idle_river.png",
+      "w": 16,
+      "h": 24,
+      "frames": 4,
+      "frameMs": [
+        250,
+        250,
+        250,
+        250
+      ],
+      "sha256": "8a956312bb912cbd2b8aec917bcc2ec56bbda8144a56379d4f03df334a86c22a"
+    },
+    "agent_work_ember": {
+      "file": "agent_work_ember.png",
+      "w": 16,
+      "h": 24,
+      "frames": 6,
+      "frameMs": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "sha256": "d5749e9b034a8a9947dd9b4dcc882b1c148b44d24dc7eb3a3bc52fbdc59096c0"
+    },
+    "agent_work_moss": {
+      "file": "agent_work_moss.png",
+      "w": 16,
+      "h": 24,
+      "frames": 6,
+      "frameMs": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "sha256": "f43ea7c05418eae7f9defc23520cf0b80e2c79e296bb1fa7514769b6bd5b4c47"
+    },
+    "agent_work_river": {
+      "file": "agent_work_river.png",
+      "w": 16,
+      "h": 24,
+      "frames": 6,
+      "frameMs": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "sha256": "6f97780a3257a24c7a7bc9274ec9f6da5a7538401304175298c4cc070c907341"
+    },
+    "banner": {
+      "file": "banner.png",
+      "w": 16,
+      "h": 20,
+      "frames": 6,
+      "frameMs": [
+        167,
+        167,
+        167,
+        167,
+        167,
+        167
+      ],
+      "sha256": "0af8ea6e4daed869bf50ec274287ccdf4005a79a783f950400c49d1265ea4637"
+    },
+    "grass_sway": {
+      "file": "grass_sway.png",
+      "w": 16,
+      "h": 8,
+      "frames": 4,
+      "frameMs": [
+        250,
+        250,
+        250,
+        250
+      ],
+      "sha256": "c485af0b4de70e15cd64354353db701ea71ef42e7a08695be6d8bf1131669b4c"
+    },
+    "hornero_fly": {
+      "file": "hornero_fly.png",
+      "w": 18,
+      "h": 12,
+      "frames": 4,
+      "frameMs": [
+        100,
+        100,
+        100,
+        100
+      ],
+      "sha256": "bcdb8f2986c6f9fa0871181d774057d143e9eefc46e65ef61ea35caf0891b0de"
+    },
+    "hornero_perch": {
+      "file": "hornero_perch.png",
+      "w": 14,
+      "h": 12,
+      "frames": 4,
+      "frameMs": [
+        250,
+        250,
+        250,
+        250
+      ],
+      "sha256": "a686628d77226f97dc1db92fdd49ea5cdfd1d42cb5ffa827a9666ab0abf1aacb"
+    },
+    "smoke": {
+      "file": "smoke.png",
+      "w": 16,
+      "h": 32,
+      "frames": 8,
+      "frameMs": [
+        167,
+        167,
+        167,
+        167,
+        167,
+        167,
+        167,
+        167
+      ],
+      "sha256": "8b6aa373df5e09785063e286d5691bbeedc4628c01f7f89b5e2bacf8a904dc0f"
+    },
+    "water_shine": {
+      "file": "water_shine.png",
+      "w": 64,
+      "h": 8,
+      "frames": 6,
+      "frameMs": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "sha256": "776c3296eccbbf44f168f7b091107a412269591216bce8dfdd95658253a46986"
+    },
+    "wheel": {
+      "file": "wheel.png",
+      "w": 40,
+      "h": 40,
+      "frames": 8,
+      "frameMs": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "sha256": "402ecb1cee7d37a80109984a5eb94f1b6a3a9da660bf29a2e419d603610fe89b"
+    }
+  }
+}

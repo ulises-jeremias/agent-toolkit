@@ -38,7 +38,7 @@ export const DESTINATIONS: readonly Destination[] = [
     question: 'See the whole workspace and who is working in it',
     icon: 'world',
     rail: 'main',
-    component: lazy(() => import('../features/world/WorldView')),
+    component: lazy(() => import('../features/valley/ValleyView')),
   },
   {
     path: '/focus',

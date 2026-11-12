@@ -144,7 +144,7 @@ const cloud = (c, blobs) => {
   c.clip(undefined, () => {})                    // no-op: keeps helper visible in the call graph
   for (const [cx, cy, r] of blobs) c.circ(cx, cy, r, "c")
   // flat base: a rect along the bottom of the mass
-  const bottoms = blobs.map(([cx, cy, r]) => cy + r - 1)
+  const bottoms = blobs.map(([, cy, r]) => cy + r - 1)
   const base = Math.max(...bottoms)
   for (const [x, y] of [[0, 0]]) c.px(x, y, ".")
   c.rect(blobs[0][0] - blobs[0][2], base - 2, (blobs[blobs.length - 1][0] + blobs[blobs.length - 1][2]) - (blobs[0][0] - blobs[0][2]), 2, "c")

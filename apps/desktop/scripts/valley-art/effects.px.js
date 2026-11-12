@@ -3,6 +3,7 @@
 include("lib.px.js")
 
 {
+  const VA = globalThis.VA
   const TAU = Math.PI * 2
 
   // ---------------------------------------------------------------- mill wheel (40x40, 8 frames)

@@ -3,7 +3,8 @@
 include("lib.px.js")
 
 {
-  const { outline, stones, tiles, planks, win, litwin, panes, halo } = VA
+  const VA = globalThis.VA
+  const { outline, stones, win, litwin, halo } = VA
   const W = 64, H = 72
 
   // ---------------------------------------------------------------- shared details
