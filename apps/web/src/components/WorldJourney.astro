@@ -2,59 +2,68 @@
 /* Replacement for the screenshot-switching WorldJourney (#1759 D):
    semantic destination signposts linking real routes. No JS, no fake
    live sessions or metrics; content is usable without JavaScript.
-   TODO(#1759-B): swap the CSS .valley-scene layers for governed PXL
-   website art when Agent B assets land; keep these routes/labels. */
+   Governed PXL website art (#1762) is wired below: hero-valley scene
+   plus one signpost sprite per destination. */
 const destinations = [
   {
     sign: "Trailhead",
+    art: "/world-art/sign-trailhead.png",
     title: "Start here",
     body: "Your first hour: download, open Desktop and run reviewed agent work.",
     href: "/start/",
   },
   {
     sign: "Project District",
+    art: "/world-art/sign-projects.png",
     title: "Projects as places",
     body: "Every registered project has a place, its files, knowledge and terminal.",
     href: "/world/",
   },
   {
     sign: "Library",
+    art: "/world-art/sign-library.png",
     title: "Docs & capabilities",
     body: "Canonical guides plus reusable Skills, Agents, MCP and Loops.",
     href: "/docs/",
   },
   {
     sign: "Guild Hall",
+    art: "/world-art/sign-guild.png",
     title: "People",
     body: "Reusable collaborators with durable identity. People appear in the world only while a real session runs.",
     href: "/people/",
   },
   {
     sign: "Operations Hall",
+    art: "/world-art/sign-operations.png",
     title: "Swarms & operations",
     body: "Coordinate real sessions, review roles and follow handoffs and approvals.",
     href: "/swarms/",
   },
   {
     sign: "Workshop",
+    art: "/world-art/sign-workshop.png",
     title: "Capabilities & integrations",
     body: "Browse what is installed, configured and discoverable.",
     href: "/capabilities/",
   },
   {
     sign: "Waystation",
+    art: "/world-art/sign-waystation.png",
     title: "Download",
     body: "Get Agent Toolkit Desktop v1.49.0 for Linux, macOS or Windows.",
     href: "/download/",
   },
   {
     sign: "Town Square",
+    art: "/world-art/sign-square.png",
     title: "Community",
     body: "Source, issues, contributing and security — built in the open.",
     href: "/community/",
   },
   {
     sign: "Chronicles",
+    art: "/world-art/sign-chronicles.png",
     title: "Changelog",
     body: "Release history rendered from the canonical repository changelog.",
     href: "/changelog/",
@@ -79,6 +88,14 @@ const destinations = [
     <div class="destination-grid">
       {destinations.map((d) => (
         <a class="destination-card" href={d.href}>
+          <img
+            class="sign-art"
+            src={d.art}
+            alt=""
+            width="72"
+            height="48"
+            loading="lazy"
+          />
           <span class="sign">{d.sign}</span>
           <strong>{d.title}</strong>
           <p>{d.body}</p>
