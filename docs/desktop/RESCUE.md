@@ -16,7 +16,7 @@ live-only tool-delta records are omitted by the exporter by design.
 | Span | 2026-11-10 19:28Z to 2026-11-12 05:45Z, 20 runs |
 | Model / mode | `muse-wonder-1.0`, approvals and sandbox disabled (`--yolo`) |
 | Subagents | 22 accepted spawns (19 workflow agents, 3 art agents), 3 workflow scripts |
-| Abnormal ends | one inferred crash at 2026-11-12 02:58Z (host ran out of memory; the owner then required `systemd-run` caps); final run cancelled by the owner mid-step |
+| Abnormal ends | one inferred process loss at 2026-11-12 02:58Z (cause not established from the retained session evidence); final run cancelled by the owner mid-step |
 
 What the session did, re-checked against GitHub on 2026-11-12:
 
