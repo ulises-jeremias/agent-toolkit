@@ -196,7 +196,18 @@ async function createWindow(): Promise<void> {
   onBackendState(supervisor.snapshot());
 }
 
-void app.whenReady().then(createWindow);
+// One instance per profile: two apps journaling the same sessions would each
+// declare the other's live turns interrupted.
+if (app.requestSingleInstanceLock()) {
+  app.on('second-instance', () => {
+    if (!mainWindow) return;
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  });
+  void app.whenReady().then(createWindow);
+} else {
+  app.quit();
+}
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

@@ -14,7 +14,7 @@ import type {
   FocusThreadPatch,
   FocusThreadSnapshot,
 } from '../../src/types/focus';
-import type { AdapterSink, ProviderSession, ProviderSessionFactory } from './adapter';
+import { isSafeModelId, type AdapterSink, type ProviderSession, type ProviderSessionFactory } from './adapter';
 import { ClaudeSession } from './claude';
 import { isThreadId, newThreadId, ThreadJournal } from './journal';
 import { probeProviders, type ProbeOptions } from './providers';
@@ -39,11 +39,15 @@ export interface FocusServiceOptions {
   probe?: (options: ProbeOptions) => Promise<FocusProviderStatus[]>;
   /** Keep an idle provider process this long for fast follow-ups, then release it. */
   idleMs?: number;
+  /** How long a provider gets to honour an interrupt before its process is stopped. */
+  interruptGraceMs?: number;
 }
 
 interface Runtime {
   journal: ThreadJournal;
   session: ProviderSession | null;
+  /** Single-flight launch: concurrent sends share one provider process. */
+  starting: Promise<FocusResult<true>> | null;
   turn: number;
   turnOpen: boolean;
   pendingApprovals: Set<string>;
@@ -90,7 +94,13 @@ export class FocusService {
     if (refresh || !this.probeCache || now - this.probeCache.at > PROBE_TTL_MS) {
       const probe = this.options.probe ?? probeProviders;
       const supported = new Set(PROVIDERS.filter((id) => this.factories[id]));
-      this.probeCache = { at: now, value: probe({ env: this.env(), supported }) };
+      const value = probe({ env: this.env(), supported });
+      const entry = { at: now, value };
+      this.probeCache = entry;
+      // A probe that blew up is retried on the next call, not served from cache.
+      value.catch(() => {
+        if (this.probeCache === entry) this.probeCache = null;
+      });
     }
     return this.probeCache.value.then((list) =>
       list.map((status) => {
@@ -116,15 +126,17 @@ export class FocusService {
     if (!MODES.includes(input.permissionMode)) return fail('Unknown permission mode.');
     if (!this.factories[input.provider]) return fail('Focus sessions are not available for this provider yet.');
     if (typeof input.cwd !== 'string' || !isDirectory(input.cwd)) return fail('The project folder does not exist.');
+    const model = cleanModel(input.model);
+    if (model === undefined) return fail('That model name is not valid.');
     const now = new Date().toISOString();
     const thread: FocusThread = {
       id: newThreadId(),
-      title: (input.title ?? '').trim().slice(0, 120),
+      title: typeof input.title === 'string' ? input.title.trim().slice(0, 120) : '',
       workspace,
-      projectName: input.projectName ? input.projectName.slice(0, 120) : null,
+      projectName: typeof input.projectName === 'string' && input.projectName ? input.projectName.slice(0, 120) : null,
       cwd: input.cwd,
       provider: input.provider,
-      model: input.model ? input.model.slice(0, 120) : null,
+      model,
       resolvedModel: null,
       permissionMode: input.permissionMode,
       providerSessionId: null,
@@ -160,7 +172,11 @@ export class FocusService {
         if (!MODES.includes(patch.permissionMode)) return fail('Unknown permission mode.');
         next.permissionMode = patch.permissionMode;
       }
-      if (patch.model !== undefined) next.model = patch.model ? patch.model.slice(0, 120) : null;
+      if (patch.model !== undefined) {
+        const model = cleanModel(patch.model);
+        if (model === undefined) return fail('That model name is not valid.');
+        next.model = model;
+      }
       // The next message relaunches the provider with the new settings and resumes the same conversation.
       this.releaseSession(runtime);
     }
@@ -188,9 +204,15 @@ export class FocusService {
     const runtime = this.runtimeFor(journal);
     if (runtime.pendingApprovals.size > 0) return fail('Answer the pending approval first.');
     if (!runtime.session?.alive) {
-      const started = await this.startSession(runtime);
+      runtime.starting ??= this.startSession(runtime).finally(() => {
+        runtime.starting = null;
+      });
+      const started = await runtime.starting;
       if (!started.ok) return started;
     }
+    // The launch awaited a provider check; the thread may have been deleted or the app closed meanwhile.
+    if (this.closed || this.runtimes.get(id) !== runtime) return fail('This session is no longer open.');
+    if (runtime.pendingApprovals.size > 0) return fail('Answer the pending approval first.');
     this.clearIdle(runtime);
     this.record(runtime, { type: 'user', text: message }, { openTurn: 'user' });
     if (!journal.thread.title) this.setThread(journal, { title: titleFrom(message) });
@@ -216,7 +238,10 @@ export class FocusService {
       this.resolveApproval(runtime, requestId, 'deny', 'interrupt');
     runtime.session.interrupt();
     // A provider that ignores the interrupt is stopped; the turn is then closed as interrupted on exit.
-    runtime.interruptTimer = setTimeout(() => runtime.session?.dispose(), INTERRUPT_GRACE_MS);
+    runtime.interruptTimer = setTimeout(
+      () => runtime.session?.dispose(true),
+      this.options.interruptGraceMs ?? INTERRUPT_GRACE_MS,
+    );
     runtime.interruptTimer.unref();
     return ok(true);
   }
@@ -228,7 +253,8 @@ export class FocusService {
       this.clearIdle(runtime);
       if (runtime.turnOpen)
         this.closeTurn(runtime, 'interrupted', 'Agent Toolkit was closed while this turn was running.', 'shutdown');
-      runtime.session?.dispose();
+      // Stop the process now: a provider that keeps working after the journal says "interrupted" would be a lie.
+      runtime.session?.dispose(true);
       runtime.session = null;
     }
     this.runtimes.clear();
@@ -254,6 +280,7 @@ export class FocusService {
     const runtime: Runtime = {
       journal,
       session: null,
+      starting: null,
       turn: journal.thread.turns,
       turnOpen: false,
       pendingApprovals: new Set(),
@@ -296,11 +323,22 @@ export class FocusService {
   }
 
   private async startSession(runtime: Runtime): Promise<FocusResult<true>> {
-    const thread = runtime.journal.thread;
-    const factory = this.factories[thread.provider];
+    const provider = runtime.journal.thread.provider;
+    const factory = this.factories[provider];
     if (!factory) return fail('Focus sessions are not available for this provider yet.');
+    let statuses: FocusProviderStatus[];
+    try {
+      statuses = await this.providers();
+    } catch {
+      return fail('The installed agents could not be checked. Try again.');
+    }
+    if (this.closed || this.runtimes.get(runtime.journal.thread.id) !== runtime) {
+      return fail('This session is no longer open.');
+    }
+    // Read the thread after the await: model and permissions may have changed while the check ran.
+    const thread = runtime.journal.thread;
     if (!isDirectory(thread.cwd)) return fail(`The project folder no longer exists: ${thread.cwd}`);
-    const status = (await this.providers()).find((provider) => provider.id === thread.provider);
+    const status = statuses.find((entry) => entry.id === thread.provider);
     if (!status?.installed || !status.binary) return fail(`${status?.label ?? thread.provider} is not installed.`);
     if (status.auth === 'signed-out') {
       return fail(
@@ -349,6 +387,10 @@ export class FocusService {
         runtime.pendingApprovals.add(request.requestId);
         this.setThread(runtime.journal, { status: 'awaiting-approval' });
       },
+      approvalCancelled: (requestId) => {
+        if (!isCurrent()) return;
+        this.resolveApproval(runtime, requestId, 'deny', 'interrupt');
+      },
       turnFinished: (result) => {
         if (!isCurrent() || !runtime.turnOpen) return;
         const previous = runtime.journal.thread.usage;
@@ -372,35 +414,48 @@ export class FocusService {
           this.closeTurn(runtime, 'interrupted', 'Stopped by you.', 'interrupt');
           return;
         }
-        const reason =
+        let reason =
           info.stderr || `The provider process exited unexpectedly (${info.signal ?? `code ${String(info.code)}`}).`;
+        if (info.beforeSession && runtime.journal.thread.providerSessionId) {
+          // The provider could not reopen its saved conversation. Do not fail the same way forever.
+          this.setThread(runtime.journal, { providerSessionId: null });
+          reason = `${reason}\nThe saved provider conversation could not be resumed. Your next message starts a fresh one; this history stays here.`;
+        }
         this.closeTurn(runtime, 'failed', reason, 'interrupt');
       },
     };
   }
 
-  private ensureTurn(runtime: Runtime): void {
+  /**
+   * Open a turn if none is open. A turn the provider opens by itself (queued
+   * input, first seen as a delta or an item) is marked in the journal at once.
+   */
+  private ensureTurn(runtime: Runtime, openedBy: 'user' | 'provider' = 'provider'): void {
     if (runtime.turnOpen) return;
+    // The idle timer armed after the previous turn must not cut this one off.
+    this.clearIdle(runtime);
     runtime.turn += 1;
     runtime.turnOpen = true;
     runtime.interrupting = false;
     this.setThread(runtime.journal, { turns: runtime.turn, status: 'running', lastError: null });
+    if (openedBy === 'provider') this.append(runtime, { type: 'turn.started', model: runtime.journal.thread.model });
+  }
+
+  private append(runtime: Runtime, body: FocusEventBody): FocusEvent {
+    const event = runtime.journal.append(runtime.turn, body);
+    this.options.emit({ kind: 'event', threadId: runtime.journal.thread.id, event });
+    return event;
   }
 
   /** Journal one event and push it live. Opens a turn first when none is open. */
   private record(runtime: Runtime, body: FocusEventBody, options: { openTurn: 'user' | 'provider' }): FocusEvent {
     const opening = !runtime.turnOpen;
-    this.ensureTurn(runtime);
-    const emit = (eventBody: FocusEventBody): FocusEvent => {
-      const event = runtime.journal.append(runtime.turn, eventBody);
-      this.options.emit({ kind: 'event', threadId: runtime.journal.thread.id, event });
-      return event;
-    };
-    const started: FocusEventBody = { type: 'turn.started', model: runtime.journal.thread.model };
-    // A user-opened turn reads "message, then work"; provider-opened turns (queued input) start with the marker.
-    if (opening && options.openTurn === 'provider') emit(started);
-    const event = emit(body);
-    if (opening && options.openTurn === 'user') emit(started);
+    this.ensureTurn(runtime, options.openTurn);
+    const event = this.append(runtime, body);
+    // A user-opened turn reads "message, then work".
+    if (opening && options.openTurn === 'user') {
+      this.append(runtime, { type: 'turn.started', model: runtime.journal.thread.model });
+    }
     return event;
   }
 
@@ -454,7 +509,12 @@ export class FocusService {
 
   private scheduleIdle(runtime: Runtime): void {
     this.clearIdle(runtime);
-    runtime.idleTimer = setTimeout(() => this.releaseSession(runtime), this.options.idleMs ?? 5 * 60_000);
+    runtime.idleTimer = setTimeout(
+      () => {
+        if (!runtime.turnOpen) this.releaseSession(runtime);
+      },
+      this.options.idleMs ?? 5 * 60_000,
+    );
     runtime.idleTimer.unref();
   }
 
@@ -469,6 +529,12 @@ export class FocusService {
     runtime.session?.dispose();
     runtime.session = null;
   }
+}
+
+/** null = provider default; undefined = not acceptable. */
+function cleanModel(value: unknown): string | null | undefined {
+  if (value === null || value === undefined || value === '') return null;
+  return typeof value === 'string' && isSafeModelId(value) ? value : undefined;
 }
 
 function isDirectory(dir: string): boolean {

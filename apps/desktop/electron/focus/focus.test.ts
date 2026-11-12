@@ -45,6 +45,7 @@ function harness(
   workspace = tempWorkspace(),
   env: NodeJS.ProcessEnv = {},
   provider: FocusProviderStatus = READY,
+  timing: { idleMs?: number; interruptGraceMs?: number } = {},
 ): Harness {
   const updates: FocusLiveUpdate[] = [];
   const argvLog = path.join(workspace, 'argv.log');
@@ -53,6 +54,7 @@ function harness(
     emit: (update) => updates.push(update),
     env: () => ({ ...process.env, FAKE_CLAUDE_LOG: argvLog, ...env }),
     probe: async () => [provider],
+    ...timing,
     factories: { claude: (options, sink) => new ClaudeSession(options, sink, [FAKE]) },
   });
   services.push(service);
@@ -108,6 +110,41 @@ describe('thread journal', () => {
     const reopened = ThreadJournal.open(h.workspace, id);
     expect(reopened?.readEvents()).toHaveLength(1);
     expect(reopened?.append(1, { type: 'user', text: 'again' }).seq).toBe(2);
+    // The new event must survive on its own line, not be glued to the torn fragment.
+    expect(
+      ThreadJournal.open(h.workspace, id)
+        ?.readEvents()
+        .map((event) => event.seq),
+    ).toEqual([1, 2]);
+  });
+
+  it('reads thread metadata as untrusted data', () => {
+    const h = harness();
+    const id = start(h);
+    const file = path.join(h.workspace, '.agent-toolkit', 'focus', 'threads', id, 'thread.json');
+    const original = JSON.parse(fs.readFileSync(file, 'utf8')) as Record<string, unknown>;
+    for (const patch of [
+      { permissionMode: 'root' },
+      { provider: 'evil' },
+      { cwd: 'relative/path' },
+      { status: 7 },
+      { id: 'th_other00000001' },
+    ]) {
+      fs.writeFileSync(file, JSON.stringify({ ...original, ...patch }));
+      expect(ThreadJournal.open(h.workspace, id)).toBeNull();
+    }
+    // Missing optional fields are defaulted instead of crashing a listing.
+    const sparse = { ...original };
+    delete sparse['usage'];
+    delete sparse['updatedAt'];
+    fs.writeFileSync(file, JSON.stringify(sparse));
+    expect(ThreadJournal.open(h.workspace, id)?.thread.usage).toEqual({
+      inputTokens: 0,
+      cachedInputTokens: 0,
+      outputTokens: 0,
+      costUsd: null,
+    });
+    expect(h.service.listThreads()).toHaveLength(1);
   });
 });
 
@@ -189,7 +226,8 @@ describe('focus service with a scripted provider', () => {
     await h.waitFor(() => status(h, id) === 'idle', 'turn end');
     expect(h.events(id).find((event) => event.type === 'tool.finished')).toMatchObject({
       ok: true,
-      output: 'updated (session rule saved)',
+      // The provider also offered a rule that would be written to user settings; it is not passed back.
+      output: 'updated (rules kept: session)',
     });
   });
 
@@ -280,6 +318,90 @@ describe('focus service with a scripted provider', () => {
     expect(reopened.service.listThreads()[0]?.status).toBe('interrupted');
     expect(types(reopened.events(id)).slice(-2)).toEqual(['approval.resolved', 'turn.finished']);
     expect(reopened.events(id).at(-2)).toMatchObject({ decision: 'deny', by: 'shutdown' });
+  });
+
+  it('starts one provider process when two messages are sent at once', async () => {
+    const h = harness();
+    const id = start(h);
+    const [first, second] = await Promise.all([h.service.send(id, 'one'), h.service.send(id, 'two')]);
+    expect([first.ok, second.ok]).toEqual([true, true]);
+    await h.waitFor(() => types(h.events(id)).filter((type) => type === 'assistant').length === 2, 'both answers');
+    await h.waitFor(() => status(h, id) === 'idle', 'idle');
+    expect(fs.readFileSync(h.argvLog, 'utf8').trim().split('\n')).toHaveLength(1);
+    const sent = h.events(id).flatMap((event) => (event.type === 'user' ? [event.text] : []));
+    expect(sent).toEqual(['one', 'two']);
+  });
+
+  it('keeps the process while a turn the provider opened by itself is still running', async () => {
+    // The idle timer armed after turn 1 would otherwise fire in the middle of turn 2.
+    const h = harness(tempWorkspace(), { FAKE_CLAUDE_SECOND_TURN_MS: '200' }, READY, { idleMs: 60 });
+    const id = start(h);
+    await h.service.send(id, 'answer twice');
+    await h.waitFor(
+      () => h.service.readThread(id)?.thread.turns === 2 && status(h, id) === 'idle',
+      'second turn closed',
+    );
+    expect(types(h.events(id))).toEqual([
+      'user',
+      'turn.started',
+      'assistant',
+      'turn.finished',
+      'turn.started',
+      'assistant',
+      'turn.finished',
+    ]);
+    expect(h.events(id).at(-1)).toMatchObject({ outcome: 'completed' });
+  });
+
+  it('stops a provider that ignores the interrupt and still closes the turn', async () => {
+    const h = harness(tempWorkspace(), { FAKE_CLAUDE_IGNORE_INTERRUPT: '1' }, READY, { interruptGraceMs: 80 });
+    const id = start(h);
+    await h.service.send(id, 'a long answer please');
+    await h.waitFor(() => h.updates.some((update) => update.kind === 'delta'), 'first delta');
+    h.service.interrupt(id);
+    await h.waitFor(() => status(h, id) === 'interrupted', 'interrupted by watchdog');
+    expect(h.events(id).at(-1)).toMatchObject({ type: 'turn.finished', outcome: 'interrupted' });
+  });
+
+  it('withdraws an approval the provider cancelled', async () => {
+    const h = harness();
+    const id = start(h);
+    await h.service.send(id, 'please withdraw');
+    await h.waitFor(() => status(h, id) === 'idle' && h.events(id).length > 4, 'turn end');
+    expect(h.events(id).find((event) => event.type === 'approval.resolved')).toMatchObject({
+      decision: 'deny',
+      by: 'interrupt',
+    });
+    expect(h.events(id).at(-1)).toMatchObject({ type: 'turn.finished', outcome: 'completed' });
+  });
+
+  it('forgets a provider conversation that can no longer be resumed', async () => {
+    const h = harness();
+    const id = start(h);
+    ThreadJournal.open(h.workspace, id)?.update({ providerSessionId: 'gone' });
+    await h.service.send(id, 'hello again');
+    await h.waitFor(() => status(h, id) === 'error', 'failed resume');
+    const failed = h.events(id).at(-1);
+    const detail = failed?.type === 'turn.finished' ? (failed.detail ?? '') : '';
+    expect(failed).toMatchObject({ type: 'turn.finished', outcome: 'failed' });
+    expect(detail).toContain('No conversation found with session ID: gone');
+    expect(detail).toContain('Your next message starts a fresh one');
+    expect(h.service.readThread(id)?.thread.providerSessionId).toBeNull();
+    await h.service.send(id, 'fresh start');
+    await h.waitFor(() => status(h, id) === 'idle', 'fresh session');
+    expect(h.service.readThread(id)?.thread.providerSessionId).toBe('sess-fake-1');
+  });
+
+  it('rejects values that could be read as command-line flags', () => {
+    const h = harness();
+    const base = { cwd: h.workspace, projectName: null, provider: 'claude' as const, permissionMode: 'ask' as const };
+    expect(h.service.createThread({ ...base, model: '--dangerously-skip-permissions' }).ok).toBe(false);
+    expect(h.service.createThread({ ...base, model: 'opus[1m]' }).ok).toBe(true);
+    const id = start(h);
+    expect(h.service.updateThread(id, { model: '-x' }).ok).toBe(false);
+    const args = claudeArgs({ model: '--flag', permissionMode: 'ask', resumeSessionId: '--resume-all' });
+    expect(args).not.toContain('--flag');
+    expect(args).not.toContain('--resume');
   });
 
   it('refuses to start when the provider is signed out or the folder is gone', async () => {
@@ -419,5 +541,23 @@ describe('provider probe', () => {
     });
     expect(statuses[1]?.signInHint).toBe('codex login');
     expect(JSON.stringify(statuses)).not.toMatch(/example\.com|Secret Org/);
+  });
+
+  it('keeps the other providers when one probe throws, and reads "not logged in" before "logged in"', async () => {
+    const statuses = await probeProviders({
+      find: (name) => `/bin/${name}`,
+      run: async (binary, args) => {
+        if (binary.endsWith('claude')) throw new Error('spawn EINVAL');
+        if (args[0] === '--version') return { code: 0, stdout: '1.2.3', stderr: '' };
+        if (binary.endsWith('codex')) return { code: 0, stdout: 'Not logged in', stderr: '' };
+        return { code: 0, stdout: '10 credentials', stderr: '' };
+      },
+    });
+    expect(statuses.map((status) => [status.id, status.installed, status.auth])).toEqual([
+      ['claude', false, 'unknown'],
+      ['codex', true, 'signed-out'],
+      ['opencode', true, 'ready'],
+    ]);
+    expect(statuses[0]?.authDetail).toBe('Could not be checked');
   });
 });

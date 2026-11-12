@@ -8,6 +8,11 @@ const argv = process.argv.slice(2);
 const resumeIndex = argv.indexOf('--resume');
 const sessionId = resumeIndex >= 0 ? argv[resumeIndex + 1] : 'sess-fake-1';
 if (process.env.FAKE_CLAUDE_LOG) fs.appendFileSync(process.env.FAKE_CLAUDE_LOG, `${JSON.stringify(argv)}\n`);
+if (sessionId === 'gone') {
+  // The real CLI refuses a session id it no longer has, before announcing a session.
+  process.stderr.write('No conversation found with session ID: gone\n');
+  process.exit(1);
+}
 
 const out = (frame) => process.stdout.write(`${JSON.stringify(frame)}\n`);
 const waiting = new Map();
@@ -57,6 +62,35 @@ function onUser(text) {
     process.stderr.write('fake provider exploded\n');
     process.exit(3);
   }
+  if (text.includes('twice')) {
+    // A queued message: the provider finishes one turn, then starts the next by itself.
+    streamText('msg_first', 0, 'first answer');
+    result();
+    setTimeout(() => {
+      streamText('msg_second', 0, 'second answer');
+      setTimeout(() => result(), Number(process.env.FAKE_CLAUDE_SECOND_TURN_MS ?? 0));
+    }, 40);
+    return;
+  }
+  if (text.includes('withdraw')) {
+    const input = { command: 'rm -rf build' };
+    out({
+      type: 'assistant',
+      parent_tool_use_id: null,
+      message: { id: 'msg_w', content: [{ type: 'tool_use', id: 'toolu_w', name: 'Bash', input }] },
+    });
+    out({
+      type: 'control_request',
+      request_id: 'perm_w',
+      request: { subtype: 'can_use_tool', tool_name: 'Bash', input, tool_use_id: 'toolu_w' },
+    });
+    setTimeout(() => {
+      out({ type: 'control_cancel_request', request_id: 'perm_w' });
+      streamText('msg_w2', 0, 'Never mind.');
+      result();
+    }, 30);
+    return;
+  }
   if (text.includes('long')) {
     let n = 0;
     out({
@@ -92,7 +126,10 @@ function onUser(text) {
         tool_name: 'Edit',
         input,
         tool_use_id: 'toolu_1',
-        permission_suggestions: [{ type: 'setMode', mode: 'acceptEdits', destination: 'session' }],
+        permission_suggestions: [
+          { type: 'setMode', mode: 'acceptEdits', destination: 'session' },
+          { type: 'addRules', rules: [{ toolName: 'Edit' }], behavior: 'allow', destination: 'userSettings' },
+        ],
       },
     });
     waiting.set('perm_1', (response) => {
@@ -107,7 +144,7 @@ function onUser(text) {
               tool_use_id: 'toolu_1',
               is_error: !allowed,
               content: allowed
-                ? `updated${response.updatedPermissions ? ' (session rule saved)' : ''}`
+                ? `updated${response.updatedPermissions ? ` (rules kept: ${response.updatedPermissions.map((rule) => rule.destination).join(',')})` : ''}`
                 : response.message,
             },
           ],
