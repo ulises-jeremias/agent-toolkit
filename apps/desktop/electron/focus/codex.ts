@@ -1,6 +1,6 @@
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import readline from 'node:readline';
-import type { FocusApprovalDecision, FocusModelOption, FocusPermissionMode, FocusUsage } from '../../src/types/focus';
+import type { FocusApprovalDecision, FocusModelOption, FocusPermissionMode } from '../../src/types/focus';
 import {
   clipInput,
   clipOutput,
@@ -45,10 +45,6 @@ function asRecord(value: unknown): Json | null {
 
 function asString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
-}
-
-function num(value: unknown): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
 
 function firstLine(value: string, max = 160): string {
@@ -119,7 +115,6 @@ export class CodexSession implements ProviderSession {
   private threadId: string | null = null;
   private turnId: string | null = null;
   private completedTurnId: string | null = null;
-  private lastUsage: FocusUsage | null = null;
   private stderrTail = '';
   private disposed = false;
   private exited = false;
@@ -487,15 +482,9 @@ export class CodexSession implements ProviderSession {
         this.onItemCompleted(asRecord(params['item']));
         return;
       case 'thread/tokenUsage/updated': {
-        const last = asRecord(asRecord(params['tokenUsage'])?.['last']);
-        if (!last) return;
-        const cached = num(last['cachedInputTokens']);
-        this.lastUsage = {
-          inputTokens: Math.max(0, num(last['inputTokens']) - cached),
-          cachedInputTokens: cached,
-          outputTokens: num(last['outputTokens']),
-          costUsd: null,
-        };
+        // Codex's `last` is the latest active context, while `total` is
+        // thread-cumulative. Neither is a per-turn delta. Do not publish it as
+        // FocusUsage: the service aggregates that value as turn spend.
         return;
       }
       case 'serverRequest/resolved': {
@@ -632,8 +621,6 @@ export class CodexSession implements ProviderSession {
     this.turnId = null;
     this.approvals.clear();
     this.changesByItem.clear();
-    const usage = this.lastUsage;
-    this.lastUsage = null;
     const error = asRecord(turn?.['error']);
     const details = [asString(error?.['message']), asString(error?.['additionalDetails'])].filter(Boolean).join('\n');
     this.sink.turnFinished({
@@ -645,7 +632,7 @@ export class CodexSession implements ProviderSession {
             ? 'Stopped by you.'
             : details || 'Codex reported an error.',
       durationMs: typeof turn?.['durationMs'] === 'number' ? turn['durationMs'] : null,
-      usage,
+      usage: null,
     });
   }
 }

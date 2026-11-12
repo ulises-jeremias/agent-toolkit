@@ -50,6 +50,17 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
       });
       notify('turn/completed', { threadId: 'parent', turn: { id: 'turn-1', status: 'completed' } });
     }
+    if (text === 'usage') {
+      notify('thread/tokenUsage/updated', {
+        threadId: 'parent',
+        turnId: 'turn-1',
+        tokenUsage: {
+          last: { inputTokens: 80, cachedInputTokens: 20, outputTokens: 30 },
+          total: { inputTokens: 800, cachedInputTokens: 200, outputTokens: 300 },
+        },
+      });
+      notify('turn/completed', { threadId: 'parent', turn: { id: 'turn-1', status: 'completed' } });
+    }
     if (text === 'unsupported')
       write({
         id: 'question',

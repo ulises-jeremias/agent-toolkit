@@ -57,6 +57,14 @@ describe('Codex app-server protocol', () => {
       }),
     );
   });
+  it('does not misreport context or thread token usage as per-turn usage', async () => {
+    const { session, sink } = harness();
+    session.send('usage');
+    await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(1));
+    expect(sink.turnFinished).toHaveBeenCalledWith(
+      expect.objectContaining({ outcome: 'completed', usage: null }),
+    );
+  });
   it('preserves approval context and uses the current response dialect', async () => {
     const { session, sink } = harness();
     session.send('approval');

@@ -197,8 +197,13 @@ honestly. Never label a declared Person or installed binary as an active agent.
   process after a failed handshake or turn/start request. Fake-server tests cover
   initialize timeout, turn/start timeout, forced disposal cleanup. The real-provider
   Codex journey remains open.
-- [ ] Verify token usage: Codex `tokenUsage.last` may be last inference rather than
-  total turn. Use verified cumulative deltas or label unavailable; do not invent totals.
+- [x] Keep Codex token usage honest: official app-server schema separates `last`
+  and thread-cumulative `total`, and Codex describes `last` as active context size.
+  Focus aggregates provider usage as per-turn spend, so Codex usage is now reported
+  unavailable (`null`) until turn deltas can be derived safely. Regression coverage
+  confirms neither context nor thread totals are mislabeled. Sources:
+  [generated schema](https://github.com/openai/codex/blob/main/codex-rs/app-server-protocol/schema/json/v2/ThreadTokenUsageUpdatedNotification.json),
+  [Codex TUI usage semantics](https://github.com/openai/codex/blob/main/codex-rs/tui/src/token_usage.rs).
 - [ ] Verify approval scope truth (`availableDecisions`, network context, grantRoot,
   allow-once vs allow-session) against installed schema, not assumed dialects.
 - [ ] Implement interactive questions/new permissions RPCs if needed for normal
@@ -525,6 +530,8 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   passes. Vite still reports a large 670.60 kB main chunk. Tests need
   `TMPDIR=/home/ulisesjcf/.ai-workspace/.audit-private/tmp` because host `/tmp` writes
   fail with quota errors.
+- Latest usage-accounting slice: focused Codex protocol suite passes (9 tests).
+  Type-check and `git diff --check` pass after removing the now-unused parser.
 - Electron Builder produced and launched the current Linux x64 package at
   `/home/ulisesjcf/.ai-workspace/.audit-private/package-codex/linux-unpacked`, including
   updated renderer/main, Electron 44.11.0, and backend 1.49.0 staged from rescue commit
