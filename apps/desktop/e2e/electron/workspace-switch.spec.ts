@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend } from './fixtures';
+import { goTo } from './navigation';
 
 test('switches workspaces, reads their own projects, and returns safely', async () => {
   const desktop = await openDesktop();
@@ -53,7 +54,7 @@ test('switches workspaces, reads their own projects, and returns safely', async 
     await expect(page).toHaveURL(new RegExp(encodeURIComponent(alternateWorkspace)));
     await waitForBackend(page);
 
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
+    await goTo(page, 'Projects');
     const linkProject = page.getByRole('button', { name: 'Link existing folder' });
     await expect(linkProject).toBeEnabled({ timeout: 15_000 });
     await chooseFolder(project);

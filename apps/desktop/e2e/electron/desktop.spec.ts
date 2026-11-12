@@ -3,6 +3,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtures';
+import { goTo } from './navigation';
 
 const CAPTURE = process.env['ATK_CAPTURE'] === '1';
 const CAPTURE_DIR = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/swarms');
@@ -139,20 +140,15 @@ test('supervisor starts the real backend and the shell connects', async () => {
   await expect(page.getByRole('alert')).toHaveCount(0);
 });
 
-test('the context bar shows the default ~/.ai-workspace harness', async () => {
+test('the top bar names the default ~/.ai-workspace workspace and offers search', async () => {
   const { page, workspace } = desktop;
-  const bar = page.getByRole('form', { name: 'Session context' });
-  const workspaceField = bar.getByLabel('Workspace');
-  await expect(bar.getByRole('textbox', { name: 'Agent' })).toHaveCount(0);
-  await expect(bar.getByRole('textbox', { name: 'Run' })).toHaveCount(0);
-  await expect(bar.getByRole('button', { name: /Commands/ })).toBeVisible();
-  await expect(workspaceField).toHaveValue('AI Workspace');
-  await workspaceField.focus();
-  await expect(workspaceField).toHaveValue(workspace);
-  await workspaceField.blur();
-  await expect(workspaceField).toHaveValue('AI Workspace');
-  await expect(bar).toContainText('default');
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
+  const top = page.getByRole('banner');
+  const workspaceLink = top.getByRole('link', { name: 'AI Workspace' });
+  await expect(workspaceLink).toHaveAttribute('title', new RegExp(workspace.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  await expect(top.getByRole('button', { name: /Search or run a command/ })).toBeVisible();
+  // Agent and run filters are no longer chrome; they stay URL state for the pages that use them.
+  await expect(page.getByRole('form', { name: 'Session context' })).toHaveCount(0);
+  await workspaceLink.click();
   await expect(page.getByRole('region', { name: 'Backend' })).toContainText(`${workspace} (default)`);
   await expect(page.getByText('Harness notice')).toHaveCount(0);
 });
@@ -201,7 +197,7 @@ test('palette actions open the same reviewed terminal, job, loop, and swarm work
 
 test('palette reaches Person creation and Munder import review without saving or spawning', async () => {
   const { page } = desktop;
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).focus();
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).focus();
   await page.keyboard.press('Control+k');
   let palette = page.getByRole('dialog', { name: 'Commands' });
   await palette.getByLabel('Filter commands').fill('Create Person');
@@ -334,7 +330,7 @@ test('every destination renders from live data without a crash boundary', async 
 test('workspace reads the scratch workspace through the backend', async () => {
   const { page } = desktop;
   await waitForBackend(page);
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
+  await goTo(page, 'Projects');
   await expect(page.getByRole('region', { name: 'Context budget' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Personas' })).toContainText(/architect|implementer/);
 });
@@ -373,7 +369,7 @@ test('a contextual tool destination opens the same target-specific Library revie
 test('insights shows doctor checks and usage without invented cost', async () => {
   const { page } = desktop;
   await waitForBackend(page);
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Insights' }).click();
+  await goTo(page, 'Insights');
   const doctor = page.getByRole('region', { name: 'Doctor' });
   await expect(doctor).toBeVisible();
   await expect(
@@ -1236,7 +1232,7 @@ test('swarm plan approval gates appear in Attention and Next that needs me opens
   const runId = (await runRow.innerText()).trim().split(/\s+/)[0];
   if (!runId) throw new Error('The gated swarm did not expose its run ID');
 
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Attention' }).click();
+  await goTo(page, 'Attention');
   const attention = page.getByRole('region', { name: 'Attention inspector' });
   const gate = attention.getByRole('row', { name: /Swarm plan needs approval/ });
   await expect(gate).toContainText('Review the semantic project valley');
@@ -1319,7 +1315,7 @@ test('a failed job appears in Attention and Next that needs me opens it', async 
   await expect(dialog).toBeHidden();
   await expect(page.getByRole('region', { name: 'no-such-command' }).getByText('failed')).toBeVisible();
 
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Attention' }).click();
+  await goTo(page, 'Attention');
   await expect(page.getByRole('heading', { level: 1, name: 'Attention' })).toBeVisible();
   const needsYou = page.getByRole('region', { name: 'Needs you' });
   await expect(needsYou).toContainText(/no-such-command failed/);
@@ -1337,7 +1333,7 @@ test('a failed job appears in Attention and Next that needs me opens it', async 
 
 test('terminal runs a real pseudo-terminal session that survives navigation', async () => {
   const { page } = desktop;
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
+  await goTo(page, 'Terminal');
   await page.getByRole('main').getByRole('button', { name: 'New session' }).click();
   const dialog = page.getByRole('dialog', { name: 'New terminal session' });
   await dialog.getByRole('textbox', { name: 'Command', exact: true }).fill('/bin/sh');
@@ -1351,16 +1347,16 @@ test('terminal runs a real pseudo-terminal session that survives navigation', as
   await page.keyboard.press('Enter');
   await expect(terminal.locator('.xterm-rows')).toContainText('atk-e2e-42');
 
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Attention' }).click();
+  await goTo(page, 'Attention');
   const dock = page.getByRole('complementary', { name: 'Terminal dock' });
   await expect(dock.getByRole('tab', { name: /e2e-shell/ })).toBeVisible();
   await expect(dock.getByLabel('Terminal for e2e-shell').locator('.xterm-rows')).toContainText('atk-e2e-42');
-  await expect(page.getByRole('button', { name: 'New session' })).toHaveCount(1);
+  await expect(dock.getByRole('button', { name: 'New terminal' })).toHaveCount(1);
 });
 
 test('the world focuses a real PTY and does not invent one', async () => {
   const { page } = desktop;
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
+  await goTo(page, 'Terminal');
   await page.getByRole('main').getByRole('button', { name: 'New session' }).click();
   const dialog = page.getByRole('dialog', { name: 'New terminal session' });
   await dialog.getByRole('textbox', { name: 'Command', exact: true }).fill('/bin/sh');
@@ -1381,7 +1377,7 @@ test('the world focuses a real PTY and does not invent one', async () => {
   await expect(first).toHaveAttribute('aria-selected', 'true');
   expect(page.url()).toContain(`pty=${firstId}`);
 
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Attention' }).click();
+  await goTo(page, 'Attention');
   expect(page.url()).toContain(`pty=${firstId}`);
   await expect(first).toHaveAttribute('aria-selected', 'true');
 
@@ -1411,12 +1407,16 @@ test('the world focuses a real PTY and does not invent one', async () => {
 test('an exited session keeps its output and can restart', async () => {
   const { page } = desktop;
   // Bind a real run identity so the dock tab (and restart) carry it — do not invent labels in asserts.
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
+  await goTo(page, 'Terminal');
   await expect(page).toHaveURL(/#\/terminal\?/);
   await expect(page.getByRole('heading', { level: 1, name: 'Workstation' })).toBeVisible();
-  const runField = page.getByRole('form', { name: 'Session context' }).getByRole('textbox', { name: 'Run' });
-  await runField.fill('e2e-run');
-  await runField.press('Enter');
+  // The run filter is URL state; set it the way a deep link does.
+  await page.evaluate(() => {
+    const [route, query = ''] = window.location.hash.slice(1).split('?');
+    const next = new URLSearchParams(query);
+    next.set('run', 'e2e-run');
+    window.location.hash = `${route}?${next.toString()}`;
+  });
   await expect(page).toHaveURL(/run=e2e-run/);
   await expect(page).toHaveURL(/#\/terminal\?/);
   await page.getByRole('main').getByRole('button', { name: 'New session' }).click();
@@ -1443,7 +1443,7 @@ test('an exited session keeps its output and can restart', async () => {
 
 test('a crashed backend is attention, while its real PTY stays available for recovery', async () => {
   const { page } = desktop;
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
+  await goTo(page, 'Terminal');
   await page.getByRole('main').getByRole('button', { name: 'New session' }).click();
   const terminalDialog = page.getByRole('dialog', { name: 'New terminal session' });
   await terminalDialog.getByRole('textbox', { name: 'Command', exact: true }).fill('/bin/sh');
@@ -1460,7 +1460,7 @@ test('a crashed backend is attention, while its real PTY stays available for rec
   await page.keyboard.press('Enter');
   await expect(terminal.locator('.xterm-rows')).toContainText('pty-survives-backend-crash');
 
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Attention' }).click();
+  await goTo(page, 'Attention');
   const binaryPath = await page.evaluate(async () => {
     const state = await window.atk?.backendStatus();
     return state?.binary?.path ?? null;
@@ -1476,7 +1476,7 @@ test('a crashed backend is attention, while its real PTY stays available for rec
   await expect(page.getByRole('main')).not.toContainText(/the workstation is quiet/i);
   await expect(terminalTab).toBeVisible();
   await expect(terminalTab).toHaveAttribute('aria-selected', 'true');
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
+  await goTo(page, 'Terminal');
   await expect(page.getByLabel('Terminal for backend-independent-pty').locator('.xterm-rows')).toContainText(
     'pty-survives-backend-crash',
   );

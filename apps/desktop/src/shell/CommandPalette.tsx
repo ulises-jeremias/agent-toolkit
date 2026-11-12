@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { requireClient, useBackend } from '../data/backend';
+import { useFocusThreads } from '../data/focus';
 import { useProjects } from '../data/projects';
 import { useMcpProviders } from '../data/catalog';
 import { useLoops } from '../data/loops';
@@ -16,6 +17,7 @@ import { Button, Dialog, Kbd, TextInput, VisuallyHidden } from '../ui';
 import {
   filterCommands,
   commandsForWorkspace,
+  focusCommands,
   loopScheduleCommands,
   mcpProviderCommands,
   personCommands,
@@ -131,16 +133,35 @@ export function CommandPalette() {
     }
   }, [open]);
 
+  const { threads } = useFocusThreads();
+  const focusPaletteCommands = useMemo(
+    () =>
+      focusCommands(
+        threads,
+        (projectsQuery.data?.projects ?? []).filter((row) => row.status === 'ok').map((row) => row.name),
+      ),
+    [threads, projectsQuery.data],
+  );
+
   const catalog = useMemo(
     () => [
       ...commandsForWorkspace(Boolean(context.workspace)),
+      ...focusPaletteCommands,
       ...projectCommands,
       ...peoplePaletteCommands,
       ...mcpCommands,
       ...loopCommands,
       ...recoverableRuns,
     ],
-    [context.workspace, loopCommands, mcpCommands, peoplePaletteCommands, projectCommands, recoverableRuns],
+    [
+      context.workspace,
+      focusPaletteCommands,
+      loopCommands,
+      mcpCommands,
+      peoplePaletteCommands,
+      projectCommands,
+      recoverableRuns,
+    ],
   );
   const matches = useMemo(() => filterCommands(catalog, query), [catalog, query]);
   const active = matches[Math.min(selected, Math.max(matches.length - 1, 0))];
@@ -191,6 +212,13 @@ export function CommandPalette() {
         }
         return;
       }
+      case 'focus':
+        navigate(
+          action.intent === 'open'
+            ? href('/focus', { thread: action.threadId })
+            : href('/focus', action.project ? { project: action.project } : undefined),
+        );
+        return;
       case 'people-workflow':
         navigate(href('/people', { action: action.intent }));
         return;

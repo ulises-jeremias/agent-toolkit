@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { openDesktop, waitForBackend } from './fixtures';
+import { goTo } from './navigation';
 
 function git(cwd: string, ...args: string[]) {
   execFileSync('git', args, { cwd, stdio: 'pipe' });
@@ -30,7 +31,7 @@ test('reviews, stages, and commits real project changes from the GUI', async () 
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] });
     }, projectPath);
 
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
+    await goTo(page, 'Projects');
     const linkFolder = page.getByRole('button', { name: 'Link existing folder' });
     await expect(linkFolder).toBeEnabled();
     await linkFolder.click();
@@ -120,7 +121,7 @@ test('stages a single hunk from the GUI and leaves the other unstaged', async ()
     await desktop.app.evaluate(({ dialog }, folder) => {
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] });
     }, projectPath);
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
+    await goTo(page, 'Projects');
     await page.getByRole('button', { name: 'Link existing folder' }).click();
     const review = page.getByRole('dialog', { name: 'Review project link' });
     await review.getByRole('button', { name: 'Link garden-api' }).click();
