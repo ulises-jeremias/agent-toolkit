@@ -195,9 +195,11 @@ honestly. Never label a declared Person or installed binary as an active agent.
 - [x] Review high-impact #1780 Focus findings: stale overlapping thread-list reloads now
   carry a generation guard; pending approval no longer steals focus to `Allow once`;
   composer drafts are held per thread across session navigation; and indented Markdown
-  headings cannot trap the parser without advancing. Regressions are covered in
-  `src/data/focus.test.ts`, `src/features/focus/Conversation.test.tsx`, and
-  `src/features/focus/Markdown.test.tsx`. Remaining #1780 review items still need triage.
+  headings cannot trap the parser without advancing; and native Dialog closes still notify
+  their owner when focus cannot safely return into a parent modal. Regressions are covered in
+  `src/data/focus.test.ts`, `src/features/focus/Conversation.test.tsx`,
+  `src/features/focus/Markdown.test.tsx`, and `src/ui/ui.test.tsx`. Remaining #1780 review
+  items still need triage.
 - [x] Add bounded 30-second Codex app-server request deadlines; clear pending timers
   on response, close, and disposal; surface timeout errors; and stop an unresponsive
   process after a failed handshake or turn/start request. Fake-server tests cover
@@ -598,9 +600,10 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6836606054).
   Packaged Linux E2E passes 7/7 for the listed paths against the existing package
   described above. Electron keyboard/a11y checks pass 3/3, including the skip link,
-  reduced motion, and Escape precedence. Latest CI run IDs must be refreshed after the
-  current source follow-up is committed and pushed; keep the draft unmerged until the
-  required checks for that exact head finish and the stacked base is healthy. This PR stays
+  reduced motion, and Escape precedence. Use the live checks on draft PR #1783 for the
+  current exact branch head; earlier CI runs do not cover this newest Focus/Dialog slice.
+  Keep the draft unmerged until required checks for that head finish and the stacked base
+  is healthy. This PR stays
   draft and unmerged while base PRs have failing required Desktop checks. No release
   was created.
 

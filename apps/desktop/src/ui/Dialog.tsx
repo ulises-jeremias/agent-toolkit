@@ -81,8 +81,7 @@ export function Dialog({
       // this event is stale and must not close the new session.
       if (dialog.open) return;
       blurWithin(dialog);
-      if (returnFocus.current === null) return;
-      restoreFocus(returnFocus);
+      if (returnFocus.current !== null) restoreFocus(returnFocus);
       onClose();
     };
     dialog.addEventListener('close', handleClose);
