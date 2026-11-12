@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend } from './fixtures';
 import { goTo } from './navigation';
@@ -21,6 +22,7 @@ test('switches workspaces, reads their own projects, and returns safely', async 
 
     const project = path.join(home, 'fixtures', 'maple-worker');
     fs.mkdirSync(project, { recursive: true });
+    execFileSync('git', ['init', '-q', '-b', 'main'], { cwd: project, stdio: 'pipe' });
     fs.writeFileSync(path.join(project, 'README.md'), '# Maple Worker\n');
     const chooseFolder = async (folder: string) => {
       await desktop.app.evaluate(({ dialog }, selected) => {
@@ -59,14 +61,12 @@ test('switches workspaces, reads their own projects, and returns safely', async 
     await expect(linkProject).toBeEnabled({ timeout: 15_000 });
     await chooseFolder(project);
     await linkProject.click();
-    const review = page.getByRole('dialog', { name: 'Review project link' });
-    await expect(review).toContainText('maple-worker');
-    await review.getByRole('button', { name: 'Link maple-worker' }).click();
-    await expect(review).toBeHidden();
-    await page.getByRole('button', { name: 'Dismiss: Project linked' }).click();
+    await expect(page.getByRole('button', { name: /^maple-worker(?:\s|$)/ })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('region', { name: 'maple-worker' }).getByText(project)).toBeVisible();
+    expect(fs.realpathSync(path.join(alternateWorkspace, 'projects', 'maple-worker'))).toBe(fs.realpathSync(project));
 
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-    await expect(page.getByRole('button', { name: /maple-worker/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^maple-worker(?:\s|$)/ })).toBeVisible();
     if (process.env.ATK_CAPTURE === '1') {
       fs.mkdirSync(captureDir, { recursive: true });
       for (const size of [
