@@ -376,12 +376,14 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   pending a healthy, reviewed base. #1782 corrects stale shell smoke assertions
   (empty-state headings and the six-place rail) and disambiguates a project row from
   its toast. The failing desktop run is specifically four packaged Electron journeys,
-  not those renderer smoke assertions: workspace context-pack discovery, two
-  project-changes flows that cannot see the review dialog/path, and workspace
-  switching that cannot see the linked path in that dialog. The standalone
-  project-link journey passes, so trace these flows independently rather than
-  assuming one global picker defect. Run IDs: desktop 43298967157; packaged
-  43298966315.
+  not those renderer smoke assertions: context pack navigation targeted Projects
+  instead of Library's Context tab; two Git changes tests assumed an obsolete review
+  dialog and selected a nested generic section; workspace switching linked a folder
+  that was not a Git repo and then confused the linked-project toast with its row.
+  The standalone project-link journey passes. These cases are corrected in this
+  branch and reproduced locally with Electron + the real backend. Run IDs:
+  desktop 43298967157; packaged 43298966315. The packaged job's failures match these
+  stale journeys; re-run hosted CI on the corrected branch before drawing a new result.
   Do not waive these failures or merge the stacked series.
 - [ ] #1771 ImgBot was open; inspect deterministic-art drift before merging or closing.
 - [ ] Preserve author commits through cherry-pick/rebase. Never replace them with one
@@ -535,6 +537,14 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   fail with quota errors.
 - Latest usage-accounting slice: focused Codex protocol suite passes (9 tests).
   Type-check and `git diff --check` pass after removing the now-unused parser.
+- Latest stacked-flow fixes: the Electron fixture now marks onboarding complete
+  through the authoritative Electron preference bridge; tests no longer seed a
+  renderer-origin localStorage key. Local Electron + real backend passes:
+  `full-journey.spec.ts` (1), both `project-changes.spec.ts` cases (2), and
+  `workspace-switch.spec.ts` (1), run in two passes while refining strict selectors.
+  Renderer smoke passes all 7 cases, including Focus default for unknown routes,
+  six-place compact rail, and the corrected heading-free destination flow. Focus
+  contract tests pass 12/12; TypeScript and lint pass after all related changes.
 - Electron Builder produced and launched the current Linux x64 package at
   `/home/ulisesjcf/.ai-workspace/.audit-private/package-codex/linux-unpacked`, including
   updated renderer/main, Electron 44.11.0, and backend 1.49.0 staged from rescue commit
