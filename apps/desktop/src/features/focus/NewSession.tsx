@@ -12,7 +12,10 @@ export interface NewSessionDefaults {
 }
 
 /** Never silently substitute a different repository for an explicit project selection. */
-export function selectStartProject(projects: readonly ProjectListEntry[], selected: string): ProjectListEntry | undefined {
+export function selectStartProject(
+  projects: readonly ProjectListEntry[],
+  selected: string,
+): ProjectListEntry | undefined {
   const usable = projects.filter((entry) => entry.status === 'ok');
   return selected ? usable.find((entry) => entry.name === selected) : usable[0];
 }
