@@ -263,8 +263,11 @@ describe('WorldEntityMap activation', () => {
 
   it('shows house name signs at idle and reveals a semantic plaque on hover', async () => {
     const { user } = renderMap();
-    // Houses (places) carry always-on name signs; objects stay clear until hover.
+    // Project houses carry always-on name signs. The workspace hall uses the
+    // persistent header for its identity, leaving the tightly packed Library
+    // roofline clear of a second always-on plaque.
     expect(document.querySelector('[data-sign="true"]')).not.toBeNull();
+    expect(document.querySelector('[data-entity-label-for="place:workspace"][data-sign="true"]')).toBeNull();
     // At idle only house signs and the spawn's proximity plaque are visible.
     for (const label of document.querySelectorAll('[data-entity-label-for]')) {
       expect(label.getAttribute('data-sign') === 'true' || label.getAttribute('data-nearby') === 'true').toBe(true);

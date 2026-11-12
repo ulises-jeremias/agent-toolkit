@@ -697,7 +697,7 @@ export function WorldEntityMap({
           .filter(
             (entity) =>
               entity.kind !== 'character' &&
-              (entity.kind === 'place' ||
+              ((entity.kind === 'place' && entity.id !== 'place:workspace') ||
                 entity.id === selectedId ||
                 entity.id === hoveredId ||
                 entity.id === nearbyId),
@@ -712,7 +712,7 @@ export function WorldEntityMap({
                 data-entity-label-for={entity.id}
                 aria-hidden="true"
                 data-label-kind={entity.kind}
-                data-sign={entity.kind === 'place' && !isActive ? 'true' : undefined}
+                data-sign={entity.kind === 'place' && entity.id !== 'place:workspace' && !isActive ? 'true' : undefined}
                 data-nearby={isNearby ? 'true' : undefined}
                 data-selected={isActive ? 'true' : undefined}
                 style={{
