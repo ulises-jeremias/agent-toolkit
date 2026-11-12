@@ -207,7 +207,8 @@ export function NewSession({
         })}
         {!providersLoading && ready.length === 0 && providers.length > 0 ? (
           <p className={styles.startError} role="alert">
-            No agent is ready. Install Claude Code and sign in with <code>claude auth login</code>, then check again.
+            No agent is ready. Sign in to Claude Code with <code>claude auth login</code> or Codex with{' '}
+            <code>codex login</code>, then check again.
           </p>
         ) : null}
       </fieldset>

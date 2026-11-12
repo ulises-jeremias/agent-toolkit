@@ -16,6 +16,7 @@ import type {
 } from '../../src/types/focus';
 import { isSafeModelId, type AdapterSink, type ProviderSession, type ProviderSessionFactory } from './adapter';
 import { ClaudeSession } from './claude';
+import { CodexSession } from './codex';
 import { isThreadId, newThreadId, ThreadJournal } from './journal';
 import { probeProviders, type ProbeOptions } from './providers';
 
@@ -58,6 +59,7 @@ interface Runtime {
 
 const DEFAULT_FACTORIES: Partial<Record<FocusProviderId, ProviderSessionFactory>> = {
   claude: (options, sink) => new ClaudeSession(options, sink),
+  codex: (options, sink) => new CodexSession(options, sink),
 };
 
 function ok<T>(value: T): FocusResult<T> {
@@ -203,6 +205,8 @@ export class FocusService {
     if (!journal) return fail('Session not found.');
     const runtime = this.runtimeFor(journal);
     if (runtime.pendingApprovals.size > 0) return fail('Answer the pending approval first.');
+    if (runtime.turnOpen && !runtime.session?.acceptsInputWhileRunning)
+      return fail('Wait for the agent to finish or stop the current turn before sending another message.');
     if (!runtime.session?.alive) {
       runtime.starting ??= this.startSession(runtime).finally(() => {
         runtime.starting = null;
@@ -213,6 +217,10 @@ export class FocusService {
     // The launch awaited a provider check; the thread may have been deleted or the app closed meanwhile.
     if (this.closed || this.runtimes.get(id) !== runtime) return fail('This session is no longer open.');
     if (runtime.pendingApprovals.size > 0) return fail('Answer the pending approval first.');
+    // Two sends may have awaited the same startup. Recheck before journaling
+    // so a rejected concurrent turn never appears as an accepted user message.
+    if (runtime.turnOpen && !runtime.session?.acceptsInputWhileRunning)
+      return fail('Wait for the agent to finish or stop the current turn before sending another message.');
     this.clearIdle(runtime);
     this.record(runtime, { type: 'user', text: message }, { openTurn: 'user' });
     if (!journal.thread.title) this.setThread(journal, { title: titleFrom(message) });

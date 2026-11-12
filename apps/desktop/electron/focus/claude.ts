@@ -92,6 +92,7 @@ interface LiveItem {
 }
 
 export class ClaudeSession implements ProviderSession {
+  readonly acceptsInputWhileRunning = true;
   private readonly child: ChildProcessWithoutNullStreams;
   private readonly approvals = new Map<string, PendingApproval>();
   /** Stream blocks (by API message id + index) awaiting their committed message. */
@@ -183,7 +184,9 @@ export class ClaudeSession implements ProviderSession {
     this.disposed = true;
     if (this.exited) return;
     if (now) {
-      this.kill('SIGTERM');
+      // Shutdown or an expired interrupt grace period cannot depend on a
+      // future timer: Electron may exit before that timer gets to run.
+      this.kill('SIGKILL');
       return;
     }
     try {

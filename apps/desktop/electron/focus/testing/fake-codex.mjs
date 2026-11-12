@@ -5,7 +5,10 @@ process.on('SIGTERM', () => {});
 readline.createInterface({ input: process.stdin }).on('line', (line) => {
   const frame = JSON.parse(line);
   const reply = (result) => write({ id: frame.id, result });
-  if (frame.method === 'initialize') reply({});
+  if (frame.method === 'initialize') {
+    if (process.argv.includes('--hang-initialize')) return;
+    reply({});
+  }
   if (frame.method === 'thread/start' || frame.method === 'thread/resume') {
     if (frame.params.approvalsReviewer !== 'user') throw new Error('Approvals must be routed to the user');
     reply({ thread: { id: 'parent' }, model: 'test-model' });
@@ -13,6 +16,7 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
   if (frame.method === 'model/list') reply({ data: [] });
   if (frame.method === 'turn/start') {
     notify('turn/started', { threadId: 'parent', turn: { id: 'turn-1' } });
+    if (process.argv.includes('--hang-turn-start')) return;
     reply({ turn: { id: 'turn-1' } });
     const text = frame.params.input[0].text;
     if (text === 'scope') {

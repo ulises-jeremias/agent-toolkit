@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AdapterSink } from './adapter';
 import { CodexSession } from './codex';
 const sessions: CodexSession[] = [];
-function harness() {
+function harness(args: string[] = [], requestTimeoutMs = 30_000) {
   const sink: AdapterSink = {
     session: vi.fn(),
     models: vi.fn(),
@@ -25,7 +25,8 @@ function harness() {
       resumeSessionId: null,
     },
     sink,
-    [path.join(__dirname, 'testing/fake-codex.mjs')],
+    [path.join(__dirname, 'testing/fake-codex.mjs'), ...args],
+    requestTimeoutMs,
   );
   sessions.push(session);
   return { session, sink };
@@ -80,6 +81,35 @@ describe('Codex app-server protocol', () => {
         expect.objectContaining({ text: 'Codex could not interrupt: interrupt failed' }),
       ),
     );
+  });
+  it('bounds handshake requests and terminates an unresponsive app-server', async () => {
+    const { session, sink } = harness(['--hang-initialize'], 250);
+    session.send('start');
+    await vi.waitFor(() => expect(sink.exited).toHaveBeenCalledTimes(1), { timeout: 3_000 });
+    expect(sink.exited).toHaveBeenCalledWith(
+      expect.objectContaining({
+        beforeSession: true,
+        signal: 'SIGKILL',
+        stderr: expect.stringContaining('initialize request timed out after 250 ms'),
+      }),
+    );
+  });
+  it('fails and stops an app-server that never answers turn/start', async () => {
+    const { session, sink } = harness(['--hang-turn-start'], 250);
+    session.send('hang');
+    await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(1), { timeout: 3_000 });
+    expect(sink.turnFinished).toHaveBeenCalledWith(
+      expect.objectContaining({ outcome: 'failed', detail: 'Codex turn/start request timed out after 250 ms.' }),
+    );
+    await vi.waitFor(() => expect(sink.exited).toHaveBeenCalledTimes(1), { timeout: 3_000 });
+  });
+  it('clears pending RPC timeouts on forced disposal', async () => {
+    const { session, sink } = harness(['--hang-initialize'], 1_000);
+    session.send('stop');
+    session.dispose(true);
+    await vi.waitFor(() => expect(sink.exited).toHaveBeenCalledTimes(1), { timeout: 2_000 });
+    await new Promise((resolve) => setTimeout(resolve, 1_100));
+    expect(sink.exited).toHaveBeenCalledTimes(1);
   });
   it.skipIf(process.platform === 'win32')('hard-stops a provider that ignores SIGTERM', async () => {
     const { session, sink } = harness();
