@@ -124,3 +124,32 @@ export function useProjectGitCommit(workspace: string, project: string) {
     client.projectGitCommit(workspace, project, message),
   );
 }
+
+/**
+ * Link an existing repository folder into the workspace. The native folder
+ * picker is the review step: the user chose that folder. The repository is
+ * never moved or modified; only a workspace link is created.
+ */
+export function useLinkProject(workspace: string) {
+  const { client } = useBackend();
+  const queryClient = useQueryClient();
+  return useMutation<{ name: string; path: string } | null, Error, void>({
+    mutationKey: ['project', 'link', workspace],
+    mutationFn: async () => {
+      const bridge = typeof window !== 'undefined' ? window.atk : undefined;
+      if (!bridge) throw new Error('Linking a folder needs the Agent Toolkit Desktop app.');
+      if (!workspace) throw new Error('The workspace is still starting. Try again in a moment.');
+      const selected = await bridge.projectChooseDirectory(workspace);
+      if (!selected) return null;
+      const envelope = await requireClient(client).sub('project', 'add', { arg: selected, workspace });
+      if (!envelope.ok) throw new Error(envelope.message.split('\n')[0] || 'The folder could not be linked.');
+      const name = selected.split(/[\\/]/).filter(Boolean).at(-1) ?? selected;
+      return { name, path: selected };
+    },
+    onSettled: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['projects'] }),
+        queryClient.invalidateQueries({ queryKey: ['workspace'] }),
+      ]),
+  });
+}

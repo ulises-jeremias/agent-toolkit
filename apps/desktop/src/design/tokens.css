@@ -1,17 +1,21 @@
 /**
- * Agent Toolkit Desktop design tokens (Cozy Pixel World, ADR-035).
+ * Agent Toolkit Desktop design tokens ("Spruce and lamplight", mission #1775).
  *
  * Two layers:
- *   1. Primitives (--cw-*): raw palette anchors from docs/desktop/DESIGN.md §5
- *      (valley environment + game-menu chrome). Feature code never reads
- *      these directly.
+ *   1. Primitives (--cw-*): raw palette anchors. The chrome is the valley at
+ *      night seen from a workshop: spruce greens, parchment text, one warm
+ *      lamp accent. Feature code never reads these directly.
  *   2. Semantic tokens: surface/text/border/action/status/terminal roles.
- *      Themes (Meadow, Dusk) remap semantic tokens; System resolves to one of
- *      them through [data-theme] set by src/design/theme.ts.
+ *      Themes (Meadow = day, Dusk = evening) remap semantic tokens and the
+ *      World's light; System resolves through [data-theme] (design/theme.ts).
+ *
+ * Type: IBM Plex Sans for every word of interface, IBM Plex Mono for code,
+ * paths and terminals. Pixel type (--font-pixel) is reserved for signs
+ * painted inside the World, never below 16px, never for navigation.
  *
  * Contrast targets: text-primary/secondary/muted >= 4.5:1 on surface-canvas
  * and surface-panel in both themes; status foregrounds >= 4.5:1 on their
- * status background. Brief: docs/desktop/ELECTRON_DESIGN_SYSTEM.md.
+ * status background.
  */
 
 :root {
@@ -37,24 +41,24 @@
   /* Primitives: game menu (warm ink-plum, from the PXL valley palette:
      ink #2b2135 warmed toward wood/terracotta; same lightness steps as the
      previous indigo ramp so token contrast pairs are unchanged) */
-  --cw-menu-950: #1a1322;
-  --cw-menu-900: #211a2e;
-  --cw-menu-850: #282036;
-  --cw-menu-800: #322a44;
-  --cw-menu-700: #463a5e;
-  --cw-menu-500: #6d5f8f;
-  --cw-ivory: #f3edda;
-  --cw-ivory-dim: #d8d0b6;
-  --cw-menu-muted: #bfb4ce;
+  --cw-menu-950: #0d1614;
+  --cw-menu-900: #121e1b;
+  --cw-menu-850: #172521;
+  --cw-menu-800: #1e2f2a;
+  --cw-menu-700: #2e453e;
+  --cw-menu-500: #557268;
+  --cw-ivory: #ece5cf;
+  --cw-ivory-dim: #c6ccb8;
+  --cw-menu-muted: #93a59a;
   --cw-terracotta: #c65f3d;
   --cw-terracotta-deep: #9e3f2f;
-  --cw-gold: #f0bd5e;
-  --cw-gold-strong: #ffd97a;
-  --cw-gold-deep: #c99a3f;
-  --cw-teal: #5fd3c6;
-  --cw-teal-deep: #3fa89d;
-  --cw-rose: #e46a5c;
-  --cw-rose-deep: #b84a40;
+  --cw-gold: #f2b85c;
+  --cw-gold-strong: #ffd08a;
+  --cw-gold-deep: #b9823a;
+  --cw-teal: #74c7dc;
+  --cw-teal-deep: #3f8fa3;
+  --cw-rose: #e0705f;
+  --cw-rose-deep: #a8473c;
 
   /* Primitives: status */
   --cw-ok: #58c98b;
@@ -68,12 +72,16 @@
   --cw-idle: #9a93a8;
 
   /* Primitives: terminal */
-  --cw-terminal-bg: #14161f;
-  --cw-terminal-fg: #e6efdf;
-  --cw-terminal-glow: #5fe3d0;
+  --cw-terminal-bg: #0a1210;
+  --cw-terminal-fg: #e4ead9;
+  --cw-terminal-glow: #74c7dc;
 
   /* Typography: display (pixel), body (sans), mono (terminal/logs) */
-  --font-display: 'Silkscreen', 'IBM Plex Mono', ui-monospace, monospace;
+  --font-display: 'IBM Plex Sans', system-ui, 'Segoe UI', sans-serif;
+  /* Signs inside the World only. */
+  --font-pixel: 'Silkscreen', 'IBM Plex Mono', ui-monospace, monospace;
+  --rail-width: 13.5rem;
+  --rail-width-compact: 3.5rem;
   --font-body: 'IBM Plex Sans', system-ui, 'Segoe UI', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
@@ -90,7 +98,7 @@
   --leading-tight: 1.25;
   --leading-snug: 1.35;
   --leading-normal: 1.5;
-  --tracking-caps: 0.06em;
+  --tracking-caps: 0;
 
   /* Spacing: 4px rhythm */
   --space-0-5: 0.125rem;
@@ -104,15 +112,15 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
 
-  /* Pixel-cut menus: square corners; a 2px notch only. */
-  --radius-sm: 2px;
-  --radius-md: 2px;
-  --radius-lg: 2px;
+  /* Interface corners are slightly eased; pixel-cut shapes belong to the World. */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
 
   /* Geometry */
   --target-min: 2rem; /* 32px minimum interactive target */
   --row-height: 2.25rem;
-  --hud-height: 3rem;
+  --hud-height: 2.75rem;
   --contextbar-height: 2.5rem;
   --page-max: 100rem;
 
@@ -126,57 +134,53 @@
   --z-dock: 20;
   --z-toast: 60;
 
-  /* Hard pixel shadows — never blurred (DESIGN.md §7). */
-  --shadow-menu: 3px 3px 0 rgba(15, 12, 26, 0.55);
-  --shadow-chip: 2px 2px 0 rgba(15, 12, 26, 0.45);
+  /* Depth comes from surface steps and hairlines, not drop shadows. */
+  --shadow-menu: 0 1px 0 rgba(0, 0, 0, 0.25);
+  --shadow-chip: none;
 
   color-scheme: light;
-  scrollbar-color: var(--cw-wood-light) var(--cw-menu-950);
-  scrollbar-width: auto;
+  scrollbar-color: var(--cw-menu-700) transparent;
 }
 
-/* Keep native scrolling legible while carrying the wood-and-indigo menu frame
-   across long inspectors, nested lists, and dialogs. */
 ::-webkit-scrollbar {
-  width: 14px;
-  height: 14px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  border-inline: 2px solid var(--cw-menu-800);
-  background: var(--cw-menu-950);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   min-height: 2.5rem;
-  border: 3px solid var(--cw-menu-950);
-  background: var(--cw-wood-light);
-  box-shadow: inset 0 0 0 1px var(--cw-wood-dark);
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: var(--cw-menu-700) content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--cw-gold);
+  background: var(--cw-menu-500) content-box;
 }
 
 ::-webkit-scrollbar-corner {
-  background: var(--cw-menu-950);
+  background: transparent;
 }
 
-/* Meadow — valley daylight (default). */
+/* Meadow: the workshop by day (default). */
 :root,
 :root[data-theme='meadow'] {
-  --surface-canvas: #243a31;
-  --surface-panel: var(--cw-menu-900);
+  --surface-canvas: var(--cw-menu-900);
+  --surface-panel: var(--cw-menu-850);
   --surface-raised: var(--cw-menu-800);
   --surface-sunken: var(--cw-menu-950);
-  --surface-notice: #33290f;
-  --surface-notice-strong: #4a3b18;
-  --surface-hover: rgba(243, 237, 218, 0.08);
-  --surface-selected: rgba(240, 189, 94, 0.18);
+  --surface-notice: #2b2412;
+  --surface-notice-strong: #3d3216;
+  --surface-hover: rgba(236, 229, 207, 0.06);
+  --surface-selected: rgba(242, 184, 92, 0.14);
   --surface-chrome: var(--cw-menu-950);
   --surface-chrome-raised: var(--cw-menu-900);
   --surface-chrome-selected: var(--cw-menu-800);
-  --surface-overlay: rgba(15, 12, 26, 0.6);
+  --surface-overlay: rgba(5, 10, 9, 0.66);
 
   --text-primary: var(--cw-ivory);
   --text-secondary: var(--cw-ivory-dim);
@@ -201,7 +205,7 @@
   --accent-gold-strong: var(--cw-gold-strong);
   --accent-gold-on: var(--cw-menu-950);
   --focus-ring: var(--cw-gold-strong);
-  --focus-halo: rgba(240, 189, 94, 0.3);
+  --focus-halo: rgba(242, 184, 92, 0.28);
 
   --action-primary-bg: var(--cw-gold);
   --action-primary-bg-hover: var(--cw-gold-strong);
@@ -213,24 +217,24 @@
   --action-danger-bg-hover: var(--cw-rose);
   --action-danger-fg: #fff3e8;
 
-  --status-ok-fg: #8fe3b0;
-  --status-ok-bg: #1e3a2a;
-  --status-warn-fg: #ffd97a;
-  --status-warn-bg: #3a2e14;
-  --status-err-fg: #f59a90;
-  --status-err-bg: #421d18;
-  --status-info-fg: #8ecdf7;
-  --status-info-bg: #1a2f44;
+  --status-ok-fg: #93dba0;
+  --status-ok-bg: #16301f;
+  --status-warn-fg: #ffd08a;
+  --status-warn-bg: #33280f;
+  --status-err-fg: #f5a093;
+  --status-err-bg: #3a1915;
+  --status-info-fg: #93d3e6;
+  --status-info-bg: #12303a;
   --status-idle-fg: var(--cw-ivory-dim);
   --status-idle-bg: var(--cw-menu-800);
 
   --shadow-panel: var(--shadow-menu);
-  --shadow-raised: 4px 4px 0 rgba(15, 12, 26, 0.65);
+  --shadow-raised: 0 12px 32px rgba(0, 0, 0, 0.45);
 
   --surface-terminal: var(--cw-terminal-bg);
   --surface-terminal-chrome: var(--cw-menu-950);
   --text-terminal: var(--cw-terminal-fg);
-  --text-terminal-muted: #93a08a;
+  --text-terminal-muted: #8fa095;
   --text-terminal-err: #f59a90;
   --surface-terminal-hover: rgba(230, 239, 223, 0.08);
   --surface-terminal-err: rgba(228, 87, 76, 0.14);
@@ -238,29 +242,29 @@
   --accent-terminal: var(--cw-terminal-glow);
 
   /* World backdrop behind the map (forest depth). */
-  --world-outside: #2c4a28;
-  --world-outside-interior: #36272f;
+  --world-outside: #1c3a2a;
+  --world-outside-interior: #2a221c;
   --world-plaque-fg: var(--cw-ivory);
-  --world-plaque-bg: rgba(23, 26, 43, 0.88);
+  --world-plaque-bg: rgba(13, 22, 20, 0.9);
   --world-plaque-border: var(--cw-menu-500);
 
   color-scheme: dark;
 }
 
-/* Dusk — deliberate evening valley, glowing windows. */
+/* Dusk: evening, lamps lit; a touch cooler and deeper. */
 :root[data-theme='dusk'] {
-  --surface-canvas: #10121f;
-  --surface-panel: var(--cw-menu-900);
-  --surface-raised: var(--cw-menu-800);
-  --surface-sunken: #12152a;
-  --surface-notice: #2e2510;
-  --surface-notice-strong: #443517;
+  --surface-canvas: #0d1517;
+  --surface-panel: #121c1f;
+  --surface-raised: #19272b;
+  --surface-sunken: #090f11;
+  --surface-notice: #261f0f;
+  --surface-notice-strong: #372c13;
   --surface-hover: rgba(243, 237, 218, 0.07);
-  --surface-selected: rgba(255, 217, 122, 0.2);
-  --surface-chrome: #0d0f1a;
-  --surface-chrome-raised: var(--cw-menu-950);
-  --surface-chrome-selected: var(--cw-menu-900);
-  --surface-overlay: rgba(4, 5, 12, 0.72);
+  --surface-selected: rgba(255, 208, 138, 0.16);
+  --surface-chrome: #090f11;
+  --surface-chrome-raised: #0d1517;
+  --surface-chrome-selected: #19272b;
+  --surface-overlay: rgba(3, 6, 7, 0.74);
 
   --text-primary: var(--cw-ivory);
   --text-secondary: var(--cw-ivory-dim);
@@ -275,16 +279,16 @@
   --text-on-chrome-muted: var(--cw-menu-muted);
   --text-link: var(--cw-teal);
 
-  --border-subtle: var(--cw-menu-850);
+  --border-subtle: #19272b;
   --border-default: var(--cw-menu-700);
   --border-strong: var(--cw-menu-500);
-  --border-chrome: var(--cw-menu-900);
+  --border-chrome: #19272b;
 
   --accent-gold: var(--cw-gold-strong);
   --accent-gold-strong: #ffe6a3;
   --accent-gold-on: var(--cw-menu-950);
   --focus-ring: var(--cw-gold-strong);
-  --focus-halo: rgba(255, 217, 122, 0.32);
+  --focus-halo: rgba(255, 208, 138, 0.3);
 
   --action-primary-bg: var(--cw-gold-strong);
   --action-primary-bg-hover: #ffe6a3;
@@ -297,26 +301,26 @@
   --action-danger-fg: #fff3e8;
 
   --status-ok-fg: #8fe3b0;
-  --status-ok-bg: #16281e;
+  --status-ok-bg: #12261a;
   --status-warn-fg: #ffd97a;
-  --status-warn-bg: #2c2310;
+  --status-warn-bg: #2a210d;
   --status-err-fg: #f59a90;
-  --status-err-bg: #331511;
+  --status-err-bg: #2f1411;
   --status-info-fg: #8ecdf7;
-  --status-info-bg: #14263a;
+  --status-info-bg: #0f262e;
   --status-idle-fg: var(--cw-ivory-dim);
-  --status-idle-bg: var(--cw-menu-900);
+  --status-idle-bg: #19272b;
 
   --shadow-panel: var(--shadow-menu);
-  --shadow-raised: 4px 4px 0 rgba(0, 0, 0, 0.7);
+  --shadow-raised: 0 12px 32px rgba(0, 0, 0, 0.6);
 
-  --surface-terminal: #0d0f17;
-  --surface-terminal-chrome: #0d0f1a;
+  --surface-terminal: #070c0d;
+  --surface-terminal-chrome: #090f11;
 
-  --world-outside: #182818;
-  --world-outside-interior: #2b202a;
+  --world-outside: #0f1f24;
+  --world-outside-interior: #1d1716;
   --world-plaque-fg: var(--cw-ivory);
-  --world-plaque-bg: rgba(13, 15, 26, 0.92);
+  --world-plaque-bg: rgba(9, 15, 17, 0.92);
   --world-plaque-border: var(--cw-menu-500);
 
   color-scheme: dark;
@@ -349,8 +353,8 @@ h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   line-height: var(--leading-tight);
   margin: 0;
   color: var(--text-primary);

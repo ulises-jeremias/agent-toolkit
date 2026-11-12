@@ -4,11 +4,22 @@
   margin-bottom: 0.75rem;
 }
 
+.toolbar[hidden] {
+  display: none;
+}
+
 .split {
   display: grid;
   grid-template-columns: minmax(14rem, 22rem) 1fr;
   gap: 0.75rem;
   align-items: start;
+}
+
+/* In a narrow host (the Focus inspector) the file list sits above the diff. */
+@container (max-width: 44rem) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .groups {
