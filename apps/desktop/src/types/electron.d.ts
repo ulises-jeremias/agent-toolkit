@@ -151,6 +151,8 @@ export interface UpdateStatus {
 }
 
 export interface AtkBridge {
+  /** Structured provider sessions (ADR-044). */
+  focus: import('./focus').FocusBridge;
   backendStatus: () => Promise<BackendState | null>;
   updateStatus: () => Promise<UpdateStatus>;
   backendRestart: () => Promise<boolean>;

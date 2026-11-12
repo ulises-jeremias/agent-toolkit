@@ -1,5 +1,7 @@
 import { ipcMain, type BrowserWindow } from 'electron';
+import type { FocusCreateThreadInput, FocusThreadPatch } from '../src/types/focus';
 import type { BackendSupervisor } from './backend';
+import type { FocusService } from './focus/service';
 import { createDefaultHarnessFromProcess, isDefaultHarnessPath } from './harness';
 import type { HarnessController, HarnessSwitchResult } from './harness-controller';
 import type { McpSecretStore } from './mcp-secrets';
@@ -12,6 +14,7 @@ export interface IpcDeps {
   getWindow: () => BrowserWindow | null;
   getHarness: () => HarnessController | null;
   getMcpSecrets?: () => McpSecretStore | null;
+  getFocus?: () => FocusService | null;
   getUpdateChecker?: () => UpdateChecker | null;
   chooseProjectDirectory?: (defaultPath: string) => Promise<string | null>;
   /** When set, rewrite backend.url to the same-origin renderer proxy. */
@@ -139,75 +142,76 @@ export function registerIpc(deps: IpcDeps): void {
         cols?: number;
         rows?: number;
       },
-    ) => (async (): Promise<unknown> => {
-      if (!isRecord(options)) return null;
-      const {
-        agent,
-        personId,
-        agentSessionId,
-        sessionWorkspace,
-        projectId,
-        provider,
-        model,
-        providerSessionId,
-        cmd,
-        args,
-        cwd,
-        maxSeconds,
-        cols,
-        rows,
-      } = options;
-      if (typeof agent !== 'string' || !agent.trim()) return null;
-      if (typeof cmd !== 'string' || !cmd.trim()) return null;
-      if (args !== undefined && (!Array.isArray(args) || args.some((a) => typeof a !== 'string'))) return null;
-      if (cwd !== undefined && typeof cwd !== 'string') return null;
-      if (maxSeconds !== undefined && (!isPositiveInt(maxSeconds) || maxSeconds > 31_536_000)) return null;
-      if (personId !== undefined && (typeof personId !== 'string' || !/^[a-z0-9][a-z0-9_-]{0,63}$/.test(personId)))
-        return null;
-      if (
-        agentSessionId !== undefined &&
-        (typeof agentSessionId !== 'string' || !/^[a-z0-9][a-z0-9_-]{0,127}$/.test(agentSessionId))
-      )
-        return null;
-      if (
-        sessionWorkspace !== undefined &&
-        (typeof sessionWorkspace !== 'string' || !sessionWorkspace.trim() || sessionWorkspace.length > 4096)
-      )
-        return null;
-      if (projectId !== undefined && (typeof projectId !== 'string' || projectId.length > 256)) return null;
-      if (provider !== undefined && (typeof provider !== 'string' || provider.length > 64)) return null;
-      if (model !== undefined && (typeof model !== 'string' || model.length > 256)) return null;
-      if (
-        providerSessionId !== undefined &&
-        (typeof providerSessionId !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(providerSessionId))
-      )
-        return null;
-      if (cols !== undefined && !isPositiveInt(cols)) return null;
-      if (rows !== undefined && !isPositiveInt(rows)) return null;
-      try {
-        return (
-          (await deps.getTerminals()?.create({
-            agent,
-            personId,
-            agentSessionId,
-            sessionWorkspace,
-            projectId,
-            provider,
-            model,
-            providerSessionId,
-            cmd,
-            args: args ?? [],
-            cwd,
-            maxSeconds,
-            cols,
-            rows,
-          })) ?? null
-        );
-      } catch (error) {
-        if (error instanceof TerminalCwdError) return null;
-        throw error;
-      }
-    })(),
+    ) =>
+      (async (): Promise<unknown> => {
+        if (!isRecord(options)) return null;
+        const {
+          agent,
+          personId,
+          agentSessionId,
+          sessionWorkspace,
+          projectId,
+          provider,
+          model,
+          providerSessionId,
+          cmd,
+          args,
+          cwd,
+          maxSeconds,
+          cols,
+          rows,
+        } = options;
+        if (typeof agent !== 'string' || !agent.trim()) return null;
+        if (typeof cmd !== 'string' || !cmd.trim()) return null;
+        if (args !== undefined && (!Array.isArray(args) || args.some((a) => typeof a !== 'string'))) return null;
+        if (cwd !== undefined && typeof cwd !== 'string') return null;
+        if (maxSeconds !== undefined && (!isPositiveInt(maxSeconds) || maxSeconds > 31_536_000)) return null;
+        if (personId !== undefined && (typeof personId !== 'string' || !/^[a-z0-9][a-z0-9_-]{0,63}$/.test(personId)))
+          return null;
+        if (
+          agentSessionId !== undefined &&
+          (typeof agentSessionId !== 'string' || !/^[a-z0-9][a-z0-9_-]{0,127}$/.test(agentSessionId))
+        )
+          return null;
+        if (
+          sessionWorkspace !== undefined &&
+          (typeof sessionWorkspace !== 'string' || !sessionWorkspace.trim() || sessionWorkspace.length > 4096)
+        )
+          return null;
+        if (projectId !== undefined && (typeof projectId !== 'string' || projectId.length > 256)) return null;
+        if (provider !== undefined && (typeof provider !== 'string' || provider.length > 64)) return null;
+        if (model !== undefined && (typeof model !== 'string' || model.length > 256)) return null;
+        if (
+          providerSessionId !== undefined &&
+          (typeof providerSessionId !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(providerSessionId))
+        )
+          return null;
+        if (cols !== undefined && !isPositiveInt(cols)) return null;
+        if (rows !== undefined && !isPositiveInt(rows)) return null;
+        try {
+          return (
+            (await deps.getTerminals()?.create({
+              agent,
+              personId,
+              agentSessionId,
+              sessionWorkspace,
+              projectId,
+              provider,
+              model,
+              providerSessionId,
+              cmd,
+              args: args ?? [],
+              cwd,
+              maxSeconds,
+              cols,
+              rows,
+            })) ?? null
+          );
+        } catch (error) {
+          if (error instanceof TerminalCwdError) return null;
+          throw error;
+        }
+      })(),
   );
   ipcMain.handle('atk:pty-write', (_event, id: unknown, data: unknown) =>
     typeof id === 'string' && typeof data === 'string' ? (deps.getTerminals()?.write(id, data) ?? false) : false,
@@ -224,6 +228,43 @@ export function registerIpc(deps: IpcDeps): void {
   );
   ipcMain.handle('atk:pty-close', (_event, id: unknown) =>
     typeof id === 'string' && id ? (deps.getTerminals()?.close(id) ?? false) : false,
+  );
+
+  // Focus sessions (ADR-044). The service validates ids and payload values;
+  // the checks here only reject shapes that cannot be meaningful.
+  const focus = (): FocusService | null => deps.getFocus?.() ?? null;
+  const unavailable = { ok: false as const, error: 'Focus sessions are not ready yet.' };
+  ipcMain.handle(
+    'atk:focus-providers',
+    async (_event, options: unknown) => (await focus()?.providers(isRecord(options) && options.refresh === true)) ?? [],
+  );
+  ipcMain.handle('atk:focus-threads', () => focus()?.listThreads() ?? []);
+  ipcMain.handle('atk:focus-thread-create', (_event, input: unknown) =>
+    isRecord(input) ? (focus()?.createThread(input as unknown as FocusCreateThreadInput) ?? unavailable) : unavailable,
+  );
+  ipcMain.handle('atk:focus-thread-read', (_event, id: unknown) =>
+    typeof id === 'string' ? (focus()?.readThread(id) ?? null) : null,
+  );
+  ipcMain.handle('atk:focus-thread-update', (_event, id: unknown, patch: unknown) =>
+    typeof id === 'string' && isRecord(patch)
+      ? (focus()?.updateThread(id, patch as FocusThreadPatch) ?? unavailable)
+      : unavailable,
+  );
+  ipcMain.handle('atk:focus-thread-delete', (_event, id: unknown) =>
+    typeof id === 'string' ? (focus()?.deleteThread(id) ?? unavailable) : unavailable,
+  );
+  ipcMain.handle('atk:focus-send', async (_event, id: unknown, text: unknown) =>
+    typeof id === 'string' && typeof text === 'string' ? ((await focus()?.send(id, text)) ?? unavailable) : unavailable,
+  );
+  ipcMain.handle('atk:focus-approval', (_event, id: unknown, requestId: unknown, decision: unknown) =>
+    typeof id === 'string' &&
+    typeof requestId === 'string' &&
+    (decision === 'allow' || decision === 'allow-session' || decision === 'deny')
+      ? (focus()?.respondApproval(id, requestId, decision) ?? unavailable)
+      : unavailable,
+  );
+  ipcMain.handle('atk:focus-interrupt', (_event, id: unknown) =>
+    typeof id === 'string' ? (focus()?.interrupt(id) ?? unavailable) : unavailable,
   );
 }
 

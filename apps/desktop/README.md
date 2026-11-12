@@ -10,10 +10,14 @@ with **pnpm** only — one canonical lockfile at the repo root.
 
 ## Architecture
 
-- **V is the backend.** Every destination reads/mutates through the typed
-  client in `src/lib/api/` (TanStack Query owns server state). No domain
-  logic in TypeScript, no CLI-output parsing, no Node backend.
-- **`electron/` is infrastructure only**: window lifecycle, supervising the
+- **V is the backend** for projects, Git, skills, memory, people, loops and
+  installs. Those read/mutate through the typed client in `src/lib/api/`
+  (TanStack Query owns server state). No CLI-output parsing.
+- **Focus sessions run in `electron/focus/`** ([ADR-044](../../docs/adrs/ADR-044-desktop-session-runtime.md)):
+  one adapter per provider drives the user's installed CLI over its
+  structured protocol and journals a canonical thread/turn/event model in
+  `<workspace>/.agent-toolkit/focus/`. The renderer only projects it.
+- **The rest of `electron/` is infrastructure**: window lifecycle, supervising the
   bundled `agent-toolkit serve --no-browser` on a dynamic localhost port
   (health-gated, version-checked, crash-detected, clean shutdown), narrow
   typed preload bridge (`contextIsolation`, no `nodeIntegration`), and the
