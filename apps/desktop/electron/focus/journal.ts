@@ -213,8 +213,11 @@ export class ThreadJournal {
     try {
       this.assertSafe(this.eventsFile());
       raw = readNoFollow(this.eventsFile());
-    } catch {
-      return [];
+    } catch (error) {
+      // A missing log is an empty history; a rejected path or I/O failure is not.
+      // Silently returning [] here would disguise journal tampering as data loss.
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+      throw error;
     }
     const events: FocusEvent[] = [];
     for (const line of raw.split('\n')) {
