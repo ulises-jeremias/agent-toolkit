@@ -19,13 +19,13 @@ correct sky asset and hidden horizontal overflow. It passes for both themes at
 both sizes. The scene may have a one-CSS-pixel internal overflow from fractional
 pixel scaling; the viewport clips it and exposes no scrollbar.
 
-Opened follow-up captures: `/home/ulisesjcf/.ai-workspace/.audit-private/world-review-responsive/`
-(`meadow-1024x640-world.png`, `meadow-1920x1080-world.png`,
-`dusk-1024x640-world.png`, `dusk-1920x1080-world.png`). The valley now spans the
-content width and the Dusk sunset reads clearly. It still has broad vertical
-negative space at large sizes and needs the 1440×900 pass, interior/other-surface
-review, keyboard interaction review and a second art-direction critique. This is
-one improvement iteration, not visual sign-off.
+The capture matrix now also covers 1440×900. Opened follow-up captures in
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-review-responsive/` for all
+three sizes in both themes. The valley spans the content width and the Dusk sunset
+reads clearly at each size. Large captures still have broad vertical negative
+space; the app needs interior/other-surface review, keyboard interaction review
+and another art-direction critique. This is one improvement iteration, not visual
+sign-off.
 
 # Desktop visual QA
 

@@ -17,6 +17,7 @@ const OUT_DIR =
 
 const SIZES = [
   { width: 1024, height: 640 },
+  { width: 1440, height: 900 },
   { width: 1920, height: 1080 },
 ] as const;
 const THEMES = ['meadow', 'dusk'] as const;

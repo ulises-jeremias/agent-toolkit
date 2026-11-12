@@ -339,9 +339,9 @@ actual screenshots. No reference project's proprietary art is permitted.
   clipping and a Meadow/Dusk renderer that always selected `sky_day.png`. Responsive
   measurement, width-constrained scene composition, scene-edge clipping, Dusk sky,
   restrained environmental lamps and honest activity-lit buildings are implemented.
-  Real captures were opened for Meadow/Dusk at 1024×640 and 1920×1080; the compact
-  horizontal scrollbar is gone and Dusk is visibly distinct. The World still needs
-  the 1440×900 pass and broader layout/art critique; no art has been reauthored yet.
+  Real captures were opened for Meadow/Dusk at 1024×640, 1440×900 and 1920×1080;
+  the compact horizontal scrollbar is gone and Dusk is visibly distinct. The World
+  still needs broader layout/art critique; no art has been reauthored yet.
 - [ ] Cozy original pixel world with coherent perspective, light, depth, composition,
   recognizable project buildings and meaningful Library/Archive/Workshop/Operations.
 - [ ] Professional readable technical typography; pixel display type used sparingly.
@@ -351,8 +351,9 @@ actual screenshots. No reference project's proprietary art is permitted.
 - [ ] Preserve project/session context entering/leaving World/interiors.
 - [ ] Restrained animations, reduced motion, efficient rendering and useful empty state.
 - [ ] Multiple capture → open → critique → fix → recapture iterations before visual sign-off.
-  One source-Electron iteration is complete; repeat after checking 1440×900 and
-  compact-window interaction, then cover interiors and the other product surfaces.
+  One source-Electron iteration is complete across all three required sizes; repeat
+  after compact-window interaction review, then cover interiors and the other product
+  surfaces. Large-size captures still show substantial vertical negative space.
 - [ ] Reject generic SaaS card grids, PaperCo aesthetics, random clutter, illegible pixel
   text, disconnected palettes and needless configuration.
 
