@@ -45,7 +45,7 @@ test('packaged field trial requires matching provenance for every D01-D07 run', 
     platform: 'linux-x64', provider: 'claude', timestamp_utc: '2026-11-10T09:00:00Z',
     steps_to_reproduce: 'Open packaged app and perform task',
     observed: 'Completed real provider task', tested_by: 'tester',
-    logs: ['redacted-artifact']
+    logs: ['artifacts/redacted/run.log']
   });
   for (const id of ['D01', 'D02', 'D03', 'D04', 'D05', 'D06', 'D07']) {
     ledger.journeys[id] = { outcome: 'pass', evidence_level: 'P', runs: [makeRun(id)] };
