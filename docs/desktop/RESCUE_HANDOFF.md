@@ -577,11 +577,15 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   `fix/desktop-shell-smoke-navigation-20261112` branch (which carries #1781 and #1780).
   The owner-authored commits from #1781 and #1782 are preserved in branch history;
   PR base is retargeted to #1782. The acceptance update is posted to
-  [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
-  Its source quality and local Desktop tests pass. Latest hosted status has the
-  required `gates` and packaged Electron jobs still in progress, as are several
-  repository validation jobs; recheck before acting. It is intentionally unmerged
-  while #1780/#1781/#1782 have failing required Desktop checks. No release was created.
+  [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6836270235).
+  Its source quality and local Desktop tests pass. GitHub did not launch Actions
+  for the new head after retargeting this stacked PR, so the `desktop` workflow was
+  dispatched directly against head `a6112c49`; run
+  [43308369747](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/43308369747)
+  is in progress. The clean-HOME workflow has no manual dispatch and its last run is
+  on the earlier base head; packaged evidence still must be refreshed. This PR stays
+  draft and unmerged while base PRs have failing required Desktop checks. No release
+  was created.
 
 ## 11. How Luna should execute efficiently
 
