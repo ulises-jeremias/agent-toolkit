@@ -25,9 +25,10 @@ const DESTINATIONS = WORLD_ONLY
   ? ['World']
   : ([
       'World',
+      'Focus',
       'Attention',
       'Operations',
-      'Workspace',
+      'Projects',
       'Library',
       'People',
       'Insights',
@@ -45,7 +46,13 @@ test.beforeAll(async () => {
   const repository = path.join(desktop.home, 'code', 'garden-api');
   fs.mkdirSync(path.join(repository, 'src'), { recursive: true });
   fs.writeFileSync(path.join(repository, 'README.md'), '# Garden API\n');
+  fs.writeFileSync(path.join(repository, 'src', 'api.ts'), "export const status = () => 'working';\n");
   execFileSync('git', ['init', '-q'], { cwd: repository });
+  execFileSync('git', ['config', 'user.name', 'Desktop Visual QA'], { cwd: repository });
+  execFileSync('git', ['config', 'user.email', 'visual-qa@example.invalid'], { cwd: repository });
+  execFileSync('git', ['add', '.'], { cwd: repository });
+  execFileSync('git', ['commit', '-qm', 'Add initial API endpoint'], { cwd: repository });
+  fs.writeFileSync(path.join(repository, 'src', 'api.ts'), "export const status = () => 'ready';\n");
   execFileSync(desktop.backendBin, ['project', 'add', repository, '--workspace', desktop.workspace], {
     stdio: 'pipe',
   });
@@ -66,6 +73,9 @@ async function startJob(page: Page, cmd: string): Promise<void> {
   await dialog.getByRole('textbox', { name: 'Command', exact: true }).fill(cmd);
   await dialog.getByRole('button', { name: 'Start job' }).click();
   await expect(dialog).toBeHidden();
+  const receipt = page.getByRole('button', { name: 'Dismiss: Job started' });
+  await expect(receipt).toBeVisible();
+  await receipt.click();
 }
 
 async function settle(page: Page): Promise<void> {
@@ -78,7 +88,7 @@ async function settle(page: Page): Promise<void> {
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
 }
 
-test('capture every destination in Meadow and Dusk at both sizes', async () => {
+test('capture every destination in Meadow and Dusk at all supported sizes', async () => {
   test.setTimeout(10 * 60_000);
   const { app, page } = desktop;
   await waitForBackend(page);
@@ -111,7 +121,7 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
       await setViewport(app, size.width, size.height);
       await expect.poll(() => page.evaluate(() => [innerWidth, innerHeight])).toEqual([size.width, size.height]);
       for (const destination of DESTINATIONS) {
-        await nav(page).getByRole('link', { name: destination }).click();
+        await goTo(page, destination);
         if (destination === 'World') {
           await expect(page.getByRole('group', { name: 'Workspace village' })).toBeVisible();
           // A visible route/header can precede the workspace query. Wait for a
@@ -127,6 +137,10 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
             'data-art',
             theme === 'dusk' ? 'sky_dusk' : 'sky_day',
           );
+        }
+        if (destination === 'Projects') {
+          await page.getByRole('button', { name: /src\/api\.ts/ }).click();
+          await expect(page.locator('[aria-label="Diff for src/api.ts"]')).toContainText('ready');
         }
         if (destination === 'People' && !createdPerson) {
           await page.getByRole('button', { name: 'Create Person' }).click();

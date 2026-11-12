@@ -351,9 +351,14 @@ actual screenshots. No reference project's proprietary art is permitted.
 - [ ] Preserve project/session context entering/leaving World/interiors.
 - [ ] Restrained animations, reduced motion, efficient rendering and useful empty state.
 - [ ] Multiple capture → open → critique → fix → recapture iterations before visual sign-off.
-  One source-Electron iteration is complete across all three required sizes; repeat
-  after compact-window interaction review, then cover interiors and the other product
-  surfaces. Large-size captures still show substantial vertical negative space.
+  One source-Electron iteration now covers all ten destinations in Meadow and Dusk at
+  1024×640, 1440×900 and 1920×1080, including a real Git diff, terminal, jobs, People
+  dialogs and Focus's honest unauthenticated empty state. All 60 destination captures
+  plus two People-dialog captures were generated and opened via contact sheets and
+  representative full-resolution review. Repeat after keyboard/compact-window review;
+  onboarding, interiors, conversation/tool/approval, error/loading/disconnected states
+  and a second art iteration remain open. Large World captures still have substantial
+  vertical negative space.
 - [ ] Reject generic SaaS card grids, PaperCo aesthetics, random clutter, illegible pixel
   text, disconnected palettes and needless configuration.
 
@@ -599,8 +604,16 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   both Git change journeys (commit and partial staging), and workspace switching. Command
   used `ATK_E2E_APP_PATH` and `ATK_E2E_BACKEND_BIN` from `package-codex/linux-unpacked`; this
   is package acceptance for those paths, not a build from the latest `d813ad30` test head.
-- Full visual matrix, performance pass, screen-reader/accessibility pass, actual Meadow
-  capture, and macOS/Windows packaged acceptance remain open.
+- Actual source-Electron captures of all ten destinations have now been opened in
+  Meadow and Dusk at 1024×640, 1440×900, and 1920×1080. Files are private local review
+  evidence under `.audit-private/desktop-visual-matrix/`; they are not committed. The
+  capture tour includes a real per-file Git diff and a real local terminal/jobs. It
+  does not authenticate a provider: Focus is honestly shown in its signed-out state;
+  live Claude/Codex tasks are recorded separately in the acceptance report. This capture
+  pass is on PR #1783, not yet on this integration branch. Onboarding, interiors,
+  conversation/tool/approval, error/loading/disconnected states, compact interaction,
+  performance, screen-reader/accessibility, and macOS/Windows packaged acceptance remain
+  open.
 - Draft follow-up [PR #1783](https://github.com/ulises-jeremias/agent-toolkit/pull/1783)
   is pushed as `rescue/desktop-continuity-focus`, stacked on #1782's
   `fix/desktop-shell-smoke-navigation-20261112` branch (which carries #1781 and #1780).

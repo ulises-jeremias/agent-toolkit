@@ -27,6 +27,28 @@ space; the app needs interior/other-surface review, keyboard interaction review
 and another art-direction critique. This is one improvement iteration, not visual
 sign-off.
 
+## Full application surface tour — 2026-11-12
+
+Ran the actual Electron capture tour against the real bundled 1.49 backend with an
+isolated profile, disposable Git repository and local runtime jobs. Updated the tour
+to follow the current rail/tab navigation, cover Focus, and open an actual changed
+file against a disposable base commit. The tour passes and creates 60 destination
+captures across Meadow/Dusk and 1024×640, 1440×900, 1920×1080, plus the Person-create
+and reviewed-import dialogs. The temporary profile has no provider credentials, so
+Focus truthfully displays the signed-out start state. Separate live Claude/Codex task
+evidence remains in the live-acceptance report.
+
+Opened compact contact sheets for both themes and the large Meadow tour, then opened
+full-resolution Focus, Projects/diff, Operations, Library, Settings and Dusk World.
+The 1920×1080 layouts remain readable and the Git diff is real, but broad unused
+vertical space persists in the World and some other destinations; this is most visible
+in the World at large sizes. The terminal dock remains visible across routes because it
+is a global live terminal. Onboarding, project interiors, an authenticated live Focus
+conversation with streamed tool/approval states, error/loading/disconnected screens,
+and keyboard/screen-reader review were not part of this capture tour. No screenshots
+were copied into the repository; local review files are under
+`/home/ulisesjcf/.ai-workspace/.audit-private/desktop-visual-matrix/`.
+
 # Desktop visual QA
 
 ## Packaged v1.45.1 screenshot refresh — 2026-10-16
