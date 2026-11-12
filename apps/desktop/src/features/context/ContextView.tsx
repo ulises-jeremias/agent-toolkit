@@ -45,18 +45,18 @@ function MemoryPanel() {
       }
     >
       <p className={styles.note}>
-        What the workspace remembers between sessions: things learned, things to do, and how work is done here.
-        Agents read these notes when a session starts.
+        What the workspace remembers between sessions: things learned, things to do, and how work is done here. Agents
+        read these notes when a session starts.
       </p>
-      <label className={styles.search}>
-        <span className={styles.srOnly}>Search memory</span>
+      <div className={styles.search}>
         <TextInput
           type="search"
+          aria-label="Search memory"
           placeholder="Search memory"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
-      </label>
+      </div>
       {list.isPending ? <p role="status">Reading memory…</p> : null}
       {list.isError ? <p role="alert">Memory could not be read from this workspace.</p> : null}
       {searching ? (
@@ -182,7 +182,11 @@ export default function ContextView() {
               {(envelope) => (
                 <details className={styles.disclosure}>
                   <summary>Show the full check</summary>
-                  <CommandReport envelope={{ ...envelope, ok: true }} label="Validation output" hideFields={['errors']} />
+                  <CommandReport
+                    envelope={{ ...envelope, ok: true }}
+                    label="Validation output"
+                    hideFields={['errors']}
+                  />
                 </details>
               )}
             </QueryView>

@@ -22,9 +22,13 @@ const thread = (id: string, patch: Partial<FocusThread> = {}): FocusThread => ({
   ...patch,
 });
 
-const event = (seq: number, body: FocusEventBody): FocusEvent => ({ seq, at: '2026-11-12T00:00:00.000Z', turn: 1, ...body }) as FocusEvent;
+const event = (seq: number, body: FocusEventBody): FocusEvent =>
+  ({ seq, at: '2026-11-12T00:00:00.000Z', turn: 1, ...body }) as FocusEvent;
 
-function bridge(overrides: Partial<FocusBridge> = {}): { bridge: FocusBridge; push: (update: FocusLiveUpdate) => void } {
+function bridge(overrides: Partial<FocusBridge> = {}): {
+  bridge: FocusBridge;
+  push: (update: FocusLiveUpdate) => void;
+} {
   let listener: ((update: FocusLiveUpdate) => void) | null = null;
   const base: FocusBridge = {
     providers: async () => [],

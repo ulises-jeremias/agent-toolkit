@@ -29,7 +29,9 @@ const thread = (patch: Partial<FocusThread> = {}): FocusThread => ({
 const provider = { id: 'claude', label: 'Claude Code' } as FocusProviderStatus;
 
 function journal(bodies: FocusEventBody[]): FocusEvent[] {
-  return bodies.map((body, index) => ({ seq: index + 1, at: '2026-11-12T00:00:00.000Z', turn: 1, ...body }) as FocusEvent);
+  return bodies.map(
+    (body, index) => ({ seq: index + 1, at: '2026-11-12T00:00:00.000Z', turn: 1, ...body }) as FocusEvent,
+  );
 }
 
 function setup(current: FocusThread, events: FocusEvent[]) {
@@ -66,10 +68,24 @@ describe('Conversation', () => {
       journal([
         { type: 'user', text: 'fix add' },
         { type: 'turn.started', model: null },
-        { type: 'tool.started', itemId: 't1', name: 'Edit', kind: 'edit', title: 'math.js', input: { old_string: 'a - b', new_string: 'a + b' }, parentItemId: null },
+        {
+          type: 'tool.started',
+          itemId: 't1',
+          name: 'Edit',
+          kind: 'edit',
+          title: 'math.js',
+          input: { old_string: 'a - b', new_string: 'a + b' },
+          parentItemId: null,
+        },
         { type: 'tool.finished', itemId: 't1', ok: true, output: 'updated', truncated: false },
         { type: 'assistant', itemId: 'a1', text: 'Fixed `add`.' },
-        { type: 'turn.finished', outcome: 'completed', detail: null, durationMs: 9_000, usage: { inputTokens: 1, cachedInputTokens: 0, outputTokens: 1_100, costUsd: null } },
+        {
+          type: 'turn.finished',
+          outcome: 'completed',
+          detail: null,
+          durationMs: 9_000,
+          usage: { inputTokens: 1, cachedInputTokens: 0, outputTokens: 1_100, costUsd: null },
+        },
       ]),
     );
     expect(await screen.findByText('fix add')).toBeInTheDocument();
@@ -90,8 +106,25 @@ describe('Conversation', () => {
       journal([
         { type: 'user', text: 'run tests' },
         { type: 'turn.started', model: null },
-        { type: 'tool.started', itemId: 't1', name: 'Bash', kind: 'command', title: 'npm test', input: { command: 'npm test' }, parentItemId: null },
-        { type: 'approval.requested', requestId: 'r1', itemId: 't1', tool: 'Bash', kind: 'command', title: 'npm test', input: { command: 'npm test' }, canAllowForSession: true },
+        {
+          type: 'tool.started',
+          itemId: 't1',
+          name: 'Bash',
+          kind: 'command',
+          title: 'npm test',
+          input: { command: 'npm test' },
+          parentItemId: null,
+        },
+        {
+          type: 'approval.requested',
+          requestId: 'r1',
+          itemId: 't1',
+          tool: 'Bash',
+          kind: 'command',
+          title: 'npm test',
+          input: { command: 'npm test' },
+          canAllowForSession: true,
+        },
       ]),
     );
     const dialog = await screen.findByRole('alertdialog', { name: 'Approval needed' });
@@ -119,7 +152,13 @@ describe('Conversation', () => {
   });
 
   it('stops a running turn from the button and with Escape', async () => {
-    const { api, user } = setup(thread({ status: 'running' }), journal([{ type: 'user', text: 'go' }, { type: 'turn.started', model: null }]));
+    const { api, user } = setup(
+      thread({ status: 'running' }),
+      journal([
+        { type: 'user', text: 'go' },
+        { type: 'turn.started', model: null },
+      ]),
+    );
     expect(await screen.findByRole('status')).toHaveTextContent('Claude Code is working');
     await user.click(screen.getByRole('button', { name: 'Stop' }));
     await user.click(screen.getByLabelText('Message'));
@@ -133,7 +172,13 @@ describe('Conversation', () => {
       journal([
         { type: 'user', text: 'go' },
         { type: 'turn.started', model: null },
-        { type: 'turn.finished', outcome: 'failed', detail: 'API Error: 529 overloaded', durationMs: null, usage: null },
+        {
+          type: 'turn.finished',
+          outcome: 'failed',
+          detail: 'API Error: 529 overloaded',
+          durationMs: null,
+          usage: null,
+        },
       ]),
     );
     const alert = await screen.findByRole('alert');

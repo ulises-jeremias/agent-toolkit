@@ -18,7 +18,13 @@ describe('buildValley', () => {
   });
 
   it('gives each project a house that stays the same between runs', () => {
-    const input = { ...base, projects: [{ name: 'garden-api', status: 'ok' }, { name: 'atlas', status: 'ok' }] };
+    const input = {
+      ...base,
+      projects: [
+        { name: 'garden-api', status: 'ok' },
+        { name: 'atlas', status: 'ok' },
+      ],
+    };
     const first = buildValley(input);
     const second = buildValley(input);
     expect(first).toEqual(second);

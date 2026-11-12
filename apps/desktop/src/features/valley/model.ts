@@ -140,7 +140,8 @@ export function buildValley(input: ValleyInput): ValleyScene {
     id: 'lodge',
     kind: 'lodge',
     title: 'People',
-    summary: input.people === 0 ? 'No collaborators set up yet' : `${plural(input.people, 'collaborator', 'collaborators')}`,
+    summary:
+      input.people === 0 ? 'No collaborators set up yet' : `${plural(input.people, 'collaborator', 'collaborators')}`,
     sprite: 'lodge',
     ...SPRITE_SIZE.lodge,
     lit: false,
@@ -224,7 +225,15 @@ export function buildValley(input: ValleyInput): ValleyScene {
       figures: [],
       moreFigures: Math.max(0, live.length - MAX_FIGURES),
       actions: broken
-        ? [{ id: 'projects', label: 'Fix in Projects', primary: true, to: '/workspace', params: { project: project.name } }]
+        ? [
+            {
+              id: 'projects',
+              label: 'Fix in Projects',
+              primary: true,
+              to: '/workspace',
+              params: { project: project.name },
+            },
+          ]
         : [
             { id: 'new-session', label: 'New session', primary: true, to: '/focus', params: { project: project.name } },
             { id: 'changes', label: 'Changes', to: '/workspace', params: { project: project.name, tab: 'changes' } },
@@ -244,7 +253,12 @@ export function buildValley(input: ValleyInput): ValleyScene {
       state: thread.status === 'awaiting-approval' ? 'asking' : 'working',
       x: placed.x + placed.w - 10 + slot * (SPRITE_SIZE.agent.w - 2),
     }));
-    decor.push({ sprite: seed % 2 === 0 ? 'flowers_1' : 'flowers_2', x: placed.x + (seed % 20), layer: 'front', flip: false });
+    decor.push({
+      sprite: seed % 2 === 0 ? 'flowers_1' : 'flowers_2',
+      x: placed.x + (seed % 20),
+      layer: 'front',
+      flip: false,
+    });
   });
 
   lamps.push(cursor - GAP / 2 - 5);
@@ -283,14 +297,24 @@ export function buildValley(input: ValleyInput): ValleyScene {
   const width = Math.max(content, Math.ceil(input.minWidth));
   // A wide window gets more woodland past the workshop, not stretched buildings.
   for (let x = content - 12, step = 0; x < width - 20; x += 44 + ((step * 13) % 17), step += 1) {
-    decor.push({ sprite: ['tree_pine', 'tree_oak', 'tree_birch'][step % 3] ?? 'tree_oak', x, layer: 'back', flip: step % 2 === 1 });
+    decor.push({
+      sprite: ['tree_pine', 'tree_oak', 'tree_birch'][step % 3] ?? 'tree_oak',
+      x,
+      layer: 'back',
+      flip: step % 2 === 1,
+    });
   }
 
   return { width, places, decor, riverX, bridgeX, wheelTurning: input.jobsRunning > 0, nestX, lamps };
 }
 
 /** Where the camera should sit so `place` is comfortably in view. */
-export function cameraFor(place: Pick<ValleyPlace, 'x' | 'w'>, viewWidth: number, sceneWidth: number, current: number): number {
+export function cameraFor(
+  place: Pick<ValleyPlace, 'x' | 'w'>,
+  viewWidth: number,
+  sceneWidth: number,
+  current: number,
+): number {
   const max = Math.max(0, sceneWidth - viewWidth);
   const pad = 24;
   let next = current;

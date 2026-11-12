@@ -5,9 +5,42 @@ import { Markdown, parseBlocks } from './Markdown';
 describe('parseBlocks', () => {
   it('reads headings, lists, code fences, quotes, tables and rules', () => {
     const blocks = parseBlocks(
-      ['# Title', '', 'Intro line', 'continues', '', '- one', '- two', '  wrapped', '', '1. first', '2. second', '', '```ts', 'const a = 1;', '```', '', '> quoted', '', '| a | b |', '| --- | --- |', '| 1 | 2 |', '', '---'].join('\n'),
+      [
+        '# Title',
+        '',
+        'Intro line',
+        'continues',
+        '',
+        '- one',
+        '- two',
+        '  wrapped',
+        '',
+        '1. first',
+        '2. second',
+        '',
+        '```ts',
+        'const a = 1;',
+        '```',
+        '',
+        '> quoted',
+        '',
+        '| a | b |',
+        '| --- | --- |',
+        '| 1 | 2 |',
+        '',
+        '---',
+      ].join('\n'),
     );
-    expect(blocks.map((block) => block.type)).toEqual(['heading', 'paragraph', 'list', 'list', 'code', 'quote', 'table', 'rule']);
+    expect(blocks.map((block) => block.type)).toEqual([
+      'heading',
+      'paragraph',
+      'list',
+      'list',
+      'code',
+      'quote',
+      'table',
+      'rule',
+    ]);
     expect(blocks[2]).toEqual({ type: 'list', ordered: false, items: ['one', 'two wrapped'] });
     expect(blocks[3]).toMatchObject({ ordered: true, items: ['first', 'second'] });
     expect(blocks[4]).toEqual({ type: 'code', lang: 'ts', text: 'const a = 1;' });
