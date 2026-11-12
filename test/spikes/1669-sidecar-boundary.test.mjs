@@ -9,7 +9,7 @@ import { SessionJournal, projectTransport } from '../../scripts/spikes/1669-sess
 function fixture(source, options = {}) {
   return processEvents(process.execPath, ['-e', source], options);
 }
-const emit = (events) => events.map(e => `process.stdout.write(${JSON.stringify(JSON.stringify(e) + '\\n')});`).join('\n');
+const emit = (events) => events.map(e => `process.stdout.write(${JSON.stringify(JSON.stringify(e) + '\n')});`).join('\n');
 
 test('sidecar JSONL preserves app-owned identity, output and authoritative completion', async () => {
   const source = emit([
