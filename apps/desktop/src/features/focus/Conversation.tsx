@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { useFocusBridge, useFocusTimeline } from '../../data/focus';
+import { useFocusBridge, useFocusStore, useFocusTimeline } from '../../data/focus';
 import type { FocusApprovalDecision, FocusProviderStatus, FocusThread } from '../../types/focus';
 import { Button, PixelIcon } from '../../ui';
 import { approvalQuestion, MODE_OPTIONS, STATUS_LABEL } from './labels';
@@ -93,12 +93,6 @@ function ApprovalBar({
   providerLabel: string;
   onDecide: (decision: FocusApprovalDecision) => void;
 }) {
-  const allowRef = useRef<HTMLButtonElement>(null);
-  const requestId = item.approval?.requestId;
-  // A pending decision blocks the session, so it takes keyboard focus when it appears.
-  useEffect(() => {
-    allowRef.current?.focus();
-  }, [requestId]);
   return (
     <div
       className={styles.approval}
@@ -123,7 +117,7 @@ function ApprovalBar({
             Allow for this session
           </Button>
         ) : null}
-        <Button ref={allowRef} variant="primary" onClick={() => onDecide('allow')}>
+        <Button variant="primary" onClick={() => onDecide('allow')}>
           Allow once
         </Button>
       </div>
@@ -141,13 +135,15 @@ export function Conversation({
   onError: (message: string) => void;
 }) {
   const bridge = useFocusBridge();
+  const focusStore = useFocusStore();
   const timeline = useFocusTimeline(thread.id);
   const turns = useMemo(() => buildTimeline(timeline.events, timeline.live), [timeline.events, timeline.live]);
   const approval = pendingApproval(turns);
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState(() => focusStore.getDraft(thread.id));
   const scroller = useRef<HTMLDivElement>(null);
   const pinned = useRef(true);
   const composer = useRef<HTMLTextAreaElement>(null);
+  const activeThreadId = useRef(thread.id);
   const running = thread.status === 'running' || thread.status === 'awaiting-approval';
   const waitingForTurn = running && !provider?.capabilities?.sendWhileRunning;
   const providerLabel = provider?.label ?? 'The agent';
@@ -159,9 +155,11 @@ export function Conversation({
   }, [turns]);
 
   useEffect(() => {
+    activeThreadId.current = thread.id;
+    setDraft(focusStore.getDraft(thread.id));
     pinned.current = true;
     composer.current?.focus();
-  }, [thread.id]);
+  }, [focusStore, thread.id]);
 
   const run = useCallback(
     async (action: Promise<{ ok: true } | { ok: false; error: string }> | undefined) => {
@@ -175,10 +173,15 @@ export function Conversation({
   const send = async () => {
     const text = draft.trim();
     if (!text || !bridge || waitingForTurn) return;
+    const threadId = thread.id;
     setDraft('');
+    focusStore.setDraft(threadId, '');
     pinned.current = true;
-    const sent = await run(bridge.send(thread.id, text));
-    if (!sent) setDraft(text);
+    const sent = await run(bridge.send(threadId, text));
+    if (!sent) {
+      focusStore.setDraft(threadId, text);
+      if (activeThreadId.current === threadId) setDraft(text);
+    }
   };
 
   const stop = () => void run(bridge?.interrupt(thread.id));
@@ -272,7 +275,11 @@ export function Conversation({
                   : 'Describe the next change'
           }
           disabled={Boolean(approval)}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) => {
+            const text = event.target.value;
+            setDraft(text);
+            focusStore.setDraft(thread.id, text);
+          }}
           onKeyDown={onKeyDown}
         />
         <div className={styles.composerBar}>

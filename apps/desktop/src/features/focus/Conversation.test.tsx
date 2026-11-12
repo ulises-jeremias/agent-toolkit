@@ -45,12 +45,13 @@ function setup(current: FocusThread, events: FocusEvent[]) {
   };
   window.atk = { focus: api as unknown as FocusBridge } as AtkBridge;
   const onError = vi.fn();
-  render(
-    <FocusProvider store={new FocusStore(api as unknown as FocusBridge)}>
+  const store = new FocusStore(api as unknown as FocusBridge);
+  const view = render(
+    <FocusProvider store={store}>
       <Conversation thread={current} provider={provider} onError={onError} />
     </FocusProvider>,
   );
-  return { api, onError, user: userEvent.setup() };
+  return { api, onError, store, user: userEvent.setup(), ...view };
 }
 
 beforeEach(() => {
@@ -100,7 +101,7 @@ describe('Conversation', () => {
     expect(screen.getByLabelText('Change preview')).toHaveTextContent('+ a + b');
   });
 
-  it('puts a pending approval in front of the keyboard and sends the decision', async () => {
+  it('announces a pending approval without turning Enter into an allow decision', async () => {
     const { api, user } = setup(
       thread({ status: 'awaiting-approval' }),
       journal([
@@ -129,11 +130,13 @@ describe('Conversation', () => {
     );
     const dialog = await screen.findByRole('alertdialog', { name: 'Approval needed' });
     expect(dialog).toHaveTextContent('Claude Code wants to run a command');
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Allow once' })).toHaveFocus());
+    expect(screen.getByRole('button', { name: 'Allow once' })).not.toHaveFocus();
     expect(screen.getByLabelText('Message')).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Allow for this session' })).toBeInTheDocument();
 
     await user.keyboard('{Enter}');
+    expect(api.respondApproval).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: 'Allow once' }));
     expect(api.respondApproval).toHaveBeenCalledWith('th_test000001', 'r1', 'allow');
     await user.click(screen.getByRole('button', { name: 'Don’t allow' }));
     expect(api.respondApproval).toHaveBeenLastCalledWith('th_test000001', 'r1', 'deny');
@@ -149,6 +152,23 @@ describe('Conversation', () => {
     await waitFor(() => expect(onError).toHaveBeenCalledWith('Claude Code is not signed in.'));
     expect(api.send).toHaveBeenCalledWith('th_test000001', 'line one\nline two');
     expect(box).toHaveValue('line one\nline two');
+  });
+
+  it('keeps unsent drafts scoped to their session while switching threads', async () => {
+    const { store, user, rerender } = setup(thread(), []);
+    const renderThread = (current: FocusThread) => (
+      <FocusProvider store={store}>
+        <Conversation thread={current} provider={provider} onError={vi.fn()} />
+      </FocusProvider>
+    );
+
+    await user.type(await screen.findByLabelText('Message'), 'draft for first session');
+    rerender(renderThread(thread({ id: 'th_second00002', title: 'Second session' })));
+    await waitFor(() => expect(screen.getByLabelText('Message')).toHaveValue(''));
+    await user.type(screen.getByLabelText('Message'), 'draft for second session');
+    rerender(renderThread(thread()));
+    await waitFor(() => expect(screen.getByLabelText('Message')).toHaveValue('draft for first session'));
+    expect(store.getDraft('th_second00002')).toBe('draft for second session');
   });
 
   it('stops a running turn from the button and with Escape', async () => {

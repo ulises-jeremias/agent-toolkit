@@ -184,7 +184,7 @@ honestly. Never label a declared Person or installed binary as an active agent.
 - [ ] Verify PTY lifecycle separately. The acceptance package restored a detached
   terminal registry session, expected for ordinary PTYs, but route memory does not
   persist a PTY selection.
-- [ ] Make Focus the normal work entry; World is optional navigation, not a gate.
+- [x] Make Focus the normal work entry; World remains optional navigation, not a gate.
 
 ### P0 — Finish and verify the real Focus runtime
 
@@ -192,11 +192,19 @@ honestly. Never label a declared Person or installed binary as an active agent.
 - [ ] Retain `8a753ec5`: thread/turn filtering, request-bound approval ownership,
   stale turn/start protection, visible unsupported requests, explicit user reviewer,
   failed-interrupt reporting and immediate forced process-group stop.
+- [x] Review high-impact #1780 Focus findings: stale overlapping thread-list reloads now
+  carry a generation guard; pending approval no longer steals focus to `Allow once`;
+  composer drafts are held per thread across session navigation; and indented Markdown
+  headings cannot trap the parser without advancing. Regressions are covered in
+  `src/data/focus.test.ts`, `src/features/focus/Conversation.test.tsx`, and
+  `src/features/focus/Markdown.test.tsx`. Remaining #1780 review items still need triage.
 - [x] Add bounded 30-second Codex app-server request deadlines; clear pending timers
   on response, close, and disposal; surface timeout errors; and stop an unresponsive
   process after a failed handshake or turn/start request. Fake-server tests cover
-  initialize timeout, turn/start timeout, forced disposal cleanup. The real-provider
-  Codex journey remains open.
+  initialize timeout, turn/start timeout, forced disposal cleanup. The packaged Codex
+  adapter also completed a separate real task with approval, tool failure recovery, and
+  independent test verification (see the live acceptance record). Broader protocol parity
+  remains open.
 - [x] Keep Codex token usage honest: official app-server schema separates `last`
   and thread-cumulative `total`, and Codex describes `last` as active context size.
   Focus aggregates provider usage as per-turn spend, so Codex usage is now reported
@@ -229,12 +237,15 @@ honestly. Never label a declared Person or installed binary as an active agent.
 - [x] Launch the exact unpacked package and verify UI/backend with the same profile
   across a close/reopen. It returned to the completed Focus thread, provider discovery,
   project, transcript, approval/tool events, and diff.
-- [ ] Use a clean Electron userData/profile and disposable Git repository. Keep
-  real provider authentication separate; never copy credentials into fixtures.
+- [x] Use isolated Electron userData/profile and disposable Git repositories. Keep
+  real provider authentication separate; no credentials or private provider traces were
+  copied into fixtures.
 - [ ] Drive the complete 13-step journey in section 9 from the UI. Workspace creation
   was through onboarding; the existing repo was initially registered by CLI, so UI
-  registration/native picker remains open. Other live Focus, terminal, diff, restart,
-  history, and World-context steps have been exercised.
+  registration/native picker remains open. The headless test process cannot access the
+  user session display: DISPLAY=:1 is absent, while DISPLAY=:0 requires the SDDM-owned
+  Xauthority cookie. Do not change desktop login permissions to force this test. Other live
+  Focus, terminal, diff, restart, history, and World-context steps have been exercised.
 - [x] Record sanitized partial live acceptance with app hash, source commit, provider/OS
   versions, tests, screenshots, and remaining gates in
   [LIVE_ACCEPTANCE_2026-11-12.md](audits/LIVE_ACCEPTANCE_2026-11-12.md).
@@ -363,8 +374,8 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   PRs. A fresh check on 2026-11-12 found #1782 no longer running: its `gates`
   and packaged Electron jobs failed; independent Python/CLI validation jobs
   shown on that PR passed.
-- [ ] #1773 external repo linking and #1774 true first-run are merged; preserve them.
-- [ ] #1776 Claude runtime and #1779 journal hardening are merged; preserve them.
+- [x] #1773 external repo linking and #1774 true first-run are merged; preserve them.
+- [x] #1776 Claude runtime and #1779 journal hardening are merged; preserve them.
 - [ ] Review #1780 against current code and the final architecture. Update its stale
   description or choose focused follow-up PRs; avoid duplicate giant salvage PRs.
 - [ ] Review outstanding review threads/CI, not merely reported pass counts.
@@ -584,18 +595,12 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   `fix/desktop-shell-smoke-navigation-20261112` branch (which carries #1781 and #1780).
   The owner-authored commits from #1781 and #1782 are preserved in branch history;
   PR base is retargeted to #1782. The acceptance update is posted to
-  [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6836270235).
-  GitHub Actions are now running automatically on latest head `98e4d716`: desktop run
-  [43310763755](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/43310763755),
-  clean-machine packaged acceptance run
-  [43310763737](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/43310763737),
-  and validation run
-  [43310763944](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/43310763944).
-  The earlier manually dispatched desktop run
-  [43310312393](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/43310312393)
-  targets test head `d813ad30` and is still in progress. Electron keyboard/a11y checks pass
-  3/3, including the skip link, reduced motion, and Escape precedence. Packaged Linux E2E
-  passes 7/7 for the listed paths against the existing package described above. This PR stays
+  [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6836606054).
+  Packaged Linux E2E passes 7/7 for the listed paths against the existing package
+  described above. Electron keyboard/a11y checks pass 3/3, including the skip link,
+  reduced motion, and Escape precedence. Latest CI run IDs must be refreshed after the
+  current source follow-up is committed and pushed; keep the draft unmerged until the
+  required checks for that exact head finish and the stacked base is healthy. This PR stays
   draft and unmerged while base PRs have failing required Desktop checks. No release
   was created.
 

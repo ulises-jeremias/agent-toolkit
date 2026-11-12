@@ -113,6 +113,27 @@ describe('FocusStore', () => {
     expect(store.getThreads().map((entry) => entry.id)).toEqual(['th_new', 'th_old']);
   });
 
+  it('ignores an older thread-list reload after a newer reload applies', async () => {
+    const pending: Array<(value: FocusThread[]) => void> = [];
+    const { bridge: api, push } = bridge({
+      listThreads: () => new Promise((resolve) => pending.push(resolve)),
+    });
+    const store = new FocusStore(api);
+    store.connect();
+    await vi.waitFor(() => expect(pending).toHaveLength(1));
+    const newerReload = store.reload();
+    await vi.waitFor(() => expect(pending).toHaveLength(2));
+    push({ kind: 'thread', thread: thread('th_live', { updatedAt: '2026-11-12T02:00:00.000Z' }) });
+
+    pending[1]?.([thread('th_listed')]);
+    await newerReload;
+    expect(store.getThreads().map((entry) => entry.id)).toEqual(['th_live', 'th_listed']);
+
+    pending[0]?.([]);
+    await Promise.resolve();
+    expect(store.getThreads().map((entry) => entry.id)).toEqual(['th_live', 'th_listed']);
+  });
+
   it('clears live text when the turn ends', async () => {
     const { bridge: api, push } = bridge();
     const store = new FocusStore(api);
