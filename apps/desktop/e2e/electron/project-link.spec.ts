@@ -72,20 +72,17 @@ test('links an existing project from the GUI and places it in the world', async 
     fs.writeFileSync(path.join(projectPath, 'README.md'), '# Garden API\n');
 
     // The native picker itself is platform-owned. Stub only its result, then
-    // exercise the real preload bridge and HTTP API, including an outside-root
+    // exercise the real preload bridge and HTTP API, including a missing-folder
     // rejection with a recoverable message before the successful retry.
+    // (Linking an existing folder outside the workspace roots is supported
+    // by design; see check_project_add_arg in sub_routes.v.)
     const pick = (selected: string) =>
       desktop.app.evaluate(({ dialog }, folder) => {
         dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] });
       }, selected);
-    const outsideAllowedRoots =
-      process.platform === 'win32'
-        ? (process.env.SystemRoot ?? 'C:/Windows').replaceAll('\\', '/')
-        : process.platform === 'darwin'
-          ? '/System'
-          : '/etc';
-    expect(fs.existsSync(outsideAllowedRoots)).toBe(true);
-    await pick(outsideAllowedRoots);
+    const missingFolder = path.join(home, 'no-such-folder');
+    expect(fs.existsSync(missingFolder)).toBe(false);
+    await pick(missingFolder);
 
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
     await expect.poll(() => projectRosterResponses.length).toBeGreaterThan(0);
@@ -101,10 +98,10 @@ test('links an existing project from the GUI and places it in the world', async 
     await linkFolder.click();
 
     const review = page.getByRole('dialog', { name: 'Review project link' });
-    const outsideName = path.basename(outsideAllowedRoots);
-    await expect(review.getByText(new RegExp(`projects/${outsideName}`))).toBeVisible();
-    await review.getByRole('button', { name: `Link ${outsideName}` }).click();
-    await expect(review.getByRole('alert')).toContainText('outside allowed roots');
+    const missingName = path.basename(missingFolder);
+    await expect(review.getByText(new RegExp(`projects/${missingName}`))).toBeVisible();
+    await review.getByRole('button', { name: `Link ${missingName}` }).click();
+    await expect(review.getByRole('alert')).toContainText('not found');
 
     await pick(projectPath);
     await review.getByRole('button', { name: 'Choose another folder' }).click();
