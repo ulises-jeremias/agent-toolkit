@@ -3,8 +3,12 @@ import { randomUUID } from 'node:crypto';
 import readline from 'node:readline';
 import type { FocusApprovalDecision, FocusModelOption, FocusPermissionMode } from '../../src/types/focus';
 import {
+  clipInput,
   clipOutput,
   describeTool,
+  isSafeModelId,
+  isSafeSessionId,
+  needsShell,
   stringifyToolResult,
   type AdapterSink,
   type AdapterStartOptions,
@@ -53,8 +57,11 @@ export function claudeArgs(
     '--permission-mode',
     PERMISSION_MODE[options.permissionMode],
   ];
-  if (options.model) args.push('--model', options.model);
-  if (options.resumeSessionId) args.push('--resume', options.resumeSessionId);
+  // Only identifier-shaped values reach argv, so neither can be read as a flag.
+  if (options.model && isSafeModelId(options.model)) args.push('--model', options.model);
+  if (options.resumeSessionId && isSafeSessionId(options.resumeSessionId)) {
+    args.push('--resume', options.resumeSessionId);
+  }
   return args;
 }
 
@@ -68,9 +75,15 @@ function asString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
 
+/** "For this session" must never write a rule that outlives the session. */
+function sessionScoped(suggestions: unknown): unknown[] {
+  if (!Array.isArray(suggestions)) return [];
+  return suggestions.filter((entry) => asRecord(entry)?.['destination'] === 'session');
+}
+
 interface PendingApproval {
   input: unknown;
-  suggestions: unknown;
+  sessionRules: unknown[];
 }
 
 interface LiveItem {
@@ -102,17 +115,30 @@ export class ClaudeSession implements ProviderSession {
       cwd: options.cwd,
       env,
       stdio: ['pipe', 'pipe', 'pipe'],
+      // Its own process group on POSIX, so stopping the session also stops what its tools started.
+      detached: process.platform !== 'win32',
+      shell: needsShell(options.binary),
+      windowsHide: true,
     });
     this.child.stderr.on('data', (chunk: Buffer) => {
       this.stderrTail = (this.stderrTail + chunk.toString('utf8')).slice(-4_000);
     });
     this.child.stdin.on('error', () => undefined);
-    readline.createInterface({ input: this.child.stdout }).on('line', (line) => this.onLine(line));
+    readline.createInterface({ input: this.child.stdout }).on('line', (line) => {
+      try {
+        this.onLine(line);
+      } catch (error) {
+        // One bad frame or a failed journal write must not take the app down.
+        console.error('Focus: dropped a provider frame:', error);
+      }
+    });
     this.child.on('error', (error) => {
       this.stderrTail = `${this.stderrTail}\n${error.message}`.trim();
-      this.onExit(null, null);
+      this.onClose(null, null);
     });
-    this.child.on('exit', (code, signal) => this.onExit(code, signal));
+    // `close` (not `exit`) fires after stdout and stderr are drained: the final
+    // result frame and the error text are delivered before the exit is reported.
+    this.child.on('close', (code, signal) => this.onClose(code, signal));
     this.write({ type: 'control_request', request_id: randomUUID(), request: { subtype: 'initialize', hooks: null } });
   }
 
@@ -121,7 +147,6 @@ export class ClaudeSession implements ProviderSession {
   }
 
   send(text: string): void {
-    this.interruptRequested = false;
     this.write({
       type: 'user',
       message: { role: 'user', content: [{ type: 'text', text }] },
@@ -138,8 +163,8 @@ export class ClaudeSession implements ProviderSession {
       decision === 'deny'
         ? { behavior: 'deny', message: 'The user denied this action.' }
         : { behavior: 'allow', updatedInput: pending.input };
-    if (decision === 'allow-session' && Array.isArray(pending.suggestions) && pending.suggestions.length > 0) {
-      response['updatedPermissions'] = pending.suggestions;
+    if (decision === 'allow-session' && pending.sessionRules.length > 0) {
+      response['updatedPermissions'] = pending.sessionRules;
     }
     this.write({ type: 'control_response', response: { subtype: 'success', request_id: requestId, response } });
     return true;
@@ -153,22 +178,35 @@ export class ClaudeSession implements ProviderSession {
     this.write({ type: 'control_request', request_id: randomUUID(), request: { subtype: 'interrupt' } });
   }
 
-  dispose(): void {
+  dispose(now = false): void {
     if (this.disposed) return;
     this.disposed = true;
     if (this.exited) return;
+    if (now) {
+      this.kill('SIGTERM');
+      return;
+    }
     try {
       this.child.stdin.end();
     } catch {
       // Already closed.
     }
-    const child = this.child;
     setTimeout(() => {
-      if (!this.exited) child.kill('SIGTERM');
+      if (!this.exited) this.kill('SIGTERM');
     }, 1_500).unref();
     setTimeout(() => {
-      if (!this.exited) child.kill('SIGKILL');
+      if (!this.exited) this.kill('SIGKILL');
     }, 5_000).unref();
+  }
+
+  private kill(signal: NodeJS.Signals): void {
+    const pid = this.child.pid;
+    try {
+      if (pid !== undefined && process.platform !== 'win32') process.kill(-pid, signal);
+      else this.child.kill(signal);
+    } catch {
+      // Already gone.
+    }
   }
 
   private write(frame: Json): void {
@@ -176,10 +214,16 @@ export class ClaudeSession implements ProviderSession {
     this.child.stdin.write(`${JSON.stringify(frame)}\n`);
   }
 
-  private onExit(code: number | null, signal: string | null): void {
+  private onClose(code: number | null, signal: string | null): void {
     if (this.exited) return;
     this.exited = true;
-    this.sink.exited({ code, signal, stderr: this.stderrTail.trim(), expected: this.disposed });
+    this.sink.exited({
+      code,
+      signal,
+      stderr: this.stderrTail.trim(),
+      expected: this.disposed,
+      beforeSession: this.sessionId === null,
+    });
   }
 
   private onLine(line: string): void {
@@ -199,6 +243,9 @@ export class ClaudeSession implements ProviderSession {
         return;
       case 'control_request':
         this.onControlRequest(frame);
+        return;
+      case 'control_cancel_request':
+        this.onControlCancel(frame);
         return;
       case 'stream_event':
         this.onStreamEvent(frame);
@@ -233,7 +280,7 @@ export class ClaudeSession implements ProviderSession {
     for (const entry of models) {
       const model = asRecord(entry);
       const id = asString(model?.['value']);
-      if (!model || !id) continue;
+      if (!model || !id || !isSafeModelId(id)) continue;
       const option: FocusModelOption = { id, label: asString(model['displayName']) ?? id };
       const description = asString(model['description']);
       if (description) option.description = description;
@@ -256,8 +303,8 @@ export class ClaudeSession implements ProviderSession {
     }
     const tool = asString(request['tool_name']) ?? 'tool';
     const input = request['input'];
-    const suggestions = request['permission_suggestions'];
-    this.approvals.set(requestId, { input, suggestions });
+    const sessionRules = sessionScoped(request['permission_suggestions']);
+    this.approvals.set(requestId, { input, sessionRules });
     const described = describeTool(tool, input, this.options.cwd);
     this.sink.approval({
       type: 'approval.requested',
@@ -266,9 +313,15 @@ export class ClaudeSession implements ProviderSession {
       tool,
       kind: described.kind,
       title: described.title,
-      input,
-      canAllowForSession: Array.isArray(suggestions) && suggestions.length > 0,
+      input: clipInput(input),
+      canAllowForSession: sessionRules.length > 0,
     });
+  }
+
+  private onControlCancel(frame: Json): void {
+    const requestId = asString(frame['request_id']);
+    if (!requestId || !this.approvals.delete(requestId)) return;
+    this.sink.approvalCancelled(requestId);
   }
 
   private onStreamEvent(frame: Json): void {
@@ -329,7 +382,7 @@ export class ClaudeSession implements ProviderSession {
           name,
           kind: described.kind,
           title: described.title,
-          input: block['input'],
+          input: clipInput(block['input']),
           parentItemId: parent,
         });
       }
@@ -355,6 +408,7 @@ export class ClaudeSession implements ProviderSession {
     const usage = asRecord(frame['usage']);
     const failed = frame['is_error'] === true || frame['subtype'] !== 'success';
     const interrupted = failed && this.interruptRequested;
+    // Cleared only here: the interrupted result can arrive after the user has already sent the next message.
     this.interruptRequested = false;
     const cost = frame['total_cost_usd'];
     const errors = Array.isArray(frame['errors']) ? frame['errors'].filter((e) => typeof e === 'string') : [];

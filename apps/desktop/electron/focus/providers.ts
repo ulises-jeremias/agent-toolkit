@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type { FocusModelOption, FocusProviderId, FocusProviderStatus } from '../../src/types/focus';
+import { needsShell } from './adapter';
 
 /**
  * Provider discovery for Focus. "Ready" is only ever claimed from the
@@ -22,15 +23,26 @@ const PROBE_TIMEOUT_MS = 45_000;
 
 export const runCommand: CommandRunner = (binary, args, timeoutMs) =>
   new Promise((resolve) => {
-    execFile(
-      binary,
-      args,
-      { timeout: timeoutMs, maxBuffer: 1024 * 1024, windowsHide: true },
-      (error, stdout, stderr) => {
-        const code = error ? (typeof error.code === 'number' ? error.code : null) : 0;
-        resolve({ code, stdout: String(stdout), stderr: String(stderr) });
-      },
-    );
+    try {
+      execFile(
+        binary,
+        args,
+        {
+          timeout: timeoutMs,
+          killSignal: 'SIGKILL',
+          maxBuffer: 1024 * 1024,
+          windowsHide: true,
+          shell: needsShell(binary),
+        },
+        (error, stdout, stderr) => {
+          const code = error ? (typeof error.code === 'number' ? error.code : null) : 0;
+          resolve({ code, stdout: String(stdout), stderr: String(stderr) });
+        },
+      );
+    } catch (error) {
+      // A spawn that throws (for example an unrunnable shim) is a failed probe, not a crash.
+      resolve({ code: null, stdout: '', stderr: error instanceof Error ? error.message : String(error) });
+    }
   });
 
 function isExecutable(file: string): boolean {
@@ -120,11 +132,11 @@ async function codexAuth(
 ): Promise<Pick<FocusProviderStatus, 'auth' | 'authDetail'>> {
   const result = await run(binary, ['login', 'status'], PROBE_TIMEOUT_MS);
   const text = `${result.stdout}\n${result.stderr}`;
+  if (/not logged in/i.test(text)) return { auth: 'signed-out', authDetail: 'Not signed in' };
   if (result.code === 0 && /logged in/i.test(text)) {
     const method = /chatgpt/i.test(text) ? 'ChatGPT' : /api key/i.test(text) ? 'an API key' : 'Codex';
     return { auth: 'ready', authDetail: `Signed in with ${method}` };
   }
-  if (/not logged in/i.test(text)) return { auth: 'signed-out', authDetail: 'Not signed in' };
   return { auth: 'unknown', authDetail: 'Could not read the login status from this Codex version' };
 }
 
@@ -134,7 +146,7 @@ async function opencodeAuth(
 ): Promise<Pick<FocusProviderStatus, 'auth' | 'authDetail'>> {
   const result = await run(binary, ['auth', 'list'], PROBE_TIMEOUT_MS);
   const text = `${result.stdout}\n${result.stderr}`;
-  if (/no authenticated integrations|0 credentials/i.test(text)) {
+  if (/no authenticated integrations|\b0 credentials/i.test(text)) {
     return { auth: 'signed-out', authDetail: 'No model provider connected' };
   }
   if (result.code === 0 && text.trim()) return { auth: 'ready', authDetail: 'A model provider is connected' };
@@ -205,5 +217,24 @@ async function probeOne(spec: ProviderSpec, options: ProbeOptions): Promise<Focu
 }
 
 export function probeProviders(options: ProbeOptions = {}): Promise<FocusProviderStatus[]> {
-  return Promise.all(SPECS.map((spec) => probeOne(spec, options)));
+  return Promise.all(
+    SPECS.map((spec) =>
+      probeOne(spec, options).catch(
+        // One provider that cannot be probed never hides the others.
+        (): FocusProviderStatus => ({
+          id: spec.id,
+          label: spec.label,
+          installed: false,
+          binary: null,
+          version: null,
+          auth: 'unknown',
+          authDetail: 'Could not be checked',
+          signInHint: null,
+          models: spec.models,
+          capabilities: { sessions: false, approvals: false, interrupt: false, resume: false, modelSwitch: false },
+          checkedAt: new Date().toISOString(),
+        }),
+      ),
+    ),
+  );
 }

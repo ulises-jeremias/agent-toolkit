@@ -20,14 +20,26 @@ export interface AdapterSink {
     body: Extract<FocusEventBody, { type: 'assistant' | 'reasoning' | 'tool.started' | 'tool.finished' | 'notice' }>,
   ): void;
   approval(request: Extract<FocusEventBody, { type: 'approval.requested' }>): void;
+  /** The provider withdrew a pending approval (for example the call was cancelled). */
+  approvalCancelled(requestId: string): void;
   turnFinished(result: {
     outcome: 'completed' | 'interrupted' | 'failed';
     detail: string | null;
     durationMs: number | null;
     usage: FocusUsage | null;
   }): void;
-  /** The provider process ended. `expected` is true after dispose(). */
-  exited(info: { code: number | null; signal: string | null; stderr: string; expected: boolean }): void;
+  /**
+   * The provider process ended and all of its output has been delivered.
+   * `expected` is true after dispose(); `beforeSession` is true when it died
+   * without ever announcing a session (for example a resume id it no longer has).
+   */
+  exited(info: {
+    code: number | null;
+    signal: string | null;
+    stderr: string;
+    expected: boolean;
+    beforeSession: boolean;
+  }): void;
 }
 
 export interface AdapterStartOptions {
@@ -45,12 +57,45 @@ export interface ProviderSession {
   send(text: string): void;
   respondApproval(requestId: string, decision: FocusApprovalDecision): boolean;
   interrupt(): void;
-  dispose(): void;
+  /** Release the process. `now` stops it at once (app shutdown) instead of letting it wind down. */
+  dispose(now?: boolean): void;
 }
 
 export type ProviderSessionFactory = (options: AdapterStartOptions, sink: AdapterSink) => ProviderSession;
 
 const OUTPUT_LIMIT = 24_000;
+const INPUT_STRING_LIMIT = 12_000;
+
+/**
+ * Tool inputs can carry whole files (a Write call). The journal keeps enough
+ * to show what was asked, not megabytes of content per call.
+ */
+export function clipInput(value: unknown, depth = 0): unknown {
+  if (typeof value === 'string') {
+    return value.length > INPUT_STRING_LIMIT
+      ? `${value.slice(0, INPUT_STRING_LIMIT)}\n… (${value.length - INPUT_STRING_LIMIT} more characters not kept)`
+      : value;
+  }
+  if (depth > 6 || typeof value !== 'object' || value === null) return value;
+  if (Array.isArray(value)) return value.slice(0, 200).map((entry) => clipInput(entry, depth + 1));
+  const out: Record<string, unknown> = {};
+  for (const [key, entry] of Object.entries(value)) out[key] = clipInput(entry, depth + 1);
+  return out;
+}
+
+/** Values that become argv entries must look like identifiers, never like flags. */
+export function isSafeModelId(value: string): boolean {
+  return /^[A-Za-z0-9][A-Za-z0-9._:\[\]/-]{0,119}$/.test(value);
+}
+
+export function isSafeSessionId(value: string): boolean {
+  return /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(value);
+}
+
+/** npm installs CLIs as .cmd shims on Windows; Node refuses to spawn those without a shell. */
+export function needsShell(binary: string, platform: NodeJS.Platform = process.platform): boolean {
+  return platform === 'win32' && /\.(cmd|bat)$/i.test(binary);
+}
 
 export function clipOutput(text: string): { output: string; truncated: boolean } {
   if (text.length <= OUTPUT_LIMIT) return { output: text, truncated: false };
