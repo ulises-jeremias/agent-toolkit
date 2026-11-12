@@ -232,6 +232,25 @@ fn check_path_ref(field string, value string) ! {
 	}
 }
 
+// check_project_add_arg validates the target of `project add`: linking an
+// existing repository anywhere on this machine is the documented purpose of
+// the command (the Desktop picker and the CLI both offer exactly that), so
+// the workspace-resident path-ref roots do not apply. Hygiene still fails
+// closed: no traversal/encoding tricks, and the target must be an existing
+// directory. Core performs the actual link and repo validation.
+fn check_project_add_arg(field string, value string) ! {
+	if value.len == 0 {
+		return bad_field(field)
+	}
+	if value.len > 1024 || value.contains('..') || value.contains('%') || value.contains('\x00')
+		|| value.contains('\\') || value.starts_with('-') || value.starts_with('~') {
+		return bad_field(field)
+	}
+	if os.is_abs_path(value) && !os.is_dir(value) {
+		return sub_err(.not_found, '${field} not found: ${value}')
+	}
+}
+
 // resolve_body_workspace validates a workspace-like directory field with the
 // same semantics as POST /api/v1/jobs: traversal 400, missing 404, outside
 // the allowed roots (symlinks resolved) 403. Empty returns `fallback`.
@@ -402,7 +421,7 @@ pub fn build_project_options(sub string, body string) !agent_toolkit_core.Projec
 	ws := resolve_body_workspace('workspace', req.workspace, '')!
 	// arg: a repository path for `add`, OWNER/REPO for `clone`, a name otherwise.
 	if sub == 'add' {
-		check_path_ref('arg', req.arg)!
+		check_project_add_arg('arg', req.arg)!
 	} else {
 		check_slug('arg', req.arg)!
 	}

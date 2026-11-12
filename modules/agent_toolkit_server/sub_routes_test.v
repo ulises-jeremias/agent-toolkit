@@ -277,7 +277,12 @@ fn test_path_refs_rejected_when_escaping() {
 	expect_sub_error(loops_ok('init', '{"pack":"../../secrets.yaml"}'), 400, 'invalid pack')
 	expect_sub_error(loops_ok('init', '{"pack":"/etc/passwd"}'), 403, 'pack outside allowed roots')
 	expect_sub_error(workspace_ok('load', '{"arg":"~/.ssh/config"}'), 400, 'invalid arg')
-	expect_sub_error(project_ok('add', '{"arg":"/etc"}'), 403, 'arg outside allowed roots')
+	// project add links an existing repo anywhere on disk by design; only
+	// traversal and missing/non-directory targets fail closed.
+	expect_sub_error(project_ok('add', '{"arg":"../outside"}'), 400, 'invalid arg')
+	expect_sub_error(project_ok('add', '{"arg":"/nonexistent/at-sub-routes"}'), 404, 'arg not found')
+	add_opts := build_project_options('add', '{"arg":"/etc"}') or { panic(err.msg()) }
+	assert add_opts.arg == '/etc'
 	expect_sub_error(swarms_ok('artifacts', '{"artifact":"../x"}'), 400, 'invalid artifact')
 	// relative refs without traversal are left to core resolution
 	opts := build_loops_options('init', '{"pack":"packs/triage.yaml"}') or { panic(err.msg()) }
