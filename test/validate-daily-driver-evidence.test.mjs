@@ -10,9 +10,9 @@ test('unverified baseline is structurally valid, not accepted', () => {
   assert.deepEqual(validateLedger(baseline), []);
   assert.equal(baseline.status, 'unverified');
 });
-test('cannot accept gate with missing installed provider evidence', () => {
+test('cannot accept gate without a packaged field trial', () => {
   const ledger = clone(); ledger.status = 'accepted';
-  assert.match(validateLedger(ledger).join(' '), /D01-D07 P-level passes/);
+  assert.match(validateLedger(ledger).join(' '), /packaged field trial/);
 });
 test('mock-only aggregate pass is rejected', () => {
   const ledger = clone(); ledger.journeys.D03.outcome = 'pass'; ledger.journeys.D03.evidence_level = 'M';

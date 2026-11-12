@@ -1,5 +1,6 @@
 // Genuine real-provider D01-D07 journey (manual evidence, never CI).
-// Usage: node e2e-real/run.mjs <phase>   phase = start | relaunch-check
+// Usage: node e2e-real/run.mjs <phase>   phase = start | relaunch-check | first-run
+// first-run = D01 only: clean HOME, real onboarding UI, link repo via UI.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -10,7 +11,8 @@ const REPO = path.resolve(APP_DIR, '..', '..');
 const PACKAGED = process.env['ATK_PACKAGED'] === '1';
 const PROVIDER = process.env['ATK_PROVIDER'] ?? 'claude';
 if (!['claude', 'codex', 'opencode'].includes(PROVIDER)) throw new Error(`ATK_PROVIDER must be claude|codex|opencode, got ${PROVIDER}`);
-const SUFFIX = PROVIDER === 'claude' ? '' : `-${PROVIDER}`;
+const FIRST_RUN = process.argv[2] === 'first-run';
+const SUFFIX = (PROVIDER === 'claude' ? '' : `-${PROVIDER}`) + (FIRST_RUN ? '-first-run' : '');
 const ROOT = path.join(process.env.HOME, 'dd-journey', (PACKAGED ? 'state-packaged' : 'state') + SUFFIX);
 const HOME_DIR = path.join(ROOT, 'home');
 const WORKSPACE = path.join(HOME_DIR, '.ai-workspace');
@@ -95,15 +97,70 @@ async function launch() {
     // packaged mode the real packaged binary is used as-is.
     executablePath: PACKAGED ? packagedExe : (process.env['ATK_ELECTRON_BIN'] ?? '/usr/bin/electron'),
     args: [...(PACKAGED ? [] : [APP_DIR]), `--user-data-dir=${path.join(ROOT, 'user-data')}`, '--ozone-platform=headless', '--use-gl=angle', '--use-angle=swiftshader'],
-    cwd: WORKSPACE,
+    cwd: FIRST_RUN ? HOME_DIR : WORKSPACE,
     env,
   });
   const page = await app.firstWindow();
   await page.waitForLoadState('domcontentloaded');
-  await page.addInitScript(() => localStorage.setItem('atk.desktop.onboarding.complete', '1'));
-  await page.reload();
-  await page.waitForLoadState('domcontentloaded');
+  if (!FIRST_RUN) {
+    await page.addInitScript(() => localStorage.setItem('atk.desktop.onboarding.complete', '1'));
+    await page.reload();
+    await page.waitForLoadState('domcontentloaded');
+  }
   return { app, page };
+}
+
+// D01: clean installed Desktop, real onboarding UI, link an existing repo
+// through the UI. The only substitution is the OS-native folder picker
+// (headless Electron cannot drive it); the main-process dialog is stubbed
+// to return the fixture path, exactly what a user picking it produces.
+async function phaseFirstRun() {
+  fs.mkdirSync(HOME_DIR, { recursive: true });
+  // The fixture is an existing repo outside the new workspace, as in real
+  // use. (This journey originally exposed that the server rejected such
+  // links with 403; fixed by check_project_add_arg in sub_routes.v.)
+  const { app, page } = await launch();
+  try {
+    await app.evaluate(({ dialog }, fixture) => {
+      dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [fixture] });
+    }, FIXTURE);
+    await page.getByRole('heading', { name: 'A world for coding agents' }).waitFor({ timeout: 30_000 });
+    note('D01', 'clean packaged Desktop opened on the real onboarding (Welcome desk)');
+    await page.screenshot({ path: path.join(EVIDENCE, 'd01-01-welcome.png') });
+    const cont = page.getByRole('button', { name: 'Continue' });
+    await cont.waitFor({ timeout: 30_000 });
+    for (let i = 0; i < 30 && (await cont.isDisabled()); i++) await sleep(1000);
+    await cont.click();
+    const createTrigger = page.getByRole('button', { name: 'Create harness' }).first();
+    await createTrigger.waitFor({ timeout: 30_000 });
+    await createTrigger.click();
+    const confirm = page.getByRole('dialog').getByRole('button', { name: 'Create harness' });
+    await confirm.waitFor({ timeout: 10_000 });
+    await confirm.click();
+    note('D01', 'harness created through the onboarding confirmation UI');
+    const enter = page.getByRole('button', { name: 'Enter the world' });
+    await enter.waitFor({ timeout: 30_000 });
+    for (let i = 0; i < 30 && (await enter.isDisabled()); i++) await sleep(1000);
+    await page.screenshot({ path: path.join(EVIDENCE, 'd01-02-harness.png') });
+    await enter.click();
+    await page.getByRole('navigation', { name: 'Destinations' }).waitFor({ timeout: 30_000 });
+    note('D01', 'entered the world with a UI-created workspace (no CLI init, no seeded state)');
+    await page.screenshot({ path: path.join(EVIDENCE, 'd01-03-world.png') });
+    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
+    const linkBtn = page.getByRole('button', { name: 'Link existing folder' });
+    await linkBtn.waitFor({ timeout: 30_000 });
+    await linkBtn.click();
+    const review = page.getByRole('dialog', { name: 'Review project link' });
+    await review.waitFor({ timeout: 15_000 });
+    await review.getByRole('button', { name: /Link fixture-repo/ }).click();
+    await page.getByRole('link', { name: 'Open in World' }).waitFor({ timeout: 30_000 });
+    note('D01', 'existing repository linked through the Workspace UI (native picker stubbed to the fixture path)');
+    await page.screenshot({ path: path.join(EVIDENCE, 'd01-04-linked.png') });
+    evidence.result = { first_run: true, linked: true };
+  } finally {
+    fs.writeFileSync(path.join(EVIDENCE, 'evidence-first-run.json'), JSON.stringify(evidence, null, 2));
+    await app.close();
+  }
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -234,4 +291,5 @@ async function phaseRelaunch() {
 const phase = process.argv[2];
 if (phase === 'start') await phaseStart();
 else if (phase === 'relaunch-check') await phaseRelaunch();
-else throw new Error('phase must be start|relaunch-check');
+else if (phase === 'first-run') await phaseFirstRun();
+else throw new Error('phase must be start|relaunch-check|first-run');

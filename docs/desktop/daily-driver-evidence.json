@@ -6,9 +6,32 @@
  "description": "Initial absence-of-evidence baseline; never infer acceptance from workflows.yaml or CI.",
  "journeys": {
   "D01": {
-   "outcome": "unverified",
-   "evidence_level": "U",
-   "runs": []
+   "outcome": "pass",
+   "evidence_level": "P",
+   "runs": [
+    {
+     "journey_id": "D01",
+     "outcome": "pass",
+     "evidence_level": "P",
+     "timestamp_utc": "2026-11-12T05:04:17.895Z",
+     "steps_to_reproduce": "Clean throwaway HOME; packaged Desktop (electron-builder --dir, Electron 44.11) first launch; Continue on Welcome desk; Create harness via onboarding confirmation; Enter the world; Workspace > Link existing folder; confirm Review project link for the fixture repo.",
+     "observed": "Real onboarding completed with no CLI init, no localStorage seeding and no manual config; workspace created by the UI; fixture-repo linked (LINKED badge, Open in World, symlink projects/fixture-repo). Only substitution: the OS-native folder picker is stubbed in the main process to return the fixture path (headless Electron cannot drive native dialogs). This run also exposed and required the server fix in #1773: project add rejected repos outside workspace roots with 403. Backend binary built from the server-fix commit; packaged exe from main b7cf08ee.",
+     "screenshots": [
+      "docs/desktop/assets/electron/daily-driver/gate0-d01-welcome.png",
+      "docs/desktop/assets/electron/daily-driver/gate0-d01-harness.png",
+      "docs/desktop/assets/electron/daily-driver/gate0-d01-world.png",
+      "docs/desktop/assets/electron/daily-driver/gate0-d01-linked.png"
+     ],
+     "logs": [
+      "apps/desktop/e2e-real/run.mjs"
+     ],
+     "toolkit_sha": "d1d44f555b8a8f77ec8d95e7546573143dd3dc07",
+     "package_version": "1.49.0",
+     "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+     "provider": "none (D01 is provider-independent)",
+     "tested_by": "maintainer agent session, 2026-11-12"
+    }
+   ]
   },
   "D02": {
    "outcome": "pass",
