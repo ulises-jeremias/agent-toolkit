@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   clearOnboardingComplete,
-  ONBOARDING_STORAGE_KEY,
   readOnboardingComplete,
   shouldRunOnboarding,
   writeOnboardingComplete,
@@ -9,7 +8,7 @@ import {
 
 describe('onboarding completion', () => {
   afterEach(() => {
-    window.localStorage.clear();
+    clearOnboardingComplete();
     delete window.atk;
   });
 
@@ -17,7 +16,6 @@ describe('onboarding completion', () => {
     expect(readOnboardingComplete()).toBe(false);
     writeOnboardingComplete();
     expect(readOnboardingComplete()).toBe(true);
-    expect(window.localStorage.getItem(ONBOARDING_STORAGE_KEY)).toBe('1');
     clearOnboardingComplete();
     expect(readOnboardingComplete()).toBe(false);
   });

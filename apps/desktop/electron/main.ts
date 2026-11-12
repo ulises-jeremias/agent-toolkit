@@ -7,6 +7,7 @@ import { HarnessController } from './harness-controller';
 import { HARNESS_STORE_FILE, HarnessStore } from './harness-store';
 import { registerIpc } from './ipc';
 import { electronStorageName, McpSecretStore, mcpSecretStorePath } from './mcp-secrets';
+import { DesktopPreferenceStore } from './preferences';
 import { startRendererServer, type RendererServer } from './renderer-server';
 import { TerminalService } from './terminal';
 import { UpdateChecker } from './update-check';
@@ -17,6 +18,7 @@ let terminals: TerminalService | null = null;
 let harness: HarnessController | null = null;
 let focus: FocusService | null = null;
 let mcpSecrets: McpSecretStore | null = null;
+let preferences: DesktopPreferenceStore | null = null;
 let updateChecker: UpdateChecker | null = null;
 let rendererServer: RendererServer | null = null;
 let ipcRegistered = false;
@@ -82,6 +84,7 @@ async function createWindow(): Promise<void> {
     );
   }
   const secretStore = mcpSecrets;
+  if (!preferences) preferences = new DesktopPreferenceStore(app.getPath('userData'));
   if (!backend) {
     backend = new BackendSupervisor({
       resolveHarness: () => harnessController.resolve(),
@@ -146,6 +149,7 @@ async function createWindow(): Promise<void> {
       getWindow: () => mainWindow,
       getHarness: () => harness,
       getMcpSecrets: () => mcpSecrets,
+      getPreferences: () => preferences,
       getFocus: () => focus,
       getUpdateChecker: () => updateChecker,
       getPublicBackendUrl: () => rendererServer?.url ?? null,

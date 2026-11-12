@@ -152,6 +152,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
                 <p className={styles.note}>
                   Sessions, notes and project links are kept here. Your repositories stay where they are.
                 </p>
+                <p className={styles.path}>{defaultPath}</p>
                 <div className={styles.actions}>
                   {needsCreate ? (
                     <Button
@@ -161,7 +162,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
                       busyLabel="Creating…"
                       onClick={() => void applySwitch(() => window.atk!.harnessSet(defaultPath, { create: true }))}
                     >
-                      Create {defaultPath}
+                      Create workspace folder
                     </Button>
                   ) : null}
                   <Button
@@ -224,8 +225,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
             </ul>
             {!providers.isLoading && !readyAgent ? (
               <p className={styles.note}>
-                Install Claude Code, run <code>claude auth login</code> in a terminal, then check again. You can also
-                continue and do this later.
+                Sign in with Claude Code or Codex, then check again. You can continue and do this later.
               </p>
             ) : null}
             <div className={styles.actions}>
