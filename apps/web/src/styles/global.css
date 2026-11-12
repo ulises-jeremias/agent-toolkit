@@ -464,6 +464,7 @@ h3 {
 /* Semantic destinations: signposts to real routes. No JS required;
    every card is a plain link. Silkscreen is used only for sign labels. */
 .valley-destinations {
+  overflow-x: clip;
   padding: clamp(64px, 9vw, 110px) 0;
   background: linear-gradient(180deg, var(--paper), #f1e8cf);
 }
@@ -977,25 +978,26 @@ h3 {
   padding: 0;
   margin: 0 0 22px;
   list-style: none;
-  color: var(--muted);
+  color: var(--muted-ink);
   font-size: 0.88rem;
 }
 .docs-breadcrumbs li + li::before {
   margin-right: 10px;
-  color: var(--leaf);
+  color: var(--leaf-text);
   content: "›";
 }
 .docs-breadcrumbs a {
-  color: var(--muted);
+  color: var(--muted-ink);
 }
 .docs-breadcrumbs [aria-current="page"] {
-  color: var(--cream);
+  color: var(--ink);
   font-weight: 600;
 }
 .docs-mobile-nav {
   display: none;
 }
 .docs-search {
+  color: var(--cream);
   display: block;
   max-width: 640px;
   margin: 0 0 30px;
@@ -1121,6 +1123,7 @@ h3 {
   border-top: 1px solid var(--line);
 }
 .docs-pager-link {
+  color: var(--cream);
   display: grid;
   gap: 4px;
   max-width: 46%;
