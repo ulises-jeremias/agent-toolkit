@@ -1,7 +1,7 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-12 (Focus-first navigation, PXL Library façade iteration, semantic
-World Electron capture, and exact-head CI queued). Requested by the owner to
+Updated: 2026-11-12 (Workspace plaque collision fix, Focus-first navigation, PXL
+Library façade iteration, and semantic World Electron capture). Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
 
@@ -47,7 +47,7 @@ integration worktree intact; it is not the same branch as the pushed follow-up P
 | `repos/agent-toolkit`, `chore/release-v1.47.5` | Old checkout, unrelated dirty release/version/plugin files and `.claude/`. Preserve; do not use as current product source. |
 | `worktrees/rescue`, `rescue/shell-v2`, `0c730540` | Existing PR #1780; replacement shell, onboarding, Focus, Projects/Context and new Valley. Preserved in integration branch. |
 | `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Nothing from this integration branch has been pushed. |
-| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `76d7957e`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, an even Dusk pass, and a new PXL Library façade. It is not merged into the integration worktree. |
+| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `eafe6bfb`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, an even Dusk pass, a new PXL Library façade, and a compact-map label collision fix. It is not merged into the integration worktree. |
 | `worktrees/codex-protocol`, `rescue/codex-protocol`, `2b8de6d6` | Reviewed protocol fix; already cherry-picked as `8a753ec5`. Do not apply twice. |
 | `worktrees/workspace-continuity`, `rescue/workspace-continuity` | Uncommitted partial implementation by subagent; NOT reviewed, tested or integrated. See critical persistence flaw below. |
 | `.claude/worktrees/agent-a8c96dfe4dfec7e8d`, `rescue/valley-art` | Existing art work; preserve. Do not infer an active agent from the worktree. |
@@ -669,6 +669,23 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   is healthy. This PR stays
   draft and unmerged while base PRs have failing required Desktop checks. No release
   was created.
+- Compact World critique on `76d7957e` found the persistent Workspace plaque
+  collided with the Library façade at 1024×640. A one-row Library relocation
+  was prototyped and rejected because it broke civic footpath connectivity and
+  expanded the compact camera. Commit `eafe6bfb` instead removes the Workspace
+  hall's idle plaque (its identity remains in the persistent app header) while
+  retaining the plaque on hover/selection. The World view test locks this rule.
+  On this exact commit, 72 World model/view tests pass; six-size/theme
+  source-Electron capture passes against a real backend; compact Dusk and large
+  Meadow captures were opened; keyboard-only and reduced-motion Electron checks
+  pass 2/2; `build:all`, lint, type-check, and `check:world` pass. Local captures
+  are under `.audit-private/world-label-iteration/`. Dusk grass remains too green
+  and the broader village composition remains below sign-off quality. Exact
+  `76d7957e` had long Electron/real-backend E2E and clean-HOME acceptance still
+  in progress. Exact-head Actions have since started for `eafe6bfb`: quality
+  `43331730539`, gates `43331730554`, and clean-HOME `43331730586` are pending
+  as of this update. Vercel deployment passed. Do not treat the prior SHA's
+  checks as verification for this commit. PR #1783 remains draft.
 
 ## 11. How Luna should execute efficiently
 
