@@ -2,7 +2,8 @@ import { DESTINATIONS, type DestinationPath } from './destinations';
 import type { LoopInfo, McpProviderInfo, Person, SwarmRunInfo } from '../lib/api';
 import type { PtySessionInfo } from '../types/electron';
 
-export type CommandGroup = 'Go' | 'Library' | 'People' | 'Loops' | 'Swarms' | 'Session' | 'Appearance' | 'Help';
+export type CommandGroup =
+  'Focus' | 'Go' | 'Library' | 'People' | 'Loops' | 'Swarms' | 'Session' | 'Appearance' | 'Help';
 
 export type PaletteAction =
   | { type: 'navigate'; path: DestinationPath }
@@ -29,6 +30,8 @@ export type PaletteAction =
         | 'restart-backend'
         | 'replay-onboarding';
     }
+  | { type: 'focus'; intent: 'new'; project?: string }
+  | { type: 'focus'; intent: 'open'; threadId: string }
   | { type: 'theme'; theme: 'meadow' | 'dusk' | 'system' }
   | { type: 'help'; intent: 'shortcuts' };
 
@@ -51,6 +54,14 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     keywords: [destination.label, destination.path.slice(1)],
     action: { type: 'navigate', path: destination.path },
   })),
+  {
+    id: 'focus:new',
+    group: 'Focus',
+    title: 'Start a new session',
+    hint: 'Describe a task for a coding agent',
+    keywords: ['focus', 'session', 'agent', 'task', 'chat', 'claude', 'code'],
+    action: { type: 'focus', intent: 'new' },
+  },
   {
     id: 'go:world-knowledge',
     group: 'Go',
@@ -284,6 +295,36 @@ export function personCommands(
       }
       return commands;
     });
+}
+
+/** Sessions to reopen and projects to start one in: the palette doubles as search. */
+export function focusCommands(
+  threads: ReadonlyArray<{ id: string; title: string; projectName: string | null; status: string }>,
+  projects: readonly string[],
+): PaletteCommand[] {
+  const status: Record<string, string> = {
+    running: 'working',
+    'awaiting-approval': 'needs your answer',
+    interrupted: 'stopped',
+    error: 'failed',
+  };
+  return [
+    ...threads.map<PaletteCommand>((thread) => ({
+      id: `focus:open:${thread.id}`,
+      group: 'Focus',
+      title: thread.title || 'New session',
+      hint: [thread.projectName, status[thread.status]].filter(Boolean).join(', ') || undefined,
+      keywords: ['session', 'focus', thread.projectName ?? ''],
+      action: { type: 'focus', intent: 'open', threadId: thread.id },
+    })),
+    ...projects.map<PaletteCommand>((project) => ({
+      id: `focus:new:${project}`,
+      group: 'Focus',
+      title: `Start a session in ${project}`,
+      keywords: ['session', 'focus', 'project', project],
+      action: { type: 'focus', intent: 'new', project },
+    })),
+  ];
 }
 
 export function loopScheduleCommands(loops: readonly Pick<LoopInfo, 'name' | 'cadence'>[]): PaletteCommand[] {

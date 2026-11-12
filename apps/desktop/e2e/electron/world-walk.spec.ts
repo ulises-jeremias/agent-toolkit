@@ -162,7 +162,7 @@ test('walks in the world only while it has focus and keeps typing local to the c
     expect(moved).toBe(true);
 
     const beforeTyping = await position();
-    await page.getByRole('button', { name: 'Commands' }).click();
+    await page.getByRole('button', { name: /Search or run a command/ }).click();
     const filter = page.getByRole('textbox', { name: 'Filter commands' });
     await filter.fill('');
     await page.keyboard.type('wasd');

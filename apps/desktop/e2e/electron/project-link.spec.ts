@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend } from './fixtures';
+import { goTo, sectionTab } from './navigation';
 
 async function expectFittedWorld(page: import('@playwright/test').Page) {
   await expect
@@ -215,9 +216,7 @@ test('links an existing project from the GUI and places it in the world', async 
     await expect(page.getByRole('application', { name: 'Interior of garden-api' })).toBeVisible();
     await page.getByRole('button', { name: /Terminal · Terminal \/ PTY workstation/ }).click();
     await expect(page).toHaveURL(/terminal/);
-    await expect(
-      page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }),
-    ).toHaveAttribute('aria-current', 'page');
+    await expect(sectionTab(page, 'Terminal')).toHaveAttribute('aria-current', 'page');
     const terminalReview = page.getByRole('dialog', { name: 'New terminal session' });
     await expect(terminalReview).toBeVisible();
     await expect(terminalReview.getByRole('textbox', { name: 'Working folder' })).toHaveValue(projectPath);
@@ -322,7 +321,7 @@ test('links an existing project from the GUI and places it in the world', async 
         const target = path.join(home, '.ai-workspace', 'repos', 'local', name);
         fs.mkdirSync(target, { recursive: true });
         fs.writeFileSync(path.join(target, 'README.md'), `# ${name}\n`);
-        await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
+        await goTo(page, 'Projects');
         await page.getByRole('button', { name: 'Link existing folder' }).click();
         const review = page.getByRole('dialog', { name: 'Review project link' });
         await pick(target);

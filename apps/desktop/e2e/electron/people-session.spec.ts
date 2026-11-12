@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend } from './fixtures';
+import { goTo } from './navigation';
 
 const CAPTURE = process.env['ATK_CAPTURE'] === '1';
 const CAPTURE_DIR =
@@ -184,7 +185,7 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
       await page.screenshot({ path: path.join(CAPTURE_DIR, 'person-start-again-large.png') });
     }
     await startAgain.getByRole('button', { name: 'Cancel' }).click();
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
+    await goTo(page, 'Terminal');
     await page.getByRole('button', { name: 'Restart' }).click();
     await expect(page.getByRole('tab', { name: /Lina.*agent-toolkit.*running/i })).toBeVisible({
       timeout: 20_000,

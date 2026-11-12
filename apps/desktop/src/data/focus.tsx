@@ -27,6 +27,7 @@ export class FocusStore {
   private readonly listeners = new Set<() => void>();
   private pendingDeltas: Array<Extract<FocusLiveUpdate, { kind: 'delta' }>> = [];
   private flushHandle: ReturnType<typeof setTimeout> | null = null;
+  private touchedDuringReload: Set<string> | null = null;
 
   constructor(private readonly bridge: FocusBridge | undefined) {}
 
@@ -65,11 +66,21 @@ export class FocusStore {
   /** Re-read the thread list, e.g. after the workspace changed. */
   async reload(): Promise<void> {
     if (!this.bridge) return;
-    const threads = await this.bridge.listThreads();
-    this.threads = threads;
+    // Anything the runtime pushes while the list is in flight is newer than the list.
+    const touched = new Set<string>();
+    this.touchedDuringReload = touched;
+    const listed = await this.bridge.listThreads();
+    if (this.touchedDuringReload === touched) this.touchedDuringReload = null;
+    const listedIds = new Set(listed.map((thread) => thread.id));
+    const newer = this.threads.filter((thread) => touched.has(thread.id));
+    const newerIds = new Set(newer.map((thread) => thread.id));
+    this.threads = [...newer, ...listed.filter((thread) => !newerIds.has(thread.id))].sort((a, b) =>
+      b.updatedAt.localeCompare(a.updatedAt),
+    );
     this.threadsLoaded = true;
-    const known = new Set(threads.map((thread) => thread.id));
-    for (const id of [...this.timelines.keys()]) if (!known.has(id)) this.timelines.delete(id);
+    for (const id of [...this.timelines.keys()]) {
+      if (!listedIds.has(id) && !touched.has(id)) this.timelines.delete(id);
+    }
     this.notify();
   }
 
@@ -90,6 +101,7 @@ export class FocusStore {
   }
 
   apply(update: FocusLiveUpdate): void {
+    this.touchedDuringReload?.add(update.kind === 'thread' ? update.thread.id : update.threadId);
     switch (update.kind) {
       case 'delta':
         this.pendingDeltas.push(update);

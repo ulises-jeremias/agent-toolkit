@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtures';
+import { goTo } from './navigation';
 
 /**
  * Screenshot tour for design review, not a regression gate. Opt in with
@@ -80,7 +81,7 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
 
   let terminal = page.getByLabel('Terminal for shell');
   if (!WORLD_ONLY) {
-    await nav(page).getByRole('link', { name: 'Terminal' }).click();
+    await goTo(page, 'Terminal');
     await page.getByRole('main').getByRole('button', { name: 'New session' }).click();
     const session = page.getByRole('dialog', { name: 'New terminal session' });
     await session.getByRole('textbox', { name: 'Command', exact: true }).fill('/bin/sh');
@@ -192,7 +193,7 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
   // the same reviewed UI action as a user so the Electron process and backend
   // can shut down promptly after the tour.
   if (!WORLD_ONLY) {
-    await nav(page).getByRole('link', { name: 'Terminal' }).click();
+    await goTo(page, 'Terminal');
     await page.getByRole('button', { name: 'Close' }).click();
     const closeDialog = page.getByRole('dialog', { name: 'Close this session?' });
     await closeDialog.getByRole('button', { name: 'Kill and close' }).click();
