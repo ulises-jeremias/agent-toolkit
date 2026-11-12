@@ -1,11 +1,11 @@
 import { useSyncExternalStore } from 'react';
+import { currentDesktopPreferences, updateDesktopPreferences } from '../shell/desktopPreferences';
 
 /**
  * Appearance preferences (renderer-local UI state).
  *
  * Theme and motion are durable per-user preferences; `serve` exposes no
- * preference endpoint yet, so they persist in localStorage. When the backend
- * owns UI preferences this module becomes a thin cache over that endpoint.
+ * userData preferences are owned by Electron; this module is the live renderer cache.
  */
 
 export type ThemePreference = 'system' | 'meadow' | 'dusk';
@@ -16,25 +16,6 @@ export interface Appearance {
   theme: ThemePreference;
   resolvedTheme: ResolvedTheme;
   motion: MotionPreference;
-}
-
-const THEME_KEY = 'atk.appearance.theme';
-const MOTION_KEY = 'atk.appearance.motion';
-
-function readStorage(key: string): string | null {
-  try {
-    return window.localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
-function writeStorage(key: string, value: string): void {
-  try {
-    window.localStorage.setItem(key, value);
-  } catch {
-    // Storage unavailable (private mode, quota): the preference stays session-only.
-  }
 }
 
 export function parseThemePreference(raw: string | null): ThemePreference {
@@ -58,8 +39,9 @@ const listeners = new Set<() => void>();
 let snapshot: Appearance = computeAppearance();
 
 function computeAppearance(): Appearance {
-  const theme = parseThemePreference(readStorage(THEME_KEY));
-  const motion = parseMotionPreference(readStorage(MOTION_KEY));
+  const stored = currentDesktopPreferences();
+  const theme = parseThemePreference(stored.theme);
+  const motion = parseMotionPreference(stored.motion);
   return { theme, motion, resolvedTheme: resolveTheme(theme, prefersDarkQuery()?.matches ?? false) };
 }
 
@@ -84,12 +66,12 @@ export function initAppearance(): void {
 }
 
 export function setThemePreference(theme: ThemePreference): void {
-  writeStorage(THEME_KEY, theme);
+  updateDesktopPreferences({ theme });
   refresh();
 }
 
 export function setMotionPreference(motion: MotionPreference): void {
-  writeStorage(MOTION_KEY, motion);
+  updateDesktopPreferences({ motion });
   refresh();
 }
 

@@ -356,6 +356,11 @@ export default function FocusView() {
           </>
         ) : requested && !loaded ? (
           <p className={styles.quiet}>Loading sessions…</p>
+        ) : requested ? (
+          <div className={styles.quiet} role="status">
+            <p>This saved session is no longer available in this workspace.</p>
+            <Button onClick={() => select(null)}>Return to sessions</Button>
+          </div>
         ) : (
           <NewSession
             workspace={workspace}

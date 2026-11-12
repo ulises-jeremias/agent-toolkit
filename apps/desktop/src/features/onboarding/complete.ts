@@ -1,23 +1,19 @@
 /** First-run completion lives in this window's profile, not in the workspace. */
 
-export const ONBOARDING_STORAGE_KEY = 'atk.desktop.onboarding.complete';
+import { currentDesktopPreferences, updateDesktopPreferences } from '../../shell/desktopPreferences';
 
 export const REPLAY_ONBOARDING_EVENT = 'atk:replay-onboarding';
 
 export function readOnboardingComplete(): boolean {
-  try {
-    return window.localStorage.getItem(ONBOARDING_STORAGE_KEY) === '1';
-  } catch {
-    return false;
-  }
+  return currentDesktopPreferences().onboardingComplete;
 }
 
 export function writeOnboardingComplete(): void {
-  window.localStorage.setItem(ONBOARDING_STORAGE_KEY, '1');
+  updateDesktopPreferences({ onboardingComplete: true });
 }
 
 export function clearOnboardingComplete(): void {
-  window.localStorage.removeItem(ONBOARDING_STORAGE_KEY);
+  updateDesktopPreferences({ onboardingComplete: false });
 }
 
 /** Electron first-run only. Browser-dev has no harness supervisor. */

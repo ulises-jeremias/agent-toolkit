@@ -30,6 +30,10 @@ const focus: FocusBridge = {
 };
 
 const bridge: AtkBridge = {
+  preferences: {
+    read: () => ipcRenderer.invoke('atk:preferences-read'),
+    update: (patch) => ipcRenderer.invoke('atk:preferences-update', patch),
+  },
   focus,
   backendStatus: () => ipcRenderer.invoke('atk:backend-status'),
   updateStatus: () => ipcRenderer.invoke('atk:update-status'),
