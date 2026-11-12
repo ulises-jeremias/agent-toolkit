@@ -32,7 +32,7 @@ test('links an existing project from the GUI and places it in the world', async 
     fs.mkdirSync(path.join(repo, '.git'), { recursive: true });
     await pick(repo);
     await page.getByRole('button', { name: 'Link a repository' }).click();
-    await expect(page.getByRole('button', { name: 'garden-api' })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('button', { name: /^garden-api(?:\s|$)/ })).toBeVisible({ timeout: 30_000 });
     expect(fs.realpathSync(path.join(desktop.workspace, 'projects', 'garden-api'))).toBe(fs.realpathSync(repo));
 
     await goTo(page, 'World');
