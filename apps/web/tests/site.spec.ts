@@ -302,12 +302,12 @@ test("mobile navigation, touch layout and reduced motion remain usable", async (
   await expect(
     page
       .getByRole("navigation", { name: "Mobile navigation" })
-      .getByRole("link", { name: "The World" }),
+      .getByRole("link", { name: "Hornero Valley" }),
   ).toBeVisible();
   await capturePage(page, "mobile-nav-open.png");
   await page
     .getByRole("navigation", { name: "Mobile navigation" })
-    .getByRole("link", { name: "People" })
+    .getByRole("link", { name: "Guild Hall" })
     .click();
   await expect(page).toHaveURL("/people/");
   await capturePage(page, "people-mobile.png");
