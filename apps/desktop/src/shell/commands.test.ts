@@ -21,7 +21,7 @@ describe('filterCommands', () => {
     const officeHits = filterCommands(PALETTE_COMMANDS, 'office');
     expect(officeHits.map((command) => command.id)).toContain('go:/office');
     const office = PALETTE_COMMANDS.find((command) => command.id === 'go:/office');
-    expect(office?.hint).toBe('What needs attention now?');
+    expect(office?.hint).toBe('See what is waiting for you');
     expect(office?.title).toBe('Go to Attention');
   });
 
@@ -32,8 +32,8 @@ describe('filterCommands', () => {
     );
   });
 
-  it('finds the terminal as a workstation place', () => {
-    const hits = filterCommands(PALETTE_COMMANDS, 'workstation');
+  it('finds the terminal page and the new-terminal action by name', () => {
+    const hits = filterCommands(PALETTE_COMMANDS, 'terminal');
     expect(hits.map((command) => command.id)).toEqual(expect.arrayContaining(['go:/terminal', 'session:new-terminal']));
   });
 

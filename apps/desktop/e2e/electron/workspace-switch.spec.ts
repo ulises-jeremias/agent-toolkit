@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend } from './fixtures';
+import { goTo } from './navigation';
 
 test('switches workspaces, reads their own projects, and returns safely', async () => {
   const desktop = await openDesktop();
@@ -53,8 +54,8 @@ test('switches workspaces, reads their own projects, and returns safely', async 
     await expect(page).toHaveURL(new RegExp(encodeURIComponent(alternateWorkspace)));
     await waitForBackend(page);
 
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
-    const linkProject = page.getByRole('button', { name: 'Link existing folder' });
+    await goTo(page, 'Projects');
+    const linkProject = page.getByRole('button', { name: 'Link a repository' });
     await expect(linkProject).toBeEnabled({ timeout: 15_000 });
     await chooseFolder(project);
     await linkProject.click();
@@ -85,7 +86,7 @@ test('switches workspaces, reads their own projects, and returns safely', async 
     await expect(page).toHaveURL(new RegExp(encodeURIComponent(workspace)));
     await waitForBackend(page);
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-    await expect(page.getByRole('button', { name: /Add project/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Link a repository' })).toBeVisible();
     if (process.env.ATK_CAPTURE === '1') {
       for (const size of [
         { width: 1024, height: 640, key: 'workspace-return-compact' },

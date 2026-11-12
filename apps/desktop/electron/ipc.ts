@@ -154,7 +154,6 @@ export function registerIpc(deps: IpcDeps): void {
           provider,
           model,
           providerSessionId,
-          cmd,
           args,
           cwd,
           maxSeconds,
@@ -162,7 +161,9 @@ export function registerIpc(deps: IpcDeps): void {
           rows,
         } = options;
         if (typeof agent !== 'string' || !agent.trim()) return null;
-        if (typeof cmd !== 'string' || !cmd.trim()) return null;
+        if (typeof options.cmd !== 'string' || !options.cmd.trim()) return null;
+        // '@shell' asks for the user's own login shell; the renderer cannot know it.
+        const cmd = options.cmd === '@shell' ? userShell() : options.cmd;
         if (args !== undefined && (!Array.isArray(args) || args.some((a) => typeof a !== 'string'))) return null;
         if (cwd !== undefined && typeof cwd !== 'string') return null;
         if (maxSeconds !== undefined && (!isPositiveInt(maxSeconds) || maxSeconds > 31_536_000)) return null;
@@ -266,6 +267,11 @@ export function registerIpc(deps: IpcDeps): void {
   ipcMain.handle('atk:focus-interrupt', (_event, id: unknown) =>
     typeof id === 'string' ? (focus()?.interrupt(id) ?? unavailable) : unavailable,
   );
+}
+
+function userShell(): string {
+  if (process.platform === 'win32') return process.env['COMSPEC'] || 'powershell.exe';
+  return process.env['SHELL'] || '/bin/bash';
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

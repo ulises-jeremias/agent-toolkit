@@ -153,6 +153,8 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
     ...(packagedApp ? [] : [APP_DIR]),
     `--user-data-dir=${path.join(root, 'user-data')}`,
     ...(options.launchArgs ?? []),
+    // Local runs without a display: ATK_E2E_ELECTRON_ARGS="--ozone-platform=headless".
+    ...(process.env['ATK_E2E_ELECTRON_ARGS'] ?? '').split(/\s+/).filter(Boolean),
   ];
   // GitHub runners have no setuid sandbox helper for Chromium.
   if (process.env.CI) args.push('--no-sandbox');

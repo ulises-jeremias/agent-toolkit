@@ -30,3 +30,4 @@ export { ReceiptsProvider, useActionReceipt, useReceipts, type Receipt, type Rec
 export { CommandReport, envelopeFields, QueryView } from './QueryView';
 export { AppErrorBoundary, DestinationBoundary } from './ErrorBoundary';
 export { jobTone, selfcheckTone } from './tones';
+export { PixelIcon, type PixelIconName } from './PixelIcon';
