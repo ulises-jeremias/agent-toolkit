@@ -28,6 +28,8 @@ export interface FocusProviderCapabilities {
   interrupt: boolean;
   resume: boolean;
   modelSwitch: boolean;
+  /** Whether a new message can be accepted during an active turn. Defaults to false. */
+  sendWhileRunning?: boolean;
 }
 
 export interface FocusProviderStatus {

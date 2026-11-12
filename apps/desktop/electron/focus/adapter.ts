@@ -54,6 +54,7 @@ export interface AdapterStartOptions {
 /** One live provider process bound to one Focus thread. */
 export interface ProviderSession {
   readonly alive: boolean;
+  readonly acceptsInputWhileRunning: boolean;
   send(text: string): void;
   respondApproval(requestId: string, decision: FocusApprovalDecision): boolean;
   interrupt(): void;

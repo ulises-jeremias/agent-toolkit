@@ -197,7 +197,14 @@ async function probeOne(spec: ProviderSpec, options: ProbeOptions): Promise<Focu
     authDetail: 'Not installed',
     signInHint: null,
     models: spec.models,
-    capabilities: { sessions, approvals: sessions, interrupt: sessions, resume: sessions, modelSwitch: sessions },
+    capabilities: {
+      sessions,
+      approvals: sessions,
+      interrupt: sessions,
+      resume: sessions,
+      modelSwitch: sessions,
+      sendWhileRunning: sessions && spec.id === 'claude',
+    },
     checkedAt: new Date().toISOString(),
   };
   const binary = find(spec.binary);

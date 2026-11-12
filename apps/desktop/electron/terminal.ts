@@ -111,7 +111,11 @@ export class TerminalService {
           providerSessionId: event.providerSessionId,
         });
       } else if (event.event === 'created') {
-        void this.refresh();
+        void this.refresh().catch(() => {
+          // A host disconnect can race this unsolicited event, including
+          // during app shutdown. Retry reconciliation on the next list.
+          this.startPromise = null;
+        });
       }
     });
     this.client.onDisconnect(() => {

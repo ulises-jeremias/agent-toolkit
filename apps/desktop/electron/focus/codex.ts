@@ -78,6 +78,13 @@ interface PendingApproval {
   dialect: 'v2' | 'legacy';
 }
 
+interface PendingRequest {
+  settle: (result: Json | null, error: Json | null) => void;
+  timer: NodeJS.Timeout;
+}
+
+const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
+
 interface FileChange {
   path: string;
   kind: string;
@@ -104,7 +111,7 @@ function fileChanges(item: Json): FileChange[] {
 export class CodexSession implements ProviderSession {
   readonly acceptsInputWhileRunning = false;
   private readonly child: ChildProcessWithoutNullStreams;
-  private readonly waiting = new Map<number, (result: Json | null, error: Json | null) => void>();
+  private readonly waiting = new Map<number, PendingRequest>();
   private readonly approvals = new Map<string, PendingApproval>();
   private readonly changesByItem = new Map<string, FileChange[]>();
   private readonly outbox: string[] = [];
@@ -124,6 +131,7 @@ export class CodexSession implements ProviderSession {
     private readonly sink: AdapterSink,
     /** Tests run a scripted stand-in through `node`; production passes nothing. */
     argsPrefix: readonly string[] = [],
+    private readonly requestTimeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
   ) {
     this.child = spawn(options.binary, [...argsPrefix, 'app-server'], {
       cwd: options.cwd,
@@ -194,6 +202,7 @@ export class CodexSession implements ProviderSession {
   dispose(now = false): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.failWaiting('Codex session closed.');
     if (this.exited) return;
     if (now) {
       // Shutdown may exit Electron before a fallback timer runs. Stop the whole
@@ -225,21 +234,40 @@ export class CodexSession implements ProviderSession {
     }
   }
 
-  private write(frame: Json): void {
-    if (this.exited || this.child.stdin.destroyed) return;
+  private write(frame: Json): boolean {
+    if (this.exited || this.child.stdin.destroyed || !this.child.stdin.writable) return false;
     this.child.stdin.write(`${JSON.stringify(frame)}\n`);
+    return true;
   }
 
   private request(method: string, params: Json): Promise<Json> {
     const id = this.nextId;
     this.nextId += 1;
     return new Promise((resolve, reject) => {
-      this.waiting.set(id, (result, error) => {
+      const settle = (result: Json | null, error: Json | null): void => {
         if (error) reject(new Error(asString(error['message']) ?? `${method} failed`));
         else resolve(result ?? {});
-      });
-      this.write({ id, method, params });
+      };
+      const timer = setTimeout(() => {
+        if (!this.waiting.delete(id)) return;
+        settle(null, { message: `Codex ${method} request timed out after ${this.requestTimeoutMs} ms.` });
+      }, this.requestTimeoutMs);
+      timer.unref();
+      this.waiting.set(id, { settle, timer });
+      if (!this.write({ id, method, params })) {
+        clearTimeout(timer);
+        this.waiting.delete(id);
+        settle(null, { message: `Codex process is unavailable while sending ${method}.` });
+      }
     });
+  }
+
+  private failWaiting(message: string): void {
+    for (const [id, pending] of this.waiting) {
+      clearTimeout(pending.timer);
+      pending.settle(null, { message });
+      this.waiting.delete(id);
+    }
   }
 
   private async handshake(): Promise<void> {
@@ -269,15 +297,20 @@ export class CodexSession implements ProviderSession {
       for (const text of this.outbox.splice(0)) this.startTurn(text);
     } catch (error) {
       this.failed = error instanceof Error ? error.message : String(error);
-      if (this.outbox.length > 0) this.reportStartFailure();
+      this.reportStartFailure();
     }
   }
 
   /** The thread could not be opened: fail the waiting turn and let the service see the exit. */
   private reportStartFailure(): void {
+    if (this.exited) return;
     this.outbox.length = 0;
     this.stderrTail = `${this.failed ?? 'Codex could not start a thread.'}\n${this.stderrTail}`.trim();
     this.kill('SIGTERM');
+    this.killTimer = setTimeout(() => {
+      if (!this.exited) this.kill('SIGKILL');
+    }, 1_500);
+    this.killTimer.unref();
   }
 
   private async loadModels(): Promise<void> {
@@ -311,6 +344,13 @@ export class CodexSession implements ProviderSession {
         if (id && id !== this.completedTurnId && this.turnId === null) this.turnId = id;
       },
       (error: unknown) => {
+        if (error instanceof Error && error.message.includes('request timed out after')) {
+          this.kill('SIGTERM');
+          this.killTimer = setTimeout(() => {
+            if (!this.exited) this.kill('SIGKILL');
+          }, 1_500);
+          this.killTimer.unref();
+        }
         this.sink.turnFinished({
           outcome: 'failed',
           detail: error instanceof Error ? error.message : String(error),
@@ -326,8 +366,7 @@ export class CodexSession implements ProviderSession {
     this.exited = true;
     if (this.killTimer) clearTimeout(this.killTimer);
     this.killTimer = null;
-    for (const settle of this.waiting.values()) settle(null, { message: 'Codex exited.' });
-    this.waiting.clear();
+    this.failWaiting('Codex exited.');
     this.sink.exited({
       code,
       signal,
@@ -349,9 +388,12 @@ export class CodexSession implements ProviderSession {
     const id = frame['id'];
     if (!method) {
       if (typeof id === 'number') {
-        const settle = this.waiting.get(id);
-        this.waiting.delete(id);
-        settle?.(asRecord(frame['result']), asRecord(frame['error']));
+        const pending = this.waiting.get(id);
+        if (pending) {
+          clearTimeout(pending.timer);
+          this.waiting.delete(id);
+          pending.settle(asRecord(frame['result']), asRecord(frame['error']));
+        }
       }
       return;
     }

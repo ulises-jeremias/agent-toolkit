@@ -332,6 +332,45 @@ describe('focus service with a scripted provider', () => {
     expect(sent).toEqual(['one', 'two']);
   });
 
+  it('rejects overlapping turns without journaling or sending a phantom message', async () => {
+    const workspace = tempWorkspace();
+    const sent: string[] = [];
+    const service = new FocusService({
+      getWorkspace: () => workspace,
+      emit: () => undefined,
+      probe: async () => [{ ...READY, id: 'codex' }],
+      factories: {
+        codex: () => ({
+          alive: true,
+          acceptsInputWhileRunning: false,
+          send: (text) => {
+            sent.push(text);
+          },
+          respondApproval: () => false,
+          interrupt: () => undefined,
+          dispose: () => undefined,
+        }),
+      },
+    });
+    services.push(service);
+    const created = service.createThread({
+      cwd: workspace,
+      projectName: null,
+      provider: 'codex',
+      model: null,
+      permissionMode: 'ask',
+    });
+    if (!created.ok) throw new Error(created.error);
+    const id = created.value.id;
+    const results = await Promise.all([service.send(id, 'first'), service.send(id, 'second')]);
+    expect(results.map((result) => result.ok)).toEqual([true, false]);
+    expect(sent).toEqual(['first']);
+    expect(service.readThread(id)?.events.filter((event) => event.type === 'user')).toHaveLength(1);
+    expect(service.readThread(id)?.thread.status).toBe('running');
+    expect((await service.send(id, 'third')).ok).toBe(false);
+    expect(sent).toEqual(['first']);
+  });
+
   it('keeps the process while a turn the provider opened by itself is still running', async () => {
     // The idle timer armed after turn 1 would otherwise fire in the middle of turn 2.
     const h = harness(tempWorkspace(), { FAKE_CLAUDE_SECOND_TURN_MS: '200' }, READY, { idleMs: 60 });

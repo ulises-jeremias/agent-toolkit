@@ -149,6 +149,7 @@ export function Conversation({
   const pinned = useRef(true);
   const composer = useRef<HTMLTextAreaElement>(null);
   const running = thread.status === 'running' || thread.status === 'awaiting-approval';
+  const waitingForTurn = running && !provider?.capabilities?.sendWhileRunning;
   const providerLabel = provider?.label ?? 'The agent';
 
   // Follow new output only while the reader is already at the bottom.
@@ -173,7 +174,7 @@ export function Conversation({
 
   const send = async () => {
     const text = draft.trim();
-    if (!text || !bridge) return;
+    if (!text || !bridge || waitingForTurn) return;
     setDraft('');
     pinned.current = true;
     const sent = await run(bridge.send(thread.id, text));
@@ -264,9 +265,11 @@ export function Conversation({
           placeholder={
             approval
               ? 'Answer the request above to continue'
-              : running
-                ? 'Add a note for the agent. It is delivered when the current step ends'
-                : 'Describe the next change'
+              : waitingForTurn
+                ? 'Draft your next message. Send it when the agent finishes, or stop the current turn'
+                : running
+                  ? 'Add a note for the agent. It is delivered when the current step ends'
+                  : 'Describe the next change'
           }
           disabled={Boolean(approval)}
           onChange={(event) => setDraft(event.target.value)}
@@ -285,7 +288,12 @@ export function Conversation({
                 Stop
               </Button>
             ) : null}
-            <Button type="submit" variant="primary" disabled={!draft.trim() || Boolean(approval)} title="Send (Enter)">
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={!draft.trim() || Boolean(approval) || waitingForTurn}
+              title="Send (Enter)"
+            >
               <PixelIcon name="send" size={12} />
               Send
             </Button>
