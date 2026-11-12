@@ -5,9 +5,9 @@
  * Renders original PXL sources in ./world-art-pxl/*.px.js with the governed
  * vendored renderer (skills/design/pxl-pixel-art/bin/pxl.js, crsolver/claude-pxl)
  * and writes:
- *   - public/world-art/<name>.png        (sprites + hero-valley scene; WebP-ready
+ *   - static/world-art/<name>.png        (sprites + hero-valley scene; WebP-ready
  *                                         lossless PNG, convert with any WebP encoder)
- *   - public/world-art/manifest.json     (name -> {file,w,h,kind,source,sha256,bytes})
+ *   - static/world-art/manifest.json     (name -> {file,w,h,kind,source,sha256,bytes})
  *   - scripts/world-art-pxl/preview/*.png + preview/index.html (review gallery)
  *
  * Deterministic: PXL uses seeded rng only. `--check` rebuilds to a temp dir and
@@ -37,7 +37,7 @@ const PXL = path.join(
   "pxl.js",
 );
 const SRC_DIR = path.join(here, "world-art-pxl");
-const OUT = path.join(webRoot, "public", "world-art");
+const OUT = path.join(webRoot, "..", "..", "static", "world-art");
 const PREVIEW_DIR = path.join(SRC_DIR, "preview");
 
 function pngSize(png, name) {

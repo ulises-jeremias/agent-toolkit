@@ -489,6 +489,11 @@ h3 {
   border-color: var(--terracotta);
   transform: translateY(-2px);
 }
+.destination-card .sign-art {
+  width: 72px;
+  height: auto;
+  image-rendering: pixelated;
+}
 .destination-card .sign {
   font: 400 9px/1.7 var(--pixel);
   letter-spacing: 0.06em;
@@ -523,50 +528,14 @@ h3 {
   position: relative;
   overflow: hidden;
   border: 2px solid var(--pine);
-  background: linear-gradient(
-    180deg,
-    #bfe3c0 0 38%,
-    #7fb069 38% 62%,
-    #2f5d43 62%
-  );
-  min-height: 280px;
-}
-.valley-scene::before {
-  content: "";
-  position: absolute;
-  inset: auto -10% -18% -10%;
-  height: 55%;
+  /* Governed PXL website art (#1762): layered Hornero Valley scene.
+     Gradient remains as fallback while the PNG loads. */
   background:
-    radial-gradient(ellipse at 30% 0%, #234434 0 42%, transparent 43%),
-    radial-gradient(ellipse at 75% 10%, #1a2b1e 0 38%, transparent 39%);
-}
-.valley-scene::after {
-  content: "";
-  position: absolute;
-  left: 8%;
-  right: 8%;
-  bottom: 18%;
-  height: 10px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--sun) 0 18px,
-    transparent 18px 34px
-  );
-  opacity: 0.8;
-}
-@supports (animation-timeline: scroll()) {
-  .valley-scene::before {
-    animation: valley-drift linear both;
-    animation-timeline: scroll();
-  }
-  @keyframes valley-drift {
-    from {
-      transform: translateY(0);
-    }
-    to {
-      transform: translateY(-14px);
-    }
-  }
+    url("/world-art/hero-valley.png") center 62% / cover no-repeat,
+    linear-gradient(180deg, #bfe3c0 0 38%, #7fb069 38% 62%, #2f5d43 62%);
+  image-rendering: pixelated;
+  min-height: 280px;
+  aspect-ratio: 21 / 9;
 }
 @media (max-width: 680px) {
   .destination-grid {
