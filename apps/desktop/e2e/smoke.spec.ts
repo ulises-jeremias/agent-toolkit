@@ -10,13 +10,13 @@ import { expect, test } from '@playwright/test';
  * exercise backend-driven panels locally.
  */
 test.describe('desktop smoke', () => {
-  test('world shell loads as home', async ({ page }) => {
+  test('semantic World map loads as a navigation destination', async ({ page }) => {
     test.setTimeout(60_000);
     await page.goto('/#/world', { waitUntil: 'commit' });
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 45_000 });
     await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
     await expect(page.getByRole('banner').getByRole('button', { name: /Search or run a command/ })).toBeVisible();
-    await expect(page.getByRole('group', { name: 'Workspace village' })).toBeVisible();
+    await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
     await expect(page.getByRole('alert')).toContainText('Live state may be incomplete or out of date.');
   });
 

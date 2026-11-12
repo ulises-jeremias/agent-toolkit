@@ -308,10 +308,10 @@
     "landmark-library": {
       "file": "landmark-library.png",
       "w": 48,
-      "h": 72,
+      "h": 64,
       "frames": 1,
       "source": "scripts/world-art-pxl/landmarks.px.js",
-      "sha256": "161ba84b1c282216d136147b96155cce5746b3792b9c291d8353dfe4b9e7063f"
+      "sha256": "ba2d7e3c5192e396a0ca58cf469963283b380ad1c585303aee5faf05b0e6c5cc"
     },
     "landmark-operations": {
       "file": "landmark-operations.png",
