@@ -153,7 +153,8 @@ export function ProjectChangesPanel({
 
   return (
     <Panel title="Changes" meta={data?.branch ? `branch ${data.branch}` : 'Review and commit real repository changes'}>
-      <div className={styles.toolbar}>
+      {/* One project needs no picker (Focus shows a single project). */}
+      <div className={styles.toolbar} hidden={linked.length < 2}>
         <Field label="Project">
           {(control) => (
             <select

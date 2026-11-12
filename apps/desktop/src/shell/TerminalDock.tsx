@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 import { useTerminalSessions } from '../data/terminal';
 import { NewSessionDialog } from '../features/terminal/NewSessionDialog';
 import { TerminalHost, TerminalTabs } from '../features/terminal/TerminalHost';
 import { Button } from '../ui';
+import { OPEN_TERMINAL_DOCK_EVENT } from './events';
 import styles from './shell.module.css';
 
 type DockMode = 'hidden' | 'collapsed' | 'compact' | 'expanded';
@@ -22,8 +23,14 @@ export function TerminalDock() {
   const location = useLocation();
   const { available, sessions, setCreating } = useTerminalSessions();
   const [compactOpen, setCompactOpen] = useState(false);
+  useEffect(() => {
+    const open = () => setCompactOpen(true);
+    window.addEventListener(OPEN_TERMINAL_DOCK_EVENT, open);
+    return () => window.removeEventListener(OPEN_TERMINAL_DOCK_EVENT, open);
+  }, []);
   const mode = dockMode(location.pathname, available, sessions.length, compactOpen);
-  if (mode === 'hidden') return <NewSessionDialog />;
+  // With no terminal open the drawer has nothing to show: keep the page clear.
+  if (mode === 'hidden' || (sessions.length === 0 && location.pathname !== '/terminal')) return <NewSessionDialog />;
 
   return (
     <aside className={styles.dock} data-mode={mode} aria-label="Terminal dock">
@@ -33,12 +40,17 @@ export function TerminalDock() {
           <TerminalTabs />
         </div>
         {sessions.length > 0 && location.pathname !== '/terminal' ? (
-          <Button size="sm" variant="ghost" onClick={() => setCompactOpen((open) => !open)}>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-expanded={mode !== 'collapsed'}
+            onClick={() => setCompactOpen((open) => !open)}
+          >
             {mode === 'collapsed' ? 'Show terminal' : 'Hide terminal'}
           </Button>
         ) : null}
         <Button size="sm" variant="ghost" onClick={() => setCreating(true)}>
-          New session
+          New terminal
         </Button>
       </div>
       <div className={styles.dockTerminal} hidden={mode === 'collapsed'}>

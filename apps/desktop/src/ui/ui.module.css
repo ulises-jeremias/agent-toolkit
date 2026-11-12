@@ -1,7 +1,7 @@
 /*
- * Cozy Pixel World primitives — game-menu chrome (ADR-035).
- * Read semantic tokens only (src/design/tokens.css).
- * Brief: docs/desktop/ELECTRON_DESIGN_SYSTEM.md.
+ * Shared interface primitives. Read semantic tokens only
+ * (src/design/tokens.css). Crisp type, hairline borders, surface steps for
+ * depth; the pixel world supplies the character, not the controls.
  */
 
 /* ---------- Button ---------- */
@@ -13,22 +13,21 @@
   gap: var(--space-2);
   min-height: var(--target-min);
   padding: 0 var(--space-3);
-  border: 2px solid var(--border-strong);
-  font-family: var(--font-display);
-  font-size: 11px;
-  letter-spacing: 0.05em;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
-  box-shadow: var(--shadow-chip);
   transition:
     background-color var(--duration-fast) var(--ease-standard),
     border-color var(--duration-fast) var(--ease-standard);
 }
 
 .button:active:not(:disabled) {
-  transform: translate(2px, 2px);
-  box-shadow: none;
+  transform: translateY(1px);
 }
 
 .button:disabled {
@@ -44,8 +43,9 @@
 
 .button[data-variant='primary'] {
   background: var(--action-primary-bg);
-  border-color: var(--accent-gold-on);
+  border-color: transparent;
   color: var(--action-primary-fg);
+  font-weight: 600;
 }
 .button[data-variant='primary']:hover:not(:disabled) {
   background: var(--action-primary-bg-hover);
@@ -62,7 +62,8 @@
 
 .button[data-variant='ghost'] {
   background: transparent;
-  color: var(--text-primary);
+  border-color: transparent;
+  color: var(--text-secondary);
 }
 .button[data-variant='ghost']:hover:not(:disabled) {
   background: var(--surface-hover);
@@ -70,6 +71,7 @@
 
 .button[data-variant='danger'] {
   background: var(--action-danger-bg);
+  border-color: transparent;
   color: var(--action-danger-fg);
 }
 .button[data-variant='danger']:hover:not(:disabled) {
@@ -91,23 +93,26 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--space-4);
-  padding-bottom: var(--space-3);
+  padding-bottom: var(--space-4);
   margin-bottom: var(--space-5);
-  border-bottom: 2px solid var(--border-default);
-  border-image: linear-gradient(90deg, var(--accent-gold) 0 4rem, var(--border-default) 4rem) 2;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .eyebrow {
-  margin: 0 0 var(--space-1);
-  font-family: var(--font-display);
-  font-size: 10px;
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  color: var(--accent-canvas);
+  /* Kept in the DOM for assistive context and existing tests; the title
+     below already says where you are. */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
 .pageTitle {
   font-size: var(--text-2xl);
+  font-weight: 600;
+  letter-spacing: -0.015em;
   color: var(--text-canvas-primary);
 }
 
@@ -136,29 +141,13 @@
   position: relative;
   min-width: 0;
   background: var(--surface-panel);
-  border: 2px solid var(--border-default);
-  /* Pixel-menu frame: hard drop shadow + an inner 1px bench line, so panels
-     read as carved game-menu plaques rather than flat web cards. */
-  box-shadow:
-    var(--shadow-panel),
-    inset 0 0 0 1px var(--surface-sunken);
-}
-
-.panel::before {
-  position: absolute;
-  top: -2px;
-  left: var(--space-3);
-  width: 1.75rem;
-  height: 2px;
-  background: var(--accent-gold);
-  box-shadow: 4px 2px 0 var(--cw-gold-deep);
-  content: '';
-  pointer-events: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
 }
 
 .panel[data-tone='notice'] {
   background: var(--surface-notice);
-  border-color: var(--accent-gold-deep, #c99a3f);
+  border-color: var(--cw-gold-deep);
 }
 
 .panelHeader {
@@ -167,14 +156,14 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2) var(--space-4);
-  padding: var(--space-3) var(--space-4) var(--space-2);
+  padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .panelTitle {
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  color: var(--accent-gold);
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .panelMeta {
@@ -183,7 +172,7 @@
 }
 
 .panelBody {
-  padding: 0 var(--space-3) var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-4);
 }
 
 .panelBody > * + * {
@@ -228,12 +217,10 @@
 
 .table thead th {
   padding: var(--space-2) var(--space-2) var(--space-1);
-  border-bottom: 2px solid var(--border-default);
-  font-family: var(--font-display);
-  font-size: 9px;
-  letter-spacing: var(--tracking-caps);
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--text-xs);
+  font-weight: 500;
   text-align: left;
-  text-transform: uppercase;
   color: var(--text-muted);
   white-space: nowrap;
 }
@@ -307,7 +294,8 @@
   padding: var(--space-3);
   background: var(--surface-terminal);
   color: var(--text-terminal);
-  border: 2px solid var(--border-default);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   line-height: var(--leading-snug);
@@ -320,13 +308,12 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: 0 var(--space-1);
-  min-height: 1.25rem;
-  border: 1px solid currentColor;
-  font-family: var(--font-display);
-  font-size: 9px;
-  letter-spacing: 0.04em;
+  gap: 0.375rem;
+  padding: 0 var(--space-2);
+  min-height: 1.375rem;
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  font-weight: 500;
   white-space: nowrap;
   color: var(--status-idle-fg);
   background: var(--status-idle-bg);
@@ -412,7 +399,8 @@
   min-height: var(--target-min);
   padding: 0 var(--space-2);
   background: var(--surface-sunken);
-  border: 2px solid var(--border-default);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   font-size: var(--text-md);
 }
 
@@ -457,6 +445,7 @@
 .state[data-tone='err'] {
   padding: var(--space-3);
   border-left: 3px solid var(--status-err-fg);
+  border-radius: var(--radius-sm);
   background: var(--status-err-bg);
 }
 
@@ -483,9 +472,11 @@
 
 .kbd {
   display: inline-block;
-  min-width: 1.4em;
-  padding: 0 0.35em;
-  border: 2px solid var(--border-default);
+  min-width: 1.5em;
+  padding: 0 0.4em;
+  border: 1px solid var(--border-default);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-sm);
   background: var(--surface-raised);
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
@@ -500,14 +491,11 @@
   width: min(32rem, calc(100vw - 2 * var(--space-6)));
   max-height: calc(100vh - 2 * var(--space-10));
   padding: 0;
-  border: 4px solid var(--cw-wood-dark);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
   background: var(--surface-panel);
   color: var(--text-primary);
-  box-shadow:
-    0 0 0 2px var(--cw-wood-light),
-    0 0 0 5px var(--cw-forest-deep),
-    6px 8px 0 6px rgb(15 12 26 / 58%),
-    inset 0 0 0 2px var(--cw-gold-deep);
+  box-shadow: var(--shadow-raised);
   overflow: hidden;
 }
 
@@ -526,27 +514,13 @@
 }
 
 .dialogHeader {
-  position: relative;
   padding: var(--space-5) var(--space-5) var(--space-2);
-  border-bottom: 2px solid var(--border-subtle);
-  background: var(--surface-chrome-raised);
-}
-
-.dialogHeader::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: var(--space-5);
-  width: 2rem;
-  height: 3px;
-  background: var(--cw-gold);
-  box-shadow: 4px 3px 0 var(--cw-gold-deep);
 }
 
 .dialogTitle {
-  font-family: var(--font-display);
   font-size: var(--text-lg);
-  color: var(--accent-gold);
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .dialogBody {
@@ -566,18 +540,13 @@
   justify-content: flex-end;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-5);
-  border-top: 2px solid var(--cw-wood-light);
+  border-top: 1px solid var(--border-subtle);
   background: var(--surface-sunken);
 }
 
 @media (max-width: 40rem) {
   .dialog {
     max-height: calc(100dvh - 2 * var(--space-6));
-    box-shadow:
-      0 0 0 2px var(--cw-wood-light),
-      0 0 0 4px var(--cw-forest-deep),
-      4px 6px 0 4px rgb(15 12 26 / 58%),
-      inset 0 0 0 2px var(--cw-gold-deep);
   }
 }
 
@@ -604,8 +573,9 @@
   align-items: center;
   gap: 0 var(--space-3);
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
-  border: 2px solid var(--border-default);
-  border-left: 4px solid var(--status-idle-fg);
+  border: 1px solid var(--border-default);
+  border-left: 3px solid var(--status-idle-fg);
+  border-radius: var(--radius-md);
   background: var(--surface-raised);
   box-shadow: var(--shadow-raised);
   pointer-events: auto;
