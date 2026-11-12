@@ -31,10 +31,48 @@ export function focusRoot(workspace: string): string {
   return path.join(workspace, '.agent-toolkit', 'focus', 'threads');
 }
 
+function assertSafeJournalPath(workspace: string, target: string): void {
+  const root = path.resolve(workspace);
+  // The workspace itself can be a symlink; checking only its descendants
+  // would allow the entire journal tree to resolve outside the chosen root.
+  try {
+    if (fs.lstatSync(root).isSymbolicLink()) throw new Error('Symlink in Focus journal path');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  }
+  const relative = path.relative(root, target);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) throw new Error('Journal path escapes workspace');
+  let current = root;
+  for (const part of relative.split(path.sep).filter(Boolean)) {
+    current = path.join(current, part);
+    try {
+      if (fs.lstatSync(current).isSymbolicLink()) throw new Error('Symlink in Focus journal path');
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+  }
+}
+
 function writeAtomic(file: string, content: string): void {
-  const tmp = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(tmp, content, { mode: 0o600 });
-  fs.renameSync(tmp, file);
+  const tmp = `${file}.${randomBytes(8).toString('hex')}.tmp`;
+  try {
+    fs.writeFileSync(tmp, content, { mode: 0o600, flag: 'wx' });
+    fs.renameSync(tmp, file);
+  } finally {
+    try { fs.unlinkSync(tmp); } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+  }
+}
+
+function readNoFollow(file: string): string {
+  const fd = fs.openSync(file, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
+  try { return fs.readFileSync(fd, 'utf8'); } finally { fs.closeSync(fd); }
+}
+
+function appendNoFollow(file: string, content: string): void {
+  const fd = fs.openSync(file, fs.constants.O_WRONLY | fs.constants.O_APPEND | fs.constants.O_CREAT | (fs.constants.O_NOFOLLOW ?? 0), 0o600);
+  try { fs.writeFileSync(fd, content); } finally { fs.closeSync(fd); }
 }
 
 function text(value: unknown, fallback: string | null = null): string | null {
@@ -105,7 +143,9 @@ export class ThreadJournal {
 
   static create(workspace: string, meta: FocusThread): ThreadJournal {
     const journal = new ThreadJournal(workspace, meta);
+    journal.assertSafe(journal.dir);
     fs.mkdirSync(journal.dir, { recursive: true, mode: 0o700 });
+    journal.assertSafe(journal.dir);
     journal.seq = 0;
     journal.saveMeta();
     return journal;
@@ -117,7 +157,8 @@ export class ThreadJournal {
     const file = path.join(focusRoot(workspace), id, 'thread.json');
     let raw: unknown;
     try {
-      raw = JSON.parse(fs.readFileSync(file, 'utf8'));
+      assertSafeJournalPath(workspace, file);
+      raw = JSON.parse(readNoFollow(file));
     } catch {
       return null;
     }
@@ -128,6 +169,7 @@ export class ThreadJournal {
   static list(workspace: string): ThreadJournal[] {
     let names: string[];
     try {
+      assertSafeJournalPath(workspace, focusRoot(workspace));
       names = fs.readdirSync(focusRoot(workspace));
     } catch {
       return [];
@@ -152,15 +194,16 @@ export class ThreadJournal {
 
   append(turn: number, body: FocusEventBody): FocusEvent {
     const file = this.eventsFile();
+    this.assertSafe(file);
     if (this.seq === null) {
       this.seq = this.readEvents().reduce((max, event) => Math.max(max, event.seq), 0);
       // A crash can leave a line without its newline. Terminate it so the next
       // event starts on its own line instead of being glued to the fragment.
-      if (endsWithoutNewline(file)) fs.appendFileSync(file, '\n');
+      if (endsWithoutNewline(file)) appendNoFollow(file, '\n');
     }
     this.seq += 1;
     const event = { seq: this.seq, at: new Date().toISOString(), turn, ...body } as FocusEvent;
-    fs.appendFileSync(file, `${JSON.stringify(event)}\n`, { mode: 0o600 });
+    appendNoFollow(file, `${JSON.stringify(event)}\n`);
     return event;
   }
 
@@ -168,9 +211,13 @@ export class ThreadJournal {
   readEvents(): FocusEvent[] {
     let raw: string;
     try {
-      raw = fs.readFileSync(this.eventsFile(), 'utf8');
-    } catch {
-      return [];
+      this.assertSafe(this.eventsFile());
+      raw = readNoFollow(this.eventsFile());
+    } catch (error) {
+      // A missing log is an empty history; a rejected path or I/O failure is not.
+      // Silently returning [] here would disguise journal tampering as data loss.
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+      throw error;
     }
     const events: FocusEvent[] = [];
     for (const line of raw.split('\n')) {
@@ -186,7 +233,12 @@ export class ThreadJournal {
   }
 
   remove(): void {
+    this.assertSafe(this.dir);
     fs.rmSync(this.dir, { recursive: true, force: true });
+  }
+
+  private assertSafe(file: string): void {
+    assertSafeJournalPath(this.meta.workspace, file);
   }
 
   private eventsFile(): string {
@@ -194,14 +246,16 @@ export class ThreadJournal {
   }
 
   private saveMeta(): void {
-    writeAtomic(path.join(this.dir, 'thread.json'), `${JSON.stringify(this.meta, null, 2)}\n`);
+    const file = path.join(this.dir, 'thread.json');
+    this.assertSafe(file);
+    writeAtomic(file, `${JSON.stringify(this.meta, null, 2)}\n`);
   }
 }
 
 function endsWithoutNewline(file: string): boolean {
   let fd: number;
   try {
-    fd = fs.openSync(file, 'r');
+    fd = fs.openSync(file, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
   } catch {
     return false;
   }
