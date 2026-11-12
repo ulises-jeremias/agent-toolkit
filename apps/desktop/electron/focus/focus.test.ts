@@ -118,6 +118,44 @@ describe('thread journal', () => {
     ).toEqual([1, 2]);
   });
 
+  it('rejects symlinked journal files without modifying external sentinels', () => {
+    const h = harness();
+    const id = start(h);
+    const dir = path.join(h.workspace, '.agent-toolkit', 'focus', 'threads', id);
+    const sentinel = path.join(h.workspace, 'sentinel.txt');
+    fs.writeFileSync(sentinel, 'do not touch');
+    const events = path.join(dir, 'events.jsonl');
+    fs.symlinkSync(sentinel, events);
+    const journal = ThreadJournal.open(h.workspace, id);
+    expect(() => journal?.append(1, { type: 'user', text: 'blocked' })).toThrow(/Symlink/);
+    expect(fs.readFileSync(sentinel, 'utf8')).toBe('do not touch');
+    fs.unlinkSync(events);
+
+    const meta = path.join(dir, 'thread.json');
+    fs.unlinkSync(meta);
+    fs.symlinkSync(sentinel, meta);
+    expect(ThreadJournal.open(h.workspace, id)).toBeNull();
+    expect(() => journal?.update({ title: 'blocked' })).toThrow(/Symlink/);
+    expect(fs.readFileSync(sentinel, 'utf8')).toBe('do not touch');
+  });
+
+  it('rejects symlinked Focus directories and refuses recursive deletion', () => {
+    const h = harness();
+    const id = start(h);
+    const root = path.join(h.workspace, '.agent-toolkit', 'focus', 'threads');
+    const dir = path.join(root, id);
+    const external = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-focus-external-'));
+    const sentinel = path.join(external, 'sentinel.txt');
+    fs.writeFileSync(sentinel, 'preserved');
+    fs.renameSync(dir, path.join(root, 'original'));
+    fs.symlinkSync(external, dir, 'dir');
+    const journal = new ThreadJournal(h.workspace, { ...h.service.readThread(id)!.thread });
+    expect(() => journal.remove()).toThrow(/Symlink/);
+    expect(() => journal.append(1, { type: 'user', text: 'blocked' })).toThrow(/Symlink/);
+    expect(fs.readFileSync(sentinel, 'utf8')).toBe('preserved');
+    fs.rmSync(external, { recursive: true, force: true });
+  });
+
   it('reads thread metadata as untrusted data', () => {
     const h = harness();
     const id = start(h);
