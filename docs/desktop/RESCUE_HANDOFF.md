@@ -35,7 +35,7 @@ Main integration worktree:
 ```text
 /home/ulisesjcf/.ai-workspace/worktrees/desktop-owner
 branch: rescue/codex-product-integration
-HEAD: rescue handoff sync (clean, 16 commits ahead of origin/main)
+HEAD: rescue handoff sync (clean, 18 commits ahead of origin/main)
 ```
 
 The integration edits described below are committed on this branch. Keep this
@@ -393,8 +393,13 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   shown on that PR passed.
 - [x] #1773 external repo linking and #1774 true first-run are merged; preserve them.
 - [x] #1776 Claude runtime and #1779 journal hardening are merged; preserve them.
-- [ ] Review #1780 against current code and the final architecture. Update its stale
-  description or choose focused follow-up PRs; avoid duplicate giant salvage PRs.
+- [x] Correct #1780's stale description: it now reflects that Valley is rendered,
+  distinguishes its unwired Codex prototype from the later provider work, and records
+  the latest failing test names and run links. Keep this base PR distinct from the
+  focused downstream fixes.
+- [ ] Complete independent source-level review of #1780 against current contracts and
+  architecture; inspect remaining review threads/CI before integration. Do not infer
+  acceptance from the updated description.
 - [ ] Review outstanding review threads/CI, not merely reported pass counts.
 - [x] Push the continuity/runtime slice as draft [#1783](https://github.com/ulises-jeremias/agent-toolkit/pull/1783),
   stacked on [#1782](https://github.com/ulises-jeremias/agent-toolkit/pull/1782), which
@@ -402,9 +407,10 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   [#1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
   #1780/#1781/#1782 have failing Desktop gates; this draft remains unmerged pending
   a healthy, reviewed base. Latest head `e481f9b2099710cd03dcdb9a885aeeb1a808aeb9`
-  has fresh hosted runs: `quality` (43319795409), `desktop` (43319795522), and
-  `Clean-machine Desktop Acceptance` (43319795449) were queued/in progress as of
-  this checkpoint. Do not report the latter two as passing. #1782 corrects stale
+  has fresh hosted runs: web `quality` (43319795409) passed; `Validate` (43319795404)
+  is queued; `desktop` (43319795522) and `Clean-machine Desktop Acceptance`
+  (43319795449) are in progress as of this checkpoint. Do not report pending or
+  in-progress checks as passing. #1782 corrects stale
   shell smoke assertions
   (empty-state headings and the six-place rail) and disambiguates a project row from
   its toast. The failing desktop run is specifically four packaged Electron journeys,
@@ -624,7 +630,7 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   `fix/desktop-shell-smoke-navigation-20261112` branch (which carries #1781 and #1780).
   The owner-authored commits from #1781 and #1782 are preserved in branch history;
   PR base is retargeted to #1782. The acceptance update is posted to
-  [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6836606054).
+  [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6837260918).
   Packaged Linux E2E passes 7/7 for the listed paths against the existing package
   described above. Electron keyboard/a11y checks pass 3/3, including the skip link,
   reduced motion, and Escape precedence. Use the live checks on draft PR #1783 for the
