@@ -8,15 +8,18 @@ import { _electron as electron } from '@playwright/test';
 const APP_DIR = path.resolve(process.cwd());
 const REPO = path.resolve(APP_DIR, '..', '..');
 const PACKAGED = process.env['ATK_PACKAGED'] === '1';
-const ROOT = path.join(process.env.HOME, 'dd-journey', PACKAGED ? 'state-packaged' : 'state');
+const PROVIDER = process.env['ATK_PROVIDER'] ?? 'claude';
+if (!['claude', 'codex'].includes(PROVIDER)) throw new Error(`ATK_PROVIDER must be claude|codex, got ${PROVIDER}`);
+const SUFFIX = PROVIDER === 'claude' ? '' : `-${PROVIDER}`;
+const ROOT = path.join(process.env.HOME, 'dd-journey', (PACKAGED ? 'state-packaged' : 'state') + SUFFIX);
 const HOME_DIR = path.join(ROOT, 'home');
 const WORKSPACE = path.join(HOME_DIR, '.ai-workspace');
 const FIXTURE = path.join(process.env.HOME, 'dd-journey', 'fixture-repo');
-const EVIDENCE = path.join(process.env.HOME, 'dd-journey', PACKAGED ? 'evidence-packaged' : 'evidence');
+const EVIDENCE = path.join(process.env.HOME, 'dd-journey', (PACKAGED ? 'evidence-packaged' : 'evidence') + SUFFIX);
 const BACKEND = path.join(REPO, 'build', 'agent-toolkit');
 fs.mkdirSync(EVIDENCE, { recursive: true });
 
-const evidence = { steps: [], started_at: new Date().toISOString() };
+const evidence = { steps: [], started_at: new Date().toISOString(), provider: PROVIDER, packaged: PACKAGED };
 const note = (step, detail) => {
   evidence.steps.push({ step, detail, at: new Date().toISOString() });
   console.log(`[${step}] ${detail}`);
@@ -26,6 +29,15 @@ function setupOnce() {
   if (fs.existsSync(path.join(ROOT, 'setup-done'))) return;
   fs.mkdirSync(HOME_DIR, { recursive: true });
   // Link only the provider credential file into the throwaway HOME.
+  if (PROVIDER === 'codex') {
+    const codexDir = path.join(HOME_DIR, '.codex');
+    fs.mkdirSync(codexDir, { recursive: true });
+    for (const f of ['auth.json', 'config.toml']) {
+      const src = path.join(process.env.HOME, '.codex', f);
+      const dst = path.join(codexDir, f);
+      if (fs.existsSync(src) && !fs.existsSync(dst)) fs.symlinkSync(src, dst);
+    }
+  }
   const claudeDir = path.join(HOME_DIR, '.claude');
   fs.mkdirSync(claudeDir, { recursive: true });
   const cred = path.join(process.env.HOME, '.claude', '.credentials.json');
@@ -122,11 +134,12 @@ async function phaseStart() {
 
     const start = page.getByRole('dialog', { name: 'Start Ada' });
     const runner = start.getByRole('combobox', { name: 'Runner' });
+    for (let i = 0; i < 20 && (await runner.locator('option').count()) === 0; i++) await sleep(500);
     const opts = await runner.locator('option').all();
     const values = [];
     for (const o of opts) values.push(`${await o.getAttribute('value')}:${await o.isEnabled()}`);
     note('D02', `runner options: ${values.join(', ')}`);
-    await runner.selectOption('claude');
+    await runner.selectOption(PROVIDER);
     const ack = start.getByRole('checkbox');
     if (await ack.count()) await ack.first().check();
     const task = start.getByRole('textbox', { name: 'Task for this session' });
@@ -165,7 +178,8 @@ async function phaseStart() {
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
     const character = page.getByRole('button', { name: /Ada.*Person session/i });
     const charVisible = await character.count();
-    note('world', `Ada world character buttons: ${charVisible}`);
+    const runningLabel = await page.getByText(/Ada.*running/i).count();
+    note('world', `Ada world character buttons: ${charVisible}; running labels: ${runningLabel}`);
     await page.screenshot({ path: path.join(EVIDENCE, '05-world-character.png') });
 
     // Intervene: stop the session from People.
@@ -189,6 +203,7 @@ async function phaseRelaunch() {
   try {
     await page.getByRole('status').filter({ hasText: /^(Connected|Live)/ }).waitFor({ timeout: 30_000 });
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'People' }).click();
+    await page.getByText('CONFIGURED · OFFLINE').first().waitFor({ timeout: 15_000 }).catch(() => {});
     const offline = await page.getByText('CONFIGURED · OFFLINE').count();
     const stopped = await page.getByText('STOPPED').count();
     const recent = await page.getByText('RECENT SESSIONS').count();
