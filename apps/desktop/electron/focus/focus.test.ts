@@ -127,6 +127,8 @@ describe('thread journal', () => {
     const events = path.join(dir, 'events.jsonl');
     fs.symlinkSync(sentinel, events);
     const journal = ThreadJournal.open(h.workspace, id);
+    // Tampering must not be represented as an empty (successfully read) history.
+    expect(() => journal?.readEvents()).toThrow(/Symlink/);
     expect(() => journal?.append(1, { type: 'user', text: 'blocked' })).toThrow(/Symlink/);
     expect(fs.readFileSync(sentinel, 'utf8')).toBe('do not touch');
     fs.unlinkSync(events);
