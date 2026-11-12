@@ -97,15 +97,16 @@ function registerSwarmTestProject(workspace: string): void {
   if (!fs.existsSync(link)) fs.symlinkSync(workspace, link, 'dir');
 }
 
+// Rail entries, then tabs of Operations (opened through goTo).
 const DESTINATIONS: ReadonlyArray<{ link: string; path: string }> = [
   { link: 'World', path: '/world' },
-  { link: 'Attention', path: '/office' },
   { link: 'Operations', path: '/operations' },
-  { link: 'Workspace', path: '/workspace' },
+  { link: 'Projects', path: '/workspace' },
   { link: 'Library', path: '/library' },
+  { link: 'Settings', path: '/settings' },
+  { link: 'Attention', path: '/office' },
   { link: 'Insights', path: '/insights' },
   { link: 'Terminal', path: '/terminal' },
-  { link: 'Settings', path: '/settings' },
 ];
 
 test.describe.configure({ mode: 'serial' });
@@ -317,11 +318,9 @@ test('Settings also reviews backend restart before it can interrupt work', async
 
 test('every destination renders from live data without a crash boundary', async () => {
   const { page } = desktop;
-  const nav = page.getByRole('navigation', { name: 'Destinations' });
   for (const destination of DESTINATIONS) {
-    await nav.getByRole('link', { name: destination.link }).click();
+    await goTo(page, destination.link);
     await expect(page).toHaveURL(new RegExp(`#${destination.path}`));
-    await expect(nav.getByRole('link', { name: destination.link })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.getByText(/stopped working/i)).toHaveCount(0);
   }
