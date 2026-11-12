@@ -34,20 +34,20 @@ export interface Destination {
  */
 export const DESTINATIONS: readonly Destination[] = [
   {
-    path: '/world',
-    label: 'World',
-    question: 'See the whole workspace and who is working in it',
-    icon: 'world',
-    rail: 'main',
-    component: lazy(() => import('../features/valley/ValleyView')),
-  },
-  {
     path: '/focus',
     label: 'Focus',
     question: 'Work with a coding agent on one project',
     icon: 'focus',
     rail: 'main',
     component: lazy(() => import('../features/focus/FocusView')),
+  },
+  {
+    path: '/world',
+    label: 'World',
+    question: 'See the whole workspace and who is working in it',
+    icon: 'world',
+    rail: 'main',
+    component: lazy(() => import('../features/world/WorldView')),
   },
   {
     path: '/workspace',

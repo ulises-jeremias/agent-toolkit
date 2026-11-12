@@ -27,7 +27,10 @@ test('Keyboard-only: skip link, visible focus ring, and every destination reacha
   try {
     const { page } = desktop;
     await waitForBackend(page);
-    await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
+    const destinations = page.getByRole('navigation', { name: 'Destinations' });
+    await expect(destinations).toBeVisible();
+    await expect(destinations.getByRole('link').nth(0)).toHaveAccessibleName('Focus');
+    await expect(destinations.getByRole('link').nth(1)).toHaveAccessibleName('World');
 
     // Focus home intentionally places the caret in its task composer. Move the
     // sequential-focus starting point to the document so this checks the shell

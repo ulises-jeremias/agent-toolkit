@@ -123,20 +123,12 @@ test('capture every destination in Meadow and Dusk at all supported sizes', asyn
       for (const destination of DESTINATIONS) {
         await goTo(page, destination);
         if (destination === 'World') {
-          await expect(page.getByRole('group', { name: 'Workspace village' })).toBeVisible();
+          const world = page.getByRole('application', { name: 'Semantic workspace world' });
+          await expect(world).toBeVisible();
           // A visible route/header can precede the workspace query. Wait for a
           // real canonical landmark so design-review captures never preserve
           // the loading background as if it were an empty world.
-          await expect(page.locator('[data-entity-id="place:library"]')).toBeVisible();
-          const worldViewport = page.getByTestId('valley-viewport');
-          await expect
-            .poll(() => worldViewport.evaluate((element) => element.scrollWidth - element.clientWidth))
-            .toBeLessThanOrEqual(1);
-          await expect(worldViewport).toHaveCSS('overflow-x', 'hidden');
-          await expect(page.getByTestId('valley-sky')).toHaveAttribute(
-            'data-art',
-            theme === 'dusk' ? 'sky_dusk' : 'sky_day',
-          );
+          await expect(page.locator('[data-entity-id="object:library"]')).toBeVisible();
         }
         if (destination === 'Projects') {
           await page.getByRole('button', { name: /src\/api\.ts/ }).click();

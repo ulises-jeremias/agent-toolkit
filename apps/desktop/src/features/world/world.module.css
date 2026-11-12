@@ -813,15 +813,10 @@
 }
 
 :root[data-theme='dusk'] .mapWorld::after {
-  /* Blue-hour ground, with warm clearings and a cool creek shimmer. Multiply
-     keeps terrain legible while making the daylight meadow distinctly dusk;
-     this layer stays below authored buildings, characters and lanterns. */
-  background:
-    radial-gradient(ellipse at 16% 22%, rgb(255 190 104 / 38%), transparent 30%),
-    radial-gradient(ellipse at 55% 62%, rgb(93 194 209 / 34%), transparent 28%),
-    radial-gradient(ellipse at 84% 24%, rgb(255 194 110 / 36%), transparent 24%),
-    linear-gradient(180deg, rgb(31 39 87 / 42%), rgb(35 37 77 / 38%));
-  mix-blend-mode: multiply;
+  /* Keep the blue-hour pass even across independently rendered ground tiles.
+     Large radial fields produced visible rectangular seams as the transformed
+     map was repainted. Lamps and windows supply local warmth above this layer. */
+  background: linear-gradient(180deg, rgb(35 43 91 / 24%), rgb(24 27 62 / 36%));
 }
 
 /* World theme pack picker (single Hornero Valley pack today) */
