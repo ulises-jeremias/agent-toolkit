@@ -147,9 +147,12 @@ describe('thread journal', () => {
     const external = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-focus-external-'));
     const sentinel = path.join(external, 'sentinel.txt');
     fs.writeFileSync(sentinel, 'preserved');
+    const originalThread = h.service.readThread(id)?.thread;
+    expect(originalThread).toBeDefined();
+    if (!originalThread) throw new Error('Expected existing thread before replacing its directory');
     fs.renameSync(dir, path.join(root, 'original'));
     fs.symlinkSync(external, dir, 'dir');
-    const journal = new ThreadJournal(h.workspace, { ...h.service.readThread(id)!.thread });
+    const journal = new ThreadJournal(h.workspace, { ...originalThread });
     expect(() => journal.remove()).toThrow(/Symlink/);
     expect(() => journal.append(1, { type: 'user', text: 'blocked' })).toThrow(/Symlink/);
     expect(fs.readFileSync(sentinel, 'utf8')).toBe('preserved');
