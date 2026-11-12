@@ -371,14 +371,15 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
 - [x] Push the continuity/runtime slice as draft [#1783](https://github.com/ulises-jeremias/agent-toolkit/pull/1783),
   stacked on #1780; post verified acceptance status to [#1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
   #1780/#1781/#1782 have failing required Desktop gates; this draft remains unmerged
-  pending a healthy, reviewed base. #1782 fixed stale shell selectors and a toast/row
-  ambiguity, but its own CI exposed additional failures rather than validating the fix:
-  smoke still expects a level-one heading on a route with no heading, and the
-  compact-width check still finds two `ul` elements. Its packaged E2E additionally
-  fails workspace context-pack discovery, the project-link review dialog in project
-  changes/workspace switching, and downstream Git-change actions. The project-link
-  journey itself passes, so these must be traced per journey rather than assumed to
-  be one global picker defect. Run IDs: desktop 43298967157; packaged 43298966315.
+  pending a healthy, reviewed base. #1782 corrects stale shell smoke assertions
+  (empty-state headings and the six-place rail) and disambiguates a project row from
+  its toast. The failing desktop run is specifically four packaged Electron journeys,
+  not those renderer smoke assertions: workspace context-pack discovery, two
+  project-changes flows that cannot see the review dialog/path, and workspace
+  switching that cannot see the linked path in that dialog. The standalone
+  project-link journey passes, so trace these flows independently rather than
+  assuming one global picker defect. Run IDs: desktop 43298967157; packaged
+  43298966315.
   Do not waive these failures or merge the stacked series.
 - [ ] #1771 ImgBot was open; inspect deterministic-art drift before merging or closing.
 - [ ] Preserve author commits through cherry-pick/rebase. Never replace them with one
