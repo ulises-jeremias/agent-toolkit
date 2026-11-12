@@ -1,6 +1,6 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-12 (visual QA iteration and exact-head CI queued). Requested by the owner to
+Updated: 2026-11-12 (full visual tour and exact-head CI queued). Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
 
@@ -46,7 +46,7 @@ integration worktree intact; it is not the same branch as the pushed follow-up P
 | `repos/agent-toolkit`, `chore/release-v1.47.5` | Old checkout, unrelated dirty release/version/plugin files and `.claude/`. Preserve; do not use as current product source. |
 | `worktrees/rescue`, `rescue/shell-v2`, `0c730540` | Existing PR #1780; replacement shell, onboarding, Focus, Projects/Context and new Valley. Preserved in integration branch. |
 | `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Nothing from this integration branch has been pushed. |
-| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `3a5821aa`; includes the continuity/runtime follow-up, reviewed Focus fixes, and the responsive World/theme iteration. It is not merged into the integration worktree. |
+| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `e481f9b2`; includes the continuity/runtime follow-up, reviewed Focus fixes, and responsive World/theme and full visual-tour improvements. It is not merged into the integration worktree. |
 | `worktrees/codex-protocol`, `rescue/codex-protocol`, `2b8de6d6` | Reviewed protocol fix; already cherry-picked as `8a753ec5`. Do not apply twice. |
 | `worktrees/workspace-continuity`, `rescue/workspace-continuity` | Uncommitted partial implementation by subagent; NOT reviewed, tested or integrated. See critical persistence flaw below. |
 | `.claude/worktrees/agent-a8c96dfe4dfec7e8d`, `rescue/valley-art` | Existing art work; preserve. Do not infer an active agent from the worktree. |
@@ -352,9 +352,14 @@ actual screenshots. No reference project's proprietary art is permitted.
 - [ ] Preserve project/session context entering/leaving World/interiors.
 - [ ] Restrained animations, reduced motion, efficient rendering and useful empty state.
 - [ ] Multiple capture → open → critique → fix → recapture iterations before visual sign-off.
-  One source-Electron iteration is complete across all three required sizes; repeat
-  after compact-window interaction review, then cover interiors and the other product
-  surfaces. Large-size captures still show substantial vertical negative space.
+  One source-Electron iteration now covers all ten destinations in Meadow and Dusk at
+  1024×640, 1440×900 and 1920×1080, including a real Git diff, terminal, jobs, People
+  dialogs and Focus's honest unauthenticated empty state. All 60 destination captures
+  plus two People-dialog captures were generated and opened via contact sheets and
+  representative full-resolution review. Repeat after keyboard/compact-window review;
+  onboarding, interiors, conversation/tool/approval, error/loading/disconnected states
+  and a second art iteration remain open. Large World captures still have substantial
+  vertical negative space.
 - [ ] Reject generic SaaS card grids, PaperCo aesthetics, random clutter, illegible pixel
   text, disconnected palettes and needless configuration.
 
@@ -395,12 +400,12 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   stacked on [#1782](https://github.com/ulises-jeremias/agent-toolkit/pull/1782), which
   is itself stacked on #1781 and #1780; post verified acceptance status to
   [#1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
-  #1780/#1781/#1782 have failing required Desktop gates; this draft remains unmerged
-  pending a healthy, reviewed base. Latest head `3a5821aa08ee797fb53eedb2189c987e14d22324`
-  has new hosted `desktop`, `Clean-machine Desktop Acceptance`, `web`, and `Validate`
-  runs `43317323037`, `43317323083`, `43317323108`, and `43317323286`; these were in
-  progress/pending when this checkpoint was updated. Do not report them as passing.
-  #1782 corrects stale shell smoke assertions
+  #1780/#1781/#1782 have failing Desktop gates; this draft remains unmerged pending
+  a healthy, reviewed base. Latest head `e481f9b2099710cd03dcdb9a885aeeb1a808aeb9`
+  has fresh hosted runs: `quality` (43319795409), `desktop` (43319795522), and
+  `Clean-machine Desktop Acceptance` (43319795449) were queued/in progress as of
+  this checkpoint. Do not report the latter two as passing. #1782 corrects stale
+  shell smoke assertions
   (empty-state headings and the six-place rail) and disambiguates a project row from
   its toast. The failing desktop run is specifically four packaged Electron journeys,
   not those renderer smoke assertions: context pack navigation targeted Projects
@@ -604,31 +609,29 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   both Git change journeys (commit and partial staging), and workspace switching. Command
   used `ATK_E2E_APP_PATH` and `ATK_E2E_BACKEND_BIN` from `package-codex/linux-unpacked`; this
   is package acceptance for those paths, not a build from the latest `d813ad30` test head.
-- Actual source-Electron World captures have now been opened in Meadow and Dusk at
-  1024×640, 1440×900, and 1920×1080. Files are private local review evidence under
-  `.audit-private/world-review-responsive/`; they are not committed. The responsive
-  scene/theme fix and six-case capture pass are on PR #1783, not yet on this integration
-  branch. Full visual coverage of interiors and the other destinations, compact-window
-  interaction, performance, screen-reader/accessibility, and macOS/Windows packaged
-  acceptance remain open.
+- Actual source-Electron captures of all ten destinations have now been opened in
+  Meadow and Dusk at 1024×640, 1440×900, and 1920×1080. Files are private local review
+  evidence under `.audit-private/desktop-visual-matrix/`; they are not committed. The
+  capture tour includes a real per-file Git diff and a real local terminal/jobs. It
+  does not authenticate a provider: Focus is honestly shown in its signed-out state;
+  live Claude/Codex tasks are recorded separately in the acceptance report. This capture
+  pass is on PR #1783, not yet on this integration branch. Onboarding, interiors,
+  conversation/tool/approval, error/loading/disconnected states, compact interaction,
+  performance, screen-reader/accessibility, and macOS/Windows packaged acceptance remain
+  open.
 - Draft follow-up [PR #1783](https://github.com/ulises-jeremias/agent-toolkit/pull/1783)
   is pushed as `rescue/desktop-continuity-focus`, stacked on #1782's
   `fix/desktop-shell-smoke-navigation-20261112` branch (which carries #1781 and #1780).
   The owner-authored commits from #1781 and #1782 are preserved in branch history;
   PR base is retargeted to #1782. The acceptance update is posted to
-  [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6837260918).
+  [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6836606054).
   Packaged Linux E2E passes 7/7 for the listed paths against the existing package
   described above. Electron keyboard/a11y checks pass 3/3, including the skip link,
   reduced motion, and Escape precedence. Use the live checks on draft PR #1783 for the
-  current exact branch head. After this visual slice, the head is
-  `3a5821aa08ee797fb53eedb2189c987e14d22324`; hosted runs `43317323037` (desktop),
-  `43317323083` (Clean-machine Desktop Acceptance), `43317323108` (web), and
-  `43317323286` (Validate) are in progress/pending as of this checkpoint. Earlier
-  results do not cover that head. The latest base runs for #1780/#1781/#1782 still
-  show failures in `gates` and `Packaged Electron with fresh HOME` (runs
-  `43259175883`/`43259175954`, `43278716004`/`43278716272`, and
-  `43298967157`/`43298966315` respectively). The failure causes recorded above need
-  review against each run's current logs; do not waive or merge the stack. No release
+  current exact branch head; earlier CI runs do not cover this newest Focus/Dialog slice.
+  Keep the draft unmerged until required checks for that head finish and the stacked base
+  is healthy. This PR stays
+  draft and unmerged while base PRs have failing required Desktop checks. No release
   was created.
 
 ## 11. How Luna should execute efficiently
