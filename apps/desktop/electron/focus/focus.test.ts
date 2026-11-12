@@ -159,6 +159,23 @@ describe('thread journal', () => {
     fs.rmSync(external, { recursive: true, force: true });
   });
 
+  it('rejects a symlinked workspace root rather than trusting its descendants', () => {
+    const h = harness();
+    const id = start(h);
+    const aliasParent = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-focus-alias-'));
+    const alias = path.join(aliasParent, 'linked-workspace');
+    fs.symlinkSync(h.workspace, alias, 'dir');
+    const meta = h.service.readThread(id)?.thread;
+    expect(meta).toBeDefined();
+    if (!meta) throw new Error('Expected existing thread metadata');
+    expect(ThreadJournal.open(alias, id)).toBeNull();
+    const journal = new ThreadJournal(alias, { ...meta, workspace: alias });
+    expect(() => journal.append(1, { type: 'user', text: 'blocked' })).toThrow(/Symlink/);
+    expect(() => journal.remove()).toThrow(/Symlink/);
+    expect(ThreadJournal.open(h.workspace, id)).not.toBeNull();
+    fs.rmSync(aliasParent, { recursive: true, force: true });
+  });
+
   it('reads thread metadata as untrusted data', () => {
     const h = harness();
     const id = start(h);
