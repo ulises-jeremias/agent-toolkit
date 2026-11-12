@@ -2,6 +2,7 @@ import { app, BrowserWindow, dialog, safeStorage, shell } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import { BackendSupervisor, type BackendState } from './backend';
+import { FocusService } from './focus/service';
 import { HarnessController } from './harness-controller';
 import { HARNESS_STORE_FILE, HarnessStore } from './harness-store';
 import { registerIpc } from './ipc';
@@ -14,6 +15,7 @@ let mainWindow: BrowserWindow | null = null;
 let backend: BackendSupervisor | null = null;
 let terminals: TerminalService | null = null;
 let harness: HarnessController | null = null;
+let focus: FocusService | null = null;
 let mcpSecrets: McpSecretStore | null = null;
 let updateChecker: UpdateChecker | null = null;
 let rendererServer: RendererServer | null = null;
@@ -95,6 +97,14 @@ async function createWindow(): Promise<void> {
     });
   }
 
+  if (!focus) {
+    // Sessions are journaled inside the workspace serve runs in, so history follows the workspace.
+    focus = new FocusService({
+      getWorkspace: () => supervisor.snapshot().harness?.path ?? harnessController.resolve().path,
+      emit: (update) => mainWindow?.webContents.send('atk:focus-update', update),
+    });
+  }
+
   const url = await resolveRendererUrl();
   if (shuttingDown) {
     await closeRendererServer();
@@ -136,6 +146,7 @@ async function createWindow(): Promise<void> {
       getWindow: () => mainWindow,
       getHarness: () => harness,
       getMcpSecrets: () => mcpSecrets,
+      getFocus: () => focus,
       getUpdateChecker: () => updateChecker,
       getPublicBackendUrl: () => rendererServer?.url ?? null,
       chooseProjectDirectory,
@@ -185,7 +196,18 @@ async function createWindow(): Promise<void> {
   onBackendState(supervisor.snapshot());
 }
 
-void app.whenReady().then(createWindow);
+// One instance per profile: two apps journaling the same sessions would each
+// declare the other's live turns interrupted.
+if (app.requestSingleInstanceLock()) {
+  app.on('second-instance', () => {
+    if (!mainWindow) return;
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  });
+  void app.whenReady().then(createWindow);
+} else {
+  app.quit();
+}
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -224,6 +246,9 @@ app.on('before-quit', (event) => {
 async function shutdown(): Promise<void> {
   if (shutdownTask) return shutdownTask;
   shutdownTask = (async () => {
+    // Close live turns in the journal before anything else can fail.
+    focus?.shutdown();
+    focus = null;
     terminals?.dispose();
     terminals = null;
     const activeBackend = backend;

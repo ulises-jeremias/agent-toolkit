@@ -43,6 +43,11 @@ Single source: [`docs/adrs/`](./) — 40 records. Engineering ADRs use `ADR-0xx`
 | [ADR-037](ADR-037-detached-pty-host.md) | Detached PTY host owns interactive terminal sessions |
 | [ADR-038](ADR-038-provider-conversation-resume.md) | Provider conversation ids on PersonSession records and GUI resume |
 | [ADR-039](ADR-039-swarm-collaboration-semantics.md) | Swarm collaboration semantics: speech acts, hop budget, human routing, broadcast |
+| [ADR-040](ADR-040-live-model-catalogue-and-cancel-hardening.md) | Live model catalogue and cancel hardening |
+| [ADR-041](ADR-041-notify-only-update-check.md) | Notify-only update check |
+| [ADR-042](ADR-042-pxl-asset-pipeline.md) | PXL asset pipeline |
+| [ADR-043](ADR-043-provider-adapter.md) | First-party thin ProviderAdapter; T3 Code not adopted |
+| [ADR-044](ADR-044-desktop-session-runtime.md) | Desktop session runtime in the Electron main process; new frontend over the V services |
 | [0001](0001-capability-declaration-and-external-provenance-lock.md) | Capability declaration and external provenance lock |
 | [0002](0002-design-assessment-as-design-unit.md) | Design assessment as design unit |
 | [0003](0003-pack-semantics-products-own-installation.md) | Pack semantics — products own installation |

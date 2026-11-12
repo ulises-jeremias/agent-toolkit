@@ -6,8 +6,31 @@ import type {
   PtyDataEvent,
   PtyProviderSessionEvent,
 } from '../src/types/electron';
+import type { FocusBridge, FocusLiveUpdate } from '../src/types/focus';
+
+const focus: FocusBridge = {
+  providers: (options) => ipcRenderer.invoke('atk:focus-providers', options ?? {}),
+  listThreads: () => ipcRenderer.invoke('atk:focus-threads'),
+  createThread: (input) => ipcRenderer.invoke('atk:focus-thread-create', input),
+  readThread: (id) => ipcRenderer.invoke('atk:focus-thread-read', id),
+  updateThread: (id, patch) => ipcRenderer.invoke('atk:focus-thread-update', id, patch),
+  deleteThread: (id) => ipcRenderer.invoke('atk:focus-thread-delete', id),
+  send: (id, text) => ipcRenderer.invoke('atk:focus-send', id, text),
+  respondApproval: (id, requestId, decision) => ipcRenderer.invoke('atk:focus-approval', id, requestId, decision),
+  interrupt: (id) => ipcRenderer.invoke('atk:focus-interrupt', id),
+  onUpdate: (listener) => {
+    const wrapped = (_event: unknown, payload: unknown): void => {
+      listener(payload as FocusLiveUpdate);
+    };
+    ipcRenderer.on('atk:focus-update', wrapped);
+    return () => {
+      ipcRenderer.removeListener('atk:focus-update', wrapped);
+    };
+  },
+};
 
 const bridge: AtkBridge = {
+  focus,
   backendStatus: () => ipcRenderer.invoke('atk:backend-status'),
   updateStatus: () => ipcRenderer.invoke('atk:update-status'),
   backendRestart: () => ipcRenderer.invoke('atk:backend-restart'),

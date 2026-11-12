@@ -50,7 +50,10 @@ export interface RunResult {
 
 export type RunBinary = (bin: string, args: string[], cwd: string | undefined) => Promise<RunResult>;
 
-const PROBE_TIMEOUT_MS = 5_000;
+// A cold 15 MB binary on a memory-pressured machine was measured at 25 s for
+// `--version` (#1775). A short timeout turned that into a permanent
+// "backend down" until the user restarted it by hand.
+const PROBE_TIMEOUT_MS = 45_000;
 
 export function backendExeName(platform: NodeJS.Platform = process.platform): string {
   return platform === 'win32' ? 'agent-toolkit.exe' : 'agent-toolkit';

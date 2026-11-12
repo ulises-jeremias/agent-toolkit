@@ -182,7 +182,7 @@ Also read:
 
 ### Desktop invariants
 
-- Keep the production application Electron + React over `agent-toolkit serve` (ADR-033); keep domain operations in canonical V core/server APIs.
+- Keep the production application Electron + React over `agent-toolkit serve` (ADR-033); keep domain operations in canonical V core/server APIs. The one exception is provider session orchestration for Focus, which lives in `apps/desktop/electron/focus/` (ADR-044).
 - Engine/shared typed domain APIs remain authoritative. Do not implement Agent Toolkit business logic by shelling out to the Agent Toolkit CLI and parsing output.
 - Keep catalog truth, user configuration, runtime state, and evidence/provenance distinct.
 - Never invent operational activity to make the World look alive.
