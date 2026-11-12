@@ -39,15 +39,57 @@ function EditPreview({ before, after }: { before: string; after: string }) {
   );
 }
 
+/** A unified diff as the provider produced it, coloured by line. */
+function DiffText({ path, diff }: { path: string; diff: string }) {
+  return (
+    <figure className={styles.diffFile}>
+      <figcaption>{path}</figcaption>
+      {diff ? (
+        <pre className={styles.diffPreview} aria-label={`Changes to ${path}`}>
+          {diff.split('\n').map((line, index) => (
+            <span
+              key={index}
+              data-change={
+                line.startsWith('+') && !line.startsWith('+++')
+                  ? 'added'
+                  : line.startsWith('-') && !line.startsWith('---')
+                    ? 'removed'
+                    : undefined
+              }
+            >
+              {`${line}\n`}
+            </span>
+          ))}
+        </pre>
+      ) : null}
+    </figure>
+  );
+}
+
+function changeList(input: unknown): Array<{ path: string; diff: string }> {
+  const changes = field(input, 'changes');
+  if (!Array.isArray(changes)) return [];
+  return changes.flatMap((entry) => {
+    const path = text(field(entry, 'path'));
+    return path ? [{ path, diff: text(field(entry, 'diff')) ?? '' }] : [];
+  });
+}
+
 export function ToolDetail({ item }: { item: ToolItem }) {
   const command = text(field(item.input, 'command'));
+  const reason = text(field(item.input, 'reason'));
   const before = text(field(item.input, 'old_string'));
   const after = text(field(item.input, 'new_string'));
   const content = text(field(item.input, 'content'));
-  const known = command !== null || (before !== null && after !== null) || content !== null;
+  const changes = changeList(item.input);
+  const known = command !== null || (before !== null && after !== null) || content !== null || changes.length > 0;
   return (
     <div className={styles.toolDetail}>
+      {reason ? <p className={styles.toolReason}>{reason}</p> : null}
       {command ? <pre className={styles.toolCode}>{command}</pre> : null}
+      {changes.map((change) => (
+        <DiffText key={change.path} path={change.path} diff={change.diff} />
+      ))}
       {before !== null && after !== null ? <EditPreview before={before} after={after} /> : null}
       {content ? <EditPreview before="" after={content} /> : null}
       {!known && item.input !== undefined && item.input !== null ? (
