@@ -70,6 +70,25 @@
      "logs": [
       "apps/desktop/e2e-real/run.mjs"
      ]
+    },
+    {
+     "journey_id": "D02",
+     "outcome": "pass",
+     "evidence_level": "P",
+     "timestamp_utc": "2026-11-12T04:20:44Z",
+     "steps_to_reproduce": "Re-run the packaged Codex journey (ATK_PROVIDER=codex) after resetting the fixture to its failing baseline.",
+     "observed": "Retest after the OpenCode provider-quota blocker (ledger rule: a later blocker invalidates passes until retested). Runner combobox lists codex:true among opencode/claude/cursor/copilot.",
+     "screenshots": [
+      "docs/desktop/assets/electron/daily-driver/gate0-codex-start-dialog.png"
+     ],
+     "toolkit_sha": "b7cf08eee6a1d3c59c298aa95d5a7a483832504a",
+     "package_version": "1.49.0",
+     "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+     "provider": "codex 0.166.0 (authenticated ChatGPT)",
+     "tested_by": "maintainer agent session, 2026-11-12",
+     "logs": [
+      "apps/desktop/e2e-real/run.mjs"
+     ]
     }
    ]
   },
@@ -133,6 +152,25 @@
      "logs": [
       "apps/desktop/e2e-real/run.mjs"
      ]
+    },
+    {
+     "journey_id": "D03",
+     "outcome": "pass",
+     "evidence_level": "P",
+     "timestamp_utc": "2026-11-12T04:20:44Z",
+     "steps_to_reproduce": "Re-run the packaged Codex journey (ATK_PROVIDER=codex) after resetting the fixture to its failing baseline.",
+     "observed": "Retest after the OpenCode provider-quota blocker (ledger rule: a later blocker invalidates passes until retested). Session started and terminal opened on fixture-repo.",
+     "screenshots": [
+      "docs/desktop/assets/electron/daily-driver/gate0-codex-start-dialog.png"
+     ],
+     "toolkit_sha": "b7cf08eee6a1d3c59c298aa95d5a7a483832504a",
+     "package_version": "1.49.0",
+     "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+     "provider": "codex 0.166.0 (authenticated ChatGPT)",
+     "tested_by": "maintainer agent session, 2026-11-12",
+     "logs": [
+      "apps/desktop/e2e-real/run.mjs"
+     ]
     }
    ]
   },
@@ -192,6 +230,25 @@
      "package_version": "1.49.0",
      "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
      "provider": "opencode 2.2.5 (opencode free provider, authenticated)",
+     "tested_by": "maintainer agent session, 2026-11-12",
+     "logs": [
+      "apps/desktop/e2e-real/run.mjs"
+     ]
+    },
+    {
+     "journey_id": "D04",
+     "outcome": "pass",
+     "evidence_level": "P",
+     "timestamp_utc": "2026-11-12T04:21:30Z",
+     "steps_to_reproduce": "Re-run the packaged Codex journey (ATK_PROVIDER=codex) after resetting the fixture to its failing baseline.",
+     "observed": "Retest after the OpenCode provider-quota blocker (ledger rule: a later blocker invalidates passes until retested). Codex fixed src/sum.mjs (a-b -> a+b); fixture node --test passes; diff 191 bytes.",
+     "screenshots": [
+      "docs/desktop/assets/electron/daily-driver/gate0-codex-after-fix.png"
+     ],
+     "toolkit_sha": "b7cf08eee6a1d3c59c298aa95d5a7a483832504a",
+     "package_version": "1.49.0",
+     "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+     "provider": "codex 0.166.0 (authenticated ChatGPT)",
      "tested_by": "maintainer agent session, 2026-11-12",
      "logs": [
       "apps/desktop/e2e-real/run.mjs"
@@ -261,6 +318,26 @@
      "logs": [
       "apps/desktop/e2e-real/run.mjs"
      ]
+    },
+    {
+     "journey_id": "D05",
+     "outcome": "pass",
+     "evidence_level": "P",
+     "timestamp_utc": "2026-11-12T04:21:30Z",
+     "steps_to_reproduce": "Re-run the packaged Codex journey (ATK_PROVIDER=codex) after resetting the fixture to its failing baseline.",
+     "observed": "Retest after the OpenCode provider-quota blocker (ledger rule: a later blocker invalidates passes until retested). World listed Ada running (1 label); Stop ended the session, STOPPED label shown.",
+     "screenshots": [
+      "docs/desktop/assets/electron/daily-driver/gate0-codex-stopped-history.png",
+      "docs/desktop/assets/electron/daily-driver/gate0-codex-world.png"
+     ],
+     "toolkit_sha": "b7cf08eee6a1d3c59c298aa95d5a7a483832504a",
+     "package_version": "1.49.0",
+     "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+     "provider": "codex 0.166.0 (authenticated ChatGPT)",
+     "tested_by": "maintainer agent session, 2026-11-12",
+     "logs": [
+      "apps/desktop/e2e-real/run.mjs"
+     ]
     }
    ]
   },
@@ -324,6 +401,25 @@
      "logs": [
       "apps/desktop/e2e-real/run.mjs"
      ]
+    },
+    {
+     "journey_id": "D06",
+     "outcome": "pass",
+     "evidence_level": "P",
+     "timestamp_utc": "2026-11-12T04:21:30Z",
+     "steps_to_reproduce": "Re-run the packaged Codex journey (ATK_PROVIDER=codex) after resetting the fixture to its failing baseline.",
+     "observed": "Retest after the OpenCode provider-quota blocker (ledger rule: a later blocker invalidates passes until retested). git diff shows exactly the one-line fix; node --test passes; durable records present (2).",
+     "screenshots": [
+      "docs/desktop/assets/electron/daily-driver/gate0-codex-after-fix.png"
+     ],
+     "toolkit_sha": "b7cf08eee6a1d3c59c298aa95d5a7a483832504a",
+     "package_version": "1.49.0",
+     "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+     "provider": "codex 0.166.0 (authenticated ChatGPT)",
+     "tested_by": "maintainer agent session, 2026-11-12",
+     "logs": [
+      "apps/desktop/e2e-real/run.mjs"
+     ]
     }
    ]
   },
@@ -383,6 +479,25 @@
      "package_version": "1.49.0",
      "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
      "provider": "opencode 2.2.5 (opencode free provider, authenticated)",
+     "tested_by": "maintainer agent session, 2026-11-12",
+     "logs": [
+      "apps/desktop/e2e-real/run.mjs"
+     ]
+    },
+    {
+     "journey_id": "D07",
+     "outcome": "pass",
+     "evidence_level": "P",
+     "timestamp_utc": "2026-11-12T04:24:18.776Z",
+     "steps_to_reproduce": "Re-run the packaged Codex journey (ATK_PROVIDER=codex) after resetting the fixture to its failing baseline.",
+     "observed": "Retest after the OpenCode provider-quota blocker (ledger rule: a later blocker invalidates passes until retested). Relaunch: Offline badges=1, STOPPED labels=2, RECENT SESSIONS=1, 2 durable session records intact.",
+     "screenshots": [
+      "docs/desktop/assets/electron/daily-driver/gate0-codex-relaunch-history.png"
+     ],
+     "toolkit_sha": "b7cf08eee6a1d3c59c298aa95d5a7a483832504a",
+     "package_version": "1.49.0",
+     "platform": "linux-x86_64 (kernel 7.2.14, ozone headless)",
+     "provider": "codex 0.166.0 (authenticated ChatGPT)",
      "tested_by": "maintainer agent session, 2026-11-12",
      "logs": [
       "apps/desktop/e2e-real/run.mjs"
