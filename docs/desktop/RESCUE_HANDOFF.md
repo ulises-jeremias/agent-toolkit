@@ -331,7 +331,12 @@ actual screenshots. No reference project's proprietary art is permitted.
 
 ### Multi-provider and advanced work
 
-- [ ] Prove Claude and Codex independently; no cross-provider success substitution.
+- [x] Prove Claude and Codex independently with separate bounded live tasks in
+  separate disposable repositories; acceptance evidence is in
+  [LIVE_ACCEPTANCE_2026-11-12.md](audits/LIVE_ACCEPTANCE_2026-11-12.md).
+- [ ] Expand provider parity evidence for approval variants, interruption/resume,
+  errors, model changes, and native child behavior. No Codex success is inferred
+  from the Claude task.
 - [ ] Tighten OpenCode auth parsing: successful nonempty `auth list` output alone is
   insufficient proof. Detect actual account/provider state.
 - [ ] Add OpenCode structured adapter only after verifying current installed protocol,
@@ -354,6 +359,10 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
 - [ ] Review #1780 against current code and the final architecture. Update its stale
   description or choose focused follow-up PRs; avoid duplicate giant salvage PRs.
 - [ ] Review outstanding review threads/CI, not merely reported pass counts.
+- [x] Push the continuity/runtime slice as draft [#1783](https://github.com/ulises-jeremias/agent-toolkit/pull/1783),
+  stacked on #1780; post verified acceptance status to [#1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
+  #1780/#1781 currently have failing required gates and #1782 checks were still running
+  at the last inspection; this draft remains unmerged pending a healthy, reviewed base.
 - [ ] #1771 ImgBot was open; inspect deterministic-art drift before merging or closing.
 - [ ] Preserve author commits through cherry-pick/rebase. Never replace them with one
   newly authored aggregate commit or force-push away independent work.
@@ -531,7 +540,11 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   test verification. OpenCode remains unsupported; broad provider feature parity is open.
 - Full visual matrix, performance pass, screen-reader/accessibility pass, actual Meadow
   capture, and macOS/Windows packaged acceptance remain open.
-- No integration branch push/PR/merge/release performed in this session.
+- Draft follow-up [PR #1783](https://github.com/ulises-jeremias/agent-toolkit/pull/1783)
+  is pushed as `rescue/desktop-continuity-focus`, stacked on #1780's `rescue/shell-v2`
+  branch. The acceptance update is posted to [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
+  It is intentionally unmerged while #1780/#1781 have failing required checks and
+  #1782 is still running checks. No release was created.
 
 ## 11. How Luna should execute efficiently
 
