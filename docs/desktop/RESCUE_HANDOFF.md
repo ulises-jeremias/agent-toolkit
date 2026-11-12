@@ -544,7 +544,9 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   `workspace-switch.spec.ts` (1), run in two passes while refining strict selectors.
   Renderer smoke passes all 7 cases, including Focus default for unknown routes,
   six-place compact rail, and the corrected heading-free destination flow. Focus
-  contract tests pass 12/12; TypeScript and lint pass after all related changes.
+  contract tests pass 12/12; keyboard/a11y Electron checks pass 3/3 after fixing
+  the test's sequential-focus reset for Focus home autofocus; TypeScript and lint
+  pass after all related changes.
 - Electron Builder produced and launched the current Linux x64 package at
   `/home/ulisesjcf/.ai-workspace/.audit-private/package-codex/linux-unpacked`, including
   updated renderer/main, Electron 44.11.0, and backend 1.49.0 staged from rescue commit

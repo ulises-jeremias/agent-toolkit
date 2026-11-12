@@ -29,8 +29,13 @@ test('Keyboard-only: skip link, visible focus ring, and every destination reacha
     await waitForBackend(page);
     await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
 
-    // Start from a neutral focus so traversal reflects the real tab order.
-    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    // Focus home intentionally places the caret in its task composer. Move the
+    // sequential-focus starting point to the document so this checks the shell
+    // tab order rather than continuing after that autofocus target.
+    await page.evaluate(() => {
+      document.body.tabIndex = -1;
+      document.body.focus();
+    });
 
     const stops: FocusStop[] = [];
     for (let i = 0; i < 30; i += 1) {
