@@ -43,7 +43,7 @@ export function NewSession({
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
 
-  const activeProject = usable.find((entry) => entry.name === project) ?? usable[0];
+  const activeProject = project ? usable.find((entry) => entry.name === project) : usable[0];
   const activeProvider = ready.find((entry) => entry.id === providerId) ?? ready[0];
 
   useEffect(() => {
@@ -74,8 +74,13 @@ export function NewSession({
         return;
       }
       const sent = await bridge.send(created.value.id, task.trim());
-      if (!sent.ok) setError(sent.error);
+      if (!sent.ok) {
+        setError(sent.error);
+        return;
+      }
       onStarted(created.value.id);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not start the session. Please try again.');
     } finally {
       setStarting(false);
     }
@@ -139,6 +144,11 @@ export function NewSession({
             <PixelIcon name="projects" size={12} />
             {usable.length === 0 ? 'Choose a repository folder' : 'Link another folder'}
           </Button>
+          {project && !activeProject ? (
+            <p className={styles.startError} role="alert">
+              The selected repository is unavailable. Choose an available project before starting.
+            </p>
+          ) : null}
           {activeProject ? <p className={styles.startPath}>{activeProject.target}</p> : null}
           {link.error ? (
             <p className={styles.startError} role="alert">
