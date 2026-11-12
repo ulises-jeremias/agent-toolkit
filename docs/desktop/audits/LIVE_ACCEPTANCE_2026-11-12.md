@@ -15,10 +15,14 @@ performance, and non-Linux platforms remain unverified.
   `cf3f3935f8f01919ecd7057c8afb0de065bb7b67eb7ea75939e6cd75ebe81e8e`.
 - Backend SHA-256 (`resources/bin/agent-toolkit`):
   `a74f1cc8117a0e40372d4364d0c1fd5bd481b6e12c7f7378bb608495dd14a3d2`.
-- Source integration HEAD: `8a753ec5445b5cc4eff40b593e57fa7ce7f669ef` plus dirty, uncommitted
-  integration edits. The backend binary is the existing build from rescue commit `0c730540`;
-  it has no fresh-build provenance from this integration tree. The exact pinned V toolchain
-  could not be compiled under the host's 2 GiB / no-swap requirement (details in the handoff).
+- The package was produced from the integration worktree at source HEAD
+  `8a753ec5445b5cc4eff40b593e57fa7ce7f669ef` plus the then-dirty edits. Those application
+  edits are now committed on the stacked rescue branch as `e799188a`, `b81b6a29`, and
+  `abdf69ff` (plus current `main` commit `3e08b51e`); subsequent changes to this evidence
+  document do not alter the package. The backend binary is the existing build from rescue
+  commit `0c730540`; it has no fresh-build provenance from this integration tree. The exact
+  pinned V toolchain could not be compiled under the host's 2 GiB / no-swap requirement
+  (details in the handoff).
 - Providers: Claude Code `2.1.322`, authenticated to a Claude Pro subscription, and
   Codex `0.167.2`, authenticated to ChatGPT. Both performed separate live tasks in
   separate disposable repositories. OpenCode `2.2.7` was detected and shown as
