@@ -2033,3 +2033,12 @@ The live coding-provider journey, 13-step installed-app recovery, full
 accessibility review, compact Settings/dialog/terminal QA, cross-platform
 packaged runtime, native-provider approvals/interruption, and rescue sign-off
 remain open. Keep this as a working rescue, not a completion report.
+
+Security follow-up found during the continued audit: open P0 #1777 remains
+unresolved. Merged #1779 rejects the tested symlink components and uses
+`O_NOFOLLOW`, randomized exclusive temp files, and sentinel-preservation tests,
+but its own review explicitly leaves lstat/open and remove TOCTOU races plus
+Windows/macOS behavior unverified. Do not describe this as complete filesystem
+isolation or mark #1777 resolved. Preserve the existing mitigations and schedule
+a focused private-storage migration or platform-safe descriptor-based design,
+with nondestructive migration and tests, before calling journal security done.
