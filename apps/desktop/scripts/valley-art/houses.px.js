@@ -246,44 +246,60 @@ include("lib.px.js")
   })
 
   // ================================================================ house-tower
-  // Stone cottage with a slate roof, a dormer window and a climbing ivy wall on the left.
+  // Stone tower-house in three-quarter view: a steep split roof, dormer and
+  // shaded return wall give this silhouette a different scale from the shop.
   const D = {
-    wins: [[11, 44, 9, 11, {}], [44, 44, 9, 11, {}], [27, 20, 9, 9, {}]],
-    doorPane: [30, 50, 4, 4],
+    wins: [[14, 44, 8, 9, {}], [45, 39, 8, 9, {}], [24, 25, 8, 8, { sill: false }]],
+    doorPane: [28, 56, 3, 3],
   }
   sprite("house-tower", { w: W, h: H }, (c) => {
-    stones(c, 46, 10, 8, 16, { rh: 4, widths: [4, 5, 3] })              // stone chimney
-    c.vline(46, 10, 16, "h"); c.vline(53, 10, 16, "D")
-    c.rect(45, 8, 10, 2, "s"); c.hline(45, 8, 10, "h")
-    // slate roof gable, ridge highlight on the sunward slope
-    c.poly([32, 6, 2, 36, 62, 36], "N")
-    c.poly([32, 6, 2, 36, 8, 36, 32, 8], "D")
-    c.line(32, 6, 2, 36, "h")
-    c.clip([32, 6, 2, 36, 62, 36], () => {                           // slate courses inside the gable
-      for (let y = 14; y < 36; y += 4) c.hline(0, y, 64, "V")
-    })
-    // dormer: small plaster box with its own gable cap
-    c.rect(24, 22, 17, 13, "c")
-    c.rect(37, 22, 4, 13, "C")
-    c.poly([22, 22, 32, 14, 43, 22], "N")
-    c.hline(22, 22, 22, "D")
-    win(c, 27, 20, 9, 9, { sill: false })                               // sits in the dormer
-    // stone walls
-    stones(c, 4, 36, 56, 30, { rh: 4 })
-    // ivy up the left wall: clusters, lit upper-left and darker below
+    stones(c, 47, 9, 8, 18, { rh: 3, widths: [4, 5, 3] })
+    c.vline(47, 10, 16, "h"); c.vline(53, 10, 16, "D")
+    c.rect(46, 7, 10, 3, "s"); c.hline(46, 7, 10, "h")
+    // Two slate roof planes meet above the projecting corner.
+    c.poly([35, 4, 7, 27, 35, 42], "N")
+    c.poly([35, 4, 61, 22, 35, 42], "D")
+    c.poly([35, 4, 7, 27, 13, 30, 35, 13], "V")
+    c.poly([35, 4, 61, 22, 56, 26, 35, 13], "N")
+    c.line(35, 5, 8, 28, "h"); c.line(36, 6, 60, 23, "C")
+    for (let y = 14; y < 31; y += 4) {
+      const reach = Math.floor((y - 4) * 1.1)
+      const ridgeY = y + Math.floor((y - 4) * 0.48)
+      c.line(35 - reach, y, 35, ridgeY, y < 22 ? "V" : "C")
+      c.line(35, ridgeY, 35 + reach, y, y < 22 ? "N" : "D")
+    }
+    c.line(7, 27, 35, 43, "T"); c.line(35, 43, 61, 23, "T")
+    c.line(9, 30, 35, 45, "u"); c.line(35, 45, 59, 26, "u")
+    // Pale limestone front and a cooler side plane, both with coursed joints.
+    c.poly([11, 30, 35, 43, 35, 65, 12, 58], "c")
+    c.poly([35, 43, 60, 27, 60, 56, 35, 65], "C")
+    c.poly([12, 58, 35, 65, 35, 70, 12, 64], "s")
+    c.poly([35, 65, 60, 56, 60, 62, 35, 70], "s")
+    for (const y of [39, 46, 53]) {
+      c.line(12, y, 34, y + 12, "h")
+      c.line(36, y + 13, 59, y - 2, "D")
+    }
+    for (const x of [18, 26, 32]) c.line(x, 35 + Math.floor((x - 11) * 0.54), x, 39 + Math.floor((x - 11) * 0.54), "s")
+    for (const x of [41, 49, 56]) c.line(x, 49 - Math.floor((x - 35) * 0.64), x, 53 - Math.floor((x - 35) * 0.64), "D")
+    c.vline(12, 33, 24, "h"); c.vline(34, 44, 18, "T"); c.vline(59, 30, 24, "D")
+    c.line(12, 60, 35, 67, "D"); c.line(36, 67, 59, 59, "D")
+    // Repaint the dormer in front of the limestone courses, as a real
+    // projection from the roof rather than a window buried in the wall.
+    c.poly([19, 27, 26, 20, 34, 27], "N")
+    c.line(26, 20, 19, 27, "h"); c.line(27, 21, 33, 27, "D")
+    c.rect(22, 27, 10, 10, "c"); c.rect(29, 27, 3, 10, "C")
+    win(c, 24, 25, 8, 8, { sill: false })
+    // Ivy follows the sunny outer corner rather than covering a window.
     const ivy = (x, y) => { c.circ(x, y, 2, "F"); c.px(x - 1, y - 1, "G"); c.px(x + 1, y + 1, "S") }
-    for (const [x, y] of [[7, 46], [10, 42], [6, 52], [9, 58], [5, 37]]) ivy(x, y)
-    c.vline(8, 37, 8, "S")
+    for (const [x, y] of [[13, 43], [15, 48], [14, 54], [17, 58]]) ivy(x, y)
     for (const [x, y, w, h, o] of D.wins) {
-      if (y === 20) continue
+      if (y === 24) continue
       win(c, x, y, w, h, o)
       c.rect(x - 1, y + h, w + 2, 2, "s"); c.hline(x - 1, y + h + 1, w + 2, "D")
     }
-    // stone door surround and oak door
-    c.rect(25, 46, 14, 24, "s")
-    c.rect(26, 46, 12, 23, "e")
-    door(c, 27, 47, 10, 22, ["N", "t", "u"], { arch: "s", pane: D.doorPane })
-    c.hline(25, 69, 14, "h")
+    c.rect(24, 47, 13, 23, "s"); c.rect(25, 48, 11, 22, "e")
+    door(c, 26, 49, 10, 21, ["N", "t", "u"], { arch: "s", pane: D.doorPane })
+    c.line(24, 69, 37, 69, "h")
   }, outline)
   sprite("house-tower_lit", { w: W, h: H }, (c) => {
     for (const [x, y, w, h, o] of D.wins) litwin(c, x, y, w, h, o)   // includes the dormer pane

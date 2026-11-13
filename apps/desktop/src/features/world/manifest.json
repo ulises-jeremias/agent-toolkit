@@ -167,7 +167,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "6f7de1a2e4df17ef36845061472a8634293334c49abe8de345e7902afe961395"
+      "sha256": "eaa0c6eaac774c673f00adc14628b5136e6b4d3105938f5b16964e49de675da6"
     },
     "house-tower_lit": {
       "file": "house-tower_lit.png",
@@ -175,7 +175,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "bb63ce05cc077a73f186cb872ea62df641da515ff3cb54908f3517cb942f19b9"
+      "sha256": "ad6738f8a74afa1cd061477624588de238889ab416eb9c23611512ff4b8c244b"
     },
     "house-workshop": {
       "file": "house-workshop.png",
