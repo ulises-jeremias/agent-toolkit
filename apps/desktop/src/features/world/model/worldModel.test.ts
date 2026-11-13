@@ -1135,8 +1135,9 @@ describe('layoutWorld', () => {
       if (tiles.get(`${x},${y + 1}`) === tile) matchingNeighbors += 1;
     }
 
-    expect(flowers.length).toBeGreaterThan(60);
-    expect(matchingNeighbors).toBeGreaterThan(8);
+    expect(flowers.length).toBeGreaterThan(15);
+    expect(flowers.length).toBeLessThan(100);
+    expect(matchingNeighbors).toBeGreaterThan(4);
   });
 
   it('uses a few deterministic inlays in project rooms without making them status signals', () => {
@@ -1383,7 +1384,7 @@ describe('layoutWorld', () => {
       const neighboringFlowers = flowers.filter(
         (other) => Math.abs(other.x - cell.x) <= 2 && Math.abs(other.y - cell.y) <= 2,
       );
-      return neighboringFlowers.length >= 10;
+      return neighboringFlowers.length >= 5;
     });
 
     expect(species.size).toBeGreaterThanOrEqual(3);
@@ -1452,9 +1453,9 @@ describe('layoutWorld', () => {
     const eastBankPatches = flowerPatches.filter(({ x, y }) => onBank(x, Math.floor(y - 0.5), 'east', 1));
 
     expect(water.length).toBeGreaterThan(0);
-    expect(westBankFlowers.length).toBeGreaterThan(15);
-    expect(eastBankFlowers.length).toBeGreaterThan(5);
-    expect(flowerPatches.length).toBeGreaterThanOrEqual(3);
+    expect(westBankFlowers.length).toBeGreaterThan(5);
+    expect(eastBankFlowers.length).toBeGreaterThan(3);
+    expect(flowerPatches.length).toBeGreaterThanOrEqual(2);
     expect(westBankPatches.length).toBeGreaterThan(0);
     expect(eastBankPatches.length).toBeGreaterThan(0);
   });

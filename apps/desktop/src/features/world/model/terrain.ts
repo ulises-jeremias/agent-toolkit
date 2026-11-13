@@ -159,7 +159,9 @@ function baseGround(p: Painter) {
       const moisture = meadowField(fieldX, fieldY, 12, 11) * 0.72 + meadowField(fieldX, fieldY, 24, 17) * 0.28;
       const bloom = meadowField(x, y, 6, 19);
       const roll = h2(x, y, 1) % 23;
-      if (bloom > 0.8 && roll < 12) {
+      // Keep tiny wildflowers grouped by the broad bloom field. Dense floral
+      // tiles belong to deliberate glades, not to a repeating confetti layer.
+      if (bloom > 0.94 && roll < 12) {
         p.set(x, y, ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'][h2(x, y, 12) % 4]!);
       } else {
         const grass = Math.max(0, Math.min(5, Math.floor((moisture - 0.22) * 9)));
@@ -694,11 +696,11 @@ function flowerGlades(p: Painter) {
   // every bloom beside the creek and leave the civic quarter as a bare lawn.
   // Include the outer fringe so narrow, path-bound civic banks can still host
   // a clipped edge glade instead of reserving all blooms for open interiors.
-  const target = Math.min(22, Math.max(8, Math.floor((p.cols * p.rows) / 30)));
+  const target = Math.min(7, Math.max(3, Math.floor((p.cols * p.rows) / 125)));
   const hasProjectDistrict = p.projectLots.length > 0;
   const minX = hasProjectDistrict ? 1 : 2;
   const minY = hasProjectDistrict ? 1 : 3;
-  const centerSpacing = hasProjectDistrict ? 4 : 5;
+  const centerSpacing = hasProjectDistrict ? 6 : 7;
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = minY; y < p.rows - 2; y++) {
     for (let x = minX; x < p.cols - 2; x++) {
@@ -714,8 +716,8 @@ function flowerGlades(p: Painter) {
     if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < centerSpacing))
       return false;
     centers.push(candidate);
-    const radiusX = 4 + (h2(candidate.x, candidate.y, 137) % 2);
-    const radiusY = 2 + (h2(candidate.x, candidate.y, 139) % 2);
+    const radiusX = 2 + (h2(candidate.x, candidate.y, 137) % 2);
+    const radiusY = 1 + (h2(candidate.x, candidate.y, 139) % 2);
     const blooms = ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'] as const;
     const primary = h2(candidate.x, candidate.y, 149) % blooms.length;
     const secondary = (primary + 1 + (h2(candidate.x, candidate.y, 157) % 3)) % blooms.length;
@@ -770,8 +772,8 @@ function flowerPatchSprites(p: Painter) {
   candidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
 
   const placed: { x: number; y: number }[] = [];
-  const minimumPatches = p.projectLots.length > 0 ? 4 : 3;
-  const target = Math.min(8, Math.max(minimumPatches, Math.floor((p.cols * p.rows) / 140)));
+  const minimumPatches = p.projectLots.length > 0 ? 2 : 1;
+  const target = Math.min(4, Math.max(minimumPatches, Math.floor((p.cols * p.rows) / 250)));
   const onBank = (candidate: { x: number; y: number }, side: 'west' | 'east') => {
     const waterXs = Array.from({ length: p.cols }, (_, x) => x).filter((x) => p.get(x, candidate.y) === 'water');
     if (waterXs.length === 0) return false; // The paved crossing row has no open-water bank.

@@ -118,13 +118,43 @@ All six packaged captures passed and were opened: Meadow/Dusk at 1024×640,
 1440×900 and 1920×1080. At 1440 and 1920 the village is larger and centered; at
 1024 it remains legible and fits. This fixes the camera crop/scale defect only.
 The scene still reads as a sprite showcase rather than a composed valley: a
-rectangular terrain boundary, straight creek, repeated canopy clusters, confetti
-ground marks, isolated front-facing buildings, and large vertical margins remain.
-Private captures are under
+rectangular terrain boundary, straight creek, repeated canopy clusters,
+isolated front-facing buildings, and large vertical margins remain. The later
+ground pass reduces small marks; see the next section. Private captures are under
 `/home/ulisesjcf/.ai-workspace/.audit-private/world-fit-overview-v2/`.
 
+## Vegetation density and ground detail — iterations 4–5
+
+The first vegetation pass removed every mark from grass and reduced flowers and
+path flecks. Its six packaged captures revealed broad square tone bands more
+clearly. That version was rejected. Iteration 5 restores only a short, muted
+two-pixel grass blade per tile, keeps the broad base tone uniform, groups
+flowers in smaller glades, and removes most gravel flecks from paths. Flower
+tiles now show two small stems instead of a dense scatter, and featured glades
+use four authored plant groups.
+
+The rebuilt Linux unpacked Electron app passed the six-view World capture at
+1024×640, 1440×900 and 1920×1080 in Meadow and Dusk. I opened all six images.
+The terrain is calmer, the village paths read more clearly, and flower color no
+longer competes across the whole lawn. The square scene edge remains, the canal
+still reads as a straight divider, trees still repeat dense rounded crowns, and
+the houses remain isolated front-facing cutouts. These captures verify
+rendering in packaged Electron only; they do not earn visual sign-off. Private
+captures:
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-art-iteration-5/`.
+The unpacked Electron executable SHA-256 is
+`234e177afdc9ee053d6798ae1fd8ada6e535f5c8425d25ff17c92aac571a7d2d`.
+
+Local validation on the dirty source worktree passed the focused World/model
+tests (76 tests), full Desktop test command, TypeScript checks, ESLint, generated
+PXL asset determinism (201 sprites), `build:all`, `dist:dir`, and the packaged
+six-view Electron capture. The package stages the existing 1.49.0 backend from
+rescue commit `0c730540`; it is not a fresh build from the pinned V toolchain.
+The exact source head remains `8a8037ac` plus uncommitted art changes until a
+reviewed commit is pushed.
+
 Capture artifacts are kept outside the repository under
-`/home/ulisesjcf/.ai-workspace/.audit-private/world-art-iteration-{1,2,3}/`.
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-art-iteration-{1,2,3,4,5}/`.
 The successful packaged runs used Electron's headless Ozone mode because the
 host could not create an Xvfb lock under its `/tmp` write quota. They prove the
 packaged renderer path at the requested viewport sizes, not native window
