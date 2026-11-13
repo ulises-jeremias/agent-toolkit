@@ -49,6 +49,13 @@ test('reviews, stages, and commits real project changes from the GUI', async () 
     await expect(changes.getByRole('heading', { name: 'Changed (1)' })).toBeVisible();
     await expect(changes.getByRole('heading', { name: 'Untracked (1)' })).toBeVisible();
 
+    // Review new file contents before staging them into the index.
+    await changes
+      .getByRole('list', { name: 'Untracked files' })
+      .getByRole('button', { name: /notes\.txt/ })
+      .click();
+    await expect(changes.getByLabel('Diff for notes.txt')).toContainText('+field notes');
+
     // Inspect the unstaged diff before staging anything.
     await changes.getByRole('button', { name: /README\.md/ }).click();
     await expect(changes.getByLabel('Diff for README.md')).toContainText('+Now with notes.');
