@@ -138,7 +138,7 @@ test('packaged Desktop completes a real Codex task, stops safely, and reports pr
 
     const resumeComposer = page.getByRole('textbox', { name: 'Message', exact: true });
     await resumeComposer.fill(
-      'Use a read-only tool to read live-result.txt, then reply with its exact contents. Do not edit files or run commands.',
+      'Run `cat live-result.txt` in the project, then reply with its exact contents. Do not edit any files.',
     );
     await page.getByRole('button', { name: 'Send', exact: true }).click();
     const followupTurn = reopenedLog.getByRole('region', { name: 'Turn 3' });
