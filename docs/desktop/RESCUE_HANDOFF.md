@@ -1913,3 +1913,50 @@ skipped; desktop gates and clean-machine acceptance remained in progress; V
 parity had one success and one in progress. No failure appeared in this poll.
 This is not a green PR gate. Follow up on this same SHA until final, then query
 again after any later push.
+
+## 45. Continuation checkpoint — repaired fresh-profile gate and perspective workshop
+
+Inspected the exact-head failures from PR #1783 rather than trusting the green
+local run or assuming a provider outage. Both the clean-machine acceptance and
+Desktop `gates` jobs had failed at the same assertion in
+`desktop.spec.ts`: they expected a `role=alert` containing “No agent is ready.”
+The actual packaged Focus form correctly reports the machine-specific state as
+an accessible `role=status` (“No coding agent is signed in…”) and shows disabled
+provider choices with their login commands. `waitForBackend` already proves the
+backend event stream is live. Reproduced the failing assertion on the actual
+Linux package; removing the obsolete provider-auth expectation made the focused
+packaged Electron test pass (1/1). Commit `9b0f93a1` is pushed to PR #1783.
+This corrects a test fixture contract, not a provider or backend implementation.
+
+Continued the PXL family pass with `house-workshop`, a tall timber storefront
+whose slate planes, shaded side wall, doorway canopy and window placements now
+read in three-quarter perspective. Generated both Meadow and Dusk assets and
+the governed preview/manifests. The initial canopy obscured the entrance and
+part of a window, so it was narrowed and repositioned after inspecting the PXL
+preview. The actual packaged Electron six-view World tour then passed in both
+themes at 1024×640, 1440×900 and 1920×1080. Opened the compact Dusk and 1440×900
+Meadow images: the house reads at map scale as a distinct narrow timber shop
+without obscuring its door. Private captures are under
+`/home/ulisesjcf/.ai-workspace/.audit-private/workshop-perspective/`.
+
+Checks after the asset change: all 80 Vitest files / 617 tests, all 45 runtime
+spike tests, `check:world` (207 deterministic sprites), lint, type-check,
+`git diff --check`, Linux x64 `dist:dir`, and the actual packaged six-view World
+capture 1/1. The Focus E2E correction itself passed against the packaged app
+before the art-only rebuild. The asset change is pushed as
+`ba12189c` (`feat(desktop): give workshop facade perspective`).
+
+At last poll, PR #1783 is OPEN, draft and MERGEABLE at
+`ba12189ccef3cddcbbe3699d05d8a90af13f94a8`. Fresh Actions had not appeared yet;
+the preceding `9b0f93a1` Desktop and clean-machine jobs were still in progress,
+while web quality, both V parity jobs, and most Validate jobs had passed. Poll
+the new exact head and collect final results before treating those earlier runs
+as resolved. The desktop PR remains unmerged and the mission remains active.
+
+The project-house family is still partial: tower is front-on, three of six
+facades now have authored depth, and scene-level edge/creek composition remains
+unfinished. Continue with actual packaged critique, then complete the remaining
+architecture and landscape, accessibility and compact interaction sweep,
+provider-supported acceptance when credentials/CLI are available, and the
+clean installed-app recovery journey. Do not close the product or live-provider
+gates based on the evidence above.
