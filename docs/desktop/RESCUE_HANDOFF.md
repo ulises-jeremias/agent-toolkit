@@ -2244,3 +2244,33 @@ package work is running, and macOS checks are queued. Exact `main` head
 `a63db4a5` still has `desktop` and clean-machine acceptance running and
 `Validate` queued. Re-poll these exact heads; no failure is visible, but neither
 matrix is complete.
+
+## 54. Continuation checkpoint — CI-built Linux package live acceptance
+
+Downloaded Linux x64 AppImage artifact `14031169023` from Release run
+`43414288062`, built for exact PR #1783 head
+`b92560663a5c437e48c1d51c77fe697de8c18e32`. The real Codex packaged journey
+passed 1/1 in 1.3 minutes against this CI artifact on isolated X11. Unlike the
+earlier local-package evidence in section 51, this package includes the backend
+built by CI's pinned production toolchain. AppImage SHA-256 is
+`27ad2e713800bda7aef5fc6ab32b5e755af1b15bf15c61c30c5e11cf46810219`;
+`app.asar` SHA is
+`8c5166732343459c1d2fb65edaadee7de30f935221b00384694daa44397aa08e`, backend
+SHA is `7ba7d32f3c01a80f1a2742673ae4381e2d02c7d728eff6541476f3abb8aaa900`,
+and packaged backend version reports `1.49.0`. Full evidence and remaining
+limits are in [LIVE_ACCEPTANCE_2026-11-12.md](audits/LIVE_ACCEPTANCE_2026-11-12.md).
+
+The live journey again proved actual Codex work, visible file diff, embedded
+terminal use, safe interruption, Electron process restart/history recovery, and
+World ↔ Focus project/thread continuity. Repository linking used the test
+directory-picker stub; the app profile, workspace, and Git repository were
+disposable. This does not establish full onboarding with the real OS picker,
+screen-reader acceptance, cross-platform live-provider use, or every provider
+approval/resume behavior.
+
+At the latest exact-head poll, PR #1783's `gates`, clean-HOME package
+acceptance, CodeQL, quality, and Ubuntu x64/ARM plus Windows packaging passed.
+macOS package, linkage, integration, and platform validation jobs remained
+pending. Exact main `a63db4a5` had `desktop`, CodeQL, and MegaLinter passing,
+while `Validate` remained queued. Keep PR #1783 draft; re-poll exact heads before
+integration or release decisions.

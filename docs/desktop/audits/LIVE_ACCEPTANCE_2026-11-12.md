@@ -127,3 +127,31 @@ No provider credentials or traces were copied to the repository. This confirms t
 packaged Codex journey on this host; it does not close Claude/OpenCode parity, native-picker,
 in-flight resume guarantees, approval/deny variants, security/platform, accessibility, or
 complete 13-step daily-driver acceptance.
+
+## CI-produced packaged Codex acceptance — 2026-11-13
+
+Repeated the real-provider journey against the Linux x64 AppImage produced by
+Release workflow run `43414288062` for PR #1783 exact head
+`b92560663a5c437e48c1d51c77fe697de8c18e32` (artifact `electron-linux-x86_64`,
+ID `14031169023`). This closes the earlier provenance gap for the Linux backend:
+this was the package from CI's pinned production toolchain, not the host
+checkout's pre-existing `dist/agent-toolkit`.
+
+- AppImage SHA-256: `27ad2e713800bda7aef5fc6ab32b5e755af1b15bf15c61c30c5e11cf46810219`.
+- Extracted `resources/app.asar` SHA-256:
+  `8c5166732343459c1d2fb65edaadee7de30f935221b00384694daa44397aa08e`.
+- Packaged backend SHA-256:
+  `7ba7d32f3c01a80f1a2742673ae4381e2d02c7d728eff6541476f3abb8aaa900`;
+  `resources/backend-version.json` reports `1.49.0`.
+- `e2e/electron/codex-live-acceptance.spec.ts` passed 1/1 in 1.3 minutes on
+  isolated X11 (`:99`) with installed Codex CLI `0.168.0` and the existing
+  authenticated `CODEX_HOME`. App HOME/profile/workspace/repository were
+  temporary and cleaned after the test.
+
+The result verifies UI repository linking (with the test directory-picker
+stub), a real Codex-created file, Focus diff, embedded PTY, safe Stop, process
+restart/history recovery, provider follow-up via `cat`, and Focus ↔ project World
+context retention. This is Linux x64 package evidence only; the real OS picker,
+screen reader, macOS/Windows live-provider use, and remaining acceptance gaps
+stay open. The artifact remains in the ignored private audit directory and was
+not committed.
