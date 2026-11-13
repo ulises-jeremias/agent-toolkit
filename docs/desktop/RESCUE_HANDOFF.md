@@ -1788,3 +1788,19 @@ parity `43399533844`; all were pending at that moment. Re-query this exact SHA
 for final conclusions; the previous `3aaa43eb` successes do not validate this
 renderer change. The river/top-boundary critique remains open and the rescue is
 not signed off.
+
+## 40. Continuation checkpoint — packaged World navigation after light overlay
+
+After the Dusk window overlay change, reran the Linux x64 packaged `valley.spec.ts`
+against the rebuilt application and real backend. Both tests passed (2/2,
+33.8 seconds): semantic World/no-fake-activity and linked project house →
+interior → Focus project retention. This closes the targeted package regression
+called out in checkpoint 39; it does not close provider acceptance or product
+sign-off.
+
+A fresh exact-head CI poll for `c064e7c4a9b8a9f06d0f6e3880d22d3d9ef8bf6c`
+still showed Desktop gates `43399533484`, clean-machine `43399533447`, web
+`43399533583`, V parity `43399533844`, Validate/package job `43399533668` as
+pending. No failure was reported. Continue monitoring exact head. Remaining
+visual work includes organic top/bottom scene boundaries, a more naturally
+composed creek and formal review of all domain surfaces/accessibility.
