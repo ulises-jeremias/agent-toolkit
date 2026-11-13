@@ -543,7 +543,7 @@ test('Library installs Skills and preserves user changes during reviewed removal
   await expect(page.getByRole('region', { name: 'Receipts' })).toContainText('Toolkit capabilities installed');
   expect(applyRequests).toBe(2);
   expect(appliedTargets).toEqual(['claude-code', 'cursor']);
-  const evidence = page.getByRole('region', { name: 'Installation evidence' });
+  const evidence = page.getByRole('region', { name: 'Installed capabilities' });
   await expect(evidence).toContainText('receipts');
   await expect(evidence).toContainText('Claude Code');
   await expect(evidence).toContainText('Cursor');
@@ -583,8 +583,8 @@ test('Library installs Skills and preserves user changes during reviewed removal
     await page.setViewportSize({ width: 1280, height: 800 });
   }
   await page.reload();
-  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('Claude Code');
-  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('Cursor');
+  await expect(page.getByRole('region', { name: 'Installed capabilities' })).toContainText('Claude Code');
+  await expect(page.getByRole('region', { name: 'Installed capabilities' })).toContainText('Cursor');
   await expect(page.getByText('Discovering coding tools')).toBeHidden();
   await expect(page.getByText('Loading agent definitions')).toBeHidden();
   await expect(page.getByText('Listing swarm runners')).toBeHidden();
@@ -597,7 +597,7 @@ test('Library installs Skills and preserves user changes during reviewed removal
     ]) {
       await page.setViewportSize({ width: size.width, height: size.height });
       await page.screenshot({
-        path: path.join(LIBRARY_CAPTURE_DIR, `installation-receipts-${size.key}.png`),
+        path: path.join(LIBRARY_CAPTURE_DIR, `installed-capabilities-${size.key}.png`),
         fullPage: true,
       });
     }
@@ -607,7 +607,7 @@ test('Library installs Skills and preserves user changes during reviewed removal
   const toolkitSkill = path.join(desktop.home, '.claude', 'skills', 'pr-fallback', 'references', 'pr-body-default.md');
   expect(fs.existsSync(toolkitSkill)).toBe(true);
   fs.writeFileSync(toolkitSkill, 'Edited by the user after Toolkit installed it.\n');
-  await evidence.getByRole('button', { name: 'Refresh evidence' }).click();
+  await evidence.getByRole('button', { name: 'Refresh list' }).click();
   await expect(evidence).toContainText('edited since install');
   await expect(installedSkill).toContainText('needs attention');
   const claudeReceipt = evidence.getByRole('row').filter({ hasText: 'Claude Code' });
@@ -625,7 +625,7 @@ test('Library installs Skills and preserves user changes during reviewed removal
     ]) {
       await page.setViewportSize({ width: size.width, height: size.height });
       await fileEvidence.locator('summary').scrollIntoViewIfNeeded();
-      await evidence.screenshot({
+      await page.screenshot({
         path: path.join(LIBRARY_CAPTURE_DIR, `installation-artifact-evidence-${size.key}.png`),
       });
     }
@@ -690,8 +690,10 @@ test('Library installs Skills and preserves user changes during reviewed removal
       path.join(desktop.home, '.config', 'agent-toolkit', 'receipts', 'claude-code-agent-toolkit-profiles.json'),
     ),
   ).toBe(false);
-  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText(
-    'No Toolkit capability installations recorded on this machine.',
+  const installedCapabilities = page.getByRole('region', { name: 'Installed capabilities' });
+  await expect(installedCapabilities).toContainText('No capabilities installed yet.');
+  await expect(installedCapabilities).toContainText(
+    'Files already on your machine are not claimed as Toolkit installs.',
   );
 });
 
@@ -714,7 +716,7 @@ test('Library searches typed catalog metadata and reveals provenance and compati
   await expect(detail).toContainText('Windsurf: partial');
   await expect(detail).toContainText('skills/agentic-security/mcp-audit/SKILL.md');
   await expect(detail).toContainText('None declared');
-  await expect(detail).toContainText('No Toolkit receipt owns files for this Skill');
+  await expect(detail).toContainText('No files from a Toolkit install are recorded for this Skill');
   await skill.scrollIntoViewIfNeeded();
   const skillsPanel = page.getByRole('region', { name: 'Skills catalog' });
 

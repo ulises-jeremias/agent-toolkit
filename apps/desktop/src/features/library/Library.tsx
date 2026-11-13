@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAgents, useInstallReceipts, useLibrarySkills, useProviders, useTools } from '../../data/catalog';
-import { useReport, useSubQuery } from '../../data/commands';
+import { useSubQuery } from '../../data/commands';
 import { requireClient, useBackend } from '../../data/backend';
 import { useProjects } from '../../data/projects';
 import { useSessionContext } from '../../shell/useSessionContext';
@@ -249,8 +249,6 @@ export default function Library() {
   const { client, backend } = useBackend();
   const { context } = useSessionContext();
   const workspacePath = context.workspace || backend?.harness?.path || '';
-  const inventory = useReport('inventory');
-  const catalogRoot = inventory.data?.data['root'];
   const tools = useTools();
   const receipts = useInstallReceipts();
   const agents = useAgents();
@@ -448,16 +446,12 @@ export default function Library() {
 
   return (
     <div className={styles.room}>
-      <p className={styles.mark}>Cozy Pixel World · library board</p>
+      <p className={styles.mark}>Agent Toolkit · Library</p>
       <PageHeader
         surface="panel"
         eyebrow="Library"
         title="Library board"
-        lede={
-          catalogRoot
-            ? `Shelves from ${catalogRoot}. Catalog membership and receipt-backed installs stay distinct. Memory is not this room; live activity is shown in Operations.`
-            : 'Catalog membership and receipt-backed installs stay distinct. Memory is not this room; live activity is shown in Operations.'
-        }
+        lede="Browse agents, skills, and tools; preview every change before installing. Add shared guidance in Context and follow running tasks in Operations."
         actions={
           <ButtonRow>
             <Button
@@ -1005,25 +999,24 @@ export default function Library() {
           </Panel>
           <ContextBundlesPanel workspace={workspacePath} needle={catalogNeedle} />
           <Panel
-            title="Installation evidence"
-            meta={receipts.data ? `${receipts.data.receipts.length} receipts` : undefined}
+            title="Installed capabilities"
+            meta={receipts.data ? `${receipts.data.receipts.length} installed` : undefined}
             actions={
               <Button size="sm" variant="secondary" busy={receipts.isFetching} onClick={() => void receipts.refetch()}>
-                Refresh evidence
+                Refresh list
               </Button>
             }
           >
             <QueryView
               query={receipts}
-              loading="Reading installation receipts"
-              errorTitle="Could not read installation evidence"
+              loading="Loading installed capabilities"
+              errorTitle="Could not load installed capabilities"
             >
               {(response) =>
                 response.receipts.length === 0 ? (
-                  <EmptyState title="No Toolkit capability installations recorded on this machine.">
-                    Review an installation above to choose destinations. Existing files are never reported as installed
-                    without a backend receipt. Receipt paths are checked against their recorded SHA-256 without
-                    returning file contents.
+                  <EmptyState title="No capabilities installed yet.">
+                    When you install an agent, skill, or tool from Library, it will appear here. Review an installation
+                    above to choose where it belongs. Files already on your machine are not claimed as Toolkit installs.
                   </EmptyState>
                 ) : (
                   <Table>
@@ -1439,8 +1432,8 @@ export default function Library() {
                               </ul>
                             ) : (
                               <p>
-                                No Toolkit receipt owns files for this Skill on this machine. It may still be installed
-                                independently; only receipt-backed installs are reported here.
+                                No files from a Toolkit install are recorded for this Skill on this machine. It may
+                                still have been added another way.
                               </p>
                             );
                           })()}
