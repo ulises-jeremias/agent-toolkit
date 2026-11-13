@@ -1,7 +1,18 @@
 import readline from 'node:readline';
+import { spawn } from 'node:child_process';
 const write = (frame) => process.stdout.write(`${JSON.stringify(frame)}\n`);
 const notify = (method, params) => write({ method, params });
 process.on('SIGTERM', () => {});
+const grandchildFlagIndex = process.argv.indexOf('--spawn-grandchild');
+if (grandchildFlagIndex >= 0) {
+  const pidFile = process.argv[grandchildFlagIndex + 1];
+  const mutationFile = process.argv[grandchildFlagIndex + 2];
+  spawn(
+    '/bin/sh',
+    ['-c', 'sleep 60 & echo $! > "$1"; while :; do printf x >> "$2"; sleep 0.05; done', '--', pidFile, mutationFile],
+    { stdio: 'ignore' },
+  );
+}
 readline.createInterface({ input: process.stdin }).on('line', (line) => {
   const frame = JSON.parse(line);
   const reply = (result) => write({ id: frame.id, result });

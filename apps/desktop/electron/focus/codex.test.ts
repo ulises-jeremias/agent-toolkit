@@ -1,5 +1,7 @@
 // @vitest-environment node
 import path from 'node:path';
+import fs from 'node:fs';
+import os from 'node:os';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AdapterSink } from './adapter';
 import { CodexSession } from './codex';
@@ -37,6 +39,37 @@ afterEach(() => {
   for (const session of sessions.splice(0)) session.dispose(true);
 });
 describe('Codex app-server protocol', () => {
+  it.skipIf(process.platform !== 'linux')(
+    'forced shutdown stops descendants before they can keep mutating files',
+    async () => {
+      const runtimeDir = fs.mkdtempSync(path.join(process.env.TMPDIR ?? os.tmpdir(), 'atk-codex-descendant-'));
+      const pidFile = path.join(runtimeDir, 'grandchild.pid');
+      const mutationFile = path.join(runtimeDir, 'mutation.log');
+      const { session, sink } = harness(['--spawn-grandchild', pidFile, mutationFile]);
+      try {
+        session.send('hold');
+        await vi.waitFor(() => expect(sink.session).toHaveBeenCalled(), { timeout: 3_000 });
+        await vi.waitFor(() => expect(fs.existsSync(pidFile)).toBe(true), { timeout: 3_000 });
+        await vi.waitFor(() => expect(fs.statSync(mutationFile).size).toBeGreaterThan(0), { timeout: 3_000 });
+        const pid = Number(fs.readFileSync(pidFile, 'utf8').trim());
+        expect(Number.isInteger(pid)).toBe(true);
+        expect(isProcessRunning(pid)).toBe(true);
+
+        session.dispose(true);
+        await vi.waitFor(() => expect(sink.exited).toHaveBeenCalledWith(expect.objectContaining({ expected: true })), {
+          timeout: 3_000,
+        });
+        await vi.waitFor(() => expect(isProcessRunning(pid)).toBe(false), { timeout: 3_000, interval: 50 });
+        const sizeAfterShutdown = fs.statSync(mutationFile).size;
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        expect(fs.statSync(mutationFile).size).toBe(sizeAfterShutdown);
+      } finally {
+        session.dispose(true);
+        fs.rmSync(runtimeDir, { recursive: true, force: true });
+      }
+    },
+  );
+
   it('keeps child and stale-turn frames out of the parent journal', async () => {
     const { session, sink } = harness();
     session.send('scope');
@@ -63,7 +96,9 @@ describe('Codex app-server protocol', () => {
     const { session, sink } = harness();
     session.send('question');
     await vi.waitFor(() => expect(sink.userInput).toHaveBeenCalledTimes(1));
-    expect(sink.userInput).toHaveBeenCalledWith('codex-question', [expect.objectContaining({ id: 'purpose', isSecret: true })]);
+    expect(sink.userInput).toHaveBeenCalledWith('codex-question', [
+      expect.objectContaining({ id: 'purpose', isSecret: true }),
+    ]);
     expect(session.respondUserInput('codex-question', { unrelated: ['wrong question'] })).toBe(false);
     expect(session.respondUserInput('codex-question', { purpose: ['user_note: private token'] })).toBe(true);
     await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(1));
@@ -83,9 +118,7 @@ describe('Codex app-server protocol', () => {
     const { session, sink } = harness();
     session.send('usage');
     await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(1));
-    expect(sink.turnFinished).toHaveBeenCalledWith(
-      expect.objectContaining({ outcome: 'completed', usage: null }),
-    );
+    expect(sink.turnFinished).toHaveBeenCalledWith(expect.objectContaining({ outcome: 'completed', usage: null }));
   });
   it('preserves approval context and uses the current response dialect', async () => {
     const { session, sink } = harness();
@@ -188,3 +221,18 @@ describe('Codex app-server protocol', () => {
     );
   });
 });
+
+function isProcessRunning(pid: number): boolean {
+  try {
+    const stat = fs.readFileSync(`/proc/${pid}/stat`, 'utf8');
+    const state = stat.slice(stat.lastIndexOf(')') + 2, stat.lastIndexOf(')') + 3);
+    return state !== 'Z';
+  } catch {
+    try {
+      process.kill(pid, 0);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
