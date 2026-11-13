@@ -1,6 +1,6 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-13 (World art iteration 9; balanced project streets).
+Updated: 2026-11-13 (World art iteration 9; #1782 journeys repaired).
 Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
@@ -48,6 +48,7 @@ integration worktree intact; it is not the same branch as the pushed follow-up P
 | `worktrees/rescue`, `rescue/shell-v2`, `0c730540` | Existing PR #1780; replacement shell, onboarding, Focus, Projects/Context and new Valley. Preserved in integration branch. |
 | `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Rescue checkpoints are pushed to this branch; latest documented checkpoint is `aa67c8eb`. |
 | `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `5018d4a0`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, original civic facades, responsive fitted overview camera, reduced ground/flower/path noise, a reauthored cottage facade, and taller project streets. It is not merged into the integration worktree. |
+| `worktrees/desktop-smoke-repair`, `fix/desktop-shell-smoke-navigation-20261112` | PR #1782 updated to `d59a2fd2` with the existing four-journey repair commit cherry-picked with original authorship, plus an optional preference-bridge compatibility adjustment. Four affected Electron journeys pass locally. Exact-head hosted checks are running; keep the stacked PR draft and unmerged. |
 | `worktrees/codex-protocol`, `rescue/codex-protocol`, `2b8de6d6` | Reviewed protocol fix; already cherry-picked as `8a753ec5`. Do not apply twice. |
 | `worktrees/workspace-continuity`, `rescue/workspace-continuity` | Uncommitted partial implementation by subagent; NOT reviewed, tested or integrated. See critical persistence flaw below. |
 | `.claude/worktrees/agent-a8c96dfe4dfec7e8d`, `rescue/valley-art` | Existing art work; preserve. Do not infer an active agent from the worktree. |
@@ -517,6 +518,20 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   outcome gates. Release only with proper authorization and verified artifacts.
 - [ ] Reconcile ADRs, current product docs, workflows.yaml and daily-driver evidence so
   fixture/component coverage cannot masquerade as live installed-app acceptance.
+
+Latest #1782 continuation: the original failed run `43298967157` was inspected and
+its four failures reproduced from the stale `Review project link` expectations,
+wrong Context navigation target, and workspace fixture without Git initialization.
+The focused repair commit `fed0a24c` from #1783 was cherry-picked to the #1782
+branch as `8c75acb8`, preserving author identity. Its compatibility follow-up was
+cherry-picked as `fe3e71f7`; a small follow-up in `d59a2fd2` uses runtime feature
+detection so this older branch's E2E fixture type-checks both before and after the
+Electron preference bridge lands. Exact branch build and ESLint pass, and all four
+Electron journeys pass locally (2m30s) against Electron and the repository's
+source-compatible 1.49.0 backend binary. Hosted checks for exact #1782 head
+`d59a2fd27ba79db8b3d57041cc2c3218b1ffe9e3` are running; the previous red CI is
+historical, and must not be described as fixed on GitHub until these new checks
+finish successfully.
 
 ## 8. Environment and commands that matter
 
