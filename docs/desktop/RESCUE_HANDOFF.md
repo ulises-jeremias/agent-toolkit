@@ -1,6 +1,6 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-12 (PXL art iteration 1; packaged Electron World capture).
+Updated: 2026-11-13 (packaged Desktop suite and World iteration 7).
 Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
@@ -46,8 +46,8 @@ integration worktree intact; it is not the same branch as the pushed follow-up P
 | --- | --- |
 | `repos/agent-toolkit`, `chore/release-v1.47.5` | Old checkout, unrelated dirty release/version/plugin files and `.claude/`. Preserve; do not use as current product source. |
 | `worktrees/rescue`, `rescue/shell-v2`, `0c730540` | Existing PR #1780; replacement shell, onboarding, Focus, Projects/Context and new Valley. Preserved in integration branch. |
-| `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Nothing from this integration branch has been pushed. |
-| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `c07fdcc6`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, original Library/Archive/Workshop/Operations facades, compact-map label relief, Codex approval scope enforcement, and a synchronous guard against duplicate Focus starts. It is not merged into the integration worktree. |
+| `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Rescue checkpoints are pushed to this branch; latest documented checkpoint is `aa67c8eb`. |
+| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `4b769c0f`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, original civic facades, responsive fitted overview camera, and reduced ground/flower/path noise. It is not merged into the integration worktree. |
 | `worktrees/codex-protocol`, `rescue/codex-protocol`, `2b8de6d6` | Reviewed protocol fix; already cherry-picked as `8a753ec5`. Do not apply twice. |
 | `worktrees/workspace-continuity`, `rescue/workspace-continuity` | Uncommitted partial implementation by subagent; NOT reviewed, tested or integrated. See critical persistence flaw below. |
 | `.claude/worktrees/agent-a8c96dfe4dfec7e8d`, `rescue/valley-art` | Existing art work; preserve. Do not infer an active agent from the worktree. |
@@ -410,11 +410,25 @@ actual screenshots. No reference project's proprietary art is permitted.
   art review and owner visual sign-off remain open.
 - [x] Re-authored and reviewed Archive, Workshop and Operations PXL facades in
   packaged Electron. The compact 1024×640 and large 1920×1080 captures read well;
-  the 1440×900 map composition leaves excessive empty surround. A screenshot
-  labeled Dusk retained the Meadow-like ground colors and is not accepted as a
-  verified Dusk art pass. Source generation, 72 World tests, all 608 Vitest + 45
+  the 1440×900 map composition leaves excessive empty surround. An earlier
+  review incorrectly said the Dusk screenshot retained Meadow colors; checkpoint
+  11 records that correction. Source generation, 72 World tests, all 608 Vitest + 45
   Node spike tests, type-check, lint and build pass on exact commit `c07fdcc6`.
   Its hosted exact-head checks are still pending; see checkpoint 11.
+- [x] Replaced player-follow as the initial World mode with a fitted semantic
+  overview. Camera zoom is selected from actual room/map bounds, with additional
+  nearest-neighbor tile-size steps; packaged Electron E2E verifies the map fits
+  and occupies at least 80% of viewport width at all six Meadow/Dusk viewports.
+  Exact local validation is recorded at checkpoint 12; hosted checks for
+  `8a8037ac` are still running. This improves framing, not the underlying art.
+- [x] Calm map-scale terrain marks with a fifth PXL art iteration: muted
+  two-pixel grass blades, smaller flower tiles and glades, and fewer path flecks.
+  The all-flat prototype exposed square tone bands and was rejected. Opened six
+  packaged Electron screenshots in Meadow and Dusk at the three required sizes.
+  Full Desktop test command passed (609 Vitest + 45 Node tests), as did type-check,
+  ESLint, 201-sprite determinism, `dist:dir` and packaged capture. The square
+  scene boundary, straight creek, repetitive tree crowns and front-facing houses
+  remain defects. See checkpoint 13 and the product-worktree visual audit.
 - [ ] Reject generic SaaS card grids, PaperCo aesthetics, random clutter, illegible pixel
   text, disconnected palettes and needless configuration.
 
@@ -762,57 +776,252 @@ macOS/Windows when environments are available; otherwise mark those gates open.
 
 ## 11. Continuation checkpoint — civic PXL facades
 
-On product branch `rescue/desktop-continuity-focus`, a new uncommitted slice
-re-authors three civic landmarks in
-`apps/desktop/scripts/world-art-pxl/landmarks.px.js`: Archive is a stone records
-hall with catalog tower, Workshop is a sawtooth forge with waterwheel, and
-Operations is a map porch with offset clock tower. The first Workshop preview
-clipped the wheel/crowded the doors; the corrected preview and packaged result
-are legible at compact scale. Generated assets are included in the dirty diff.
-
-Evidence opened from packaged Electron: Meadow 1024×640, 1440×900 and 1920×1080.
-At 1024, the three landmarks and wheel are recognizable. At 1920, facade details
-read well. At 1440, the village is underscaled inside the available canvas and
-leaves too much empty space. The capture named `dusk-1920x1080-world.png` shows
-the Meadow palette; do not count it as Dusk verification. Investigate theme
-selection and recapture. Private captures:
+Commit `c07fdcc6c280e704ce45a962d55d2e13f86e3752` on product branch
+`rescue/desktop-continuity-focus` re-authors Archive as a stone records hall,
+Workshop as a sawtooth forge with waterwheel, and Operations as a map porch with
+offset clock tower. It is pushed to draft PR #1783. Packaged Electron screenshots
+at the old camera scale are under
 `/home/ulisesjcf/.ai-workspace/.audit-private/world-civic-iteration-1/`.
 
-Validation on these exact source changes: `check:world` passes (201 sprites),
-focused World tests pass (72/72), the full Desktop suite passes (608 Vitest +
-45 Node spike tests), type-check and lint pass, and `build:all` passes. A fresh
-`dist:dir` package was used for screenshots before this validation. The first
-test attempts failed because temporary files under host `/tmp` could not be
-written; rerunning with `TMPDIR=/home/ulisesjcf/.ai-workspace/.audit-private/tmp`
-works. Commit `c07fdcc6c280e704ce45a962d55d2e13f86e3752` is now pushed to PR #1783.
-Exact-head runs: Desktop gates `43344031283`, packaged fresh-HOME
-`43344031270`, web quality `43344031287`, and Vercel deployment are pending;
-Vercel Preview Comments passes and Danger is skipped. The update is recorded on
-mission issue #1775 at
-https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6840921560.
-Keep PR #1783 draft and unmerged while its stacked base gates are unhealthy.
+Correction: the old screenshot named `dusk-1920x1080-world.png` is a darker Dusk
+grade with warm point lights; my earlier claim that it retained Meadow was wrong.
+The new six-view capture below independently confirms Meadow and Dusk state.
+Dusk's olive value and inconsistent light-source treatment still need art work.
 
-Next action: wait for these exact-head CI runs and investigate why the Dusk
-capture retained Meadow colors before recapturing or counting a theme pass.
-Record the 1440 composition defect and keep World visual sign-off open. Then
-return to Focus/provider journey acceptance before doing more art. This does not
-close any real-provider, onboarding, accessibility, cross-platform, native
-window, or ultimate daily-driver gate.
+## 12. Continuation checkpoint — overview camera and actual viewport fit
 
-## 12. How Luna should execute efficiently
+The product worktree has camera/UX commit `8a8037ac` after `c07fdcc6`, pushed to
+draft PR #1783. The
+World opens in fit mode so the semantic settlement is visible first; walking is
+explicit. Responsive camera zoom derives from actual map and viewport dimensions.
+Whole-CSS-pixel tile sizes 24/40/56/72 were added to the nearest-neighbor zoom
+ladder so the village fills 1440/1920 regions more effectively without fractional
+blur. Packaged capture E2E asserts that map bounds fit inside the visible region.
+
+The new Linux x64 package passed `dist:dir`; packaged Electron capture passed
+Meadow/Dusk at 1024×640, 1440×900 and 1920×1080. All six captures were opened.
+At 1440 the map uses about 90% of available width; at 1920, about 92%, with no
+map clipping. Dusk is visibly darker with warm localized lights. The scene still
+has a rectangular terrain edge, straight creek, clumpy repeated trees, confetti
+ground texture, isolated front-facing buildings, and excessive vertical empty
+area. This is camera progress, not art sign-off. Private images are under
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-fit-overview-v2/`.
+
+Exact local checks on this slice: 609/609 Vitest, 45/45 Node spike tests,
+type-check, lint, `build:all`/`dist:dir`, and six-viewport packaged Electron
+capture pass. One initial lint run found formatting in the capture assertion;
+after correcting it, ESLint passed. The Dusk correction and camera critique are
+recorded in `docs/desktop/audits/WORLD_ART_DIRECTION_2026-11-13.md` on the product
+worktree. The exact-head checks for `8a8037ac` have started; the first poll shows
+Vercel deployment pending, and the GitHub workflow checks have not yet appeared.
+Poll by PR head before any merge or acceptance claim. Remote results for
+`c07fdcc6` do not validate this slice.
+
+Next: wait for exact-head checks. The next art pass should address landscape roots: organic creek edge,
+intentional road/plaza network, reduced confetti, distinct tree silhouettes, and
+foreground/background depth. Do not begin by multiplying sprite count; the world
+still misses the required professional art direction. Focus/provider acceptance,
+onboarding, accessibility, cross-platform and native-window gates remain open.
+
+## 13. Continuation checkpoint — calmer ground and current exact-head checks
+
+Product commit `4b769c0f` follows `8a8037ac` on
+`rescue/desktop-continuity-focus` and is pushed to draft PR #1783. It reduces
+dense per-tile grass and flower marks, groups glades, and removes most path
+flecks. Iteration 4's fully flat grass showed strong square tone blocks and was
+rejected. Iteration 5 uses one muted two-pixel blade per tile. I opened packaged
+Electron captures at Meadow/Dusk × 1024×640, 1440×900 and 1920×1080. The terrain
+is calmer and paths read more clearly. The square scene boundary remains; the
+creek remains straight; tree crowns remain repetitive; buildings remain isolated
+front-facing cutouts. This is not art sign-off.
+
+The unpacked Electron executable SHA-256 is
+`234e177afdc9ee053d6798ae1fd8ada6e535f5c8425d25ff17c92aac571a7d2d`. Package
+stages the existing backend 1.49.0 from rescue commit `0c730540`; a backend build
+from the repository's pinned V toolchain remains open. On the product source
+worktree, the full Desktop test command passed (609 Vitest + 45 Node spike tests),
+as did TypeScript checks, ESLint, `check:world` (201 deterministic sprites),
+`dist:dir`, and packaged six-view capture. Source and critique details are in
+`docs/desktop/audits/WORLD_ART_DIRECTION_2026-11-13.md`.
+
+At the first exact-head poll for `4b769c0f`, Desktop gates run 43348812525,
+packaged Electron fresh-HOME 43348812558, web quality 43348812498, and Vercel
+deployment are pending. Danger JS and Vercel Agent Review are skipped; Vercel
+Preview Comments passes. Keep #1783 draft and unmerged until exact-head checks
+and the stacked base are healthy. Older results do not validate this commit.
+
+Next: continue one integrated user-facing slice. Focus provider interaction/parity
+or World composition both remain open. The next slice selected is Codex's blocking
+`item/tool/requestUserInput` flow, which currently receives an explicit refusal.
+Support must be scoped to the active turn and must never persist submitted answers,
+especially values marked secret. If continuing art later, remove the rectangular
+scene edge, bend the creek into organic banks, and compose distinct tree groups.
+The installed-app acceptance, UI-first repo registration, accessibility,
+native-window and cross-platform gates also remain open.
+
+## 14. Continuation checkpoint — Codex interactive questions in Focus
+
+On `rescue/desktop-continuity-focus`, a new Focus slice adds blocking
+`item/tool/requestUserInput` handling. It validates exact active thread/turn,
+question IDs and bounded question/option sizes, rejects malformed, non-blocking,
+stale and overlapping requests, and refuses late or cross-question answers.
+The response follows Codex's app-server shape. Option answers use the displayed
+label, freeform values use `user_note: …`, and `isOther` offers “None of the
+above” plus optional notes. Interrupt and shutdown cancel the outstanding RPC.
+
+Questions and request resolutions are durable; submitted values never enter the
+Focus journal. Secret fields render as password inputs and use the same
+no-persistence path. The shell now distinguishes a tool approval (`Needs your
+answer`) from a provider question (`Question for you`); both remain visible as
+real attention in Projects, the rail and World. Existing histories are
+versionless JSONL, so this adds event types without rewriting earlier data.
+
+Protocol verification is intentionally explicit: the installed Codex is
+`codex-cli 0.167.2`; `codex login status` reports ChatGPT login. I generated
+both stable and `--experimental` TypeScript bindings from that exact binary, and
+neither includes this method. Therefore no real-provider request could be
+produced by the installed CLI; the protocol path is covered with a scripted
+app-server fixture and follows the current [Codex TUI answer contract](https://github.com/openai/codex/blob/main/codex-rs/tui/src/bottom_pane/request_user_input/mod.rs).
+Do not claim this method is live-verified until an installed provider emits it.
+
+Initial source verification on this slice: 613/613 Vitest tests and 45/45 Node spike
+tests passed, as did type-check, ESLint, `build:all`, `dist:dir`, and a packaged
+Electron screenshot tour of all ten destinations in Meadow/Dusk at
+1024×640, 1440×900 and 1920×1080 (60 screenshots, opened for Focus, Library and
+Operations critique). Captures are private under
+`/home/ulisesjcf/.ai-workspace/.audit-private/codex-input-packaged-captures/`.
+The full packaged Electron suite is being rerun with the fixture's documented
+`--ozone-platform=headless` setting after an initial attempt could not connect
+to the absent Wayland display. The first attempt against `/usr/bin/agent-toolkit`
+exposed `/api/v1/projects/:id/git/log` as 404 even though that binary also reports
+1.49.0; do not infer API compatibility from version alone. Rebuilt the current
+renderer/main package staging the already-built backend from rescue commit
+`0c730540`. Backend SHA-256 is
+`a74f1cc8117a0e40372d4364d0c1fd5bd481b6e12c7f7378bb608495dd14a3d2`; package
+`app.asar` SHA-256 is
+`de3ab211c2f8a37738d6432c76cb53dfecfcda8d07345f1ef5b4c5e4218af71d` after
+the Library preview synchronization fix; the packaged Electron E2E below ran
+against this rebuilt `app.asar`.
+The backend binary was verified to implement the Git history route and the
+isolated project-changes E2E passes with this package. These hashes identify the
+current package; recompute them after any rebuild. No backend was compiled from
+the pinned V toolchain: local builds under the required 2 GiB/zero-swap cap were
+OOM-killed, including the direct CLI attempt. Do not raise the cap or represent
+the staged binary as a pinned-toolchain build.
+
+That initial packaged run did not finish and its interim counters were not an
+acceptance result. Later exact-source reruns corrected the stale `Workspace
+village` locator and added native-first-run route settling. See checkpoint 15
+for completed 614-test unit, 45-test spike and packaged Electron evidence.
+
+Keep PR #1783 draft and unmerged while the exact-head checks and its stacked
+base are reviewed. Installed-provider user-input, native-window interaction,
+onboarding, accessibility, and cross-platform acceptance remain open.
+
+## 15. Continuation checkpoint — packaged rerun and rejected terrain palette
+
+The active `desktop-followup` worktree was rebuilt after regenerating its
+governed PXL atlas. A six-screen Meadow/Dusk × 1024×640, 1440×900, 1920×1080
+capture ran from the packaged Linux Electron application with the real staged
+1.49.0 backend (`capture.spec.ts`, `ATK_CAPTURE_WORLD_ONLY=1`). All six captures
+were opened. This experiment tested six discrete moisture-band grass colors;
+it made the existing rectangular terrain blocks more obvious, and Meadow/Dusk
+still shared identical block geometry. I rejected the direction and restored
+the prior 201-sprite PXL source/generated atlas. Do not cherry-pick or restore
+the discarded iteration-6 palette. Critique and private image locations are in
+`docs/desktop/audits/WORLD_ART_DIRECTION_2026-11-13.md` (source worktree) and
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-art-iteration-6/`.
+
+The package was rebuilt after reverting the experiment and then rebuilt with a
+durable appearance initialization fix. Current `app.asar` SHA-256 is
+`edf0f4c2530c02640c596b73264da3e7154d256f1ee8e453c4cc84abe08d19a9`; Linux
+unpacked Electron executable remains
+`234e177afdc9ee053d6798ae1fd8ada6e535f5c8425d25ff17c92aac571a7d2d`. The staged
+backend remains rescue commit `0c730540`, SHA-256
+`a74f1cc8117a0e40372d4364d0c1fd5bd481b6e12c7f7378bb608495dd14a3d2`. This is
+not a fresh pinned-V build and does not prove other platforms.
+
+Latest source checks in `desktop-followup` after the interactive-question,
+dialog and theme changes: ESLint, renderer and Electron TypeScript checks,
+614/614 Vitest tests, 45/45 Node spike tests, deterministic 201-sprite PXL
+check, and `git diff --check` passed. Packaged `desktop.spec.ts` passed 33/33;
+its clean-profile Library test waits for Electron backend/theme route
+initialization and temporarily closes the primary app because Electron's
+single-instance lock otherwise misroutes the second profile. Packaged
+Meadow/Dusk World capture passed 1/1, all six screenshots at all required sizes
+were opened, and their significant visual defects remain documented in the
+art-direction audit. Private current screenshots are under
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-art-iteration-7/`.
+
+The packaged reload test uncovered that `initAppearance()` applied a module
+snapshot taken before the async Electron preference read. It now recomputes
+after preferences initialize. The rebuilt package passes the real reload test:
+the Dusk preference persists in Electron storage and `data-theme` remains Dusk
+after reload. The standalone desktop test file passes 33/33 after this fix.
+
+The reviewed source is split into these local commits on
+`rescue/desktop-continuity-focus`: `07a59f49` handles provider questions in
+Focus; `bc8c0f5f` fixes appearance persistence and controlled dialog state;
+`4354b479` strengthens packaged navigation/persistence tests; `cc6ffbb8`
+records the rejected terrain iteration. These commits have not yet been pushed.
+The World art work remains explicitly unaccepted; the visual issue is real and
+not external.
+
+The PXL status remains **not accepted**. Iteration 7 confirms current Meadow/Dusk
+theme behavior, but still shows the square terrain slab, nearly vertical creek,
+repeated canopy and isolated front-facing homes. Current critique is in
+`docs/desktop/audits/WORLD_ART_DIRECTION_2026-11-13.md`; iteration 6's discrete
+grass bands were rejected because they increased rectangular blocks. The next
+art action is to prototype a
+continuous terrain composition without selecting one of six flat tile colors:
+first inspect `src/features/world/model/terrain.ts` and map-boundary/rendering
+contracts, then make a small reversible prototype that removes the hard square
+edge and gives the creek a clearly legible meander while preserving semantic
+entity hit targets. Capture the actual packaged Electron app at all three
+viewports in both themes, open every capture, and reject the prototype if it
+still reads as tile blocks, a straight divider, or a sprite showcase. Continue
+tree/building work only after that composition iteration demonstrates a real
+improvement. Keep Focus as the product priority and do not spend another long
+art-only sequence ahead of the live-provider and reopen/recovery acceptance.
+
+### Immediate resume sequence for Luna
+
+1. Re-run packaged `desktop.spec.ts` only if code changes or a new failure
+   justifies it; the current exact package passed 33/33. Retain the explicit
+   distinction between the fixture-generated Codex request and a request
+   emitted by the installed authenticated provider.
+2. Push the four reviewed commits with an explicit branch refspec after checking
+   that the remote branch has not moved; keep PR #1783 draft and unmerged.
+3. Recheck PR #1783's stacked base and exact-head checks. Keep it draft and do
+   not merge while failing checks or base integration remain unresolved.
+4. Continue the mandatory acceptance list above in priority order: installed
+   clean-profile onboarding and UI repo registration, real provider work,
+   tool/output/diff/terminal, safe cancel, close/reopen/history, World context;
+   then accessibility/native-window/cross-platform and remaining domains.
+5. Make the next terrain prototype only after recording provider/recovery status.
+   Use the prior captures as critique evidence; do not redo the Muse audit,
+   reference clones or already documented baseline work without new evidence.
+6. Keep this handoff synchronized after each verified slice. The rescue remains
+   open until the owner's daily-driver success scenario passes in a packaged
+   application and the World is visually accepted.
+
+## 16. How Luna should execute efficiently
 
 1. Read this file, git status/diff, then only the source needed for the first P0 slice.
 2. Do not re-export Muse, re-clone references or repeat broad audits without a reason.
 3. Preserve dirty work and partial worktrees. Review before merging/cherry-picking.
-4. Fix one integrated user journey at a time; do not let more artwork precede working
+4. Finish the packaged Electron suite and exact-head checks for this Focus slice;
+   then test against a Codex release whose generated bindings actually expose
+   `item/tool/requestUserInput`. Keep the live-provider gate open until then.
+5. Fix one integrated user journey at a time; do not let more artwork precede working
    Focus/restart acceptance again.
-5. Keep changes reviewable, tests meaningful and evidence truthful. Re-run only when
+6. Keep changes reviewable, tests meaningful and evidence truthful. Re-run only when
    code changes/failures/new risks justify it.
-6. Update this checklist and a short evidence entry after each slice, including the
+7. Update this checklist and a short evidence entry after each slice, including the
    next exact action. Never mark a checkbox done from another agent's assertion alone.
-7. Use bounded subagents only if useful and available; the active owner integrates
+8. Use bounded subagents only if useful and available; the active owner integrates
    and personally verifies results. Usage limits are not product completion.
-8. Do not ask again for ordinary architectural/engineering permissions already granted.
-9. The final success question is whether the owner can comfortably complete real
+9. Do not ask again for ordinary architectural/engineering permissions already granted.
+10. The final success question is whether the owner can comfortably complete real
    development work in Desktop and enjoy it. Until that is demonstrated, keep the
    mission and relevant acceptance gates open.
