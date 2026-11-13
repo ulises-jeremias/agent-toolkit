@@ -1583,7 +1583,7 @@
       "h": 16,
       "frames": 2,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "f9d33ae3d8ed2bbcf1a04c349a65f9146a3efeaff25e7a8b3b02e6d5863b441e"
+      "sha256": "e508bbca1864bb5ce4e8fed734e85a5ac245ead3b0ae7836c88a172b9b02c8e8"
     },
     "wildflower-patch-gold": {
       "file": "wildflower-patch-gold.png",
