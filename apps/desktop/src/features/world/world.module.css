@@ -816,27 +816,6 @@
   z-index: 4;
 }
 
-/* Dusk tints terrain beneath the authored sprites. Keep this inside the
-   transformed camera layer, above the canvas and below décor/entities. */
-.mapWorld::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
-}
-
-:root[data-theme='meadow'] .mapWorld::after {
-  /* A few broad pools of reflected light make the meadow feel like a place
-     at late morning, without tinting authored sprites or creating fake state.
-     The overlay is static and sits below the trees, signs and characters. */
-  background:
-    radial-gradient(ellipse at 16% 10%, rgb(255 222 141 / 11%), transparent 38%),
-    radial-gradient(ellipse at 80% 24%, rgb(117 224 221 / 8%), transparent 33%),
-    radial-gradient(ellipse at 50% 100%, rgb(22 39 47 / 13%), transparent 44%),
-    linear-gradient(180deg, rgb(255 245 209 / 3%), transparent 30%, rgb(31 42 39 / 9%));
-}
-
 /* World theme pack picker (single Hornero Valley pack today) */
 .worldThemePackPicker {
   display: inline-flex;

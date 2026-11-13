@@ -2,10 +2,17 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
-import { openDesktop, waitForBackend, type Desktop } from './fixtures';
+import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtures';
 import { goTo } from './navigation';
 
 const LIVE_CODEX = process.env['ATK_LIVE_CODEX_ACCEPTANCE'] === '1';
+const CAPTURE_DIR = process.env['ATK_CAPTURE_DIR'];
+
+async function capture(page: Desktop['page'], name: string): Promise<void> {
+  if (!CAPTURE_DIR) return;
+  fs.mkdirSync(CAPTURE_DIR, { recursive: true });
+  await page.screenshot({ path: path.join(CAPTURE_DIR, `${name}.png`) });
+}
 
 test.skip(
   !LIVE_CODEX,
@@ -74,6 +81,11 @@ test('packaged Desktop completes a real Codex task, stops safely, and reports pr
     await expect.poll(() => fs.existsSync(output), { timeout: 240_000, intervals: [500, 1000, 2000] }).toBe(true);
     await expect.poll(() => fs.readFileSync(output, 'utf8').trim(), { timeout: 10_000 }).toBe(exactLine);
     await expect(log.locator('[data-outcome="completed"]')).toBeVisible({ timeout: 120_000 });
+    await setViewport(app, 1440, 900);
+    await capture(page, 'focus-live-completed-1440x900');
+    await setViewport(app, 1024, 640);
+    await capture(page, 'focus-live-completed-1024x640');
+    await setViewport(app, 1440, 900);
 
     // Review the actual provider-produced untracked-file diff before staging.
     await goTo(page, 'Projects');
@@ -112,6 +124,7 @@ test('packaged Desktop completes a real Codex task, stops safely, and reports pr
     await stop.click();
     await expect(log.locator('[data-outcome="interrupted"]')).toBeVisible({ timeout: 30_000 });
     expect(fs.readFileSync(output, 'utf8').trim()).toBe(exactLine);
+    await capture(page, 'focus-live-interrupted-1440x900');
 
     // Close and relaunch against the same scratch HOME, userData, workspace,
     // and provider credentials. The provider CLI itself remains the installed
@@ -171,6 +184,7 @@ test('packaged Desktop completes a real Codex task, stops safely, and reports pr
       await expect(followupTurn.locator('[data-outcome="completed"]')).toBeVisible();
       await expect(followupTurn).toContainText(exactLine);
     }
+    await capture(page, 'focus-live-recovered-1440x900');
     await expect(reopenedLog.getByRole('region', { name: 'Turn 1' })).toContainText(exactLine);
 
     // World remains an optional semantic layer, and opening the project house
@@ -178,6 +192,11 @@ test('packaged Desktop completes a real Codex task, stops safely, and reports pr
     await goTo(page, 'World');
     await page.getByRole('button', { name: /codex-live-acceptance · Project/ }).click();
     await expect(page.getByRole('application', { name: 'Interior of codex-live-acceptance' })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: 'Checking live workspace details' })).toHaveCount(0);
+    // The semantic house doorway uses a short 280ms view transition; wait for
+    // that authored transition to finish before preserving the design-review image.
+    await page.waitForTimeout(350);
+    await capture(page, 'world-live-project-interior-1440x900');
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Focus' }).click();
     const returnedThread = page
       .getByRole('navigation', { name: 'Sessions' })

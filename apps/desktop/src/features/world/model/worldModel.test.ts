@@ -936,6 +936,33 @@ describe('layoutWorld', () => {
     expect(plan.cells.some(({ tile }) => tile.startsWith('flowers-'))).toBe(true);
   });
 
+  it('lets the outer meadow blend into its continuing viewport ground', () => {
+    const layout = layoutWorld(
+      buildWorldModel(
+        baseInput({
+          projects: ['north', 'east', 'south', 'west'].map((name) => ({
+            name,
+            target: `/${name}`,
+            status: 'ok' as const,
+          })),
+        }),
+      ),
+    );
+    const cells = paintTerrain(layout.entities, layout.cols, layout.rows).cells;
+    const byPosition = new Map(cells.map(({ x, y, tile }) => [`${x},${y}`, tile]));
+    const perimeter = cells.filter(({ x, y }) => x === 0 || y === 0 || x === layout.cols - 1 || y === layout.rows - 1);
+    const meadowPerimeter = perimeter.filter(({ tile }) => tile.startsWith('grass-'));
+
+    expect(perimeter.length).toBeGreaterThan(layout.cols + layout.rows);
+    expect(meadowPerimeter.length).toBeGreaterThan(layout.cols);
+    expect(meadowPerimeter.every(({ x, y }) => byPosition.get(`${x},${y}`) === 'grass-0')).toBe(true);
+
+    const meadowInterior = cells.filter(
+      ({ x, y, tile }) => x >= 4 && y >= 4 && x < layout.cols - 4 && y < layout.rows - 4 && tile.startsWith('grass-'),
+    );
+    expect(new Set(meadowInterior.map(({ tile }) => tile)).size).toBeGreaterThan(4);
+  });
+
   it('composes narrow connected footpaths and stable creek crossings', () => {
     const layout = layoutWorld(
       buildWorldModel(

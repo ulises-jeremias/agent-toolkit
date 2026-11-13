@@ -606,6 +606,9 @@ export function WorldEntityMap({
       style={{
         backgroundImage: `url('/world/grass-a.png')`,
         backgroundSize: `${zoom}px ${zoom}px`,
+        // Keep the viewport meadow on the same tile origin as the moving map.
+        // This lets the terrain's quiet outer edge continue beyond its bounds.
+        backgroundPosition: `${pan.x}px ${pan.y}px`,
       }}
       role="application"
       aria-label={ariaLabel}

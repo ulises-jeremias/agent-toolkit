@@ -148,6 +148,12 @@ function baseGround(p: Painter) {
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
       if (p.isBlocked(x, y)) continue;
+      // The terrain canvas ends at the semantic map bounds, while the valley
+      // backdrop continues under it in the viewport. Let the last four tiles
+      // converge to the same quiet grass tile as that backdrop; otherwise the
+      // broad biome fields stop at a hard rectangle around the whole village.
+      const edgeDistance = Math.min(x, y, p.cols - 1 - x, p.rows - 1 - y);
+      const edgeBlend = Math.min(1, edgeDistance / 4);
       // Let the low-frequency fields span enough of the palette to produce
       // visibly different meadow biomes even on a compact empty workspace.
       // Broad, overlapping moisture bands make whole clearings feel like
@@ -156,18 +162,20 @@ function baseGround(p: Painter) {
       // horizontal bands across the valley at the scale of the full map.
       const fieldX = x * 0.82 + y * 0.57;
       const fieldY = y * 0.82 - x * 0.57;
-      const moisture = meadowField(fieldX, fieldY, 12, 11) * 0.72 + meadowField(fieldX, fieldY, 24, 17) * 0.28;
+      const regionalMoisture = meadowField(fieldX, fieldY, 12, 11) * 0.72 + meadowField(fieldX, fieldY, 24, 17) * 0.28;
+      const moisture = 0.22 + (regionalMoisture - 0.22) * edgeBlend;
       const bloom = meadowField(x, y, 6, 19);
       const roll = h2(x, y, 1) % 23;
       // Keep tiny wildflowers grouped by the broad bloom field. Dense floral
       // tiles belong to deliberate glades, not to a repeating confetti layer.
-      if (bloom > 0.94 && roll < 12) {
+      if (edgeDistance >= 2 && bloom > 0.94 && roll < 12) {
         p.set(x, y, ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'][h2(x, y, 12) % 4]!);
       } else {
         const grass = Math.max(0, Math.min(5, Math.floor((moisture - 0.22) * 9)));
         // Each moisture band has four authored tile patterns. Spatially
         // seeded choice breaks up repeated 16px stamps without adding noise.
-        const texture = Math.min(3, Math.floor(meadowField(x, y, 5, 59) * 4));
+        const textureVariants = Math.min(4, edgeDistance + 1);
+        const texture = Math.min(textureVariants - 1, Math.floor(meadowField(x, y, 5, 59) * textureVariants));
         p.set(x, y, `grass-${grass * 4 + texture}`);
       }
     }
