@@ -204,13 +204,28 @@ export function ProjectChangesPanel({
             <div className={styles.split}>
               <div className={styles.groups}>
                 {renderGroup('Staged', data.staged, true, 'Unstage', (path) =>
-                  runAction(() => unstage.mutateAsync([path])),
+                  runAction(async () => {
+                    const result = await unstage.mutateAsync([path]);
+                    if (result.ok)
+                      setSelection((current) => (current?.path === path ? { path, staged: false } : current));
+                    return result;
+                  }),
                 )}
                 {renderGroup('Changed', data.unstaged, false, 'Stage', (path) =>
-                  runAction(() => stage.mutateAsync([path])),
+                  runAction(async () => {
+                    const result = await stage.mutateAsync([path]);
+                    if (result.ok)
+                      setSelection((current) => (current?.path === path ? { path, staged: true } : current));
+                    return result;
+                  }),
                 )}
                 {renderGroup('Untracked', data.untracked, false, 'Stage', (path) =>
-                  runAction(() => stage.mutateAsync([path])),
+                  runAction(async () => {
+                    const result = await stage.mutateAsync([path]);
+                    if (result.ok)
+                      setSelection((current) => (current?.path === path ? { path, staged: true } : current));
+                    return result;
+                  }),
                 )}
                 {renderHistory()}
               </div>
