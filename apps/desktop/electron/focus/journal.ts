@@ -359,27 +359,44 @@ function migrateLegacyJournals(workspace: string, storageRoot: string): void {
   for (const id of names) {
     if (!isThreadId(id)) continue;
     const destination = path.join(destinationRoot, id);
-    try {
-      const existing = fs.lstatSync(destination);
-      if (existing.isSymbolicLink() || !existing.isDirectory() || !ThreadJournal.open(workspace, id, storageRoot)) {
-        throw new Error(`Could not safely resume Focus thread migration ${id}`);
-      }
-      continue;
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
-    }
-
     const legacy = ThreadJournal.open(workspace, id);
     if (!legacy) throw new Error(`Could not safely migrate Focus thread ${id}`);
     const legacyMeta = path.join(legacyRoot, id, 'thread.json');
-    // Preserve the source bytes exactly, including unknown fields and torn
-    // event records. Parsing above is validation, not a lossy serialization.
+    // Preserve source bytes exactly, including unknown fields and torn event
+    // records. Parsing above validates metadata without lossy serialization.
     const metadata = readBufferNoFollow(legacyMeta);
     let events: Buffer | null = null;
     const legacyEvents = path.join(legacyRoot, id, 'events.jsonl');
     try {
       assertSafeJournalPath(workspace, legacyEvents);
       events = readBufferNoFollow(legacyEvents);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+
+    try {
+      const existing = fs.lstatSync(destination);
+      if (existing.isSymbolicLink() || !existing.isDirectory() || !ThreadJournal.open(workspace, id, storageRoot)) {
+        throw new Error(`Could not safely resume Focus thread migration ${id}`);
+      }
+      const privateMeta = path.join(destination, 'thread.json');
+      assertSafeJournalPath(workspace, privateMeta, storageRoot);
+      const privateMetadata = readBufferNoFollow(privateMeta);
+      let privateEvents: Buffer | null = null;
+      const privateEventsPath = path.join(destination, 'events.jsonl');
+      try {
+        assertSafeJournalPath(workspace, privateEventsPath, storageRoot);
+        privateEvents = readBufferNoFollow(privateEventsPath);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+      }
+      const eventsMatch =
+        (privateEvents === null && events === null) ||
+        (privateEvents !== null && events !== null && privateEvents.equals(events));
+      if (!privateMetadata.equals(metadata) || !eventsMatch) {
+        throw new Error(`Could not safely resume Focus thread migration ${id}`);
+      }
+      continue;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
     }
