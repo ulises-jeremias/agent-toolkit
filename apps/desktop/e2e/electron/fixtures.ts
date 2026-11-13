@@ -108,6 +108,8 @@ export interface OpenDesktopOptions {
   root?: string;
   /** Keep this profile after close so another Electron process can reopen it. */
   preserveRootOnClose?: boolean;
+  /** Test-only provider shims, prepended to PATH without changing the isolated HOME. */
+  providerBinDir?: string;
 }
 
 /**
@@ -144,7 +146,7 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
   // and make the renderer appear to target an older API than the test setup.
   env['ATK_BACKEND_BIN'] = backendBin;
   const schedulerShim = process.env['ATK_E2E_SYSTEMCTL_SHIM'];
-  env['PATH'] = [schedulerShim, path.dirname(backendBin), process.env.PATH]
+  env['PATH'] = [options.providerBinDir, schedulerShim, path.dirname(backendBin), process.env.PATH]
     .filter((entry): entry is string => Boolean(entry))
     .join(path.delimiter);
   env['NO_COLOR'] = '1';

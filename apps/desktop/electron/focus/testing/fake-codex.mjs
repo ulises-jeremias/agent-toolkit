@@ -1,5 +1,13 @@
 import readline from 'node:readline';
 import { spawn } from 'node:child_process';
+if (process.argv.includes('--version')) {
+  process.stdout.write('codex 0.168.0\n');
+  process.exit(0);
+}
+if (process.argv[2] === 'login' && process.argv[3] === 'status') {
+  process.stdout.write('Logged in to ChatGPT\n');
+  process.exit(0);
+}
 const write = (frame) => process.stdout.write(`${JSON.stringify(frame)}\n`);
 const notify = (method, params) => write({ method, params });
 process.on('SIGTERM', () => {});
@@ -78,6 +86,8 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
         method: 'item/tool/requestUserInput',
         params: { threadId: 'parent', turnId: 'turn-1', itemId: 'q', isBlocking: true, questions: [] },
       });
+    if (text === 'failure')
+      notify('turn/completed', { threadId: 'parent', turn: { id: 'turn-1', status: 'failed' } });
     if (text === 'question')
       write({
         id: 'question',
@@ -92,6 +102,8 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
       });
     if (
       text === 'approval' ||
+      text === 'approval-allow' ||
+      text === 'approval-deny' ||
       text === 'approval-limited' ||
       text === 'approval-cancel-deny' ||
       text === 'approval-unsupported'
