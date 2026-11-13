@@ -1137,3 +1137,44 @@ results are documented in checkpoint 17.
 6. Keep this file current with exact head hashes, test evidence, and rejected
    directions. The mission is not complete until the owner can do comfortable
    real development work in the packaged app and accepts the World visually.
+
+## 19. Continuation checkpoint — current Codex bindings and approval attempt
+
+The machine's authenticated Codex CLI is now `codex-cli 0.168.0`. Generated its
+TypeScript app-server bindings privately with
+`codex app-server generate-ts --experimental`; the generated `ServerRequest`
+union includes `item/tool/requestUserInput`, command and file-change approval,
+and related v2 request types. These files are under
+`/home/ulisesjcf/.ai-workspace/.audit-private/codex-0.168-bindings/` and were
+not added to Git. This verifies that the current installed protocol describes
+these request shapes; it does not prove a model turn emits them.
+
+Updated the Codex adapter's stale source comment, which said the installed
+0.167.2 bindings did not advertise user input, to distinguish the original
+0.167.2 baseline from later protocol additions. The adapter behavior is
+unchanged. Codex adapter tests pass 13/13, Desktop ESLint passes, and both
+renderer and Electron TypeScript checks pass.
+
+A live packaged attempt selected the strict `ask` permission mode and expected
+the real Codex task's first file write to raise Focus's approval dialog. No
+`Approval needed` dialog appeared within 120 seconds. The captured UI returned
+to the new-session form with the task present in session history and Codex
+reported signed in. This is inconclusive: the turn did not reach an observable
+approval in this run, and the final page context did not show its conversation.
+Do not claim real Codex approval coverage. The experimental test assertion was
+reverted; it is not part of the branch. Its scratch profile was cleaned. The
+previous live acceptance with `accept-edits` remains the successful provider
+acceptance; protocol-fixture tests remain the evidence for approval/user-input
+UI flows.
+
+### Immediate follow-up
+
+1. Recheck the current exact-head CI state for PR #1783 before pushing or
+   replacing any checks.
+2. Trace why an `ask`-mode live turn returned to the session composer without
+   an observable approval. Open its session from the Focus history and inspect
+   the durable journal/provider error before changing the adapter or tests.
+3. Only add live approval assertions once a disposable Codex task reliably
+   generates a request; otherwise retain the limitation explicitly.
+4. Keep protocol shape evidence separate from observed provider behavior, and
+   do not claim the live user-input request was emitted by Codex.
