@@ -1,6 +1,6 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-13 (packaged Desktop suite and World iteration 7).
+Updated: 2026-11-13 (World art iteration 8; six-project packaged capture).
 Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
@@ -47,7 +47,7 @@ integration worktree intact; it is not the same branch as the pushed follow-up P
 | `repos/agent-toolkit`, `chore/release-v1.47.5` | Old checkout, unrelated dirty release/version/plugin files and `.claude/`. Preserve; do not use as current product source. |
 | `worktrees/rescue`, `rescue/shell-v2`, `0c730540` | Existing PR #1780; replacement shell, onboarding, Focus, Projects/Context and new Valley. Preserved in integration branch. |
 | `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Rescue checkpoints are pushed to this branch; latest documented checkpoint is `aa67c8eb`. |
-| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `4b769c0f`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, original civic facades, responsive fitted overview camera, and reduced ground/flower/path noise. It is not merged into the integration worktree. |
+| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `66586da4`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, original civic facades, responsive fitted overview camera, reduced ground/flower/path noise, and the latest reauthored cottage facade. It is not merged into the integration worktree. |
 | `worktrees/codex-protocol`, `rescue/codex-protocol`, `2b8de6d6` | Reviewed protocol fix; already cherry-picked as `8a753ec5`. Do not apply twice. |
 | `worktrees/workspace-continuity`, `rescue/workspace-continuity` | Uncommitted partial implementation by subagent; NOT reviewed, tested or integrated. See critical persistence flaw below. |
 | `.claude/worktrees/agent-a8c96dfe4dfec7e8d`, `rescue/valley-art` | Existing art work; preserve. Do not infer an active agent from the worktree. |
@@ -1315,9 +1315,47 @@ Linux-only because it checks `/proc` process state and POSIX process groups;
 macOS/Windows packaged shutdown and Claude descendant cleanup remain open.
 The product implementation was unchanged; this adds evidence for the existing
 Codex process-group kill behavior. Commit
-`22ebb06dd6783f402b7de78662513daa138ecb1b` is pushed to
-`rescue/desktop-continuity-focus` and PR #1783. That PR remains OPEN and draft,
-stacked on #1782, with `UNSTABLE` merge state. The new exact-head `gates`,
-clean-HOME Electron acceptance, quality, parity, and Vercel deployment checks
-are pending; no new-head failures were present at the latest poll. Do not infer
-PR acceptance from the local tests until those checks finish.
+`22ebb06dd6783f402b7de78662513daa138ecb1b` was pushed to
+`rescue/desktop-continuity-focus` and PR #1783. The next commit reauthored the
+project cottage and expanded the visual tour to all six deterministic project
+facades; see checkpoint 24 for exact evidence.
+
+## 24. Continuation checkpoint — reauthored cottage and six-project packaged review
+
+The latest art iteration reauthored the `house-cottage` PXL sprite as an
+asymmetric river-quarter adobe cottage with a shaded side return, tiled roof
+planes, porch canopy, recessed entry, shutters, lantern, masonry steps and
+planted threshold. The generator regenerated the governed PNG and both manifests.
+The opt-in packaged screenshot tour now registers six disposable Git repositories
+whose deterministic project-name hashes select all six distinct project-house
+facades in the same World capture; only `garden-api` contains the unique
+`src/api.ts` change used by the existing diff-tour assertion.
+
+Exact local validation on source commit `66586da4c27aaf2575c958e152f0213670e6834f`:
+
+- World model/component tests: 151/151 passed.
+- Prettier, renderer and Electron type-check, ESLint, 201-sprite deterministic
+  generator check and `git diff --check` passed.
+- `build:all` and Linux x64 `dist:dir` completed. It stages the existing
+  source-compatible `1.49.0` backend binary from rescue commit `0c730540`; this
+  does not close the separately pinned V toolchain/backend build gate.
+- Packaged Electron capture passed in Meadow and Dusk at 1024x640, 1440x900 and
+  1920x1080 against the six-project temporary workspace. Latest private images:
+  `/home/ulisesjcf/.ai-workspace/.audit-private/world-house-cottage-final/`.
+- Opened and critiqued the 1440x900 packaged capture. The new project cottage is
+  visibly more dimensional and legible at overview scale. The overall composition
+  remains too shallow for the available viewport height, tree crowns repeat, and
+  the straight canal/front-facing civic facades still need further authored work.
+  This is an incremental facade improvement, not World sign-off.
+
+Exact GitHub state after push: PR #1783 is OPEN, draft, head
+`66586da4c27aaf2575c958e152f0213670e6834f`, based on
+`fix/desktop-shell-smoke-navigation-20261112`, merge state UNSTABLE. Its
+`gates` and `Packaged Electron with fresh HOME` checks were pending at the last
+query; do not infer completion from older commits. Keep it unmerged pending
+healthy required checks, review, and the stacked base PRs.
+
+Next: review exact-head CI; continue a distinct-facade/environment composition
+iteration and inspect its real packaged captures; then resume the unfinished
+onboarding/repository-picker and provider-runtime acceptance gates. Keep the
+mission active and update this handoff with evidence, not projected completion.
