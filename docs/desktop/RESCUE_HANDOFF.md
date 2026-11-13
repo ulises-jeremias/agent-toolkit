@@ -1,6 +1,6 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-13 (World iteration 9; stacked Desktop journeys repaired).
+Updated: 2026-11-13 (World iteration 10; stacked Desktop checks re-polled).
 Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
@@ -1431,3 +1431,21 @@ not merge red or pending stacked checks.
 The first reduced-anchor-count prototype barely changed the packaged image because the separate grove-membership mask still covered most of each region. That visual iteration was rejected rather than treated as evidence of improvement. The follow-up adjusts the grove lattice from 9 to 11 cells, reduces grove radii from 4–7 to 3–5 tiles, and lowers the preferred anchor count. This introduces larger clearings while retaining clustered tree groups. World model/component tests pass 151/151; type-check, lint, deterministic PXL check, and `git diff --check` pass. Linux x64 `dist:dir` succeeded, then the actual packaged Electron visual tour passed in Meadow and Dusk at 1024x640, 1440x900, and 1920x1080. I opened the 1440x900 and 1920x1080 captures: the canopy pattern is less continuous and the routes/landmarks read more clearly, but the broad rectangular terrain tint, canal geometry and some repeated tree silhouettes remain visible issues. This is one accepted iteration, not World sign-off. Private captures are under `/home/ulisesjcf/.ai-workspace/.audit-private/world-grove-refined/`.
 
 Committed as `937f098b` (`fix(desktop): open clearings between World groves`) and pushed to PR #1783. Query this exact head and its required checks before assuming the change is integrated. At the last poll, #1780 head `01140c9743f3e4d6a604f3e5476d7a5df876d7fc` and #1782 head `36affaac17be6743eca6e6b18865c1ff0dd69609` had no failed checks, but their `gates`, packaged clean-HOME, and several platform jobs remained pending. Do not merge either while pending; re-query rather than relying on the prior poll. Continue the next World critique from the new packaged captures, then return to the unfinished onboarding/repository-picker and real-provider acceptance gates. Preserve the World sign-off as open.
+
+
+## 27. Continuation checkpoint — exact-head CI queue recheck
+
+After pushing `937f098b95311cdf6b87d49b32d514434430cc3e`, PR #1783 points to
+that exact head and remains OPEN/draft. The source push updated the PR head, but
+GitHub Actions has not created a run for this SHA: `gh run list` still shows
+`5018d4a0` as the latest workflow SHA, and the exact commit's check-suite API
+currently lists only Vercel completed plus Travis CI, AWS Amplify and third-party
+checks queued. Treat this as external check scheduling, not as a green gate. The
+previous successful #1783 `gates` result belongs to `5018d4a0`; it does not
+validate the grove change. Re-query and, if it remains stuck, inspect repository
+Actions status or ask the owner/maintainer to resolve the queue before merge.
+Local tests and the full packaged visual tour for `937f098b` are recorded above.
+
+Re-polled stack state: #1780 is OPEN, current head `01140c9743f3e4d6a604f3e5476d7a5df876d7fc`, not draft, merge state BLOCKED; #1782 is OPEN/draft, current head `36affaac17be6743eca6e6b18865c1ff0dd69609`, merge state UNSTABLE. Both still have required gates and clean-profile/package/platform checks pending, with no new failures in the latest filtered status poll. Do not merge.
+
+This checkpoint supersedes older `Immediate next actions` that said to defer terrain work: the grove-density change was implemented and judged in real packaged captures, but the rectangular scene boundary, creek composition and repeated silhouettes remain unresolved. Keep the World open. The next substantial acceptance work still includes clean-profile onboarding, safe restart/recovery, accessibility, native-window/cross-platform coverage, and end-to-end daily-driver use. The mission remains active.
