@@ -1,6 +1,6 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-13 (World iteration 14; all six perspective facades; creek critique and packaged review).
+Updated: 2026-11-13 (CI-built package live acceptance; current GitHub/worktree state).
 Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
@@ -30,6 +30,47 @@ The original mission remains in the conversation; this file covers its execution
 requirements and current state.
 
 ## 2. Start here: exact workspaces and preserved work
+
+### Current continuation state — verified 2026-11-13
+
+This block supersedes older point-in-time state tables and “next” notes below;
+those checkpoints are retained as history, not as current instructions.
+
+- `worktrees/desktop-owner`, branch `rescue/codex-product-integration`, is at
+  `48cac41e` and pushed. This is the documentation/integration evidence branch,
+  not `main` and not a merged product change.
+- `worktrees/desktop-followup`, branch `rescue/desktop-continuity-focus`, is at
+  `b9256066`; it is PR #1783, OPEN, draft, based on `main`, and has no review
+  decision yet. Keep it draft while CI, architectural review and acceptance gaps
+  remain.
+- GitHub currently lists only #1783 and #1771 open. #1771 has a
+  `CHANGES_REQUESTED` review for PXL preview drift and content-changing
+  screenshots; keep it unmerged pending a corrected exact head and re-review.
+- #1782 head `63b35901` is merged to `main` as `a63db4a5`; #1781 head
+  `80765a86` is also included in `main`. Their historical worktree descriptions
+  below are stale. `origin/main` currently resolves to `a63db4a5` in the latest
+  verified fetch; query again before integration.
+- Exact PR #1783 head `b9256066`: `gates`, clean-HOME packaged acceptance,
+  desktop, CodeQL, quality, validation jobs shown so far, and Linux x64/ARM plus
+  Windows packaging passed. macOS packaging/linkage/integration and macOS
+  matrix validation were still pending at the latest poll; `Validate` workflow
+  had been queued. Do not call the complete matrix green until every required
+  check on this exact head concludes.
+- A real Codex coding journey passed against the CI-produced Linux x64 AppImage
+  for #1783, including its pinned-toolchain backend. Hashes and exact scope are
+  in [LIVE_ACCEPTANCE_2026-11-12.md](audits/LIVE_ACCEPTANCE_2026-11-12.md) and
+  checkpoint 54. This closes only the Linux packaged Codex journey slice.
+- Latest live-provider CLI availability: Codex 0.168.0, Claude 2.1.323,
+  OpenCode 2.2.7. Only Codex was re-proven in the CI-built package this turn.
+- Latest tracked implementation branch worktree is clean; ignored QA artifacts
+  and downloaded packages are under `.audit-private`. Preserve user-owned old
+  worktrees; the current worktree inventory is in checkpoint 55.
+- Next execution priority: finish exact-head CI/review, then work the substantive
+  acceptance gaps recorded in checkpoints 51–54 (real OS picker/onboarding,
+  screen reader, multi-platform live use, filesystem race/security, broader
+  Focus/provider parity, and the World scene boundary/creek composition). Keep
+  recording concrete implementation and packaged evidence here so GPT-6-Luna
+  can resume without trusting stale snapshots.
 
 Main integration worktree:
 
@@ -2274,3 +2315,39 @@ macOS package, linkage, integration, and platform validation jobs remained
 pending. Exact main `a63db4a5` had `desktop`, CodeQL, and MegaLinter passing,
 while `Validate` remained queued. Keep PR #1783 draft; re-poll exact heads before
 integration or release decisions.
+
+## 55. Continuation checkpoint — current state after CI artifact validation
+
+Re-polled PR #1783 exact head `b92560663a5c437e48c1d51c77fe697de8c18e32`.
+`gates`, `desktop`, clean-HOME packaged acceptance, CodeQL, web/quality, V
+parity, and the completed Ubuntu/Linux ARM/Windows package jobs pass. The
+remaining visible pending work is macOS: Electron packages for macOS ARM/Intel,
+macOS linkage/integration, Python matrix, Node 24, and swarm e2e. Release run
+`43414288062` is still in progress; Validate run `43414288013` is queued. These
+are live at this checkpoint; re-query before relying on them.
+
+PR #1783 is OPEN/draft, targets `main`, and has no review decision. Do not merge
+or publish. The owner merged #1782 and #1781 into `main`; current main was last
+verified at `a63db4a5` and its Validate workflow was queued even though desktop,
+CodeQL, and MegaLinter passed. #1771 remains the only other open PR and has
+requested changes. P0 #1777 remains OPEN: its title is “reject symlinked Focus
+journal paths before reading, writing or deleting”; #1779's symlink/no-follow
+mitigations do not eliminate the documented lstat/open and remove TOCTOU races
+or prove macOS/Windows safety.
+
+The integration documentation branch is pushed through `48cac41e`.
+`worktrees/desktop-owner` and `worktrees/desktop-followup` resolve to the paths
+and heads listed in section 2. A fresh `git worktree list` also found legacy
+worktrees for accessibility, Gemini resume, Git hunks, docs, PXL and web tasks,
+plus a prunable `/tmp/at-main`; do not delete or integrate these from names
+alone. Inspect their remote PR/issue relationships and dirty state before any
+cleanup or cherry-pick. The old status table in section 2 is retained as a
+historical inventory; the “Current continuation state” block above is the
+operational source of truth.
+
+Next work must continue beyond documentation: finish exact-head macOS CI and
+review #1783; close live-app gaps with the installed package; prioritize a
+security-reviewed resolution for #1777 that preserves existing journals
+through a nondestructive migration; then improve World boundary/creek
+composition and broaden provider/accessibility acceptance. Do not call the
+rescue complete while any of these product/acceptance gaps remain.
