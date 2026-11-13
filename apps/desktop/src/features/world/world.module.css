@@ -99,7 +99,7 @@
 }
 
 :root[data-theme='dusk'] .worldAtmosphere {
-  background: linear-gradient(180deg, rgb(35 43 91 / 36%), rgb(24 27 62 / 48%));
+  background: linear-gradient(180deg, rgb(35 43 91 / 24%), rgb(24 27 62 / 34%));
 }
 
 /* Crossing a project doorway keeps the map in place while its real scene
