@@ -245,7 +245,11 @@ honestly. Never label a declared Person or installed binary as an active agent.
   deny, interrupt, resume, model/permission changes, and child-agent events live.
 - [ ] Keep parent and native child sessions distinct; child completion cannot close
   the parent turn or pollute its journal.
-- [ ] Ensure cancellation/shutdown leaves no provider or descendant mutating files.
+- [ ] Verify all provider cancellation/shutdown paths leave no descendant mutating
+  files. Codex forced disposal now has a Linux process test that runs a descendant
+  continuously writing a disposable file, kills the provider group and confirms
+  both process exit and a stable file afterward. Claude, non-Linux packaged
+  behavior and the user-facing cancel path still need acceptance evidence.
 - [ ] Evaluate redaction at display/export boundaries: clipping is not secret
   masking. Do not corrupt provider inputs or publish private journals/screenshots.
 
@@ -1298,3 +1302,22 @@ head: `electron/focus/codex.test.ts`, `electron/focus/focus.test.ts`, and
 fixture-driven question path and its Focus presentation; it does not upgrade
 the live-provider evidence beyond the one-time approval observation recorded
 above.
+
+## 23. Continuation checkpoint — Codex shutdown stops file-mutating descendants
+
+Added a process-level regression for the Codex adapter's forced shutdown. Its
+scripted app-server starts a shell descendant that continuously appends to a
+disposable file. The test confirms the child runs, forces adapter disposal,
+waits for the child process to stop, and verifies the file size remains stable.
+On Linux, the new test plus the existing Codex and Focus service tests pass
+42/42. `pnpm type-check` and the Desktop `pnpm lint` pass. The regression is
+Linux-only because it checks `/proc` process state and POSIX process groups;
+macOS/Windows packaged shutdown and Claude descendant cleanup remain open.
+The product implementation was unchanged; this adds evidence for the existing
+Codex process-group kill behavior. Commit
+`22ebb06dd6783f402b7de78662513daa138ecb1b` is pushed to
+`rescue/desktop-continuity-focus` and PR #1783. That PR remains OPEN and draft,
+stacked on #1782, with `UNSTABLE` merge state. The new exact-head `gates`,
+clean-HOME Electron acceptance, quality, parity, and Vercel deployment checks
+are pending; no new-head failures were present at the latest poll. Do not infer
+PR acceptance from the local tests until those checks finish.
