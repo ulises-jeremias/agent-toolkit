@@ -197,6 +197,12 @@ export function NewSession({
             Check again
           </button>
         </legend>
+        {!providersLoading && ready.length === 0 && providers.length > 0 ? (
+          <p className={styles.startProviderNotice} role="status" aria-live="polite">
+            No coding agent is signed in. Run the login command shown beside an installed agent, then choose Check
+            again.
+          </p>
+        ) : null}
         {providersLoading && providers.length === 0 ? (
           <p className={styles.startEmpty}>Checking installed agents…</p>
         ) : null}
@@ -229,12 +235,6 @@ export function NewSession({
             </label>
           );
         })}
-        {!providersLoading && ready.length === 0 && providers.length > 0 ? (
-          <p className={styles.startError} role="alert">
-            No agent is ready. Sign in to Claude Code with <code>claude auth login</code> or Codex with{' '}
-            <code>codex login</code>, then check again.
-          </p>
-        ) : null}
       </fieldset>
 
       {activeProvider && activeProvider.models.length > 0 ? (
@@ -260,10 +260,29 @@ export function NewSession({
       ) : null}
 
       <div className={styles.startActions}>
-        <Button type="submit" variant="primary" disabled={!canStart} busy={starting} busyLabel="Starting…">
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={!canStart}
+          busy={starting}
+          busyLabel="Starting…"
+          aria-describedby="focus-start-hint"
+        >
           Start session
         </Button>
-        <span className={styles.startHint}>Ctrl + Enter</span>
+        <span
+          id="focus-start-hint"
+          className={styles.startHint}
+          data-danger={(!activeProvider && !providersLoading) || undefined}
+        >
+          {providersLoading
+            ? 'Checking agents…'
+            : activeProvider
+              ? 'Ctrl + Enter'
+              : providers.length > 0
+                ? 'Sign in to an agent to start'
+                : 'Install a supported coding agent to start'}
+        </span>
       </div>
     </form>
   );

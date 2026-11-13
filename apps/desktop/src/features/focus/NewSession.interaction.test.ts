@@ -49,6 +49,37 @@ afterEach(() => {
 });
 
 describe('NewSession', () => {
+  it('explains the sign-in blocker beside the provider choices and disabled start action', () => {
+    window.atk = { focus: {} as FocusBridge } as AtkBridge;
+    const signedOut = {
+      ...provider,
+      auth: 'signed-out' as const,
+      authDetail: 'Not signed in',
+      signInHint: 'claude auth login',
+    };
+
+    render(
+      createElement(NewSession, {
+        workspace: '/ws',
+        projects: [{ name: 'demo', target: '/ws/demo', status: 'ok' }],
+        projectsLoading: false,
+        providers: [signedOut],
+        providersLoading: false,
+        onRefreshProviders: vi.fn(),
+        onStarted: vi.fn(),
+      }),
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('No coding agent is signed in');
+    expect(screen.getByText(/claude auth login/)).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Start session' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Start session' })).toHaveAttribute(
+      'aria-describedby',
+      'focus-start-hint',
+    );
+    expect(screen.getByText('Sign in to an agent to start')).toBeVisible();
+  });
+
   it('creates only one session when keyboard and pointer submissions overlap', async () => {
     let finishCreate: ((result: Awaited<ReturnType<FocusBridge['createThread']>>) => void) | undefined;
     const createThread = vi.fn(
