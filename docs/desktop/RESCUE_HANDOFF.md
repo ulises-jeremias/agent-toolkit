@@ -1689,3 +1689,48 @@ Base PRs #1780 (`01140c9743f3e4d6a604f3e5476d7a5df876d7fc`) and #1782
 their query showed no queued, running, or failed check rows. PR #1783 remains
 OPEN/draft. No stack merge was attempted. Continue exact-SHA CI monitoring and
 preserve all three stacked histories.
+
+## 36. Continuation checkpoint — authored project-house sprites in packaged World
+
+Replaced the six generic project-house facades with the authored Hornero Valley
+PXL house set: cottage, studio, workshop, tower, cabin and brick/stone house.
+The original World mapping still chooses among real facade types and keeps the
+same semantic navigation, hit targets and interiors. Added matching lit layers
+and regenerated the checked-in sprite outputs/manifests. The supplied source
+contains environmental architecture only; it does not add decorative agent
+characters or imply activity. A layout/creek spacing experiment made the
+existing world reachability, creek-bank planting and compact-map assertions
+fail, so those unverified geometry changes were discarded. Existing semantic
+layout remains in place for this art slice.
+
+Built `apps/desktop/release/linux-unpacked/agent-toolkit-desktop` with the real
+staged backend, then ran packaged Electron `valley.spec.ts`: 2/2 passed, proving
+the World opens Library, opens a linked project house and carries that project
+into Focus. Ran the packaged visual-tour World-only suite with six actual
+temporary Git repositories in all six required theme/size combinations; 1/1
+passed and produced private screenshots under
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-houses-pass/`. Reviewed
+Meadow and Dusk at 1024×640 and 1440×900. Project homes now have substantially
+clearer, individually readable silhouettes and materially richer facades. The
+World still fails the intended art-direction bar: the center water remains a
+rigid, broad vertical strip, and the lower map edge reads as a hard rectangular
+cut. Dusk house windows also do not read as warmly lit at overview scale. These
+are confirmed open findings, not sign-off.
+
+Validation for this art slice passed: `pnpm check:world` (207 generated sprites
+up to date), `pnpm type-check`, `pnpm lint`, all 80 Vitest files / 615 tests,
+all 45 spike tests, packaged World E2E, visual capture E2E, Linux x64
+`electron-builder --dir`, and `git diff --check`. Build retained the existing
+Vite large-chunk advisory. The generated captures are local review evidence and
+contain only disposable test projects.
+
+Committed the bounded art slice as `3aaa43eb6a8fb131939067a53779eb0a5f2c0c11`
+(`feat(desktop): author distinct project house facades`) and pushed it to PR
+#1783's `rescue/desktop-continuity-focus` branch. The PR remains OPEN/draft and
+GitHub reports MERGEABLE. On the first exact-SHA query GitHub had not yet
+published workflow runs for `3aaa43eb`; the previous checks belong to
+`85ccac0b` and cannot validate this art diff. Re-query until Desktop,
+clean-machine, Validate, Release, web and V-parity runs appear and reach a final
+state. Capture and inspect the river/boundary iteration next, retaining the
+currently passing semantic layout tests. Continue the full rescue; this sprite
+update is not product or World sign-off.
