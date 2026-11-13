@@ -1758,3 +1758,33 @@ Web `43398081524`, Linux V parity `43398081511`, and generated-artifact check
 module checks and several Validate jobs were still pending. No failures were
 reported in this poll. This is an intermediate snapshot only; poll to final
 conclusions before considering this slice integrated.
+
+## 39. Continuation checkpoint — Dusk uses the authored house light passes
+
+The first visual pass showed that the newly generated `*_lit.png` overlays were
+not consumed by the renderer. The project entity now exposes its verified facade
+ID and assigns the matching transparent light pass; Dusk overlays the lit panes
+at the same authored sprite dimensions while Meadow stays unchanged. Removed
+large radial halos from the overlay source so the pass contains window light
+only; existing place lighting and Dusk atmosphere remain responsible for
+ambient glow. Added a renderer contract test that binds each actual project
+facade to its matching light asset. No activity/state semantics changed.
+
+Rebuilt and ran the packaged Electron visual-tour capture for World across
+Meadow and Dusk at 1024×640, 1440×900 and 1920×1080. The six-size test passed
+(1/1, 35.5 seconds); reviewed the refreshed Dusk 1440×900 capture and confirmed
+warm, readable house windows without the broad sprite halos. The World unit
+suite now has 616 passing tests across 80 files; all 45 runtime spike tests,
+`pnpm lint`, `pnpm type-check`, `pnpm check:world` (207 assets), and diff check
+passed. The Linux packaged build completed. A focused packaged World navigation
+run is still needed after this renderer-only refinement; the previous packaged
+run covered the authored facades before this change.
+
+Committed as `c064e7c4a9b8a9f06d0f6e3880d22d3d9ef8bf6c` (`feat(desktop): light
+project house windows at dusk`) and pushed to PR #1783. The PR is OPEN/draft and
+MERGEABLE. Exact-head workflows appeared on the first poll: Desktop gates
+`43399533484`, clean-machine acceptance `43399533447`, web `43399533583`, and V
+parity `43399533844`; all were pending at that moment. Re-query this exact SHA
+for final conclusions; the previous `3aaa43eb` successes do not validate this
+renderer change. The river/top-boundary critique remains open and the rescue is
+not signed off.
