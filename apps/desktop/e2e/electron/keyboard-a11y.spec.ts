@@ -28,7 +28,7 @@ test('Keyboard-only: skip link, visible focus ring, and every destination reacha
     const { page } = desktop;
     await waitForBackend(page);
     await expect(page.getByRole('heading', { name: 'What should we work on?' })).toBeVisible();
-    await expect(page.getByRole('status').filter({ hasText: /No coding agent is signed in/ })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Coding agents on this machine' })).toBeVisible();
     const destinations = page.getByRole('navigation', { name: 'Destinations' });
     await expect(destinations).toBeVisible();
     await expect(destinations.getByRole('link').nth(0)).toHaveAccessibleName('Focus');
