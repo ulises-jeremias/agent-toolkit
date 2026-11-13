@@ -1999,3 +1999,37 @@ The previous status on #1775 records the gate repair and workshop. Add the
 tower capture evidence after the new exact-head result is known. Keep the
 installed-app acceptance, live-provider attempt, accessibility review, and
 rescue sign-off open.
+
+## 47. Continuation checkpoint — fail-closed Focus interaction coverage
+
+Added UI-level regression coverage in `NewSession.interaction.test.ts` for
+three concrete failure paths from the #1781 Focus correction: an explicitly
+selected repository that has disappeared stays blocked (no fallback repository
+is silently chosen), a provider send error leaves the task and project in the
+composer without navigating, and a thrown Electron bridge error is surfaced
+while retaining the task. These tests exercise the actual React form and
+mocked bridge boundary, beyond the existing pure project-selection helper.
+
+The two Focus test files pass 8/8; the full Desktop suite passes 620 Vitest
+tests across 80 files and 45 runtime spike tests. Type-check, lint, PXL
+determinism (207 assets), and `git diff --check` passed. After the tower asset
+build, the actual Linux Electron package passed the 6-view Meadow/Dusk World
+capture at all three sizes, and the corrected backend-connected Focus E2E passed
+1/1. These are local checks; the new exact-head GitHub workflows are running.
+The test commit is pushed as `2d4312d4` on PR #1783, currently OPEN/draft and
+MERGEABLE. Exact-head `Validate`, `desktop`, `Clean-machine Desktop
+Acceptance`, web and release workflows were queued or running at last poll;
+there was no final result yet. Check that SHA before recording any green gate.
+
+The current visual family has four of six authored three-quarter project
+facades (`house-cottage`, `house-studio`, `house-workshop`, `house-tower`); the
+cabin and brick farmhouse still need redesign. The valley's hard terrain edge
+and mostly straight creek remain visible. #1781 itself still has red packaged
+journey gates against five older expectations; #1782 updates those journeys
+and its previous exact-head suite was green. Keep both drafts unmerged until a
+reviewed, exact-head integration path can land the full compatible stack.
+
+The live coding-provider journey, 13-step installed-app recovery, full
+accessibility review, compact Settings/dialog/terminal QA, cross-platform
+packaged runtime, native-provider approvals/interruption, and rescue sign-off
+remain open. Keep this as a working rescue, not a completion report.
