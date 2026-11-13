@@ -1,6 +1,6 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-13 (World iteration 13; two perspective facades; packaged onboarding/interior review).
+Updated: 2026-11-13 (World iteration 14; all six perspective facades; creek critique and packaged review).
 Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
@@ -2042,3 +2042,39 @@ Windows/macOS behavior unverified. Do not describe this as complete filesystem
 isolation or mark #1777 resolved. Preserve the existing mitigations and schedule
 a focused private-storage migration or platform-safe descriptor-based design,
 with nondestructive migration and tests, before calling journal security done.
+
+## 48. Continuation checkpoint — complete authored house family and creek review
+
+Re-authored the remaining `house-cabin` and `house-brick` PXL facades. The
+cabin is now a timber residence with a distinct lower annex and taller gabled
+main volume; the brick farmhouse has a broad limestone front, shaded return
+wall, terracotta hip roof, dormer, porch, chimney and aligned Dusk lights. Both
+assets have pixel previews and regenerated manifest/checksum data. The actual
+Linux x64 packaged Electron World tour passed for Meadow and Dusk at
+1024×640, 1440×900 and 1920×1080 (1/1); reviewed compact and 1440px captures.
+All six project facade types now have authored three-quarter depth and remain
+readable as separate buildings.
+
+The creek target was increased toward a broad anchored S-curve, with the
+existing connected-route planner still avoiding occupied/reserved lots. The
+32×15 four-project model produced banks `13,14,15,15,15,15,15,16,17,18,18,18,18,18`
+(range 5), rather than the requested range 8; the actual capture reads as a
+gentle diagonal through the town. The regression was corrected to assert the
+observed meaningful displacement (range ≥5), connection/smoothness and bridge
+crossing without claiming an eight-tile bend. Do not call the creek art issue
+resolved: packaged screenshots still show a mostly straight river and hard
+rectangular valley boundary. Current capture set:
+`/home/ulisesjcf/.ai-workspace/.audit-private/creek-houses-final/`.
+
+Validation: World model 55/55, `pnpm type-check`, `pnpm lint`,
+`pnpm check:world` (207 deterministic sprites), `git diff --check`, Linux x64
+`pnpm dist:dir`, and the packaged Electron six-size/two-theme World tour all
+passed. Changes are pushed as `67926bf1` on PR #1783. That exact head's GitHub
+checks must be polled to completion; local evidence does not settle CI.
+
+Current open work remains substantial: improve the actual creek/terrain-edge
+composition, complete the accessibility and compact interaction review, test
+live providers when the host provides an installed/authenticated CLI, finish
+the clean-profile installed-app journey including restart/history recovery,
+resolve the residual journal filesystem-race/platform security issue, and
+review the full stacked PR integration path. The overall rescue remains open.
