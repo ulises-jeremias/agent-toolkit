@@ -628,6 +628,7 @@ export function WorldEntityMap({
         }
       }}
     >
+      <div className={styles.worldAtmosphere} aria-hidden="true" />
       {/* Keyboard pan lives on a real button so the map region itself stays non-interactive. */}
       <button
         ref={panFocusRef}

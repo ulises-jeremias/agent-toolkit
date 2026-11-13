@@ -88,6 +88,20 @@
   outline: none;
 }
 
+/* Blue hour belongs to the whole visible valley, not the moving rectangle of
+   map tiles. Keep this atmosphere fixed to the viewport as the player pans;
+   semantic controls and the camera HUD remain above it. */
+.worldAtmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+
+:root[data-theme='dusk'] .worldAtmosphere {
+  background: linear-gradient(180deg, rgb(35 43 91 / 36%), rgb(24 27 62 / 48%));
+}
+
 /* Crossing a project doorway keeps the map in place while its real scene
    changes underneath it. A brief pixel-step dissolve makes the change legible
    without slowing down a work action or scaling the pixel art out of focus. */
@@ -371,7 +385,7 @@
 .entity:focus-visible {
   outline: var(--focus-ring);
   outline-offset: 2px;
-  z-index: 6;
+  z-index: 11;
 }
 
 .entity[data-selected='true'] {
@@ -810,13 +824,6 @@
     radial-gradient(ellipse at 80% 24%, rgb(117 224 221 / 8%), transparent 33%),
     radial-gradient(ellipse at 50% 100%, rgb(22 39 47 / 13%), transparent 44%),
     linear-gradient(180deg, rgb(255 245 209 / 3%), transparent 30%, rgb(31 42 39 / 9%));
-}
-
-:root[data-theme='dusk'] .mapWorld::after {
-  /* Keep the blue-hour pass even across independently rendered ground tiles.
-     Large radial fields produced visible rectangular seams as the transformed
-     map was repainted. Lamps and windows supply local warmth above this layer. */
-  background: linear-gradient(180deg, rgb(35 43 91 / 24%), rgb(24 27 62 / 36%));
 }
 
 /* World theme pack picker (single Hornero Valley pack today) */

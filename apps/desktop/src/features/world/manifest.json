@@ -1591,7 +1591,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art-pxl/trees.px.js",
-      "sha256": "51d5e78be1bd40949d03ec3317bdeebaa252966c1c37428f97ea3593a782fac0"
+      "sha256": "54bd9d012f44ff595774c6694264d4888099772b5113a9850bcb4ca59ee1dcc1"
     },
     "tree-rune": {
       "file": "tree-rune.png",

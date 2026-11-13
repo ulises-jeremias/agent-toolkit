@@ -55,13 +55,50 @@ function tree(name, fill, shadow, light, clumps, extra) {
   });
 }
 
-// Broad oak: a slightly leaning crown with five overlapping masses and visible roots.
-tree("tree-round", "G", "f", "g", [
-  [28, 11, 9, 9], [13, 23, 8, 9], [46, 22, 9, 10], [18, 36, 8, 8], [39, 36, 9, 8],
-], (c) => {
-  c.poly([17, 17, 20, 13, 22, 20, 18, 25], "g");
-  c.poly([31, 11, 35, 9, 38, 15, 34, 18], "g");
-  c.poly([42, 23, 47, 22, 49, 27, 45, 30], "f");
+// Broad oak: a connected, wind-shaped crown with layered boughs and an open
+// lower canopy. Planes follow the upper-left sun instead of reading as balls.
+sprite("tree-round", { w: 64, h: 64 }, (c) => {
+  groundShadow(c);
+  trunk(c, 8);
+
+  // Deep silhouette: left crown reaches farther forward, with a broken ridge
+  // and a lifted east edge rather than a circle of separate leaf clumps.
+  c.poly([
+    29, 4, 37, 6, 42, 11, 51, 14, 57, 21, 55, 28, 59, 34,
+    55, 41, 48, 46, 39, 44, 33, 50, 24, 47, 17, 48, 10, 43,
+    8, 36, 4, 30, 7, 23, 12, 19, 15, 12, 22, 9,
+  ], "f");
+
+  // The middle canopy is one continuous mass. A darker lee plane gives the
+  // boughs weight; upper-left breaks catch warm daylight.
+  c.poly([
+    29, 7, 36, 9, 41, 14, 49, 17, 54, 22, 52, 28, 56, 34,
+    52, 39, 47, 43, 39, 41, 32, 47, 25, 44, 18, 45, 12, 41,
+    11, 35, 7, 30, 10, 24, 15, 20, 17, 14, 23, 11,
+  ], "G");
+  c.poly([33, 22, 42, 18, 50, 22, 52, 29, 56, 34, 52, 39, 47, 43, 39, 41, 32, 47, 27, 43], "F");
+
+  // Sunward bough planes; stepped, angular leaf edges keep the silhouette
+  // readable at the small in-world scale.
+  c.poly([20, 13, 25, 10, 31, 8, 36, 10, 39, 14, 36, 18, 30, 17, 27, 21, 20, 20, 16, 23, 13, 20], "g");
+  c.poly([11, 24, 15, 19, 21, 18, 25, 22, 23, 27, 17, 29, 13, 33, 9, 30], "g");
+  c.poly([25, 22, 31, 18, 38, 19, 42, 23, 39, 28, 34, 29, 30, 34, 24, 31], "G");
+  c.poly([39, 15, 45, 17, 50, 20, 51, 25, 47, 28, 42, 25, 39, 21], "g");
+  c.poly([14, 33, 19, 29, 26, 31, 28, 36, 24, 41, 17, 42, 12, 39, 10, 35], "G");
+  c.poly([31, 31, 38, 27, 45, 29, 49, 33, 46, 38, 41, 40, 34, 38, 29, 41], "g");
+
+  // Forks show through two deliberate gaps; roots and bark planes carry the
+  // same left-lit direction as the canopy.
+  c.line(31, 42, 24, 32, "D");
+  c.line(33, 42, 41, 31, "b");
+  c.line(25, 33, 20, 28, "D");
+  c.line(40, 33, 46, 27, "b");
+  c.vline(30, 45, 13, "d");
+  c.vline(34, 44, 14, "b");
+  c.poly([22, 55, 32, 53, 40, 57, 38, 60, 21, 60], "D");
+  c.vline(25, 55, 4, "d");
+  c.vline(33, 54, 5, "b");
+  c.poly([27, 59, 37, 59, 42, 62, 22, 62], "F");
 });
 
 // Flowering plum: an open crown, with blossom confined to a few lit sprays.
