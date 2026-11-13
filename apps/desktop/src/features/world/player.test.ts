@@ -112,12 +112,16 @@ describe('world player movement', () => {
       blocked: new Set(terrain.collisionCells),
     };
     const east: WorldInput = { north: false, south: false, east: true, west: false };
-    let crossing = { x: bridge.x - 1.5, y: bridgeRow + 0.5 };
+    // Start on the first clear tile beside the bridge; the workshop occupies the deeper west bank.
+    let crossing = { x: bridge.x - 0.5, y: bridgeRow + 0.5 };
     for (let frame = 0; frame < 40; frame += 1) crossing = stepWorldPlayer(crossing, east, 50, map);
     expect(crossing.x).toBeGreaterThan(bridge.x + 3.5);
 
     const north: WorldInput = { north: true, south: false, east: false, west: false };
-    let creekBank = { x: bridge.x + 1.5, y: bridgeRow + 0.5 };
+    const upstreamWater = terrain.cells.find(({ y, tile }) => tile === 'water' && y === bridgeRow - 1);
+    expect(upstreamWater, 'the creek should continue immediately upstream of the bridge').toBeTruthy();
+    if (!upstreamWater) return;
+    let creekBank = { x: upstreamWater.x + 0.5, y: bridgeRow + 0.5 };
     for (let frame = 0; frame < 40; frame += 1) creekBank = stepWorldPlayer(creekBank, north, 50, map);
     expect(creekBank.y).toBeGreaterThan(bridgeRow - 0.23);
   });
