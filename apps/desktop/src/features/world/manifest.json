@@ -287,7 +287,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/landmarks.px.js",
-      "sha256": "70a989f686d11b0134a1dec519898ecc1dac2485c636291be0e5aac80c7fd879"
+      "sha256": "9f4e73ee8206052136dbbf4d11721939be4fc522d09cf9380eef56c0b10f056d"
     },
     "landmark-attention": {
       "file": "landmark-attention.png",
@@ -319,7 +319,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/landmarks.px.js",
-      "sha256": "3f0341430cf7a679fde062fc7f1462690489bd96ebc7cdf0156a529c8dd42fae"
+      "sha256": "387fac06f1d69387f71e859bebcc25f6605489e7b2e666c06cd21fc1ea985ce6"
     },
     "landmark-settings": {
       "file": "landmark-settings.png",
@@ -343,7 +343,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/landmarks.px.js",
-      "sha256": "a7bf3ef88d48ac78ed3c533049cfcefb203ab32fb9902e1c4428ac3878b43f33"
+      "sha256": "6b93bbd523f4691a8e22b3d5e9e666788724b75ab24bed44a271d174651c3cc0"
     },
     "landmark-workspace": {
       "file": "landmark-workspace.png",

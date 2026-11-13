@@ -79,6 +79,29 @@ overall palette. This is a local improvement, not a claim that the World is
 beautiful or complete. A third-party visual review, further terrain/canal work,
 less repetitive trees and distinctive civic/project façades remain required.
 
+## Civic facade slice — packaged Electron critique
+
+The next authored PXL pass replaces the generic Archive, Workshop and Operations
+silhouettes with a stone records hall and catalog tower, a sawtooth-roof forge
+with a waterwheel, and a map porch with an offset clock tower. Previews were
+corrected after the first Workshop pass clipped the wheel and crowded its doors.
+The revised assets are generated from the governed PXL sources; `check:world`
+confirms all 201 generated sprites are current, and the focused World suite passes
+72/72 tests.
+
+Packaged Electron captures were opened at 1024×640, 1440×900 and 1920×1080.
+At 1024×640, the three facades remain recognizable and the waterwheel is visible.
+At 1920×1080, material and silhouette details read cleanly. At 1440×900, the
+village occupies too little of the available map canvas and leaves excessive
+empty surround; this remains a composition defect. The file named as a Dusk
+capture rendered the Meadow palette, so it is not evidence of Dusk acceptance.
+Recheck theme selection and recapture before claiming a Meadow/Dusk visual pass.
+
+Private captures are under
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-civic-iteration-1/`.
+This slice is not visual sign-off: map scale/composition, Dusk state, canal shape,
+tree repetition, project-house variety and native-window-manager review remain open.
+
 Capture artifacts are kept outside the repository under
 `/home/ulisesjcf/.ai-workspace/.audit-private/world-art-iteration-{1,2,3}/`.
 The successful packaged runs used Electron's headless Ozone mode because the
