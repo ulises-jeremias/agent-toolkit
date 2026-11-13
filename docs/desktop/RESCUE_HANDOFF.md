@@ -777,14 +777,20 @@ focused World tests pass (72/72), the full Desktop suite passes (608 Vitest +
 `dist:dir` package was used for screenshots before this validation. The first
 test attempts failed because temporary files under host `/tmp` could not be
 written; rerunning with `TMPDIR=/home/ulisesjcf/.ai-workspace/.audit-private/tmp`
-works. Exact-head hosted CI, commit and push remain to do for this slice. Keep
-PR #1783 draft and unmerged while its stacked base gates are unhealthy.
+works. Commit `c07fdcc6c280e704ce45a962d55d2e13f86e3752` is now pushed to PR #1783.
+Exact-head runs: Desktop gates `43344031283`, packaged fresh-HOME
+`43344031270`, web quality `43344031287`, and Vercel deployment are pending;
+Vercel Preview Comments passes and Danger is skipped. The update is recorded on
+mission issue #1775 at
+https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6840921560.
+Keep PR #1783 draft and unmerged while its stacked base gates are unhealthy.
 
-Next action: run full relevant validation with the private TMPDIR, inspect why
-the Dusk capture retained Meadow colors, then correct/recapture only if the
-theme-state path can be verified. Record the 1440 composition defect and keep
-World visual sign-off open. This does not close any real-provider, onboarding,
-accessibility, cross-platform, native window, or ultimate daily-driver gate.
+Next action: wait for these exact-head CI runs and investigate why the Dusk
+capture retained Meadow colors before recapturing or counting a theme pass.
+Record the 1440 composition defect and keep World visual sign-off open. Then
+return to Focus/provider journey acceptance before doing more art. This does not
+close any real-provider, onboarding, accessibility, cross-platform, native
+window, or ultimate daily-driver gate.
 
 ## 12. How Luna should execute efficiently
 
