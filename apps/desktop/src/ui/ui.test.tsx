@@ -114,6 +114,21 @@ describe('Dialog', () => {
     expect(trigger).toHaveFocus();
   });
 
+  it('closes from Escape through the controlled owner without reopening the native dialog', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    const dialog = screen.getByRole('dialog', { name: 'Start a job' });
+    const cancel = new Event('cancel', { cancelable: true });
+
+    await act(async () => {
+      dialog.dispatchEvent(cancel);
+    });
+
+    expect(cancel.defaultPrevented).toBe(true);
+    expect(screen.queryByText('body')).not.toBeInTheDocument();
+  });
+
   it('still reports a native close when there is no safe focus target to restore', async () => {
     function NestedHarness() {
       const [open, setOpen] = useState(false);

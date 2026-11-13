@@ -61,7 +61,10 @@ function refresh(): void {
 
 /** Apply the stored appearance before first paint and follow OS changes. */
 export function initAppearance(): void {
-  applyToDocument(snapshot);
+  // This module is evaluated before the async Electron preferences read in
+  // main.tsx completes. Recompute now so a durable theme restored on startup
+  // is not overwritten by the module's initial system-theme snapshot.
+  refresh();
   prefersDarkQuery()?.addEventListener('change', refresh);
 }
 

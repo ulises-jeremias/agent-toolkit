@@ -30,33 +30,37 @@ export function TerminalDock() {
   }, []);
   const mode = dockMode(location.pathname, available, sessions.length, compactOpen);
   // With no terminal open the drawer has nothing to show: keep the page clear.
-  if (mode === 'hidden' || (sessions.length === 0 && location.pathname !== '/terminal')) return <NewSessionDialog />;
+  const showDock = mode !== 'hidden' && !(sessions.length === 0 && location.pathname !== '/terminal');
 
   return (
-    <aside className={styles.dock} data-mode={mode} aria-label="Terminal dock">
-      <div className={styles.dockBar}>
-        <p className={styles.dockTitle}>Terminal</p>
-        <div className={styles.dockTabs}>
-          <TerminalTabs />
-        </div>
-        {sessions.length > 0 && location.pathname !== '/terminal' ? (
-          <Button
-            size="sm"
-            variant="ghost"
-            aria-expanded={mode !== 'collapsed'}
-            onClick={() => setCompactOpen((open) => !open)}
-          >
-            {mode === 'collapsed' ? 'Show terminal' : 'Hide terminal'}
-          </Button>
-        ) : null}
-        <Button size="sm" variant="ghost" onClick={() => setCreating(true)}>
-          New terminal
-        </Button>
-      </div>
-      <div className={styles.dockTerminal} hidden={mode === 'collapsed'}>
-        <TerminalHost />
-      </div>
+    <>
+      {showDock ? (
+        <aside className={styles.dock} data-mode={mode} aria-label="Terminal dock">
+          <div className={styles.dockBar}>
+            <p className={styles.dockTitle}>Terminal</p>
+            <div className={styles.dockTabs}>
+              <TerminalTabs />
+            </div>
+            {sessions.length > 0 && location.pathname !== '/terminal' ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                aria-expanded={mode !== 'collapsed'}
+                onClick={() => setCompactOpen((open) => !open)}
+              >
+                {mode === 'collapsed' ? 'Show terminal' : 'Hide terminal'}
+              </Button>
+            ) : null}
+            <Button size="sm" variant="ghost" onClick={() => setCreating(true)}>
+              New terminal
+            </Button>
+          </div>
+          <div className={styles.dockTerminal} hidden={mode === 'collapsed'}>
+            <TerminalHost />
+          </div>
+        </aside>
+      ) : null}
       <NewSessionDialog />
-    </aside>
+    </>
   );
 }

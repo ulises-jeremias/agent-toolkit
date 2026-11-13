@@ -339,9 +339,10 @@ export default function Library() {
     mutationFn: (targets?: string[]) => requireClient(client).installPreview(targets),
     onSuccess: (response) => {
       setInstallPreview(response);
-      if (selectedTargets.length === 0 || !sameTargets(selectedTargets, response)) {
-        setSelectedTargets(reviewedTargets(response));
-      }
+      // A refreshed preview is the authority for the checked targets. Keep the
+      // dialog open while it loads so its close handler cannot clear the user's
+      // selection before this response arrives.
+      setSelectedTargets(reviewedTargets(response));
     },
   });
   const previewUninstall = useMutation({
@@ -644,7 +645,6 @@ export default function Library() {
               busy={previewInstall.isPending}
               busyLabel="Updating preview…"
               onClick={() => {
-                setInstallPreview(null);
                 previewInstall.mutate(selectedTargets);
               }}
             >
@@ -652,7 +652,13 @@ export default function Library() {
             </Button>
             <Button
               variant="primary"
-              disabled={!installPreview?.ok || !sameTargets(selectedTargets, installPreview) || install.isPending}
+              disabled={
+                !installPreview?.ok ||
+                !sameTargets(selectedTargets, installPreview) ||
+                previewInstall.isPending ||
+                previewInstall.isError ||
+                install.isPending
+              }
               busy={install.isPending}
               busyLabel="Installing…"
               onClick={() => {
