@@ -125,6 +125,22 @@ test('capture every destination in Meadow and Dusk at all supported sizes', asyn
         if (destination === 'World') {
           const world = page.getByRole('application', { name: 'Semantic workspace world' });
           await expect(world).toBeVisible();
+          await expect(world).toHaveAttribute('data-camera-mode', 'fit');
+          const frame = await world.evaluate((element) => {
+            const region = element.querySelector<HTMLElement>('[data-world-map]');
+            if (!region) throw new Error('Semantic world map frame is missing');
+            const rect = region.getBoundingClientRect();
+            const viewport = element.getBoundingClientRect();
+            return {
+              mapWidth: rect.width,
+              mapHeight: rect.height,
+              viewportWidth: viewport.width,
+              viewportHeight: viewport.height,
+            };
+          });
+          expect(frame.mapWidth).toBeLessThanOrEqual(frame.viewportWidth);
+          expect(frame.mapHeight).toBeLessThanOrEqual(frame.viewportHeight);
+          expect(frame.mapWidth / frame.viewportWidth).toBeGreaterThanOrEqual(0.8);
           // A visible route/header can precede the workspace query. Wait for a
           // real canonical landmark so design-review captures never preserve
           // the loading background as if it were an empty world.

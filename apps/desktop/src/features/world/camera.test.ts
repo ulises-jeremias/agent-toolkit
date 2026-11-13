@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { clampCamera, fitCamera, responsiveCameraZoom, WORLD_ZOOMS, zoomCamera } from './camera';
 
 describe('WORLD_ZOOMS', () => {
-  it('stays integer and starts at one source pixel', () => {
-    expect(WORLD_ZOOMS).toEqual([16, 32, 48, 64, 80]);
+  it('uses whole-pixel tile sizes and starts at one source tile', () => {
+    expect(WORLD_ZOOMS).toEqual([16, 24, 32, 40, 48, 56, 64, 72, 80]);
     for (const step of WORLD_ZOOMS) {
       expect(Number.isInteger(step)).toBe(true);
     }
@@ -31,37 +31,42 @@ describe('fitCamera', () => {
   });
 
   it('centers a world smaller than the viewport', () => {
-    // 10x8 tiles at 64px/tile = 640x512, the largest step that fits 776x576.
+    // 10x8 tiles at 72px/tile = 720x576, the largest step that fits 776x576.
     const camera = fitCamera({ x: 800, y: 600 }, { x: 10, y: 8 });
-    expect(camera.zoom).toBe(64);
-    expect(camera.pan.x).toBe(80);
-    expect(camera.pan.y).toBe(44);
+    expect(camera.zoom).toBe(72);
+    expect(camera.pan.x).toBe(40);
+    expect(camera.pan.y).toBe(12);
   });
 
-  it('uses crisp 5x scale when a compact interior fits a large window', () => {
+  it('uses intermediate nearest-neighbor tile scales to fill desktop overviews', () => {
+    expect(fitCamera({ x: 1224, y: 775 }, { x: 28, y: 13 }).zoom).toBe(40);
+    expect(fitCamera({ x: 1704, y: 950 }, { x: 28, y: 13 }).zoom).toBe(56);
+  });
+
+  it('uses the largest available scale when a compact interior fits a large window', () => {
     const camera = fitCamera({ x: 1920, y: 900 }, { x: 14, y: 10 });
     expect(camera.zoom).toBe(80);
     expect(camera.pan).toEqual({ x: 400, y: 50 });
   });
 
-  it('frames a large window at readable integer scale while retaining a strict fit', () => {
+  it('frames a large window at readable scale while retaining a strict fit', () => {
     const viewport = { x: 1920, y: 900 };
     const tiles = { x: 30, y: 20 };
-    expect(fitCamera(viewport, tiles).zoom).toBe(32);
+    expect(fitCamera(viewport, tiles).zoom).toBe(40);
     expect(fitCamera(viewport, tiles, 48).zoom).toBe(48);
   });
 });
 
 describe('responsiveCameraZoom', () => {
-  it('fits project interiors to the compact and large viewport without fractional pixels', () => {
-    expect(responsiveCameraZoom('interior', { x: 1024, y: 448 }, { x: 13, y: 9 })).toBe(48);
-    expect(responsiveCameraZoom('interior', { x: 1920, y: 860 }, { x: 13, y: 9 })).toBe(80);
+  it('uses the largest crisp scale that fits actual room bounds', () => {
+    expect(responsiveCameraZoom({ x: 1024, y: 448 }, { x: 13, y: 9 })).toBe(48);
+    expect(responsiveCameraZoom({ x: 1920, y: 860 }, { x: 13, y: 9 })).toBe(80);
+    expect(responsiveCameraZoom({ x: 800, y: 360 }, { x: 13, y: 9 })).toBe(40);
   });
 
-  it('keeps the player-first scale on grounds and falls back when an interior cannot grow', () => {
-    expect(responsiveCameraZoom('grounds', { x: 1024, y: 448 }, { x: 40, y: 24 })).toBe(32);
-    expect(responsiveCameraZoom('grounds', { x: 1920, y: 860 }, { x: 40, y: 24 })).toBe(64);
-    expect(responsiveCameraZoom('interior', { x: 800, y: 360 }, { x: 13, y: 9 })).toBe(32);
+  it('fits the full grounds at compact and large viewports instead of cropping the player first', () => {
+    expect(responsiveCameraZoom({ x: 1024, y: 448 }, { x: 40, y: 24 })).toBe(16);
+    expect(responsiveCameraZoom({ x: 1920, y: 860 }, { x: 40, y: 24 })).toBe(32);
   });
 });
 

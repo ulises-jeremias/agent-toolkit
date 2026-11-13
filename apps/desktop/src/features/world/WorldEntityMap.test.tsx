@@ -148,16 +148,16 @@ describe('WorldEntityMap activation', () => {
     return { layout, onActivate, onSelect, user, ...rendered };
   }
 
-  it('opens at the human player with the world camera following at exploration scale', async () => {
+  it('opens with the complete workspace framed and keeps walking explicit', async () => {
     window.localStorage.clear();
     renderMap(baseInput({ projects: [] }));
 
     const world = screen.getByRole('application', { name: 'test world' });
     const player = screen.getByRole('img', { name: 'You, exploring the workspace' });
-    await waitFor(() => expect(world).toHaveAttribute('data-camera-mode', 'follow'));
+    await waitFor(() => expect(world).toHaveAttribute('data-camera-mode', 'fit'));
     expect(player).toHaveAttribute('data-ready', 'true');
     expect(player).toHaveStyle({ visibility: 'visible' });
-    expect(world).toHaveAttribute('data-zoom', '48');
+    expect(world).toHaveAttribute('data-zoom', '16');
   });
 
   it('persists the human player appearance per workspace and resets for another workspace', async () => {

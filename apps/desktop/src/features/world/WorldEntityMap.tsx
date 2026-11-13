@@ -133,11 +133,11 @@ export function WorldEntityMap({
   onActivate,
 }: WorldEntityMapProps): ReactNode {
   const regionRef = useRef<HTMLDivElement>(null);
-  const [zoom, setZoom] = useState<number>(48);
+  const [zoom, setZoom] = useState<number>(32);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  // Start at a playable scale around the human avatar. Fit world remains one
-  // click away for workspace overview and direct productivity navigation.
-  const [cameraMode, setCameraMode] = useState<'frame' | 'fit' | 'manual' | 'follow'>('follow');
+  // Start with the whole semantic workspace in view. Walking is an explicit
+  // mode; ordinary navigation and inspection should not begin as a game.
+  const [cameraMode, setCameraMode] = useState<'frame' | 'fit' | 'manual' | 'follow'>('fit');
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const drag = useRef<{ x: number; y: number; panX: number; panY: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
@@ -473,12 +473,11 @@ export function WorldEntityMap({
       const current = movementStateRef.current;
       if (current.cameraMode === 'follow') {
         const viewport = { x: region.clientWidth, y: region.clientHeight };
-        // Project rooms are small enough to frame at the largest crisp scale.
-        // Grounds keep the wider player-first view. Explicit zoom and Fit world
-        // choices always take priority.
+        // Keep the complete semantic area visible at the largest crisp scale.
+        // Explicit zoom and Fit world choices always take priority.
         let followZoom = current.zoom;
         if (!userAdjustedZoomRef.current && viewport.x > 0) {
-          const responsiveZoom = responsiveCameraZoom(mode, viewport, { x: cols, y: rows });
+          const responsiveZoom = responsiveCameraZoom(viewport, { x: cols, y: rows });
           if (current.zoom !== responsiveZoom) {
             followZoom = responsiveZoom;
             setZoom(responsiveZoom);

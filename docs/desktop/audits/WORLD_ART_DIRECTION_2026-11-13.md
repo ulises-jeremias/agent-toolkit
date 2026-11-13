@@ -93,14 +93,35 @@ Packaged Electron captures were opened at 1024×640, 1440×900 and 1920×1080.
 At 1024×640, the three facades remain recognizable and the waterwheel is visible.
 At 1920×1080, material and silhouette details read cleanly. At 1440×900, the
 village occupies too little of the available map canvas and leaves excessive
-empty surround; this remains a composition defect. The file named as a Dusk
-capture rendered the Meadow palette, so it is not evidence of Dusk acceptance.
-Recheck theme selection and recapture before claiming a Meadow/Dusk visual pass.
+empty surround; this remains a composition defect. The earlier impression that
+the Dusk capture showed Meadow was incorrect: the opened Dusk capture is darker,
+with warm point lights, but the scene still leans olive and its light sources do
+not yet share one coherent treatment.
 
 Private captures are under
 `/home/ulisesjcf/.ai-workspace/.audit-private/world-civic-iteration-1/`.
-This slice is not visual sign-off: map scale/composition, Dusk state, canal shape,
+This slice is not visual sign-off: map scale/composition, canal shape,
 tree repetition, project-house variety and native-window-manager review remain open.
+
+## Responsive overview camera — packaged Electron critique
+
+The previous default camera followed the player avatar and used width breakpoints
+that did not consider the actual map bounds. The 1440×900 overview stayed small;
+the 1920×1080 player view could crop the full semantic village. The renderer now
+opens in `fit` mode, computes the largest whole-CSS-pixel tile size that fits the
+actual room, and keeps walking an explicit action. Intermediate tile scales (40
+and 56 CSS pixels) let the 28×13 village fill roughly 90% of the World region at
+1440 and 1920 without fractional blur or clipping. A packaged Electron capture
+test now asserts the complete world fits its region at each viewport.
+
+All six packaged captures passed and were opened: Meadow/Dusk at 1024×640,
+1440×900 and 1920×1080. At 1440 and 1920 the village is larger and centered; at
+1024 it remains legible and fits. This fixes the camera crop/scale defect only.
+The scene still reads as a sprite showcase rather than a composed valley: a
+rectangular terrain boundary, straight creek, repeated canopy clusters, confetti
+ground marks, isolated front-facing buildings, and large vertical margins remain.
+Private captures are under
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-fit-overview-v2/`.
 
 Capture artifacts are kept outside the repository under
 `/home/ulisesjcf/.ai-workspace/.audit-private/world-art-iteration-{1,2,3}/`.
