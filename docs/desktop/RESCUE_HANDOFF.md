@@ -1186,3 +1186,29 @@ GitHub had not yet attached new exact-head checks at the time of this note, and
 merge state remained `UNSTABLE`. The previous head's clean-profile packaged
 acceptance and platform checks passed except for two packages still pending at
 the moment the head was replaced. Treat only checks for `53d0c7b8` as current.
+
+## 20. Continuation checkpoint — repeatable live run and one real approval
+
+The packaged live Codex acceptance passes again (1/1, about 1m30s) with the
+stable `accept-edits` setup. Tightened the two Focus composer locators to exact
+accessible names because the real Changes pane also exposes a “Commit message”
+textbox whose label contains “Message”. ESLint and both TypeScript checks pass.
+This test still covers project linking, real provider-produced file/output and
+untracked diff, real PTY input, safe interruption, reopen/history, honest
+resume-or-unavailable behavior, and World-to-Focus state continuity.
+
+During the Ask-mode experiment, one packaged Codex run did emit the real
+`Approval needed` dialog. Clicking “Allow once” let Codex create the exact file;
+the actual diff preview then passed. That run later exposed the ambiguous
+composer selector described above. Subsequent Ask attempts did not reliably
+reproduce the prompt: one provider turn declined the read-only write and the
+explicit-command attempt did not produce a session row within its timeout.
+The temporary Ask-mode assertions and prompt were reverted. Therefore a
+provider-generated Codex approval is now **observed once**, but the harness does
+not yet assert it repeatably. Keep this confidence level explicit.
+
+Committed and pushed the exact-selector fix as
+`a121229d82bbef37dd36a4b395d578da865f8e44` to PR #1783. It replaces the
+`53d0c7b8` head and starts a new exact-head CI run; only checks on `a121229d`
+count now. PR #1783 remains draft/open and unmerged. Recheck its new checks and
+keep resolving base/merge state before integration.
