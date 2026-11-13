@@ -963,7 +963,10 @@ The reviewed source is split into these local commits on
 `rescue/desktop-continuity-focus`: `07a59f49` handles provider questions in
 Focus; `bc8c0f5f` fixes appearance persistence and controlled dialog state;
 `4354b479` strengthens packaged navigation/persistence tests; `cc6ffbb8`
-records the rejected terrain iteration. These commits have not yet been pushed.
+records the rejected terrain iteration. These four commits are pushed to
+`rescue/desktop-continuity-focus` and included in open draft PR #1783, whose
+base is `fix/desktop-shell-smoke-navigation-20261112`. The PR is not merged;
+recheck base integration and exact-head checks before changing that state.
 The World art work remains explicitly unaccepted; the visual issue is real and
 not external.
 
@@ -1023,5 +1026,47 @@ art-only sequence ahead of the live-provider and reopen/recovery acceptance.
    and personally verifies results. Usage limits are not product completion.
 9. Do not ask again for ordinary architectural/engineering permissions already granted.
 10. The final success question is whether the owner can comfortably complete real
-   development work in Desktop and enjoy it. Until that is demonstrated, keep the
-   mission and relevant acceptance gates open.
+    development work in Desktop and enjoy it. Until that is demonstrated, keep the
+    mission and relevant acceptance gates open.
+
+## 17. Continuation checkpoint — installed Codex packaged acceptance
+
+The authenticated installed Codex provider was exercised from the packaged Linux
+Electron application using the actual user Codex configuration via `CODEX_HOME`;
+credentials were not copied into the clean Desktop profile or repository. The
+optional `e2e/electron/codex-live-acceptance.spec.ts` creates and removes its own
+scratch HOME, workspace, profile, and disposable Git repository. It links that
+repository through the Projects UI, starts a real Codex task, checks the exact
+provider-produced file contents and Focus tool receipt, stages the file and
+checks its actual patch in the Changes view, runs a command in a real embedded
+Bash PTY, safely interrupts a deliberately waiting provider turn, closes and
+reopens Electron against the same profile, and navigates between Focus and the
+project's World interior. Final packaged execution passed (1/1, about 1m36s).
+
+The provider resume result is variable. A prior live run showed Focus's truthful
+message that Codex could not resume its saved remote conversation; another
+actual rerun resumed successfully and returned the file's exact contents. The
+acceptance asserts either the exact recovered answer or the explicit
+unavailable-resume message, while always checking that the original completed
+turn and its output survive relaunch. Do not describe resume as guaranteed.
+This opt-in test (`ATK_LIVE_CODEX_ACCEPTANCE=1`) requires an authenticated Codex
+configuration. Set `SHELL=/bin/bash` for the clean profile on this host: the
+user's interactive Zsh startup script launches a first-run interactive prompt
+that consumes typed PTY input. The test and fixture change were reviewed,
+committed as `930a936a`, and pushed to PR #1783. Its current exact-head checks
+show Vercel Preview Comments passed, Vercel deployment pending, and Agent Review
+skipping. Keep the PR draft and unmerged.
+
+The live test also confirmed a real UX gap: an untracked file initially shows
+“No textual diff” because the Git diff endpoint currently reads only tracked or
+staged diffs. Stage the file before inspection in the acceptance flow for now;
+the product should render an untracked file's actual added lines without that
+extra step. Do not call the initial untracked preview functional.
+
+Source ESLint, renderer/Electron TypeScript checks, `git diff --check`, Vitest
+(614/614), Node spikes (45/45), the live packaged provider test (1/1), and the
+packaged Electron `desktop.spec.ts` (33/33) all pass with this test addition.
+The real-provider and resume behavior are evidenced for Codex only. Codex
+interactive user-input is still protocol-fixture-tested, not emitted by the
+installed provider. The remaining world art rejection and overall daily-driver
+signoff are unchanged.
