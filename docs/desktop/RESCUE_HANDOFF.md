@@ -1622,3 +1622,32 @@ keyboard/reduced motion, startup/performance, native window behavior, supported
 platform packaging, plus broad everyday usability remain unverified. Keep #1783
 draft and do not claim the desktop rescue is complete until the real installed-
 app acceptance and visual/accessibility quality bar are met.
+
+## 33. Continuation checkpoint — compact Focus action stays in view
+
+The 1024x640 packaged-app screenshot in checkpoint 31 showed the Start session
+button below the fold even though the task editor itself was usable. The Focus
+start form now owns the remaining stage height and scrolls internally; its
+primary-action row sticks to the bottom of that form while project/provider
+configuration remains scrollable. Extended the packaged Electron responsive
+matrix to require the entire Start session button to remain within the window
+at 1280x800, 1024x768 and the supported 1024x640 minimum. All checks passed in
+the actual Linux x64 packaged app (responsive suite 2/2, 1.1 minutes); opened
+`apps/desktop/test-results/review/responsive-focus-narrow.png` and confirmed
+that the 128px multiline task editor remains visible and the primary button is
+reachable. The provider list continues below the fold and can scroll; this is
+intentional at the constrained height. `pnpm lint`, `pnpm type-check`, and
+`git diff --check` passed. The capture is local QA output, not committed.
+
+Committed and pushed to PR #1783 as
+`85ccac0b241784cac240addf99c068a36665c0d8`
+(`fix(desktop): keep Focus start action reachable`). PR is still OPEN/draft,
+base #1782 `36affaac17be6743eca6e6b18865c1ff0dd69609`, mergeable. At the first
+query after push, GitHub had not yet published exact-head workflow runs for
+`85ccac0b`; prior SHA runs must not be treated as validation. Re-query until
+desktop, clean-machine, Validate, Release, web and V parity runs are attached to
+this exact head, then wait for their final conclusions.
+
+This addresses only a compact-window interaction defect. Continue broader
+acceptance and World visual redesign as specified above; no product-wide
+sign-off is implied.
