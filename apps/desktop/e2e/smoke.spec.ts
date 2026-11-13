@@ -86,8 +86,8 @@ test.describe('desktop smoke', () => {
     await expect(page.getByText('Interactive terminals need the Desktop app.')).toBeVisible();
   });
 
-  test('unknown routes land on the Focus home', async ({ page }) => {
+  test('unknown routes land on the World home', async ({ page }) => {
     await page.goto('/#/nowhere');
-    await expect(page).toHaveURL(/#\/focus/);
+    await expect(page).toHaveURL(/#\/world/);
   });
 });
