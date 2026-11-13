@@ -1651,3 +1651,24 @@ this exact head, then wait for their final conclusions.
 This addresses only a compact-window interaction defect. Continue broader
 acceptance and World visual redesign as specified above; no product-wide
 sign-off is implied.
+
+## 34. Continuation checkpoint — packaged first-run and repository linking
+
+Ran the actual Linux x64 packaged Electron binary from checkpoint 33 with its
+real local backend and disposable homes. The complete first-run suite passed
+3/3: existing workspace onboarding linked a real temporary repository and
+reported provider availability honestly; missing-workspace onboarding created
+the workspace only after the explicit action; and a supervised backend crash
+showed the recovery state and successfully restarted the service. The packaged
+repository-link journey also passed: Projects rejected a nonexistent folder,
+registered the temporary existing repository, and World showed its project
+building. Combined result: four packaged Electron tests passed in 1.7 minutes.
+The only stub was Electron's native folder-picker result; the preload bridge,
+backend APIs and filesystem/Git checks were real. All scratch data was in the
+E2E temporary profile and removed on close.
+
+These results give direct packaged evidence for clean onboarding/workspace
+setup, linking an existing repository, provider-state honesty, backend recovery,
+and the project appearing in World. They do not cover the full user-created
+workspace selection flow, every native dialog/platform, or visual sign-off.
+Do not extrapolate to the full mandatory acceptance scenario.
