@@ -169,13 +169,19 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
   const page = await app.firstWindow();
   await page.waitForLoadState('domcontentloaded');
   if (skipOnboarding) {
-    const hasDesktopPreferences = await page.evaluate(() => Boolean(window.atk?.preferences));
+    const hasDesktopPreferences = await page.evaluate(() => {
+      const store = Object.getOwnPropertyDescriptor(window.atk, 'preferences')?.value;
+      return typeof store?.update === 'function';
+    });
     if (hasDesktopPreferences) {
       // Onboarding is persisted by Electron in userData; renderer localStorage
       // is intentionally not authoritative because the dev-server origin changes.
       await page.evaluate(async () => {
-        const preferences = window.atk?.preferences;
-        if (!preferences) throw new Error('Desktop preference bridge became unavailable.');
+        const preferences = Object.getOwnPropertyDescriptor(window.atk, 'preferences')?.value as
+          { update?: (value: { onboardingComplete: boolean }) => Promise<void> } | undefined;
+        if (typeof preferences?.update !== 'function') {
+          throw new Error('Desktop preference bridge became unavailable.');
+        }
         await preferences.update({ onboardingComplete: true });
       });
     } else {
