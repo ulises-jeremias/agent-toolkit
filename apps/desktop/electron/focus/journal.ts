@@ -129,6 +129,62 @@ function readNoFollow(file: string): string {
   }
 }
 
+interface FileIdentity {
+  dev: bigint;
+  ino: bigint;
+}
+
+/** Snapshot every legacy path component so an ancestor swap cannot redirect a read. */
+function workspacePathIdentity(workspace: string, file: string): FileIdentity[] {
+  const root = path.resolve(workspace);
+  const relative = path.relative(root, file);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) throw new Error('Legacy journal path escapes workspace');
+  const parts = relative.split(path.sep).filter(Boolean);
+  if (parts.length === 0) throw new Error('Legacy journal path is not a file');
+
+  const identities: FileIdentity[] = [];
+  let current = root;
+  for (let index = -1; index < parts.length; index += 1) {
+    if (index >= 0) current = path.join(current, parts[index]!);
+    const stat = fs.lstatSync(current, { bigint: true });
+    if (stat.isSymbolicLink()) throw new Error('Symlink in legacy Focus journal path');
+    if (index < parts.length - 1 && !stat.isDirectory()) {
+      throw new Error('Non-directory in legacy Focus journal path');
+    }
+    if (index === parts.length - 1 && (!stat.isFile() || stat.nlink > 1n)) {
+      throw new Error('Legacy Focus journal path is not a private regular file');
+    }
+    identities.push({ dev: stat.dev, ino: stat.ino });
+  }
+  return identities;
+}
+
+function readWorkspaceBufferNoFollow(file: string, workspace: string): Buffer {
+  const before = workspacePathIdentity(workspace, file);
+  const fd = openRegularNoFollow(file, fs.constants.O_RDONLY);
+  try {
+    const opened = fs.fstatSync(fd, { bigint: true });
+    const after = workspacePathIdentity(workspace, file);
+    const unchanged =
+      before.length === after.length &&
+      before.every((identity, index) => {
+        const next = after[index]!;
+        return identity.dev === next.dev && identity.ino === next.ino;
+      });
+    const leaf = before[before.length - 1]!;
+    if (!unchanged || opened.dev !== leaf.dev || opened.ino !== leaf.ino) {
+      throw new Error('Legacy Focus journal path changed while opening');
+    }
+    return fs.readFileSync(fd);
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+function readWorkspaceNoFollow(file: string, workspace: string): string {
+  return readWorkspaceBufferNoFollow(file, workspace).toString('utf8');
+}
+
 function readBufferNoFollow(file: string): Buffer {
   const fd = openRegularNoFollow(file, fs.constants.O_RDONLY);
   try {
@@ -234,7 +290,7 @@ export class ThreadJournal {
     let raw: unknown;
     try {
       assertSafeJournalPath(workspace, file, storageRoot);
-      raw = JSON.parse(readNoFollow(file));
+      raw = JSON.parse(storageRoot ? readNoFollow(file) : readWorkspaceNoFollow(file, workspace));
     } catch {
       return null;
     }
@@ -364,12 +420,12 @@ function migrateLegacyJournals(workspace: string, storageRoot: string): void {
     const legacyMeta = path.join(legacyRoot, id, 'thread.json');
     // Preserve source bytes exactly, including unknown fields and torn event
     // records. Parsing above validates metadata without lossy serialization.
-    const metadata = readBufferNoFollow(legacyMeta);
+    const metadata = readWorkspaceBufferNoFollow(legacyMeta, workspace);
     let events: Buffer | null = null;
     const legacyEvents = path.join(legacyRoot, id, 'events.jsonl');
     try {
       assertSafeJournalPath(workspace, legacyEvents);
-      events = readBufferNoFollow(legacyEvents);
+      events = readWorkspaceBufferNoFollow(legacyEvents, workspace);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
     }
