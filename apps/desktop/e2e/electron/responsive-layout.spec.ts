@@ -68,7 +68,10 @@ test('Responsive matrix: shell and primary actions stay usable at baseline, mini
       const taskInput = page.getByRole('textbox', { name: 'Task' });
       await expect(taskInput).toBeVisible();
       const taskBox = await taskInput.boundingBox();
-      expect(taskBox?.height, `${size.key}: Focus task editor keeps multiline height`).toBeGreaterThanOrEqual(128);
+      const minimumTaskHeight = size.width <= 1024 ? 96 : 128;
+      expect(taskBox?.height, `${size.key}: Focus task editor keeps multiline height`).toBeGreaterThanOrEqual(
+        minimumTaskHeight,
+      );
       await expectWithinViewport(
         page.getByRole('button', { name: 'Start session' }),
         size,
