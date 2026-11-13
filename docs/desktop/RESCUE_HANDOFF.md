@@ -1571,3 +1571,54 @@ real-provider operation, interruption/approval, session recovery, terminal/diff,
 accessibility, native-window and supported-platform gates remain unfinished.
 Continue from the latest packaged evidence and exact PR SHA, not from plans or
 self-reports.
+
+## 32. Continuation checkpoint — real Codex operation across restart
+
+Ran the opt-in acceptance against the packaged Linux x64 Electron application
+with the locally authenticated Codex CLI (`CODEX_HOME` referenced in the
+environment; no credentials were copied into the fixture). The test created a
+temporary profile and disposable Git repository, linked that repository through
+Projects, started a real Codex task, and verified the exact generated file and
+the actual untracked-file diff. It exercised the integrated PTY, safely stopped
+a second read-only turn and verified the first file remained unchanged. It then
+closed Electron and reopened with the same temporary user data, workspace and
+provider environment; the previous conversation and interrupted turn remained
+visible. A follow-up after restart is accepted only if Codex returns the exact
+file contents or Desktop shows the explicit saved-conversation-unavailable
+message. The test passed (`codex-live-acceptance.spec.ts`, packaged Electron,
+1.5 minutes), then checked the project's World interior route and returned to
+the same Focus thread. All generated profile/repository data was removed in the
+test's `finally` block. A fresh isolated zsh home initially displayed the
+first-run setup wizard; seeding an empty `.zshrc` inside that disposable test
+home made terminal input reach the shell without changing the user's shell.
+
+This proves a real provider task, file review, terminal, safe stop, persisted
+history across Desktop restart, and World-to-Focus return. The provider's
+follow-up path is intentionally truthful and may report that it cannot resume
+the saved conversation; it must not be described as durable provider-thread
+resumption. Provider resume is not yet a signed-off capability. The test change
+was linted and type-checked, committed as `77e0573e4818ed3ef6692ece6215d49e83aee099`
+(`test(desktop): accept honest Codex resume outcomes`), and pushed to PR #1783.
+The test has not been rerun on GitHub CI at this SHA yet.
+
+Current PR #1783 exact head is `77e0573e4818ed3ef6692ece6215d49e83aee099`,
+base #1782 `36affaac17be6743eca6e6b18865c1ff0dd69609`; it remains OPEN/draft and
+GitHub reports MERGEABLE. New exact-head runs: desktop `43393634761`, clean-
+machine Electron `43393634756`, Validate `43393634703`, Release `43393634740`,
+V parity `43393634689`, web `43393634687`. At the first re-query these remained
+queued/in progress/pending. Do not use green checks from `1eeb4b13` as evidence
+for this SHA; wait for these runs and re-check the stacked base PRs before
+merging.
+
+Next: re-query all exact-head PR #1783 gates and base PR #1780/#1782, diagnose
+any failures, then continue the open product rescue rather than stopping at
+this provider slice. In particular, World still needs major art/composition
+work (rigid stream and rectangular boundary, repeated oak/facade forms); compact
+Focus still needs its primary Start action reachable without awkward scrolling;
+first-run onboarding and repository registration need clean-profile packaged
+acceptance; provider resume needs either implementation or a consistently clear
+unsupported-state contract; and approvals, accessibility/screen reader,
+keyboard/reduced motion, startup/performance, native window behavior, supported
+platform packaging, plus broad everyday usability remain unverified. Keep #1783
+draft and do not claim the desktop rescue is complete until the real installed-
+app acceptance and visual/accessibility quality bar are met.
