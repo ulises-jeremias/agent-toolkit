@@ -162,6 +162,46 @@ manager behavior.
 
 ## Known failed direction
 
+### Iteration 6 — discrete moisture palette rejected
+
+I tested six flat grass colors selected by the existing moisture bands, using
+the packaged Electron capture tour with the real staged backend. All six
+captures passed at 1024×640, 1440×900 and 1920×1080 in Meadow and Dusk, then
+were opened for review. The color field made the underlying rectangular tile
+bands more visible: large hard-edged olive/sage rectangles cut across the
+settlement and forest. Dusk also retains the same geometry and reads as a
+global grey-green wash. The clean individual PXL tiles are not sufficient to
+make the composed map natural. I rejected and reverted the six-color palette
+and returned the generated assets to the prior 201-sprite state; no iteration-6
+art is retained in product source.
+
+Private evidence is under
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-art-iteration-6/`. The
+unpacked app was the Linux x64 Electron package with the rescue 1.49.0 backend.
+This experiment confirms the next art work must change terrain composition or
+use spatially continuous lighting/material treatment; adding more discrete
+tile colors is not an acceptable fix.
+
+### Iteration 7 — reverted ground, current packaged visual review
+
+After restoring the previous generated atlas, I rebuilt the packaged Electron
+application with the durable-theme initialization fix and recaptured Meadow and
+Dusk at all three required sizes. The capture tour passed 1/1 and all six
+screenshots were opened. The palette reads cleanly and the Dusk theme survives
+a reload, but this does not resolve the art critique: the square terrain slab,
+blocky grove boundary, nearly vertical creek, sparse disconnected paths,
+repeated canopy silhouettes and front-facing toy-like homes remain obvious at
+all three scales. The Dusk overlay darkens the scene but does not reshape the
+lighting around materials and terrain. The ground remains the prior uniform,
+muted treatment; the rejected iteration-6 bands are absent.
+
+Current package captures are private under
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-art-iteration-7/`. This is a
+verified build/render and a documented rejection of visual sign-off, not an
+accepted World redesign. The next art prototype needs spatially continuous
+terrain boundaries and creek geometry, with composition judged in the packaged
+app before spending more effort on sprite detail.
+
 The 2026-11-12 isolated Dusk grass swap made grass grey-blue while trees and
 buildings stayed bright. It was discarded. Do not reintroduce that tile palette
 swap; solve the lighting at the scene/material level after the shared palette
