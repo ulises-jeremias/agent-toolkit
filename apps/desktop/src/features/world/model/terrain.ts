@@ -64,14 +64,14 @@ function meadowField(x: number, y: number, scale: number, salt: number): number 
 
 /** Irregular grove patches seeded on a coarse lattice, not checkerboard tiles. */
 function insideGrove(x: number, y: number): boolean {
-  const cellSize = 9;
+  const cellSize = 11;
   const cellX = Math.floor(x / cellSize);
   const cellY = Math.floor(y / cellSize);
   for (let gy = cellY - 1; gy <= cellY + 1; gy++) {
     for (let gx = cellX - 1; gx <= cellX + 1; gx++) {
       const seedX = gx * cellSize + 2 + (h2(gx, gy, 23) % 5);
       const seedY = gy * cellSize + 2 + (h2(gx, gy, 29) % 5);
-      const radius = 4 + (h2(gx, gy, 31) % 4);
+      const radius = 3 + (h2(gx, gy, 31) % 3);
       const dx = x - seedX;
       const dy = (y - seedY) * 1.15;
       if (dx * dx + dy * dy <= radius * radius) return true;
@@ -903,7 +903,7 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
   // Keep substantial woodland even after landmarks and project houses occupy
   // the map. More small clusters create sheltered clearings without placing a
   // uniform tree grid across the walkable meadow.
-  const target = Math.min(16, Math.max(14, Math.floor((p.cols * p.rows) / 90)));
+  const target = Math.min(12, Math.max(10, Math.floor((p.cols * p.rows) / 120)));
   const candidates: { x: number; y: number; rank: number; projectClearing: boolean }[] = [];
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {
