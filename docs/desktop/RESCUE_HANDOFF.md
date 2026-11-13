@@ -1748,3 +1748,13 @@ checks were pending, including Desktop `gates`, clean-machine Electron, V
 parity, package build, and platform matrices. No failure was reported. These
 checks are still open; re-query exact SHA `3aaa43eb` and do not treat pending as
 green.
+
+## 38. Continuation checkpoint — second exact-head CI poll
+
+Re-queried PR #1783 checks for `3aaa43eb6a8fb131939067a53779eb0a5f2c0c11`.
+Web `43398081524`, Linux V parity `43398081511`, and generated-artifact check
+`43398081491` have passed. Desktop `43398081465`, packaged Electron fresh-HOME
+`43398081536`, Release package job `43398081491`, macOS V parity, macOS/Linux V
+module checks and several Validate jobs were still pending. No failures were
+reported in this poll. This is an intermediate snapshot only; poll to final
+conclusions before considering this slice integrated.
