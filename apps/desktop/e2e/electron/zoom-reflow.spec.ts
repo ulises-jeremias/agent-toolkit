@@ -1,4 +1,5 @@
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { expect, test, type ElectronApplication, type Locator, type Page } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend } from './fixtures';
 
@@ -18,6 +19,7 @@ async function captureElectronWindow(app: ElectronApplication, path: string) {
     await new Promise((resolve) => setTimeout(resolve, 200));
     return (await window.webContents.capturePage()).toDataURL();
   });
+  mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, Buffer.from(dataUrl.slice(dataUrl.indexOf(',') + 1), 'base64'));
 }
 
@@ -46,6 +48,7 @@ test('Packaged Desktop reflows at 200% and 320 CSS px, including keyboard-scroll
   const desktop = await openDesktop();
   try {
     const { app, page } = desktop;
+    const captureDirectory = process.env['ATK_CAPTURE_DIR'] ?? test.info().outputDir;
     await waitForBackend(page);
     await setViewport(app, 1024, 640);
 
@@ -75,19 +78,13 @@ test('Packaged Desktop reflows at 200% and 320 CSS px, including keyboard-scroll
       await sessions.getByRole('button', { name: 'New session' }).click();
       await expect(sessionsToggle).toHaveAttribute('aria-expanded', 'false');
       await expect(sessions).toBeHidden();
-      await captureElectronWindow(
-        app,
-        `/home/ulisesjcf/.ai-workspace/.audit-private/zoom-reflow-focus-${expectedWidth}.png`,
-      );
+      await captureElectronWindow(app, join(captureDirectory, `zoom-reflow-focus-${expectedWidth}.png`));
 
       const destinations = page.getByRole('navigation', { name: 'Destinations' });
       await destinations.getByRole('link', { name: 'People' }).click();
       await expectFitsViewport(page.getByRole('button', { name: 'Create Person' }), page, `${prefix}, People action`);
       await expectNoHorizontalOverflow(page, `${prefix}, People`);
-      await captureElectronWindow(
-        app,
-        `/home/ulisesjcf/.ai-workspace/.audit-private/zoom-reflow-people-${expectedWidth}.png`,
-      );
+      await captureElectronWindow(app, join(captureDirectory, `zoom-reflow-people-${expectedWidth}.png`));
 
       await destinations.getByRole('link', { name: 'Library' }).click();
       await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
@@ -112,10 +109,7 @@ test('Packaged Desktop reflows at 200% and 320 CSS px, including keyboard-scroll
       await page.keyboard.press('ArrowRight');
       await expect.poll(() => table.evaluate((element) => element.scrollLeft)).toBeGreaterThan(before);
       await table.evaluate((element) => element.scrollTo({ left: 0 }));
-      await captureElectronWindow(
-        app,
-        `/home/ulisesjcf/.ai-workspace/.audit-private/zoom-reflow-library-${expectedWidth}.png`,
-      );
+      await captureElectronWindow(app, join(captureDirectory, `zoom-reflow-library-${expectedWidth}.png`));
 
       await destinations.getByRole('link', { name: 'Focus' }).click();
     }
