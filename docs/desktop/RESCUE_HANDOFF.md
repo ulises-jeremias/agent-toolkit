@@ -455,11 +455,11 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   [#1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
   #1780/#1781/#1782 have failing Desktop gates; this draft remains unmerged pending
   a healthy, reviewed base. The draft now includes the art iteration and ground-tone
-  refinement at `bbbf483f0172a2faf62d03f382eccea92d510bfb`. At 01:07 UTC on Nov 13,
-  the previously observed Validate (43341054926), Release (43341054965), desktop gates
-  (43341054915), clean-machine acceptance (43341054911), and web quality (43341054961)
-  still referenced prior head `8872b5e2`; no checks for the latest head were listed yet.
-  Do not report checks for an older head, pending or in-progress
+  refinement at `bbbf483f0172a2faf62d03f382eccea92d510bfb`. At 01:09 UTC on Nov 13,
+  exact-head packaged Electron with fresh HOME (43342634883), Desktop `gates`
+  (43342634915), and web `quality` (43342634953) were pending; Danger was skipped.
+  The prior Validate/Release/clean-machine runs reference older heads and do not
+  validate this commit. Do not report pending or in-progress
   checks as passing. The local
   changed-area checks are recorded below. #1782 corrects stale
   shell smoke assertions
