@@ -1804,3 +1804,13 @@ still showed Desktop gates `43399533484`, clean-machine `43399533447`, web
 pending. No failure was reported. Continue monitoring exact head. Remaining
 visual work includes organic top/bottom scene boundaries, a more naturally
 composed creek and formal review of all domain surfaces/accessibility.
+
+## 41. Continuation checkpoint — final-known workflow state for c064e7c4
+
+Another `gh pr checks 1783` poll shows web `43399533583` passed and Vercel
+preview completed. Desktop gates `43399533484`, packaged fresh-HOME acceptance
+`43399533447`, Validate/package `43399533668`, and both-platform V parity
+`43399533844` still show pending jobs, including some jobs that had passed in
+other related PR checks; no red conclusion is visible. Treat these as genuinely
+pending until queried again. The packaged Linux tests performed locally are
+separate evidence and do not change hosted CI state.
