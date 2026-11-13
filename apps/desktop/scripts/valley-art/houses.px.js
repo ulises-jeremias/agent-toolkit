@@ -39,7 +39,7 @@ include("lib.px.js")
     c.px(x + w - 3, y + Math.round(h * 0.55), "l"); c.px(x + w - 3, y + Math.round(h * 0.55) + 1, "u")   // brass knob
   }
 
-  // ================================================================ house_a
+  // ================================================================ house-cottage
   // Terracotta gable cottage: plaster over a stone footing, river-blue door, two flower boxes.
   const A = {
     wins: [[13, 45, 9, 11, {}], [42, 45, 9, 11, {}], [28, 24, 8, 9, { arch: "c", cols: 2, rows: 1 }]],
@@ -54,7 +54,7 @@ include("lib.px.js")
         for (let d = 0; d < thick; d++) c.px(x, top + i + d, paint(side, i, d))
       }
   }
-  sprite("house_a", { w: W, h: H }, (c) => {
+  sprite("house-cottage", { w: W, h: H }, (c) => {
     // chimney first, so the roof overlaps its foot
     stones(c, 43, 6, 7, 20, { rh: 3, widths: [4, 3, 5] })
     c.vline(43, 6, 20, "h"); c.vline(48, 6, 20, "D"); c.vline(49, 6, 20, "N")
@@ -90,7 +90,7 @@ include("lib.px.js")
     c.stamp("_lantern", 38, 46)
   }, outline)
 
-  sprite("house_a_lit", { w: W, h: H }, (c) => {
+  sprite("house-cottage_lit", { w: W, h: H }, (c) => {
     for (const [x, y, w, h, o] of A.wins) litwin(c, x, y, w, h, o)
     const [px_, py, pw, ph] = A.doorPane
     c.rect(px_, py, pw, ph, "l"); c.px(px_, py, "y")
@@ -98,7 +98,7 @@ include("lib.px.js")
     halo(c)
   })
 
-  // ================================================================ house_b
+  // ================================================================ house-studio
   // Thatched round-eave cottage: a domed roof of straw strands over a plaster wall.
   const dome = (c, cx, cy, rx, ry, paint) => {
     for (let y = cy - ry; y <= cy; y++) {
@@ -110,7 +110,7 @@ include("lib.px.js")
     wins: [[10, 46, 9, 10, {}], [45, 46, 9, 10, {}]],
     doorPane: [30, 51, 4, 3],
   }
-  sprite("house_b", { w: W, h: H }, (c) => {
+  sprite("house-studio", { w: W, h: H }, (c) => {
     c.stamp("_lantern", 4, 44)                                        // sign bracket lantern left
     stones(c, 44, 10, 7, 13, { rh: 3, widths: [3, 4, 5] })              // stone chimney
     c.vline(44, 10, 13, "h"); c.vline(50, 10, 13, "D"); c.rect(43, 9, 9, 2, "s"); c.hline(43, 9, 9, "h")
@@ -136,20 +136,20 @@ include("lib.px.js")
     c.vline(52, 52, 6, "T"); c.hline(47, 52, 6, "T"); c.hline(47, 54, 5, "t")
     c.rect(48, 56, 6, 4, "u"); c.hline(48, 56, 6, "y"); c.hline(48, 59, 6, "T"); c.px(50, 57, "T"); c.px(52, 57, "T")
   }, outline)
-  sprite("house_b_lit", { w: W, h: H }, (c) => {
+  sprite("house-studio_lit", { w: W, h: H }, (c) => {
     for (const [x, y, w, h, o] of B.wins) litwin(c, x, y, w, h, o)
     const [px_, py, pw, ph] = B.doorPane
     c.rect(px_, py, pw, ph, "l"); c.px(px_, py, "y")
     halo(c)
   })
 
-  // ================================================================ house_c
+  // ================================================================ house-workshop
   // Tall timber-frame house with a steep slate roof and a hanging sign.
   const C = {
     wins: [[20, 27, 8, 9, {}], [36, 27, 8, 9, {}], [19, 47, 8, 10, {}]],
     doorPane: [31, 51, 3, 3],
   }
-  sprite("house_c", { w: W, h: H }, (c) => {
+  sprite("house-workshop", { w: W, h: H }, (c) => {
     // steep slate roof: cool blue-grey, rim light on the left slope
     c.poly([32, 3, 9, 26, 55, 26], "N")
     c.poly([32, 3, 9, 26, 15, 26, 32, 6], "D")
@@ -174,20 +174,20 @@ include("lib.px.js")
     c.rect(8, 46, 8, 5, "u"); c.hline(8, 46, 8, "y"); c.hline(8, 50, 8, "T"); c.px(10, 48, "T"); c.px(13, 48, "T")
     c.stamp("_box_white", 36, 37)
   }, outline)
-  sprite("house_c_lit", { w: W, h: H }, (c) => {
+  sprite("house-workshop_lit", { w: W, h: H }, (c) => {
     for (const [x, y, w, h, o] of C.wins) litwin(c, x, y, w, h, o)
     const [px_, py, pw, ph] = C.doorPane
     c.rect(px_, py, pw, ph, "l"); c.px(px_, py, "y")
     halo(c)
   })
 
-  // ================================================================ house_d
+  // ================================================================ house-tower
   // Stone cottage with a slate roof, a dormer window and a climbing ivy wall on the left.
   const D = {
     wins: [[11, 44, 9, 11, {}], [44, 44, 9, 11, {}], [27, 20, 9, 9, {}]],
     doorPane: [30, 50, 4, 4],
   }
-  sprite("house_d", { w: W, h: H }, (c) => {
+  sprite("house-tower", { w: W, h: H }, (c) => {
     stones(c, 46, 10, 8, 16, { rh: 4, widths: [4, 5, 3] })              // stone chimney
     c.vline(46, 10, 16, "h"); c.vline(53, 10, 16, "D")
     c.rect(45, 8, 10, 2, "s"); c.hline(45, 8, 10, "h")
@@ -221,7 +221,7 @@ include("lib.px.js")
     door(c, 27, 47, 10, 22, ["N", "t", "u"], { arch: "s", pane: D.doorPane })
     c.hline(25, 69, 14, "h")
   }, outline)
-  sprite("house_d_lit", { w: W, h: H }, (c) => {
+  sprite("house-tower_lit", { w: W, h: H }, (c) => {
     for (const [x, y, w, h, o] of D.wins) litwin(c, x, y, w, h, o)   // includes the dormer pane
     const [px_, py, pw, ph] = D.doorPane
     c.rect(px_, py, pw, ph, "l"); c.px(px_, py, "y")

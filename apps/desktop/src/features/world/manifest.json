@@ -99,51 +99,99 @@
     },
     "house-brick": {
       "file": "house-brick.png",
-      "w": 48,
-      "h": 64,
+      "w": 64,
+      "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "44179ff4af5ddc2867cada02f4e47e0ef038c7beecdd260cc13c8807fd76ec99"
+      "sha256": "edfb2d6b0a341f1c9ae617e1e0793f06cae45816ef0a71c736f514c6be26c067"
+    },
+    "house-brick_lit": {
+      "file": "house-brick_lit.png",
+      "w": 64,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/houses.px.js",
+      "sha256": "e0b67a962b04872a70148d1bd7de280fa59141eca9292b749bc5a2b7ea111c54"
     },
     "house-cabin": {
       "file": "house-cabin.png",
-      "w": 48,
-      "h": 64,
+      "w": 64,
+      "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "50251d91a786cc7f02a575dc42cf7e2c87a074b752093f32d0683659c4d0202b"
+      "sha256": "e6daa8f7a52dd9892771107f8315c9ec5332e961318420077af7b65cd0b4086e"
+    },
+    "house-cabin_lit": {
+      "file": "house-cabin_lit.png",
+      "w": 64,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/houses.px.js",
+      "sha256": "6feda93c6d94eb94c1dfcb7e2a4615432ca1d2777825122ca65220ab1ed9ee80"
     },
     "house-cottage": {
       "file": "house-cottage.png",
-      "w": 48,
-      "h": 64,
+      "w": 64,
+      "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "4000c7dfacd98e00f71e70d173a023aa95bb9e0e840806bf056adb048f0e5f39"
+      "sha256": "800a4ab94d4eb8c91625c284771b375ccc59b8823ccb81271df7e433b8c4a960"
+    },
+    "house-cottage_lit": {
+      "file": "house-cottage_lit.png",
+      "w": 64,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/houses.px.js",
+      "sha256": "4362ed5df1eb195ef7cb2c18d7133b94990d1cb28a86cb886d78e8bca929bbb3"
     },
     "house-studio": {
       "file": "house-studio.png",
-      "w": 48,
-      "h": 64,
+      "w": 64,
+      "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "cc319cf99814619fc69d2757684113d694dc8f4aef412b850694a01cf52124e8"
+      "sha256": "3d7d5dc6527b4e17960a28d3e4f161153f06832953efe8b47d2b90c762f4f1f5"
+    },
+    "house-studio_lit": {
+      "file": "house-studio_lit.png",
+      "w": 64,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/houses.px.js",
+      "sha256": "51059024dd49df20f2c56432cbffd640254fa96339b9f6b07e440785450dfe4f"
     },
     "house-tower": {
       "file": "house-tower.png",
-      "w": 48,
-      "h": 64,
+      "w": 64,
+      "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "e5002208cd260df5a242f295074327c6131600f12e50029d2d4a582a51ac6135"
+      "sha256": "6f7de1a2e4df17ef36845061472a8634293334c49abe8de345e7902afe961395"
+    },
+    "house-tower_lit": {
+      "file": "house-tower_lit.png",
+      "w": 64,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/houses.px.js",
+      "sha256": "96b5849bc5cdff280b13c9d94fc22be4b05b781487c7be7338118b4699232a17"
     },
     "house-workshop": {
       "file": "house-workshop.png",
-      "w": 48,
-      "h": 64,
+      "w": 64,
+      "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "4e08b239466b7917926c78bdb1a31ea077a07b9d86d4e9f7f2187be7fad85ea8"
+      "sha256": "b24b7e6bfa9f916278d1a25015434582e04d46b843c7c73d43d6cc78c24fe323"
+    },
+    "house-workshop_lit": {
+      "file": "house-workshop_lit.png",
+      "w": 64,
+      "h": 72,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/houses.px.js",
+      "sha256": "cd8a7beb22bdded8c80a21dcda085a2ec432c62ed3cfdafc0a7c9bbf8192c0a6"
     },
     "bench-tools": {
       "file": "bench-tools.png",
