@@ -1478,3 +1478,42 @@ Re-queried PR #1783 after pushing merge commit `be0b58d1707b754daa69b2d64d9e6f3e
 A fresh visual critique of the previously captured actual Linux packaged Electron World at 1440x900 confirms better vertical occupancy and readable semantic labels, but the scene still reads as a board of sprites: oak crowns clone visibly, the canal remains rigid, and several façades have shallow/front-facing forms. Meadow/Dusk are not signed off. The latest capture iteration is the viewport-wide Dusk atmosphere plus connected, asymmetric oak source recorded in checkpoint 28; latest private captures are at `/home/ulisesjcf/.ai-workspace/.audit-private/world-tree-dusk-pass/`. Continue architecture, terrain, and foliage authoring only with packaged capture review at all requested sizes.
 
 Next execution order: (1) check exact-head CI and reconcile only verified results; (2) make the next World iteration target silhouette repetition and organic canal/terrain boundaries, then inspect packaged captures at 1024x640, 1440x900, and 1920x1080 in both themes; (3) resume the unfinished actual-app onboarding/repository-registration/provider operation journey and capture every blocker honestly; (4) cover persistent history/restart, approvals/interruption, terminal and real Git diffs; (5) run accessibility, compact-window and supported-platform acceptance. Keep #1783 draft and do not merge pending gates. Preserve this document as the implementation handoff for GPT-6-Luna; no success claims should exceed the evidence above.
+
+## 30. Continuation checkpoint — species silhouettes in packaged Electron
+
+Reauthored the governed PXL flowering-plum and amber-pear sprites as distinct
+crown structures rather than palette variants of the same generic cluster. The
+plum now has a low, wind-shaped canopy with three branch-tip blossom clusters;
+the pear has a taller, tapered crown, forked branches and small hanging fruit.
+Regenerated both PNGs, previews and all manifests. `pnpm check:world` reports
+201 deterministic/current sprites. World model/component tests passed 72/72;
+type-check and ESLint passed (ESLint reports only its pre-existing React-version
+configuration warning).
+
+Packaged and ran the actual Linux x64 Electron app with its real local backend.
+The World screenshot tour passed at 1024x640, 1440x900 and 1920x1080 in Meadow
+and Dusk (six combinations). I opened and critiqued Meadow at 1440x900 and
+1920x1080 and Dusk at 1024x640. The new autumn pear and flowering plum read as
+distinct forms in the world overview and improve tree variety. At compact size
+the map remains dense; at large size the valley has substantial unused outer
+space. The rigid creek, rectangular tile boundary, repeated oak copies, and
+shallow architecture remain material visual defects. This sprite iteration is
+not World sign-off. Private captures are under
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-species-pass/`.
+
+Committed and pushed as `b2c6bff52aa7c2e53458f6a6509d52b7f2c54ecd`
+(`feat(desktop): distinguish flowering and fruit trees`) to PR #1783. Its new
+exact-head runs are desktop `43389865661`, Clean-machine Desktop Acceptance
+`43389865643`, Validate `43389865706`, Release `43389865765`, V parity
+`43389865673`, and web `43389865666`. At the first poll, these were pending,
+queued, or in progress; prior-SHA results do not validate this commit. PR
+remains OPEN/draft, based on #1782 `36affaac`, with mergeable state reported as
+MERGEABLE. Keep the stacked PR unmerged until its current required checks and
+base are healthy.
+
+Next: re-query those exact-head workflows and all stacked PRs; continue an
+actual packaged terrain/canal composition pass, checking whether organic
+shorelines and a nonrectangular scenic boundary can improve the scene without
+clipping semantic hitboxes or introducing navigation traps. Then return to the
+still-open clean-profile onboarding, provider, approval/interruption, session
+recovery, Git diff/terminal, accessibility, and daily-driver acceptance gates.
