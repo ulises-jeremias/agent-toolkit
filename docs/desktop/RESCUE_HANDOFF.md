@@ -2111,3 +2111,18 @@ new workflows to that head at last poll (only Vercel contexts), despite the
 previous `67926bf1` checks having started. Re-query its exact SHA; never use
 those older results for `76b204cb`. No branch protection or review requirement
 was bypassed.
+
+## 50. Continuation checkpoint — exact integration workflow state
+
+Hosted Actions are now attached to the retargeted #1782 head `63b35901`:
+`desktop` and `Clean-machine Desktop Acceptance` are in progress; `Validate`
+and `Release` are queued; CodeQL passed. This supersedes the older green run
+on `36affaac`; do not close #1781 or merge #1782 until all required exact-head
+gates complete. PR #1782 remains draft.
+
+PR #1783 head `76b204cb` now also has current-head workflows after the base
+branch update: web and quality have passed, Validate and packaged platform jobs
+are progressing, and `desktop` / clean-machine gates remain in progress. Its
+merge state is still UNKNOWN while those checks settle. It remains draft and
+must wait for #1782 integration. No current failure has been reported in the
+latest poll.
