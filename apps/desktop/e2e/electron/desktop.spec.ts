@@ -392,19 +392,26 @@ test('a contextual tool destination opens the same target-specific Library revie
   await review.getByRole('button', { name: 'Cancel' }).click();
 });
 
-test('insights shows doctor checks and usage without invented cost', async () => {
+test('Health explains environment checks and reported tool use without invented cost', async () => {
   const { page } = desktop;
   await waitForBackend(page);
   await goTo(page, 'Insights');
-  const doctor = page.getByRole('region', { name: 'Doctor' });
-  await expect(doctor).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Workspace health' })).toBeVisible();
   await expect(
-    doctor.getByRole('columnheader', { name: 'Check' }).or(doctor.getByText('Doctor returned no structured checks.')),
+    page.getByText('Review environment checks, tool use, and installed capability changes.', { exact: false }),
   ).toBeVisible();
-  await expect(doctor.getByText(/health score:\s*\d|\$\d/i)).toHaveCount(0);
-  const usage = page.getByRole('region', { name: 'Usage by tool' });
+  const checks = page.getByRole('region', { name: 'System checks' });
+  await expect(checks).toBeVisible();
+  await expect(
+    checks.getByRole('columnheader', { name: 'Check' }).or(checks.getByText('No system checks returned.')),
+  ).toBeVisible();
+  await expect(checks.getByText(/health score:\s*\d|\$\d/i)).toHaveCount(0);
+  await expect(
+    page.getByText(/What the toolkit reports|Knowledge and memory are not this archive|doctor --fix/i),
+  ).toHaveCount(0);
+  const usage = page.getByRole('region', { name: 'Tool usage' });
   await expect(usage).toBeVisible();
-  await expect(usage).toContainText(/Unknown|No usage rows/);
+  await expect(usage).toContainText(/No usage data yet|Unknown/);
   await page.screenshot({ path: 'test-results/review/insights.png', fullPage: true });
 });
 

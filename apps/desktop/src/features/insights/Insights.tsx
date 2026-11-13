@@ -37,31 +37,31 @@ export default function Insights() {
     <>
       <PageHeader
         eyebrow="Insights"
-        title="What the toolkit reports"
-        lede="Doctor checks, measured sessions, and plugin drift. Cost and health scores are omitted. Knowledge and memory are not this archive."
+        title="Workspace health"
+        lede="Review environment checks, tool use, and installed capability changes. Session costs are not available."
       />
       <Stack>
         <Panel
           tone="notice"
-          title="Doctor"
-          meta="Checks from doctor, not a health score"
+          title="System checks"
+          meta="Results from Toolkit checks"
           actions={
             <ConfirmAction
               label="Apply fixes"
               variant="primary"
-              title="Run doctor --fix?"
-              description="Doctor applies its automatic fix for each failing check in the report. Read the report first; the result is filed as a receipt."
+              title="Review automatic fixes?"
+              description="Apply the available fixes for failing checks. Review the results here after they run."
               confirmLabel="Apply fixes"
               busy={fix.isPending}
               onConfirm={() => fix.mutate(undefined, fixReceipt)}
             />
           }
         >
-          <QueryView query={doctor} loading="Running doctor" errorTitle="Doctor could not run">
+          <QueryView query={doctor} loading="Running system checks" errorTitle="Could not run system checks">
             {(envelope) =>
               doctorRows.length === 0 ? (
-                <EmptyState title="Doctor returned no structured checks.">
-                  {envelope.ok ? 'The report had no check rows.' : envelope.message || 'Doctor reported a failure.'}
+                <EmptyState title="No system checks returned.">
+                  {envelope.ok ? 'No checks were found.' : envelope.message || 'A system check failed.'}
                 </EmptyState>
               ) : (
                 <Table>
@@ -91,12 +91,12 @@ export default function Insights() {
           </QueryView>
         </Panel>
         <Grid>
-          <Panel title="Usage by tool" meta="Measured sessions. Cost is unknown.">
+          <Panel title="Tool usage" meta="Session counts reported by each tool">
             <QueryView query={insights} loading="Reading tool usage" errorTitle="Could not read tool usage">
               {() =>
                 usageRows.length === 0 ? (
-                  <EmptyState title="No usage rows.">
-                    Session stores were missing or the report was not a tool list. Cost is unknown.
+                  <EmptyState title="No usage data yet.">
+                    No session records were returned for the installed tools. Session costs are not available.
                   </EmptyState>
                 ) : (
                   <Table>
