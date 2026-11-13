@@ -370,6 +370,17 @@
   background-position: left bottom;
 }
 
+/* Dusk uses the authored transparent window pass for project facades. */
+:root[data-theme='dusk'] .entity[data-facade^='house-'] .entitySprite::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--house-lit-src);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+}
+
 /* Live Person/job characters idle gently; working ones move faster.
    Idle motion is cosmetic only — it never implies a job is running.
    A live Person NPC carries its durable accent as a soft ground shadow. */

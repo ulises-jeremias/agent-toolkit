@@ -148,6 +148,15 @@ describe('WorldEntityMap activation', () => {
     return { layout, onActivate, onSelect, user, ...rendered };
   }
 
+  it('provides a transparent authored Dusk window layer for each real project facade', () => {
+    renderMap();
+    const house = screen.getByRole('button', { name: /alpha · Project/i });
+    const facade = house.getAttribute('data-facade');
+    expect(facade).toMatch(/^house-/);
+    expect(house.style.getPropertyValue('--house-lit-src')).toBe(`url('/world/${facade}_lit.png')`);
+    expect(house.querySelector('[style*="background-image"]')).not.toBeNull();
+  });
+
   it('opens with the complete workspace framed and keeps walking explicit', async () => {
     window.localStorage.clear();
     renderMap(baseInput({ projects: [] }));

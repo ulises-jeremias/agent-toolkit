@@ -3,7 +3,7 @@
 include("lib.px.js")
 
 {
-  const { outline, stones, planks, win, halo } = globalThis.VA
+  const { outline, stones, planks, win } = globalThis.VA
   const W = 64, H = 72
 
   // A timber courtyard house with a side wing and an open covered entry.
@@ -62,7 +62,6 @@ include("lib.px.js")
     COURT.windows.forEach(([x, y, w, h]) => globalThis.VA.litwin(c, x, y, w, h, { sill: false }))
     const [x, y, w, h] = COURT.panes
     c.rect(x, y, w, h, "l"); c.px(x, y, "y")
-    halo(c)
   })
 
   // A broad stone-and-plaster farmhouse with a clipped roof, porch and loft.
@@ -119,6 +118,5 @@ include("lib.px.js")
     FARM.windows.forEach(([x, y, w, h]) => globalThis.VA.litwin(c, x, y, w, h, { sill: false }))
     const [x, y, w, h] = FARM.panes
     c.rect(x, y, w, h, "l"); c.px(x, y, "y")
-    halo(c)
   })
 }

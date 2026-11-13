@@ -111,7 +111,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "e0b67a962b04872a70148d1bd7de280fa59141eca9292b749bc5a2b7ea111c54"
+      "sha256": "5dd2bc28481473b653892f9b3e1342ed7a8f95d1fe434cdf3f85d29f22ec72fc"
     },
     "house-cabin": {
       "file": "house-cabin.png",
@@ -127,7 +127,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "6feda93c6d94eb94c1dfcb7e2a4615432ca1d2777825122ca65220ab1ed9ee80"
+      "sha256": "6f61a590d636037a945971e167d8279933c2350c514ebdecacfa78cc2f26affa"
     },
     "house-cottage": {
       "file": "house-cottage.png",
@@ -143,7 +143,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "4362ed5df1eb195ef7cb2c18d7133b94990d1cb28a86cb886d78e8bca929bbb3"
+      "sha256": "83fe4970d87b567163d61fc67ec9824dad166a7588155f77e33f1eae8ef30be4"
     },
     "house-studio": {
       "file": "house-studio.png",
@@ -159,7 +159,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "51059024dd49df20f2c56432cbffd640254fa96339b9f6b07e440785450dfe4f"
+      "sha256": "fc9f8d23d827b928121377e13499c4487f04f141038cd7c5de6c4bdabfdc108e"
     },
     "house-tower": {
       "file": "house-tower.png",
@@ -175,7 +175,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "96b5849bc5cdff280b13c9d94fc22be4b05b781487c7be7338118b4699232a17"
+      "sha256": "bb63ce05cc077a73f186cb872ea62df641da515ff3cb54908f3517cb942f19b9"
     },
     "house-workshop": {
       "file": "house-workshop.png",
@@ -191,7 +191,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "cd8a7beb22bdded8c80a21dcda085a2ec432c62ed3cfdafc0a7c9bbf8192c0a6"
+      "sha256": "3a9cc096cc6f59326fd2e1da48d5ac10ef4b52570b766ad422e5b0ec34a7dc64"
     },
     "bench-tools": {
       "file": "bench-tools.png",

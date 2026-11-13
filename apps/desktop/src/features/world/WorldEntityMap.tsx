@@ -885,6 +885,7 @@ function EntityTile({
       className={styles.entity}
       data-kind={entity.kind}
       data-theme-key={entity.themeKey}
+      data-facade={entity.facade}
       data-entity-id={entity.id}
       data-activity={entity.activity ?? 'calm'}
       data-state={entity.state}
@@ -902,6 +903,9 @@ function EntityTile({
         width: entity.w * tileSize,
         height: entity.h * tileSize,
         ['--world-tile-size' as string]: `${tileSize}px`,
+        ['--house-lit-src' as string]: entity.facade?.startsWith('house-')
+          ? `url('/world/${entity.facade}_lit.png')`
+          : undefined,
         ...(entity.characterAccent ? { ['--person-accent' as string]: entity.characterAccent } : {}),
       }}
       onClick={canInspect ? () => activateEntity(entity, onSelect, onActivate) : undefined}

@@ -4,7 +4,7 @@ include("lib.px.js")
 
 {
   const VA = globalThis.VA
-  const { outline, stones, win, litwin, halo } = VA
+  const { outline, stones, win, litwin } = VA
   const W = 64, H = 72
 
   // ---------------------------------------------------------------- shared details
@@ -95,7 +95,6 @@ include("lib.px.js")
     const [px_, py, pw, ph] = A.doorPane
     c.rect(px_, py, pw, ph, "l"); c.px(px_, py, "y")
     for (const [x, y, w, h] of A.lamps) { c.rect(x, y, w, h, "y"); c.px(x, y, "w") }
-    halo(c)
   })
 
   // ================================================================ house-studio
@@ -140,7 +139,6 @@ include("lib.px.js")
     for (const [x, y, w, h, o] of B.wins) litwin(c, x, y, w, h, o)
     const [px_, py, pw, ph] = B.doorPane
     c.rect(px_, py, pw, ph, "l"); c.px(px_, py, "y")
-    halo(c)
   })
 
   // ================================================================ house-workshop
@@ -178,7 +176,6 @@ include("lib.px.js")
     for (const [x, y, w, h, o] of C.wins) litwin(c, x, y, w, h, o)
     const [px_, py, pw, ph] = C.doorPane
     c.rect(px_, py, pw, ph, "l"); c.px(px_, py, "y")
-    halo(c)
   })
 
   // ================================================================ house-tower
@@ -225,6 +222,5 @@ include("lib.px.js")
     for (const [x, y, w, h, o] of D.wins) litwin(c, x, y, w, h, o)   // includes the dormer pane
     const [px_, py, pw, ph] = D.doorPane
     c.rect(px_, py, pw, ph, "l"); c.px(px_, py, "y")
-    halo(c)
   })
 }
