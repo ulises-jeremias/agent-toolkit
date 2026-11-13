@@ -1,6 +1,6 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-13 (World art iteration 9; #1782 journeys repaired).
+Updated: 2026-11-13 (World iteration 9; stacked Desktop journeys repaired).
 Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
@@ -45,10 +45,11 @@ integration worktree intact; it is not the same branch as the pushed follow-up P
 | Location / branch | State and handling |
 | --- | --- |
 | `repos/agent-toolkit`, `chore/release-v1.47.5` | Old checkout, unrelated dirty release/version/plugin files and `.claude/`. Preserve; do not use as current product source. |
-| `worktrees/rescue`, `rescue/shell-v2`, `0c730540` | Existing PR #1780; replacement shell, onboarding, Focus, Projects/Context and new Valley. Preserved in integration branch. |
+| `worktrees/rescue`, local `rescue/shell-v2` at `0c730540` | Original PR #1780 checkout, now behind its updated remote PR branch. Do not push from this stale worktree. |
+| `worktrees/desktop-pr1780-repair`, local `rescue/pr1780-gate-repair` at `01140c97` | Updated remote head for PR #1780 (`rescue/shell-v2`). Adds backported, authored test repairs; renderer smoke and affected source-Electron journeys pass locally. Hosted exact-head checks pending. |
 | `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Rescue checkpoints are pushed to this branch; latest documented checkpoint is `aa67c8eb`. |
 | `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `5018d4a0`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, original civic facades, responsive fitted overview camera, reduced ground/flower/path noise, a reauthored cottage facade, and taller project streets. It is not merged into the integration worktree. |
-| `worktrees/desktop-smoke-repair`, `fix/desktop-shell-smoke-navigation-20261112` | PR #1782 updated to `d59a2fd2` with the existing four-journey repair commit cherry-picked with original authorship, plus an optional preference-bridge compatibility adjustment. Four affected Electron journeys pass locally. Exact-head hosted checks are running; keep the stacked PR draft and unmerged. |
+| `worktrees/desktop-smoke-repair`, `fix/desktop-shell-smoke-navigation-20261112` | PR #1782 updated to `36affaac` with authored journey repairs and a World-home route assertion for the current base implementation. Four affected Electron journeys and seven renderer smoke tests pass locally. Exact-head hosted checks are running; keep the stacked PR draft and unmerged. |
 | `worktrees/codex-protocol`, `rescue/codex-protocol`, `2b8de6d6` | Reviewed protocol fix; already cherry-picked as `8a753ec5`. Do not apply twice. |
 | `worktrees/workspace-continuity`, `rescue/workspace-continuity` | Uncommitted partial implementation by subagent; NOT reviewed, tested or integrated. See critical persistence flaw below. |
 | `.claude/worktrees/agent-a8c96dfe4dfec7e8d`, `rescue/valley-art` | Existing art work; preserve. Do not infer an active agent from the worktree. |
@@ -1390,3 +1391,37 @@ Next: review exact-head CI; continue a distinct-facade/environment composition
 iteration and inspect its real packaged captures; then resume the unfinished
 onboarding/repository-picker and provider-runtime acceptance gates. Keep the
 mission active and update this handoff with evidence, not projected completion.
+
+## 25. Continuation checkpoint — stacked Desktop gate repairs
+
+Inspected #1782's failed Electron log `43298967157`: four journeys failed from
+the outdated Context target, obsolete project-link dialog assumptions, generic
+Changes selector and a workspace fixture without Git initialization. Cherry-picked
+the existing repair commit `fed0a24c` with original authorship and its fixture
+compatibility commits `a6112c49`/`d59a2fd2`. On this older branch the preference
+bridge is feature-detected at runtime, so the shared E2E fixture works before and
+after Electron-owned persistence arrives. On exact branch code, the four affected
+journeys passed locally (full-journey, two Git-change journeys, workspace-switch),
+as did `project-link`; renderer smoke passed 7/7. The initial exact-head #1782
+run then revealed its Focus-home assertion was premature: #1782 still routes
+unknown paths to World. Corrected it and pushed #1782 head
+`36affaac17be6743eca6e6b18865c1ff0dd69609`. Its new hosted checks are running;
+do not mark earlier CI failures fixed until the new `gates` and clean-HOME checks
+pass.
+
+The same test-only journey fixes were cherry-picked, preserving authorship, onto
+PR #1780's branch in an isolated worktree. On #1780's current product contract,
+unknown routes still land on World; that assertion was kept truthful here. Exact
+updated PR #1780 head is `01140c9743f3e4d6a604f3e5476d7a5df876d7fc`. Local
+renderer smoke passed 7/7; all five affected Electron journeys passed against
+the source-compatible backend. Build and lint passed. Hosted checks are running;
+the original #1780 failures remain historical until exact-head CI passes. The old
+`worktrees/rescue` checkout remains at `0c730540` and is stale versus the remote;
+publish future corrections from `worktrees/desktop-pr1780-repair` with explicit
+refspecs.
+
+This creates an intentional staged test contract: PR #1780/#1782 keep World as
+home, while #1783's Focus-first change should update that route expectation only
+after its product code is present. When #1782 moves forward, rebase/reconcile
+#1783's test diff and rerun exact-head renderer and packaged Electron gates. Do
+not merge red or pending stacked checks.
