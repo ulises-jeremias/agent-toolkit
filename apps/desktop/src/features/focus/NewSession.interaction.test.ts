@@ -112,4 +112,95 @@ describe('NewSession', () => {
     await waitFor(() => expect(send).toHaveBeenCalledOnce());
     expect(onStarted).toHaveBeenCalledWith(created.id);
   });
+
+  it('keeps an unavailable explicit project blocked instead of substituting another repository', async () => {
+    const createThread = vi.fn();
+    const send = vi.fn();
+    window.atk = { focus: { createThread, send } as unknown as FocusBridge } as AtkBridge;
+    const onStarted = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      createElement(NewSession, {
+        workspace: '/ws',
+        projects: [{ name: 'available', target: '/ws/available', status: 'ok' }],
+        projectsLoading: false,
+        providers: [provider],
+        providersLoading: false,
+        onRefreshProviders: vi.fn(),
+        defaults: { project: 'deleted-project' },
+        onStarted,
+      }),
+    );
+
+    await user.type(screen.getByLabelText('Task'), 'Inspect this project safely');
+    expect(screen.getByRole('alert')).toHaveTextContent('selected repository is unavailable');
+    expect(screen.getByRole('button', { name: 'Start session' })).toBeDisabled();
+    expect(createThread).not.toHaveBeenCalled();
+    expect(send).not.toHaveBeenCalled();
+    expect(onStarted).not.toHaveBeenCalled();
+  });
+
+  it('retains the task and project when provider dispatch returns an error', async () => {
+    const createThread = vi.fn(async () => ({ ok: true as const, value: created }));
+    const send = vi.fn(async () => ({ ok: false as const, error: 'Provider rejected the task.' }));
+    window.atk = { focus: { createThread, send } as unknown as FocusBridge } as AtkBridge;
+    const onStarted = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      createElement(NewSession, {
+        workspace: '/ws',
+        projects: [{ name: 'demo', target: '/ws/demo', status: 'ok' }],
+        projectsLoading: false,
+        providers: [provider],
+        providersLoading: false,
+        onRefreshProviders: vi.fn(),
+        onStarted,
+      }),
+    );
+
+    const task = screen.getByLabelText('Task');
+    await user.type(task, 'Keep this task after an error');
+    await user.click(screen.getByRole('button', { name: 'Start session' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Provider rejected the task.');
+    expect(task).toHaveValue('Keep this task after an error');
+    expect(screen.getByLabelText('Project')).toHaveValue('demo');
+    expect(createThread).toHaveBeenCalledOnce();
+    expect(send).toHaveBeenCalledWith(created.id, 'Keep this task after an error');
+    expect(onStarted).not.toHaveBeenCalled();
+  });
+
+  it('shows thrown IPC errors without clearing the task or leaving the composer', async () => {
+    const createThread = vi.fn(async () => {
+      throw new Error('Desktop bridge disconnected.');
+    });
+    const send = vi.fn();
+    window.atk = { focus: { createThread, send } as unknown as FocusBridge } as AtkBridge;
+    const onStarted = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      createElement(NewSession, {
+        workspace: '/ws',
+        projects: [{ name: 'demo', target: '/ws/demo', status: 'ok' }],
+        projectsLoading: false,
+        providers: [provider],
+        providersLoading: false,
+        onRefreshProviders: vi.fn(),
+        onStarted,
+      }),
+    );
+
+    const task = screen.getByLabelText('Task');
+    await user.type(task, 'Keep this task after disconnect');
+    await user.click(screen.getByRole('button', { name: 'Start session' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Desktop bridge disconnected.');
+    expect(task).toHaveValue('Keep this task after disconnect');
+    expect(createThread).toHaveBeenCalledOnce();
+    expect(send).not.toHaveBeenCalled();
+    expect(onStarted).not.toHaveBeenCalled();
+  });
 });
