@@ -1178,3 +1178,11 @@ UI flows.
    generates a request; otherwise retain the limitation explicitly.
 4. Keep protocol shape evidence separate from observed provider behavior, and
    do not claim the live user-input request was emitted by Codex.
+
+After updating the stale adapter comment, committed and pushed
+`53d0c7b8b5d008a1eff7d9246573467f6f1a18bf` to the same PR branch. The PR is
+still OPEN, draft, and based on `fix/desktop-shell-smoke-navigation-20261112`;
+GitHub had not yet attached new exact-head checks at the time of this note, and
+merge state remained `UNSTABLE`. The previous head's clean-profile packaged
+acceptance and platform checks passed except for two packages still pending at
+the moment the head was replaced. Treat only checks for `53d0c7b8` as current.
