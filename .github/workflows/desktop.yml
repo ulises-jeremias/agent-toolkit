@@ -33,6 +33,27 @@ on:
         default: false
 
 jobs:
+  focus-journal-filesystem:
+    name: Focus journal filesystem (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.node-version'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Exercise Focus journal filesystem protections
+        run: pnpm --filter agent-toolkit-desktop exec vitest run electron/focus/focus.test.ts
+
   gates:
     # Pinned: ubuntu-latest (26.04/resolute) has no Ubuntu archive on the
     # runner mirror yet, so playwright --with-deps (apt) fails. 24.04 LTS works.

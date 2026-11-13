@@ -273,7 +273,7 @@ describe('thread journal', () => {
     const storageRoot = path.join(appData, 'focus-journals');
     const sentinel = path.join(external, 'sentinel.txt');
     fs.writeFileSync(sentinel, 'preserved');
-    fs.symlinkSync(external, storageRoot, 'dir');
+    fs.symlinkSync(external, storageRoot, process.platform === 'win32' ? 'junction' : 'dir');
 
     try {
       expect(() => ThreadJournal.list(h.workspace, storageRoot)).toThrow(/Unsafe Focus journal storage directory/);
