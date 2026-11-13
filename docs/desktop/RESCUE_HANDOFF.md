@@ -1517,3 +1517,57 @@ shorelines and a nonrectangular scenic boundary can improve the scene without
 clipping semantic hitboxes or introducing navigation traps. Then return to the
 still-open clean-profile onboarding, provider, approval/interruption, session
 recovery, Git diff/terminal, accessibility, and daily-driver acceptance gates.
+
+## 31. Continuation checkpoint — compact Focus and consistent Library controls
+
+The full packaged-Electron design tour produced all 60 expected destination/theme/
+size captures and passed: World, Focus, Attention, Operations, Projects, Library,
+People, Insights, Terminal and Settings in Meadow/Dusk at 1024x640, 1440x900 and
+1920x1080. I opened and critiqued Focus, Operations, Projects, People, Library
+and Settings at 1440x900, plus Focus and World at compact and large sizes. The
+clean-profile Focus screen honestly shows Claude Code and Codex signed out and
+OpenCode session support unavailable; a real-provider coding task remains an
+open acceptance gate.
+
+The compact Focus capture exposed the task textarea flex-shrinking to one line at
+1024x640. Set an 8rem minimum height and prevented flex shrink, then added the
+assertion and review screenshots to `responsive-layout.spec.ts`. Packaged Linux
+Electron responsive tests passed at 1280x800, 1024x768 and 1024x640. The first
+run reached the palette assertion while Focus's task editor still owned keyboard
+focus; that editor intentionally consumes Ctrl+K, so the test now moves focus to
+the page heading before exercising the shell shortcut. The corrected packaged
+matrix passed. The compact capture confirms a usable multiline task field, but
+the form scrolls below the fold; keep evaluating density and primary-action
+reachability at minimum window size.
+
+Library's capability search and Copilot project selector appeared as browser-
+native gray controls. Replaced them with the shared `TextInput` and `Select`
+components. On the packaged app, catalog metadata filtering/provenance/compatibility
+E2E passed, the Library status/evidence E2E passed, and the complete 60-capture
+tour passed. Opened the populated-project Library screenshot at 1440x900: search
+and project selection now match the dark control system. Latest private design
+captures are in `/home/ulisesjcf/.ai-workspace/.audit-private/library-controls-final/`;
+the compact Focus review capture is under
+`apps/desktop/test-results/review/responsive-focus-narrow.png` (generated locally).
+`pnpm lint`, `pnpm type-check`, `pnpm check:world` (201 deterministic sprites),
+`git diff --check`, Linux x64 packaging, targeted packaged responsive E2E and
+Library E2E passed. The Vite large-chunk and React-version lint-configuration
+warnings remain pre-existing.
+
+The product commits are `b2c6bff5` (species art), `154a163b` (compact Focus), and
+`1eeb4b13` (Library controls), pushed in order to PR #1783. Current exact PR head
+is `1eeb4b1379f7b85827bfc3029334765d95a35cee`, based on #1782 head `36affaac`; it
+is OPEN/draft and GitHub reports MERGEABLE. Exact-head runs created at 08:16 UTC:
+desktop `43391883002`, Clean-machine Desktop Acceptance `43391882897`, Validate
+`43391882899`, Release `43391882969`, V parity `43391882881`, web `43391882911`.
+They were queued/in-progress at the first poll. Previous-head checks do not
+validate `1eeb4b13`. Keep the PR draft and do not merge while required checks
+remain pending.
+
+Visual issues still open: World stream and outer scene boundary remain rigid;
+oak copies and some facades repeat; 1024x640 Focus requires scrolling to reach
+Start session; broad product sign-off, onboarding/repository registration,
+real-provider operation, interruption/approval, session recovery, terminal/diff,
+accessibility, native-window and supported-platform gates remain unfinished.
+Continue from the latest packaged evidence and exact PR SHA, not from plans or
+self-reports.
