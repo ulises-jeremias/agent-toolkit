@@ -97,7 +97,7 @@ test('packaged Desktop completes a real Codex task, stops safely, and reports pr
     const threadButton = sessions.getByRole('button').filter({ hasText: /live-result\.txt/ });
     await expect(threadButton).toBeVisible();
     await threadButton.click();
-    const composer = page.getByRole('textbox', { name: 'Message' });
+    const composer = page.getByRole('textbox', { name: 'Message', exact: true });
     await expect(composer).toBeEnabled();
     await composer.fill(
       "Use the terminal to run python3 -c 'import time; time.sleep(45)' and do not edit any files. After it exits, briefly confirm. I will stop this turn while it is waiting.",
@@ -133,7 +133,7 @@ test('packaged Desktop completes a real Codex task, stops safely, and reports pr
     await expect(reopenedLog.locator('[data-outcome="interrupted"]')).toBeVisible();
     expect(fs.readFileSync(output, 'utf8').trim()).toBe(exactLine);
 
-    const resumeComposer = page.getByRole('textbox', { name: 'Message' });
+    const resumeComposer = page.getByRole('textbox', { name: 'Message', exact: true });
     await resumeComposer.fill(
       'Use a read-only tool to read live-result.txt, then reply with its exact contents. Do not edit files or run commands.',
     );
