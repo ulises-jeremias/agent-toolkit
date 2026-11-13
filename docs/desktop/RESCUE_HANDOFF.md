@@ -1257,3 +1257,10 @@ another full packaged run if GitHub already supplies the evidence.
    then verify the packaged test locally and on exact-head CI.
 4. Keep GitHub issue #1775 and this handoff aligned with the chosen integration
    path. No lower PR has been merged as of this checkpoint.
+
+Issue #1775 was updated with the verified packaged Codex run, the one-time real
+Ask approval observation, current `a121229d` exact-head CI status, and the World
+rejection: <https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6845754830>.
+The latest exact-head query still reports 40 passed, zero failed, and nine in
+progress/queued (including clean-profile Electron and gates); PR state is OPEN,
+draft, and `UNSTABLE`. Do not infer completion from the earlier green runs.
