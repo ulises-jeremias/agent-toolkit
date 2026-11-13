@@ -36,7 +36,7 @@ Main integration worktree:
 ```text
 /home/ulisesjcf/.ai-workspace/worktrees/desktop-owner
 branch: rescue/codex-product-integration
-HEAD: rescue handoff sync (24 commits ahead of origin/main at last count)
+HEAD: rescue handoff sync (25 commits ahead of origin/main at last count)
 ```
 
 The integration edits described below are committed on this branch. Keep this
@@ -245,8 +245,12 @@ honestly. Never label a declared Person or installed binary as an active agent.
 ### P0 — Packaged Linux acceptance
 
 - [ ] Build backend with the repository's exact pinned V/VC/TCC toolchain (see
-  commands below). A private pinned clone is prepared; an unrelated V smoke process
-  was active, so the first bootstrap attempt was stopped before running V.
+  commands below). The private Linux amd64 toolchain inputs are pinned and verified
+  (`v=c0e47bf2`, `vc=9f82f2e3`, `tcc=d6e7ac1b`). Cold bootstrap via the repository's
+  exact `make local=1 -j1`, under the required 2 GiB / zero-swap scope, was OOM-killed
+  while compiling V2. The toolkit backend was not built with this toolchain; keep this
+  gate open. Retain the private clone at `.audit-private/tmp/desktop-v-pinned/` for a
+  future bounded attempt; do not increase the resource cap silently.
 - [x] Rebuild renderer/main, stage the existing backend binary from rescue commit
   `0c730540`, and package `dist:dir` for Linux x64. No V source changes exist between
   that binary's source commit and this integration branch. This is a packaging
@@ -423,7 +427,9 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   a healthy, reviewed base. Latest head `6d675afc0447241bd6d7e29f213afbd5169cb1aa`
   was pushed to the existing draft PR. Exact-head runs are pending: desktop `gates`
   (43336712549), clean-machine acceptance (43336712625), and web `quality`
-  (43336712580), as checked at 00:25 UTC on Nov 13. Do not report pending or in-progress
+  (43336712580), as checked at 00:25 UTC on Nov 13. The quality workflow has since
+  passed; the desktop gates remain pending and clean-machine acceptance is still
+  in progress. Do not report pending or in-progress
   checks as passing. The local
   changed-area checks are recorded below. #1782 corrects stale
   shell smoke assertions
