@@ -675,7 +675,7 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   `fix/desktop-shell-smoke-navigation-20261112` branch (which carries #1781 and #1780).
   The owner-authored commits from #1781 and #1782 are preserved in branch history;
   PR base is retargeted to #1782. The acceptance update is posted to
-  [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6837260918).
+  [mission #1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issuecomment-6840100227).
   Packaged Linux E2E passes 7/7 for the listed paths against the existing package
   described above. Earlier Electron keyboard/a11y checks passed 3/3, including the skip
   link, reduced motion, and Escape precedence; the current 76d7957e head reran keyboard
