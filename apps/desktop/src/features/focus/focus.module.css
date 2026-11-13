@@ -798,7 +798,9 @@
 }
 
 .startTask {
+  flex: 0 0 auto;
   width: 100%;
+  min-height: 8rem;
   padding: var(--space-3);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);

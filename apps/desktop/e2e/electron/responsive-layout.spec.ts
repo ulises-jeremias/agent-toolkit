@@ -61,7 +61,21 @@ test('Responsive matrix: shell and primary actions stay usable at baseline, mini
       );
       await expectNoHorizontalOverflow(page, size, `${size.key} (people)`);
 
+      // Focus is the primary workflow: its task field must remain a usable
+      // multiline editor at the compact height instead of flex-shrinking to
+      // a single line when provider details fill the form.
+      await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Focus' }).click();
+      const taskInput = page.getByRole('textbox', { name: 'Task' });
+      await expect(taskInput).toBeVisible();
+      const taskBox = await taskInput.boundingBox();
+      expect(taskBox?.height, `${size.key}: Focus task editor keeps multiline height`).toBeGreaterThanOrEqual(128);
+      await expectNoHorizontalOverflow(page, size, `${size.key} (Focus)`);
+      await page.screenshot({ path: `test-results/review/responsive-focus-${size.key}.png`, fullPage: true });
+
       // The command palette opens, fits, and dismisses safely at this size.
+      // The task editor intentionally owns Ctrl+K while it is focused, so move
+      // focus to the heading before exercising the shell shortcut.
+      await page.getByRole('heading', { name: 'What should we work on?' }).click();
       await page.keyboard.press('Control+k');
       const paletteInput = page.getByLabel('Filter commands');
       await expectWithinViewport(paletteInput.first(), size, `${size.key}: command palette input`);
