@@ -1960,3 +1960,42 @@ architecture and landscape, accessibility and compact interaction sweep,
 provider-supported acceptance when credentials/CLI are available, and the
 clean installed-app recovery journey. Do not close the product or live-provider
 gates based on the evidence above.
+
+## 46. Continuation checkpoint — stone tower facade and stack audit
+
+Re-authored `house-tower` in the governed PXL source as a tall stone home with
+two shaded wall planes, a steep split-slate roof, an upper dormer, aligned
+windows and its own chimney silhouette. The first preview showed the dormer
+partly buried by the stone courses; moved its painted projection to the front
+of the wall pass and aligned its Dusk window overlay. The packaged Electron
+World capture passed in both themes at 1024×640, 1440×900 and 1920×1080. Opened
+the actual Dusk 1440×900 screen: the tower is distinguishable from the shop,
+hipped inn and thatched studio, and its illuminated windows line up. Private
+captures are in `/home/ulisesjcf/.ai-workspace/.audit-private/tower-perspective/`.
+
+The worktree passed `pnpm gen:world`, `pnpm check:world` (207 deterministic
+sprites), `git diff --check`, Linux x64 `dist:dir`, and packaged World capture
+1/1 for the tower+workshop asset set. The full 617-test Vitest / 45 runtime
+spike suite, lint and type-check ran before the tower-only PXL source change;
+those are not being represented as rerun after this artwork adjustment. The
+tower is pushed as `3a7fe823` (`feat(desktop): add depth to tower facade`).
+Four of six project-house silhouettes now have authored depth. The cabin and
+brick farmhouse remain front-facing; World boundary and creek issues remain.
+
+Stack audit: #1780 is merged to `main`. #1781 is OPEN/draft and targets the
+already-merged `rescue/shell-v2`; its exact head `80765a86` has passing general
+validation but the packaged-clean-machine and Desktop gates failed on five
+older onboarding/context/project-link expectations. #1782 is OPEN/draft, stacked
+on #1781; its head updates those Electron fixtures and navigation expectations,
+and its visible exact-head checks all pass. #1783 is OPEN/draft and stacked on
+#1782. Do not merge a lower PR in isolation while it has failing gates; review
+the combined stack and decide whether to update bases or supersede lower draft
+PRs. PR #1783 at `ba12189c` had green web and parity checks, but Desktop and
+clean-machine jobs were still running; `3a7fe823` was pushed after that poll,
+so poll exact-head Actions again. Current GitHub state says #1783 is MERGEABLE,
+not that it is validated or ready to merge.
+
+The previous status on #1775 records the gate repair and workshop. Add the
+tower capture evidence after the new exact-head result is known. Keep the
+installed-app acceptance, live-provider attempt, accessibility review, and
+rescue sign-off open.
