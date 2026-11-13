@@ -28,7 +28,12 @@ test('Keyboard-only: skip link, visible focus ring, and every destination reacha
     const { page } = desktop;
     await waitForBackend(page);
     await expect(page.getByRole('heading', { name: 'What should we work on?' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Coding agents on this machine' })).toBeVisible();
+    // Agent lamps are intentionally absent on clean hosts without installed providers.
+    // This keyboard-navigation test must not require a local provider subscription.
+    const agentLamps = page.getByRole('link', { name: 'Coding agents on this machine' });
+    if (await agentLamps.count()) {
+      await expect(agentLamps).toHaveAttribute('href', /focus/);
+    }
     const destinations = page.getByRole('navigation', { name: 'Destinations' });
     await expect(destinations).toBeVisible();
     await expect(destinations.getByRole('link').nth(0)).toHaveAccessibleName('Focus');
