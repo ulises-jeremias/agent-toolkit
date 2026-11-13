@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type RefObject } from 'react';
 import { useFocusBridge } from '../../data/focus';
 import { useLinkProject } from '../../data/projects';
 import type { ProjectListEntry } from '../../lib/api';
@@ -28,6 +28,9 @@ export function NewSession({
   providers,
   providersLoading,
   onRefreshProviders,
+  onShowSessions,
+  sessionsOpen,
+  sessionsToggleRef,
   defaults,
   onStarted,
 }: {
@@ -37,6 +40,9 @@ export function NewSession({
   providers: readonly FocusProviderStatus[];
   providersLoading: boolean;
   onRefreshProviders: () => void;
+  onShowSessions: () => void;
+  sessionsOpen: boolean;
+  sessionsToggleRef: RefObject<HTMLButtonElement | null>;
   defaults?: NewSessionDefaults;
   onStarted: (threadId: string) => void;
 }) {
@@ -111,9 +117,21 @@ export function NewSession({
 
   return (
     <form className={styles.start} onSubmit={(event) => void submit(event)} aria-labelledby="focus-start-title">
-      <h1 id="focus-start-title" className={styles.startTitle}>
-        What should we work on?
-      </h1>
+      <div className={styles.startHeading}>
+        <h1 id="focus-start-title" className={styles.startTitle}>
+          What should we work on?
+        </h1>
+        <button
+          type="button"
+          ref={sessionsToggleRef}
+          className={styles.sessionsToggle}
+          aria-controls="focus-sessions"
+          aria-expanded={sessionsOpen}
+          onClick={onShowSessions}
+        >
+          Sessions
+        </button>
+      </div>
 
       <label className={styles.srOnly} htmlFor="focus-start-task">
         Task

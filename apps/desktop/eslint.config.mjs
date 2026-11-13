@@ -143,4 +143,12 @@ export default [
       },
     },
   },
+  {
+    // A named data-table scroll region needs sequential focus so keyboard
+    // users can reach and pan wide tables; keep this exception local.
+    files: ['src/ui/primitives.tsx'],
+    rules: {
+      'jsx-a11y/no-noninteractive-tabindex': ['error', { roles: ['region'] }],
+    },
+  },
 ];
