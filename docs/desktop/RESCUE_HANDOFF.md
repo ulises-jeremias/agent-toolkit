@@ -47,7 +47,7 @@ integration worktree intact; it is not the same branch as the pushed follow-up P
 | `repos/agent-toolkit`, `chore/release-v1.47.5` | Old checkout, unrelated dirty release/version/plugin files and `.claude/`. Preserve; do not use as current product source. |
 | `worktrees/rescue`, `rescue/shell-v2`, `0c730540` | Existing PR #1780; replacement shell, onboarding, Focus, Projects/Context and new Valley. Preserved in integration branch. |
 | `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Nothing from this integration branch has been pushed. |
-| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `6d675afc`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, a PXL Library façade, compact-map label relief, Codex approval scope enforcement, and a synchronous guard against duplicate Focus starts. It is not merged into the integration worktree. |
+| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `c07fdcc6`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, original Library/Archive/Workshop/Operations facades, compact-map label relief, Codex approval scope enforcement, and a synchronous guard against duplicate Focus starts. It is not merged into the integration worktree. |
 | `worktrees/codex-protocol`, `rescue/codex-protocol`, `2b8de6d6` | Reviewed protocol fix; already cherry-picked as `8a753ec5`. Do not apply twice. |
 | `worktrees/workspace-continuity`, `rescue/workspace-continuity` | Uncommitted partial implementation by subagent; NOT reviewed, tested or integrated. See critical persistence flaw below. |
 | `.claude/worktrees/agent-a8c96dfe4dfec7e8d`, `rescue/valley-art` | Existing art work; preserve. Do not infer an active agent from the worktree. |
@@ -408,6 +408,13 @@ actual screenshots. No reference project's proprietary art is permitted.
   capture runs passed six viewports for each of the three art iterations. The build
   continues to report the existing 670.97 kB main renderer chunk warning. Independent
   art review and owner visual sign-off remain open.
+- [x] Re-authored and reviewed Archive, Workshop and Operations PXL facades in
+  packaged Electron. The compact 1024×640 and large 1920×1080 captures read well;
+  the 1440×900 map composition leaves excessive empty surround. A screenshot
+  labeled Dusk retained the Meadow-like ground colors and is not accepted as a
+  verified Dusk art pass. Source generation, 72 World tests, all 608 Vitest + 45
+  Node spike tests, type-check, lint and build pass on exact commit `c07fdcc6`.
+  Its hosted exact-head checks are still pending; see checkpoint 11.
 - [ ] Reject generic SaaS card grids, PaperCo aesthetics, random clutter, illegible pixel
   text, disconnected palettes and needless configuration.
 
