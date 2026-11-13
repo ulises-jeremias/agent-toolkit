@@ -333,7 +333,7 @@ describe('thread journal', () => {
     expect(h.service.listThreads()).toHaveLength(1);
   });
 
-  it('does not mark migration complete when a staged destination is incomplete', () => {
+  it('does not accept a metadata-only destination as a completed migration', () => {
     const h = harness();
     const id = start(h);
     ThreadJournal.open(h.workspace, id)?.append(1, { type: 'user', text: 'keep the old record' });
@@ -343,6 +343,7 @@ describe('thread journal', () => {
     const storageRoot = path.join(appData, 'focus-journals');
     const destination = path.join(focusRoot(h.workspace, storageRoot), id);
     fs.mkdirSync(destination, { recursive: true });
+    fs.copyFileSync(path.join(focusRoot(h.workspace), id, 'thread.json'), path.join(destination, 'thread.json'));
 
     try {
       expect(() => ThreadJournal.list(h.workspace, storageRoot)).toThrow(/resume Focus thread migration/);
