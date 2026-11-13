@@ -193,8 +193,10 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // previous reservation made one house inherit the width of a five-lot
   // district, which turned a small workspace into a mostly empty panorama.
   // Lot coordinates remain stable as projects are added.
-  // Leave a two-tile garden gap between houses in one lane. Alternate lanes
-  // step diagonally, keeping compact workspaces inside the 32px fit.
+  // Leave a generous garden lane between the front and rear project streets.
+  // The second street also gives the long, horizontal settlement a more
+  // balanced silhouette in landscape desktop viewports.
+  const projectRowGap = 7;
   const projectLaneGap = 6;
   const projectWidth = projects.length ? sizeFor(projects[0]!).w : 0;
   const districtW = projects.length ? (Math.min(projects.length, districtCols) - 1) * projectLaneGap + projectWidth : 0;
@@ -275,7 +277,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
       const x = districtX + col * projectLaneGap + (row % 2 === 1 ? 2 : 0);
       // Offset the next street and leave enough land for a path verge or tree
       // canopy between its houses and the previous row.
-      const y = bandY + row * 5;
+      const y = bandY + row * projectRowGap;
       place(project, x, y);
       if (project.projectId) projectSlots.set(project.projectId, { x, y });
     });
@@ -289,10 +291,10 @@ export function layoutWorld(model: WorldModel): WorldLayout {
       x: districtX,
       y: bandY,
       w: bandCols > 0 ? (bandCols - 1) * projectLaneGap + projectWidth : 0,
-      h: (rowsInBand - 1) * 5 + 4,
+      h: (rowsInBand - 1) * projectRowGap + 4,
     });
-    projectBottom = Math.max(projectBottom, bandY + (rowsInBand - 1) * 5 + 4);
-    bandY += rowsInBand * 5 + 2;
+    projectBottom = Math.max(projectBottom, bandY + (rowsInBand - 1) * projectRowGap + 4);
+    bandY += rowsInBand * projectRowGap + 2;
   }
 
   // Characters: stand at named commons object when job.cmd matches; else house porch.

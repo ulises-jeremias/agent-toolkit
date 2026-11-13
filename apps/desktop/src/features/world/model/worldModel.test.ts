@@ -809,8 +809,9 @@ describe('layoutWorld', () => {
     expect(thirdProject.y - (secondAlpha.y + secondAlpha.h)).toBeGreaterThanOrEqual(2);
     expect(compactTeam.cols).toBeLessThanOrEqual(30);
     // The civic meadow has a small garden lane without shrinking the compact
-    // world overview below its readable scale.
-    expect(compactTeam.rows).toBeLessThanOrEqual(13);
+    // world overview below its readable scale. The expanded rear street creates
+    // a taller, less panoramic silhouette while still fitting compact windows.
+    expect(compactTeam.rows).toBeLessThanOrEqual(15);
   });
 
   it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {
