@@ -456,8 +456,9 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   #1780/#1781/#1782 have failing Desktop gates; this draft remains unmerged pending
   a healthy, reviewed base. The draft now includes the art iteration and ground-tone
   refinement at `bbbf483f0172a2faf62d03f382eccea92d510bfb`. At 01:09 UTC on Nov 13,
-  exact-head packaged Electron with fresh HOME (43342634883), Desktop `gates`
-  (43342634915), and web `quality` (43342634953) were pending; Danger was skipped.
+  exact-head Validate (43342634909), packaged Electron with fresh HOME
+  (43342634883), Desktop `gates` (43342634915), and web `quality` (43342634953)
+  were pending; Danger was skipped.
   The prior Validate/Release/clean-machine runs reference older heads and do not
   validate this commit. Do not report pending or in-progress
   checks as passing. The local
