@@ -1,6 +1,6 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-12 (Focus duplicate-start protection; rejected Dusk palette iteration).
+Updated: 2026-11-12 (PXL art iteration 1; packaged Electron World capture).
 Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
@@ -363,6 +363,13 @@ actual screenshots. No reference project's proprietary art is permitted.
   still needs broader layout/art critique; no art has been reauthored yet.
 - [ ] Cozy original pixel world with coherent perspective, light, depth, composition,
   recognizable project buildings and meaningful Library/Archive/Workshop/Operations.
+- [x] Begin original art re-authoring with a restrained Hornero Valley palette,
+  six 64×64 authored tree silhouettes and a distinctive 64×64 adobe Library with
+  an attached kiln/archive tower and readable book gallery. The first PXL preview
+  was integrated and inspected in the packaged Electron World. This is one
+  implementation/capture iteration, not art sign-off; screenshot critique still
+  finds a flat ground plane, a visually straight canal, dense repetitive foliage,
+  and civic/project façades that still need distinct compositions.
 - [ ] Professional readable technical typography; pixel display type used sparingly.
 - [ ] Real session-backed characters only. Decorative animals/weather never imply work.
 - [ ] World is optional spatial context, not a compulsory avatar-walking interface.
@@ -378,6 +385,20 @@ actual screenshots. No reference project's proprietary art is permitted.
   onboarding, interiors, conversation/tool/approval, error/loading/disconnected states
   and a second art iteration remain open. Large World captures still have substantial
   vertical negative space.
+- [x] After art iteration 1, regenerated all 201 governed PXL assets and built a new
+  Linux x64 unpacked package from the current renderer/main source, staging the
+  source-compatible backend from rescue commit `0c730540`. The packaged Electron
+  capture suite passed World in Meadow and Dusk at 1024×640, 1440×900 and 1920×1080
+  using Electron's `--ozone-platform=headless` test mode; screenshots are private at
+  `/home/ulisesjcf/.ai-workspace/.audit-private/world-art-iteration-1/`. This proves
+  packaged rendering and responsive capture, not a window-manager/native-display
+  acceptance pass. Xvfb could not create its lock in `/tmp` due the host's quota;
+  the session-owned display was not accessed.
+- [x] Art iteration 1 verification: 72 focused world layout/renderer tests and the full
+  Desktop suite (80 Vitest files / 608 tests plus 45 Node runtime tests) passed; TypeScript
+  type-check, ESLint, `check:world` (201 deterministic sprites), `build:all`, and
+  `dist:dir` completed. The build continues to report the existing 670.97 kB main
+  renderer chunk warning. Independent art review and owner visual sign-off remain open.
 - [ ] Reject generic SaaS card grids, PaperCo aesthetics, random clutter, illegible pixel
   text, disconnected palettes and needless configuration.
 
@@ -424,12 +445,11 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   is itself stacked on #1781 and #1780; post verified acceptance status to
   [#1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
   #1780/#1781/#1782 have failing Desktop gates; this draft remains unmerged pending
-  a healthy, reviewed base. Latest head `6d675afc0447241bd6d7e29f213afbd5169cb1aa`
-  was pushed to the existing draft PR. Exact-head runs are pending: desktop `gates`
-  (43336712549), clean-machine acceptance (43336712625), and web `quality`
-  (43336712580), as checked at 00:25 UTC on Nov 13. The quality workflow has since
-  passed; desktop gates and clean-machine acceptance remain pending. Do not report
-  pending or in-progress
+  a healthy, reviewed base. The existing draft was advanced with the art iteration
+  at `8872b5e2e67cf64ad669d9df440e5bc2040b9f9e`; exact-head Validate
+  (43341054926), Release (43341054965), desktop gates (43341054915), clean-machine
+  acceptance (43341054911), and web quality (43341054961) were queued/in progress
+  when checked at 00:57 UTC on Nov 13. Do not report pending or in-progress
   checks as passing. The local
   changed-area checks are recorded below. #1782 corrects stale
   shell smoke assertions
