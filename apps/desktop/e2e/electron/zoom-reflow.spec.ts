@@ -47,7 +47,7 @@ test('Packaged Desktop reflows at 200% and 320 CSS px, including keyboard-scroll
   try {
     const { app, page } = desktop;
     await waitForBackend(page);
-    await setViewport(app, 1024, 1200);
+    await setViewport(app, 1024, 640);
 
     for (const factor of [2, 3.2]) {
       const expectedWidth = Math.round(1024 / factor);
@@ -111,6 +111,7 @@ test('Packaged Desktop reflows at 200% and 320 CSS px, including keyboard-scroll
       const before = await table.evaluate((element) => element.scrollLeft);
       await page.keyboard.press('ArrowRight');
       await expect.poll(() => table.evaluate((element) => element.scrollLeft)).toBeGreaterThan(before);
+      await table.evaluate((element) => element.scrollTo({ left: 0 }));
       await captureElectronWindow(
         app,
         `/home/ulisesjcf/.ai-workspace/.audit-private/zoom-reflow-library-${expectedWidth}.png`,
