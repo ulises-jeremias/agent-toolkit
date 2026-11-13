@@ -1551,7 +1551,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "e488dbe911392ba451dffc7d7855e648ef1291f89baad78989a30416a3da8c34"
+      "sha256": "447ceda5a1c0c673053e3f1a9077981cd4232bebf9ac55d474529b75bd379c79"
     },
     "water-edge-n": {
       "file": "water-edge-n.png",
@@ -1559,7 +1559,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "98e9afc6788f07be91c7a6f6ebc68dd134c1613e30e4691e60fba2be7f6acfd7"
+      "sha256": "e98637fa26d3fcfbf038fe67d6ba4a1d8e7d4aa54a94dfb915ad5f4565450ed1"
     },
     "water-edge-s": {
       "file": "water-edge-s.png",
@@ -1567,7 +1567,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "8dfd385c9d0921a098350d7953059257a2d90d97228d7e0e77393113f59edc4f"
+      "sha256": "7f8b0c12d2521c76c8ca57454c4c50e473acc20cca32c4f4f093e519a7864a6d"
     },
     "water-edge-w": {
       "file": "water-edge-w.png",
@@ -1575,7 +1575,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "f58a6f84eb6418d174a3be1e90c80e2aeacd824414d6f6c6005b4b6f98cd7b56"
+      "sha256": "ab4604040a6cc8e14be47c9cd55b816918f297fd017c29758ae26a74741b85e0"
     },
     "water": {
       "file": "water.png",

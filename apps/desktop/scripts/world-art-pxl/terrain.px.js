@@ -41,11 +41,31 @@ plaza("plaza",101,false);plaza("plaza-b",102,true)
 // water: 32x16, frame0/frame1 differ by wave offset
 sprite("water",{w:32,h:16},(c)=>{c.rect(0,0,32,16,"A");c.rect(0,12,32,4,"z");
   for(let f=0;f<2;f++){const o=f*16;c.hline(o+2,4,6,"a");c.hline(o+9,9,5,"a");c.px(o+4,12,"z");c.px(o+12,3,"z");if(f){c.hline(o+5,6,4,"w")}else{c.hline(o+3,7,4,"w")}}})
-function waterEdge(name,side){sprite(name,{w:16,h:16},(c)=>{c.rect(0,0,16,16,"A");c.hline(2,5,6,"a");c.hline(8,10,5,"a");
-  if(side==="n"){c.rect(0,0,16,3,"G");c.hline(0,3,16,"a");c.hline(0,4,16,"z")}
-  if(side==="s"){c.rect(0,13,16,3,"G");c.hline(0,12,16,"a");c.hline(0,11,16,"z")}
-  if(side==="w"){c.rect(0,0,3,16,"G");c.vline(3,0,16,"a");c.vline(4,0,16,"z")}
-  if(side==="e"){c.rect(13,0,3,16,"G");c.vline(12,0,16,"a");c.vline(11,0,16,"z")}})}
+function waterEdge(name,side){sprite(name,{w:16,h:16},(c)=>{
+  // Shore cells remain meadow; only an uneven, shallow lip joins the channel.
+  // Filling these tiles with water made a one-tile creek read as a wide canal.
+  grassBase(c,side==="e"?311:312);
+  if(side==="e"){
+    c.poly([11,0,16,0,16,16,12,16,11,13,10,11,11,8,9,6,10,3],"A");
+    c.poly([10,0,11,0,10,3,9,6,11,8,10,11,12,13,13,16,11,16,10,13,9,11,10,8,8,6,9,3],"a");
+    c.vline(14,2,3,"z");c.px(12,10,"w");
+  }
+  if(side==="w"){
+    c.poly([0,0,5,0,6,3,7,6,5,8,6,11,4,13,3,16,0,16],"A");
+    c.poly([5,0,6,0,7,3,8,6,6,8,7,11,5,13,4,16,3,16,4,13,6,11,5,8,7,6,6,3],"a");
+    c.vline(2,2,3,"z");c.px(4,10,"w");
+  }
+  if(side==="n"){
+    c.poly([0,11,3,10,6,11,9,9,12,10,16,9,16,16,0,16],"A");
+    c.poly([0,10,3,9,6,10,9,8,12,9,16,8,16,10,12,11,9,10,6,12,3,11,0,12],"a");
+    c.hline(3,13,4,"z");c.px(12,11,"w");
+  }
+  if(side==="s"){
+    c.poly([0,0,16,0,16,7,12,6,9,8,6,7,3,9,0,8],"A");
+    c.poly([0,8,3,9,6,7,9,8,12,6,16,7,16,9,12,8,9,10,6,9,3,11,0,10],"a");
+    c.hline(9,2,4,"z");c.px(3,7,"w");
+  }
+})}
 waterEdge("water-edge-n","n");waterEdge("water-edge-s","s");waterEdge("water-edge-e","e");waterEdge("water-edge-w","w")
 sprite("bridge",{w:48,h:48},(c)=>{c.rect(0,0,48,48,"A");c.rect(0,34,48,14,"z");c.rect(0,44,48,4,"Z");
   c.hline(3,4,7,"a");c.hline(30,7,6,"a");c.hline(12,11,5,"w");c.hline(36,2,5,"a");c.hline(5,40,6,"a");c.hline(28,42,7,"a");c.hline(40,37,5,"w");c.px(20,5,"z");c.px(8,44,"A");
