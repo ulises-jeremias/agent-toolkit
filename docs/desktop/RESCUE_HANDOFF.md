@@ -1001,9 +1001,13 @@ art-only sequence ahead of the live-provider and reopen/recovery acceptance.
    clean-profile onboarding and UI repo registration, real provider work,
    tool/output/diff/terminal, safe cancel, close/reopen/history, World context;
    then accessibility/native-window/cross-platform and remaining domains.
-5. Make the next terrain prototype only after recording provider/recovery status.
-   Use the prior captures as critique evidence; do not redo the Muse audit,
-   reference clones or already documented baseline work without new evidence.
+5. The installed-Codex live acceptance is now recorded below. One terrain
+   prototype was captured at all six required sizes/themes and rejected: the
+   renderer still shows a hard rectangular slab because its lighting overlay
+   spans all of `.mapWorld` and decorations are not clipped to the generated
+   shore. The prototype and its geometry-only test were reverted. Do not repeat
+   this attempt or prioritize more terrain work ahead of Focus, CI and restart
+   acceptance; use the iteration-8 captures as critique evidence.
 6. Keep this handoff synchronized after each verified slice. The rescue remains
    open until the owner's daily-driver success scenario passes in a packaged
    application and the World is visually accepted.
@@ -1083,3 +1087,53 @@ real-provider and resume behavior are evidenced for Codex only. Codex
 interactive user-input is still protocol-fixture-tested, not emitted by the
 installed provider. The remaining world art rejection and overall daily-driver
 signoff are unchanged.
+
+
+## 18. Continuation checkpoint — terrain prototype rejected, PR checks pending
+
+The next visual experiment changed `paintTerrain` to omit cells beyond a
+rounded/noisy shoreline, widened and bent the creek, and blocked movement beyond
+the generated land footprint. Its focused model test passed 56/56, and a rebuilt
+packaged Electron capture tour passed at 1024×640, 1440×900 and 1920×1080 in
+Meadow and Dusk. All six iteration-8 captures were opened and inspected at
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-art-iteration-8/`. The
+visual result was rejected: the meadow still reads as a rectangular map slab;
+Dusk makes the rectangle even stronger. The CSS `.mapWorld::after` overlay
+spans the complete rectangular map, and ambient decorations are not clipped to
+the new shoreline. The geometry-only assertions did not catch that UX failure.
+
+The prototype source and its test are reverted and are not part of PR #1783.
+Do not cherry-pick or reconstruct that diff. This is a documented rejected
+experiment, not a change to the product or a visual sign-off. The local package
+was built with the successful debug backend; the Linux Electron executable
+SHA-256 is `234e177afdc9ee053d6798ae1fd8ada6e535f5c8425d25ff17c92aac571a7d2d`.
+The screenshots remain private and contain no credentials.
+
+At the same checkpoint, PR #1783 is OPEN and draft, head
+`72a727fb74a6235f717d460c7431d888ad035649`, based on
+`fix/desktop-shell-smoke-navigation-20261112`, with GitHub `UNSTABLE`. Forty
+eight checks passed, nine were still in progress (including clean-profile
+packaged Electron acceptance and additional platform builds/linkage). Recheck
+the current exact-head state before changing the PR. Keep it unmerged while
+checks or base integration are unresolved. The opt-in real authenticated Codex
+acceptance and untracked-diff fix remain the last reviewed code changes; their
+results are documented in checkpoint 17.
+
+### Immediate next actions for Luna
+
+1. Recheck PR #1783's current checks and base/merge state; do not rerun the full
+   suite unless a code change or failed job justifies it.
+2. Review any failed or newly completed CI jobs and fix actual failures on the
+   feature branch. Keep the PR draft.
+3. Close the remaining packaged-provider evidence gap: verify user-input /
+   approval behavior against installed provider protocol bindings; current live
+   Codex evidence is not proof that Codex emits every approval event.
+4. Continue the mandatory clean-profile onboarding, safe restart/recovery,
+   accessibility, native-window and cross-platform gates. The app-wide daily
+   driver acceptance remains open.
+5. Defer another terrain implementation until the full-map overlay and
+   decoration clipping have a concrete design that can be judged in packaged
+   Electron. Do not count rounded model geometry as visual completion.
+6. Keep this file current with exact head hashes, test evidence, and rejected
+   directions. The mission is not complete until the owner can do comfortable
+   real development work in the packaged app and accepts the World visually.
