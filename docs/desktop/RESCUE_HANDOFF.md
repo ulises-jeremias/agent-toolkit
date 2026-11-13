@@ -1,7 +1,7 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-12 (Workspace plaque collision fix, Focus-first navigation, PXL
-Library façade iteration, and semantic World Electron capture). Requested by the owner to
+Updated: 2026-11-12 (Focus duplicate-start protection; rejected Dusk palette iteration).
+Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
 
@@ -36,7 +36,7 @@ Main integration worktree:
 ```text
 /home/ulisesjcf/.ai-workspace/worktrees/desktop-owner
 branch: rescue/codex-product-integration
-HEAD: rescue handoff sync (clean, 18 commits ahead of origin/main)
+HEAD: rescue handoff sync (24 commits ahead of origin/main at last count)
 ```
 
 The integration edits described below are committed on this branch. Keep this
@@ -47,7 +47,7 @@ integration worktree intact; it is not the same branch as the pushed follow-up P
 | `repos/agent-toolkit`, `chore/release-v1.47.5` | Old checkout, unrelated dirty release/version/plugin files and `.claude/`. Preserve; do not use as current product source. |
 | `worktrees/rescue`, `rescue/shell-v2`, `0c730540` | Existing PR #1780; replacement shell, onboarding, Focus, Projects/Context and new Valley. Preserved in integration branch. |
 | `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Nothing from this integration branch has been pushed. |
-| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `e57cebdd`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, an even Dusk pass, a new PXL Library façade, compact-map label relief, and Codex approval scope enforcement. It is not merged into the integration worktree. |
+| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `6d675afc`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, a PXL Library façade, compact-map label relief, Codex approval scope enforcement, and a synchronous guard against duplicate Focus starts. It is not merged into the integration worktree. |
 | `worktrees/codex-protocol`, `rescue/codex-protocol`, `2b8de6d6` | Reviewed protocol fix; already cherry-picked as `8a753ec5`. Do not apply twice. |
 | `worktrees/workspace-continuity`, `rescue/workspace-continuity` | Uncommitted partial implementation by subagent; NOT reviewed, tested or integrated. See critical persistence flaw below. |
 | `.claude/worktrees/agent-a8c96dfe4dfec7e8d`, `rescue/valley-art` | Existing art work; preserve. Do not infer an active agent from the worktree. |
@@ -69,6 +69,9 @@ Run `git worktree list` again to detect changes after this snapshot.
 - `src/features/focus/Conversation.tsx`: retains drafting but disables send while
   a provider cannot accept another message; explains the wait/stop choice.
 - `src/features/focus/NewSession.tsx`: recovery copy includes Claude and Codex.
+- `src/features/focus/NewSession.tsx`: synchronously rejects overlapping submissions
+  before React renders the disabled state; a regression proves two Ctrl+Enter presses
+  while creation is pending produce one thread/send sequence.
 - `electron/terminal.ts`: catches unsolicited refresh failure on host disconnect
   and retries on next list, eliminating the identified unhandled rejection path.
 - `electron/focus/focus.test.ts`: concurrent-send regression proving no phantom
@@ -191,7 +194,7 @@ honestly. Never label a declared Person or installed binary as an active agent.
 ### P0 — Finish and verify the real Focus runtime
 
 - [x] Review current dirty edits and run focused tests/type checking.
-- [ ] Retain `8a753ec5`: thread/turn filtering, request-bound approval ownership,
+- [x] Retain `8a753ec5`: thread/turn filtering, request-bound approval ownership,
   stale turn/start protection, visible unsupported requests, explicit user reviewer,
   failed-interrupt reporting and immediate forced process-group stop.
 - [x] Review high-impact #1780 Focus findings: stale overlapping thread-list reloads now
@@ -224,6 +227,10 @@ honestly. Never label a declared Person or installed binary as an active agent.
   event. Fake protocol regressions cover advertised, limited, and unsupported choices.
   This is protocol/schema verification plus local tests, not a live approval test after
   the code change; keep the real-provider approval gate below open.
+- [x] Guard Focus new-session creation synchronously against repeated Ctrl+Enter
+  submissions while provider thread creation is pending. A deferred-create component
+  regression asserts one thread and one send; the disabled button alone was insufficient
+  because React state updates occur after the event handler begins.
 - [ ] Implement interactive questions/new permissions RPCs if needed for normal
   work. Current behavior explicitly refuses unsupported requests with an error notice;
   that is honest but not complete functionality.
@@ -413,10 +420,10 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   is itself stacked on #1781 and #1780; post verified acceptance status to
   [#1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
   #1780/#1781/#1782 have failing Desktop gates; this draft remains unmerged pending
-  a healthy, reviewed base. Latest head `76d7957e200f437c84f8079feadd6aa631eb1366`
-  was pushed at about 23:27 UTC. Exact-head runs are pending: `gates`
-  (43329202858), clean-machine acceptance (43329202388), and web `quality`
-  (43329202205), as checked at 23:29 UTC. Do not report pending or in-progress
+  a healthy, reviewed base. Latest head `6d675afc0447241bd6d7e29f213afbd5169cb1aa`
+  was pushed to the existing draft PR. Exact-head runs are pending: desktop `gates`
+  (43336712549), clean-machine acceptance (43336712625), and web `quality`
+  (43336712580), as checked at 00:25 UTC on Nov 13. Do not report pending or in-progress
   checks as passing. The local
   changed-area checks are recorded below. #1782 corrects stale
   shell smoke assertions
@@ -688,14 +695,25 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   are under `.audit-private/world-label-iteration/`. Dusk grass remains too green
   and the broader village composition remains below sign-off quality. Exact
   The follow-on `eafe6bfb` eliminated the plaque from idle Workspace signage while
-  keeping header identity and interactive nameplates. Commit `e57cebdd` adds the
-  approval-scope change described above. On exact head e57cebdd, local Desktop
-  validation passes: `build:all`, lint, type-check, `check:world`, 607/607 Vitest
-  tests, and 45/45 Node spike tests. Current exact-head CI runs are quality
-  `43333668016` and gates `43333668135`, pending at last check. Earlier clean-HOME
-  job `43331730586` belongs to eafe6bfb, not e57cebdd. Vercel for eafe6bfb passed;
-  do not treat earlier-head checks as verification for e57cebdd. PR #1783 remains
-  draft and unmerged.
+  keeping header identity and interactive nameplates. Commit `e57cebdd` enforces
+  Codex approval scope; `6d675afc` prevents duplicate Focus thread creation on fast
+  repeated submission. On exact head `6d675afc`, local Desktop validation passes:
+  `build:all`, full lint, type-check, `check:world` (201 sprites), 608/608 Vitest
+  tests, and 45/45 Node spike tests. Vitest and PXL generation need
+  `TMPDIR=/home/ulisesjcf/.ai-workspace/.audit-private/tmp` on this host because
+  `/tmp` writes fail with `UNKNOWN: unknown error, write`; the same commands pass
+  with that private temporary directory. Exact-head CI runs are desktop gates
+  `43336712549`, clean-machine acceptance `43336712625`, and web quality
+  `43336712580`, all pending at the latest check (00:25 UTC Nov 13). Do not treat
+  earlier-head green checks as verification for `6d675afc`.
+
+  A new integrated Dusk grass recolor was captured in the real Electron app at
+  compact and large sizes, then rejected: cool grey-blue grass clashed with the
+  unchanged vivid trees and warm facades and made the village less coherent. That
+  iteration was fully discarded; no generated variants remain in the product tree.
+  Private comparison captures are under `.audit-private/world-dusk-terrain-v2/`.
+  The older Dusk scene still reads too green, so the art problem remains open.
+  PR #1783 remains draft and unmerged.
 
 ## 11. How Luna should execute efficiently
 
