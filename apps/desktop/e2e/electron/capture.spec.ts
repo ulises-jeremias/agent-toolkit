@@ -43,19 +43,32 @@ let desktop: Desktop;
 
 test.beforeAll(async () => {
   desktop = await openDesktop();
-  const repository = path.join(desktop.home, 'code', 'garden-api');
-  fs.mkdirSync(path.join(repository, 'src'), { recursive: true });
-  fs.writeFileSync(path.join(repository, 'README.md'), '# Garden API\n');
-  fs.writeFileSync(path.join(repository, 'src', 'api.ts'), "export const status = () => 'working';\n");
-  execFileSync('git', ['init', '-q'], { cwd: repository });
-  execFileSync('git', ['config', 'user.name', 'Desktop Visual QA'], { cwd: repository });
-  execFileSync('git', ['config', 'user.email', 'visual-qa@example.invalid'], { cwd: repository });
-  execFileSync('git', ['add', '.'], { cwd: repository });
-  execFileSync('git', ['commit', '-qm', 'Add initial API endpoint'], { cwd: repository });
-  fs.writeFileSync(path.join(repository, 'src', 'api.ts'), "export const status = () => 'ready';\n");
-  execFileSync(desktop.backendBin, ['project', 'add', repository, '--workspace', desktop.workspace], {
-    stdio: 'pipe',
-  });
+  // Populate six registered repositories so the visual tour reviews every
+  // authored project-house silhouette together, not one lucky facade.
+  const repositories = [
+    'garden-api',
+    'valley-project-0',
+    'valley-project-1',
+    'valley-project-3',
+    'valley-project-4',
+    'valley-project-5',
+  ];
+  for (const name of repositories) {
+    const repository = path.join(desktop.home, 'code', name);
+    fs.mkdirSync(path.join(repository, 'src'), { recursive: true });
+    fs.writeFileSync(path.join(repository, 'README.md'), `# ${name}\n`);
+    const source = path.join(repository, 'src', name === 'garden-api' ? 'api.ts' : 'index.ts');
+    fs.writeFileSync(source, `export const status = () => '${name}-working';\n`);
+    execFileSync('git', ['init', '-q'], { cwd: repository });
+    execFileSync('git', ['config', 'user.name', 'Desktop Visual QA'], { cwd: repository });
+    execFileSync('git', ['config', 'user.email', 'visual-qa@example.invalid'], { cwd: repository });
+    execFileSync('git', ['add', '.'], { cwd: repository });
+    execFileSync('git', ['commit', '-qm', 'Add initial API endpoint'], { cwd: repository });
+    fs.writeFileSync(source, `export const status = () => '${name}-ready';\n`);
+    execFileSync(desktop.backendBin, ['project', 'add', repository, '--workspace', desktop.workspace], {
+      stdio: 'pipe',
+    });
+  }
 });
 
 test.afterAll(async () => {
