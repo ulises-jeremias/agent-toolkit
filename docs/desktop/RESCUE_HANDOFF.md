@@ -36,7 +36,7 @@ Main integration worktree:
 ```text
 /home/ulisesjcf/.ai-workspace/worktrees/desktop-owner
 branch: rescue/codex-product-integration
-HEAD: rescue handoff sync (25 commits ahead of origin/main at last count)
+HEAD: rescue handoff sync (26 commits ahead of origin/main at last count)
 ```
 
 The integration edits described below are committed on this branch. Keep this
@@ -428,8 +428,8 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   was pushed to the existing draft PR. Exact-head runs are pending: desktop `gates`
   (43336712549), clean-machine acceptance (43336712625), and web `quality`
   (43336712580), as checked at 00:25 UTC on Nov 13. The quality workflow has since
-  passed; the desktop gates remain pending and clean-machine acceptance is still
-  in progress. Do not report pending or in-progress
+  passed; desktop gates and clean-machine acceptance remain pending. Do not report
+  pending or in-progress
   checks as passing. The local
   changed-area checks are recorded below. #1782 corrects stale
   shell smoke assertions
@@ -710,8 +710,9 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   `/tmp` writes fail with `UNKNOWN: unknown error, write`; the same commands pass
   with that private temporary directory. Exact-head CI runs are desktop gates
   `43336712549`, clean-machine acceptance `43336712625`, and web quality
-  `43336712580`, all pending at the latest check (00:25 UTC Nov 13). Do not treat
-  earlier-head green checks as verification for `6d675afc`.
+  `43336712580`, with quality passed and the other two pending at the latest check
+  (00:32 UTC Nov 13). Do not treat earlier-head green checks as verification for
+  `6d675afc`.
 
   A new integrated Dusk grass recolor was captured in the real Electron app at
   compact and large sizes, then rejected: cool grey-blue grass clashed with the
