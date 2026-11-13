@@ -2599,3 +2599,39 @@ the remaining World visual iteration, compact Focus density, onboarding,
 accessibility, provider and multi-platform acceptance gaps in section 56, and
 keep checking the open rescue PRs and worktrees before integrating additional
 changes.
+
+## 60. Continuation checkpoint — creek bank art iteration
+
+**Current date: 2026-11-13.** Packaged screenshots from section 56 showed why
+the Hornero creek read as a canal: the center stream was only one terrain tile
+wide, but each adjacent `water-edge-e/w` sprite was almost entirely filled
+with water. The visible channel therefore occupied about three tiles, with
+nearly straight parallel edges.
+
+Commit `536810d8` on `rescue/desktop-continuity-focus` re-authors the governed
+PXL east/west shore sprites as meadow tiles with an irregular shallow-water
+lip. North/south shore variants received matching treatment to keep the sprite
+family coherent. All generated PNGs and three owned manifests were regenerated
+through `gen-world-assets-pxl.mjs`; no unrelated art or generator was changed.
+
+Validation: PXL generation and byte-for-byte `--check` passed for all 207
+sprites; World model and terrain renderer tests passed 60/60; `pnpm dist:dir`
+produced a Linux unpacked Electron app using the verified CI backend artifact
+from #1783. The actual packaged app capture journey passed 1/1 across Meadow
+and Dusk at 1024×640, 1440×900, and 1920×1080. The screenshots are kept
+privately in `.audit-private/creek-iteration-1/` and were visually inspected:
+the channel now reads as a shallower stream, with bank texture visible at
+compact and large sizes. These captures validate Linux only.
+
+The full Prettier check for the PXL JavaScript source reports that file's
+existing compact DSL formatting as non-Prettier; generated JSON manifests pass
+Prettier and `git diff --check` passes. Do not claim PXL source formatting was
+validated with Prettier. PR #1783 received commit `536810d8` and remains draft;
+recheck CI against the new exact head `536810d8` before relying on the earlier
+head's results.
+
+This improves the creek's bank silhouette but does not complete the World
+renaissance. The overall valley still needs an authored composition critique,
+the broad meadow margins need further evaluation at 1920×1080, and the full
+acceptance matrix and accessibility work remain open. Continue with section
+56's other priorities after checking both open PRs and their exact-head CI.
