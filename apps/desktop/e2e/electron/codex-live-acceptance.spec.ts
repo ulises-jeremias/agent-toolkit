@@ -72,13 +72,10 @@ test('packaged Desktop completes a real Codex task, stops safely, and reports pr
     await expect.poll(() => fs.readFileSync(output, 'utf8').trim(), { timeout: 10_000 }).toBe(exactLine);
     await expect(log.locator('[data-outcome="completed"]')).toBeVisible({ timeout: 120_000 });
 
-    // Review the actual provider-produced working-tree diff in Desktop.
+    // Review the actual provider-produced untracked-file diff before staging.
     await goTo(page, 'Projects');
-    // The Desktop diff endpoint currently renders Git's tracked/staged diff;
-    // stage this new file to inspect its real patch through that supported path.
-    await page.getByRole('list', { name: 'Untracked files' }).getByRole('button', { name: 'Stage' }).click();
     await page
-      .getByRole('list', { name: 'Staged files' })
+      .getByRole('list', { name: 'Untracked files' })
       .getByRole('button', { name: /live-result\.txt/ })
       .click();
     await expect(page.locator('[aria-label="Diff for live-result.txt"]')).toContainText(exactLine);

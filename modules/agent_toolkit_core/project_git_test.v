@@ -53,18 +53,22 @@ fn test_project_git_round_trip_stage_unstage_commit() {
 	// One unstaged edit, one staged new file, one untracked file.
 	os.write_file(os.join_path(base, 'a.txt'), 'one\ntwo\n') or { panic(err.msg()) }
 	os.write_file(os.join_path(base, 'b.txt'), 'bee\n') or { panic(err.msg()) }
-	os.write_file(os.join_path(base, 'c.txt'), 'see\n') or { panic(err.msg()) }
+	os.write_file(os.join_path(base, 'c file.txt'), 'see\n') or { panic(err.msg()) }
 	staged := project_git_stage_typed(base, 'demo', ['b.txt'])
 	assert staged.ok, staged.detail
 	assert staged.staged.map(it.path) == ['b.txt']
 	assert staged.unstaged.map(it.path) == ['a.txt']
-	assert staged.untracked.map(it.path) == ['c.txt']
+	assert staged.untracked.map(it.path) == ['c file.txt']
 	assert staged.branch == 'main'
 
 	// Diff for the unstaged edit shows the added line; staged diff is empty for it.
 	diff := project_git_diff_typed(base, 'demo', 'a.txt', false)
 	assert diff.ok, diff.detail
 	assert diff.diff.contains('+two')
+	untracked_diff := project_git_diff_typed(base, 'demo', 'c file.txt', false)
+	assert untracked_diff.ok, untracked_diff.detail
+	assert untracked_diff.diff.contains('+see')
+	assert untracked_diff.diff.contains('c file.txt')
 	staged_diff := project_git_diff_typed(base, 'demo', 'a.txt', true)
 	assert staged_diff.ok
 	assert staged_diff.diff == ''
@@ -78,8 +82,8 @@ fn test_project_git_round_trip_stage_unstage_commit() {
 	unstaged := project_git_unstage_typed(base, 'demo', ['b.txt'])
 	assert unstaged.ok, unstaged.detail
 	assert unstaged.staged.len == 0
-	assert unstaged.untracked.map(it.path) == ['b.txt', 'c.txt']
-	restaged := project_git_stage_typed(base, 'demo', ['a.txt', 'b.txt', 'c.txt'])
+	assert unstaged.untracked.map(it.path) == ['b.txt', 'c file.txt']
+	restaged := project_git_stage_typed(base, 'demo', ['a.txt', 'b.txt', 'c file.txt'])
 	assert restaged.ok, restaged.detail
 	committed := project_git_commit_typed(base, 'demo', 'add the letters')
 	assert committed.ok, committed.detail

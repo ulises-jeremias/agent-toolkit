@@ -335,6 +335,30 @@ test('workspace reads the scratch workspace through the backend', async () => {
   await expect(page.getByRole('region', { name: 'Personas' })).toContainText(/architect|implementer/);
 });
 
+test('Projects previews untracked file contents before staging', async () => {
+  const { app, page } = desktop;
+  const repo = path.join(desktop.home, 'code', 'untracked-diff-review');
+  fs.mkdirSync(repo, { recursive: true });
+  initializeTestRepository(repo);
+  fs.writeFileSync(path.join(repo, 'new file.txt'), 'Visible before staging.\n');
+
+  await goTo(page, 'Projects');
+  await app.evaluate(({ dialog }, selected) => {
+    dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [selected] });
+  }, repo);
+  await page.getByRole('button', { name: 'Link a repository' }).click();
+  const project = page
+    .getByRole('list', { name: 'Linked projects' })
+    .getByRole('button', { name: /^untracked-diff-review\b/ });
+  await expect(project).toBeVisible();
+  await project.click();
+  await page
+    .getByRole('list', { name: 'Untracked files' })
+    .getByRole('button', { name: /new file\.txt/ })
+    .click();
+  await expect(page.locator('[aria-label="Diff for new file.txt"]')).toContainText('Visible before staging.');
+});
+
 test('library shows catalog vs detected vs configured vs verified without dumping envelopes', async () => {
   const { page } = desktop;
   await waitForBackend(page);
