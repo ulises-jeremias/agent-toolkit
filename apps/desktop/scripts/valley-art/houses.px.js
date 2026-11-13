@@ -40,54 +40,71 @@ include("lib.px.js")
   }
 
   // ================================================================ house-cottage
-  // Terracotta gable cottage: plaster over a stone footing, river-blue door, two flower boxes.
+  // A compact riverside inn in three-quarter view: two wall planes, a hipped
+  // roof, deep porch and stepped footing establish volume at the map scale.
   const A = {
-    wins: [[13, 45, 9, 11, {}], [42, 45, 9, 11, {}], [28, 24, 8, 9, { arch: "c", cols: 2, rows: 1 }]],
-    doorPane: [30, 51, 4, 3],
-    lamps: [[40, 50, 2, 3]],
-  }
-  // Gable roof band: column x is `i` steps from the ridge; the band is `thick` px measured vertically.
-  const gable = (c, { ridge, top, span, thick }, paint) => {
-    for (let i = 0; i <= span; i++)
-      for (const side of [-1, 1]) {
-        const x = side < 0 ? ridge - i : ridge + 1 + i
-        for (let d = 0; d < thick; d++) c.px(x, top + i + d, paint(side, i, d))
-      }
+    wins: [[14, 43, 8, 10, {}], [43, 42, 8, 10, {}]],
+    doorPane: [27, 52, 3, 3],
+    lamps: [[38, 48, 2, 3]],
   }
   sprite("house-cottage", { w: W, h: H }, (c) => {
-    // chimney first, so the roof overlaps its foot
-    stones(c, 43, 6, 7, 20, { rh: 3, widths: [4, 3, 5] })
-    c.vline(43, 6, 20, "h"); c.vline(48, 6, 20, "D"); c.vline(49, 6, 20, "N")
-    c.rect(42, 3, 9, 3, "s"); c.hline(42, 3, 9, "h"); c.hline(43, 5, 8, "D"); c.px(50, 4, "D")
-    c.rect(45, 1, 3, 2, "r"); c.px(45, 1, "o"); c.px(47, 2, "R")       // clay pot = smoke mouth
+    // Rear chimney emerges behind the ridge; the capped stack has a lit edge.
+    stones(c, 44, 5, 8, 20, { rh: 3, widths: [4, 5, 3] })
+    c.vline(44, 6, 18, "h"); c.vline(50, 6, 18, "D"); c.vline(51, 6, 18, "N")
+    c.rect(43, 3, 10, 3, "s"); c.hline(43, 3, 10, "h"); c.hline(44, 5, 8, "D")
+    c.rect(46, 1, 4, 2, "r"); c.px(46, 1, "o"); c.px(49, 2, "R")
 
-    // gable wall + lower wall
-    c.poly([32, 14, 55, 37, 55, 65, 9, 65, 9, 37], "c")
-    c.poly([32, 14, 9, 37, 9, 40, 32, 17], "C")                       // roof shadow rakes down the left gable
-    c.poly([32, 14, 33, 14, 55, 36, 55, 37], "C")
-    // tie beam
-    c.rect(8, 38, 48, 3, "t"); c.hline(8, 38, 48, "u"); c.hline(8, 40, 48, "T")
-    c.hline(9, 41, 46, "C"); c.hline(11, 42, 42, "C")                 // its shadow on the plaster
-    // corner posts
-    for (const x of [9, 53]) { c.rect(x, 41, 2, 24, "t"); c.vline(x, 41, 24, "u") }
-    c.vline(52, 43, 22, "C")
-    // footing
-    stones(c, 8, 65, 48, 6, { rh: 3 })
+    // Stone plinth and two plaster planes meet at a strong projecting corner.
+    c.poly([10, 29, 35, 42, 35, 65, 12, 59], "c")
+    c.poly([35, 42, 61, 28, 61, 57, 35, 65], "C")
+    c.poly([10, 59, 35, 65, 35, 70, 10, 64], "s")
+    c.poly([35, 65, 61, 57, 61, 63, 35, 70], "s")
+    c.line(11, 61, 35, 67, "D"); c.line(36, 67, 60, 60, "D")
+    c.line(11, 63, 35, 69, "h"); c.line(36, 69, 60, 62, "h")
+    for (let x = 15; x < 34; x += 8) c.line(x, 62 + Math.floor((x - 11) / 4), x, 64 + Math.floor((x - 11) / 4), "D")
+    for (let x = 41; x < 60; x += 8) c.line(x, 65 - Math.floor((x - 35) / 4), x, 67 - Math.floor((x - 35) / 4), "D")
 
-    // roof
-    gable(c, { ridge: 31, top: 7, span: 27, thick: 7 }, (side, i, d) => {
-      if (d === 6) return side < 0 ? "R" : "P"                         // underside
-      const seam = (2 * i + d) % 8 === 0 && d > 0
-      if (side < 0) return d === 0 ? "p" : seam ? "R" : d === 1 ? "o" : "r"
-      return d === 0 ? "o" : seam ? "P" : d === 1 ? "r" : "R"
-    })
+    // Recessed timber framing follows each wall plane and catches upper-left sun.
+    c.line(12, 32, 34, 44, "t"); c.line(36, 44, 59, 31, "t")
+    c.line(13, 55, 34, 61, "u"); c.line(37, 61, 59, 54, "D")
+    c.vline(13, 35, 23, "u"); c.vline(34, 46, 15, "T")
+    c.vline(58, 34, 20, "D")
+    c.hline(17, 39, 12, "C"); c.hline(40, 43, 13, "D")
 
-    for (const [x, y, w, h, o] of A.wins) win(c, x, y, w, h, o)
-    door(c, 27, 47, 10, 24, ["N", "B", "b"], { arch: "c", pane: A.doorPane })
-    c.rect(25, 69, 14, 2, "s"); c.hline(25, 69, 14, "h")              // doorstep
-    c.stamp("_box_red", 12, 54); c.stamp("_box_white", 41, 54)
-    c.hline(14, 60, 10, "C"); c.hline(43, 60, 10, "C")                // box shadows
-    c.stamp("_lantern", 38, 46)
+    // Four sloping roof planes make a low hip rather than a flat front gable.
+    c.poly([35, 7, 8, 26, 35, 41], "r")
+    c.poly([35, 7, 62, 24, 35, 41], "R")
+    c.poly([35, 7, 8, 26, 13, 29, 35, 15], "o")
+    c.poly([35, 7, 62, 24, 57, 28, 35, 15], "r")
+    c.line(35, 8, 9, 27, "p"); c.line(35, 9, 60, 25, "o")
+    c.line(11, 29, 35, 43, "R"); c.line(35, 43, 60, 29, "P")
+    for (let y = 17; y < 30; y += 4) {
+      const reach = Math.floor((y - 7) * 1.15)
+      const ridgeY = y + Math.floor((y - 7) * 0.45)
+      c.line(35 - reach, y, 35, ridgeY, y < 22 ? "o" : "R")
+      c.line(35, ridgeY, 35 + reach, y, y < 22 ? "r" : "P")
+    }
+    // Deep eaves throw one continuous shadow over both plaster faces.
+    c.line(8, 26, 35, 42, "T"); c.line(35, 42, 62, 24, "T")
+    c.line(9, 28, 35, 44, "u"); c.line(35, 44, 61, 27, "u")
+
+    // Asymmetric windows: one opens to the lane, one to the sheltered side.
+    A.wins.forEach(([x, y, w, h, o]) => win(c, x, y, w, h, o))
+    c.stamp("_box_red", 13, 52)
+    c.rect(42, 52, 10, 2, "d"); c.hline(42, 53, 10, "t")
+
+    // A small covered porch projects from the angled front wall.
+    c.poly([20, 45, 29, 42, 38, 47, 28, 52], "T")
+    c.poly([20, 45, 29, 42, 29, 45, 21, 48], "u")
+    c.line(20, 45, 29, 42, "w"); c.line(29, 42, 38, 47, "D")
+    c.rect(21, 47, 2, 16, "t"); c.vline(21, 47, 16, "w")
+    c.rect(36, 48, 2, 15, "t"); c.vline(36, 48, 15, "u")
+    door(c, 26, 49, 9, 20, ["N", "B", "b"], { arch: "c", pane: A.doorPane })
+    c.line(22, 63, 36, 67, "s"); c.line(22, 65, 36, 69, "h")
+    c.stamp("_lantern", 38, 45)
+    // The shaded wall gets a drain and a stacked wood niche, not filler speckle.
+    c.vline(55, 34, 17, "D"); c.px(54, 51, "D"); c.px(56, 53, "D")
+    c.rect(45, 55, 7, 3, "d"); c.hline(45, 55, 7, "u"); c.hline(45, 58, 7, "T")
   }, outline)
 
   sprite("house-cottage_lit", { w: W, h: H }, (c) => {
@@ -99,41 +116,71 @@ include("lib.px.js")
 
   // ================================================================ house-studio
   // Thatched round-eave cottage: a domed roof of straw strands over a plaster wall.
-  const dome = (c, cx, cy, rx, ry, paint) => {
-    for (let y = cy - ry; y <= cy; y++) {
-      const hw = Math.round(rx * Math.sqrt(1 - ((cy - y) / ry) ** 2))
-      for (let x = cx - hw; x <= cx + hw; x++) c.px(x, y, paint(x, y))
-    }
-  }
   const B = {
-    wins: [[10, 46, 9, 10, {}], [45, 46, 9, 10, {}]],
-    doorPane: [30, 51, 4, 3],
+    wins: [[14, 43, 8, 10, {}], [44, 42, 8, 10, {}]],
+    doorPane: [27, 52, 3, 3],
   }
   sprite("house-studio", { w: W, h: H }, (c) => {
-    c.stamp("_lantern", 4, 44)                                        // sign bracket lantern left
-    stones(c, 44, 10, 7, 13, { rh: 3, widths: [3, 4, 5] })              // stone chimney
-    c.vline(44, 10, 13, "h"); c.vline(50, 10, 13, "D"); c.rect(43, 9, 9, 2, "s"); c.hline(43, 9, 9, "h")
-    // straw dome: strands run diagonally, lit toward the upper left
-    dome(c, 32, 36, 30, 28, (x, y) => {
-      if ((x + y) % 6 === 0) return "t"                               // strand shadow
-      if ((x - y) % 9 === 0) return "u"                               // bundled ridge
-      return x < 26 + (y - 8) * 0.3 ? "y" : "d"
-    })
-    // eave: the straw thickens into a dark band, then the wall
-    c.rect(2, 36, 60, 3, "t"); c.hline(2, 36, 60, "u"); c.hline(2, 38, 60, "T")
-    c.rect(8, 39, 48, 25, "c")
-    c.rect(48, 39, 8, 25, "C")
-    stones(c, 6, 63, 52, 7, { rh: 3 })
-    for (const [x, y, w, h, o] of B.wins) {
-      win(c, x, y, w, h, { ...o, sill: false })
-      c.rect(x - 1, y + h, w + 2, 2, "d"); c.hline(x - 1, y + h + 1, w + 2, "t")
+    // A rear stone flue, visible above the thatch rather than pasted on its face.
+    stones(c, 46, 6, 7, 20, { rh: 3, widths: [3, 4, 5] })
+    c.vline(46, 7, 17, "h"); c.vline(51, 7, 17, "D")
+    c.rect(45, 3, 9, 3, "s"); c.hline(45, 3, 9, "h"); c.hline(46, 5, 7, "D")
+
+    // Two plaster walls meet at a sunlit corner; the right wall recedes in shade.
+    c.poly([10, 29, 35, 42, 35, 65, 12, 59], "c")
+    c.poly([35, 42, 61, 28, 61, 57, 35, 65], "C")
+    c.poly([10, 59, 35, 65, 35, 70, 10, 64], "s")
+    c.poly([35, 65, 61, 57, 61, 63, 35, 70], "s")
+    c.line(11, 61, 35, 67, "D"); c.line(36, 67, 60, 60, "D")
+    c.line(11, 63, 35, 69, "h"); c.line(36, 69, 60, 62, "h")
+
+    // A broad half-round reed roof is a distinct silhouette from the inn's
+    // hipped roof. Concentric courses follow its curve; the right half turns
+    // into shade as it recedes from the upper-left sun.
+    const roofCenter = 31, roofTop = 6, roofBase = 38, roofRadius = 31
+    const roofSpan = (y) => Math.sqrt(Math.max(0, 1 - (1 - (y - roofTop) / (roofBase - roofTop)) ** 2))
+    for (let y = roofTop; y < roofBase; y++) {
+      const reach = Math.round(roofRadius * roofSpan(y))
+      const left = Math.max(0, roofCenter - reach)
+      const right = Math.min(63, roofCenter + reach)
+      for (let x = left; x <= right; x++) {
+        const side = (x - roofCenter) / Math.max(1, reach)
+        const warm = side < -0.48 ? "w" : side < 0.06 ? "y" : side < 0.62 ? "u" : "d"
+        c.px(x, y, warm)
+      }
     }
-    door(c, 27, 47, 10, 23, ["N", "t", "d"], { arch: "t", pane: B.doorPane })
-    c.stamp("_box_red", 8, 56)
-    c.hline(8, 62, 11, "C")
-    // hanging sign on a bracket: a timber board with two ink pixels as text
-    c.vline(52, 52, 6, "T"); c.hline(47, 52, 6, "T"); c.hline(47, 54, 5, "t")
-    c.rect(48, 56, 6, 4, "u"); c.hline(48, 56, 6, "y"); c.hline(48, 59, 6, "T"); c.px(50, 57, "T"); c.px(52, 57, "T")
+    for (let y = 13; y < roofBase - 2; y += 4) {
+      const reach = Math.round(roofRadius * roofSpan(y))
+      const left = Math.max(2, roofCenter - reach + 3)
+      const right = Math.min(61, roofCenter + reach - 3)
+      if (right > left) c.hline(left, y, right - left, y < 22 ? "d" : "t")
+      if (left < roofCenter) c.px(left + 2, y - 1, "w")
+      if (right > roofCenter) c.px(right - 2, y - 1, "u")
+    }
+    // Reed tips and a dark under-eave keep the large round roof grounded.
+    c.hline(1, 36, 61, "u"); c.hline(2, 38, 59, "t"); c.hline(4, 39, 55, "T")
+    for (let x = 4; x < 60; x += 5) c.vline(x, 36 + (x % 2), 3, x < roofCenter ? "y" : "d")
+
+    // Timber braces, a pair of differently oriented windows and a recessed door.
+    c.line(13, 34, 34, 46, "u"); c.line(37, 46, 59, 33, "D")
+    c.vline(13, 36, 21, "u"); c.vline(34, 46, 15, "T"); c.vline(58, 35, 19, "D")
+    c.line(13, 56, 34, 62, "t"); c.line(37, 62, 58, 55, "D")
+    B.wins.forEach(([x, y, w, h, o]) => win(c, x, y, w, h, o))
+    c.stamp("_box_white", 13, 52)
+    c.rect(43, 52, 10, 2, "d"); c.hline(43, 53, 10, "t")
+    c.poly([20, 45, 29, 42, 38, 47, 28, 52], "t")
+    c.poly([20, 45, 29, 42, 29, 45, 21, 48], "u")
+    c.line(20, 45, 29, 42, "w"); c.line(29, 42, 38, 47, "D")
+    c.rect(21, 47, 2, 16, "T"); c.vline(21, 47, 16, "u")
+    c.rect(36, 48, 2, 15, "T"); c.vline(36, 48, 15, "t")
+    door(c, 26, 49, 9, 20, ["N", "t", "u"], { arch: "t", pane: B.doorPane })
+    c.line(22, 63, 36, 67, "s"); c.line(22, 65, 36, 69, "h")
+    c.stamp("_lantern", 38, 45)
+    // A hanging sign names a working studio; timber stacks under its sheltered wall.
+    c.vline(55, 42, 8, "T"); c.hline(49, 42, 7, "T")
+    c.rect(49, 49, 7, 5, "u"); c.hline(49, 49, 7, "y"); c.hline(49, 53, 7, "T")
+    c.px(51, 51, "T"); c.px(54, 51, "T")
+    c.rect(43, 56, 9, 3, "d"); c.hline(43, 56, 9, "u"); c.hline(43, 59, 9, "T")
   }, outline)
   sprite("house-studio_lit", { w: W, h: H }, (c) => {
     for (const [x, y, w, h, o] of B.wins) litwin(c, x, y, w, h, o)

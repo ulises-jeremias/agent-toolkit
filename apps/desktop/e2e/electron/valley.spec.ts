@@ -46,6 +46,10 @@ test.describe('World village', () => {
     await page.getByRole('button', { name: /^garden-api\s+·\s+Project\b/ }).click();
     await expect(page).toHaveURL(/#\/world\?.*project=garden-api/);
     await expect(page.getByRole('application', { name: 'Interior of garden-api' })).toBeVisible();
+    if (process.env['ATK_CAPTURE'] === '1' && process.env['ATK_CAPTURE_DIR']) {
+      fs.mkdirSync(process.env['ATK_CAPTURE_DIR'], { recursive: true });
+      await page.screenshot({ path: path.join(process.env['ATK_CAPTURE_DIR'], 'project-interior.png') });
+    }
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Focus' }).click();
     await expect(page).toHaveURL(/#\/focus/);
     await expect(page.getByRole('combobox', { name: 'Project', exact: true })).toHaveValue('garden-api');
