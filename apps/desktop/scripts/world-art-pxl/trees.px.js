@@ -33,15 +33,6 @@ function canopy(c, fill, shadow, light, clumps) {
   for (const [x, y, rx, ry] of clumps) leafClump(c, x, y, rx, ry, fill, shadow, light);
 }
 
-function blossomPockets(c) {
-  // Flower clusters sit on sunward outer branches, not evenly over the crown.
-  c.px(11, 16, "h"); c.px(12, 15, "w"); c.px(13, 16, "H");
-  c.px(21, 8, "h"); c.px(22, 7, "w"); c.px(23, 8, "H");
-  c.px(36, 11, "h"); c.px(37, 10, "w"); c.px(38, 11, "H");
-  c.px(48, 22, "h"); c.px(49, 21, "w"); c.px(50, 22, "H");
-  c.px(17, 29, "h"); c.px(18, 28, "w"); c.px(19, 29, "H");
-}
-
 function tree(name, fill, shadow, light, clumps, extra) {
   sprite(name, { w: 64, h: 64 }, (c) => {
     groundShadow(c);
@@ -101,25 +92,50 @@ sprite("tree-round", { w: 64, h: 64 }, (c) => {
   c.poly([27, 59, 37, 59, 42, 62, 22, 62], "F");
 });
 
-// Flowering plum: an open crown, with blossom confined to a few lit sprays.
-tree("tree-blossom", "G", "f", "g", [
-  [22, 12, 9, 9], [40, 15, 8, 8], [13, 26, 8, 9], [31, 28, 9, 9], [47, 31, 7, 8],
-], (c) => {
-  blossomPockets(c);
-  c.poly([8, 25, 12, 21, 16, 23, 14, 29], "h");
-  c.poly([40, 13, 44, 11, 47, 16, 43, 20], "h");
+// Flowering plum: a low, wind-swept crown with open branch windows. The
+// flowering boughs form connected horizontal sprays, unlike the oak's dome.
+sprite("tree-blossom", { w: 64, h: 64 }, (c) => {
+  groundShadow(c);
+  trunk(c, 6);
+  c.poly([27, 8, 34, 5, 40, 10, 48, 12, 55, 21, 53, 27, 59, 32, 54, 40, 46, 42, 39, 38, 31, 42, 24, 39, 16, 43, 9, 38, 6, 31, 11, 24, 10, 17, 18, 12], "f");
+  c.poly([26, 11, 34, 8, 39, 13, 47, 15, 52, 22, 50, 28, 55, 32, 51, 37, 45, 39, 38, 35, 31, 39, 24, 36, 17, 40, 12, 36, 10, 31, 14, 25, 13, 19, 20, 15], "G");
+  c.poly([17, 25, 24, 19, 30, 21, 34, 27, 31, 31, 24, 30, 19, 34, 13, 31], "g");
+  c.poly([34, 15, 41, 14, 48, 19, 49, 24, 44, 28, 38, 25, 33, 29, 29, 24], "g");
+  c.poly([23, 31, 30, 28, 37, 31, 40, 36, 35, 39, 29, 36, 24, 39, 19, 36], "G");
+  c.line(31, 42, 23, 30, "D");
+  c.line(33, 41, 43, 28, "b");
+  // Blossom is grouped at branch tips, never sprinkled uniformly over leaves.
+  c.poly([9, 22, 13, 17, 18, 18, 17, 24, 12, 26], "h");
+  c.poly([36, 12, 41, 9, 46, 12, 45, 17, 39, 19], "h");
+  c.poly([46, 28, 51, 25, 56, 29, 55, 34, 50, 36], "h");
+  c.px(12, 20, "w"); c.px(15, 22, "H");
+  c.px(40, 12, "w"); c.px(43, 14, "H");
+  c.px(51, 29, "w"); c.px(53, 32, "H");
+  c.poly([22, 51, 42, 51, 46, 55, 19, 55], "D");
+  c.vline(31, 44, 14, "d"); c.vline(35, 43, 16, "b");
+  c.poly([27, 59, 34, 59, 40, 62, 22, 62], "F");
 });
 
-// Amber pear: layered fruiting boughs and a stronger fork in the trunk.
-tree("tree-amber", "J", "u", "j", [
-  [30, 10, 8, 9], [18, 22, 8, 9], [43, 23, 9, 9], [23, 36, 8, 8], [41, 37, 8, 8],
-], (c) => {
-  c.poly([13, 20, 18, 14, 25, 17, 23, 24, 17, 27], "j");
-  c.poly([30, 8, 37, 10, 39, 16, 33, 18], "j");
-  c.poly([41, 25, 47, 22, 51, 28, 46, 33], "j");
-  c.px(16, 33, "Y"); c.px(17, 34, "J");
-  c.px(37, 22, "Y"); c.px(38, 23, "J");
-  c.px(47, 34, "Y"); c.px(46, 35, "J");
+// Amber pear: a taller, tapered crown with fruiting limbs and a visible
+// central fork; its silhouette stays distinct when viewed at fit-to-world.
+sprite("tree-amber", { w: 64, h: 64 }, (c) => {
+  groundShadow(c);
+  trunk(c, 8);
+  c.poly([29, 3, 37, 6, 40, 13, 49, 18, 54, 26, 50, 32, 55, 37, 50, 44, 42, 46, 36, 42, 29, 48, 21, 44, 14, 46, 8, 40, 10, 33, 5, 28, 11, 21, 18, 18, 20, 10], "u");
+  c.poly([29, 6, 36, 9, 38, 15, 46, 20, 50, 26, 47, 32, 51, 37, 47, 41, 41, 43, 35, 39, 29, 44, 23, 41, 16, 43, 12, 39, 14, 33, 9, 28, 14, 23, 20, 21, 22, 13], "J");
+  c.poly([24, 12, 30, 8, 35, 11, 37, 17, 32, 22, 26, 19, 21, 23, 17, 19], "j");
+  c.poly([17, 25, 23, 20, 29, 23, 31, 29, 27, 34, 21, 32, 16, 36, 12, 32], "j");
+  c.poly([34, 21, 40, 17, 46, 21, 48, 26, 44, 31, 38, 29, 34, 34, 30, 29], "j");
+  c.poly([25, 33, 31, 29, 37, 33, 39, 38, 34, 42, 28, 39, 23, 42, 19, 38], "J");
+  c.line(31, 43, 25, 31, "D"); c.line(33, 41, 42, 29, "b");
+  // Warm highlights describe upper-left leaf planes; fruit hangs below limbs.
+  c.line(25, 14, 32, 11, "j"); c.line(17, 27, 23, 23, "j");
+  c.px(17, 36, "Y"); c.px(18, 37, "J");
+  c.px(43, 33, "Y"); c.px(44, 34, "J");
+  c.px(34, 44, "Y"); c.px(35, 45, "J");
+  c.poly([22, 51, 42, 51, 46, 55, 19, 55], "D");
+  c.vline(31, 44, 14, "d"); c.vline(35, 43, 16, "b");
+  c.poly([27, 59, 34, 59, 40, 62, 22, 62], "F");
 });
 
 // Old rune tree: exposed forked limbs and a single mineral-blue scar.

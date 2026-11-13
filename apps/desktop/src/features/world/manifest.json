@@ -1567,7 +1567,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art-pxl/trees.px.js",
-      "sha256": "d75763e18a2fafdfc4c8a7eb450236a9fe4a1ac8522f159dc96d8c8159a5e36c"
+      "sha256": "fa43bf12b52813e7d79d4ee4812bd70fb261960514e8d0c1c02e888d3a31c4fd"
     },
     "tree-blossom": {
       "file": "tree-blossom.png",
@@ -1575,7 +1575,7 @@
       "h": 64,
       "frames": 1,
       "source": "scripts/world-art-pxl/trees.px.js",
-      "sha256": "fad0497b2a182c9110d091fbed60f0e083ea5850f87a0ec22b0fa9fa3cfcf2b0"
+      "sha256": "2f1cd9b920f92a86091807a1ea6c82e70988cbbd9ebb58eeafa9572e8dc00d7c"
     },
     "tree-pine": {
       "file": "tree-pine.png",
