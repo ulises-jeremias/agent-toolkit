@@ -48,12 +48,13 @@ function sizeFor(entity: SemanticEntity): { w: number; h: number } {
   return footprintFor(entity);
 }
 
-/** Project district columns adapt to roster size without making long house rows. */
+/** Keep small project neighborhoods deep enough to feel like a place, not a frontage strip. */
 export function projectDistrictCols(count: number): number {
   if (count <= 1) return 1;
   if (count <= 4) return 2;
-  if (count <= 8) return 3;
-  if (count <= 18) return 4;
+  if (count <= 6) return 2;
+  if (count <= 12) return 3;
+  if (count <= 24) return 4;
   return 5;
 }
 
@@ -193,10 +194,9 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // previous reservation made one house inherit the width of a five-lot
   // district, which turned a small workspace into a mostly empty panorama.
   // Lot coordinates remain stable as projects are added.
-  // Leave a generous garden lane between the front and rear project streets.
-  // The second street also gives the long, horizontal settlement a more
-  // balanced silhouette in landscape desktop viewports.
-  const projectRowGap = 7;
+  // Leave a garden lane between project streets without letting small, tall
+  // rosters force the entire valley down to a tiny fit-to-world zoom.
+  const projectRowGap = 6;
   const projectLaneGap = 6;
   const projectWidth = projects.length ? sizeFor(projects[0]!).w : 0;
   const districtW = projects.length ? (Math.min(projects.length, districtCols) - 1) * projectLaneGap + projectWidth : 0;
@@ -330,9 +330,10 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   );
   const mapRows = Math.max(projectRows, landmarkRows);
   return {
-    // maxX is already an exclusive tile bound; do not add a second padding
-    // tile beyond it, which made short project rosters look needlessly wide.
-    cols: Math.max(mapW, maxX),
+    // A populated project neighborhood gets one full eastern canopy and a
+    // ground verge, so the last garden and large sprites do not sit flush
+    // against the camera/canvas edge. Keep shorter workspaces tightly framed.
+    cols: Math.max(mapW, maxX + (projects.length >= 5 ? 3 : 0)),
     rows: Math.max(maxY, mapRows),
     entities: laid,
     districts: districtBounds,
