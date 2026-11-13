@@ -31,9 +31,11 @@ import {
   PageHeader,
   Panel,
   QueryView,
+  Select,
   Stack,
   StatusBadge,
   Table,
+  TextInput,
   useActionReceipt,
   type Tone,
 } from '../../ui';
@@ -486,7 +488,7 @@ export default function Library() {
       />
       <div className={styles.catalogSearch}>
         <label htmlFor="library-catalog-search">Find a capability</label>
-        <input
+        <TextInput
           id="library-catalog-search"
           type="search"
           value={catalogSearch}
@@ -959,7 +961,7 @@ export default function Library() {
             {projects.length > 0 ? (
               <div className={styles.projectInstall}>
                 <label htmlFor="copilot-project">Project</label>
-                <select
+                <Select
                   id="copilot-project"
                   value={copilotProject}
                   onChange={(event) => setCopilotProject(event.target.value)}
@@ -971,7 +973,7 @@ export default function Library() {
                       {project.status !== 'ok' ? ' · unavailable' : ''}
                     </option>
                   ))}
-                </select>
+                </Select>
                 <ButtonRow>
                   <Button
                     variant="primary"
