@@ -22,10 +22,10 @@ import {
  * thread, one Codex thread inside it, turns started with `turn/start`.
  * Approvals arrive as server-initiated requests and are answered by id.
  *
- * Baseline shapes follow `codex app-server generate-ts` for codex-cli 0.167.2.
- * Blocking user-input requests follow the newer app-server contract; they are
- * handled when a provider emits them and safely refused when malformed. The
- * installed 0.167.2 bindings do not advertise this method yet.
+ * The initial v2 baseline was checked against `codex app-server generate-ts`
+ * for codex-cli 0.167.2. Later versions add server requests such as blocking
+ * user input; this adapter handles the supported shape if emitted and safely
+ * refuses malformed or unknown requests.
  * Unknown notifications are ignored; unhandled server requests are refused.
  */
 
