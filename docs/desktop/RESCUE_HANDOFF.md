@@ -2208,3 +2208,39 @@ clean-profile acceptance are in progress, most fast validation is green, and
 macOS checks/package jobs remain queued or running. The earlier `76b204cb`
 results are historical only. Keep #1783 draft and unmerged until its exact-head
 workflows finish and the full integration review is complete.
+
+## 53. Continuation checkpoint — accessibility and ImgBot evidence review
+
+Ran the packaged Electron `keyboard-a11y.spec.ts` and `responsive-layout.spec.ts`
+against the local Linux x64 package built from source `76b204cb`; all 5 tests
+passed. This exercises keyboard-only skip-link and focus-ring behavior, Tab
+reachability, keyboard destination activation, reduced-motion CSS, nested
+Escape/palette precedence, and the real window at 1280×800, 1024×768, and
+1024×640 (including Focus, People, Library, and command palette); the responsive
+suite also passed at device scale factor 2. Opened the packaged screenshots:
+Focus fits and keeps the primary action visible at 1024×640; the Dusk World
+fits at 1024×768 but still shows the unresolved hard rectangular terrain slab,
+dense foliage, and substantial empty vertical surround. This is not a
+screen-reader, contrast-matrix, or full-visual sign-off. Orca is not installed
+on this host.
+
+Reviewed exact ImgBot PR #1771 head `9236a610510bc4637939c56db4071e0a2392cf8e`
+against current main. `gates` fails because the optimized PXL outputs
+`preview/lamp-glow` and `preview/water` violate `pnpm check:world`. A local
+decoded-pixel comparison also found five of the changed `gate0-codex-*` captures
+had real content changes. The World screenshot drops several landmarks and
+project houses; the relaunch-history screenshot changes two sessions to one.
+These edits are not explained by the compression-only PR description. The
+other listed image changes include pixel-identical files, but that does not
+remedy the generated-output drift or unexplained evidence changes. Submitted a
+`CHANGES_REQUESTED` review asking for regenerated previews and either
+pixel-exact screenshots or reviewed, sourced replacements. PR #1771 remains
+open and unmerged; preserve the bot's commit history and re-review only after a
+new exact head is available.
+
+At this checkpoint, PR #1783 exact head `b9256066` remains based on `main` with
+`gates` and clean-profile packaged acceptance in progress; Linux/Windows
+package work is running, and macOS checks are queued. Exact `main` head
+`a63db4a5` still has `desktop` and clean-machine acceptance running and
+`Validate` queued. Re-poll these exact heads; no failure is visible, but neither
+matrix is complete.
