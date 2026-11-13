@@ -1,6 +1,6 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-13 (World iteration 10; stacked Desktop checks re-polled).
+Updated: 2026-11-13 (World iteration 11; authored oak and Dusk atmosphere, stack reconciled).
 Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
@@ -1449,3 +1449,24 @@ Local tests and the full packaged visual tour for `937f098b` are recorded above.
 Re-polled stack state: #1780 is OPEN, current head `01140c9743f3e4d6a604f3e5476d7a5df876d7fc`, not draft, merge state BLOCKED; #1782 is OPEN/draft, current head `36affaac17be6743eca6e6b18865c1ff0dd69609`, merge state UNSTABLE. Both still have required gates and clean-profile/package/platform checks pending, with no new failures in the latest filtered status poll. Do not merge.
 
 This checkpoint supersedes older `Immediate next actions` that said to defer terrain work: the grove-density change was implemented and judged in real packaged captures, but the rectangular scene boundary, creek composition and repeated silhouettes remain unresolved. Keep the World open. The next substantial acceptance work still includes clean-profile onboarding, safe restart/recovery, accessibility, native-window/cross-platform coverage, and end-to-end daily-driver use. The mission remains active.
+
+
+## 28. Continuation checkpoint — authored oak, viewport Dusk, and reconciled stack
+
+Implemented and packaged another real-art iteration on `rescue/desktop-continuity-focus`. In the governed PXL source `apps/desktop/scripts/world-art-pxl/trees.px.js`, `tree-round` is now an asymmetric connected canopy with a shaded lee plane, sunward leaf planes, a visible fork, and consistent bark lighting. Regenerated the governed PNG and both manifests; `pnpm check:world` confirms all 201 sprites are deterministic and current. The PXL preview is tracked at `apps/desktop/scripts/world-art-pxl/preview/tree-round.png`. I opened that preview and the packaged screenshots: compared with the former five circular leaf clumps, the oak reads as a single wind-shaped crown with more canopy volume, but identical oak clones remain repetitive and the overall scene remains amateur-looking. Do not interpret the asset pass as meeting the attached quality bar.
+
+The previous Dusk treatment tinted only the transformed map, producing an obvious gray rectangle pasted over a green viewport. Replaced it with an `aria-hidden` atmosphere element fixed to the map viewport, so the blue-hour tint spans both the map and the visible surrounding valley. A first packaged pass showed the correct seam-free coverage but was too weak; the stronger pass is visibly dusk while world plaques and camera controls remain readable. The overlay is an actual decorative DOM node rather than a pseudo-element: happy-dom incorrectly propagated `pointer-events:none` from a pseudo to the document root and broke unrelated clicks. After this correction the full focused World suite passed 151/151. CSS still needs native-window and keyboard-focus acceptance beyond the current renderer/Electron evidence.
+
+Evidence for exact source tree at commit `120e5e91` before stack reconciliation:
+
+- `pnpm type-check` and `pnpm lint` passed.
+- `pnpm check:world` passed: 201 deterministic sprites.
+- `pnpm dist:dir` packaged Linux x64 Electron with the existing source-compatible Toolkit backend 1.49.0. This does not prove a pinned-V backend build.
+- The opt-in real packaged-Electron World tour passed Meadow/Dusk at 1024x640, 1440x900, and 1920x1080. Opened Dusk/Meadow 1440x900, Dusk 1024x640, and Meadow 1920x1080. Private captures: `/home/ulisesjcf/.ai-workspace/.audit-private/world-tree-dusk-pass/`.
+- Renderer smoke passed 7/7, including the Focus-first unknown-route assertion.
+- Five packaged Electron journeys passed 5/5 against the real backend: full journey, both Git-change journeys, direct project linking, and workspace switching. Runtime 2.8 minutes.
+- An initial test run before replacing the Dusk pseudo-element failed 11 pointer interactions because happy-dom incorrectly attached pseudo-element pointer styles to `<html>`. This was a real test-environment regression in the attempted implementation, not ignored; replacing it with the actual overlay element made all 151 World tests pass.
+
+The #1783 PR stack had advanced while this work was underway. The latest base is #1782 head `36affaac17be6743eca6e6b18865c1ff0dd69609`; its fixture and smoke changes conflicted with the older #1783 branch. The resolved changes preserve #1782's structural preference-bridge feature detection, retain #1783's real Focus-home contract, and preserve both branch histories through a merge commit. The resulting pushed #1783 head is `be0b58d1707b754daa69b2d64d9e6f3e8b47ec42`, based on `36affaac`; GitHub currently reports OPEN/draft, MERGEABLE, and UNSTABLE while CI is queued/running. Exact new workflow runs include Clean-machine Desktop Acceptance `43388661223` and Release `43388661277`; do not rely on prior `5018d4a0` success for the new head. Latest filtered checks for #1780 `01140c97` and #1782 `36affaac` still show macOS V/integration jobs pending and no failures. Do not merge the stack while required checks remain pending.
+
+Next work: inspect all exact `be0b58d1` checks; continue replacing the toy-like civic/project silhouettes with authored architectural variety and better material/perspective; make the creek and outer terrain boundary feel organic in packaged Electron; review project interior, Focus, onboarding, Settings, terminal/diff, empty/error states at all requested sizes; then run clean-profile installed-app, accessibility, native-window, real-provider, restart/recovery and supported-platform acceptance. The owner’s attached quality bar explicitly rejects “good enough”; World and product visual sign-off remain open.
