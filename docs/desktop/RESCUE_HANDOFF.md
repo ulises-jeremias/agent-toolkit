@@ -47,7 +47,7 @@ integration worktree intact; it is not the same branch as the pushed follow-up P
 | `repos/agent-toolkit`, `chore/release-v1.47.5` | Old checkout, unrelated dirty release/version/plugin files and `.claude/`. Preserve; do not use as current product source. |
 | `worktrees/rescue`, `rescue/shell-v2`, `0c730540` | Existing PR #1780; replacement shell, onboarding, Focus, Projects/Context and new Valley. Preserved in integration branch. |
 | `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Nothing from this integration branch has been pushed. |
-| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `eafe6bfb`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, an even Dusk pass, a new PXL Library façade, and a compact-map label collision fix. It is not merged into the integration worktree. |
+| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `e57cebdd`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, an even Dusk pass, a new PXL Library façade, compact-map label relief, and Codex approval scope enforcement. It is not merged into the integration worktree. |
 | `worktrees/codex-protocol`, `rescue/codex-protocol`, `2b8de6d6` | Reviewed protocol fix; already cherry-picked as `8a753ec5`. Do not apply twice. |
 | `worktrees/workspace-continuity`, `rescue/workspace-continuity` | Uncommitted partial implementation by subagent; NOT reviewed, tested or integrated. See critical persistence flaw below. |
 | `.claude/worktrees/agent-a8c96dfe4dfec7e8d`, `rescue/valley-art` | Existing art work; preserve. Do not infer an active agent from the worktree. |
@@ -216,8 +216,14 @@ honestly. Never label a declared Person or installed binary as an active agent.
   confirms neither context nor thread totals are mislabeled. Sources:
   [generated schema](https://github.com/openai/codex/blob/main/codex-rs/app-server-protocol/schema/json/v2/ThreadTokenUsageUpdatedNotification.json),
   [Codex TUI usage semantics](https://github.com/openai/codex/blob/main/codex-rs/tui/src/token_usage.rs).
-- [ ] Verify approval scope truth (`availableDecisions`, network context, grantRoot,
-  allow-once vs allow-session) against installed schema, not assumed dialects.
+- [x] Verify the installed Codex app-server 0.167.2 schema and enforce approval scope:
+  only advertise/accept `acceptForSession` when listed in `availableDecisions`, check
+  decisions again in the main process, refuse a prompt when Focus cannot represent its
+  required one-shot allow/deny choices, and retain `networkApprovalContext`, additional
+  permissions, policy amendments, `grantRoot`, and the raw choices in the inspectable
+  event. Fake protocol regressions cover advertised, limited, and unsupported choices.
+  This is protocol/schema verification plus local tests, not a live approval test after
+  the code change; keep the real-provider approval gate below open.
 - [ ] Implement interactive questions/new permissions RPCs if needed for normal
   work. Current behavior explicitly refuses unsupported requests with an error notice;
   that is honest but not complete functionality.
@@ -681,11 +687,15 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   pass 2/2; `build:all`, lint, type-check, and `check:world` pass. Local captures
   are under `.audit-private/world-label-iteration/`. Dusk grass remains too green
   and the broader village composition remains below sign-off quality. Exact
-  `76d7957e` had long Electron/real-backend E2E and clean-HOME acceptance still
-  in progress. Exact-head Actions have since started for `eafe6bfb`: quality
-  `43331730539`, gates `43331730554`, and clean-HOME `43331730586` are pending
-  as of this update. Vercel deployment passed. Do not treat the prior SHA's
-  checks as verification for this commit. PR #1783 remains draft.
+  The follow-on `eafe6bfb` eliminated the plaque from idle Workspace signage while
+  keeping header identity and interactive nameplates. Commit `e57cebdd` adds the
+  approval-scope change described above. On exact head e57cebdd, local Desktop
+  validation passes: `build:all`, lint, type-check, `check:world`, 607/607 Vitest
+  tests, and 45/45 Node spike tests. Current exact-head CI runs are quality
+  `43333668016` and gates `43333668135`, pending at last check. Earlier clean-HOME
+  job `43331730586` belongs to eafe6bfb, not e57cebdd. Vercel for eafe6bfb passed;
+  do not treat earlier-head checks as verification for e57cebdd. PR #1783 remains
+  draft and unmerged.
 
 ## 11. How Luna should execute efficiently
 
