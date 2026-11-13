@@ -1,6 +1,6 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-13 (World iteration 12; Focus provider blocker clarity; packaged visual tour).
+Updated: 2026-11-13 (World iteration 13; two perspective facades; packaged onboarding/interior review).
 Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
@@ -48,7 +48,7 @@ integration worktree intact; it is not the same branch as the pushed follow-up P
 | `worktrees/rescue`, local `rescue/shell-v2` at `0c730540` | Original PR #1780 checkout, now behind its updated remote PR branch. Do not push from this stale worktree. |
 | `worktrees/desktop-pr1780-repair`, local `rescue/pr1780-gate-repair` at `01140c97` | Updated remote head for PR #1780 (`rescue/shell-v2`). Adds backported, authored test repairs; renderer smoke and affected source-Electron journeys pass locally. Hosted exact-head checks pending. |
 | `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Rescue checkpoints are pushed to this branch; latest documented checkpoint is `aa67c8eb`. |
-| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `7519fefd`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, original civic/project facades, responsive fitted overview camera, authored Dusk window lights, and Focus provider-blocker guidance. It is not merged into the integration worktree. |
+| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `e4932317`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, responsive fitted overview camera, authored civic/project facades, Dusk house lights, Focus blocker guidance, and two three-quarter project facades. It is not merged into the integration worktree. |
 | `worktrees/desktop-smoke-repair`, `fix/desktop-shell-smoke-navigation-20261112` | PR #1782 updated to `36affaac` with authored journey repairs and a World-home route assertion for the current base implementation. Four affected Electron journeys and seven renderer smoke tests pass locally. Exact-head hosted checks are running; keep the stacked PR draft and unmerged. |
 | `worktrees/codex-protocol`, `rescue/codex-protocol`, `2b8de6d6` | Reviewed protocol fix; already cherry-picked as `8a753ec5`. Do not apply twice. |
 | `worktrees/workspace-continuity`, `rescue/workspace-continuity` | Uncommitted partial implementation by subagent; NOT reviewed, tested or integrated. See critical persistence flaw below. |
@@ -1851,6 +1851,52 @@ PR #1783 until fresh workflows appear and finish, and report only the exact SHA
 results. The parent stack, independent review, full live-provider acceptance,
 accessibility sweep, clean installed-app 13-step acceptance, World iteration,
 and rescue sign-off all remain open.
+
+## 44. Continuation checkpoint — perspective house iteration and first-run/interior review
+
+Re-authored `house-cottage` as an asymmetrical, hipped-roof riverside inn in
+three-quarter view, with two shaded wall planes, a projecting porch and a
+coursed stone plinth. Re-authored `house-studio` with its own broad half-round
+reed roof, separate material treatment, the same consistent light direction,
+and aligned Dusk window/door passes. The two silhouettes no longer collapse to
+palette-only copies. The other four project facades are unchanged, so this is a
+partial family pass, not a claim that all buildings now meet the product target.
+Added an opt-in capture for the project interior in `valley.spec.ts` so future
+visual reviews can cover this required scene directly.
+
+Followed the governed PXL workflow and opened the native previews before
+integration. The first perspective draft contained course lines outside the
+sprite bounds and a green-tinted base; that draft was corrected. The final PXL
+previews and generated assets show no stray strokes and neutral stone footing.
+Built the actual Linux x64 Electron package, then captured Meadow and Dusk at
+1024×640, 1440×900 and 1920×1080 with six disposable Git projects. The six-view
+packaged World capture passed; opened compact and large captures show a clearer
+three-quarter cottage, a distinct round-roof studio, and correct warm Dusk
+windows. Reviewed and captured first-run onboarding (three packaged tests
+passed) and the project interior. The interior reads as a coherent timber
+workspace; onboarding is clear and truthful about unsigned providers. These
+screenshots are private in `.audit-private/full-product-pass/` and
+`.audit-private/world-cottage-iteration-2/`.
+
+Validation: 617 Vitest tests / 80 files, 45 runtime spike tests, 58 focused
+World model/theme tests, `check:world` (207 generated sprites), lint,
+type-check, `git diff --check`, Linux x64 `dist:dir`, packaged World capture
+1/1, packaged onboarding + World navigation 5/5, and packaged responsive
+layout 2/2 from the immediately preceding Focus slice. The last two targeted
+packaged suites ran against the package containing the new house art; the
+combined 5/5 run preceded that asset-only rebuild, and onboarding source was
+unchanged. No provider CLI is installed on this host, so live provider work
+remains unverified.
+
+Committed and pushed to PR #1783 as `e49323174c2f940271deb76fc4aee46b1c1b2fb4`
+(`feat(desktop): author three-quarter project house facades`). PR #1783 remains
+OPEN/draft and MERGEABLE. Immediately after push, GitHub exposed only the
+Vercel preview contexts; fresh Desktop, Clean-machine, Validate and parity
+workflow runs had not appeared yet. Poll this exact SHA until they do and
+finish. The World still has a hard rectangular terrain edge, broad mostly
+straight creek, large empty margins, and four front-facing project houses.
+Do the next iteration against those scene-level issues, preserve all semantic
+navigation, and keep the rescue open.
 
 ## 43. Continuation checkpoint — provider availability and CI poll
 
