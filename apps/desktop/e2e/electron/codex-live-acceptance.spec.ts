@@ -23,6 +23,9 @@ test('packaged Desktop completes a real Codex task, stops safely, and reports pr
 
   try {
     fs.mkdirSync(repo, { recursive: true });
+    // A fresh HOME makes interactive zsh offer its setup menu; seed an empty
+    // config inside this disposable profile so terminal input reaches the shell.
+    fs.writeFileSync(path.join(desktop.home, '.zshrc'), '# Isolated acceptance shell.\n');
     execFileSync('git', ['init', '--quiet', repo]);
     execFileSync(
       'git',
@@ -142,17 +145,31 @@ test('packaged Desktop completes a real Codex task, stops safely, and reports pr
     await expect
       .poll(
         async () => {
-          const text = await followupTurn.innerText();
-          return text.includes(exactLine) || text.includes('The saved provider conversation could not be resumed');
+          if (
+            await followupTurn
+              .getByRole('alert')
+              .isVisible()
+              .catch(() => false)
+          )
+            return 'failed';
+          if (
+            await followupTurn
+              .locator('[data-outcome="completed"]')
+              .isVisible()
+              .catch(() => false)
+          )
+            return 'completed';
+          return null;
         },
         { timeout: 120_000 },
       )
-      .toBe(true);
-    const followup = await followupTurn.innerText();
-    if (followup.includes(exactLine)) {
-      await expect(followupTurn.locator('[data-outcome="completed"]')).toBeVisible();
+      .not.toBeNull();
+    const failure = followupTurn.getByRole('alert');
+    if (await failure.isVisible()) {
+      await expect(failure).toContainText('The saved provider conversation could not be resumed');
     } else {
-      expect(followup).toContain('The saved provider conversation could not be resumed');
+      await expect(followupTurn.locator('[data-outcome="completed"]')).toBeVisible();
+      await expect(followupTurn).toContainText(exactLine);
     }
     await expect(reopenedLog.getByRole('region', { name: 'Turn 1' })).toContainText(exactLine);
 
