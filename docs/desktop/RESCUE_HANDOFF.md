@@ -2086,3 +2086,28 @@ live providers when the host provides an installed/authenticated CLI, finish
 the clean-profile installed-app journey including restart/history recovery,
 resolve the residual journal filesystem-race/platform security issue, and
 review the full stacked PR integration path. The overall rescue remains open.
+
+## 49. Continuation checkpoint — repair the landing stack without rewriting commits
+
+The old #1781 head `80765a86` still fails its historical packaged and renderer
+journeys. Inspected the actual logs: failures are stale navigation assertions
+(`Product Team`/`maple-worker`, a former one-list shell assumption, and a
+`garden-api` locator matching both the project row and toast). #1782 contains
+the corrections and its exact prior head `36affaac` passed both the Desktop and
+clean-HOME workflows. The commit list confirms the original #1781 and #1782
+commit authors are retained.
+
+Retargeted #1782 to `main` and merged the latest accepted main (`84cde2b3`,
+including #1780) into its source branch with a normal merge commit
+`63b35901`; no force push or commit rewrite was used. The combined PR now
+contains the Focus fail-closed behavior and the packaged navigation repairs as
+one review unit. Updated its title/body to reflect that scope. Exact-head CI
+for `63b35901` is running; keep the PR draft and do not close #1781 until the
+new main-targeted checks pass. If they pass, #1781 is genuinely superseded and
+can be closed with a rationale; preserve the commits through #1782.
+
+PR #1783 remains draft on `76b204cb`, based on #1782. GitHub had not attached
+new workflows to that head at last poll (only Vercel contexts), despite the
+previous `67926bf1` checks having started. Re-query its exact SHA; never use
+those older results for `76b204cb`. No branch protection or review requirement
+was bypassed.
