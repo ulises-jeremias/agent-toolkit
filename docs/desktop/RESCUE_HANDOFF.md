@@ -1,6 +1,6 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-13 (World art iteration 8; six-project packaged capture).
+Updated: 2026-11-13 (World art iteration 9; balanced project streets).
 Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
@@ -47,7 +47,7 @@ integration worktree intact; it is not the same branch as the pushed follow-up P
 | `repos/agent-toolkit`, `chore/release-v1.47.5` | Old checkout, unrelated dirty release/version/plugin files and `.claude/`. Preserve; do not use as current product source. |
 | `worktrees/rescue`, `rescue/shell-v2`, `0c730540` | Existing PR #1780; replacement shell, onboarding, Focus, Projects/Context and new Valley. Preserved in integration branch. |
 | `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Rescue checkpoints are pushed to this branch; latest documented checkpoint is `aa67c8eb`. |
-| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `66586da4`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, original civic facades, responsive fitted overview camera, reduced ground/flower/path noise, and the latest reauthored cottage facade. It is not merged into the integration worktree. |
+| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `5018d4a0`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, original civic facades, responsive fitted overview camera, reduced ground/flower/path noise, a reauthored cottage facade, and taller project streets. It is not merged into the integration worktree. |
 | `worktrees/codex-protocol`, `rescue/codex-protocol`, `2b8de6d6` | Reviewed protocol fix; already cherry-picked as `8a753ec5`. Do not apply twice. |
 | `worktrees/workspace-continuity`, `rescue/workspace-continuity` | Uncommitted partial implementation by subagent; NOT reviewed, tested or integrated. See critical persistence flaw below. |
 | `.claude/worktrees/agent-a8c96dfe4dfec7e8d`, `rescue/valley-art` | Existing art work; preserve. Do not infer an active agent from the worktree. |
@@ -1348,12 +1348,25 @@ Exact local validation on source commit `66586da4c27aaf2575c958e152f0213670e6834
   the straight canal/front-facing civic facades still need further authored work.
   This is an incremental facade improvement, not World sign-off.
 
-Exact GitHub state after push: PR #1783 is OPEN, draft, head
-`66586da4c27aaf2575c958e152f0213670e6834f`, based on
-`fix/desktop-shell-smoke-navigation-20261112`, merge state UNSTABLE. Its
-`gates` and `Packaged Electron with fresh HOME` checks were pending at the last
-query; do not infer completion from older commits. Keep it unmerged pending
-healthy required checks, review, and the stacked base PRs.
+The next packaged capture exposed a layout-level contributor to the empty
+vertical frame: project houses in the rear street were only five tiles behind
+the front street. A reversible layout iteration increases this lane spacing to
+seven tiles and updates each district's computed bounds. It keeps project lot
+IDs/first-street positions stable while giving a 3-project roster 15 rows. The
+1440x900 packaged capture now occupies more of the available height; the
+1024x640 capture remains inside its viewport and preserves all six houses.
+World capture passed at all six sizes/themes. Meadow/Dusk 1440x900 images were
+opened and compared. The first review shows better vertical balance but does not
+resolve the repeated tree crowns or straight canal. Local World tests remain
+151/151; type-check, lint, deterministic PXL check, package build, and
+`git diff --check` passed on this exact iteration.
+
+Exact GitHub state after the latest push: PR #1783 is OPEN, draft, head
+`5018d4a006a209e30e57f5202fc9ff560b49d8ce`, based on
+`fix/desktop-shell-smoke-navigation-20261112`. The just-pushed head had no
+checks reported yet and merge state UNKNOWN at the last query. Re-query before
+acting; do not infer completion from checks on `66586da4` or earlier. Keep it
+unmerged pending healthy exact-head checks, review, and the stacked base PRs.
 
 Next: review exact-head CI; continue a distinct-facade/environment composition
 iteration and inspect its real packaged captures; then resume the unfinished
