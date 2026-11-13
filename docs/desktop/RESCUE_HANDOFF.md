@@ -2709,3 +2709,23 @@ It does not substitute for Orca/screen-reader testing, contrast measurements,
 Windows/macOS keyboard checks, live-region announcement review, or the full
 mission acceptance scenario with a real repository and provider. None of
 those gates is closed.
+
+## 63. Continuation checkpoint — stale image optimization PR resolved
+
+PR #1771 was closed on 2026-11-13 with a review rationale. It saved about
+80 KB, but its generated Desktop PXL previews failed the deterministic asset
+check and its compressed Gate 0 screenshots altered visible landmarks or
+recovered-session history. Regenerating governed previews and restoring
+evidence from current `main` removes any meaningful, reproducible diff. The
+ImgBot commit `9236a610510bc4637939c56db4071e0a2392cf8e`, history, and
+`CHANGES_REQUESTED` review remain preserved; the local `worktrees/fix-1751`
+worktree was clean and was not modified. PR #1771 is now CLOSED as superseded.
+
+The only open Desktop rescue PRs are #1783 and #1784, both draft and awaiting
+exact-head CI plus review. The product branch added a packaged test-readiness
+fix as `94883a39aeafa62015073fb3fb945b956bc2c553`; re-poll its CI because only
+two checks had reported at the first poll. The security branch remains at
+`34123019586ecc3c30b5de63a4c9f6f0dc50f153`, with 18 successful, 1 in progress,
+and 5 queued checks at the last poll. Continue the overall rescue; resolving
+the image PR does not close any product, security, accessibility, provider, or
+acceptance gate.
