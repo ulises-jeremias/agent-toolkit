@@ -86,6 +86,8 @@ function assertBuilt(): void {
 export interface Desktop {
   app: ElectronApplication;
   page: Page;
+  /** Temporary profile root; exposed so acceptance tests can close and reopen the same user profile. */
+  root: string;
   /** Scratch HOME; the default harness is `$HOME/.ai-workspace` when created. */
   home: string;
   /** Scratch workspace scaffolded by the real CLI when `initWorkspace` is true. */
@@ -102,6 +104,10 @@ export interface OpenDesktopOptions {
   skipOnboarding?: boolean;
   /** Extra Chromium/Electron launch args (e.g. --force-device-scale-factor=2 for HiDPI). */
   launchArgs?: string[];
+  /** Reuse a preserved scratch profile root for close/reopen acceptance. */
+  root?: string;
+  /** Keep this profile after close so another Electron process can reopen it. */
+  preserveRootOnClose?: boolean;
 }
 
 /**
@@ -113,7 +119,8 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
   const skipOnboarding = options.skipOnboarding ?? true;
   assertBuilt();
   const backendBin = backendBinary();
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-desktop-e2e-'));
+  const root = options.root ?? fs.mkdtempSync(path.join(os.tmpdir(), 'atk-desktop-e2e-'));
+  fs.mkdirSync(root, { recursive: true });
   const home = path.join(root, 'home');
   // The default harness, so the supervisor resolves it without an override.
   const workspace = path.join(home, '.ai-workspace');
@@ -184,6 +191,7 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
   return {
     app,
     page,
+    root,
     home,
     workspace,
     backendBin,
@@ -238,7 +246,7 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
         } catch {
           // No host was spawned for this launch, or it already exited.
         }
-        fs.rmSync(root, { recursive: true, force: true });
+        if (!options.preserveRootOnClose) fs.rmSync(root, { recursive: true, force: true });
       }
     },
   };
