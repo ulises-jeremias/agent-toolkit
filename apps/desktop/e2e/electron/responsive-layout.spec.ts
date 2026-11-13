@@ -68,7 +68,10 @@ test('Responsive matrix: shell and primary actions stay usable at baseline, mini
       const taskInput = page.getByRole('textbox', { name: 'Task' });
       await expect(taskInput).toBeVisible();
       const taskBox = await taskInput.boundingBox();
-      const minimumTaskHeight = size.width <= 1024 ? 96 : 128;
+      // The compact Focus layout starts at 78rem (1248px), where the editor
+      // deliberately uses 4.5rem plus its border/padding: enough for the
+      // three visible rows without crowding the provider controls at 640px.
+      const minimumTaskHeight = size.width <= 1248 ? 80 : 128;
       expect(taskBox?.height, `${size.key}: Focus task editor keeps multiline height`).toBeGreaterThanOrEqual(
         minimumTaskHeight,
       );
