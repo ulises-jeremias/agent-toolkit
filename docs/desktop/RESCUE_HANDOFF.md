@@ -36,7 +36,7 @@ Main integration worktree:
 ```text
 /home/ulisesjcf/.ai-workspace/worktrees/desktop-owner
 branch: rescue/codex-product-integration
-HEAD: rescue handoff sync (26 commits ahead of origin/main at last count)
+HEAD: latest integration checkpoint, ahead of origin/main; not pushed
 ```
 
 The integration edits described below are committed on this branch. Keep this
