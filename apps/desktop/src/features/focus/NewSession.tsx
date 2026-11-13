@@ -121,7 +121,7 @@ export function NewSession({
       <textarea
         id="focus-start-task"
         className={styles.startTask}
-        rows={4}
+        rows={3}
         value={task}
         ref={taskRef}
         placeholder="Fix the failing test in src/math.test.js"

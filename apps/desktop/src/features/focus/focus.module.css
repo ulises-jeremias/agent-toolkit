@@ -785,10 +785,11 @@
   display: flex;
   flex: 1;
   flex-direction: column;
+  justify-content: center;
   gap: var(--space-4);
   width: min(100% - 2 * var(--space-5), 44rem);
   margin: 0 auto;
-  padding: var(--space-10) 0 var(--space-8);
+  padding: var(--space-8) 0 var(--space-8);
   min-height: 0;
   overflow-y: auto;
 }
@@ -802,7 +803,7 @@
 .startTask {
   flex: 0 0 auto;
   width: 100%;
-  min-height: 8rem;
+  min-height: 6rem;
   padding: var(--space-3);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
@@ -1022,5 +1023,41 @@
     z-index: var(--z-dock);
     width: min(32rem, 92%);
     box-shadow: var(--shadow-raised);
+  }
+
+  .start {
+    justify-content: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4) 0 var(--space-2);
+  }
+
+  .startTitle {
+    font-size: var(--text-2xl);
+  }
+
+  .startTask {
+    min-height: 4.5rem;
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-md);
+  }
+
+  .startRow {
+    gap: var(--space-3);
+  }
+
+  .startField {
+    gap: var(--space-1);
+  }
+
+  .provider {
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .providerState {
+    font-size: var(--text-xs);
+  }
+
+  .startActions {
+    margin-top: auto;
   }
 }

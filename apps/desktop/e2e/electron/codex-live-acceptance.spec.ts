@@ -82,6 +82,12 @@ test('packaged Desktop completes a real Codex task, stops safely, and reports pr
     await expect.poll(() => fs.readFileSync(output, 'utf8').trim(), { timeout: 10_000 }).toBe(exactLine);
     await expect(log.locator('[data-outcome="completed"]')).toBeVisible({ timeout: 120_000 });
     await setViewport(app, 1440, 900);
+    // Focus should refresh Git after the provider turn and select the first
+    // changed file, making the real diff inspectable without leaving the
+    // coding context or manually choosing a file.
+    const focusChanges = page.getByRole('region', { name: 'Changes', exact: true });
+    await expect(focusChanges.getByRole('heading', { name: 'Untracked (1)' })).toBeVisible({ timeout: 15_000 });
+    await expect(focusChanges.getByLabel('Diff for live-result.txt')).toContainText(exactLine);
     await capture(page, 'focus-live-completed-1440x900');
     await setViewport(app, 1024, 640);
     await capture(page, 'focus-live-completed-1024x640');

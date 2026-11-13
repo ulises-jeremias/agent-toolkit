@@ -59,16 +59,20 @@ function useProjectGitMutation<I>(
       await queryClient.cancelQueries({ queryKey: key });
       queryClient.setQueryData<ProjectGitStatusResponse>(key, result);
     },
-    onSettled: (result, error) =>
-      Promise.all([
-        // The diff response is not included in the mutation result.
+    onSettled: (result, error) => {
+      // Refreshing derived views must not keep the mutation pending: a slow
+      // diff or history read would disable every Git action after the backend
+      // had already completed the operation. Successful mutations publish
+      // authoritative status in onSuccess; these queries can catch up in the
+      // background. Scoped mutations still serialize Git writes per project.
+      void Promise.all([
         queryClient.invalidateQueries({ queryKey: ['projects', 'git-diff', workspace, project] }),
-        // A failed request has no trustworthy post-operation status.
         ...(error || !result?.ok
           ? [queryClient.invalidateQueries({ queryKey: qk.projects.gitStatus(workspace, project) })]
           : []),
         queryClient.invalidateQueries({ queryKey: ['projects', 'git-log', workspace, project] }),
-      ]),
+      ]).catch(() => undefined);
+    },
   });
 }
 
