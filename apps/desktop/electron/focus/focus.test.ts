@@ -725,6 +725,26 @@ describe('claude adapter argv', () => {
 });
 
 describe('tool descriptions', () => {
+  it('keeps aliased workspace paths relative when the provider reports the real path', () => {
+    const workspace = tempWorkspace();
+    const alias = `${workspace}.alias`;
+    const physicalWorkspace = fs.realpathSync(workspace);
+    const physicalFile = path.join(physicalWorkspace, 'nested', 'file.ts');
+    fs.mkdirSync(path.dirname(physicalFile));
+    fs.writeFileSync(physicalFile, 'export {};');
+    fs.symlinkSync(workspace, alias, process.platform === 'win32' ? 'junction' : 'dir');
+
+    try {
+      expect(describeTool('Edit', { file_path: physicalFile }, alias)).toEqual({
+        kind: 'edit',
+        title: path.join('nested', 'file.ts'),
+      });
+    } finally {
+      fs.rmSync(alias, { recursive: true, force: true });
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
   it('classifies provider tools into neutral kinds with a readable title', () => {
     expect(describeTool('Bash', { command: 'npm test\nnpm run lint' }, '/repo')).toEqual({
       kind: 'command',
