@@ -99,3 +99,31 @@ works at 1024×640, though the narrower conversation area under the open diff pa
 another visual pass. There is no full Meadow/Dusk × surface screenshot matrix, nor verified
 keyboard-only, screen-reader, contrast, reduced-motion, startup/performance, macOS, or Windows
 acceptance. Do not infer those gates from these screenshots or automated tests.
+
+## Codex packaged re-verification — 2026-11-13
+
+Repeated the opt-in `e2e/electron/codex-live-acceptance.spec.ts` against the Linux x64
+unpacked Electron package built from source HEAD
+`76b204cb1f168e40ea1c7e236c1c3e19420a61fd`. Package hashes:
+
+- `resources/app.asar`: `850a87cba0017524eed4d17eeaeef1c4ff362e56c1bf189c694378fabee46690`.
+- `resources/bin/agent-toolkit`: `39e048990b3d18910899066404de4af15a15a246e1b9b7f07d77636a81af5ded`.
+- Codex CLI: `0.168.0`; Electron: `44.11.0`; Desktop package: `1.49.0`.
+
+The test passed 1/1 in about 90 seconds. It used the installed Codex account through
+`CODEX_HOME` while the app HOME, Electron profile, workspace, and Git repository were
+temporary. The repository was registered through the Projects UI using a test stub for
+the native directory picker, so the real window-manager picker remains unverified.
+Codex created `live-result.txt` with the exact requested content, Focus showed the real
+untracked-file diff, the embedded PTY ran inside the disposable repository, Stop
+interrupted a second turn without changing the file, and a new Electron process recovered
+the thread and completed a follow-up read of the same file. Focus → project World interior
+→ Focus retained the project and thread.
+
+The first attempt exposed a bad acceptance prompt: it demanded a “read-only tool” and
+prohibited commands, so Codex correctly explained it had no such tool. The test now
+requests the available command action (`cat live-result.txt`) and the full journey passed.
+No provider credentials or traces were copied to the repository. This confirms the
+packaged Codex journey on this host; it does not close Claude/OpenCode parity, native-picker,
+in-flight resume guarantees, approval/deny variants, security/platform, accessibility, or
+complete 13-step daily-driver acceptance.

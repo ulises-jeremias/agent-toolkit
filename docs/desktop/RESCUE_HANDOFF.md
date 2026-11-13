@@ -2126,3 +2126,58 @@ are progressing, and `desktop` / clean-machine gates remain in progress. Its
 merge state is still UNKNOWN while those checks settle. It remains draft and
 must wait for #1782 integration. No current failure has been reported in the
 latest poll.
+
+## 51. Continuation checkpoint — real Codex recovery rerun
+
+The previous note that no provider CLI was installed is stale. Fresh checks on
+2026-11-13 found Claude Code 2.1.323, Codex CLI 0.168.0, and OpenCode 2.2.7;
+`claude auth status`, `codex login status`, and `opencode auth list` exited
+successfully (their output was suppressed). A real packaged Codex task now
+confirms the installed Codex account can perform work.
+
+Rebuilt the Linux x64 unpacked Desktop package from the clean PR #1783 source
+HEAD `76b204cb1f168e40ea1c7e236c1c3e19420a61fd`; package hashes and scope are
+recorded in [LIVE_ACCEPTANCE_2026-11-12.md](audits/LIVE_ACCEPTANCE_2026-11-12.md).
+The backend was staged from the checkout's existing `dist/agent-toolkit`
+binary (1.49.0); it was not freshly compiled with the CI-pinned V/VC/TCC
+toolchain. Package provenance is therefore exact for the renderer/main and
+asset bundle, but the pinned-backend build gate remains open.
+
+The opt-in packaged Codex journey passed 1/1 in about 90 seconds on app.asar
+`850a87cba0017524eed4d17eeaeef1c4ff362e56c1bf189c694378fabee46690`. It used
+the installed credentials only through `CODEX_HOME`; temporary HOME, Electron
+profile, workspace, and disposable Git repository were removed after the run.
+The actual Projects UI linked the repository using a native-picker test stub.
+Codex created the exact requested file; Focus showed the untracked diff; the
+embedded PTY ran in that repository; Stop interrupted a second turn without
+changing the file; closing and reopening Electron recovered the thread; Codex
+resumed and read the file using `cat`; and Focus → project interior → Focus
+preserved project/thread context. The initial run's impossible “read-only tool
+without commands” prompt was corrected to request `cat`; do not count the first
+attempt as a product failure or as a pass.
+
+The corresponding acceptance change is committed and explicitly pushed to the
+PR branch as `b9256066` (`test(desktop): read recovered Codex output through
+command tool`). Pre-push formatting, ESLint, TypeScript checks, and `git diff
+--check` passed; the exact packaged live run passed. Hosted checks on
+`b9256066` have just been triggered and must be polled. Do not use older
+`76b204cb` checks to claim the new head is green. PR #1783 remains a draft
+stacked on #1782.
+
+At the latest pre-push poll, PR #1782 head `63b35901` had `gates` and packaged
+fresh-HOME acceptance passing; Linux/Windows Electron packaging, CodeQL,
+compiler, and the other completed checks passed. macOS integration and several
+macOS validation jobs were queued; Danger was in progress. PR #1783 head
+`76b204cb` had `gates`, fresh-HOME acceptance, Ubuntu and ARM Linux packaging,
+and quality passing, with Windows/macOS packaging and some macOS validation
+still queued or running. Re-query exact heads; neither workflow matrix is
+complete based on this snapshot. Do not close #1781 or merge the stack yet.
+
+This improves live Codex evidence only. The 13-step clean installed-app journey
+still lacks real onboarding plus native-picker acceptance in one run, and
+screen-reader/platform/performance gates, provider approval/deny variants,
+residual journal TOCTOU/platform security, and World visual acceptance remain
+open. The density-only World experiment did not materially improve the
+rectangular scene edge in packaged captures and was discarded; do not integrate
+it or repeat the same experiment. Focus, exact-head CI, and restart acceptance
+remain ahead of another art-only sequence.
