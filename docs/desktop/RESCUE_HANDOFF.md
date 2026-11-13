@@ -1672,3 +1672,20 @@ setup, linking an existing repository, provider-state honesty, backend recovery,
 and the project appearing in World. They do not cover the full user-created
 workspace selection flow, every native dialog/platform, or visual sign-off.
 Do not extrapolate to the full mandatory acceptance scenario.
+
+## 35. Continuation checkpoint — PR stack health after compact Focus fix
+
+The exact `85ccac0b241784cac240addf99c068a36665c0d8` workflows have now
+appeared: desktop `43394466206`, Clean-machine Desktop Acceptance `43394466262`,
+Validate `43394466205`, Release `43394466351`, V parity `43394466221`, and web
+`43394466201`. On the latest query, web passed; desktop, clean-machine and V
+parity were in progress; Validate was queued; Release was pending. Re-query the
+same SHA before deciding whether to integrate. Older exact-head work on
+`77e0573e` was still running in GitHub, so watch for stale stacked runs rather
+than confusing them with the current head.
+
+Base PRs #1780 (`01140c9743f3e4d6a604f3e5476d7a5df876d7fc`) and #1782
+(`36affaac17be6743eca6e6b18865c1ff0dd69609`) were both OPEN and MERGEABLE;
+their query showed no queued, running, or failed check rows. PR #1783 remains
+OPEN/draft. No stack merge was attempted. Continue exact-SHA CI monitoring and
+preserve all three stacked histories.
