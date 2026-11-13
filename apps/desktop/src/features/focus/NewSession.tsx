@@ -42,6 +42,7 @@ export function NewSession({
   const [task, setTask] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
+  const startingRef = useRef(false);
 
   const activeProject = usable.find((entry) => entry.name === project) ?? usable[0];
   const activeProvider = ready.find((entry) => entry.id === providerId) ?? ready[0];
@@ -58,7 +59,10 @@ export function NewSession({
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!bridge || !activeProject || !activeProvider || !task.trim()) return;
+    if (startingRef.current || !bridge || !activeProject || !activeProvider || !task.trim()) return;
+    // State updates paint later. Keyboard and pointer submissions can land in
+    // the same turn, so guard the async boundary synchronously as well.
+    startingRef.current = true;
     setError(null);
     setStarting(true);
     try {
@@ -77,6 +81,7 @@ export function NewSession({
       if (!sent.ok) setError(sent.error);
       onStarted(created.value.id);
     } finally {
+      startingRef.current = false;
       setStarting(false);
     }
   };
