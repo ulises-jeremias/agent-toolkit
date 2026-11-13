@@ -25,7 +25,9 @@ function RailCount({ path }: { path: string }) {
   const { items } = useAttention();
   const { threads } = useFocusThreads();
   if (path === '/focus') {
-    const waiting = threads.filter((thread) => thread.status === 'awaiting-approval').length;
+    const waiting = threads.filter(
+      (thread) => thread.status === 'awaiting-approval' || thread.status === 'awaiting-input',
+    ).length;
     const working = threads.filter((thread) => thread.status === 'running').length;
     if (waiting > 0) {
       return (

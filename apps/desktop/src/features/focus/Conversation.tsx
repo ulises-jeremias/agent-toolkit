@@ -9,6 +9,7 @@ import {
   formatDuration,
   formatTokens,
   pendingApproval,
+  pendingUserInput,
   type TimelineItem,
   type TimelineTurn,
   type ToolItem,
@@ -69,9 +70,148 @@ function Item({ item }: { item: TimelineItem }) {
           {item.text}
         </p>
       );
+    case 'user-input':
+      return (
+        <div className={styles.userInputRecord}>
+          <strong>
+            {item.pending
+              ? 'Codex is waiting for your answer'
+              : item.resolvedBy === 'user'
+                ? 'Input request answered'
+                : 'Input request dismissed'}
+          </strong>
+          {!item.pending
+            ? item.questions.map((question) => (
+                <p key={question.id}>
+                  {question.header}: {question.question}
+                </p>
+              ))
+            : null}
+        </div>
+      );
     case 'turn-end':
       return <TurnEnd item={item} />;
   }
+}
+
+function UserInputBar({
+  request,
+  onSubmit,
+}: {
+  request: Extract<TimelineItem, { kind: 'user-input' }>;
+  onSubmit: (answers: Record<string, string[]>) => Promise<boolean>;
+}) {
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const answers = Object.fromEntries(
+    request.questions.map((question) => {
+      const selected = values[question.id] ?? '';
+      const note = (notes[question.id] ?? '').trim();
+      const value =
+        question.options.length === 0
+          ? note
+            ? [`user_note: ${note}`]
+            : []
+          : [
+              ...(selected ? [selected === '__other__' ? 'None of the above' : selected] : []),
+              ...(note ? [`user_note: ${note}`] : []),
+            ];
+      return [question.id, value];
+    }),
+  );
+  const ready = request.questions.every((question) =>
+    question.options.length === 0
+      ? Boolean(notes[question.id]?.trim())
+      : Boolean(values[question.id] || notes[question.id]?.trim()),
+  );
+  return (
+    <form
+      className={`${styles.approval} ${styles.userInput}`}
+      aria-label="Codex asks a question"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!ready || submitting) return;
+        setSubmitting(true);
+        void onSubmit(answers).then((accepted) => {
+          if (!accepted) setSubmitting(false);
+        });
+      }}
+    >
+      <strong className={styles.approvalQuestion}>Codex needs your input</strong>
+      {request.questions.map((question) => {
+        return (
+          <fieldset className={styles.userInputQuestion} key={question.id}>
+            <legend>{question.header}</legend>
+            <p>{question.question}</p>
+            {question.options.length > 0 ? (
+              <div className={styles.userInputOptions}>
+                {question.options.map((option, index) => (
+                  <div key={option.label}>
+                    <input
+                      id={`focus-option-${question.id}-${index}`}
+                      type="radio"
+                      aria-label={option.label}
+                      aria-describedby={`focus-option-description-${question.id}-${index}`}
+                      name={`focus-question-${question.id}`}
+                      value={option.label}
+                      checked={values[question.id] === option.label}
+                      onChange={() => setValues((current) => ({ ...current, [question.id]: option.label }))}
+                    />
+                    <span>
+                      <strong>{option.label}</strong>
+                      <small id={`focus-option-description-${question.id}-${index}`}>{option.description}</small>
+                    </span>
+                  </div>
+                ))}
+                {question.isOther ? (
+                  <div>
+                    <input
+                      id={`focus-option-${question.id}-other`}
+                      type="radio"
+                      aria-label="None of the above"
+                      name={`focus-question-${question.id}`}
+                      value="__other__"
+                      checked={values[question.id] === '__other__'}
+                      onChange={() => setValues((current) => ({ ...current, [question.id]: '__other__' }))}
+                    />
+                    <span>
+                      <strong>None of the above</strong>
+                      <small>Optionally add details below.</small>
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+            <label className={styles.userInputAnswer}>
+              <span>
+                {question.options.length > 0
+                  ? 'Notes (optional)'
+                  : question.isSecret
+                    ? 'Private answer'
+                    : 'Your answer'}
+              </span>
+              <input
+                type={question.isSecret ? 'password' : 'text'}
+                autoComplete="off"
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault();
+                }}
+                value={notes[question.id] ?? ''}
+                onChange={(event) => setNotes((current) => ({ ...current, [question.id]: event.target.value }))}
+                required={question.options.length === 0}
+              />
+            </label>
+          </fieldset>
+        );
+      })}
+      <div className={styles.approvalActions}>
+        <Button variant="primary" type="submit" disabled={!ready || submitting}>
+          {submitting ? 'Sending…' : 'Continue'}
+        </Button>
+      </div>
+    </form>
+  );
 }
 
 function Turn({ turn }: { turn: TimelineTurn }) {
@@ -139,13 +279,15 @@ export function Conversation({
   const timeline = useFocusTimeline(thread.id);
   const turns = useMemo(() => buildTimeline(timeline.events, timeline.live), [timeline.events, timeline.live]);
   const approval = pendingApproval(turns);
+  const userInput = pendingUserInput(turns);
   const [draft, setDraft] = useState(() => focusStore.getDraft(thread.id));
   const scroller = useRef<HTMLDivElement>(null);
   const pinned = useRef(true);
   const composer = useRef<HTMLTextAreaElement>(null);
   const activeThreadId = useRef(thread.id);
-  const running = thread.status === 'running' || thread.status === 'awaiting-approval';
-  const waitingForTurn = running && !provider?.capabilities?.sendWhileRunning;
+  const running =
+    thread.status === 'running' || thread.status === 'awaiting-approval' || thread.status === 'awaiting-input';
+  const waitingForTurn = (running && !provider?.capabilities?.sendWhileRunning) || Boolean(approval || userInput);
   const providerLabel = provider?.label ?? 'The agent';
 
   // Follow new output only while the reader is already at the bottom.
@@ -248,6 +390,13 @@ export function Conversation({
           }
         />
       ) : null}
+      {userInput ? (
+        <UserInputBar
+          key={userInput.requestId}
+          request={userInput}
+          onSubmit={(answers) => run(bridge?.respondUserInput(thread.id, userInput.requestId, answers))}
+        />
+      ) : null}
 
       <form
         className={styles.composer}
@@ -274,7 +423,7 @@ export function Conversation({
                   ? 'Add a note for the agent. It is delivered when the current step ends'
                   : 'Describe the next change'
           }
-          disabled={Boolean(approval)}
+          disabled={Boolean(approval || userInput)}
           onChange={(event) => {
             const text = event.target.value;
             setDraft(text);

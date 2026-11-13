@@ -273,6 +273,11 @@ export function registerIpc(deps: IpcDeps): void {
       ? (focus()?.respondApproval(id, requestId, decision) ?? unavailable)
       : unavailable,
   );
+  ipcMain.handle('atk:focus-user-input', (_event, id: unknown, requestId: unknown, answers: unknown) =>
+    typeof id === 'string' && typeof requestId === 'string' && isRecord(answers)
+      ? (focus()?.respondUserInput(id, requestId, answers as Record<string, string[]>) ?? unavailable)
+      : unavailable,
+  );
   ipcMain.handle('atk:focus-interrupt', (_event, id: unknown) =>
     typeof id === 'string' ? (focus()?.interrupt(id) ?? unavailable) : unavailable,
   );

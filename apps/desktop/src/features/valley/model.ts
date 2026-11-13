@@ -212,9 +212,14 @@ export function buildValley(input: ValleyInput): ValleyScene {
   input.projects.forEach((project, index) => {
     const seed = hash(project.name);
     const sessions = input.threads.filter((thread) => thread.projectName === project.name);
-    const live = sessions.filter((thread) => thread.status === 'running' || thread.status === 'awaiting-approval');
+    const live = sessions.filter(
+      (thread) =>
+        thread.status === 'running' || thread.status === 'awaiting-approval' || thread.status === 'awaiting-input',
+    );
     const people = input.personFigures.filter((figure) => figure.projectId === project.name);
-    const asking = live.filter((thread) => thread.status === 'awaiting-approval').length;
+    const asking = live.filter(
+      (thread) => thread.status === 'awaiting-approval' || thread.status === 'awaiting-input',
+    ).length;
     const working = live.length - asking + people.length;
     const broken = project.status !== 'ok';
     // A tree between some houses, chosen by the project's own name so it never moves.
@@ -259,14 +264,21 @@ export function buildValley(input: ValleyInput): ValleyScene {
     // Sessions waiting for you stand first: they are the ones to notice.
     const ordered: ValleyFigure[] = [
       ...live
-        .sort((a, b) => Number(b.status === 'awaiting-approval') - Number(a.status === 'awaiting-approval'))
+        .sort(
+          (a, b) =>
+            Number(b.status === 'awaiting-approval' || b.status === 'awaiting-input') -
+            Number(a.status === 'awaiting-approval' || a.status === 'awaiting-input'),
+        )
         .map((thread) => ({
           id: `figure:${thread.id}`,
           title: thread.title || 'New session',
           to: '/focus',
           params: { thread: thread.id },
           family: FAMILY[thread.provider] ?? 'ember',
-          state: thread.status === 'awaiting-approval' ? ('asking' as const) : ('working' as const),
+          state:
+            thread.status === 'awaiting-approval' || thread.status === 'awaiting-input'
+              ? ('asking' as const)
+              : ('working' as const),
           x: 0,
         })),
       ...people.map((figure) => ({

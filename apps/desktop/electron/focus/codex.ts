@@ -1,6 +1,11 @@
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import readline from 'node:readline';
-import type { FocusApprovalDecision, FocusModelOption, FocusPermissionMode } from '../../src/types/focus';
+import type {
+  FocusApprovalDecision,
+  FocusModelOption,
+  FocusPermissionMode,
+  FocusUserInputQuestion,
+} from '../../src/types/focus';
 import {
   clipInput,
   clipOutput,
@@ -17,9 +22,11 @@ import {
  * thread, one Codex thread inside it, turns started with `turn/start`.
  * Approvals arrive as server-initiated requests and are answered by id.
  *
- * Shapes follow the bindings `codex app-server generate-ts` emits for
- * codex-cli 0.167.2. Frames this adapter does not know are ignored; server
- * requests it cannot serve are refused so Codex never waits on us.
+ * Baseline shapes follow `codex app-server generate-ts` for codex-cli 0.167.2.
+ * Blocking user-input requests follow the newer app-server contract; they are
+ * handled when a provider emits them and safely refused when malformed. The
+ * installed 0.167.2 bindings do not advertise this method yet.
+ * Unknown notifications are ignored; unhandled server requests are refused.
  */
 
 interface Policy {
@@ -81,6 +88,11 @@ interface PendingApproval {
   availableDecisions: string[] | null;
 }
 
+interface PendingUserInput {
+  rpcId: number | string;
+  questionIds: Set<string>;
+}
+
 interface PendingRequest {
   settle: (result: Json | null, error: Json | null) => void;
   timer: NodeJS.Timeout;
@@ -116,6 +128,7 @@ export class CodexSession implements ProviderSession {
   private readonly child: ChildProcessWithoutNullStreams;
   private readonly waiting = new Map<number, PendingRequest>();
   private readonly approvals = new Map<string, PendingApproval>();
+  private readonly userInputs = new Map<string, PendingUserInput>();
   private readonly changesByItem = new Map<string, FileChange[]>();
   private readonly outbox: string[] = [];
   private nextId = 1;
@@ -193,9 +206,31 @@ export class CodexSession implements ProviderSession {
     return true;
   }
 
+  respondUserInput(requestId: string, answers: Record<string, string[]>): boolean {
+    const pending = this.userInputs.get(requestId);
+    if (!pending) return false;
+    const answerIds = Object.keys(answers);
+    if (
+      answerIds.length !== pending.questionIds.size ||
+      answerIds.some((id) => !pending.questionIds.has(id)) ||
+      Object.values(answers).some((values) =>
+        !Array.isArray(values) ||
+        values.length === 0 ||
+        values.length > 20 ||
+        values.some((value) => typeof value !== 'string' || !value.trim() || value.length > 12_000),
+      )
+    ) return false;
+    const response = Object.fromEntries(answerIds.map((id) => [id, { answers: answers[id] }]));
+    if (!this.write({ id: pending.rpcId, result: { answers: response } })) return false;
+    this.userInputs.delete(requestId);
+    return true;
+  }
+
   interrupt(): void {
     if (!this.alive || !this.threadId || !this.turnId) return;
     for (const requestId of [...this.approvals.keys()]) this.respondApproval(requestId, 'deny');
+    for (const requestId of [...this.userInputs.keys()])
+      this.cancelUserInput(requestId, 'The turn was interrupted.', 'interrupt');
     void this.request('turn/interrupt', { threadId: this.threadId, turnId: this.turnId }).catch((error: unknown) => {
       if (!this.alive) return;
       this.sink.item({
@@ -209,6 +244,8 @@ export class CodexSession implements ProviderSession {
   dispose(now = false): void {
     if (this.disposed) return;
     this.disposed = true;
+    for (const requestId of [...this.userInputs.keys()])
+      this.cancelUserInput(requestId, 'Focus session closed.', 'shutdown');
     this.failWaiting('Codex session closed.');
     if (this.exited) return;
     if (now) {
@@ -494,6 +531,27 @@ export class CodexSession implements ProviderSession {
       });
       return;
     }
+    if (method === 'item/tool/requestUserInput') {
+      const questions = this.parseUserInputQuestions(params['questions']);
+      if (
+        params['threadId'] !== this.threadId ||
+        params['turnId'] !== this.turnId ||
+        params['isBlocking'] !== true ||
+        !questions ||
+        this.userInputs.size > 0
+      ) {
+        this.sink.item({
+          type: 'notice',
+          level: 'error',
+          text: 'Codex sent a stale, invalid, non-blocking, or overlapping question request. Focus refused it safely.',
+        });
+        this.write({ id: rpcId, error: { code: -32602, message: 'Unsupported user input request' } });
+        return;
+      }
+      this.userInputs.set(requestId, { rpcId, questionIds: new Set(questions.map((question) => question.id)) });
+      this.sink.userInput(requestId, questions);
+      return;
+    }
     // Anything else would need UI this app does not have yet. Refuse it so the turn can continue or fail visibly.
     this.sink.item({
       type: 'notice',
@@ -542,6 +600,7 @@ export class CodexSession implements ProviderSession {
         // Codex settled a request itself (for example the turn was interrupted).
         const requestId = `codex-${String(params['requestId'])}`;
         if (this.approvals.delete(requestId)) this.sink.approvalCancelled(requestId);
+        if (this.userInputs.delete(requestId)) this.sink.userInputCancelled(requestId, 'provider');
         return;
       }
       case 'error': {
@@ -556,6 +615,50 @@ export class CodexSession implements ProviderSession {
       default:
         return;
     }
+  }
+
+  private parseUserInputQuestions(value: unknown): FocusUserInputQuestion[] | null {
+    if (!Array.isArray(value) || value.length === 0 || value.length > 8) return null;
+    const questions: FocusUserInputQuestion[] = [];
+    const ids = new Set<string>();
+    for (const entry of value) {
+      const question = asRecord(entry);
+      const id = asString(question?.['id']);
+      const header = asString(question?.['header']);
+      const prompt = asString(question?.['question']);
+      if (!question || !id || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$/.test(id) || ids.has(id) || !header || !prompt) return null;
+      if (header.length > 100 || prompt.length > 2_000) return null;
+      ids.add(id);
+      const rawOptions = question['options'];
+      if (rawOptions !== undefined && (!Array.isArray(rawOptions) || rawOptions.length > 30)) return null;
+      const options: FocusUserInputQuestion['options'] = [];
+      const optionLabels = new Set<string>();
+      for (const rawOption of (rawOptions as unknown[] | undefined) ?? []) {
+        const option = asRecord(rawOption);
+        const label = asString(option?.['label']);
+        const description = asString(option?.['description']);
+        if (!label || !label.trim() || optionLabels.has(label) || !description || label.length > 300 || description.length > 1_000) return null;
+        optionLabels.add(label);
+        options.push({ label, description });
+      }
+      questions.push({
+        id,
+        header,
+        question: prompt,
+        isOther: question['isOther'] === true,
+        isSecret: question['isSecret'] === true,
+        options,
+      });
+    }
+    return questions;
+  }
+
+  private cancelUserInput(requestId: string, message: string, by: 'interrupt' | 'shutdown'): void {
+    const pending = this.userInputs.get(requestId);
+    if (!pending) return;
+    this.write({ id: pending.rpcId, error: { code: -32800, message } });
+    this.userInputs.delete(requestId);
+    this.sink.userInputCancelled(requestId, by);
   }
 
   private onItemStarted(item: Json | null): void {

@@ -1,4 +1,10 @@
-import type { FocusApprovalDecision, FocusEvent, FocusToolKind, FocusUsage } from '../../types/focus';
+import type {
+  FocusApprovalDecision,
+  FocusEvent,
+  FocusToolKind,
+  FocusUsage,
+  FocusUserInputQuestion,
+} from '../../types/focus';
 
 /**
  * Pure projection from the journal (plus live-only deltas) to what Focus
@@ -41,6 +47,14 @@ export type TimelineItem =
   | { kind: 'reasoning'; key: string; text: string; streaming: boolean }
   | ToolItem
   | { kind: 'notice'; key: string; level: 'info' | 'warning' | 'error'; text: string }
+  | {
+      kind: 'user-input';
+      key: string;
+      requestId: string;
+      questions: FocusUserInputQuestion[];
+      pending: boolean;
+      resolvedBy: 'user' | 'provider' | 'interrupt' | 'shutdown' | null;
+    }
   | {
       kind: 'turn-end';
       key: string;
@@ -155,6 +169,27 @@ export function buildTimeline(
         item.state = event.decision === 'deny' ? 'denied' : 'running';
         break;
       }
+      case 'userInput.requested':
+        turn.items.push({
+          kind: 'user-input',
+          key,
+          requestId: event.requestId,
+          questions: event.questions,
+          pending: true,
+          resolvedBy: null,
+        });
+        break;
+      case 'userInput.resolved': {
+        const request = turn.items.find(
+          (item): item is Extract<TimelineItem, { kind: 'user-input' }> =>
+            item.kind === 'user-input' && item.requestId === event.requestId,
+        );
+        if (request) {
+          request.pending = false;
+          request.resolvedBy = event.by;
+        }
+        break;
+      }
       case 'notice':
         turn.items.push({ kind: 'notice', key, level: event.level, text: event.text });
         break;
@@ -203,6 +238,18 @@ export function pendingApproval(turns: readonly TimelineTurn[]): ToolItem | null
     return null;
   };
   return find(last.items);
+}
+
+export function pendingUserInput(turns: readonly TimelineTurn[]): Extract<TimelineItem, { kind: 'user-input' }> | null {
+  const last = turns.at(-1);
+  if (!last?.open) return null;
+  return (
+    [...last.items]
+      .reverse()
+      .find(
+        (item): item is Extract<TimelineItem, { kind: 'user-input' }> => item.kind === 'user-input' && item.pending,
+      ) ?? null
+  );
 }
 
 export function formatDuration(ms: number | null): string {

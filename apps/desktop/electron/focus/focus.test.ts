@@ -407,6 +407,7 @@ describe('focus service with a scripted provider', () => {
             sent.push(text);
           },
           respondApproval: () => false,
+          respondUserInput: () => false,
           interrupt: () => undefined,
           dispose: () => undefined,
         }),
@@ -429,6 +430,40 @@ describe('focus service with a scripted provider', () => {
     expect(service.readThread(id)?.thread.status).toBe('running');
     expect((await service.send(id, 'third')).ok).toBe(false);
     expect(sent).toEqual(['first']);
+  });
+
+  it('journals Codex question metadata and resolution but never the submitted answer', async () => {
+    const workspace = tempWorkspace();
+    const secret = 'private-test-value';
+    const service = new FocusService({
+      getWorkspace: () => workspace,
+      emit: () => undefined,
+      probe: async () => [{ ...READY, id: 'codex' }],
+      factories: {
+        codex: (_options, sink) => ({
+          alive: true,
+          acceptsInputWhileRunning: false,
+          send: () => sink.userInput('codex-q1', [{
+            id: 'secret', header: 'Token', question: 'Enter token', isSecret: true, isOther: false, options: [],
+          }]),
+          respondApproval: () => false,
+          respondUserInput: () => true,
+          interrupt: () => undefined,
+          dispose: () => undefined,
+        }),
+      },
+    });
+    services.push(service);
+    const created = service.createThread({
+      cwd: workspace, projectName: null, provider: 'codex', model: null, permissionMode: 'ask',
+    });
+    if (!created.ok) throw new Error(created.error);
+    await service.send(created.value.id, 'request a token');
+    expect(service.listThreads().find((thread) => thread.id === created.value.id)?.status).toBe('awaiting-input');
+    expect(await service.send(created.value.id, 'skip question')).toMatchObject({ ok: false });
+    expect(service.respondUserInput(created.value.id, 'codex-q1', { secret: [secret] })).toMatchObject({ ok: true });
+    expect(JSON.stringify(service.readThread(created.value.id)?.events)).not.toContain(secret);
+    expect(service.readThread(created.value.id)?.events.map((event) => event.type)).toContain('userInput.resolved');
   });
 
   it('keeps the process while a turn the provider opened by itself is still running', async () => {

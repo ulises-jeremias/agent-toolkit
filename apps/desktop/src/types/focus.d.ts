@@ -13,7 +13,7 @@ export type FocusProviderId = 'claude' | 'codex' | 'opencode';
 /** How much the agent may do without asking. Mapped per provider. */
 export type FocusPermissionMode = 'ask' | 'accept-edits' | 'plan' | 'bypass';
 
-export type FocusThreadStatus = 'idle' | 'running' | 'awaiting-approval' | 'interrupted' | 'error';
+export type FocusThreadStatus = 'idle' | 'running' | 'awaiting-approval' | 'awaiting-input' | 'interrupted' | 'error';
 
 export interface FocusModelOption {
   id: string;
@@ -85,6 +85,20 @@ export type FocusToolKind = 'command' | 'edit' | 'read' | 'search' | 'web' | 'ag
 
 export type FocusApprovalDecision = 'allow' | 'allow-session' | 'deny';
 
+export interface FocusUserInputOption {
+  label: string;
+  description: string;
+}
+
+export interface FocusUserInputQuestion {
+  id: string;
+  header: string;
+  question: string;
+  isOther: boolean;
+  isSecret: boolean;
+  options: FocusUserInputOption[];
+}
+
 export type FocusEventBody =
   | { type: 'user'; text: string }
   | { type: 'turn.started'; model: string | null }
@@ -117,6 +131,8 @@ export type FocusEventBody =
       decision: FocusApprovalDecision;
       by: 'user' | 'interrupt' | 'shutdown';
     }
+  | { type: 'userInput.requested'; requestId: string; questions: FocusUserInputQuestion[] }
+  | { type: 'userInput.resolved'; requestId: string; by: 'user' | 'provider' | 'interrupt' | 'shutdown' }
   | {
       type: 'turn.finished';
       outcome: 'completed' | 'interrupted' | 'failed';
@@ -166,6 +182,7 @@ export interface FocusBridge {
   deleteThread: (id: string) => Promise<FocusResult<true>>;
   send: (id: string, text: string) => Promise<FocusResult<true>>;
   respondApproval: (id: string, requestId: string, decision: FocusApprovalDecision) => Promise<FocusResult<true>>;
+  respondUserInput: (id: string, requestId: string, answers: Record<string, string[]>) => Promise<FocusResult<true>>;
   interrupt: (id: string) => Promise<FocusResult<true>>;
   onUpdate: (listener: (update: FocusLiveUpdate) => void) => () => void;
 }

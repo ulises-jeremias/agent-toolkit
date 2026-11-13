@@ -39,7 +39,9 @@ function ProjectRow({
   const linked = project.status === 'ok';
   const git = useProjectGitStatus(workspace, linked ? project.name : '');
   const working = threads.filter((thread) => thread.status === 'running').length;
-  const waiting = threads.filter((thread) => thread.status === 'awaiting-approval').length;
+  const waiting = threads.filter(
+    (thread) => thread.status === 'awaiting-approval' || thread.status === 'awaiting-input',
+  ).length;
   const state = waiting > 0 ? 'waiting' : working > 0 ? 'working' : undefined;
   let detail = 'Reading repository…';
   if (!linked) detail = 'The linked folder is missing';

@@ -65,7 +65,19 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
       write({
         id: 'question',
         method: 'item/tool/requestUserInput',
-        params: { threadId: 'parent', turnId: 'turn-1', itemId: 'q', questions: [] },
+        params: { threadId: 'parent', turnId: 'turn-1', itemId: 'q', isBlocking: true, questions: [] },
+      });
+    if (text === 'question')
+      write({
+        id: 'question',
+        method: 'item/tool/requestUserInput',
+        params: {
+          threadId: 'parent',
+          turnId: 'turn-1',
+          itemId: 'q',
+          isBlocking: true,
+          questions: [{ id: 'purpose', header: 'Purpose', question: 'Enter the private value', isSecret: true }],
+        },
       });
     if (text === 'approval' || text === 'approval-limited' || text === 'approval-unsupported')
       write({
@@ -103,5 +115,19 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
       item: { type: 'agentMessage', id: 'answer', text: frame.result.decision },
     });
     notify('turn/completed', { threadId: 'parent', turn: { id: 'turn-1', status: 'completed' } });
+  }
+  if (frame.id === 'question' && frame.result) {
+    const expected = frame.result.answers?.purpose?.answers?.[0] === 'user_note: private token';
+    if (expected) {
+      notify('item/completed', {
+        threadId: 'parent',
+        turnId: 'turn-1',
+        item: { type: 'agentMessage', id: 'answer', text: 'received' },
+      });
+    }
+    notify('turn/completed', {
+      threadId: 'parent',
+      turn: { id: 'turn-1', status: expected ? 'completed' : 'failed' },
+    });
   }
 });

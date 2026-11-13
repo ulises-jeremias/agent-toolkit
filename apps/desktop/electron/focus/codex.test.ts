@@ -12,6 +12,8 @@ function harness(args: string[] = [], requestTimeoutMs = 30_000) {
     item: vi.fn(),
     approval: vi.fn(),
     approvalCancelled: vi.fn(),
+    userInput: vi.fn(),
+    userInputCancelled: vi.fn(),
     turnFinished: vi.fn(),
     exited: vi.fn(),
   };
@@ -45,7 +47,7 @@ describe('Codex app-server protocol', () => {
     expect(sink.item).toHaveBeenCalledWith({ type: 'assistant', itemId: 'parent-message', text: 'parent text' });
     expect(sink.turnFinished).toHaveBeenCalledWith(expect.objectContaining({ outcome: 'completed' }));
   });
-  it('explains unsupported requests and responds so the provider is not left waiting', async () => {
+  it('refuses malformed question requests so the provider is not left waiting', async () => {
     const { session, sink } = harness();
     session.send('unsupported');
     await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(1));
@@ -53,9 +55,29 @@ describe('Codex app-server protocol', () => {
       expect.objectContaining({
         type: 'notice',
         level: 'error',
-        text: expect.stringContaining('item/tool/requestUserInput'),
+        text: expect.stringContaining('invalid'),
       }),
     );
+  });
+  it('answers a blocking question using the app-server shape without emitting answers to the journal sink', async () => {
+    const { session, sink } = harness();
+    session.send('question');
+    await vi.waitFor(() => expect(sink.userInput).toHaveBeenCalledTimes(1));
+    expect(sink.userInput).toHaveBeenCalledWith('codex-question', [expect.objectContaining({ id: 'purpose', isSecret: true })]);
+    expect(session.respondUserInput('codex-question', { unrelated: ['wrong question'] })).toBe(false);
+    expect(session.respondUserInput('codex-question', { purpose: ['user_note: private token'] })).toBe(true);
+    await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(1));
+    expect(sink.turnFinished).toHaveBeenCalledWith(expect.objectContaining({ outcome: 'completed' }));
+    expect(sink.item).not.toHaveBeenCalledWith(expect.objectContaining({ text: 'private token' }));
+    expect(session.respondUserInput('codex-question', { purpose: ['again'] })).toBe(false);
+  });
+  it('cancels a blocking question when the turn is interrupted', async () => {
+    const { session, sink } = harness();
+    session.send('question');
+    await vi.waitFor(() => expect(sink.userInput).toHaveBeenCalledTimes(1));
+    session.interrupt();
+    await vi.waitFor(() => expect(sink.userInputCancelled).toHaveBeenCalledWith('codex-question', 'interrupt'));
+    expect(session.respondUserInput('codex-question', { purpose: ['late answer'] })).toBe(false);
   });
   it('does not misreport context or thread token usage as per-turn usage', async () => {
     const { session, sink } = harness();

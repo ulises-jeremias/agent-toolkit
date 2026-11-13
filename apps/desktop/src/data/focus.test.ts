@@ -39,6 +39,7 @@ function bridge(overrides: Partial<FocusBridge> = {}): {
     deleteThread: async () => ({ ok: true, value: true }),
     send: async () => ({ ok: true, value: true }),
     respondApproval: async () => ({ ok: true, value: true }),
+    respondUserInput: async () => ({ ok: true, value: true }),
     interrupt: async () => ({ ok: true, value: true }),
     onUpdate: (next) => {
       listener = next;

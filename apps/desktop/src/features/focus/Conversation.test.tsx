@@ -40,6 +40,7 @@ function setup(current: FocusThread, events: FocusEvent[]) {
     readThread: vi.fn(async () => ({ thread: current, events })),
     send: vi.fn(async () => ({ ok: true as const, value: true as const })),
     respondApproval: vi.fn(async () => ({ ok: true as const, value: true as const })),
+    respondUserInput: vi.fn(async () => ({ ok: true as const, value: true as const })),
     interrupt: vi.fn(async () => ({ ok: true as const, value: true as const })),
     onUpdate: vi.fn(() => () => undefined),
   };
@@ -140,6 +141,50 @@ describe('Conversation', () => {
     expect(api.respondApproval).toHaveBeenCalledWith('th_test000001', 'r1', 'allow');
     await user.click(screen.getByRole('button', { name: 'Don’t allow' }));
     expect(api.respondApproval).toHaveBeenLastCalledWith('th_test000001', 'r1', 'deny');
+  });
+
+  it('collects Codex answers in a separate accessible form and keeps private values out of conversation state', async () => {
+    const { api, user } = setup(
+      thread({ provider: 'codex', status: 'awaiting-approval' }),
+      journal([
+        { type: 'user', text: 'choose a plan' },
+        { type: 'turn.started', model: null },
+        {
+          type: 'userInput.requested',
+          requestId: 'codex-q1',
+          questions: [
+            {
+              id: 'plan',
+              header: 'Plan',
+              question: 'Choose a plan',
+              isOther: false,
+              isSecret: false,
+              options: [{ label: 'Careful', description: 'Review each change' }],
+            },
+            {
+              id: 'token',
+              header: 'Token',
+              question: 'Enter the token',
+              isOther: false,
+              isSecret: true,
+              options: [],
+            },
+          ],
+        },
+      ]),
+    );
+    const dialog = await screen.findByRole('form', { name: 'Codex asks a question' });
+    expect(dialog).toHaveTextContent('Choose a plan');
+    await user.click(screen.getByRole('radio', { name: /Careful/ }));
+    await user.type(screen.getByLabelText('Private answer'), 'do-not-store-this');
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+    await waitFor(() =>
+      expect(api.respondUserInput).toHaveBeenCalledWith('th_test000001', 'codex-q1', {
+        plan: ['Careful'],
+        token: ['user_note: do-not-store-this'],
+      }),
+    );
+    expect(dialog).not.toHaveTextContent('do-not-store-this');
   });
 
   it('sends on Enter, keeps Shift+Enter for a new line, and restores the draft if sending fails', async () => {

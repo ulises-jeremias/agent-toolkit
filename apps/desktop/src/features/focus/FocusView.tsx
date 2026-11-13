@@ -95,7 +95,8 @@ function Header({
   const bridge = useFocusBridge();
   const [renaming, setRenaming] = useState(false);
   const [title, setTitle] = useState(thread.title);
-  const busy = thread.status === 'running' || thread.status === 'awaiting-approval';
+  const busy =
+    thread.status === 'running' || thread.status === 'awaiting-approval' || thread.status === 'awaiting-input';
 
   useEffect(() => {
     setTitle(thread.title);

@@ -171,6 +171,10 @@ export class ClaudeSession implements ProviderSession {
     return true;
   }
 
+  respondUserInput(_requestId: string, _answers: Record<string, string[]>): boolean {
+    return false;
+  }
+
   interrupt(): void {
     if (!this.alive) return;
     this.interruptRequested = true;

@@ -26,6 +26,7 @@ export const STATUS_LABEL: Record<FocusThreadStatus, string> = {
   idle: 'Ready',
   running: 'Working',
   'awaiting-approval': 'Needs your answer',
+  'awaiting-input': 'Question for you',
   interrupted: 'Stopped',
   error: 'Failed',
 };

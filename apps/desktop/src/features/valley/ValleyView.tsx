@@ -218,7 +218,14 @@ export default function ValleyView() {
           <h1 className={styles.title}>{workspace ? folderName(workspace) : 'Workspace'}</h1>
           <p className={styles.lede}>
             {scene.places.filter((place) => place.kind === 'project').length} projects ·{' '}
-            {threads.filter((thread) => thread.status === 'running' || thread.status === 'awaiting-approval').length}{' '}
+            {
+              threads.filter(
+                (thread) =>
+                  thread.status === 'running' ||
+                  thread.status === 'awaiting-approval' ||
+                  thread.status === 'awaiting-input',
+              ).length
+            }{' '}
             sessions working
           </p>
         </div>
