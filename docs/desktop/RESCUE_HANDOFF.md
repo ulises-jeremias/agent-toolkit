@@ -2555,3 +2555,47 @@ failed on V/VC incompatibility and the old fallback compiler lacked an internal
 flag. No V source/toolchain checkout was modified. CI's exact backend artifact
 was used for package validation instead. Do not claim this local host built a
 fresh pinned backend.
+
+## 59. Continuation checkpoint — migration recovery review fix
+
+**Current date: 2026-11-13.** Independent security review of PR #1784 found
+that migration recovery accepted an existing private thread directory whenever
+its metadata parsed, even if its event log was absent or differed from the
+legacy source. Since `ThreadJournal.open()` allows a missing event log, an
+interruption after metadata creation could cause migration to mark itself done
+and leave older events inaccessible in the private store.
+
+Commit `34123019586ecc3c30b5de63a4c9f6f0dc50f153` on
+`fix/focus-journal-private-root` fixes this: before resuming an existing
+destination, migration validates both metadata and optional event-log bytes
+against the legacy source. A mismatch aborts without writing the completion
+marker or modifying the legacy copy. The regression test recreates a
+metadata-only destination, proves migration fails, confirms the source event
+bytes remain intact, and confirms no marker is written.
+
+Validation after this fix: Focus journal/service suite 32/32, Desktop
+`pnpm type-check`, full `pnpm lint`, Prettier check, and `git diff --check`
+passed. The Electron targeted ESLint invocation alone ignores `electron/` by
+repository configuration, so the full lint command was used. The commit was
+pushed to PR #1784. Exact-head CI had started; many jobs were queued and the
+Python 3.14 Ubuntu job was running at the first post-push poll. Recheck all
+checks against this exact SHA before relying on them.
+
+The review also confirms an unresolved platform race: where Node does not
+provide `O_NOFOLLOW`, a same-user concurrent process may replace a checked path
+component between `lstat` and file open. Private `userData` narrows exposure for
+the destination, but legacy sources remain in a workspace that other local
+processes can write. Static symlink checks do not prove race safety, and
+Windows junction/reparse-point plus macOS behavior have not been independently
+validated. Keep #1777 open and #1784 draft until a platform-specific mitigation
+or a documented, reviewed trust boundary is established. Do not imply this
+commit resolves that issue.
+
+The accepted packaged Linux Codex journey from section 58 remains evidence for
+the integrated behavior before this migration-only recovery fix; it did not
+exercise partial migration recovery or validate platform-specific race
+resistance. The user's overall desktop rescue is still active. Continue with
+the remaining World visual iteration, compact Focus density, onboarding,
+accessibility, provider and multi-platform acceptance gaps in section 56, and
+keep checking the open rescue PRs and worktrees before integrating additional
+changes.
