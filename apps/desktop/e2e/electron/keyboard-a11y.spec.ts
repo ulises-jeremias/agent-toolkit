@@ -27,6 +27,8 @@ test('Keyboard-only: skip link, visible focus ring, and every destination reacha
   try {
     const { page } = desktop;
     await waitForBackend(page);
+    await expect(page.getByRole('heading', { name: 'What should we work on?' })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: /No coding agent is signed in/ })).toBeVisible();
     const destinations = page.getByRole('navigation', { name: 'Destinations' });
     await expect(destinations).toBeVisible();
     await expect(destinations.getByRole('link').nth(0)).toHaveAccessibleName('Focus');
@@ -115,6 +117,8 @@ test('Keyboard: shortcut map lists shell and world bindings; Esc closes only the
   try {
     const { page } = desktop;
     await waitForBackend(page);
+    await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'What should we work on?' })).toBeVisible();
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
 
     // '?' opens the audited shortcut map.
