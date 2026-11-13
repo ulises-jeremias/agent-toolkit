@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FocusEvent, FocusLiveUpdate, FocusProviderStatus } from '../../src/types/focus';
 import { clipOutput, describeTool } from './adapter.js';
 import { ClaudeSession, claudeArgs } from './claude.js';
@@ -223,6 +223,46 @@ describe('thread journal', () => {
       );
     } finally {
       fs.rmSync(external, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects a legacy ancestor swapped to a symlink during metadata open', () => {
+    const h = harness();
+    const id = start(h);
+    const legacyRoot = focusRoot(h.workspace);
+    const legacyMeta = path.join(legacyRoot, id, 'thread.json');
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-focus-race-'));
+    const outsideThreads = path.join(outside, 'threads');
+    const originalThreads = `${legacyRoot}.original`;
+    fs.cpSync(legacyRoot, outsideThreads, { recursive: true });
+    const storageRoot = path.join(outside, 'focus-journals');
+    const originalOpen = fs.openSync.bind(fs);
+    let swapped = false;
+    const openSpy = vi.spyOn(fs, 'openSync').mockImplementation((file, flags, mode) => {
+      if (!swapped && typeof file === 'string' && path.resolve(file) === legacyMeta) {
+        swapped = true;
+        fs.renameSync(legacyRoot, originalThreads);
+        fs.symlinkSync(outsideThreads, legacyRoot, process.platform === 'win32' ? 'junction' : 'dir');
+        try {
+          return originalOpen(file, flags, mode);
+        } finally {
+          fs.unlinkSync(legacyRoot);
+          fs.renameSync(originalThreads, legacyRoot);
+        }
+      }
+      return originalOpen(file, flags, mode);
+    });
+
+    try {
+      expect(() => ThreadJournal.list(h.workspace, storageRoot)).toThrow(/Could not safely migrate Focus thread/);
+      expect(swapped).toBe(true);
+      expect(fs.existsSync(path.join(path.dirname(focusRoot(h.workspace, storageRoot)), 'migration-v1.json'))).toBe(
+        false,
+      );
+      expect(fs.existsSync(path.join(focusRoot(h.workspace, storageRoot), id))).toBe(false);
+    } finally {
+      openSpy.mockRestore();
+      fs.rmSync(outside, { recursive: true, force: true });
     }
   });
 

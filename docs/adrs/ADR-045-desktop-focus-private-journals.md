@@ -1,6 +1,6 @@
 # ADR-045: Store Desktop Focus journals in private app storage
 
-- Status: Accepted storage direction; cross-platform security validation remains open
+- Status: Accepted storage direction; cross-platform race/reparse validation remains open
 - Date: 2026-11-13
 - Related: #1667, #1670, #1777, #1779, ADR-044
 
@@ -28,20 +28,29 @@ therefore leaves an avoidable redirect surface.
    `<workspace>/.agent-toolkit/focus/threads/` are copied once to private
    storage. Each thread is staged in a private temporary directory and
    atomically renamed into place. A migration marker prevents later access to
-   the workspace journal tree. Source files are never modified or deleted.
+   the workspace journal tree. Source files are never modified or deleted. For
+   each source read, the app records every path component's device/inode before
+   opening, opens the regular file with no-follow where supported, then checks
+   the component identities and opened descriptor again before reading. A
+   changed ancestor or leaf fails closed instead of redirecting the copy.
 5. A symlink, hard link, malformed migration marker or unsafe legacy thread
    fails closed and is surfaced as a Focus history error. The app does not
    silently treat rejected legacy history as an empty successful migration.
 
 The intended boundary is repository/workspace content versus app-owned local
 state. After migration, normal Focus reads, writes and deletion use the private
-store, so workspace entries cannot redirect those operations. The one-time
-legacy import still traverses a user-writable workspace with portable path
-checks; ancestor replacement races during that read-only copy are not proven
-race-free. It never writes to or deletes workspace paths. This ADR does not
-claim isolation from another process running as the same user with write
-access to the Electron `userData` directory. Keep #1777 open until the import
-race and macOS/Windows reparse-point behavior have a reviewed disposition.
+store, so workspace entries cannot redirect those operations. Legacy import
+now detects path-component replacement by comparing the opened file's device
+and inode with stable pre/post path snapshots; a deterministic test swaps an
+ancestor for a symlink (or Windows junction) during `open` and verifies
+migration stops without creating a destination or marker. This narrows the
+race window without claiming portable descriptor-relative traversal. Hosted
+macOS and Windows junction/reparse-point results must complete before those
+platform guarantees are claimed. The importer never writes to or deletes
+workspace paths. This ADR does not claim isolation from another process
+running as the same user with write access to the Electron `userData`
+directory. Keep #1777 open until platform checks and security review accept the
+guarantee.
 
 ## Consequences
 
@@ -59,10 +68,10 @@ race and macOS/Windows reparse-point behavior have a reviewed disposition.
   access migrates those preserved records under the new key.
 - The original workspace journal remains a user-owned backup. The app does not
   clean it up as part of migration or deletion in the new store.
-- Linux tests cover symlink and hard-link rejection, nondestructive byte-for-
-  byte migration, interrupted migration recovery and POSIX private-store
-  permissions. macOS and Windows junction/reparse-point guarantees remain
-  unverified and are a release gate for closing #1777.
+- Tests cover symlink and hard-link rejection, nondestructive byte-for-byte
+  migration, interrupted migration recovery, the ancestor-replacement race,
+  and POSIX private-store permissions. macOS and Windows junction/reparse-point
+  results are a release gate for closing #1777.
 
 ## Alternatives considered
 
