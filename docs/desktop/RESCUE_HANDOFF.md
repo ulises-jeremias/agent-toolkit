@@ -753,7 +753,40 @@ macOS/Windows when environments are available; otherwise mark those gates open.
   The older Dusk scene still reads too green, so the art problem remains open.
   PR #1783 remains draft and unmerged.
 
-## 11. How Luna should execute efficiently
+## 11. Continuation checkpoint — civic PXL facades
+
+On product branch `rescue/desktop-continuity-focus`, a new uncommitted slice
+re-authors three civic landmarks in
+`apps/desktop/scripts/world-art-pxl/landmarks.px.js`: Archive is a stone records
+hall with catalog tower, Workshop is a sawtooth forge with waterwheel, and
+Operations is a map porch with offset clock tower. The first Workshop preview
+clipped the wheel/crowded the doors; the corrected preview and packaged result
+are legible at compact scale. Generated assets are included in the dirty diff.
+
+Evidence opened from packaged Electron: Meadow 1024×640, 1440×900 and 1920×1080.
+At 1024, the three landmarks and wheel are recognizable. At 1920, facade details
+read well. At 1440, the village is underscaled inside the available canvas and
+leaves too much empty space. The capture named `dusk-1920x1080-world.png` shows
+the Meadow palette; do not count it as Dusk verification. Investigate theme
+selection and recapture. Private captures:
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-civic-iteration-1/`.
+
+Validation on these exact source changes: `check:world` passes (201 sprites),
+focused World tests pass (72/72), the full Desktop suite passes (608 Vitest +
+45 Node spike tests), type-check and lint pass, and `build:all` passes. A fresh
+`dist:dir` package was used for screenshots before this validation. The first
+test attempts failed because temporary files under host `/tmp` could not be
+written; rerunning with `TMPDIR=/home/ulisesjcf/.ai-workspace/.audit-private/tmp`
+works. Exact-head hosted CI, commit and push remain to do for this slice. Keep
+PR #1783 draft and unmerged while its stacked base gates are unhealthy.
+
+Next action: run full relevant validation with the private TMPDIR, inspect why
+the Dusk capture retained Meadow colors, then correct/recapture only if the
+theme-state path can be verified. Record the 1440 composition defect and keep
+World visual sign-off open. This does not close any real-provider, onboarding,
+accessibility, cross-platform, native window, or ultimate daily-driver gate.
+
+## 12. How Luna should execute efficiently
 
 1. Read this file, git status/diff, then only the source needed for the first P0 slice.
 2. Do not re-export Muse, re-clone references or repeat broad audits without a reason.
