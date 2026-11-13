@@ -979,7 +979,10 @@ describe('layoutWorld', () => {
     }
     const creekBanks = [...waterRows.values()].map((xs) => Math.min(...xs));
     expect(new Set(creekBanks).size).toBeGreaterThan(1);
-    expect(Math.max(...creekBanks) - Math.min(...creekBanks)).toBeGreaterThanOrEqual(5);
+    expect(
+      Math.max(...creekBanks) - Math.min(...creekBanks),
+      `creek should visibly leave the bridge line; banks were ${creekBanks.join(',')}; map=${layout.cols}x${layout.rows}; bridge=${bridge!.x},${bridge!.y}`,
+    ).toBeGreaterThanOrEqual(5);
     const creekRowIndexes = [...waterRows.keys()].sort((a, b) => a - b);
     for (let index = 1; index < creekRowIndexes.length; index += 1) {
       const previousRow = waterRows.get(creekRowIndexes[index - 1]!)!;

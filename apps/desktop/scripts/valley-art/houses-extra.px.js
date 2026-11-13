@@ -3,60 +3,88 @@
 include("lib.px.js")
 
 {
-  const { outline, stones, planks, win } = globalThis.VA
+  const { outline, stones, win } = globalThis.VA
   const W = 64, H = 72
 
-  // A timber courtyard house with a side wing and an open covered entry.
+  // A timber courtyard house with a low annex and a deep, angled porch.
   const COURT = {
-    windows: [[10, 43, 9, 10], [39, 43, 9, 10], [25, 25, 9, 10]],
-    panes: [29, 51, 4, 3],
+    windows: [[9, 46, 8, 9], [27, 43, 8, 9], [48, 42, 8, 9], [35, 23, 8, 8]],
+    panes: [34, 53, 3, 3],
   }
   sprite("house-cabin", { w: W, h: H }, (c) => {
-    // Rear wing: the offset roofline gives the house a second, lower volume.
-    c.rect(4, 39, 27, 25, "c")
-    c.rect(26, 41, 5, 23, "C")
-    planks(c, 4, 39, 27, 25, { pw: 7, base: "c", seam: "C", hi: "w" })
-    stones(c, 2, 62, 31, 8, { rh: 4, widths: [5, 7, 4, 8] })
-    c.poly([2, 40, 16, 27, 33, 40, 31, 44, 4, 44], "r")
-    c.poly([16, 27, 33, 40, 31, 44, 16, 33], "R")
-    for (let y = 32; y < 41; y += 3) {
-      c.hline(16 - (y - 27), y, y - 27, "o")
-      c.hline(16, y, y - 27, "R")
+    // The annex sits behind the main gable and opens onto a small courtyard.
+    c.poly([4, 40, 22, 44, 22, 62, 4, 60], "c")
+    c.poly([22, 44, 30, 39, 30, 60, 22, 62], "C")
+    c.poly([4, 60, 22, 62, 22, 68, 4, 66], "s")
+    c.poly([22, 62, 30, 60, 30, 65, 22, 68], "D")
+    c.line(5, 45, 21, 49, "u"); c.line(23, 49, 29, 45, "T")
+    c.line(5, 53, 21, 57, "t"); c.line(23, 57, 29, 53, "D")
+    c.vline(5, 42, 18, "w"); c.vline(21, 46, 16, "T"); c.vline(29, 41, 17, "D")
+    // Its low clay roof turns into a shaded return plane at the courtyard.
+    c.poly([2, 41, 15, 27, 25, 44, 21, 47], "r")
+    c.poly([15, 27, 32, 38, 25, 44], "R")
+    c.line(3, 41, 15, 28, "o"); c.line(16, 28, 31, 39, "P")
+    for (let i = 0; i < 4; i++) {
+      const x = 6 + i * 4
+      c.line(x, 36 - i * 3, x + 6, 43 - i, i < 2 ? "o" : "R")
     }
-    c.hline(3, 40, 29, "T")
-    win(c, 9, 48, 8, 9, { sill: false })
-    c.rect(8, 57, 10, 2, "d")
-    c.vline(22, 45, 17, "t")
 
-    // Main gable is set forward, with a deep porch roof and two timber posts.
-    c.rect(26, 35, 34, 31, "c")
-    c.rect(53, 37, 7, 29, "C")
-    planks(c, 26, 35, 34, 31, { pw: 7, base: "c", seam: "C", hi: "w" })
-    stones(c, 24, 63, 38, 7, { rh: 4, widths: [7, 5, 8, 6] })
-    stones(c, 46, 12, 7, 20, { rh: 4, widths: [3, 4, 5] })
-    c.vline(46, 13, 18, "h"); c.vline(52, 13, 18, "D")
-    c.rect(45, 10, 9, 3, "s"); c.hline(45, 10, 9, "h")
-    c.poly([43, 34, 61, 34, 64, 39, 39, 39], "T")
-    c.poly([43, 34, 61, 34, 64, 39, 60, 39], "u")
-    c.hline(40, 39, 24, "T")
-    c.rect(40, 39, 2, 25, "t"); c.vline(40, 39, 25, "w")
-    c.rect(60, 39, 2, 25, "t"); c.vline(60, 39, 25, "w")
-    c.poly([43, 35, 51, 21, 63, 35], "n")
-    c.poly([51, 21, 63, 35, 60, 35, 51, 24], "D")
-    c.clip([43, 35, 51, 21, 63, 35], () => {
-      for (let y = 26; y < 35; y += 3) c.hline(0, y, 64, "V")
+    // Main cabin has a bright timber front and a deep, shaded east wall.
+    c.poly([24, 33, 44, 45, 44, 64, 24, 59], "c")
+    c.poly([44, 45, 62, 31, 62, 57, 44, 64], "C")
+    c.poly([24, 59, 44, 64, 44, 70, 24, 65], "s")
+    c.poly([44, 64, 62, 57, 62, 63, 44, 70], "D")
+    for (const y of [40, 47, 54]) {
+      c.line(25, y, 43, y + 11, "u")
+      c.line(45, y + 11, 61, y - 2, "T")
+    }
+    c.line(26, 36, 43, 46, "w"); c.line(45, 46, 60, 34, "D")
+    c.line(25, 57, 43, 62, "t"); c.line(46, 62, 60, 55, "T")
+    c.vline(25, 36, 23, "w"); c.vline(43, 46, 17, "T"); c.vline(61, 33, 23, "D")
+
+    // A steep, two-plane cedar roof, high chimney and attic window.
+    c.poly([43, 7, 22, 33, 44, 46], "r")
+    c.poly([43, 7, 63, 28, 44, 46], "R")
+    c.poly([43, 7, 22, 33, 28, 36, 43, 15], "o")
+    c.poly([43, 7, 63, 28, 58, 32, 43, 15], "r")
+    c.line(43, 8, 23, 34, "y"); c.line(44, 9, 62, 29, "o")
+    for (let y = 17; y < 34; y += 4) {
+      const reach = Math.floor((y - 7) * 1.12)
+      const ridgeY = y + Math.floor((y - 7) * 0.55)
+      c.line(43 - reach, y, 43, ridgeY, y < 25 ? "o" : "R")
+      c.line(43, ridgeY, 43 + reach, y, y < 25 ? "r" : "P")
+    }
+    c.line(22, 33, 44, 47, "T"); c.line(44, 47, 63, 29, "T")
+    c.line(24, 35, 44, 49, "u"); c.line(44, 49, 61, 32, "u")
+    stones(c, 51, 12, 7, 17, { rh: 3, widths: [3, 4, 5] })
+    c.vline(51, 13, 15, "h"); c.vline(56, 13, 14, "D")
+    c.rect(50, 10, 9, 3, "s"); c.hline(50, 10, 9, "h")
+    c.rect(36, 24, 9, 9, "T"); c.rect(37, 25, 7, 7, "N")
+    c.px(38, 26, "D"); c.px(38, 27, "b")
+
+    // Covered porch follows the angled front wall; its posts anchor the door.
+    c.poly([25, 46, 34, 41, 47, 48, 36, 54], "T")
+    c.poly([25, 46, 34, 41, 34, 44, 26, 49], "u")
+    c.line(26, 49, 36, 55, "D"); c.line(36, 55, 46, 49, "T")
+    c.rect(26, 48, 2, 13, "t"); c.vline(26, 48, 13, "w")
+    c.rect(44, 49, 2, 13, "T"); c.vline(44, 49, 13, "u")
+    // Separate openings make the front and side elevations readable.
+    for (const [x, y, w, h] of COURT.windows) {
+      if (y === 23) continue
+      win(c, x, y, w, h, { sill: false })
+    }
+    c.rect(31, 50, 10, 20, "T"); c.rect(32, 51, 8, 19, "t")
+    c.vline(34, 52, 17, "u"); c.vline(37, 52, 17, "T")
+    c.rect(...COURT.panes, "N"); c.px(34, 53, "D")
+    c.px(39, 60, "l"); c.px(39, 61, "u")
+    c.line(30, 69, 42, 69, "s"); c.line(31, 70, 41, 70, "h")
+    COURT.windows.forEach(([x, y, w, h]) => {
+      if (y === 23) win(c, x, y, w, h, { sill: false })
     })
-    c.hline(42, 35, 21, "T")
-    c.vline(47, 38, 27, "t"); c.vline(59, 38, 27, "t")
-    COURT.windows.forEach(([x, y, w, h]) => win(c, x, y, w, h, { sill: false }))
-    c.rect(27, 48, 11, 22, "T")
-    c.rect(28, 49, 9, 20, "B")
-    c.vline(30, 50, 18, "b"); c.vline(33, 50, 18, "N")
-    c.rect(...COURT.panes, "N"); c.px(29, 51, "D")
-    c.px(35, 59, "l"); c.px(35, 60, "u")
-    c.rect(25, 69, 15, 2, "s"); c.hline(25, 69, 15, "h")
-    c.stamp("_box_white", 8, 55)
-    c.stamp("_box_red", 42, 55)
+    // A stacked wood niche, herb box and lantern describe a lived-in courtyard.
+    c.rect(48, 53, 9, 4, "T"); c.hline(48, 53, 9, "u"); c.hline(48, 56, 9, "t")
+    c.stamp("_box_white", 7, 53)
+    c.vline(45, 43, 5, "T"); c.px(45, 48, "l"); c.px(45, 49, "y")
   }, outline)
   sprite("house-cabin_lit", { w: W, h: H }, (c) => {
     COURT.windows.forEach(([x, y, w, h]) => globalThis.VA.litwin(c, x, y, w, h, { sill: false }))
@@ -64,55 +92,73 @@ include("lib.px.js")
     c.rect(x, y, w, h, "l"); c.px(x, y, "y")
   })
 
-  // A broad stone-and-plaster farmhouse with a clipped roof, porch and loft.
+  // A broad limestone farmhouse with a terracotta hip roof, porch and loft.
   const FARM = {
-    windows: [[10, 45, 9, 10], [45, 45, 9, 10], [27, 27, 9, 9]],
-    panes: [29, 52, 4, 3],
+    windows: [[13, 45, 8, 9], [45, 40, 8, 9], [24, 25, 8, 8]],
+    panes: [27, 50, 4, 3],
   }
   sprite("house-brick", { w: W, h: H }, (c) => {
-    // Offset chimney and ridge cap break the familiar centred-gable outline.
-    stones(c, 9, 12, 8, 22, { rh: 4, widths: [4, 5, 3] })
-    c.vline(9, 13, 19, "h"); c.vline(16, 13, 18, "D")
-    c.rect(8, 10, 10, 3, "s"); c.hline(8, 10, 10, "h")
-    c.rect(46, 15, 8, 17, "e")
-    stones(c, 45, 14, 10, 3, { rh: 3, base: "s", widths: [4, 3, 5] })
-    c.rect(6, 35, 53, 30, "c")
-    c.rect(48, 37, 11, 28, "C")
-    stones(c, 4, 62, 57, 9, { rh: 4, widths: [7, 5, 9, 6] })
+    // Limestone volume: sunward front plane and narrower shaded return wall.
+    c.poly([10, 29, 35, 43, 35, 64, 11, 58], "c")
+    c.poly([35, 43, 59, 28, 59, 55, 35, 64], "C")
+    c.poly([11, 58, 35, 64, 35, 70, 11, 64], "s")
+    c.poly([35, 64, 59, 55, 59, 62, 35, 70], "s")
+    // Offset joints follow the perspective of each masonry face.
+    for (const y of [38, 45, 52]) {
+      c.line(11, y, 34, y + 13, "h")
+      c.line(36, y + 13, 58, y - 1, "D")
+    }
+    for (const x of [18, 27, 32]) c.line(x, 34 + Math.floor((x - 10) * 0.56), x, 38 + Math.floor((x - 10) * 0.56), "s")
+    for (const x of [42, 51, 57]) c.line(x, 49 - Math.floor((x - 35) * 0.62), x, 53 - Math.floor((x - 35) * 0.62), "D")
+    c.vline(11, 32, 25, "h"); c.vline(34, 44, 17, "T"); c.vline(58, 31, 22, "D")
+    c.line(12, 61, 35, 67, "D"); c.line(36, 67, 58, 59, "D")
 
-    // Hipped slate roof with a short gabled porch: layered eaves give it depth.
-    c.poly([5, 37, 12, 25, 31, 12, 56, 25, 62, 37], "N")
-    c.poly([31, 12, 56, 25, 62, 37, 55, 37], "D")
-    c.poly([5, 37, 12, 25, 31, 12, 28, 18, 12, 29, 8, 37], "V")
-    c.clip([5, 37, 12, 25, 31, 12, 56, 25, 62, 37], () => {
-      for (let y = 19; y < 37; y += 4) {
-        c.hline(0, y, 64, "V")
-        for (let x = 5 + (y % 8 ? 3 : 0); x < 60; x += 8) c.px(x, y - 1, "P")
-      }
+    // Terracotta hip roof; the dark east plane recedes behind the ridge.
+    c.poly([35, 6, 8, 26, 35, 43], "r")
+    c.poly([35, 6, 61, 22, 35, 43], "R")
+    c.poly([35, 6, 8, 26, 14, 29, 35, 14], "o")
+    c.poly([35, 6, 61, 22, 56, 26, 35, 14], "r")
+    c.line(35, 7, 9, 27, "y"); c.line(36, 8, 60, 23, "o")
+    for (let y = 15; y < 31; y += 4) {
+      const reach = Math.floor((y - 6) * 1.25)
+      const ridgeY = y + Math.floor((y - 6) * 0.55)
+      c.line(35 - reach, y, 35, ridgeY, y < 23 ? "o" : "R")
+      c.line(35, ridgeY, 35 + reach, y, y < 23 ? "r" : "P")
+    }
+    c.line(8, 26, 35, 43, "T"); c.line(35, 43, 61, 23, "T")
+    c.line(10, 29, 35, 45, "u"); c.line(35, 45, 59, 26, "u")
+
+    // Rear chimney emerges from the shaded side of the roof.
+    stones(c, 47, 9, 8, 18, { rh: 3, widths: [4, 5, 3] })
+    c.vline(47, 10, 16, "h"); c.vline(53, 10, 16, "D")
+    c.rect(46, 7, 10, 3, "s"); c.hline(46, 7, 10, "h")
+
+    // Small attic dormer, set into the front roof plane.
+    c.poly([19, 27, 25, 20, 33, 27], "R")
+    c.line(25, 20, 19, 27, "o"); c.line(26, 21, 32, 27, "P")
+    c.rect(22, 27, 10, 9, "c"); c.rect(29, 27, 3, 9, "C")
+    win(c, 24, 25, 8, 8, { sill: false })
+
+    // Porch canopy projects from the limestone front with two stout posts.
+    c.poly([18, 46, 27, 41, 38, 47, 28, 53], "T")
+    c.poly([18, 46, 27, 41, 27, 44, 19, 49], "u")
+    c.line(19, 49, 28, 54, "D"); c.line(28, 54, 37, 48, "T")
+    c.rect(19, 48, 2, 14, "t"); c.vline(19, 48, 14, "w")
+    c.rect(36, 49, 2, 13, "T"); c.vline(36, 49, 13, "u")
+    // Farmhouse sash windows, deep oak door and warm transom.
+    FARM.windows.forEach(([x, y, w, h]) => {
+      if (y !== 25) win(c, x, y, w, h, { sill: false })
     })
-    c.hline(5, 36, 57, "T"); c.hline(7, 38, 53, "R")
-    c.poly([24, 42, 40, 42, 44, 47, 20, 47], "T")
-    c.poly([24, 42, 40, 42, 44, 47, 40, 47], "u")
-    c.rect(22, 46, 2, 18, "t"); c.vline(22, 46, 18, "w")
-    c.rect(40, 46, 2, 18, "t"); c.vline(40, 46, 18, "w")
-
-    // Weatherboard central gable and a framed loft vent.
-    c.poly([32, 17, 46, 32, 18, 32], "e")
-    c.poly([32, 17, 46, 32, 42, 32, 32, 21], "C")
-    c.rect(28, 24, 8, 7, "T"); c.rect(29, 25, 6, 5, "D")
-    c.vline(31, 25, 5, "b"); c.vline(33, 25, 5, "b")
-    c.rect(9, 39, 3, 24, "t"); c.vline(9, 39, 24, "w")
-    c.rect(56, 39, 2, 24, "t"); c.vline(56, 39, 24, "w")
-    FARM.windows.forEach(([x, y, w, h]) => win(c, x, y, w, h, { sill: false }))
-    c.rect(27, 49, 11, 22, "s"); c.rect(28, 50, 9, 19, "B")
-    c.vline(30, 51, 17, "b"); c.vline(33, 51, 17, "N")
-    c.rect(...FARM.panes, "N"); c.px(29, 52, "D")
-    c.px(35, 60, "l"); c.px(35, 61, "u")
-    c.rect(25, 69, 15, 2, "s"); c.hline(25, 69, 15, "h")
-    // A rain chain, stacked firewood and a small herb bed explain the porch.
-    c.vline(47, 38, 7, "D"); c.px(46, 45, "D"); c.px(48, 46, "D")
-    c.rect(3, 56, 6, 3, "d"); c.hline(3, 56, 6, "u"); c.hline(3, 59, 6, "T")
-    c.rect(52, 57, 8, 5, "T"); c.hline(52, 57, 8, "w"); c.vline(56, 57, 5, "u")
+    c.rect(24, 48, 13, 22, "s"); c.rect(25, 49, 11, 21, "t")
+    c.rect(27, 50, 4, 4, "N"); c.rect(27, 50, 4, 3, "B")
+    c.vline(27, 55, 13, "u"); c.vline(30, 55, 13, "T"); c.vline(33, 55, 13, "u")
+    c.px(33, 61, "l"); c.px(33, 62, "y")
+    c.line(23, 69, 38, 69, "s"); c.line(24, 70, 37, 70, "h")
+    // Rain chain, firewood and herb box tell a quiet working-farm story.
+    c.vline(55, 37, 8, "D"); c.px(54, 45, "D"); c.px(56, 46, "D")
+    c.rect(43, 55, 8, 4, "T"); c.hline(43, 55, 8, "u"); c.hline(43, 58, 8, "t")
+    c.rect(12, 54, 8, 3, "d"); c.hline(12, 54, 8, "u"); c.hline(12, 57, 8, "T")
+    c.stamp("_box_white", 12, 52)
   }, outline)
   sprite("house-brick_lit", { w: W, h: H }, (c) => {
     FARM.windows.forEach(([x, y, w, h]) => globalThis.VA.litwin(c, x, y, w, h, { sill: false }))

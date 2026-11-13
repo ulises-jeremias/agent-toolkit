@@ -103,7 +103,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "edfb2d6b0a341f1c9ae617e1e0793f06cae45816ef0a71c736f514c6be26c067"
+      "sha256": "ff65d031a525d2947f39604dac5ff934ddc7a5147338956c327bea458e67535e"
     },
     "house-brick_lit": {
       "file": "house-brick_lit.png",
@@ -111,7 +111,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "5dd2bc28481473b653892f9b3e1342ed7a8f95d1fe434cdf3f85d29f22ec72fc"
+      "sha256": "3cdb88174fbf7c93c90217e68ee4225c5779efb7742c5395fb915edb7b7015c5"
     },
     "house-cabin": {
       "file": "house-cabin.png",
@@ -119,7 +119,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "e6daa8f7a52dd9892771107f8315c9ec5332e961318420077af7b65cd0b4086e"
+      "sha256": "db780e2e0837a0833ca533f73e762e605bde40c06aa80f4dea67fd5121be9b81"
     },
     "house-cabin_lit": {
       "file": "house-cabin_lit.png",
@@ -127,7 +127,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "6f61a590d636037a945971e167d8279933c2350c514ebdecacfa78cc2f26affa"
+      "sha256": "30cf8219048a01186b4f371cb6bd57c845247d67f6a2d22df8a6ba79706b24c8"
     },
     "house-cottage": {
       "file": "house-cottage.png",
