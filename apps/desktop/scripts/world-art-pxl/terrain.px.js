@@ -3,8 +3,16 @@ include("palette.px.js")
 const R=(c,s)=>c.rng(s)
 function blades(c,seed,n,col="f"){const r=R(c,seed);for(let i=0;i<n;i++){const x=1+Math.floor(r()*14),y=2+Math.floor(r()*13);c.px(x,y,col);c.px(x,y-1,col)}}
 function dots(c,seed,n,cols){const r=R(c,seed);for(let i=0;i<n;i++){const x=Math.floor(r()*16),y=Math.floor(r()*16);c.px(x,y,cols[Math.floor(r()*cols.length)])}}
-function grassBase(c,seed){c.rect(0,0,16,16,"G");dots(c,seed,4,["g","g","f"]);c.px(1,1,"g")}
-function grass(name,seed,fn){sprite(name,{w:16,h:16},(c)=>{grassBase(c,seed);if(fn)fn(c)})}
+function grassBase(c,seed,base="G"){
+  const highlight="g";
+  const shadow=base==="x"?"G":"f";
+  c.rect(0,0,16,16,base);dots(c,seed,4,[highlight,highlight,shadow]);c.px(1,1,highlight)
+}
+function grass(name,seed,fn){
+  const index=name.charCodeAt(name.length-1)-97;
+  const tone=["G","G","G","G","G","G","G","G","G","G","G","G","x","x","x","x","x","x","x","x","G","G","G","G"][index]||"G";
+  sprite(name,{w:16,h:16},(c)=>{grassBase(c,seed,tone);if(fn)fn(c)})
+}
 grass("grass-a",1)
 grass("grass-b",2,c=>blades(c,21,5))
 grass("grass-c",3,c=>{blades(c,31,3);c.px(11,10,"w")})

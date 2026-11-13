@@ -823,7 +823,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "5ed57c47a0848423a094748efff3725d31368634e302414f3c9ca03771598a62"
+      "sha256": "e8ac1e74f32cfcd2d2e21ed465f06762b779ebffff694285e01be9c84d91de25"
     },
     "grass-n": {
       "file": "grass-n.png",
@@ -831,7 +831,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "030528ef8bbe8c42ce67363ae74b0872ae5c1897b805338dab5d8abc8391632b"
+      "sha256": "7d3670b5b1faff55e9b11b9618bfbce27c52fb4b8fda8d63f1c1242da6c153a5"
     },
     "grass-o": {
       "file": "grass-o.png",
@@ -839,7 +839,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "ead3afc585eb35d9e5733fae48bf479e9139ffc5fb7cb45f5170949ec6ae4e96"
+      "sha256": "1db25bfb33d62bd9ad251be8d4d12882e4fc8cecded8b7469bfb51bd61696802"
     },
     "grass-p": {
       "file": "grass-p.png",
@@ -847,7 +847,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "72dcffbcd1d1dd07cbc89df8938224e77b23b6e5b2f70eb108a0fd82dc70b35b"
+      "sha256": "cc1d939b0fa9e36dae4c4201cd0cbec0a19b586a2d7d388b56e0b16971b69b72"
     },
     "grass-q": {
       "file": "grass-q.png",
@@ -855,7 +855,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "d5c9a4d846672f721324b2299dcbbef8479ee92e216b4d8ee48d4e0181241d4f"
+      "sha256": "d87840df195c0f609f1a2ab7496f689b2d74ac203decfa917337806a19fb18db"
     },
     "grass-r": {
       "file": "grass-r.png",
@@ -863,7 +863,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "d2c20025d878dfc7c5228c306d2f94401b65f8d776033440d3ff08caeba70714"
+      "sha256": "2fb668c2ba72e9774688235ebbf307cca11135ba0af5a7c517ce02f11ca6f2da"
     },
     "grass-s": {
       "file": "grass-s.png",
@@ -871,7 +871,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "ea90d8fe519a9ee7c371f3563d692346dec1b14a278dd575be1f2e26c4b0702e"
+      "sha256": "4836a2a3d855ea961daa3e408433ab33637d9b50062997ffc0cd483cbc1e6c63"
     },
     "grass-t": {
       "file": "grass-t.png",
@@ -879,7 +879,7 @@
       "h": 16,
       "frames": 1,
       "source": "scripts/world-art-pxl/terrain.px.js",
-      "sha256": "f93118bfa854456270c3edf9e904ed92ebcde50a66661b0ef99f9dd2b1d16d29"
+      "sha256": "5830a0a3d458af385cc87078124118838024ceb6a5ebff742dd47759782c003d"
     },
     "grass-u": {
       "file": "grass-u.png",

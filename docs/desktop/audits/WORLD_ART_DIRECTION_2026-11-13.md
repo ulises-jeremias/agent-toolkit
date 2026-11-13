@@ -55,12 +55,36 @@ conversation, settings or dense information.
 
 ## First implementation slice
 
-The first slice changes the shared foliage palette, reauthors the grove-tree
+The first slice changes the shared palette, reauthors the grove-tree
 silhouettes and replaces the simple Library façade with a larger authored
-landmark. It is a prototype for critique, not sign-off. Capture the actual
-Electron World at 1024×640, 1440×900 and 1920×1080 in Meadow and Dusk. Inspect
-the previews and screenshots before extending the dimensions and language to
-the remaining buildings.
+landmark. A second slice varies meadow ground tone across broad, subtle moisture
+regions to address the flat lawn without adding speckle. It is a prototype for
+critique, not sign-off. Capture the actual Electron World at 1024×640, 1440×900
+and 1920×1080 in Meadow and Dusk. Inspect the previews and screenshots before
+extending the dimensions and language to the remaining buildings.
+
+## Capture critique, iteration 1–3
+
+Iteration 1 passed six packaged Electron captures (Meadow/Dusk × three sizes).
+The Library became identifiable by its tower and book gallery. The broader scene
+still looked like a flat lawn; the canal remained visually straight and the
+grove read as repeated round clumps.
+
+The first ground-tone prototype used strong differences between environmental
+bands. Its six packaged captures exposed conspicuous rectangular patches. That
+prototype was rejected. Iteration 3 reduced the ground variation to one close
+sage shade and limited it to two spatial bands. Its six packaged captures no
+longer show the high-contrast rectangular patches, while preserving the subdued
+overall palette. This is a local improvement, not a claim that the World is
+beautiful or complete. A third-party visual review, further terrain/canal work,
+less repetitive trees and distinctive civic/project façades remain required.
+
+Capture artifacts are kept outside the repository under
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-art-iteration-{1,2,3}/`.
+The successful packaged runs used Electron's headless Ozone mode because the
+host could not create an Xvfb lock under its `/tmp` write quota. They prove the
+packaged renderer path at the requested viewport sizes, not native window
+manager behavior.
 
 ## Known failed direction
 
