@@ -543,6 +543,40 @@ describe('focus service with a scripted provider', () => {
     expect(second.service.readThread(id)?.thread.turns).toBe(3);
   });
 
+  it('retries reconciliation after a failed private-journal migration in the same service', () => {
+    const h = harness();
+    const id = start(h);
+    const legacy = ThreadJournal.open(h.workspace, id);
+    legacy?.append(1, { type: 'user', text: 'unfinished work' });
+    legacy?.update({ status: 'running', turns: 1 });
+
+    const appData = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-focus-reconcile-retry-'));
+    const storageRoot = path.join(appData, 'focus-journals');
+    const legacyEvents = path.join(focusRoot(h.workspace), id, 'events.jsonl');
+    const sentinel = path.join(appData, 'sentinel.txt');
+    fs.writeFileSync(sentinel, 'do not touch');
+    const original = fs.readFileSync(legacyEvents);
+    fs.unlinkSync(legacyEvents);
+    fs.symlinkSync(sentinel, legacyEvents);
+    try {
+      const reopened = harness(h.workspace, {}, READY, { journalRoot: storageRoot });
+      expect(() => reopened.service.listThreads()).toThrow(/Symlink/);
+      expect(fs.readFileSync(sentinel, 'utf8')).toBe('do not touch');
+
+      fs.unlinkSync(legacyEvents);
+      fs.writeFileSync(legacyEvents, original);
+      expect(reopened.service.listThreads().find((thread) => thread.id === id)?.status).toBe('interrupted');
+      expect(reopened.events(id).at(-1)).toMatchObject({
+        type: 'turn.finished',
+        outcome: 'interrupted',
+      });
+      expect(reopened.service.listThreads().find((thread) => thread.id === id)?.status).toBe('interrupted');
+      expect(reopened.events(id).filter((event) => event.type === 'turn.finished')).toHaveLength(1);
+    } finally {
+      fs.rmSync(appData, { recursive: true, force: true });
+    }
+  });
+
   it('marks a turn interrupted when the app died without a clean shutdown', () => {
     const h = harness();
     const id = start(h);
