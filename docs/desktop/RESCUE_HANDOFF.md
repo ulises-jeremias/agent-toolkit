@@ -2069,8 +2069,16 @@ rectangular valley boundary. Current capture set:
 Validation: World model 55/55, `pnpm type-check`, `pnpm lint`,
 `pnpm check:world` (207 deterministic sprites), `git diff --check`, Linux x64
 `pnpm dist:dir`, and the packaged Electron six-size/two-theme World tour all
-passed. Changes are pushed as `67926bf1` on PR #1783. That exact head's GitHub
-checks must be polled to completion; local evidence does not settle CI.
+passed. The first full-suite run exposed that the old movement fixture began
+inside the workshop footprint and hard-coded water to the bridge's east; the
+creek now bends west upstream. Updated it to start on the first clear bridge
+approach tile and locate the actual upstream water row. The full suite then
+passed 620/620 Vitest tests and 45/45 runtime spikes; `type-check`, lint,
+`check:world` (207 assets), and `git diff --check` passed. The authored art and
+creek change are `67926bf1`; movement-fixture repair is `76b204cb`, current PR
+#1783 head. PR is OPEN/draft; the current SHA's hosted checks had not all
+appeared at last poll, so query that exact head. Local evidence does not settle
+CI.
 
 Current open work remains substantial: improve the actual creek/terrain-edge
 composition, complete the accessibility and compact interaction review, test
