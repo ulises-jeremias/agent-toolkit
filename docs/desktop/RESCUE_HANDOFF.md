@@ -360,7 +360,7 @@ actual screenshots. No reference project's proprietary art is permitted.
   restrained environmental lamps and honest activity-lit buildings are implemented.
   Real captures were opened for Meadow/Dusk at 1024×640, 1440×900 and 1920×1080;
   the compact horizontal scrollbar is gone and Dusk is visibly distinct. The World
-  still needs broader layout/art critique; no art has been reauthored yet.
+  still needs broader layout/art critique.
 - [ ] Cozy original pixel world with coherent perspective, light, depth, composition,
   recognizable project buildings and meaningful Library/Archive/Workshop/Operations.
 - [x] Begin original art re-authoring with a restrained Hornero Valley palette,
@@ -368,22 +368,22 @@ actual screenshots. No reference project's proprietary art is permitted.
   an attached kiln/archive tower and readable book gallery. The first PXL preview
   was integrated and inspected in the packaged Electron World. This is one
   implementation/capture iteration, not art sign-off; screenshot critique still
-  finds a flat ground plane, a visually straight canal, dense repetitive foliage,
-  and civic/project façades that still need distinct compositions.
+  finds a visually straight canal, dense repetitive foliage, and civic/project
+  façades that still need distinct compositions.
 - [ ] Professional readable technical typography; pixel display type used sparingly.
 - [ ] Real session-backed characters only. Decorative animals/weather never imply work.
 - [ ] World is optional spatial context, not a compulsory avatar-walking interface.
 - [ ] Every real action has normal navigation/keyboard access and shares canonical state.
 - [ ] Preserve project/session context entering/leaving World/interiors.
 - [ ] Restrained animations, reduced motion, efficient rendering and useful empty state.
-- [ ] Multiple capture → open → critique → fix → recapture iterations before visual sign-off.
+- [ ] Continue capture → open → critique → fix → recapture iterations before visual sign-off.
   One source-Electron iteration now covers all ten destinations in Meadow and Dusk at
   1024×640, 1440×900 and 1920×1080, including a real Git diff, terminal, jobs, People
   dialogs and Focus's honest unauthenticated empty state. All 60 destination captures
   plus two People-dialog captures were generated and opened via contact sheets and
   representative full-resolution review. Repeat after keyboard/compact-window review;
   onboarding, interiors, conversation/tool/approval, error/loading/disconnected states
-  and a second art iteration remain open. Large World captures still have substantial
+  and another art iteration remain open. Large World captures still have substantial
   vertical negative space.
 - [x] After art iteration 1, regenerated all 201 governed PXL assets and built a new
   Linux x64 unpacked package from the current renderer/main source, staging the
@@ -394,11 +394,20 @@ actual screenshots. No reference project's proprietary art is permitted.
   packaged rendering and responsive capture, not a window-manager/native-display
   acceptance pass. Xvfb could not create its lock in `/tmp` due the host's quota;
   the session-owned display was not accessed.
-- [x] Art iteration 1 verification: 72 focused world layout/renderer tests and the full
-  Desktop suite (80 Vitest files / 608 tests plus 45 Node runtime tests) passed; TypeScript
-  type-check, ESLint, `check:world` (201 deterministic sprites), `build:all`, and
-  `dist:dir` completed. The build continues to report the existing 670.97 kB main
-  renderer chunk warning. Independent art review and owner visual sign-off remain open.
+- [x] Art iteration 2 exposed and rejected conspicuous rectangular ground-tone patches.
+  A third, subtler prototype limits the palette shift to a close sage shade. It passed
+  six more packaged Electron World captures at the same Meadow/Dusk viewports; opened
+  screenshots show no high-contrast rectangular patches. Private captures are in
+  `/home/ulisesjcf/.ai-workspace/.audit-private/world-art-iteration-{2,3}/`. The scene
+  remains visually incomplete and requires further terrain, foliage and architecture
+  passes.
+- [x] Latest art verification: the full Desktop suite passed on the third prototype
+  (80 Vitest files / 608 tests plus 45 Node runtime tests); TypeScript type-check,
+  ESLint, `check:world` (201 deterministic sprites), `build:all`, and `dist:dir`
+  completed. The terrain/model focused suite passed (55 tests). Packaged Electron
+  capture runs passed six viewports for each of the three art iterations. The build
+  continues to report the existing 670.97 kB main renderer chunk warning. Independent
+  art review and owner visual sign-off remain open.
 - [ ] Reject generic SaaS card grids, PaperCo aesthetics, random clutter, illegible pixel
   text, disconnected palettes and needless configuration.
 
@@ -445,11 +454,12 @@ parent [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667).
   is itself stacked on #1781 and #1780; post verified acceptance status to
   [#1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775).
   #1780/#1781/#1782 have failing Desktop gates; this draft remains unmerged pending
-  a healthy, reviewed base. The existing draft was advanced with the art iteration
-  at `8872b5e2e67cf64ad669d9df440e5bc2040b9f9e`; exact-head Validate
-  (43341054926), Release (43341054965), desktop gates (43341054915), clean-machine
-  acceptance (43341054911), and web quality (43341054961) were queued/in progress
-  when checked at 00:57 UTC on Nov 13. Do not report pending or in-progress
+  a healthy, reviewed base. The draft now includes the art iteration and ground-tone
+  refinement at `bbbf483f0172a2faf62d03f382eccea92d510bfb`. At 01:07 UTC on Nov 13,
+  the previously observed Validate (43341054926), Release (43341054965), desktop gates
+  (43341054915), clean-machine acceptance (43341054911), and web quality (43341054961)
+  still referenced prior head `8872b5e2`; no checks for the latest head were listed yet.
+  Do not report checks for an older head, pending or in-progress
   checks as passing. The local
   changed-area checks are recorded below. #1782 corrects stale
   shell smoke assertions
