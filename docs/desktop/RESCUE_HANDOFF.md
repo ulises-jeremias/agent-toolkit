@@ -2405,26 +2405,29 @@ binary, not freshly compiled with CI's pinned toolchain; use section 54 for
 pinned-backend package evidence.
 
 PR #1783 is OPEN/draft, targets `main`, and has no review decision. Its exact
-head is `66805d85963a957f0b3d3adf58bfdb779ec7dfb4`. At the last poll, only Vercel
-checks had appeared and passed; GitHub Actions had not attached. Re-query
-`gh pr checks 1783 --repo ulises-jeremias/agent-toolkit` and wait for every
-required check on this exact SHA. Do not reuse the green results for
-`b9256066`, merge, or publish based on those earlier checks.
+head `66805d85963a957f0b3d3adf58bfdb779ec7dfb4` now has all visible checks
+passing, including required gates, clean-HOME packaged acceptance, CodeQL,
+quality, Python/Node matrices, swarm e2e, and Linux x64/ARM, Windows, macOS ARM
+and Intel packaging/linkage. This evidence applies to this SHA only; do not
+merge or publish while the PR remains draft and unreviewed.
 
 P0 #1777 remains OPEN. PR #1779 is merged and rejects many symlink cases with
-`O_NOFOLLOW` file opens, but ancestor-component TOCTOU remains; equivalent
-macOS/Windows junction and reparse-point behavior is unverified. No exploit was
-run. Do not call the journal safe. Before implementation, decide the explicit
-ownership/trust boundary; then add cross-platform protections and a
-nondestructive migration/rollback path. Preserve old journal directories until
-migration is proven. Never resolve this by deleting user history.
+`O_NOFOLLOW` file opens. Follow-up PR #1784 proposes app-owned storage and a
+nondestructive migration; its CI and security review are pending. The one-time
+legacy import still traverses a user-writable workspace with portable path
+checks; ancestor replacement races during that read-only copy are not proven
+race-free. macOS/Windows junction and reparse-point behavior is also
+unverified. Do not call the journal safe or close #1777 until these residuals
+and CI/platform evidence have been reviewed.
 
 Resume in this order:
 
-1. Poll exact-head CI for `66805d85`; investigate failures and leave #1783 draft
-   until all gates and integration review pass.
-2. Resolve #1777 with a reviewed trust boundary, safe migration/rollback,
-   hard-link/race coverage, and Windows junction/macOS validation.
+1. Poll exact-head CI for #1784 at
+   `f8090484e445a903697933c0a622f3855c59cb92`; investigate failures and leave
+   #1784 and #1783 draft pending review.
+2. Resolve #1777 with a reviewed trust boundary, migration/downgrade behavior,
+   hard-link/race coverage, and Windows junction/macOS validation. Preserve
+   old journals; do not close the issue based only on unit tests.
 3. Continue rendered iteration from `.audit-private/rescue-tour/` and
    `.audit-private/live-codex-acceptance/`: improve the World panorama and
    organic creek, then compact Focus/dock density. Reinspect all three required
@@ -2442,3 +2445,52 @@ on `rescue/codex-product-integration`; the product worktree is
 `/home/ulisesjcf/.ai-workspace/worktrees/desktop-followup` on
 `rescue/desktop-continuity-focus`. This is a checkpoint, not mission completion.
 Keep the rescue active.
+
+## 57. Continuation checkpoint — private Focus journal implementation
+
+**Current date: 2026-11-13.** Implemented the app-owned journal direction in
+worktree `worktrees/focus-journal-security`, branch
+`fix/focus-journal-private-root`, commit
+`f8090484e445a903697933c0a622f3855c59cb92`. Draft PR #1784 is open against
+`main`: <https://github.com/ulises-jeremias/agent-toolkit/pull/1784>. It is
+linked to #1777 without auto-closing it. All GitHub checks were pending at the
+first poll; query this exact SHA before relying on CI.
+
+Production Focus journals now live in Electron `userData/focus-journals`,
+keyed by SHA-256 of the canonical workspace path. Existing workspace journals
+are copied once into per-thread staged directories with atomic rename; metadata
+and event log bytes are preserved exactly, and workspace sources remain
+untouched. A migration marker makes subsequent sessions use app storage only.
+Private POSIX modes, no-follow leaf opens where supported, hard-link checks,
+static symlink checks and failed/incomplete migration handling are covered.
+ADR-045 records the architecture and limitations; ADR-044 points to it.
+
+Local verification on this branch: the full Desktop suite previously passed
+589 Vitest plus 45 runtime tests; after the final migration hardening, the
+focused journal suite passed 32/32, TypeScript passed, ESLint passed, Prettier
+passed, and `git diff --check` passed. A Linux Electron package built
+successfully. Packaged World navigation and opening a linked project into
+Focus passed 2/2 with the real backend. The real Codex acceptance was attempted
+against this branch's package but did not start a provider turn: the UI reported
+“Codex 0.168.0 Detected. Sessions here are not available for it yet.” The host
+`codex login status` reports authenticated. This `main` base lacks the Codex
+Focus capability present on PR #1783, so this attempt is neither a passing
+provider acceptance nor an auth failure. The earlier real-provider acceptance
+on #1783 is separate evidence and does not verify this private-journal patch.
+
+Keep #1777 open and #1784 draft. The migration's legacy reads use portable
+path checks but are not proven immune to ancestor replacement races; the copy
+does not write to or delete workspace paths. Windows junction/reparse-point
+and macOS behavior are unverified. Downgrading shows pre-migration workspace
+history only; new app-storage threads remain in Electron `userData`, and any
+legacy threads created by the older app after downgrade are not automatically
+reimported because the marker is one-time. Keep both stores and do not describe
+downgrade as seamless. Resolve these limitations through security review and
+cross-platform evidence before marking #1777 fixed.
+
+Next, poll #1784 checks and review platform results; then test a combined
+security + #1783 product build with the installed authenticated Codex provider,
+since the `main` base does not expose it. Recheck #1783 remains green at the
+exact SHA above, then continue the World panorama/creek iteration, compact
+Focus/dock density, and remaining accessibility/onboarding/provider acceptance
+gaps in section 56. Keep the overall rescue active.
