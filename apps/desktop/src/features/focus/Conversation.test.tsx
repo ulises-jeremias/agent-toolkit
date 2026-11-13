@@ -34,7 +34,7 @@ function journal(bodies: FocusEventBody[]): FocusEvent[] {
   );
 }
 
-function setup(current: FocusThread, events: FocusEvent[]) {
+function setup(current: FocusThread, events: FocusEvent[], providerStatus = provider) {
   const api = {
     listThreads: vi.fn(async () => [current]),
     readThread: vi.fn(async () => ({ thread: current, events })),
@@ -49,7 +49,7 @@ function setup(current: FocusThread, events: FocusEvent[]) {
   const store = new FocusStore(api as unknown as FocusBridge);
   const view = render(
     <FocusProvider store={store}>
-      <Conversation thread={current} provider={provider} onError={onError} />
+      <Conversation thread={current} provider={providerStatus} onError={onError} />
     </FocusProvider>,
   );
   return { api, onError, store, user: userEvent.setup(), ...view };
@@ -143,15 +143,15 @@ describe('Conversation', () => {
     expect(api.respondApproval).toHaveBeenLastCalledWith('th_test000001', 'r1', 'deny');
   });
 
-  it('collects Codex answers in a separate accessible form and keeps private values out of conversation state', async () => {
+  it('announces OpenCode questions and collects answers without persisting private values', async () => {
     const { api, user } = setup(
-      thread({ provider: 'codex', status: 'awaiting-approval' }),
+      thread({ provider: 'opencode', status: 'awaiting-input' }),
       journal([
         { type: 'user', text: 'choose a plan' },
         { type: 'turn.started', model: null },
         {
           type: 'userInput.requested',
-          requestId: 'codex-q1',
+          requestId: 'opencode-q1',
           questions: [
             {
               id: 'plan',
@@ -172,14 +172,17 @@ describe('Conversation', () => {
           ],
         },
       ]),
+      { id: 'opencode', label: 'OpenCode' } as FocusProviderStatus,
     );
-    const dialog = await screen.findByRole('form', { name: 'Claude Code asks a question' });
+    const dialog = await screen.findByRole('form', { name: 'OpenCode asks a question' });
+    expect(dialog).toHaveAttribute('aria-live', 'polite');
+    expect(screen.getByText('OpenCode is waiting for your answer')).toBeInTheDocument();
     expect(dialog).toHaveTextContent('Choose a plan');
     await user.click(screen.getByRole('radio', { name: /Careful/ }));
     await user.type(screen.getByLabelText('Private answer'), 'do-not-store-this');
     await user.click(screen.getByRole('button', { name: 'Continue' }));
     await waitFor(() =>
-      expect(api.respondUserInput).toHaveBeenCalledWith('th_test000001', 'codex-q1', {
+      expect(api.respondUserInput).toHaveBeenCalledWith('th_test000001', 'opencode-q1', {
         plan: ['Careful'],
         token: ['user_note: do-not-store-this'],
       }),
