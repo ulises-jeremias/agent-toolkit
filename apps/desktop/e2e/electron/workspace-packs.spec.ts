@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend } from './fixtures';
+import { goTo } from './navigation';
 
 test('reviews workspace context packs and applies or clears one from the GUI', async () => {
   if (process.env['ATK_CAPTURE'] === '1') test.setTimeout(5 * 60_000);
@@ -17,7 +18,7 @@ test('reviews workspace context packs and applies or clears one from the GUI', a
     );
     fs.writeFileSync(path.join(packDir, 'invalid.yaml'), 'description: Missing the required name.\n');
 
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
+    await goTo(page, 'Context');
     const panel = page.getByRole('region', { name: 'Workspace context packs' });
     await expect(panel).toContainText('Product Team');
     await expect(panel).toContainText('agent-toolkit, my-ai-workspace');
@@ -79,7 +80,7 @@ test('reviews workspace context packs and applies or clears one from the GUI', a
 
     await page.reload();
     await waitForBackend(page);
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
+    await goTo(page, 'Context');
     const restoredPanel = page.getByRole('region', { name: 'Workspace context packs' });
     await expect(restoredPanel).toContainText('Used for future sessions');
     await restoredPanel.getByRole('button', { name: 'Clear selected context' }).click();

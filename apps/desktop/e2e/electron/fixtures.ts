@@ -153,6 +153,8 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
     ...(packagedApp ? [] : [APP_DIR]),
     `--user-data-dir=${path.join(root, 'user-data')}`,
     ...(options.launchArgs ?? []),
+    // Local runs without a display: ATK_E2E_ELECTRON_ARGS="--ozone-platform=headless".
+    ...(process.env['ATK_E2E_ELECTRON_ARGS'] ?? '').split(/\s+/).filter(Boolean),
   ];
   // GitHub runners have no setuid sandbox helper for Chromium.
   if (process.env.CI) args.push('--no-sandbox');
@@ -160,9 +162,27 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
   const page = await app.firstWindow();
   await page.waitForLoadState('domcontentloaded');
   if (skipOnboarding) {
-    await page.addInitScript(() => {
-      localStorage.setItem('atk.desktop.onboarding.complete', '1');
+    const hasDesktopPreferences = await page.evaluate(() => {
+      const store = Object.getOwnPropertyDescriptor(window.atk, 'preferences')?.value;
+      return typeof store?.update === 'function';
     });
+    if (hasDesktopPreferences) {
+      // Onboarding is persisted by Electron in userData; renderer localStorage
+      // is intentionally not authoritative because the dev-server origin changes.
+      await page.evaluate(async () => {
+        const preferences = Object.getOwnPropertyDescriptor(window.atk, 'preferences')?.value as
+          { update?: (value: { onboardingComplete: boolean }) => Promise<void> } | undefined;
+        if (typeof preferences?.update !== 'function') {
+          throw new Error('Desktop preference bridge became unavailable.');
+        }
+        await preferences.update({ onboardingComplete: true });
+      });
+    } else {
+      // Compatibility for stacked shell branches predating the Electron store.
+      await page.addInitScript(() => {
+        localStorage.setItem('atk.desktop.onboarding.complete', '1');
+      });
+    }
     await page.reload();
     await page.waitForLoadState('domcontentloaded');
   }

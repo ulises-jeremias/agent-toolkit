@@ -1,0 +1,270 @@
+/* Projects: a list of repositories on the left, the selected one on the right. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.lede {
+  max-width: 64ch;
+  margin-top: var(--space-1);
+  color: var(--text-secondary);
+}
+
+.error {
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--status-err-fg);
+  border-radius: var(--radius-sm);
+  background: var(--status-err-bg);
+  color: var(--status-err-fg);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-6) 0;
+  color: var(--text-secondary);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 0.5rem minmax(0, 1fr);
+  gap: 0 var(--space-2);
+  align-items: center;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--surface-hover);
+}
+
+.row[aria-current='true'] {
+  background: var(--surface-raised);
+}
+
+.rowLamp {
+  grid-row: span 2;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+}
+
+.row[data-state='working'] .rowLamp {
+  background: var(--accent-gold);
+  box-shadow: 0 0 0 3px var(--focus-halo);
+}
+
+.row[data-state='waiting'] .rowLamp {
+  box-shadow: inset 0 0 0 2px var(--accent-gold);
+}
+
+.rowName {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowDetail,
+.rowFlag {
+  grid-column: 2;
+  overflow: hidden;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowFlag {
+  color: var(--accent-gold);
+}
+
+.row[data-broken] .rowDetail {
+  color: var(--status-err-fg);
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.detailHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.detailIdentity {
+  min-width: 0;
+}
+
+.detailTitle {
+  font-size: var(--text-xl);
+  font-weight: 600;
+}
+
+.path {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detailActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.action:hover {
+  background: var(--surface-hover);
+}
+
+.action[data-primary] {
+  border-color: transparent;
+  background: var(--action-primary-bg);
+  color: var(--action-primary-fg);
+  font-weight: 600;
+}
+
+.action[data-primary]:hover {
+  background: var(--action-primary-bg-hover);
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.tabs button {
+  min-height: var(--target-min);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.tabs button[aria-selected='true'] {
+  border-bottom-color: var(--accent-gold);
+  color: var(--text-primary);
+}
+
+.tabPanel {
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.session {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.session:hover {
+  background: var(--surface-hover);
+}
+
+.sessionTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sessionMeta {
+  flex: none;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.session:is([data-status='running'], [data-status='awaiting-approval']) .sessionMeta {
+  color: var(--accent-gold);
+}
+
+.session[data-status='error'] .sessionMeta {
+  color: var(--status-err-fg);
+}
+
+@media (max-width: 64rem) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

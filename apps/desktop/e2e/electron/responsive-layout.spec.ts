@@ -73,12 +73,12 @@ test('Responsive matrix: shell and primary actions stay usable at baseline, mini
       await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
       await expectNoHorizontalOverflow(page, size, `${size.key} (library)`);
 
-      // Back to World; the terminal dock bar stays inside the window.
+      // Back to World; the rail stays inside the window (the terminal drawer only exists with an open session).
       await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
       await expectWithinViewport(
-        page.getByRole('complementary', { name: 'Terminal dock' }),
+        page.getByRole('navigation', { name: 'Destinations' }),
         size,
-        `${size.key}: terminal dock`,
+        `${size.key}: destinations rail`,
       );
       await page.screenshot({ path: `test-results/review/responsive-${size.key}.png`, fullPage: true });
     }

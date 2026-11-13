@@ -81,7 +81,7 @@ export default [
     // PXL art sources run inside the vendored renderer's DSL sandbox;
     // these names are injected globals, not imports (see
     // skills/design/pxl-pixel-art/types/pxl.d.ts).
-    files: ['scripts/world-art-pxl/**/*.px.js'],
+    files: ['scripts/world-art-pxl/**/*.px.js', 'scripts/valley-art/**/*.px.js'],
     languageOptions: {
       globals: {
         pal: 'readonly',
@@ -97,6 +97,9 @@ export default [
         stamp: 'readonly',
         shade: 'readonly',
         light: 'readonly',
+        use: 'readonly',
+        tile: 'readonly',
+        rect: 'readonly',
       },
     },
   },

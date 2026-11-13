@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { openDesktop, waitForBackend } from './fixtures';
+import { goTo } from './navigation';
 
 function git(cwd: string, ...args: string[]) {
   execFileSync('git', args, { cwd, stdio: 'pipe' });
@@ -15,7 +16,9 @@ test('reviews, stages, and commits real project changes from the GUI', async () 
     await waitForBackend(page);
 
     // A disposable real git repository, linked as a project below.
-    const projectPath = path.join(home, '.ai-workspace', 'repos', 'local', 'garden-api');
+    // Keep the repository outside the workspace's discovered repo roots so
+    // this journey genuinely exercises the link-existing-project flow.
+    const projectPath = path.join(home, 'code', 'garden-api');
     fs.mkdirSync(projectPath, { recursive: true });
     git(projectPath, 'init', '-q', '-b', 'main');
     git(projectPath, 'config', 'user.email', 'test@example.com');
@@ -30,18 +33,17 @@ test('reviews, stages, and commits real project changes from the GUI', async () 
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] });
     }, projectPath);
 
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
-    const linkFolder = page.getByRole('button', { name: 'Link existing folder' });
+    await goTo(page, 'Projects');
+    const linkFolder = page.getByRole('button', { name: 'Link a repository' });
     await expect(linkFolder).toBeEnabled();
     await linkFolder.click();
-    const review = page.getByRole('dialog', { name: 'Review project link' });
-    await expect(review.getByText(projectPath)).toBeVisible();
-    await review.getByRole('button', { name: 'Link garden-api' }).click();
-    await expect(review).toBeHidden();
-    await page.getByRole('button', { name: 'Dismiss: Project linked' }).click();
+    const projectRow = page.getByRole('button', { name: /^garden-api(?:\s|$)/ });
+    await expect(projectRow).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('region', { name: 'garden-api' }).getByText(projectPath)).toBeVisible();
+    expect(fs.realpathSync(path.join(desktop.workspace, 'projects', 'garden-api'))).toBe(fs.realpathSync(projectPath));
 
     // Changes panel: README is Changed, notes.txt is Untracked.
-    const changes = page.locator('section', { has: page.getByRole('heading', { name: 'Changes' }) });
+    const changes = page.getByRole('region', { name: 'Changes', exact: true });
     await changes.scrollIntoViewIfNeeded();
     await expect(changes.getByText('branch main')).toBeVisible();
     await expect(changes.getByRole('heading', { name: 'Changed (1)' })).toBeVisible();
@@ -103,7 +105,9 @@ test('stages a single hunk from the GUI and leaves the other unstaged', async ()
     const { page, home } = desktop;
     await waitForBackend(page);
 
-    const projectPath = path.join(home, '.ai-workspace', 'repos', 'local', 'garden-api');
+    // Keep the repository outside the workspace's discovered repo roots so
+    // this journey genuinely exercises the link-existing-project flow.
+    const projectPath = path.join(home, 'code', 'garden-api');
     fs.mkdirSync(projectPath, { recursive: true });
     git(projectPath, 'init', '-q', '-b', 'main');
     git(projectPath, 'config', 'user.email', 'test@example.com');
@@ -120,14 +124,13 @@ test('stages a single hunk from the GUI and leaves the other unstaged', async ()
     await desktop.app.evaluate(({ dialog }, folder) => {
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] });
     }, projectPath);
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
-    await page.getByRole('button', { name: 'Link existing folder' }).click();
-    const review = page.getByRole('dialog', { name: 'Review project link' });
-    await review.getByRole('button', { name: 'Link garden-api' }).click();
-    await expect(review).toBeHidden();
-    await page.getByRole('button', { name: 'Dismiss: Project linked' }).click();
+    await goTo(page, 'Projects');
+    await page.getByRole('button', { name: 'Link a repository' }).click();
+    const projectRow = page.getByRole('button', { name: /^garden-api(?:\s|$)/ });
+    await expect(projectRow).toBeVisible({ timeout: 30_000 });
+    expect(fs.realpathSync(path.join(desktop.workspace, 'projects', 'garden-api'))).toBe(fs.realpathSync(projectPath));
 
-    const changes = page.locator('section', { has: page.getByRole('heading', { name: 'Changes' }) });
+    const changes = page.getByRole('region', { name: 'Changes', exact: true });
     await changes.scrollIntoViewIfNeeded();
     await changes.getByRole('button', { name: /a\.txt/ }).click();
     await expect(changes.getByLabel('Diff for a.txt')).toContainText('+FIRST');

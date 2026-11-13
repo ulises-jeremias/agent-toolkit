@@ -15,8 +15,8 @@ test.describe('desktop smoke', () => {
     await page.goto('/#/world', { waitUntil: 'commit' });
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 45_000 });
     await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
-    await expect(page.getByRole('form', { name: 'Session context' })).toBeVisible();
-    await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('button', { name: /Search or run a command/ })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Workspace village' })).toBeVisible();
     await expect(page.getByRole('alert')).toContainText('Live state may be incomplete or out of date.');
   });
 
@@ -29,7 +29,7 @@ test.describe('desktop smoke', () => {
 
   test('Ctrl+K opens the command palette', async ({ page }) => {
     await page.goto('/#/world');
-    await page.getByRole('button', { name: 'Commands' }).click();
+    await page.getByRole('button', { name: /Search or run a command/ }).click();
     await expect(page.getByRole('dialog', { name: 'Commands' })).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: 'Commands' })).toBeHidden();
@@ -40,18 +40,31 @@ test.describe('desktop smoke', () => {
     const nav = page.getByRole('navigation', { name: 'Destinations' });
     for (const destination of [
       { label: 'World', path: 'world' },
-      { label: 'Attention', path: 'office' },
-      { label: 'Operations', path: 'operations' },
-      { label: 'Workspace', path: 'workspace' },
-      { label: 'Library', path: 'library' },
+      { label: 'Focus', path: 'focus' },
+      { label: 'Projects', path: 'workspace' },
       { label: 'People', path: 'people' },
-      { label: 'Insights', path: 'insights' },
-      { label: 'Terminal', path: 'terminal' },
+      { label: 'Library', path: 'library' },
+      { label: 'Operations', path: 'operations' },
       { label: 'Settings', path: 'settings' },
     ]) {
       await nav.getByRole('link', { name: destination.label }).click();
       await expect(page).toHaveURL(new RegExp(`#/${destination.path}`));
       await expect(nav.getByRole('link', { name: destination.label })).toHaveAttribute('aria-current', 'page');
+      // Some destinations intentionally render an empty-state panel without an h1.
+      // Navigation is proven by route and active destination state above.
+    }
+    // Attention, Terminals and Health are tabs of Operations, not separate places.
+    await nav.getByRole('link', { name: 'Operations' }).click();
+    const tabs = page.getByRole('navigation', { name: 'Section' });
+    for (const tab of [
+      { label: 'Needs you', path: 'office' },
+      { label: 'Terminals', path: 'terminal' },
+      { label: 'Health', path: 'insights' },
+    ]) {
+      await tabs.getByRole('link', { name: tab.label }).click();
+      await expect(page).toHaveURL(new RegExp(`#/${tab.path}`));
+      await expect(tabs.getByRole('link', { name: tab.label })).toHaveAttribute('aria-current', 'page');
+      await expect(nav.getByRole('link', { name: 'Operations' })).not.toHaveAttribute('aria-current', 'page');
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     }
   });
@@ -59,10 +72,12 @@ test.describe('desktop smoke', () => {
   test('all destinations stay visible without horizontal scrolling at compact widths', async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 768 });
     await page.goto('/#/world', { waitUntil: 'commit' });
-    const list = page.getByRole('navigation', { name: 'Destinations' }).locator('ul');
+    const nav = page.getByRole('navigation', { name: 'Destinations' });
+    const list = nav.locator('ul:not([data-slot="footer"])');
     await expect(list).toBeVisible();
     await expect.poll(() => list.evaluate((element) => element.scrollWidth - element.clientWidth)).toBe(0);
-    await expect(list.getByRole('link')).toHaveCount(9);
+    await expect(list.getByRole('link')).toHaveCount(6);
+    await expect(nav.locator('ul[data-slot="footer"]').getByRole('link', { name: 'Settings' })).toBeVisible();
   });
 
   test('terminal explains itself outside Electron', async ({ page }) => {
@@ -71,7 +86,7 @@ test.describe('desktop smoke', () => {
     await expect(page.getByText('Interactive terminals need the Desktop app.')).toBeVisible();
   });
 
-  test('unknown routes land on World', async ({ page }) => {
+  test('unknown routes land on the World home', async ({ page }) => {
     await page.goto('/#/nowhere');
     await expect(page).toHaveURL(/#\/world/);
   });

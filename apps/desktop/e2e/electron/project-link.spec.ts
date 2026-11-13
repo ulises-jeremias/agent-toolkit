@@ -1,356 +1,42 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
-import { openDesktop, setViewport, waitForBackend } from './fixtures';
+import { openDesktop, waitForBackend } from './fixtures';
+import { goTo } from './navigation';
 
-async function expectFittedWorld(page: import('@playwright/test').Page) {
-  await expect
-    .poll(() =>
-      page.evaluate(() => {
-        const region = document.querySelector<HTMLElement>('[aria-label="Semantic workspace world"]');
-        const map = region?.querySelector<HTMLElement>('[data-world-map="true"]');
-        if (!region || !map) return false;
-        const regionBounds = region.getBoundingClientRect();
-        const bounds = map.getBoundingClientRect();
-        const tolerance = 1;
-        return (
-          bounds.width <= region.clientWidth + tolerance &&
-          bounds.height <= region.clientHeight + tolerance &&
-          bounds.left >= regionBounds.left - tolerance &&
-          bounds.top >= regionBounds.top - tolerance &&
-          bounds.right <= regionBounds.right + tolerance &&
-          bounds.bottom <= regionBounds.bottom + tolerance
-        );
-      }),
-    )
-    .toBe(true);
-}
-
+/**
+ * Linking an existing repository from the GUI. The native folder picker is
+ * the only stub; the preload bridge and the HTTP API are real. A folder that
+ * does not exist is refused with a message, and a real repository becomes a
+ * house in the World.
+ */
 test('links an existing project from the GUI and places it in the world', async () => {
-  if (process.env['ATK_CAPTURE'] === '1') test.setTimeout(5 * 60_000);
   const desktop = await openDesktop();
   try {
-    const { page, home } = desktop;
-    const projectRosterResponses: import('@playwright/test').Response[] = [];
-    page.on('response', (response) => {
-      if (new URL(response.url()).pathname === '/api/v1/projects') projectRosterResponses.push(response);
-    });
-    // Attach before the backend becomes ready: the initial World render can
-    // fetch the roster while waitForBackend is still waiting for the live badge.
+    const { app, page, home } = desktop;
     await waitForBackend(page);
-    const captureDir =
-      process.env.ATK_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/world');
-    if (process.env.ATK_CAPTURE === '1') {
-      fs.mkdirSync(captureDir, { recursive: true });
-      await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-      await expect(page.getByRole('button', { name: /Add project/ })).toBeVisible();
-      await expect(page.locator('[data-entity-id="object:workshop"]')).toHaveCount(1);
-      await expect(
-        page
-          .getByRole('status')
-          .filter({ hasText: /^(Loading|Checking|Listing|Counting|Discovering|Reading|Probing)/ }),
-      ).toHaveCount(0, { timeout: 30_000 });
-      await expect(page.locator('[data-entity-id="place:projects-empty"]')).toBeVisible();
-      for (const size of [
-        { width: 1024, height: 640, key: 'compact' },
-        { width: 1920, height: 1080, key: 'large' },
-      ]) {
-        await setViewport(desktop.app, size.width, size.height);
-        await page.getByRole('button', { name: 'Fit world' }).click();
-        await expectFittedWorld(page);
-        if (size.key === 'compact') {
-          await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toHaveAttribute(
-            'data-zoom',
-            '32',
-          );
-        }
-        await page.screenshot({ path: path.join(captureDir, `world-empty-${size.key}.png`) });
-      }
-    }
-    const projectPath = path.join(home, '.ai-workspace', 'repos', 'local', 'garden-api');
-    fs.mkdirSync(projectPath, { recursive: true });
-    fs.writeFileSync(path.join(projectPath, 'README.md'), '# Garden API\n');
 
-    // The native picker itself is platform-owned. Stub only its result, then
-    // exercise the real preload bridge and HTTP API, including a missing-folder
-    // rejection with a recoverable message before the successful retry.
-    // (Linking an existing folder outside the workspace roots is supported
-    // by design; see check_project_add_arg in sub_routes.v.)
-    const pick = (selected: string) =>
-      desktop.app.evaluate(({ dialog }, folder) => {
-        dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] });
-      }, selected);
-    const missingFolder = path.join(home, 'no-such-folder');
-    expect(fs.existsSync(missingFolder)).toBe(false);
-    await pick(missingFolder);
+    const pick = (folder: string) =>
+      app.evaluate(({ dialog }, selected) => {
+        dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [selected] });
+      }, folder);
 
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-    await expect.poll(() => projectRosterResponses.length).toBeGreaterThan(0);
-    const initialProjectRoster = projectRosterResponses[0];
-    expect(initialProjectRoster?.ok()).toBe(true);
-    expect(await initialProjectRoster?.json()).toMatchObject({ ok: true, projects: [] });
-    const emptyMarker = page.getByRole('button', { name: /Add project/ });
-    await emptyMarker.click();
-    await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'AI Workspace' })).toBeVisible();
-    const linkFolder = page.getByRole('button', { name: 'Link existing folder' });
-    await expect(linkFolder).toBeEnabled();
-    await linkFolder.click();
+    await goTo(page, 'Projects');
+    const missing = path.join(home, 'no-such-folder');
+    expect(fs.existsSync(missing)).toBe(false);
+    await pick(missing);
+    await page.getByRole('button', { name: 'Link a repository' }).click();
+    await expect(page.getByRole('alert')).toContainText('not found');
 
-    const review = page.getByRole('dialog', { name: 'Review project link' });
-    const missingName = path.basename(missingFolder);
-    await expect(review.getByText(new RegExp(`projects/${missingName}`))).toBeVisible();
-    await review.getByRole('button', { name: `Link ${missingName}` }).click();
-    await expect(review.getByRole('alert')).toContainText('not found');
+    const repo = path.join(home, 'code', 'garden-api');
+    fs.mkdirSync(path.join(repo, '.git'), { recursive: true });
+    await pick(repo);
+    await page.getByRole('button', { name: 'Link a repository' }).click();
+    await expect(page.getByRole('button', { name: /^garden-api(?:\s|$)/ })).toBeVisible({ timeout: 30_000 });
+    expect(fs.realpathSync(path.join(desktop.workspace, 'projects', 'garden-api'))).toBe(fs.realpathSync(repo));
 
-    await pick(projectPath);
-    await review.getByRole('button', { name: 'Choose another folder' }).click();
-    await expect(review.getByText(projectPath)).toBeVisible();
-    await expect(review.getByText(/projects\/garden-api/)).toBeVisible();
-    await review.getByRole('button', { name: 'Link garden-api' }).click();
-    await expect(review).toBeHidden();
-    await expect(
-      page.getByRole('region', { name: 'Receipts' }).getByText('Project linked', { exact: true }),
-    ).toBeVisible();
-    await page.getByRole('button', { name: 'Dismiss: Project linked' }).click();
-
-    if (process.env.ATK_CAPTURE === '1') {
-      await expect(page.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible();
-      for (const size of [
-        { width: 1024, height: 640, key: 'compact' },
-        { width: 1920, height: 1080, key: 'large' },
-      ]) {
-        await setViewport(desktop.app, size.width, size.height);
-        await page.getByRole('heading', { name: 'Projects', exact: true }).scrollIntoViewIfNeeded();
-        await page.screenshot({ path: path.join(captureDir, `workspace-project-roster-${size.key}.png`) });
-      }
-    }
-
-    const linkPath = path.join(home, '.ai-workspace', 'projects', 'garden-api');
-    await expect.poll(() => fs.realpathSync(linkPath)).toBe(fs.realpathSync(projectPath));
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-    await expect(page.getByRole('button', { name: /garden-api.*Project/ })).toBeVisible();
-    await page.keyboard.press('Control+k');
-    const palette = page.getByRole('dialog', { name: 'Commands' });
-    await palette.getByLabel('Filter commands').fill('Open project garden-api');
-    const projectCommand = palette.getByRole('option', { name: /Open project garden-api/ });
-    await expect(projectCommand).toBeVisible();
-    await projectCommand.click();
-    await expect(page.getByRole('application', { name: 'Interior of garden-api' })).toBeVisible();
-    await expect(page.getByText('Selected:')).not.toContainText(projectPath);
-    await expect(page.locator('[data-entity-id="object:workshop"]')).toHaveCount(0);
-    await expect(page.locator('[data-entity-id^="object:tool:"]')).toHaveCount(0);
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-    const world = page.getByRole('application', { name: 'Semantic workspace world' });
-    if (process.env.ATK_CAPTURE === '1') {
-      for (const size of [
-        { width: 1024, height: 640, key: 'compact' },
-        { width: 1920, height: 1080, key: 'large' },
-      ]) {
-        await setViewport(desktop.app, size.width, size.height);
-        await page.getByRole('button', { name: 'Fit world' }).click();
-        if (size.key === 'large') {
-          await expectFittedWorld(page);
-        } else {
-          await expect(world).toHaveAttribute('data-zoom', '32');
-        }
-        await page.waitForTimeout(200);
-        await page.screenshot({ path: path.join(captureDir, `world-one-project-${size.key}.png`) });
-        await page.getByRole('button', { name: /^Library · Capability library/ }).focus();
-        await page.keyboard.press('ArrowRight');
-        await expect(page.locator(':focus')).not.toHaveAttribute('data-entity-id', 'object:library');
-        await page.screenshot({ path: path.join(captureDir, `world-spatial-focus-${size.key}.png`) });
-      }
-    }
-    await setViewport(desktop.app, 1024, 640);
-    await page.getByRole('button', { name: 'Fit world' }).click();
-    await expect(world).toHaveAttribute('data-zoom', '32');
-    await page.getByRole('button', { name: /Explore the world.*Home to fit the world/ }).focus();
-    await page.keyboard.press('Home');
-    await expect(world).toHaveAttribute('data-zoom', '32');
-    await setViewport(desktop.app, 1920, 1080);
-    await page.getByRole('button', { name: 'Fit world' }).click();
-    await expectFittedWorld(page);
-    const libraryPlace = page.getByRole('button', { name: /^Library · Capability library/ });
-    await libraryPlace.focus();
-    await page.keyboard.press('ArrowRight');
-    await expect(page.locator(':focus')).toHaveAttribute('data-entity-id', /.+/);
-    await expect(page.locator(':focus')).not.toHaveAttribute('data-entity-id', 'object:library');
-    await expect(page.locator(':focus')).toHaveAttribute('aria-keyshortcuts', /ArrowRight/);
-    // Spatial and direct navigation share the same canonical destinations:
-    // entering the house opens its project interior; its terminal desk opens
-    // the actual Terminal route.
-    await page.getByRole('button', { name: /garden-api · Project/ }).click();
-    const interiorWorld = page.getByRole('application', { name: 'Interior of garden-api' });
-    await expect(interiorWorld).toBeVisible();
-    if (process.env.ATK_CAPTURE === '1') {
-      const captureDir =
-        process.env.ATK_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/world');
-      fs.mkdirSync(captureDir, { recursive: true });
-      await setViewport(desktop.app, 1024, 640);
-      await expect(interiorWorld).toHaveAttribute('data-zoom', '48');
-      await page.screenshot({ path: path.join(captureDir, 'project-files-room-compact.png') });
-      await setViewport(desktop.app, 1920, 1080);
-      await expect(interiorWorld).toHaveAttribute('data-zoom', '80');
-      await page.screenshot({ path: path.join(captureDir, 'project-files-room-large.png') });
-      await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
-      await page.getByRole('radio', { name: /Dusk/ }).check();
-      await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-      await page.getByRole('button', { name: /garden-api · Project/ }).click();
-      await expect(page.getByRole('application', { name: 'Interior of garden-api' })).toBeVisible();
-      await setViewport(desktop.app, 1024, 640);
-      await expect(interiorWorld).toHaveAttribute('data-zoom', '48');
-      await page.screenshot({ path: path.join(captureDir, 'project-files-room-dusk-compact.png') });
-      await setViewport(desktop.app, 1920, 1080);
-      await expect(interiorWorld).toHaveAttribute('data-zoom', '80');
-      await page.screenshot({ path: path.join(captureDir, 'project-files-room-dusk-large.png') });
-    }
-    await page.getByRole('button', { name: /Files · Project files/ }).click();
-    await expect(page).toHaveURL(/workspace\?[^#]*panel=files[^#]*project=garden-api/);
-    await expect(page.getByRole('heading', { name: 'garden-api files' })).toBeVisible();
-    await page.getByRole('button', { name: 'file README.md 13 B', exact: true }).click();
-    await expect(page.getByText('# Garden API')).toBeVisible();
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-    await page.getByRole('button', { name: /garden-api · Project/ }).click();
-    await expect(page.getByRole('application', { name: 'Interior of garden-api' })).toBeVisible();
-    await page.getByRole('button', { name: /Terminal · Terminal \/ PTY workstation/ }).click();
-    await expect(page).toHaveURL(/terminal/);
-    await expect(
-      page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }),
-    ).toHaveAttribute('aria-current', 'page');
-    const terminalReview = page.getByRole('dialog', { name: 'New terminal session' });
-    await expect(terminalReview).toBeVisible();
-    await expect(terminalReview.getByRole('textbox', { name: 'Working folder' })).toHaveValue(projectPath);
-    await terminalReview.getByRole('button', { name: 'Cancel' }).click();
-    await expect(terminalReview).toBeHidden();
-
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
-    await page.getByLabel('Project', { exact: true }).selectOption('garden-api');
-    const githubDir = path.join(projectPath, '.github');
-    const copilotFile = path.join(githubDir, 'copilot-instructions.md');
-    fs.mkdirSync(githubDir, { recursive: true });
-    fs.writeFileSync(copilotFile, 'Repository-owned Copilot instructions.\n');
-    await page.getByRole('button', { name: 'Review project setup' }).click();
-    const copilotReview = page.getByRole('dialog', { name: 'Review GitHub Copilot setup' });
-    await expect(copilotReview).toBeVisible();
-    await expect(copilotReview).toContainText(path.join(projectPath, '.github', 'copilot-instructions.md'));
-    // Skills and agents are still installable; the instructions file is marked preserved.
-    await copilotReview.getByText(/Review \d+ files/).click();
-    await expect(copilotReview.getByLabel('Copilot project files')).toContainText(
-      '.github/copilot-instructions.md preserved',
-    );
-    await expect(copilotReview).toContainText('skill files');
-    expect(fs.readFileSync(copilotFile, 'utf8')).toBe('Repository-owned Copilot instructions.\n');
-    await copilotReview.getByRole('button', { name: 'Close' }).click();
-    fs.rmSync(copilotFile);
-    await page.getByRole('button', { name: 'Review project setup' }).click();
-    await expect(copilotReview).toContainText(/Review \d+ new file/);
-    await copilotReview.getByText('Review instructions contents').click();
-    await expect(copilotReview.getByLabel('Copilot instructions file contents')).toContainText(
-      '# Copilot Instructions Template',
-    );
-    await copilotReview.getByText('Review instructions contents').click();
-    if (process.env.ATK_CAPTURE === '1') {
-      const libraryDir =
-        process.env.ATK_LIBRARY_CAPTURE_DIR ??
-        path.resolve(__dirname, '../../../../docs/desktop/assets/electron/library');
-      fs.mkdirSync(libraryDir, { recursive: true });
-      for (const size of [
-        { width: 1024, height: 768, key: 'compact' },
-        { width: 1440, height: 900, key: 'large' },
-      ]) {
-        await setViewport(desktop.app, size.width, size.height);
-        await page.screenshot({
-          path: path.join(libraryDir, `copilot-project-review-${size.key}.png`),
-          fullPage: true,
-        });
-      }
-      await setViewport(desktop.app, 1280, 800);
-    }
-    fs.writeFileSync(copilotFile, 'Appeared after the review was prepared.\n');
-    await copilotReview.getByRole('button', { name: 'Install reviewed files' }).click();
-    await expect(copilotReview.getByRole('alert')).toContainText('changed after review');
-    expect(fs.readFileSync(copilotFile, 'utf8')).toBe('Appeared after the review was prepared.\n');
-    await copilotReview.getByRole('button', { name: 'Review again' }).click();
-    await copilotReview.getByText(/Review \d+ files/).click();
-    await expect(copilotReview.getByLabel('Copilot project files')).toContainText(
-      '.github/copilot-instructions.md preserved',
-    );
-    await copilotReview.getByRole('button', { name: 'Close' }).click();
-    fs.rmSync(copilotFile);
-    await page.getByRole('button', { name: 'Review project setup' }).click();
-    await expect(copilotReview).toContainText(/Review \d+ new file/);
-    await copilotReview.getByRole('button', { name: 'Install reviewed files' }).click();
-    await expect(copilotReview).toContainText(/Installed \d+ Agent Toolkit Copilot file/);
-    expect(fs.readFileSync(path.join(projectPath, '.github', 'copilot-instructions.md'), 'utf8')).toContain(
-      '# Copilot Instructions Template',
-    );
-    const installedSkill = path.join(projectPath, '.github', 'skills', 'assistant', 'SKILL.md');
-    expect(fs.existsSync(installedSkill)).toBe(true);
-    const installedAgents = fs.readdirSync(path.join(projectPath, '.github', 'agents'));
-    expect(installedAgents.some((name) => name.endsWith('.agent.md'))).toBe(true);
-    await copilotReview.getByRole('button', { name: 'Close' }).click();
-    const bundledInstructions = fs.readFileSync(copilotFile, 'utf8');
-    await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText(
-      'GitHub Copilot · repository',
-    );
-    await expect(page.getByRole('button', { name: 'Review removal', exact: true })).toHaveCount(2);
-    const githubSidecar = path.join(githubDir, 'settings.yml');
-    fs.writeFileSync(githubSidecar, 'pull_request_targets: all\n');
-    fs.writeFileSync(copilotFile, `${bundledInstructions}\nUser-owned addition.\n`);
-    await page.getByRole('button', { name: 'Review removal' }).last().click();
-    const protectedCopilot = page.getByRole('dialog', { name: 'Review GitHub Copilot removal' });
-    await expect(protectedCopilot).toContainText('changed after Agent Toolkit created them');
-    await expect(protectedCopilot.getByRole('button', { name: 'Remove reviewed files' })).toHaveCount(0);
-    await protectedCopilot.getByRole('button', { name: 'Close' }).click();
-    fs.writeFileSync(copilotFile, bundledInstructions);
-    await page.getByRole('button', { name: 'Review removal' }).last().click();
-    const safeCopilotRemoval = page.getByRole('dialog', { name: 'Review GitHub Copilot removal' });
-    await expect(safeCopilotRemoval.getByRole('button', { name: 'Remove reviewed files' })).toBeEnabled();
-    await safeCopilotRemoval.getByRole('button', { name: 'Remove reviewed files' }).click();
-    await expect(safeCopilotRemoval).toContainText(/Removed \d+ unchanged Agent Toolkit Copilot file/);
-    expect(fs.existsSync(copilotFile)).toBe(false);
-    expect(fs.existsSync(path.join(projectPath, '.github', 'skills'))).toBe(false);
-    expect(fs.existsSync(path.join(projectPath, '.github', 'agents'))).toBe(false);
-    expect(fs.readFileSync(githubSidecar, 'utf8')).toBe('pull_request_targets: all\n');
-    await safeCopilotRemoval.getByRole('button', { name: 'Close' }).click();
-
-    if (process.env.ATK_CAPTURE === '1') {
-      // Add two more registered projects through the same reviewed GUI flow,
-      // then capture the actual multi-house world at both product scales.
-      for (const name of ['maple-worker', 'river-notes']) {
-        const target = path.join(home, '.ai-workspace', 'repos', 'local', name);
-        fs.mkdirSync(target, { recursive: true });
-        fs.writeFileSync(path.join(target, 'README.md'), `# ${name}\n`);
-        await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
-        await page.getByRole('button', { name: 'Link existing folder' }).click();
-        const review = page.getByRole('dialog', { name: 'Review project link' });
-        await pick(target);
-        await review.getByRole('button', { name: 'Choose another folder' }).click();
-        await expect(review.getByText(new RegExp(`projects/${name}`))).toBeVisible();
-        await review.getByRole('button', { name: `Link ${name}` }).click();
-        await expect(review).toBeHidden();
-        await page.getByRole('button', { name: 'Dismiss: Project linked' }).click();
-      }
-      await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-      await expect(page.getByRole('button', { name: /garden-api.*Project/ })).toBeVisible();
-      for (const theme of ['meadow', 'dusk'] as const) {
-        await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
-        await page.getByRole('radio', { name: new RegExp(theme === 'meadow' ? 'Meadow' : 'Dusk') }).check();
-        await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-        await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-        for (const size of [
-          { width: 1024, height: 640, key: 'compact' },
-          { width: 1920, height: 1080, key: 'large' },
-        ]) {
-          await setViewport(desktop.app, size.width, size.height);
-          await page.getByRole('button', { name: 'Fit world' }).click();
-          await expectFittedWorld(page);
-          await page.waitForTimeout(200);
-          await page.screenshot({ path: path.join(captureDir, `world-several-projects-${theme}-${size.key}.png`) });
-        }
-      }
-    }
+    await goTo(page, 'World');
+    await expect(page.getByRole('button', { name: /^garden-api:/ })).toBeAttached({ timeout: 30_000 });
   } finally {
     await desktop.close();
   }

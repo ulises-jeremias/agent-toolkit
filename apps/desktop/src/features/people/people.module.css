@@ -13,7 +13,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  border: 2px solid var(--border-strong);
+  border: 1px solid var(--border-strong);
   background: var(--surface-raised);
   color: var(--text-primary);
   padding: var(--space-2);
@@ -35,7 +35,7 @@
   display: block;
   flex: 0 0 42px;
   height: 42px;
-  border: 2px solid var(--border-strong);
+  border: 1px solid var(--border-strong);
   border-radius: 2px;
   background-color: var(--person-accent);
   background-image: var(--person-sprite);
@@ -92,7 +92,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-1) var(--space-3);
-  border: 2px solid var(--border-strong);
+  border: 1px solid var(--border-strong);
   background: var(--surface-raised);
   padding: var(--space-2) var(--space-3);
 }
@@ -117,7 +117,7 @@
   z-index: 2;
   margin: 0 calc(-1 * var(--space-5));
   padding: var(--space-3) var(--space-5);
-  border-top: 2px solid var(--border-subtle);
+  border-top: 1px solid var(--border-subtle);
   background: var(--surface-panel);
 }
 .formGrid {
@@ -129,14 +129,14 @@
   width: 100%;
   box-sizing: border-box;
   padding: var(--space-2);
-  border: 2px solid var(--border-strong);
+  border: 1px solid var(--border-strong);
   background: var(--surface-raised);
   color: var(--text-primary);
   font: inherit;
   resize: vertical;
 }
 .details {
-  border: 2px solid var(--border-strong);
+  border: 1px solid var(--border-strong);
   padding: var(--space-2) var(--space-3);
 }
 .details summary {
@@ -180,7 +180,7 @@
   gap: 1px;
   margin: 0;
   padding: 2px;
-  border: 2px solid var(--border-strong);
+  border: 1px solid var(--border-strong);
   background: var(--surface-sunken);
   list-style: none;
 }
@@ -260,7 +260,7 @@
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
-  border: 2px solid var(--status-warn-border);
+  border: 1px solid var(--status-warn-border);
   padding: var(--space-3);
   color: var(--status-warn-fg);
   font-weight: 600;
@@ -278,7 +278,7 @@
   max-height: 12rem;
   overflow: auto;
   margin: 0;
-  border: 2px solid var(--border-strong);
+  border: 1px solid var(--border-strong);
   border-left: 4px solid var(--accent-gold);
   background: var(--surface-raised);
   padding: var(--space-3);

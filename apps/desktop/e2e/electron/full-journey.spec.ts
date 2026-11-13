@@ -3,6 +3,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { openDesktop, waitForBackend, type Desktop } from './fixtures';
+import { goTo } from './navigation';
 
 /**
  * The §19 definition-of-done journey as ONE continuous GUI flow in a
@@ -35,7 +36,7 @@ test('workspace to context pack to Person swarm to recovery in one flow', async 
       path.join(packDir, 'team.yaml'),
       'name: Product Team\ndescription: Shared project context for product work.\nprojects:\n  - e2e-workspace\n',
     );
-    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
+    await goTo(page, 'Context');
     const packPanel = page.getByRole('region', { name: 'Workspace context packs' });
     await expect(packPanel).toContainText('Product Team');
     await packPanel.getByRole('button', { name: 'Use for future sessions' }).first().click();
