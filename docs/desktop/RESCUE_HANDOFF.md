@@ -186,9 +186,13 @@ honestly. Never label a declared Person or installed binary as an active agent.
 - [x] Reconcile a deleted thread explicitly: Focus reports that the saved session
   is unavailable and offers “Return to sessions” instead of silently showing a new
   composer. Deleted/moved projects still need a recovery pass.
-- [ ] Verify PTY lifecycle separately. The acceptance package restored a detached
-  terminal registry session, expected for ordinary PTYs, but route memory does not
-  persist a PTY selection.
+- [x] Verify PTY lifecycle separately. The real detached-host regression creates
+  a shell in one client process, exits that process, reconnects from a second
+  client without spawning another host, verifies the session and buffered output,
+  and closes it. `electron/pty-host.test.ts` and `electron/terminal.test.ts`
+  passed 13/13 on PR #1783. This confirms ordinary terminal survival and explicit
+  closure; route memory still does not persist a PTY selection, and the app's
+  shutdown policy intentionally detaches ordinary PTYs while stopping Focus turns.
 - [x] Make Focus the normal work entry; World remains optional navigation, not a gate.
 
 ### P0 — Finish and verify the real Focus runtime
@@ -1264,3 +1268,23 @@ rejection: <https://github.com/ulises-jeremias/agent-toolkit/issues/1775#issueco
 The latest exact-head query still reports 40 passed, zero failed, and nine in
 progress/queued (including clean-profile Electron and gates); PR state is OPEN,
 draft, and `UNSTABLE`. Do not infer completion from the earlier green runs.
+
+## 22. Continuation checkpoint — detached PTY lifecycle verified
+
+Re-read the PTY shutdown contract and ran the existing process-boundary tests on
+PR #1783. `electron/pty-host.test.ts` and `electron/terminal.test.ts` passed
+13/13. The detached-host test creates an interactive session through a child
+client process, lets that process exit, reconnects without allowing a second
+host spawn, verifies the session and its buffered output, then explicitly closes
+the PTY. This closes the separate ordinary-terminal-survival gate. It does not
+mean Focus provider runs survive Desktop shutdown: those remain intentionally
+stopped and durably journaled. There is also no saved PTY selection in route
+memory; the registry restores sessions and the user selects one in the terminal
+surface. No packaged app code changed in this verification.
+
+The exact #1783 head `a121229d82bbef37dd36a4b395d578da865f8e44` remains OPEN,
+draft, stacked on #1782 and UNSTABLE. At the latest recheck, the packaged fresh
+HOME gate, Desktop `gates`, Linux/Windows/macOS packaging, platform linkage, and
+some macOS validation jobs were still pending; no failures were reported.
+Continue against the exact branch head, and do not merge until the stack's
+required checks and base integration are healthy.
