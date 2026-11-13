@@ -2682,3 +2682,30 @@ active, including Valley art, Desktop UI, provider/session and World branches;
 continue inspecting worktree and branch ownership before touching them. The
 rescue remains active and section 56's security, visual and accessibility
 priorities still apply.
+
+## 62. Continuation checkpoint — packaged keyboard and motion QA
+
+The packaged Linux Electron app also passed the keyboard/reduced-motion
+acceptance after a test-readiness fix. An initial full-file run intermittently
+sent Tab and `?` after backend health but before the Focus heading, provider
+state and navigation had mounted; the isolated test passed while the suite
+could fail. Commit `94883a39` on the product branch makes the affected tests
+wait for those user-visible readiness signals before exercising input. The
+full packaged keyboard suite then passed 3/3: skip link and destination Tab
+reachability with visible focus rings, reduced-motion preference, and keyboard
+shortcut map plus nested Escape behavior. The test changes do not relax any
+assertions. ESLint, Prettier and `git diff --check` passed for the changed spec.
+
+The product PR now points to exact head
+`94883a39aeafa62015073fb3fb945b956bc2c553`; new CI had just started (one
+success and one neutral result, with the rest not yet reported at the first
+poll). Recheck this exact SHA. PR #1784 remains at
+`34123019586ecc3c30b5de63a4c9f6f0dc50f153` with 17 successful, 2 in progress,
+and 5 queued jobs at the same poll. No failure was reported; both PRs remain
+draft and require full exact-head checks and human review.
+
+This verifies keyboard interactions and CSS reduced motion in Linux Electron.
+It does not substitute for Orca/screen-reader testing, contrast measurements,
+Windows/macOS keyboard checks, live-region announcement review, or the full
+mission acceptance scenario with a real repository and provider. None of
+those gates is closed.
