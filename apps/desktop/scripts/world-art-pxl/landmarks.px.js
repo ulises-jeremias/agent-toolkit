@@ -41,46 +41,6 @@ sprite("landmark-archive",{w:48,h:72},(c)=>{
   c.rect(15,65,19,3,"M");c.hline(16,65,17,"w");
   c.rect(4,68,41,2,"q");
 })
-sprite("landmark-library",{w:64,h:64},(c)=>{
-  // The valley library is an old adobe reading room joined to a small kiln
-  // tower. Its broad, low roof and tall book gallery distinguish it from the
-  // civic hall silhouettes without adding surface-noise pixels.
-  c.ellipse(33,61,29,2,"q");
-  c.poly([5,32,45,28,57,34,57,56,8,59],"e");
-  c.poly([45,32,57,34,57,56,45,58],"P");
-  c.rect(8,35,39,21,"c");
-  c.poly([47,35,57,34,57,56,47,57],"C");
-  c.poly([5,34,26,18,49,34,47,38,8,38],"T");
-  c.poly([26,18,49,34,47,38,26,25],"u");
-  c.line(26,19,6,34,"k");c.line(26,19,48,34,"k");
-  c.hline(7,35,41,"b");
-  // A round kiln / archive tower is the library's distant landmark.
-  c.rect(45,9,12,26,"T");
-  c.poly([44,12,49,5,55,5,59,12],"u");
-  c.poly([46,12,50,7,54,7,57,12],"t");
-  c.hline(46,13,11,"b");
-  c.rect(48,16,7,11,"Z");c.box(48,16,7,11,"D");
-  c.vline(51,17,9,"M");
-  c.rect(49,29,5,7,"D");c.box(49,29,5,7,"k");
-  // Deep-set gallery, timber mullions and warm shelves with restrained books.
-  c.rect(12,39,29,13,"D");c.box(12,39,29,13,"k");
-  c.rect(15,41,23,9,"Z");
-  c.hline(15,45,23,"M");
-  const spines=["r","Y","V","g","a","j"];
-  for(let row=0;row<2;row++)for(let book=0;book<6;book++){
-    const x=17+book*3;
-    c.vline(x,42+row*4,3,spines[(book+row*2)%spines.length]);
-  }
-  c.vline(26,40,12,"d");c.vline(14,40,12,"d");c.vline(39,40,12,"d");
-  // Recessed entrance, stone sill, worn step, and a small pair of planters.
-  c.rect(22,49,9,10,"D");c.box(22,49,9,10,"k");
-  c.vline(26,50,8,"b");c.px(29,54,"Y");
-  c.poly([18,57,35,57,38,60,15,60],"M");
-  c.poly([11,60,43,60,47,63,7,63],"P");c.hline(9,62,35,"q");
-  c.rect(8,50,5,6,"T");c.rect(38,50,5,6,"T");
-  c.poly([8,49,11,45,14,49],"G");c.poly([38,49,41,44,44,49],"f");
-  c.px(10,46,"g");c.px(12,47,"g");c.px(40,45,"g");c.px(42,47,"G");
-})
 sprite("landmark-workshop",{w:48,h:72},(c)=>{
   // A sawtooth-roof forge with a wheel at the stream-facing end.
   c.ellipse(23,69,23,2,"q");
