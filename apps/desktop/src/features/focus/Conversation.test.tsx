@@ -173,7 +173,7 @@ describe('Conversation', () => {
         },
       ]),
     );
-    const dialog = await screen.findByRole('form', { name: 'Codex asks a question' });
+    const dialog = await screen.findByRole('form', { name: 'Claude Code asks a question' });
     expect(dialog).toHaveTextContent('Choose a plan');
     await user.click(screen.getByRole('radio', { name: /Careful/ }));
     await user.type(screen.getByLabelText('Private answer'), 'do-not-store-this');

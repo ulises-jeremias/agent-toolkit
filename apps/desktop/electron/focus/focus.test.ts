@@ -690,8 +690,32 @@ describe('provider probe', () => {
     expect(statuses.map((status) => [status.id, status.installed, status.auth])).toEqual([
       ['claude', false, 'unknown'],
       ['codex', true, 'signed-out'],
-      ['opencode', true, 'ready'],
+      ['opencode', true, 'unknown'],
     ]);
     expect(statuses[0]?.authDetail).toBe('Could not be checked');
+  });
+
+  it('recognizes stored OpenCode accounts and exposes only validated model identifiers', async () => {
+    const statuses = await probeProviders({
+      find: () => '/bin/opencode',
+      run: async (_binary, args) => {
+        if (args[0] === '--version') return { code: 0, stdout: 'opencode v2.2.7', stderr: '' };
+        if (args[0] === 'auth')
+          return { code: 0, stdout: 'GitHub Copilot       private account       stored', stderr: '' };
+        return {
+          code: 0,
+          stdout: 'github-copilot/gpt-5.6-luna\ninvalid model id\n../outside/model\n',
+          stderr: '',
+        };
+      },
+    });
+    const opencode = statuses.find((status) => status.id === 'opencode');
+    expect(opencode).toMatchObject({
+      auth: 'ready',
+      authDetail: 'A model provider credential is stored',
+      version: '2.2.7',
+      models: [{ id: 'github-copilot/gpt-5.6-luna', label: 'github-copilot/gpt-5.6-luna' }],
+    });
+    expect(JSON.stringify(opencode)).not.toContain('private account');
   });
 });

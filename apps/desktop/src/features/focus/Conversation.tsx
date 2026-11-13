@@ -96,9 +96,11 @@ function Item({ item }: { item: TimelineItem }) {
 
 function UserInputBar({
   request,
+  providerLabel,
   onSubmit,
 }: {
   request: Extract<TimelineItem, { kind: 'user-input' }>;
+  providerLabel: string;
   onSubmit: (answers: Record<string, string[]>) => Promise<boolean>;
 }) {
   const [values, setValues] = useState<Record<string, string>>({});
@@ -128,7 +130,7 @@ function UserInputBar({
   return (
     <form
       className={`${styles.approval} ${styles.userInput}`}
-      aria-label="Codex asks a question"
+      aria-label={`${providerLabel} asks a question`}
       onSubmit={(event) => {
         event.preventDefault();
         if (!ready || submitting) return;
@@ -138,7 +140,7 @@ function UserInputBar({
         });
       }}
     >
-      <strong className={styles.approvalQuestion}>Codex needs your input</strong>
+      <strong className={styles.approvalQuestion}>{providerLabel} needs your input</strong>
       {request.questions.map((question) => {
         return (
           <fieldset className={styles.userInputQuestion} key={question.id}>
@@ -394,6 +396,7 @@ export function Conversation({
         <UserInputBar
           key={userInput.requestId}
           request={userInput}
+          providerLabel={providerLabel}
           onSubmit={(answers) => run(bridge?.respondUserInput(thread.id, userInput.requestId, answers))}
         />
       ) : null}

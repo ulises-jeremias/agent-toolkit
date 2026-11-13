@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type { FocusModelOption, FocusProviderId, FocusProviderStatus } from '../../src/types/focus';
-import { needsShell } from './adapter';
+import { isSafeModelId, needsShell } from './adapter';
 
 /**
  * Provider discovery for Focus. "Ready" is only ever claimed from the
@@ -96,6 +96,7 @@ interface ProviderSpec {
   signIn: string;
   sessions: boolean;
   models: FocusModelOption[];
+  discoverModels?: (binary: string, run: CommandRunner) => Promise<FocusModelOption[]>;
   auth: (binary: string, run: CommandRunner) => Promise<Pick<FocusProviderStatus, 'auth' | 'authDetail'>>;
 }
 
@@ -144,13 +145,22 @@ async function opencodeAuth(
   binary: string,
   run: CommandRunner,
 ): Promise<Pick<FocusProviderStatus, 'auth' | 'authDetail'>> {
-  const result = await run(binary, ['auth', 'list'], PROBE_TIMEOUT_MS);
+  const result = await run(binary, ['auth', 'list', '--standalone'], PROBE_TIMEOUT_MS);
   const text = `${result.stdout}\n${result.stderr}`;
   if (/no authenticated integrations|\b0 credentials/i.test(text)) {
     return { auth: 'signed-out', authDetail: 'No model provider connected' };
   }
-  if (result.code === 0 && text.trim()) return { auth: 'ready', authDetail: 'A model provider is connected' };
+  if (result.code === 0 && /\bstored\s*$/im.test(result.stdout))
+    return { auth: 'ready', authDetail: 'A model provider credential is stored' };
   return { auth: 'unknown', authDetail: 'Could not read the connected providers from this OpenCode version' };
+}
+
+async function opencodeModels(binary: string, run: CommandRunner): Promise<FocusModelOption[]> {
+  const result = await run(binary, ['models', '--standalone'], PROBE_TIMEOUT_MS);
+  if (result.code !== 0) return [];
+  return [...new Set(result.stdout.split(/\r?\n/).map((line) => line.trim()))]
+    .filter((id) => isSafeModelId(id) && id.includes('/'))
+    .map((id) => ({ id, label: id }));
 }
 
 const SPECS: ProviderSpec[] = [
@@ -172,6 +182,7 @@ const SPECS: ProviderSpec[] = [
     sessions: false,
     models: [],
     auth: opencodeAuth,
+    discoverModels: opencodeModels,
   },
 ];
 
@@ -204,14 +215,19 @@ async function probeOne(spec: ProviderSpec, options: ProbeOptions): Promise<Focu
       resume: sessions,
       modelSwitch: sessions,
       sendWhileRunning: sessions && spec.id === 'claude',
+      permissionModes:
+        spec.id === 'opencode'
+          ? ['ask']
+          : ['ask', 'accept-edits', 'plan', 'bypass'],
     },
     checkedAt: new Date().toISOString(),
   };
   const binary = find(spec.binary);
   if (!binary) return base;
-  const [version, auth] = await Promise.all([
+  const [version, auth, discoveredModels] = await Promise.all([
     run(binary, ['--version'], PROBE_TIMEOUT_MS),
     spec.auth(binary, run).catch(() => ({ auth: 'unknown' as const, authDetail: 'Account status check failed' })),
+    spec.discoverModels?.(binary, run).catch(() => []) ?? Promise.resolve([]),
   ]);
   return {
     ...base,
@@ -220,6 +236,7 @@ async function probeOne(spec: ProviderSpec, options: ProbeOptions): Promise<Focu
     version: versionOf(`${version.stdout}\n${version.stderr}`),
     ...auth,
     signInHint: auth.auth === 'ready' ? null : spec.signIn,
+    models: discoveredModels.length > 0 ? discoveredModels : spec.models,
   };
 }
 

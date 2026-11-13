@@ -30,6 +30,8 @@ export interface FocusProviderCapabilities {
   modelSwitch: boolean;
   /** Whether a new message can be accepted during an active turn. Defaults to false. */
   sendWhileRunning?: boolean;
+  /** Permission modes this adapter can actually apply for the provider. */
+  permissionModes?: FocusPermissionMode[];
 }
 
 export interface FocusProviderStatus {

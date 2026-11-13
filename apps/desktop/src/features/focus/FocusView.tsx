@@ -6,7 +6,7 @@ import { useFocusBridge, useFocusProviders, useFocusThreads, useFocusTimeline } 
 import { useProjects } from '../../data/projects';
 import { useTerminalSessions } from '../../data/terminal';
 import { OPEN_TERMINAL_DOCK_EVENT } from '../../shell/events';
-import type { FocusPermissionMode, FocusThread } from '../../types/focus';
+import type { FocusPermissionMode, FocusProviderStatus, FocusThread } from '../../types/focus';
 import { Button, ConfirmAction, PixelIcon } from '../../ui';
 import { FilesPanel } from '../workspace/FilesPanel';
 import { ProjectChangesPanel } from '../workspace/ProjectChangesPanel';
@@ -77,6 +77,7 @@ function ThreadList({
 
 function Header({
   thread,
+  provider,
   models,
   inspectorOpen,
   onToggleInspector,
@@ -85,6 +86,7 @@ function Header({
   onDeleted,
 }: {
   thread: FocusThread;
+  provider: FocusProviderStatus | undefined;
   models: ReadonlyArray<{ id: string; label: string }>;
   inspectorOpen: boolean;
   onToggleInspector: () => void;
@@ -155,7 +157,11 @@ function Header({
             onChange={(event) => void patch({ permissionMode: event.target.value as FocusPermissionMode })}
           >
             {MODE_OPTIONS.map((option) => (
-              <option key={option.id} value={option.id}>
+              <option
+                key={option.id}
+                value={option.id}
+                disabled={provider?.capabilities.permissionModes?.includes(option.id) === false}
+              >
                 {option.label}
               </option>
             ))}
@@ -350,6 +356,7 @@ export default function FocusView() {
           <>
             <Header
               thread={active}
+              provider={provider}
               models={provider?.models ?? []}
               inspectorOpen={inspectorOpen}
               onToggleInspector={() => setInspectorOpen((open) => !open)}
