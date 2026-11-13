@@ -2471,12 +2471,28 @@ focused journal suite passed 32/32, TypeScript passed, ESLint passed, Prettier
 passed, and `git diff --check` passed. A Linux Electron package built
 successfully. Packaged World navigation and opening a linked project into
 Focus passed 2/2 with the real backend. The real Codex acceptance was attempted
-against this branch's package but did not start a provider turn: the UI reported
-“Codex 0.168.0 Detected. Sessions here are not available for it yet.” The host
-`codex login status` reports authenticated. This `main` base lacks the Codex
-Focus capability present on PR #1783, so this attempt is neither a passing
-provider acceptance nor an auth failure. The earlier real-provider acceptance
-on #1783 is separate evidence and does not verify this private-journal patch.
+against this branch's main-based package but initially did not start a provider
+turn: that base reports “Codex 0.168.0 Detected. Sessions here are not available
+for it yet.” Authentication was valid. A separate packaged Git test using the
+old local `/usr/bin/agent-toolkit` returned an empty untracked diff. These were
+backend-version mismatches, not product failures. The source-compatible CI
+backend artifact for exact #1783 head `66805d85` returned the expected
+`+field notes` diff and its packaged Project Changes journey passed 1/1.
+
+For integrated validation, a disposable worktree at #1783 `66805d85` received
+the private-journal commit via local cherry-pick (`860ba281`); no branch was
+pushed or product PR modified by this test. A local Linux Electron package was
+built from that renderer/main source, with the matching CI backend extracted
+from run `43423177014` (backend SHA-256
+`98340dbd91934df45ed3f2523735d5941a0b9c67f0d7e444d699ff9966b2a8e4`). The
+installed authenticated Codex acceptance passed 1/1 in 1.6 minutes: exact file
+creation, real Project Changes diff, terminal, safe Stop, app restart and
+thread/history recovery, follow-up file read, and World/project/Focus context
+continuity. Private screenshots are under
+`.audit-private/focus-security-integrated-final/` (completed Focus at 1024×640
+and 1440×900, interrupted and recovered conversation, and project interior).
+This validates the combined behavior on Linux, not macOS/Windows security or
+provider parity.
 
 Keep #1777 open and #1784 draft. The migration's legacy reads use portable
 path checks but are not proven immune to ancestor replacement races; the copy
@@ -2488,9 +2504,54 @@ reimported because the marker is one-time. Keep both stores and do not describe
 downgrade as seamless. Resolve these limitations through security review and
 cross-platform evidence before marking #1777 fixed.
 
-Next, poll #1784 checks and review platform results; then test a combined
-security + #1783 product build with the installed authenticated Codex provider,
-since the `main` base does not expose it. Recheck #1783 remains green at the
-exact SHA above, then continue the World panorama/creek iteration, compact
-Focus/dock density, and remaining accessibility/onboarding/provider acceptance
-gaps in section 56. Keep the overall rescue active.
+At this checkpoint, poll #1784 exact-head CI and obtain security/platform
+review; resolve the legacy-import race and Windows junction/macOS guarantee
+questions before any merge or #1777 closure. Continue the World panorama/creek
+iteration, compact Focus/dock density, and remaining accessibility/onboarding/
+provider acceptance gaps in section 56. Keep the overall rescue active.
+
+## 58. Continuation checkpoint — combined provider acceptance and Git diff regression
+
+**Current date: 2026-11-13.** The product PR now includes commit
+`e0f6af7cf6abbb1179f12c8738b7c469ab5fa325` on branch
+`rescue/desktop-continuity-focus`, adding a GUI assertion that an untracked
+text file's diff is reviewable before staging. This was first verified in a
+packaged integration worktree against the CI backend artifact, then against the
+packaged product branch using that same exact backend: `project-changes.spec`
+passed 1/1. The branch push restarted CI for #1783; at the first poll, many jobs
+were in progress/queued and none had failed. Recheck exact head `e0f6af7c`.
+
+Root cause of an apparent diff regression: the host `/usr/bin/agent-toolkit`
+was version `1.49.0` but stale relative to current source. Its API returned
+`{"ok":true,"diff":""}` for a textual untracked file. The packaged artifact
+from PR #1783 run `43423177014` (head `66805d85`) contains the source-compatible
+backend; its SHA-256 is
+`98340dbd91934df45ed3f2523735d5941a0b9c67f0d7e444d699ff9966b2a8e4` and it
+returned the expected unified diff. This binary was used only in private local
+packages; no artifact or package was committed.
+
+The full live Codex acceptance passed 1/1 (1.6m) with a packaged Linux
+integration build combining product head `66805d85`, private-journal cherry-pick
+`860ba281`, and the matching CI backend above. It created the exact requested
+file, exposed the real Git diff, used the PTY, stopped without changing the
+file, restarted Electron, recovered the conversation, completed a read-only
+follow-up, and preserved project/session context through World and back to
+Focus. Captures remain private in `.audit-private/focus-security-integrated-final/`.
+The temporary worktree was not pushed; PR #1783 received only the separate
+untracked-diff regression test commit `e0f6af7c`.
+
+PR #1784 remains OPEN/draft at `f8090484e445a903697933c0a622f3855c59cb92`.
+At the latest poll, the remaining visible jobs were macOS Intel packaging,
+clean-HOME packaged acceptance, and `gates` (with Required CI queued); the
+other platform/package, integration, quality, security, and matrix jobs passed.
+Re-poll before relying on this state. PR #1777 remains open because the
+legacy-import ancestor race and Windows/macOS reparse-point guarantees have
+not received a disposition.
+
+Local V compilation was attempted only after checking no other V process was
+running, under the workspace's 2 GiB/no-swap cap. The available
+`/home/ulisesjcf/vlang-master/v` was `ea5156d`, not CI's `c0e47bf`; its C build
+failed on V/VC incompatibility and the old fallback compiler lacked an internal
+flag. No V source/toolchain checkout was modified. CI's exact backend artifact
+was used for package validation instead. Do not claim this local host built a
+fresh pinned backend.
