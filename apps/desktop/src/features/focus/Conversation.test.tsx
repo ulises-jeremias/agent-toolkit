@@ -175,8 +175,9 @@ describe('Conversation', () => {
       { id: 'opencode', label: 'OpenCode' } as FocusProviderStatus,
     );
     const dialog = await screen.findByRole('form', { name: 'OpenCode asks a question' });
-    expect(dialog).toHaveAttribute('aria-live', 'polite');
-    expect(screen.getByText('OpenCode is waiting for your answer')).toBeInTheDocument();
+    const conversation = screen.getByRole('log', { name: 'Conversation' });
+    expect(conversation).toHaveAttribute('aria-live', 'polite');
+    expect(conversation).toHaveTextContent('OpenCode is waiting for your answer');
     expect(dialog).toHaveTextContent('Choose a plan');
     await user.click(screen.getByRole('radio', { name: /Careful/ }));
     await user.type(screen.getByLabelText('Private answer'), 'do-not-store-this');

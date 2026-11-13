@@ -131,7 +131,6 @@ function UserInputBar({
     <form
       className={`${styles.approval} ${styles.userInput}`}
       aria-label={`${providerLabel} asks a question`}
-      aria-live="polite"
       onSubmit={(event) => {
         event.preventDefault();
         if (!ready || submitting) return;
