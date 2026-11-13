@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 import { expect, test } from '@playwright/test';
 import { openDesktop, waitForBackend, type Desktop } from './fixtures';
 import { goTo } from './navigation';
@@ -24,6 +25,36 @@ function persistedProviderSessionId(workspace: string): string | null {
     }
   }
   return null;
+}
+
+function removeTemporaryOpenCodeProjects(databasePath: string, profileRoot: string): void {
+  const database = new DatabaseSync(databasePath);
+  try {
+    database.exec('BEGIN IMMEDIATE');
+    const roots = new Set([profileRoot, fs.realpathSync.native(profileRoot)]);
+    const projects = new Map<string, string>();
+    for (const root of roots) {
+      const rows = database
+        .prepare('SELECT id, worktree FROM project WHERE worktree LIKE ?')
+        .all(`${root}${path.sep}%`) as { id: string; worktree: string }[];
+      for (const row of rows) projects.set(row.id, row.worktree);
+    }
+    const sessions = database.prepare(
+      'SELECT (SELECT COUNT(*) FROM session WHERE project_id = ?) + (SELECT COUNT(*) FROM session_v2 WHERE project_id = ?) AS count',
+    );
+    const remove = database.prepare('DELETE FROM project WHERE id = ?');
+    for (const id of projects.keys()) {
+      const result = sessions.get(id, id) as { count: number };
+      if (result.count > 0) throw new Error('Refusing to remove a temporary OpenCode project that still has sessions.');
+      remove.run(id);
+    }
+    database.exec('COMMIT');
+  } catch (error) {
+    database.exec('ROLLBACK');
+    throw error;
+  } finally {
+    database.close();
+  }
 }
 
 test.skip(
@@ -190,17 +221,27 @@ test('packaged Focus runs, interrupts, and reloads a real OpenCode ACP session',
         .filter({ hasText: /live-result\.txt/ }),
     ).toBeVisible();
   } finally {
-    await desktop?.close();
-    if (providerSessionId) {
-      execFileSync('opencode', ['session', 'delete', providerSessionId, '--standalone'], {
-        env: { ...process.env, OPENCODE_DB: LIVE_DATABASE },
-        input: 'y\n',
-        stdio: ['pipe', 'ignore', 'ignore'],
-        timeout: 30_000,
-      });
+    try {
+      await desktop?.close();
+    } finally {
+      try {
+        if (providerSessionId) {
+          execFileSync('opencode', ['session', 'delete', providerSessionId, '--standalone'], {
+            env: { ...process.env, OPENCODE_DB: LIVE_DATABASE },
+            input: 'y\n',
+            stdio: ['pipe', 'ignore', 'ignore'],
+            timeout: 30_000,
+          });
+        }
+      } finally {
+        try {
+          removeTemporaryOpenCodeProjects(LIVE_DATABASE!, profileRoot);
+        } finally {
+          fs.rmSync(profileRoot, { recursive: true, force: true });
+          if (previousDatabase === undefined) delete process.env['OPENCODE_DB'];
+          else process.env['OPENCODE_DB'] = previousDatabase;
+        }
+      }
     }
-    fs.rmSync(profileRoot, { recursive: true, force: true });
-    if (previousDatabase === undefined) delete process.env['OPENCODE_DB'];
-    else process.env['OPENCODE_DB'] = previousDatabase;
   }
 });
