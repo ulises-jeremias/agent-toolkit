@@ -2181,3 +2181,30 @@ open. The density-only World experiment did not materially improve the
 rectangular scene edge in packaged captures and was discarded; do not integrate
 it or repeat the same experiment. Focus, exact-head CI, and restart acceptance
 remain ahead of another art-only sequence.
+
+## 52. Continuation checkpoint — main integration observed and verified
+
+GitHub moved during the acceptance run. PR #1782 merged to `main` as merge
+commit `a63db4a58704de11c9924cf4b9b34e808abbd116` (PR head
+`63b35901eddd786b393a565abea1faaaf5240b71`). Its exact-head `gates`,
+packaged fresh-HOME acceptance, Linux/Windows/macOS Electron package jobs,
+CodeQL, compiler checks, and completed platform checks passed. PR #1781 was
+then reported merged with its existing head `80765a86abe7064684f3ac710afa23142a9cdb1d`;
+that head and #1782's merge commit are both ancestors of the fetched main. No
+commit was rewritten by this integration work. The owner performed those GitHub
+merges; this session verified their state and preserved them.
+
+Fetched `origin/main` at `a63db4a5` and merged it normally into
+`rescue/codex-product-integration`; it applied without conflicts and retained
+the rescue branch's authored history and evidence. Exact-main workflows are
+still running: `desktop` and `Clean-machine Desktop Acceptance` are in
+progress, `Validate` is queued, and CodeQL/MegaLinter have passed. Do not call
+the new main head green until its exact workflows finish. No release was
+published by this session.
+
+PR #1783 was automatically retargeted to `main` after #1782 merged. Its current
+head is `b92560663a5c437e48c1d51c77fe697de8c18e32`; fresh-host `gates` and
+clean-profile acceptance are in progress, most fast validation is green, and
+macOS checks/package jobs remain queued or running. The earlier `76b204cb`
+results are historical only. Keep #1783 draft and unmerged until its exact-head
+workflows finish and the full integration review is complete.
