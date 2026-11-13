@@ -9,7 +9,10 @@ test('Operations: a job started from the GUI streams/persists its log in the ins
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
 
     // Empty board is the honest starting state.
-    await expect(page.getByText('No jobs on the backend.')).toBeVisible();
+    await expect(page.getByText('Track jobs and automation from this workspace.', { exact: false })).toBeVisible();
+    await expect(page.getByText('No jobs yet.')).toBeVisible();
+    await expect(page.getByText('Select a job, loop or swarm run to inspect its status and output.')).toBeVisible();
+    await expect(page.getByText(/GET \/api\/v1\/events/)).toHaveCount(0);
 
     // Start a real backend job entirely from the GUI.
     await page.getByRole('button', { name: 'Start job' }).click();
@@ -46,7 +49,7 @@ test('Operations: a job started from the GUI streams/persists its log in the ins
     await page.getByRole('button', { name: 'Delete' }).click();
     const confirm = page.getByRole('dialog');
     await confirm.getByRole('button', { name: 'Delete job' }).click();
-    await expect(page.getByText('No jobs on the backend.')).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText('No jobs yet.')).toBeVisible({ timeout: 30_000 });
   } finally {
     await desktop.close();
   }
@@ -58,7 +61,7 @@ test('Operations: a running job streams live output in the inspector and can be 
     const { page } = desktop;
     await waitForBackend(page);
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
-    await expect(page.getByText('No jobs on the backend.')).toBeVisible();
+    await expect(page.getByText('No jobs yet.')).toBeVisible();
 
     // `serve` is the fixture long-running command: it prints its
     // listening line and then runs until killed, so the job stays
@@ -99,7 +102,7 @@ test('Operations: a running job streams live output in the inspector and can be 
     await page.getByRole('button', { name: 'Delete' }).click();
     const confirm = page.getByRole('dialog');
     await confirm.getByRole('button', { name: 'Delete job' }).click();
-    await expect(page.getByText('No jobs on the backend.')).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText('No jobs yet.')).toBeVisible({ timeout: 30_000 });
   } finally {
     await desktop.close();
   }

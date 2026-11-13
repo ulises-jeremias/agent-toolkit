@@ -392,19 +392,26 @@ test('a contextual tool destination opens the same target-specific Library revie
   await review.getByRole('button', { name: 'Cancel' }).click();
 });
 
-test('insights shows doctor checks and usage without invented cost', async () => {
+test('Health explains environment checks and reported tool use without invented cost', async () => {
   const { page } = desktop;
   await waitForBackend(page);
   await goTo(page, 'Insights');
-  const doctor = page.getByRole('region', { name: 'Doctor' });
-  await expect(doctor).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Workspace health' })).toBeVisible();
   await expect(
-    doctor.getByRole('columnheader', { name: 'Check' }).or(doctor.getByText('Doctor returned no structured checks.')),
+    page.getByText('Review environment checks, tool use, and installed capability changes.', { exact: false }),
   ).toBeVisible();
-  await expect(doctor.getByText(/health score:\s*\d|\$\d/i)).toHaveCount(0);
-  const usage = page.getByRole('region', { name: 'Usage by tool' });
+  const checks = page.getByRole('region', { name: 'System checks' });
+  await expect(checks).toBeVisible();
+  await expect(
+    checks.getByRole('columnheader', { name: 'Check' }).or(checks.getByText('No system checks returned.')),
+  ).toBeVisible();
+  await expect(checks.getByText(/health score:\s*\d|\$\d/i)).toHaveCount(0);
+  await expect(
+    page.getByText(/What the toolkit reports|Knowledge and memory are not this archive|doctor --fix/i),
+  ).toHaveCount(0);
+  const usage = page.getByRole('region', { name: 'Tool usage' });
   await expect(usage).toBeVisible();
-  await expect(usage).toContainText(/Unknown|No usage rows/);
+  await expect(usage).toContainText(/No usage data yet|Unknown/);
   await page.screenshot({ path: 'test-results/review/insights.png', fullPage: true });
 });
 
@@ -536,7 +543,7 @@ test('Library installs Skills and preserves user changes during reviewed removal
   await expect(page.getByRole('region', { name: 'Receipts' })).toContainText('Toolkit capabilities installed');
   expect(applyRequests).toBe(2);
   expect(appliedTargets).toEqual(['claude-code', 'cursor']);
-  const evidence = page.getByRole('region', { name: 'Installation evidence' });
+  const evidence = page.getByRole('region', { name: 'Installed capabilities' });
   await expect(evidence).toContainText('receipts');
   await expect(evidence).toContainText('Claude Code');
   await expect(evidence).toContainText('Cursor');
@@ -576,8 +583,8 @@ test('Library installs Skills and preserves user changes during reviewed removal
     await page.setViewportSize({ width: 1280, height: 800 });
   }
   await page.reload();
-  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('Claude Code');
-  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText('Cursor');
+  await expect(page.getByRole('region', { name: 'Installed capabilities' })).toContainText('Claude Code');
+  await expect(page.getByRole('region', { name: 'Installed capabilities' })).toContainText('Cursor');
   await expect(page.getByText('Discovering coding tools')).toBeHidden();
   await expect(page.getByText('Loading agent definitions')).toBeHidden();
   await expect(page.getByText('Listing swarm runners')).toBeHidden();
@@ -590,7 +597,7 @@ test('Library installs Skills and preserves user changes during reviewed removal
     ]) {
       await page.setViewportSize({ width: size.width, height: size.height });
       await page.screenshot({
-        path: path.join(LIBRARY_CAPTURE_DIR, `installation-receipts-${size.key}.png`),
+        path: path.join(LIBRARY_CAPTURE_DIR, `installed-capabilities-${size.key}.png`),
         fullPage: true,
       });
     }
@@ -600,7 +607,7 @@ test('Library installs Skills and preserves user changes during reviewed removal
   const toolkitSkill = path.join(desktop.home, '.claude', 'skills', 'pr-fallback', 'references', 'pr-body-default.md');
   expect(fs.existsSync(toolkitSkill)).toBe(true);
   fs.writeFileSync(toolkitSkill, 'Edited by the user after Toolkit installed it.\n');
-  await evidence.getByRole('button', { name: 'Refresh evidence' }).click();
+  await evidence.getByRole('button', { name: 'Refresh list' }).click();
   await expect(evidence).toContainText('edited since install');
   await expect(installedSkill).toContainText('needs attention');
   const claudeReceipt = evidence.getByRole('row').filter({ hasText: 'Claude Code' });
@@ -618,7 +625,7 @@ test('Library installs Skills and preserves user changes during reviewed removal
     ]) {
       await page.setViewportSize({ width: size.width, height: size.height });
       await fileEvidence.locator('summary').scrollIntoViewIfNeeded();
-      await evidence.screenshot({
+      await page.screenshot({
         path: path.join(LIBRARY_CAPTURE_DIR, `installation-artifact-evidence-${size.key}.png`),
       });
     }
@@ -683,8 +690,10 @@ test('Library installs Skills and preserves user changes during reviewed removal
       path.join(desktop.home, '.config', 'agent-toolkit', 'receipts', 'claude-code-agent-toolkit-profiles.json'),
     ),
   ).toBe(false);
-  await expect(page.getByRole('region', { name: 'Installation evidence' })).toContainText(
-    'No Toolkit capability installations recorded on this machine.',
+  const installedCapabilities = page.getByRole('region', { name: 'Installed capabilities' });
+  await expect(installedCapabilities).toContainText('No capabilities installed yet.');
+  await expect(installedCapabilities).toContainText(
+    'Files already on your machine are not claimed as Toolkit installs.',
   );
 });
 
@@ -707,7 +716,7 @@ test('Library searches typed catalog metadata and reveals provenance and compati
   await expect(detail).toContainText('Windsurf: partial');
   await expect(detail).toContainText('skills/agentic-security/mcp-audit/SKILL.md');
   await expect(detail).toContainText('None declared');
-  await expect(detail).toContainText('No Toolkit receipt owns files for this Skill');
+  await expect(detail).toContainText('No files from a Toolkit install are recorded for this Skill');
   await skill.scrollIntoViewIfNeeded();
   const skillsPanel = page.getByRole('region', { name: 'Skills catalog' });
 
