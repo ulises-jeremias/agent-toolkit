@@ -6,53 +6,45 @@ function hall(c,w,h,wall,roof){const cx=w/2;c.ellipse(cx,h-2,w/2-2,2,"q");c.rect
 function clock(c,x,y){c.circ(x,y,6,"w");c.ring(x,y,6,"k");c.line(x,y,x,y-4,"k");c.line(x,y,x+3,y+1,"k");c.px(x,y,"r")}
 sprite("landmark-workspace",{w:48,h:72},(c)=>{hall(c,48,72,"c","T");c.rect(18,2,12,16,"c");c.poly([24,0,32,8,16,8],"u");shingle(c,24,0,8,8,"b","b");clock(c,24,12);c.rect(8,58,32,3,"r");c.px(10,59,"L");c.px(37,59,"L");c.rect(13,58,6,3,"w");c.vline(16,58,3,"r");c.hline(22,59,4,"c");c.px(27,59,"w");c.hline(30,59,4,"c");c.px(20,59,"Y")})
 sprite("landmark-archive",{w:48,h:72},(c)=>{hall(c,48,72,"P","S");for(let i=0;i<3;i++){c.rect(9+i*12,34,8,4,"D");c.px(10+i*12,35,"m")}c.circ(24,45,5,"n");c.ring(24,45,5,"j");c.hline(20,45,9,"j");c.vline(24,41,9,"j");c.ring(24,45,2,"j");c.px(24,45,"Y")})
-sprite("landmark-library",{w:48,h:64},(c)=>{
-  // A little glasshouse reading room: timber-and-stone base, steep glazed
-  // roof, one broad book window and a separate, readable entrance.
-  c.ellipse(24,61,21,2,"q");
-  c.rect(6,24,35,34,"c");
-  c.poly([41,24,46,19,46,54,41,58],"e");
-  c.rect(4,54,39,7,"P");
-  c.hline(5,58,37,"q");
-  c.vline(14,54,7,"p");c.vline(27,54,7,"p");c.vline(37,54,7,"p");
-
-  // Tall glazed roof planes give the Library a silhouette no other landmark
-  // uses. The inked ribs are structural mullions, not surface noise.
-  c.poly([24,1,46,21,2,21],"A");
-  c.poly([24,1,46,21,24,21],"z");
-  c.line(24,2,3,20,"k");c.line(24,2,45,20,"k");
-  c.line(24,3,8,18,"a");c.line(24,3,40,18,"A");
-  c.line(24,3,15,16,"z");c.line(24,3,33,16,"z");
-  c.hline(8,17,32,"z");c.hline(4,20,40,"k");
-  c.poly([18,7,24,10,24,15,18,12],"w");
-  c.poly([24,10,30,7,30,12,24,15],"C");
-  c.vline(24,10,5,"u");
-
-  // Broad reading window: deep frame, warm shelves and distinct book spines.
-  c.rect(9,24,30,23,"n");
-  c.rect(11,26,26,19,"Z");
-  c.rect(13,28,10,15,"D");c.rect(25,28,10,15,"D");
+sprite("landmark-library",{w:64,h:64},(c)=>{
+  // The valley library is an old adobe reading room joined to a small kiln
+  // tower. Its broad, low roof and tall book gallery distinguish it from the
+  // civic hall silhouettes without adding surface-noise pixels.
+  c.ellipse(33,61,29,2,"q");
+  c.poly([5,32,45,28,57,34,57,56,8,59],"e");
+  c.poly([45,32,57,34,57,56,45,58],"P");
+  c.rect(8,35,39,21,"c");
+  c.poly([47,35,57,34,57,56,47,57],"C");
+  c.poly([5,34,26,18,49,34,47,38,8,38],"T");
+  c.poly([26,18,49,34,47,38,26,25],"u");
+  c.line(26,19,6,34,"k");c.line(26,19,48,34,"k");
+  c.hline(7,35,41,"b");
+  // A round kiln / archive tower is the library's distant landmark.
+  c.rect(45,9,12,26,"T");
+  c.poly([44,12,49,5,55,5,59,12],"u");
+  c.poly([46,12,50,7,54,7,57,12],"t");
+  c.hline(46,13,11,"b");
+  c.rect(48,16,7,11,"Z");c.box(48,16,7,11,"D");
+  c.vline(51,17,9,"M");
+  c.rect(49,29,5,7,"D");c.box(49,29,5,7,"k");
+  // Deep-set gallery, timber mullions and warm shelves with restrained books.
+  c.rect(12,39,29,13,"D");c.box(12,39,29,13,"k");
+  c.rect(15,41,23,9,"Z");
+  c.hline(15,45,23,"M");
   const spines=["r","Y","V","g","a","j"];
-  for(let shelf=0;shelf<2;shelf++){
-    const sy=29+shelf*7;
-    for(let book=0;book<5;book++){
-      const bx=14+book*4+(book>2?1:0);
-      c.vline(bx,sy,5,spines[(book+shelf*2)%spines.length]);
-    }
-    c.hline(13,sy+5,22,"b");
+  for(let row=0;row<2;row++)for(let book=0;book<6;book++){
+    const x=17+book*3;
+    c.vline(x,42+row*4,3,spines[(book+row*2)%spines.length]);
   }
-  c.vline(24,26,19,"M");
-  c.hline(10,35,28,"M");
-  c.vline(7,21,34,"D");c.vline(40,21,34,"D");
-  c.hline(7,22,34,"d");
-
-  // Separate timber door, brass handle, steps and two potted library plants.
-  c.rect(19,45,10,14,"D");c.box(19,45,10,14,"k");
-  c.vline(24,46,12,"b");c.px(27,52,"Y");
-  c.rect(18,59,12,2,"M");
-  c.rect(7,47,5,5,"T");c.rect(34,47,5,5,"T");
-  c.px(7,45,"G");c.px(9,43,"g");c.px(11,45,"f");
-  c.px(34,45,"G");c.px(36,43,"g");c.px(38,45,"f");
+  c.vline(26,40,12,"d");c.vline(14,40,12,"d");c.vline(39,40,12,"d");
+  // Recessed entrance, stone sill, worn step, and a small pair of planters.
+  c.rect(22,49,9,10,"D");c.box(22,49,9,10,"k");
+  c.vline(26,50,8,"b");c.px(29,54,"Y");
+  c.poly([18,57,35,57,38,60,15,60],"M");
+  c.poly([11,60,43,60,47,63,7,63],"P");c.hline(9,62,35,"q");
+  c.rect(8,50,5,6,"T");c.rect(38,50,5,6,"T");
+  c.poly([8,49,11,45,14,49],"G");c.poly([38,49,41,44,44,49],"f");
+  c.px(10,46,"g");c.px(12,47,"g");c.px(40,45,"g");c.px(42,47,"G");
 })
 sprite("landmark-workshop",{w:48,h:72},(c)=>{hall(c,48,72,"e","S");c.rect(34,6,7,22,"M");c.hline(33,5,9,"k");c.px(36,2,"L");c.px(38,0,"l");c.px(35,4,"J");for(let x=8;x<28;x+=6){c.rect(x,44,3,5,"r");c.rect(x+3,44,3,5,"w")}c.px(12,58,"J");c.line(10,60,16,54,"M")})
 sprite("landmark-operations",{w:48,h:72},(c)=>{hall(c,48,72,"c","n");clock(c,24,22);c.circ(13,54,4,"M");c.ring(13,54,4,"n");c.circ(35,54,4,"M");c.ring(35,54,4,"n");c.px(13,50,"Y");c.px(35,58,"Y");c.px(24,58,"A")})
