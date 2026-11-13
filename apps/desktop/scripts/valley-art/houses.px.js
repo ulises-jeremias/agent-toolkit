@@ -189,35 +189,55 @@ include("lib.px.js")
   })
 
   // ================================================================ house-workshop
-  // Tall timber-frame house with a steep slate roof and a hanging sign.
+  // Tall three-quarter timber shop. Its steep roof and narrow shaded wall
+  // distinguish it from the low inn and round thatched studio.
   const C = {
-    wins: [[20, 27, 8, 9, {}], [36, 27, 8, 9, {}], [19, 47, 8, 10, {}]],
-    doorPane: [31, 51, 3, 3],
+    wins: [[14, 46, 7, 8, {}], [45, 38, 7, 8, {}]],
+    doorPane: [27, 56, 3, 3],
   }
   sprite("house-workshop", { w: W, h: H }, (c) => {
-    // steep slate roof: cool blue-grey, rim light on the left slope
-    c.poly([32, 3, 9, 26, 55, 26], "N")
-    c.poly([32, 3, 9, 26, 15, 26, 32, 6], "D")
-    c.clip([32, 3, 9, 26, 55, 26], () => {                           // courses stay inside the roof
-      for (let y = 10; y < 26; y += 3) c.hline(0, y, 64, "V")
-    })
-    c.rect(43, 6, 4, 9, "e"); c.hline(43, 6, 4, "C")                  // brick chimney above roof
-    // timber-frame body
-    c.rect(14, 26, 36, 46, "c")
-    c.rect(44, 26, 6, 46, "C")
-    for (const x of [14, 31, 47]) { c.rect(x, 26, 3, 46, "t"); c.vline(x, 26, 46, "u") }
-    for (const y of [26, 45, 62]) { c.rect(14, y, 36, 2, "t"); c.hline(14, y, 36, "u") }
-    // footing
-    stones(c, 12, 66, 40, 6, { rh: 3 })                                // footing sits on the ground line
+    stones(c, 47, 11, 8, 18, { rh: 3, widths: [4, 5, 3] })
+    c.vline(47, 12, 16, "h"); c.vline(53, 12, 16, "D")
+    c.rect(46, 9, 10, 3, "s"); c.hline(46, 9, 10, "h")
+    // Two steep slate planes meet at a high ridge and share the valley light.
+    c.poly([36, 3, 8, 26, 36, 40], "N")
+    c.poly([36, 3, 60, 20, 36, 40], "D")
+    c.poly([36, 3, 8, 26, 14, 29, 36, 12], "V")
+    c.poly([36, 3, 60, 20, 55, 24, 36, 12], "N")
+    c.line(36, 4, 9, 27, "h"); c.line(37, 5, 59, 21, "C")
+    for (let y = 13; y < 30; y += 4) {
+      const reach = Math.floor((y - 3) * 1.16)
+      const ridgeY = y + Math.floor((y - 3) * 0.43)
+      c.line(36 - reach, y, 36, ridgeY, y < 21 ? "V" : "C")
+      c.line(36, ridgeY, 36 + reach, y, y < 21 ? "N" : "D")
+    }
+    c.line(8, 26, 36, 41, "T"); c.line(36, 41, 60, 22, "T")
+    c.line(10, 29, 36, 44, "u"); c.line(36, 44, 58, 25, "u")
+    // Plaster front and shaded side share one strong projecting corner.
+    c.poly([13, 31, 36, 43, 36, 66, 13, 58], "c")
+    c.poly([36, 43, 56, 29, 56, 56, 36, 66], "C")
+    c.poly([13, 58, 36, 66, 36, 71, 13, 64], "s")
+    c.poly([36, 66, 56, 56, 56, 62, 36, 71], "s")
+    c.line(14, 61, 36, 68, "D"); c.line(37, 68, 55, 60, "D")
+    c.line(16, 34, 34, 44, "u"); c.line(38, 44, 54, 33, "D")
+    c.vline(15, 36, 22, "u"); c.vline(35, 45, 18, "T"); c.vline(54, 34, 20, "D")
+    c.line(16, 54, 34, 61, "t"); c.line(38, 61, 54, 52, "D")
     for (const [x, y, w, h, o] of C.wins) {
       win(c, x, y, w, h, o)
       c.rect(x - 1, y + h, w + 2, 2, "d"); c.hline(x - 1, y + h + 1, w + 2, "t")
     }
-    door(c, 27, 47, 10, 22, ["N", "B", "b"], { arch: "t", pane: C.doorPane })
-    // hanging sign: a bracket with a painted board
-    c.hline(9, 41, 6, "T"); c.vline(9, 41, 6, "T")
-    c.rect(8, 46, 8, 5, "u"); c.hline(8, 46, 8, "y"); c.hline(8, 50, 8, "T"); c.px(10, 48, "T"); c.px(13, 48, "T")
-    c.stamp("_box_white", 36, 37)
+    // Deep shop canopy, stout posts and a door opening onto the public lane.
+    c.poly([19, 45, 26, 41, 36, 46, 28, 51], "T")
+    c.poly([19, 45, 26, 41, 26, 44, 20, 48], "u")
+    c.line(20, 48, 28, 52, "D"); c.line(28, 52, 35, 47, "T")
+    c.rect(20, 47, 2, 11, "t"); c.vline(20, 47, 11, "u")
+    c.rect(34, 48, 2, 12, "T"); c.vline(34, 48, 12, "u")
+    door(c, 23, 50, 10, 20, ["N", "B", "b"], { arch: "t", pane: C.doorPane })
+    // A bracketed sign sits on the receding wall beneath its deep eave.
+    c.vline(52, 49, 7, "T"); c.hline(46, 49, 7, "T")
+    c.rect(46, 56, 8, 5, "u"); c.hline(46, 56, 8, "y"); c.hline(46, 60, 8, "T")
+    c.px(48, 58, "T"); c.px(51, 58, "T")
+    c.stamp("_box_white", 13, 55)
   }, outline)
   sprite("house-workshop_lit", { w: W, h: H }, (c) => {
     for (const [x, y, w, h, o] of C.wins) litwin(c, x, y, w, h, o)

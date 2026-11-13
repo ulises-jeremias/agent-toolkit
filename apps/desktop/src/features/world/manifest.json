@@ -183,7 +183,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "b24b7e6bfa9f916278d1a25015434582e04d46b843c7c73d43d6cc78c24fe323"
+      "sha256": "757998f9db224d4723e6122f2ce6e404db21179a7da6a377b64e92e6f4880a99"
     },
     "house-workshop_lit": {
       "file": "house-workshop_lit.png",
@@ -191,7 +191,7 @@
       "h": 72,
       "frames": 1,
       "source": "scripts/world-art-pxl/houses.px.js",
-      "sha256": "3a9cc096cc6f59326fd2e1da48d5ac10ef4b52570b766ad422e5b0ec34a7dc64"
+      "sha256": "95c47469833aec1e48b8f797561d0e0c2d6c5aaa71ec99f3f7e96e528df81dcb"
     },
     "bench-tools": {
       "file": "bench-tools.png",
