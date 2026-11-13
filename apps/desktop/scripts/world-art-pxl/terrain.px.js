@@ -38,9 +38,25 @@ dirtEdge("dirt-n","n");dirtEdge("dirt-s","s");dirtEdge("dirt-e","e");dirtEdge("d
 dirtEdge("dirt-nw","nw");dirtEdge("dirt-ne","ne");dirtEdge("dirt-sw","sw");dirtEdge("dirt-se","se")
 function plaza(name,seed,alt){sprite(name,{w:16,h:16},(c)=>{c.rect(0,0,16,16,alt?"P":"p");c.box(0,0,16,16,"q");c.vline(8,0,16,"P");c.hline(0,8,16,alt?"p":"P");dots(c,seed,5,["q","w"])})}
 plaza("plaza",101,false);plaza("plaza-b",102,true)
-// water: 32x16, frame0/frame1 differ by wave offset
-sprite("water",{w:32,h:16},(c)=>{c.rect(0,0,32,16,"A");c.rect(0,12,32,4,"z");
-  for(let f=0;f<2;f++){const o=f*16;c.hline(o+2,4,6,"a");c.hline(o+9,9,5,"a");c.px(o+4,12,"z");c.px(o+12,3,"z");if(f){c.hline(o+5,6,4,"w")}else{c.hline(o+3,7,4,"w")}}})
+// water: an uneven current over a deep lower plane; reflected light drifts
+// along short angled ripples instead of identical ruler-straight bars.
+sprite("water",{w:32,h:16},(c)=>{
+  for(let f=0;f<2;f++){
+    const o=f*16
+    c.rect(o,0,16,16,"A")
+    c.poly([o,12,o+3,11,o+7,12,o+11,11,o+16,12,o+16,16,o,16],"z")
+    c.line(o+1,14,o+5,13,"Z");c.line(o+10,15,o+14,14,"Z")
+    if(f===0){
+      c.line(o+2,4,o+7,3,"a");c.line(o+9,7,o+13,6,"a")
+      c.line(o+3,5,o+6,5,"w");c.line(o+11,8,o+13,8,"w")
+      c.px(o+6,10,"a");c.px(o+14,3,"z")
+    }else{
+      c.line(o+4,3,o+8,4,"a");c.line(o+10,6,o+14,5,"a")
+      c.line(o+5,4,o+7,4,"w");c.line(o+12,7,o+14,7,"w")
+      c.px(o+2,9,"a");c.px(o+9,11,"z")
+    }
+  }
+})
 function waterEdge(name,side){sprite(name,{w:16,h:16},(c)=>{
   // Shore cells remain meadow; only an uneven, shallow lip joins the channel.
   // Filling these tiles with water made a one-tile creek read as a wide canal.

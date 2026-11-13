@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildWorldModel, jobBelongsToProject, pathIsWithin, resolveProjectTarget } from './buildWorld';
 import { districtIdForPack, planDistricts, UNFILED_DISTRICT_ID } from './districts';
-import { layoutWorld } from './layout';
+import { layoutWorld, projectDistrictCols } from './layout';
 import { paintInterior, paintTerrain } from './terrain';
 import type { MemoryEntryRecord, MemorySummary, ToolRecord, WorldDomainInput } from './types';
 import { horneroValleyTheme } from '../theme/horneroValley';
@@ -741,7 +741,7 @@ describe('layoutWorld', () => {
     }
   });
 
-  it('lays projects in a fixed-width neighborhood across the creek from the commons', () => {
+  it('lays projects in a deeper neighborhood across the creek from the commons', () => {
     const layout = layoutWorld(
       buildWorldModel(
         baseInput({
@@ -756,6 +756,7 @@ describe('layoutWorld', () => {
     );
     const a = layout.entities.find((e) => e.id === 'place:project:a')!;
     const b = layout.entities.find((e) => e.id === 'place:project:b')!;
+    const c = layout.entities.find((e) => e.id === 'place:project:c')!;
     const e = layout.entities.find((e) => e.id === 'place:project:e')!;
     const memory = layout.entities.find((e) => e.id === 'place:memory')!;
     const library = layout.entities.find((e) => e.id === 'object:library')!;
@@ -763,9 +764,11 @@ describe('layoutWorld', () => {
     expect(library.w).toBe(4);
     expect(library.h).toBe(4);
     expect(b.y).toBe(a.y);
-    // Dense rosters wrap after three homes so the district avoids a long row.
+    // Five projects use two columns: three short streets give the valley depth.
+    expect(projectDistrictCols(5)).toBe(2);
     expect(e.y).toBeGreaterThan(a.y);
-    // A 16-project roster wraps after four homes.
+    expect(e.y).toBeGreaterThan(c.y);
+    // A 16-project roster uses four columns to keep the full district navigable.
     const wide = layoutWorld(
       buildWorldModel(
         baseInput({
