@@ -730,7 +730,10 @@ describe('tool descriptions', () => {
       kind: 'command',
       title: 'npm test',
     });
-    expect(describeTool('Edit', { file_path: '/repo/src/a.ts' }, '/repo')).toEqual({ kind: 'edit', title: 'src/a.ts' });
+    expect(describeTool('Edit', { file_path: '/repo/src/a.ts' }, '/repo')).toEqual({
+      kind: 'edit',
+      title: path.join('src', 'a.ts'),
+    });
     expect(describeTool('Read', { file_path: '/elsewhere/b.ts' }, '/repo')).toEqual({
       kind: 'read',
       title: '/elsewhere/b.ts',
