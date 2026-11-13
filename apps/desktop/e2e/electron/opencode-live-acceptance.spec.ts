@@ -77,6 +77,20 @@ test('packaged Focus runs, interrupts, and reloads a real OpenCode ACP session',
   try {
     fs.mkdirSync(repository, { recursive: true });
     fs.writeFileSync(path.join(desktop.home, '.zshrc'), '# Isolated acceptance shell.\n');
+    fs.writeFileSync(
+      path.join(repository, 'opencode.jsonc'),
+      `${JSON.stringify(
+        {
+          $schema: 'https://opencode.ai/config.json',
+          permissions: [
+            { action: 'edit', resource: '*', effect: 'ask' },
+            { action: 'shell', resource: '*', effect: 'ask' },
+          ],
+        },
+        null,
+        2,
+      )}\n`,
+    );
     execFileSync('git', ['init', '--quiet', repository]);
     execFileSync(
       'git',
@@ -87,10 +101,23 @@ test('packaged Focus runs, interrupts, and reloads a real OpenCode ACP session',
         'user.name=Agent Toolkit Acceptance',
         '-c',
         'user.email=acceptance@example.invalid',
+        'add',
+        'opencode.jsonc',
+      ],
+      { stdio: 'pipe' },
+    );
+    execFileSync(
+      'git',
+      [
+        '-C',
+        repository,
+        '-c',
+        'user.name=Agent Toolkit Acceptance',
+        '-c',
+        'user.email=acceptance@example.invalid',
         'commit',
-        '--allow-empty',
         '-m',
-        'Initial disposable repository',
+        'Configure disposable OpenCode approvals',
       ],
       { stdio: 'pipe' },
     );
@@ -133,6 +160,7 @@ test('packaged Focus runs, interrupts, and reloads a real OpenCode ACP session',
         { timeout: 240_000, intervals: [500, 1000, 2000] },
       )
       .toBe(true);
+    expect(approvedWrite, 'The real provider should wait for a visible one-shot edit approval.').toBe(true);
     expect(fs.readFileSync(output, 'utf8').trim()).toBe(EXACT_LINE);
     await expect(log.locator('[data-outcome="completed"]')).toBeVisible({ timeout: 120_000 });
     providerSessionId ??= persistedProviderSessionId(desktop.workspace);
