@@ -1851,3 +1851,19 @@ PR #1783 until fresh workflows appear and finish, and report only the exact SHA
 results. The parent stack, independent review, full live-provider acceptance,
 accessibility sweep, clean installed-app 13-step acceptance, World iteration,
 and rescue sign-off all remain open.
+
+## 43. Continuation checkpoint — provider availability and CI poll
+
+After the packaged validation, checked only authenticated-status exit signals
+for `claude auth status` and `codex login status`, suppressing all CLI output.
+Neither provider CLI is installed on this host, so no live-provider attempt can
+be made from this environment. This is an environment limitation, not a claim
+that providers are unauthenticated on the owner's machine. Continue independent
+work and leave the live gate open.
+
+Polled PR #1783 exact head `7519fefdfbc4b46ecc8361d9cc1ec9813b6d8501` again.
+Web quality passed; Validate had 28 successes, 7 in progress, 8 queued and one
+skipped; desktop gates and clean-machine acceptance remained in progress; V
+parity had one success and one in progress. No failure appeared in this poll.
+This is not a green PR gate. Follow up on this same SHA until final, then query
+again after any later push.
