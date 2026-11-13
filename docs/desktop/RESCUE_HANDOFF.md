@@ -1363,10 +1363,13 @@ resolve the repeated tree crowns or straight canal. Local World tests remain
 
 Exact GitHub state after the latest push: PR #1783 is OPEN, draft, head
 `5018d4a006a209e30e57f5202fc9ff560b49d8ce`, based on
-`fix/desktop-shell-smoke-navigation-20261112`. The just-pushed head had no
-checks reported yet and merge state UNKNOWN at the last query. Re-query before
-acting; do not infer completion from checks on `66586da4` or earlier. Keep it
-unmerged pending healthy exact-head checks, review, and the stacked base PRs.
+`fix/desktop-shell-smoke-navigation-20261112`. Exact-head checks have started.
+At the latest poll, the web-quality job, Vercel preview, and a group of Validate
+jobs passed; `gates`, clean-HOME Electron, Release, package build, and remaining
+platform checks were still pending. No exact-head failure was reported. Re-query
+before acting; do not infer completion from checks on `66586da4` or earlier.
+Keep it unmerged pending healthy exact-head checks, review, and the stacked base
+PRs.
 
 Next: review exact-head CI; continue a distinct-facade/environment composition
 iteration and inspect its real packaged captures; then resume the unfinished
