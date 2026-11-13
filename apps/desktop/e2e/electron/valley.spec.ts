@@ -25,34 +25,29 @@ test.describe('World village', () => {
     await desktop?.close();
   });
 
-  test('shows the village, a place panel with real actions, and no characters without sessions', async () => {
+  test('shows the semantic workspace and only real session activity', async () => {
     const { page } = desktop;
     await waitForBackend(page);
     await goTo(page, 'World');
 
-    const village = page.getByRole('group', { name: 'Workspace village' });
+    const village = page.getByRole('application', { name: 'Semantic workspace world' });
     await expect(village).toBeVisible();
-    await expect(page.getByRole('button', { name: /Library:/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Workshop:/ })).toBeAttached();
-    // With no live session there is no character to click.
-    await expect(page.getByRole('button', { name: /working|needs your answer/ })).toHaveCount(0);
-
-    const panel = page.getByRole('region', { name: 'Selected place' });
-    await expect(panel).toContainText('Choose a place');
-
-    await page.getByRole('button', { name: /Library:/ }).click();
-    await expect(panel.getByRole('heading', { name: 'Library' })).toBeVisible();
-    await expect(panel.getByRole('button', { name: 'Open Library' })).toBeVisible();
-    await panel.getByRole('button', { name: 'Open Library' }).click();
+    await expect(page.getByRole('button', { name: /^Library ·/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Workshop ·/ })).toBeAttached();
+    // With no live provider session, the World has no agent activity markers.
+    await expect(village.getByRole('button', { name: /working|needs your answer/ })).toHaveCount(0);
+    await page.getByRole('button', { name: /^Library ·/ }).click();
     await expect(page).toHaveURL(/#\/library/);
   });
 
-  test('a linked project is a house whose New session action opens Focus in that project', async () => {
+  test('a linked project house opens its interior and stays selectable in Focus', async () => {
     const { page } = desktop;
     await goTo(page, 'World');
-    await page.getByRole('button', { name: /^garden-api:/ }).click();
-    const panel = page.getByRole('region', { name: 'Selected place' });
-    await panel.getByRole('button', { name: 'New session' }).click();
+    await page.getByRole('button', { name: /^garden-api\s+·\s+Project\b/ }).click();
+    await expect(page).toHaveURL(/#\/world\?.*project=garden-api/);
+    await expect(page.getByRole('application', { name: 'Interior of garden-api' })).toBeVisible();
+    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Focus' }).click();
     await expect(page).toHaveURL(/#\/focus/);
+    await expect(page.getByRole('combobox', { name: 'Project', exact: true })).toHaveValue('garden-api');
   });
 });

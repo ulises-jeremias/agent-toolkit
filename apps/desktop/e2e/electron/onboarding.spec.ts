@@ -13,14 +13,20 @@ async function capture(page: Desktop['page'], name: string): Promise<void> {
   await page.screenshot({ path: path.join(OUT_DIR, `${name}.png`) });
 }
 
-async function enterWorld(page: Desktop['page'], prefix: string): Promise<void> {
+async function openDesktopFromOnboarding(page: Desktop['page'], prefix: string): Promise<void> {
   await page.getByRole('button', { name: 'Open Agent Toolkit' }).click();
   await waitForBackend(page);
+  await expect(page).toHaveURL(/#\/focus/);
+  await expect(page.getByRole('heading', { name: 'What should we work on?' })).toBeVisible();
+  await expect(
+    page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Focus' }),
+  ).toHaveAttribute('aria-current', 'page');
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
   await expect(page).toHaveURL(/#\/world/);
   await expect(
     page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }),
   ).toHaveAttribute('aria-current', 'page');
-  await expect(page.getByRole('group', { name: 'Workspace village' })).toBeVisible();
+  await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(page.getByText('INSTALLED')).toHaveCount(0);
   await capture(page, `${prefix}03-world`);
@@ -71,7 +77,7 @@ test.describe('first-run happy path', () => {
     await capture(page, '01-setup-compact');
     await setViewport(app, 1440, 900);
 
-    await enterWorld(page, '');
+    await openDesktopFromOnboarding(page, '');
   });
 });
 
@@ -92,7 +98,7 @@ test.describe('first-run missing harness', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Set up Agent Toolkit' })).toBeVisible();
     await expect(page.getByText(/agent-toolkit workspace init/)).toHaveCount(0);
 
-    const create = page.getByRole('button', { name: `Create ${workspace}` });
+    const create = page.getByRole('button', { name: 'Create workspace folder' });
     await expect(create).toBeEnabled({ timeout: 30_000 });
     await expect(page.getByRole('button', { name: 'Use an existing folder' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Open Agent Toolkit' })).toBeDisabled();
@@ -106,7 +112,7 @@ test.describe('first-run missing harness', () => {
     await expect(page.getByRole('listitem').filter({ hasText: 'Workspace folder' })).toContainText(workspace);
     await capture(page, 'fallback-03-created');
 
-    await enterWorld(page, 'fallback-');
+    await openDesktopFromOnboarding(page, 'fallback-');
   });
 });
 

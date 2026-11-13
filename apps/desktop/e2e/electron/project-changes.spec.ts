@@ -82,6 +82,28 @@ test('reviews, stages, and commits real project changes from the GUI', async () 
       'Document the garden',
     );
 
+    // Probe the real backend response as well as the renderer. This separates
+    // a stale UI query from a missing commit-history capability.
+    const backendUrl = await page.evaluate(async () => (await window.atk?.backendStatus())?.url ?? null);
+    expect(backendUrl).not.toBeNull();
+    const gitLog = await page.evaluate(
+      async ({ workspace, backendUrl }) => {
+        const query = new URLSearchParams({ workspace, limit: '50' });
+        const response = await fetch(`${backendUrl}/api/v1/projects/garden-api/git/log?${query}`);
+        const body = await response.text();
+        return { status: response.status, body };
+      },
+      { workspace: desktop.workspace, backendUrl },
+    );
+    expect(gitLog.status, gitLog.body).toBe(200);
+    const gitLogBody = JSON.parse(gitLog.body) as {
+      ok: boolean;
+      detail?: string;
+      commits: { subject: string }[];
+    };
+    expect(gitLogBody.ok, gitLogBody.detail).toBe(true);
+    expect(gitLogBody.commits.map((entry) => entry.subject)).toEqual(['Document the garden', 'initial']);
+
     // History: clicking a commit renders its diff in the pane.
     await changes
       .getByRole('list', { name: 'Commit history' })
