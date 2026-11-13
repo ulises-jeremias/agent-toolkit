@@ -1,6 +1,6 @@
 # Agent Toolkit Desktop rescue — execution handoff for GPT-6-Luna
 
-Updated: 2026-11-13 (World iteration 11; authored oak and Dusk atmosphere, stack reconciled).
+Updated: 2026-11-13 (World iteration 12; Focus provider blocker clarity; packaged visual tour).
 Requested by the owner to
 preserve the complete mission and continue with GPT-6-Luna without repeating
 expensive discovery.
@@ -48,7 +48,7 @@ integration worktree intact; it is not the same branch as the pushed follow-up P
 | `worktrees/rescue`, local `rescue/shell-v2` at `0c730540` | Original PR #1780 checkout, now behind its updated remote PR branch. Do not push from this stale worktree. |
 | `worktrees/desktop-pr1780-repair`, local `rescue/pr1780-gate-repair` at `01140c97` | Updated remote head for PR #1780 (`rescue/shell-v2`). Adds backported, authored test repairs; renderer smoke and affected source-Electron journeys pass locally. Hosted exact-head checks pending. |
 | `worktrees/desktop-owner`, `rescue/codex-product-integration` | Started from canonical main `3e08b51e`; local merge `dbbbcb57` preserves rescue commits. Protocol fix cherry-picked as `8a753ec5`. Rescue checkpoints are pushed to this branch; latest documented checkpoint is `aa67c8eb`. |
-| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `5018d4a0`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, original civic facades, responsive fitted overview camera, reduced ground/flower/path noise, a reauthored cottage facade, and taller project streets. It is not merged into the integration worktree. |
+| `worktrees/desktop-followup`, `rescue/desktop-continuity-focus` | Pushed draft PR #1783, current head `7519fefd`; includes continuity/runtime follow-up, Focus-first navigation, semantic World, original civic/project facades, responsive fitted overview camera, authored Dusk window lights, and Focus provider-blocker guidance. It is not merged into the integration worktree. |
 | `worktrees/desktop-smoke-repair`, `fix/desktop-shell-smoke-navigation-20261112` | PR #1782 updated to `36affaac` with authored journey repairs and a World-home route assertion for the current base implementation. Four affected Electron journeys and seven renderer smoke tests pass locally. Exact-head hosted checks are running; keep the stacked PR draft and unmerged. |
 | `worktrees/codex-protocol`, `rescue/codex-protocol`, `2b8de6d6` | Reviewed protocol fix; already cherry-picked as `8a753ec5`. Do not apply twice. |
 | `worktrees/workspace-continuity`, `rescue/workspace-continuity` | Uncommitted partial implementation by subagent; NOT reviewed, tested or integrated. See critical persistence flaw below. |
@@ -1814,3 +1814,40 @@ preview completed. Desktop gates `43399533484`, packaged fresh-HOME acceptance
 other related PR checks; no red conclusion is visible. Treat these as genuinely
 pending until queried again. The packaged Linux tests performed locally are
 separate evidence and do not change hosted CI state.
+
+## 42. Continuation checkpoint — Focus provider blockers and complete packaged tour
+
+PR #1783 now includes `7519fefd` (`fix(desktop): surface Focus provider
+blockers`), pushed to `rescue/desktop-continuity-focus`. In New Session, the
+unauthenticated-provider explanation is now above the provider list, retains the
+installed provider's exact login hint in its row, and the disabled Start button
+has a state-specific adjacent explanation exposed through `aria-describedby`.
+When no supported binary exists, the helper says to install one; while discovery
+runs it says it is checking. Added a regression for the signed-out state and
+accessible description.
+
+Validation on this change: all 80 Vitest files / 617 tests; all 45 Node runtime
+spike tests; `pnpm check:world` (207 generated assets); `pnpm lint`;
+`pnpm type-check`; `git diff --check`; Linux x64 `pnpm dist:dir`; and packaged
+Electron `responsive-layout.spec.ts` 2/2, including 1024×640 and HiDPI. Reviewed
+the resulting packaged 1024×640 Focus screenshot at
+`apps/desktop/test-results/review/responsive-focus-narrow.png`: the next action
+is visible without scrolling, the unauthenticated blocker is above the choices,
+and the disabled action explains the required sign-in. This review includes no
+real provider authentication.
+
+Also completed a real packaged Electron visual tour of 62 states/screenshots
+under `.audit-private/full-product-pass/`: World, Focus, Projects/Git changes,
+real terminal, Library, People, Operations, Settings, multiple sizes/themes,
+and People dialogs. These local captures are disposable test state and must
+remain private. The tour confirmed that technical pages are functional and
+readable, but Settings needs scrolling at compact height. World Dusk windows
+now read as warm at overview scale; broad vertical creek, rectangular land edge,
+and sparse top/bottom framing remain visible art-direction defects. The tour did
+not include onboarding or a real provider conversation; do not overstate it.
+
+Exact-head CI for `7519fefd` has not yet been queried in this checkpoint. Poll
+PR #1783 until fresh workflows appear and finish, and report only the exact SHA
+results. The parent stack, independent review, full live-provider acceptance,
+accessibility sweep, clean installed-app 13-step acceptance, World iteration,
+and rescue sign-off all remain open.
