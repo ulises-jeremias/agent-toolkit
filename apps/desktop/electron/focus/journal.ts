@@ -1,12 +1,14 @@
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { FocusEvent, FocusEventBody, FocusThread } from '../../src/types/focus';
 
 /**
- * Durable Focus history (ADR-044): one directory per thread under
- * `<workspace>/.agent-toolkit/focus/threads/<id>/` holding `thread.json`
- * (metadata, rewritten atomically) and `events.jsonl` (append-only).
+ * Durable Focus history (ADR-044): one directory per thread holding
+ * `thread.json` (metadata, rewritten atomically) and `events.jsonl`
+ * (append-only). Production journals live in private app storage keyed by the
+ * canonical workspace path. Legacy workspace journals are copied once and
+ * kept in place as a nondestructive migration backup.
  *
  * The journal is the only source of truth for what happened in a session.
  * Streaming deltas are never written; a crash can therefore lose at most the
@@ -27,14 +29,18 @@ export function newThreadId(now = Date.now()): string {
   return `th_${now.toString(36)}${randomBytes(6).toString('hex')}`;
 }
 
-export function focusRoot(workspace: string): string {
-  return path.join(workspace, '.agent-toolkit', 'focus', 'threads');
+export function focusRoot(workspace: string, storageRoot?: string): string {
+  // Without an explicit app root this is the legacy path, retained for old
+  // history migration and focused tests.
+  if (!storageRoot) return path.join(workspace, '.agent-toolkit', 'focus', 'threads');
+  const canonicalWorkspace = fs.realpathSync(workspace);
+  const workspaceKey = createHash('sha256').update(canonicalWorkspace).digest('hex');
+  return path.join(canonicalStorageRoot(storageRoot), workspaceKey, 'threads');
 }
 
-function assertSafeJournalPath(workspace: string, target: string): void {
-  const root = path.resolve(workspace);
-  // The workspace itself can be a symlink; checking only its descendants
-  // would allow the entire journal tree to resolve outside the chosen root.
+function assertSafeJournalPath(workspace: string, target: string, storageRoot?: string): void {
+  const root = storageRoot ? canonicalStorageRoot(storageRoot) : path.resolve(workspace);
+  // Validate the ownership boundary itself, not only its descendants.
   try {
     if (fs.lstatSync(root).isSymbolicLink()) throw new Error('Symlink in Focus journal path');
   } catch (error) {
@@ -53,26 +59,92 @@ function assertSafeJournalPath(workspace: string, target: string): void {
   }
 }
 
-function writeAtomic(file: string, content: string): void {
+function canonicalStorageRoot(storageRoot: string): string {
+  const resolved = path.resolve(storageRoot);
+  const parent = fs.realpathSync(path.dirname(resolved));
+  return path.join(parent, path.basename(resolved));
+}
+
+function ensurePrivateDirectory(directory: string): void {
+  const resolved = path.resolve(directory);
+  const parent = path.dirname(resolved);
+  try {
+    fs.mkdirSync(resolved, { mode: 0o700 });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+  }
+  const parentStat = fs.lstatSync(parent);
+  const directoryStat = fs.lstatSync(resolved);
+  if (parentStat.isSymbolicLink() || !parentStat.isDirectory()) throw new Error('Unsafe Focus journal storage root');
+  if (directoryStat.isSymbolicLink() || !directoryStat.isDirectory()) {
+    throw new Error('Unsafe Focus journal storage directory');
+  }
+  fs.chmodSync(resolved, 0o700);
+}
+
+function ensurePrivateJournalRoot(workspace: string, storageRoot: string): string {
+  const canonicalBase = canonicalStorageRoot(storageRoot);
+  ensurePrivateDirectory(canonicalBase);
+  const workspaceRoot = path.dirname(focusRoot(workspace, canonicalBase));
+  ensurePrivateDirectory(workspaceRoot);
+  const threadsRoot = focusRoot(workspace, canonicalBase);
+  ensurePrivateDirectory(threadsRoot);
+  return threadsRoot;
+}
+
+function openRegularNoFollow(file: string, flags: number, mode?: number): number {
+  const noFollow = fs.constants.O_NOFOLLOW ?? 0;
+  const fd = fs.openSync(file, flags | noFollow, mode);
+  try {
+    const stat = fs.fstatSync(fd);
+    if (!stat.isFile()) throw new Error('Focus journal path is not a regular file');
+    if (stat.nlink > 1) throw new Error('Hard-linked Focus journal files are not allowed');
+    return fd;
+  } catch (error) {
+    fs.closeSync(fd);
+    throw error;
+  }
+}
+
+function writeAtomic(file: string, content: string | Buffer): void {
   const tmp = `${file}.${randomBytes(8).toString('hex')}.tmp`;
   try {
     fs.writeFileSync(tmp, content, { mode: 0o600, flag: 'wx' });
     fs.renameSync(tmp, file);
   } finally {
-    try { fs.unlinkSync(tmp); } catch (error) {
+    try {
+      fs.unlinkSync(tmp);
+    } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
     }
   }
 }
 
 function readNoFollow(file: string): string {
-  const fd = fs.openSync(file, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
-  try { return fs.readFileSync(fd, 'utf8'); } finally { fs.closeSync(fd); }
+  const fd = openRegularNoFollow(file, fs.constants.O_RDONLY);
+  try {
+    return fs.readFileSync(fd, 'utf8');
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+function readBufferNoFollow(file: string): Buffer {
+  const fd = openRegularNoFollow(file, fs.constants.O_RDONLY);
+  try {
+    return fs.readFileSync(fd);
+  } finally {
+    fs.closeSync(fd);
+  }
 }
 
 function appendNoFollow(file: string, content: string): void {
-  const fd = fs.openSync(file, fs.constants.O_WRONLY | fs.constants.O_APPEND | fs.constants.O_CREAT | (fs.constants.O_NOFOLLOW ?? 0), 0o600);
-  try { fs.writeFileSync(fd, content); } finally { fs.closeSync(fd); }
+  const fd = openRegularNoFollow(file, fs.constants.O_WRONLY | fs.constants.O_APPEND | fs.constants.O_CREAT, 0o600);
+  try {
+    fs.writeFileSync(fd, content);
+  } finally {
+    fs.closeSync(fd);
+  }
 }
 
 function text(value: unknown, fallback: string | null = null): string | null {
@@ -133,18 +205,22 @@ export class ThreadJournal {
   /** Last sequence number written; null until the event log has been read once. */
   private seq: number | null = null;
   private readonly dir: string;
+  private readonly storageRoot?: string;
 
   constructor(
     workspace: string,
     private meta: FocusThread,
+    storageRoot?: string,
   ) {
-    this.dir = path.join(focusRoot(workspace), meta.id);
+    this.storageRoot = storageRoot ? canonicalStorageRoot(storageRoot) : undefined;
+    this.dir = path.join(focusRoot(workspace, this.storageRoot), meta.id);
   }
 
-  static create(workspace: string, meta: FocusThread): ThreadJournal {
-    const journal = new ThreadJournal(workspace, meta);
+  static create(workspace: string, meta: FocusThread, storageRoot?: string): ThreadJournal {
+    const journal = new ThreadJournal(workspace, meta, storageRoot);
+    if (storageRoot) ensurePrivateJournalRoot(workspace, storageRoot);
     journal.assertSafe(journal.dir);
-    fs.mkdirSync(journal.dir, { recursive: true, mode: 0o700 });
+    fs.mkdirSync(journal.dir, { recursive: !storageRoot, mode: 0o700 });
     journal.assertSafe(journal.dir);
     journal.seq = 0;
     journal.saveMeta();
@@ -152,31 +228,37 @@ export class ThreadJournal {
   }
 
   /** Load one thread's metadata; null when it is missing, unreadable or malformed. */
-  static open(workspace: string, id: string): ThreadJournal | null {
+  static open(workspace: string, id: string, storageRoot?: string): ThreadJournal | null {
     if (!isThreadId(id)) return null;
-    const file = path.join(focusRoot(workspace), id, 'thread.json');
+    const file = path.join(focusRoot(workspace, storageRoot), id, 'thread.json');
     let raw: unknown;
     try {
-      assertSafeJournalPath(workspace, file);
+      assertSafeJournalPath(workspace, file, storageRoot);
       raw = JSON.parse(readNoFollow(file));
     } catch {
       return null;
     }
     const meta = parseThread(raw, id, workspace);
-    return meta ? new ThreadJournal(workspace, meta) : null;
+    return meta ? new ThreadJournal(workspace, meta, storageRoot) : null;
   }
 
-  static list(workspace: string): ThreadJournal[] {
+  static list(workspace: string, storageRoot?: string): ThreadJournal[] {
     let names: string[];
     try {
-      assertSafeJournalPath(workspace, focusRoot(workspace));
-      names = fs.readdirSync(focusRoot(workspace));
-    } catch {
-      return [];
+      if (storageRoot) {
+        ensurePrivateJournalRoot(workspace, storageRoot);
+        migrateLegacyJournals(workspace, storageRoot);
+      }
+      const root = focusRoot(workspace, storageRoot);
+      assertSafeJournalPath(workspace, root, storageRoot);
+      names = fs.readdirSync(root);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+      throw error;
     }
     const journals: ThreadJournal[] = [];
     for (const name of names) {
-      const journal = ThreadJournal.open(workspace, name);
+      const journal = ThreadJournal.open(workspace, name, storageRoot);
       if (journal) journals.push(journal);
     }
     return journals;
@@ -238,7 +320,7 @@ export class ThreadJournal {
   }
 
   private assertSafe(file: string): void {
-    assertSafeJournalPath(this.meta.workspace, file);
+    assertSafeJournalPath(this.meta.workspace, file, this.storageRoot);
   }
 
   private eventsFile(): string {
@@ -252,10 +334,78 @@ export class ThreadJournal {
   }
 }
 
+function migrateLegacyJournals(workspace: string, storageRoot: string): void {
+  const destinationRoot = ensurePrivateJournalRoot(workspace, storageRoot);
+  const marker = path.join(path.dirname(destinationRoot), 'migration-v1.json');
+  try {
+    assertSafeJournalPath(workspace, marker, storageRoot);
+    const migration = JSON.parse(readNoFollow(marker)) as { version?: unknown };
+    if (migration.version === 1) return;
+    throw new Error('Unrecognized Focus journal migration marker');
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  }
+
+  const legacyRoot = focusRoot(workspace);
+  let names: string[];
+  try {
+    assertSafeJournalPath(workspace, legacyRoot);
+    names = fs.readdirSync(legacyRoot);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') names = [];
+    else throw error;
+  }
+
+  for (const id of names) {
+    if (!isThreadId(id)) continue;
+    const destination = path.join(destinationRoot, id);
+    try {
+      const existing = fs.lstatSync(destination);
+      if (existing.isSymbolicLink() || !existing.isDirectory() || !ThreadJournal.open(workspace, id, storageRoot)) {
+        throw new Error(`Could not safely resume Focus thread migration ${id}`);
+      }
+      continue;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+
+    const legacy = ThreadJournal.open(workspace, id);
+    if (!legacy) throw new Error(`Could not safely migrate Focus thread ${id}`);
+    const legacyMeta = path.join(legacyRoot, id, 'thread.json');
+    // Preserve the source bytes exactly, including unknown fields and torn
+    // event records. Parsing above is validation, not a lossy serialization.
+    const metadata = readBufferNoFollow(legacyMeta);
+    let events: Buffer | null = null;
+    const legacyEvents = path.join(legacyRoot, id, 'events.jsonl');
+    try {
+      assertSafeJournalPath(workspace, legacyEvents);
+      events = readBufferNoFollow(legacyEvents);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+
+    const staging = path.join(destinationRoot, `.migrate-${id}-${randomBytes(8).toString('hex')}`);
+    fs.mkdirSync(staging, { mode: 0o700 });
+    try {
+      writeAtomic(path.join(staging, 'thread.json'), metadata);
+      if (events) writeAtomic(path.join(staging, 'events.jsonl'), events);
+      fs.renameSync(staging, destination);
+    } finally {
+      try {
+        fs.rmSync(staging, { recursive: true, force: true });
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+      }
+    }
+  }
+
+  writeAtomic(marker, `${JSON.stringify({ version: 1 })}\n`);
+}
+
 function endsWithoutNewline(file: string): boolean {
   let fd: number;
   try {
-    fd = fs.openSync(file, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
+    fd = openRegularNoFollow(file, fs.constants.O_RDONLY);
   } catch {
     return false;
   }
