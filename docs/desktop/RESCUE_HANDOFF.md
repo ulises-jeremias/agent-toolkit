@@ -2351,3 +2351,94 @@ security-reviewed resolution for #1777 that preserves existing journals
 through a nondestructive migration; then improve World boundary/creek
 composition and broaden provider/accessibility acceptance. Do not call the
 rescue complete while any of these product/acceptance gaps remain.
+
+## 56. Continuation checkpoint — packaged visual tour and live Focus review
+
+**Current date: 2026-11-13.** The preceding PR #1783 head `b9256066` completed
+all visible required checks: Desktop gates, clean-HOME package acceptance,
+quality, CodeQL, Validate (including macOS), and Linux x64/ARM, Windows, macOS
+ARM and macOS Intel packaging/linkage. This does not apply to the new head.
+
+The packaged Electron screenshot tour passed 1/1 for ten destinations (World,
+Focus, Attention, Operations, Projects, Library, People, Insights, Terminal and
+Settings), both Meadow and Dusk, and 1024×640, 1440×900 and 1920×1080. It left
+60 destination screenshots plus People create/import captures under the
+workspace-private `.audit-private/rescue-tour/`. Review them locally; do not
+commit or publish these captures. The compact layouts remain navigable. People
+is coherent, Operations reports real backend jobs and the dock runs a real PTY.
+The expanded terminal dock consumes useful vertical space at 1024×640. At
+1920×1080 the World still leaves large uniform meadow margins, and the creek
+still reads like a narrow canal.
+
+The local World change removes the Meadow-only gradients painted inside the
+camera-transformed map rectangle. Perimeter grass now converges on `grass-0`,
+the same tile used by the viewport ground, and the tiled background follows
+camera pan. This removes the hard tinted slab in real packaged captures but
+does not solve the oversized empty surround. The interior capture originally
+landed during the 280ms doorway transition and live-data load; that image was
+rejected. The current acceptance waits for live details and the transition.
+
+The packaged Codex acceptance was rerun with a disposable HOME, workspace and
+Git repository, and the installed authenticated Codex account exposed through
+`CODEX_HOME`. It passed 1/1 in about 1.6 minutes: a real task created the exact
+file, Focus showed its conversation and untracked state, the PTY ran in the
+repository, Stop recorded an interruption without changing the file, app
+restart recovered the thread, and a follow-up read the file. World → project
+interior → Focus retained the project and thread. The acceptance can save these
+actual states through `ATK_CAPTURE_DIR`; private screenshots are under
+`.audit-private/live-codex-acceptance/` (completed Focus at 1024×640 and
+1440×900, interrupted Focus with the PTY, recovered conversation and clean
+project interior). No credentials or provider traces are committed. This does
+not prove all providers, approval/denial variants, native OS pickers, or
+cross-platform live-provider journeys.
+
+Product worktree `worktrees/desktop-followup`, branch
+`rescue/desktop-continuity-focus`, has commit
+`66805d85963a957f0b3d3adf58bfdb779ec7dfb4` pushed to PR #1783. It removes the
+rectangular World tint, aligns the edge with the continuing grass background,
+adds a deterministic perimeter regression test, and saves real Codex review
+screenshots from the acceptance gate. Local checks passed: 621/621 Vitest,
+45/45 runtime-spike tests, TypeScript, ESLint, Prettier and `git diff --check`.
+The packaged visual tour and real Codex acceptance passed on the local
+unpacked Linux package. Its staged backend is the existing local 1.49.0
+binary, not freshly compiled with CI's pinned toolchain; use section 54 for
+pinned-backend package evidence.
+
+PR #1783 is OPEN/draft, targets `main`, and has no review decision. Its exact
+head is `66805d85963a957f0b3d3adf58bfdb779ec7dfb4`. At the last poll, only Vercel
+checks had appeared and passed; GitHub Actions had not attached. Re-query
+`gh pr checks 1783 --repo ulises-jeremias/agent-toolkit` and wait for every
+required check on this exact SHA. Do not reuse the green results for
+`b9256066`, merge, or publish based on those earlier checks.
+
+P0 #1777 remains OPEN. PR #1779 is merged and rejects many symlink cases with
+`O_NOFOLLOW` file opens, but ancestor-component TOCTOU remains; equivalent
+macOS/Windows junction and reparse-point behavior is unverified. No exploit was
+run. Do not call the journal safe. Before implementation, decide the explicit
+ownership/trust boundary; then add cross-platform protections and a
+nondestructive migration/rollback path. Preserve old journal directories until
+migration is proven. Never resolve this by deleting user history.
+
+Resume in this order:
+
+1. Poll exact-head CI for `66805d85`; investigate failures and leave #1783 draft
+   until all gates and integration review pass.
+2. Resolve #1777 with a reviewed trust boundary, safe migration/rollback,
+   hard-link/race coverage, and Windows junction/macOS validation.
+3. Continue rendered iteration from `.audit-private/rescue-tour/` and
+   `.audit-private/live-codex-acceptance/`: improve the World panorama and
+   organic creek, then compact Focus/dock density. Reinspect all three required
+   window sizes after each visual change.
+4. Run packaged first-run onboarding with a real OS picker where available,
+   provider approval/denial and recovery variants, screen-reader/contrast
+   review (Orca was unavailable on the last recorded host), and the broader
+   installed-app journey. Keep credentials out of fixtures and traces.
+5. Recheck main, PR #1771 (still `CHANGES_REQUESTED` pending governed preview
+   regeneration and pixel/content review), and legacy worktrees. Inspect remote
+   PR/issue links and dirty state before integrating or cleaning any worktree.
+
+The docs worktree is `/home/ulisesjcf/.ai-workspace/worktrees/desktop-owner`
+on `rescue/codex-product-integration`; the product worktree is
+`/home/ulisesjcf/.ai-workspace/worktrees/desktop-followup` on
+`rescue/desktop-continuity-focus`. This is a checkpoint, not mission completion.
+Keep the rescue active.
