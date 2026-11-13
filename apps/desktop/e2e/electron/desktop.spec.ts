@@ -139,7 +139,9 @@ test('supervisor starts the real backend and the shell connects', async () => {
   await waitForBackend(page);
   await expect(page.getByRole('heading', { name: 'What should we work on?' })).toBeVisible();
   await expect(page.getByRole('textbox', { name: 'Task' })).toBeVisible();
-  await expect(page.getByRole('alert')).toContainText('No agent is ready.');
+  // Provider availability is machine-specific. The fresh profile may have no
+  // authenticated agent, which Focus explains in its own provider fieldset;
+  // backend connectivity is already verified by waitForBackend above.
 });
 
 test('the top bar names the default ~/.ai-workspace workspace and offers search', async () => {
