@@ -1037,9 +1037,9 @@ credentials were not copied into the clean Desktop profile or repository. The
 optional `e2e/electron/codex-live-acceptance.spec.ts` creates and removes its own
 scratch HOME, workspace, profile, and disposable Git repository. It links that
 repository through the Projects UI, starts a real Codex task, checks the exact
-provider-produced file contents and Focus tool receipt, stages the file and
-checks its actual patch in the Changes view, runs a command in a real embedded
-Bash PTY, safely interrupts a deliberately waiting provider turn, closes and
+provider-produced file contents and Focus tool receipt, checks the untracked
+file's actual diff before staging, runs a command in a real embedded Bash PTY,
+safely interrupts a deliberately waiting provider turn, closes and
 reopens Electron against the same profile, and navigates between Focus and the
 project's World interior. Final packaged execution passed (1/1, about 1m36s).
 
@@ -1054,19 +1054,32 @@ configuration. Set `SHELL=/bin/bash` for the clean profile on this host: the
 user's interactive Zsh startup script launches a first-run interactive prompt
 that consumes typed PTY input. The test and fixture change were reviewed,
 committed as `930a936a`, and pushed to PR #1783. Its current exact-head checks
-show Vercel Preview Comments passed, Vercel deployment pending, and Agent Review
-skipping. Keep the PR draft and unmerged.
+were superseded by the follow-up commit; keep the PR draft and unmerged.
 
-The live test also confirmed a real UX gap: an untracked file initially shows
-“No textual diff” because the Git diff endpoint currently reads only tracked or
-staged diffs. Stage the file before inspection in the acceptance flow for now;
-the product should render an untracked file's actual added lines without that
-extra step. Do not call the initial untracked preview functional.
+The live test exposed that untracked files showed “No textual diff.” This has
+now been fixed in `project_git_diff_typed`: unstaged paths absent from the Git
+index use `git diff --no-index` against the empty tree, accept Git's expected
+exit status only when there is no stderr, and retain repository-relative path
+validation. Missing files fail honestly. The test covers a filename containing
+spaces. The installed-provider acceptance now selects the new file before
+staging and verifies its actual added line in the Changes view. The focused V
+module test passes, a debug CLI backend compiled under the 2 GiB/zero-swap limit,
+and the packaged Electron UI test passed 1/1 against that new backend. The full
+34-test packaged Electron suite also passed against it. The local
+`-prod` CLI attempt did not fit the memory cap (cc1 was terminated while
+assembling embedded resources); CI's pinned build remains the production build
+gate.
 
 Source ESLint, renderer/Electron TypeScript checks, `git diff --check`, Vitest
-(614/614), Node spikes (45/45), the live packaged provider test (1/1), and the
-packaged Electron `desktop.spec.ts` (33/33) all pass with this test addition.
-The real-provider and resume behavior are evidenced for Codex only. Codex
+(614/614), Node spikes (45/45), and the live packaged provider test (1/1) all
+pass. The focused V module test (including the untracked filename with spaces),
+integrated packaged UI test (1/1), and complete packaged Electron suite (34/34)
+pass against the new debug backend. Endpoint and E2E coverage were reviewed and
+committed as `72a727fb`, pushed to PR #1783; recheck its exact-head checks as
+they finish. The official `-prod` local build did not fit the strict 2 GiB
+scope while assembling embedded resources; the successful local backend is a
+debug build. CI's pinned production build remains a merge gate. The
+real-provider and resume behavior are evidenced for Codex only. Codex
 interactive user-input is still protocol-fixture-tested, not emitted by the
 installed provider. The remaining world art rejection and overall daily-driver
 signoff are unchanged.
