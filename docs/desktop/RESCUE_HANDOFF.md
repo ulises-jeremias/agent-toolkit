@@ -1212,3 +1212,48 @@ Committed and pushed the exact-selector fix as
 `53d0c7b8` head and starts a new exact-head CI run; only checks on `a121229d`
 count now. PR #1783 remains draft/open and unmerged. Recheck its new checks and
 keep resolving base/merge state before integration.
+
+## 21. Continuation checkpoint — stacked PR acceptance failures
+
+GitHub's stack is `#1780` → `#1781` → `#1782` → `#1783`; do not treat
+#1783's feature branch as independently mergeable into `main` yet. The lower
+three historical heads currently report failed `Packaged Electron with fresh
+HOME` and aggregate `gates` jobs. Exact failing job runs inspected:
+
+- #1780: `43259175954` (fresh HOME), `43259175883` (gates).
+- #1781: `43278716272` (fresh HOME), `43278716004` (gates).
+- #1782: `43298966315` (fresh HOME), `43298967157` (gates).
+
+For #1782, the failing Electron suite ran 58 tests successfully and failed 4
+with three retries. In its then-current `project-changes.spec.ts` and
+`workspace-switch.spec.ts`, the tests waited for an in-app “Review project
+link” dialog after selecting the folder. The implementation's review step is
+the native folder picker; the renderer links the selected folder directly and
+shows a receipt. The later `project-link.spec.ts` already tests that actual
+flow. The #1782 `full-journey.spec.ts` also failed to find its workspace pack
+panel while the separate `workspace-packs.spec.ts` passed in the same run. This
+looks like a stale/fragile stacked test set, but inspect the exact current-head
+results before concluding it is only test drift.
+
+The logs were downloaded privately to
+`/home/ulisesjcf/.ai-workspace/.audit-private/pr1782-fresh-home.log` and the
+Playwright report to `.audit-private/pr1782-artifacts/`. They are diagnostic
+only and must not be committed. The latest #1783 head `a121229d` had 38 passing
+checks and no failed check at the last query; its clean-profile Electron job,
+`gates`, and several platform jobs were still running. That head includes the
+updated direct-link project tests. Recheck exact-head CI first; do not spend
+another full packaged run if GitHub already supplies the evidence.
+
+### Next integration actions
+
+1. Inspect the latest #1783 clean-profile job. If it fails, read its own report
+   and fix that current failure rather than copying old #1782 conclusions.
+2. Inspect #1780 and #1781 gate logs if their old failures still matter to the
+   landing plan. Keep the PR stack intact until deciding whether to fix each
+   base branch, rebase the stack, or supersede it with a reviewed integrated
+   PR; do not force-merge red checks.
+3. For any failure that reproduces at `a121229d`, fix the underlying behavior
+   or update stale E2E expectations to match the actual deliberate GUI path,
+   then verify the packaged test locally and on exact-head CI.
+4. Keep GitHub issue #1775 and this handoff aligned with the chosen integration
+   path. No lower PR has been merged as of this checkpoint.
