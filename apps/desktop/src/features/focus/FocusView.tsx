@@ -322,6 +322,7 @@ export default function FocusView() {
   const bridge = useFocusBridge();
   const [error, setError] = useState<string | null>(null);
   const [sessionsOpen, setSessionsOpen] = useState(false);
+  const [restoreSessionsFocusFor, setRestoreSessionsFocusFor] = useState<string | null | undefined>();
   const sessionsToggleRef = useRef<HTMLButtonElement>(null);
   // Beside the conversation on a wide window; an overlay you open on demand on a compact one.
   const [inspectorOpen, setInspectorOpen] = useState(() => window.matchMedia(WIDE_WINDOW).matches);
@@ -351,10 +352,29 @@ export default function FocusView() {
     },
     [setParams],
   );
-  const closeSessions = useCallback(() => {
-    setSessionsOpen(false);
-    requestAnimationFrame(() => sessionsToggleRef.current?.focus());
-  }, []);
+  const closeSessions = useCallback(
+    (focusFor: string | null = active?.id ?? null) => {
+      if (!sessionsOpen) return;
+      setSessionsOpen(false);
+      setRestoreSessionsFocusFor(focusFor);
+    },
+    [active?.id, sessionsOpen],
+  );
+  useEffect(() => {
+    const restoredSessionIsActive = restoreSessionsFocusFor === (active?.id ?? null);
+    if (sessionsOpen || restoreSessionsFocusFor === undefined || !restoredSessionIsActive) return;
+    let secondFrame = 0;
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        if (sessionsToggleRef.current?.isConnected) sessionsToggleRef.current.focus();
+        setRestoreSessionsFocusFor(undefined);
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+    };
+  }, [active?.id, restoreSessionsFocusFor, sessionsOpen]);
 
   const showError = useCallback((message: string) => {
     setError(message);
@@ -389,11 +409,11 @@ export default function FocusView() {
         activeId={active?.id ?? null}
         onSelect={(id) => {
           select(id);
-          setSessionsOpen(false);
+          closeSessions(id);
         }}
         onNew={() => {
           select(null);
-          setSessionsOpen(false);
+          closeSessions(null);
         }}
         onClose={closeSessions}
       />
@@ -449,7 +469,7 @@ export default function FocusView() {
             defaults={{ project: params.get('project') ?? undefined }}
             onStarted={(id) => {
               select(id);
-              setSessionsOpen(false);
+              closeSessions(id);
             }}
           />
         )}

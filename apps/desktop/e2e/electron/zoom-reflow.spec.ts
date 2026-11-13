@@ -47,7 +47,7 @@ async function expectFitsViewport(locator: Locator, page: Page, label: string) {
 test('Packaged Desktop reflows at 200% and 320 CSS px, including keyboard-scrollable data tables', async () => {
   const desktop = await openDesktop();
   try {
-    const { app, page } = desktop;
+    const { app, page, workspace } = desktop;
     const captureDirectory = process.env['ATK_CAPTURE_DIR'] ?? test.info().outputDir;
     await waitForBackend(page);
     await setViewport(app, 1024, 640);
@@ -61,7 +61,43 @@ test('Packaged Desktop reflows at 200% and 320 CSS px, including keyboard-scroll
       await expect(page.getByRole('heading', { name: 'What should we work on?' })).toBeVisible();
       await expectNoHorizontalOverflow(page, `${prefix}, Focus`);
       await expectFitsViewport(page.getByRole('textbox', { name: 'Task' }), page, `${prefix}, task editor`);
-      await expectFitsViewport(page.getByRole('button', { name: 'Start session' }), page, `${prefix}, Start session`);
+      const startButton = page.getByRole('button', { name: 'Start session' });
+      await expectFitsViewport(startButton, page, `${prefix}, Start session`);
+      if (factor === 3.2) {
+        const startForm = page.locator('form[aria-labelledby="focus-start-title"]');
+        const formMetrics = await startForm.evaluate((element) => ({
+          clientHeight: element.clientHeight,
+          scrollHeight: element.scrollHeight,
+        }));
+        expect(
+          formMetrics.scrollHeight,
+          'the compact Focus form must expose its own vertical overflow',
+        ).toBeGreaterThan(formMetrics.clientHeight);
+        await startButton.scrollIntoViewIfNeeded();
+        await expect(startButton).toBeInViewport();
+        await startForm.evaluate((element) => {
+          element.scrollTop = 0;
+        });
+      }
+
+      const savedTitle = `Compact drawer session ${Math.round(factor * 100)}%`;
+      const created = await page.evaluate(
+        async ({ cwd, title }) =>
+          window.atk?.focus.createThread({
+            cwd,
+            projectName: null,
+            provider: 'claude',
+            model: null,
+            permissionMode: 'ask',
+            title,
+          }),
+        { cwd: workspace, title: savedTitle },
+      );
+      expect(created?.ok, 'a saved session is needed to exercise drawer selection').toBe(true);
+      if (!created?.ok) throw new Error(created?.error ?? 'Could not seed a Focus session.');
+      await expect
+        .poll(() => page.evaluate(() => window.atk?.focus.listThreads() ?? []))
+        .toContainEqual(expect.objectContaining({ id: created.value.id, title: savedTitle }));
 
       const sessionsToggle = page.getByRole('button', { name: 'Sessions' });
       await expect(sessionsToggle).toBeVisible();
@@ -78,6 +114,11 @@ test('Packaged Desktop reflows at 200% and 320 CSS px, including keyboard-scroll
       await sessions.getByRole('button', { name: 'New session' }).click();
       await expect(sessionsToggle).toHaveAttribute('aria-expanded', 'false');
       await expect(sessions).toBeHidden();
+      await expect(sessionsToggle).toBeFocused();
+      await sessionsToggle.click();
+      await sessions.getByRole('button', { name: new RegExp(savedTitle) }).click();
+      await expect(sessions).toBeHidden();
+      await expect(sessionsToggle).toBeFocused();
       await captureElectronWindow(app, join(captureDirectory, `zoom-reflow-focus-${expectedWidth}.png`));
 
       const destinations = page.getByRole('navigation', { name: 'Destinations' });
