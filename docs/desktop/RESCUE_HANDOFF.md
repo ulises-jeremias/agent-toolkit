@@ -2635,3 +2635,50 @@ renaissance. The overall valley still needs an authored composition critique,
 the broad meadow margins need further evaluation at 1920×1080, and the full
 acceptance matrix and accessibility work remain open. Continue with section
 56's other priorities after checking both open PRs and their exact-head CI.
+
+## 61. Continuation checkpoint — packaged onboarding and current review state
+
+**Current date: 2026-11-13.** After the creek art commit, the packaged Linux
+Electron app was run through the existing `onboarding.spec.ts` first-run suite
+against the source-compatible CI backend artifact. All 3 tests passed in 1.1
+minutes: existing workspace setup and repository linking, explicit creation of
+a missing workspace, and recovery after killing/restarting the supervised
+backend. The repository picker was stubbed at Electron's native-dialog seam;
+the subsequent renderer/API flow was real. The suite's fixture creates a
+repository-shaped folder for linking, so this is not proof of the mission's
+mandatory clean-profile journey with a populated real Git repository and a
+live authenticated provider.
+
+GitHub state was rechecked. #1773 (external repository registration) and #1774
+(true first-run UI regression) are both MERGED on 2026-11-12. Their former
+dependency is no longer open, though #1774's own description says Gate 0 still
+needs a packaged field trial plus D08–D10 and platform/viewport evidence.
+Do not equate merged regression coverage with gate acceptance.
+
+PR #1771 remains OPEN, not draft, at ImgBot commit
+`9236a610510bc4637939c56db4071e0a2392cf8e`, with review decision
+`CHANGES_REQUESTED` and merge state `DIRTY`. The review requires the two
+governed Desktop PXL previews (`lamp-glow` and `water`) to be regenerated from
+source and five changed Gate 0 screenshots to be restored pixel-exactly or
+replaced with reviewed, reproducible captures whose changed state is explained.
+The branch's only commit is the bot's image optimization; do not discard it or
+rewrite it. Its local worktree `worktrees/fix-1751` is clean, but the PR is
+based on a main commit that is no longer an ancestor of local `origin/main`.
+Before changing it, plan a history-preserving rebase/cherry-pick and compare the
+current main assets. Keep the PR unmerged while governed assets and acceptance
+evidence disagree.
+
+PR #1783 is OPEN/draft at
+`536810d8e4ad1cc3375e9f5a6531a0c7d259b20d`; its exact-head CI had 9 successful,
+8 in progress, and 8 queued check runs at the last poll. PR #1784 is OPEN/draft
+at `34123019586ecc3c30b5de63a4c9f6f0dc50f153`; it had 15 successful, 4 in
+progress, and 5 queued runs. Neither has a review decision. Re-poll exact heads
+and inspect failures before any integration.
+
+The primary `repos/agent-toolkit` checkout is dirty with release/version and
+plugin metadata changes plus untracked files; these are not part of this
+rescue. Do not clean, reset, or stage them. Numerous older worktrees remain
+active, including Valley art, Desktop UI, provider/session and World branches;
+continue inspecting worktree and branch ownership before touching them. The
+rescue remains active and section 56's security, visual and accessibility
+priorities still apply.
