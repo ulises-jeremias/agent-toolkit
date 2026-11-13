@@ -171,6 +171,7 @@ test('packaged Focus runs, interrupts, and reloads a real OpenCode ACP session',
       .getByRole('list', { name: 'Untracked files' })
       .getByRole('button', { name: /live-result\.txt/ })
       .click();
+    await expect(page.getByLabel('Diff for live-result.txt')).toContainText(EXACT_LINE);
     await page.getByRole('button', { name: 'Stage', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Staged (1)' })).toBeVisible();
     await expect(page.getByLabel('Diff for live-result.txt')).toContainText(EXACT_LINE);
