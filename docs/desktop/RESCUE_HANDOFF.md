@@ -1734,3 +1734,17 @@ clean-machine, Validate, Release, web and V-parity runs appear and reach a final
 state. Capture and inspect the river/boundary iteration next, retaining the
 currently passing semantic layout tests. Continue the full rescue; this sprite
 update is not product or World sign-off.
+
+## 37. Continuation checkpoint — exact-head CI for authored houses
+
+The initial empty run-list was a GitHub indexing delay. PR #1783 now points at
+`3aaa43eb6a8fb131939067a53779eb0a5f2c0c11` and remains OPEN/draft and
+MERGEABLE. Exact-head workflows are attached: desktop run `43398081465`,
+clean-machine Electron `43398081536`, Validate `43398081491`, web
+`43398081524`, V CLI parity `43398081511`, and Release package `43398081491`
+(the package build is a Validate job). At the latest `gh pr checks 1783`
+query, web prerequisite jobs and several Validate jobs had passed; remaining
+checks were pending, including Desktop `gates`, clean-machine Electron, V
+parity, package build, and platform matrices. No failure was reported. These
+checks are still open; re-query exact SHA `3aaa43eb` and do not treat pending as
+green.
