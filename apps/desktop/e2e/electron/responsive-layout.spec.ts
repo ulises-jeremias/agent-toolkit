@@ -69,6 +69,11 @@ test('Responsive matrix: shell and primary actions stay usable at baseline, mini
       await expect(taskInput).toBeVisible();
       const taskBox = await taskInput.boundingBox();
       expect(taskBox?.height, `${size.key}: Focus task editor keeps multiline height`).toBeGreaterThanOrEqual(128);
+      await expectWithinViewport(
+        page.getByRole('button', { name: 'Start session' }),
+        size,
+        `${size.key}: Focus primary action remains reachable`,
+      );
       await expectNoHorizontalOverflow(page, size, `${size.key} (Focus)`);
       await page.screenshot({ path: `test-results/review/responsive-focus-${size.key}.png`, fullPage: true });
 
