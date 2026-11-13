@@ -235,9 +235,12 @@ honestly. Never label a declared Person or installed binary as an active agent.
   submissions while provider thread creation is pending. A deferred-create component
   regression asserts one thread and one send; the disabled button alone was insufficient
   because React state updates occur after the event handler begins.
-- [ ] Implement interactive questions/new permissions RPCs if needed for normal
-  work. Current behavior explicitly refuses unsupported requests with an error notice;
-  that is honest but not complete functionality.
+- [ ] Finish interactive questions/new-permissions parity and live verification.
+  Codex's blocking `item/tool/requestUserInput` is implemented with active-turn
+  validation, secret-answer non-persistence and interruption cleanup; protocol
+  fixture/component regressions pass. A real installed provider has not yet
+  emitted this request repeatably, and other provider-specific permission RPCs
+  may still be explicitly unsupported.
 - [ ] Verify streaming partial output, tool outputs, completion, errors, approval,
   deny, interrupt, resume, model/permission changes, and child-agent events live.
 - [ ] Keep parent and native child sessions distinct; child completion cannot close
@@ -1288,3 +1291,10 @@ HOME gate, Desktop `gates`, Linux/Windows/macOS packaging, platform linkage, and
 some macOS validation jobs were still pending; no failures were reported.
 Continue against the exact branch head, and do not merge until the stack's
 required checks and base integration are healthy.
+
+The Codex question-RPC and Focus controller regressions were rerun on that same
+head: `electron/focus/codex.test.ts`, `electron/focus/focus.test.ts`, and
+`src/features/focus/Conversation.test.tsx` passed 48/48. This verifies the
+fixture-driven question path and its Focus presentation; it does not upgrade
+the live-provider evidence beyond the one-time approval observation recorded
+above.
