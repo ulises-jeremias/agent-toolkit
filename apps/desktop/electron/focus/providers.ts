@@ -95,6 +95,7 @@ const CLAUDE_MODELS: FocusModelOption[] = [
 ];
 
 const CLAUDE_PERMISSION_MODES: Readonly<Record<string, FocusPermissionMode>> = {
+  default: 'ask',
   manual: 'ask',
   acceptEdits: 'accept-edits',
   plan: 'plan',

@@ -883,7 +883,12 @@ describe('provider probe', () => {
     expect(JSON.stringify(statuses)).not.toMatch(/example\.com|Secret Org/);
   });
 
-  it('fails closed when Claude Code help does not report the manual permission mode', () => {
+  it('supports the legacy default alias and fails closed when help omits permission choices', () => {
+    expect(
+      claudePermissionModes(
+        '--permission-mode <mode> Permission mode (choices: "default", "acceptEdits", "bypassPermissions", "plan")\n  --resume',
+      ),
+    ).toEqual(['ask', 'accept-edits', 'bypass', 'plan']);
     expect(
       claudePermissionModes(
         '--permission-mode <mode> Permission mode (choices: "acceptEdits", "bypassPermissions", "plan")\n  --resume',
