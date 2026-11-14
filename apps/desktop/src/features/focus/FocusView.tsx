@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { useSearchParams } from 'react-router';
 import { useBackend } from '../../data/backend';
 import { useFocusBridge, useFocusProviders, useFocusThreads, useFocusTimeline } from '../../data/focus';
@@ -18,16 +18,37 @@ import styles from './focus.module.css';
 const WIDE_WINDOW = '(min-width: 78.0625rem)';
 
 function ThreadList({
+  id,
+  open,
   threads,
   activeId,
   onSelect,
   onNew,
+  onClose,
 }: {
+  id: string;
+  open: boolean;
   threads: readonly FocusThread[];
   activeId: string | null;
   onSelect: (id: string) => void;
   onNew: () => void;
+  onClose: () => void;
 }) {
+  const closeButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (open) closeButton.current?.focus();
+  }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, open]);
   const groups = useMemo(() => {
     const byProject = new Map<string, FocusThread[]>();
     for (const thread of threads) {
@@ -39,11 +60,14 @@ function ThreadList({
     return [...byProject.entries()];
   }, [threads]);
   return (
-    <nav className={styles.threads} aria-label="Sessions">
+    <nav id={id} className={styles.threads} aria-label="Sessions">
       <Button variant="secondary" onClick={onNew} aria-current={activeId === null ? 'page' : undefined}>
         <PixelIcon name="plus" size={12} />
         New session
       </Button>
+      <button ref={closeButton} className={styles.sessionsClose} type="button" onClick={onClose}>
+        Close
+      </button>
       {groups.length === 0 ? (
         <p className={styles.quiet}>Sessions you start appear here and stay after a restart.</p>
       ) : null}
@@ -81,6 +105,9 @@ function Header({
   inspectorOpen,
   onToggleInspector,
   onOpenTerminal,
+  onShowSessions,
+  sessionsOpen,
+  sessionsToggleRef,
   onError,
   onDeleted,
 }: {
@@ -89,6 +116,9 @@ function Header({
   inspectorOpen: boolean;
   onToggleInspector: () => void;
   onOpenTerminal: () => void;
+  onShowSessions: () => void;
+  sessionsOpen: boolean;
+  sessionsToggleRef: RefObject<HTMLButtonElement | null>;
   onError: (message: string) => void;
   onDeleted: () => void;
 }) {
@@ -146,6 +176,16 @@ function Header({
         </p>
       </div>
       <div className={styles.headerControls}>
+        <button
+          type="button"
+          ref={sessionsToggleRef}
+          className={styles.sessionsToggle}
+          aria-controls="focus-sessions"
+          aria-expanded={sessionsOpen}
+          onClick={onShowSessions}
+        >
+          Sessions
+        </button>
         <label className={styles.inlineSelect}>
           <span className={styles.srOnly}>Permissions</span>
           <select
@@ -281,6 +321,9 @@ export default function FocusView() {
   const terminals = useTerminalSessions();
   const bridge = useFocusBridge();
   const [error, setError] = useState<string | null>(null);
+  const [sessionsOpen, setSessionsOpen] = useState(false);
+  const [restoreSessionsFocusFor, setRestoreSessionsFocusFor] = useState<string | null | undefined>();
+  const sessionsToggleRef = useRef<HTMLButtonElement>(null);
   // Beside the conversation on a wide window; an overlay you open on demand on a compact one.
   const [inspectorOpen, setInspectorOpen] = useState(() => window.matchMedia(WIDE_WINDOW).matches);
   useEffect(() => {
@@ -309,6 +352,29 @@ export default function FocusView() {
     },
     [setParams],
   );
+  const closeSessions = useCallback(
+    (focusFor: string | null = active?.id ?? null) => {
+      if (!sessionsOpen) return;
+      setSessionsOpen(false);
+      setRestoreSessionsFocusFor(focusFor);
+    },
+    [active?.id, sessionsOpen],
+  );
+  useEffect(() => {
+    const restoredSessionIsActive = restoreSessionsFocusFor === (active?.id ?? null);
+    if (sessionsOpen || restoreSessionsFocusFor === undefined || !restoredSessionIsActive) return;
+    let secondFrame = 0;
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        if (sessionsToggleRef.current?.isConnected) sessionsToggleRef.current.focus();
+        setRestoreSessionsFocusFor(undefined);
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+    };
+  }, [active?.id, restoreSessionsFocusFor, sessionsOpen]);
 
   const showError = useCallback((message: string) => {
     setError(message);
@@ -331,8 +397,26 @@ export default function FocusView() {
   const provider = providers.data?.find((entry) => entry.id === active?.provider);
 
   return (
-    <div className={styles.focus} data-inspector={active && inspectorOpen ? 'open' : 'closed'}>
-      <ThreadList threads={threads} activeId={active?.id ?? null} onSelect={select} onNew={() => select(null)} />
+    <div
+      className={styles.focus}
+      data-inspector={active && inspectorOpen ? 'open' : 'closed'}
+      data-sessions-open={sessionsOpen ? 'true' : undefined}
+    >
+      <ThreadList
+        id="focus-sessions"
+        open={sessionsOpen}
+        threads={threads}
+        activeId={active?.id ?? null}
+        onSelect={(id) => {
+          select(id);
+          closeSessions(id);
+        }}
+        onNew={() => {
+          select(null);
+          closeSessions(null);
+        }}
+        onClose={closeSessions}
+      />
       <div className={styles.stage}>
         {error ? (
           <p className={styles.banner} role="alert">
@@ -353,6 +437,9 @@ export default function FocusView() {
               models={provider?.models ?? []}
               inspectorOpen={inspectorOpen}
               onToggleInspector={() => setInspectorOpen((open) => !open)}
+              onShowSessions={() => setSessionsOpen(true)}
+              sessionsOpen={sessionsOpen}
+              sessionsToggleRef={sessionsToggleRef}
               onOpenTerminal={() => void openTerminal(active)}
               onError={showError}
               onDeleted={() => select(null)}
@@ -376,8 +463,14 @@ export default function FocusView() {
             onRefreshProviders={() => {
               void bridge.providers({ refresh: true }).then(() => providers.refetch());
             }}
+            onShowSessions={() => setSessionsOpen(true)}
+            sessionsOpen={sessionsOpen}
+            sessionsToggleRef={sessionsToggleRef}
             defaults={{ project: params.get('project') ?? undefined }}
-            onStarted={select}
+            onStarted={(id) => {
+              select(id);
+              closeSessions(id);
+            }}
           />
         )}
       </div>

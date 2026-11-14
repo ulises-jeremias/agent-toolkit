@@ -126,7 +126,12 @@ export function Grid({ children }: { children: ReactNode }) {
 /** Editorial table: hairline rules, caps headers, tabular numbers. Callers write thead/tbody. */
 export function Table({ caption, children }: { caption?: string; children: ReactNode }) {
   return (
-    <div className={styles.tableWrap}>
+    <div
+      className={styles.tableWrap}
+      role="region"
+      aria-label={caption ? `${caption} table` : 'Scrollable data table'}
+      tabIndex={0}
+    >
       <table className={styles.table}>
         {caption ? <caption>{caption}</caption> : null}
         {children}
