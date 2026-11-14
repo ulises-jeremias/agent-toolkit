@@ -13,6 +13,25 @@ function tempRuntimeDir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'atk-pty-runtime-'));
 }
 
+async function waitFor(check: () => boolean, timeoutMs = 5_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (!check()) {
+    if (Date.now() >= deadline) throw new Error('waitFor timed out');
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+}
+
+async function waitForProcessExit(pid: number): Promise<void> {
+  await waitFor(() => {
+    try {
+      process.kill(pid, 0);
+      return false;
+    } catch {
+      return true;
+    }
+  });
+}
+
 /**
  * Tests run from TypeScript sources, where the compiled pty-host.js entry
  * does not exist yet; stand the host core up in-process instead. The
@@ -51,6 +70,32 @@ async function cleanup(service: TerminalService, runtimeDir: string): Promise<vo
 
 /** Real PTY round-trips through the detached host + node-pty (no display required). */
 describe('TerminalService', () => {
+  it('keeps transient PTYs out of its session inventory and terminates them during shutdown', async () => {
+    const runtimeDir = tempRuntimeDir();
+    const pidPath = path.join(runtimeDir, 'child.pid');
+    const service = makeService({ runtimeDir });
+    try {
+      const session = await service.createEphemeral({
+        agent: 'temporary-sign-in',
+        cmd: '/bin/sh',
+        args: ['-c', 'sleep 60 & echo $! > "$1"; sleep 0.1; printf "transient-output-marker\\n"; wait', 'sh', pidPath],
+      });
+      await waitFor(() => fs.existsSync(pidPath));
+      const childPid = Number(fs.readFileSync(pidPath, 'utf8').trim());
+      expect(childPid).toBeGreaterThan(1);
+      expect(service.list()).toEqual([]);
+      await waitFor(() => service.tail(session.id).includes('transient-output-marker'));
+      expect([...service.tail(session.id).matchAll(/transient-output-marker/g)]).toHaveLength(1);
+      expect(fs.readFileSync(path.join(runtimeDir, 'pty-registry.json'), 'utf8')).not.toContain(session.id);
+
+      await service.terminateEphemeral();
+      await waitForProcessExit(childPid);
+      expect(service.tail(session.id)).toBe('');
+    } finally {
+      await cleanup(service, runtimeDir);
+    }
+  }, 30_000);
+
   it('streams output and reports exit state', async () => {
     const runtimeDir = tempRuntimeDir();
     const service = makeService({ runtimeDir });

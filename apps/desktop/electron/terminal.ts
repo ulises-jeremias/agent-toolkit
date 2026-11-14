@@ -30,6 +30,8 @@ export interface TerminalCreateOptions {
   cols?: number;
   rows?: number;
   maxSeconds?: number;
+  /** Internal-only transient mode, exposed through the provider-sign-in IPC allowlist. */
+  ephemeral?: boolean;
 }
 
 export interface TerminalSessionInfo {
@@ -63,6 +65,8 @@ export class TerminalCwdError extends Error {}
 
 interface MirrorSession extends TerminalSessionInfo {
   tail: string;
+  catchingUp?: boolean;
+  pendingTail?: string;
 }
 
 export interface TerminalServiceOptions {
@@ -74,6 +78,7 @@ export interface TerminalServiceOptions {
 export class TerminalService {
   private client: PtyHostClient;
   private sessions = new Map<string, MirrorSession>();
+  private ephemeralSessions = new Map<string, MirrorSession>();
   /** Sessions closed locally; refresh must not resurrect them from the host. */
   private closedIds = new Set<string>();
   private dataListeners = new Set<DataListener>();
@@ -87,12 +92,16 @@ export class TerminalService {
     this.client = options.client ?? new PtyHostClient({ runtimeDir: options.runtimeDir });
     this.client.onEvent((event) => {
       if (event.event === 'data') {
-        const session = this.sessions.get(event.sessionId);
-        if (session) session.tail = (session.tail + event.chunk).slice(-MAX_TAIL_CHARS);
+        const session = this.sessions.get(event.sessionId) ?? this.ephemeralSessions.get(event.sessionId);
+        if (session) {
+          if (session.catchingUp)
+            session.pendingTail = ((session.pendingTail ?? '') + event.chunk).slice(-MAX_TAIL_CHARS);
+          else session.tail = (session.tail + event.chunk).slice(-MAX_TAIL_CHARS);
+        }
         for (const listener of this.dataListeners) listener(event.sessionId, event.chunk);
         this.windowOf?.()?.webContents.send('atk:pty-data', { id: event.sessionId, chunk: event.chunk });
       } else if (event.event === 'exit') {
-        const session = this.sessions.get(event.sessionId);
+        const session = this.sessions.get(event.sessionId) ?? this.ephemeralSessions.get(event.sessionId);
         if (session) {
           session.exitCode = event.exitCode;
           if (event.exitReason) session.exitReason = event.exitReason;
@@ -152,6 +161,9 @@ export class TerminalService {
       alive.add(info.id);
       if (this.closedIds.has(info.id)) continue;
       const tail = await this.client.tail(info.id).catch(() => '');
+      // A close may happen while the host tail request is in flight; do not
+      // resurrect a session that this client has already removed.
+      if (this.closedIds.has(info.id)) continue;
       const existing = this.sessions.get(info.id);
       this.sessions.set(info.id, { ...info, tail: (existing?.tail ?? tail).slice(-MAX_TAIL_CHARS) });
     }
@@ -171,6 +183,15 @@ export class TerminalService {
   }
 
   async create(options: TerminalCreateOptions): Promise<TerminalSessionInfo> {
+    return this.createWithMode(options, false);
+  }
+
+  /** Create a transient PTY whose output is held only in memory and dies with this client. */
+  async createEphemeral(options: TerminalCreateOptions): Promise<TerminalSessionInfo> {
+    return this.createWithMode(options, true);
+  }
+
+  private async createWithMode(options: TerminalCreateOptions, ephemeral: boolean): Promise<TerminalSessionInfo> {
     const cwd = this.resolveCwd(options.cwd);
     if (
       options.maxSeconds !== undefined &&
@@ -193,30 +214,37 @@ export class TerminalService {
       cols: options.cols,
       rows: options.rows,
       maxSeconds: options.maxSeconds,
+      ephemeral,
     };
     const info = await this.client.create(request);
-    this.sessions.set(info.id, { ...info, tail: '' });
+    const target = ephemeral ? this.ephemeralSessions : this.sessions;
+    const mirror: MirrorSession = { ...info, tail: '', catchingUp: true, pendingTail: '' };
+    target.set(info.id, mirror);
+    const tail = await this.client.tail(info.id).catch(() => '');
+    mirror.tail = mergeTail(tail.slice(-MAX_TAIL_CHARS), mirror.pendingTail ?? '').slice(-MAX_TAIL_CHARS);
+    mirror.pendingTail = undefined;
+    mirror.catchingUp = false;
     return info;
   }
 
   list(): TerminalSessionInfo[] {
     void this.ensureStarted().catch(() => undefined);
-    return [...this.sessions.values()].map(({ tail: _tail, ...info }) => info);
+    return [...this.sessions.values()].map(({ tail: _tail, catchingUp: _catchingUp, pendingTail: _pendingTail, ...info }) => info);
   }
 
   tail(id: string): string {
-    return this.sessions.get(id)?.tail ?? '';
+    return this.sessions.get(id)?.tail ?? this.ephemeralSessions.get(id)?.tail ?? '';
   }
 
   write(id: string, data: string): boolean {
-    const session = this.sessions.get(id);
+    const session = this.sessions.get(id) ?? this.ephemeralSessions.get(id);
     if (!session || session.exitCode !== null) return false;
     void this.client.write(id, data).catch(() => false);
     return true;
   }
 
   resize(id: string, cols: number, rows: number): boolean {
-    const session = this.sessions.get(id);
+    const session = this.sessions.get(id) ?? this.ephemeralSessions.get(id);
     if (!session) return false;
     session.cols = cols;
     session.rows = rows;
@@ -225,13 +253,17 @@ export class TerminalService {
   }
 
   signal(id: string, signal: 'int' | 'term' | 'kill'): boolean {
-    const session = this.sessions.get(id);
+    const session = this.sessions.get(id) ?? this.ephemeralSessions.get(id);
     if (!session || session.exitCode !== null) return false;
     void this.client.signal(id, signal).catch(() => false);
     return true;
   }
 
   close(id: string): boolean {
+    if (this.ephemeralSessions.delete(id)) {
+      void this.client.close(id).catch(() => false);
+      return true;
+    }
     if (!this.sessions.has(id)) return false;
     // Matches the pre-host semantics: close removes the session from the
     // list immediately; the host's exit event still reaches onExit.
@@ -239,6 +271,12 @@ export class TerminalService {
     this.sessions.delete(id);
     void this.client.close(id).catch(() => false);
     return true;
+  }
+
+  /** Close a transient session and wait until the host has reaped its process tree. */
+  async closeEphemeral(id: string): Promise<boolean> {
+    if (!this.ephemeralSessions.delete(id)) return false;
+    return this.client.close(id).catch(() => false);
   }
 
   onData(listener: DataListener): () => void {
@@ -265,9 +303,35 @@ export class TerminalService {
     this.startPromise = null;
   }
 
+  /** Explicitly kill transient sessions before Electron detaches from the PTY host. */
+  async terminateEphemeral(): Promise<void> {
+    const ids = [...this.ephemeralSessions.keys()];
+    this.ephemeralSessions.clear();
+    await Promise.all(ids.map((id) => this.client.close(id).catch(() => false)));
+  }
+
   /** Explicit teardown: terminate every session in the host. */
   async terminateAll(): Promise<void> {
     const ids = [...this.sessions.keys()];
     await Promise.all(ids.map((id) => this.client.close(id).catch(() => false)));
   }
+}
+
+/** Merge PTY output received during create with the host's scrollback snapshot. */
+function mergeTail(snapshot: string, pending: string): string {
+  if (!pending || snapshot.includes(pending)) return snapshot;
+  const pattern = pending.slice(0, Math.min(snapshot.length, pending.length));
+  const prefix = new Array<number>(pattern.length).fill(0);
+  for (let index = 1, matched = 0; index < pattern.length; index++) {
+    while (matched > 0 && pattern[index] !== pattern[matched]) matched = prefix[matched - 1]!;
+    if (pattern[index] === pattern[matched]) matched++;
+    prefix[index] = matched;
+  }
+  let overlap = 0;
+  for (let index = 0; index < snapshot.length; index++) {
+    while (overlap > 0 && snapshot[index] !== pattern[overlap]) overlap = prefix[overlap - 1]!;
+    if (snapshot[index] === pattern[overlap]) overlap++;
+    if (overlap === pattern.length && index < snapshot.length - 1) overlap = prefix[overlap - 1]!;
+  }
+  return snapshot + pending.slice(overlap);
 }

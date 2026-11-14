@@ -908,7 +908,7 @@
 
 .provider {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(8rem, 0.8fr) minmax(0, 1fr) auto;
   gap: 0 var(--space-3);
   align-items: center;
   padding: var(--space-2) var(--space-3);
@@ -920,6 +920,20 @@
 .provider input {
   grid-row: span 2;
   accent-color: var(--accent-gold);
+}
+
+.signInTerminal {
+  min-height: 20rem;
+  height: min(55vh, 34rem);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-terminal);
+  padding: var(--space-3);
+}
+
+.signInTerminal :global(.xterm) {
+  height: 100%;
 }
 
 .provider[data-selected] {

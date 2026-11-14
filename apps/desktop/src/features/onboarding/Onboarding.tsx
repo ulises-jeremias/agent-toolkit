@@ -10,6 +10,8 @@ import { useSessionContext } from '../../shell/useSessionContext';
 import type { HarnessSwitchResult } from '../../types/electron';
 import { Button, PixelIcon } from '../../ui';
 import { providerBlocker } from '../focus/labels';
+import { ProviderSignInDialog } from '../focus/ProviderSignInDialog';
+import { useProviderSignIn } from '../focus/useProviderSignIn';
 import { writeOnboardingComplete } from './complete';
 import styles from './onboarding.module.css';
 import { backendIsReady, harnessIsChosen, harnessNeedsCreate } from './steps';
@@ -66,6 +68,12 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
   const projects = useProjects(workspace, { enabled: ready && hasWorkspace });
   const link = useLinkProject(workspace);
   const providers = useFocusProviders();
+  const refreshProviderQuery = providers.refetch;
+  const refreshProviders = useCallback(async () => {
+    await bridge?.providers({ refresh: true });
+    await refreshProviderQuery();
+  }, [bridge, refreshProviderQuery]);
+  const signIn = useProviderSignIn(refreshProviders);
   const linked = (projects.data?.projects ?? []).filter((project) => project.status === 'ok');
   const agents = providers.data ?? [];
   const readyAgent = agents.find((provider) => providerBlocker(provider) === null);
@@ -215,10 +223,22 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
             <ul className={styles.list}>
               {agents.map((provider) => {
                 const blocker = providerBlocker(provider);
+                const signInId = provider.id === 'claude' || provider.id === 'codex' ? provider.id : null;
                 return (
                   <li key={provider.id} data-ready={blocker === null || undefined}>
                     <strong>{provider.label}</strong>
                     <span>{blocker ?? provider.authDetail}</span>
+                    {provider.installed && provider.auth !== 'ready' && signInId ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={signIn.starting !== null}
+                        busy={signIn.starting === provider.id}
+                        onClick={() => void signIn.start(signInId)}
+                      >
+                        Sign in
+                      </Button>
+                    ) : null}
                   </li>
                 );
               })}
@@ -234,12 +254,17 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
                 busy={providers.isFetching}
                 busyLabel="Checking…"
                 onClick={() => {
-                  void bridge?.providers({ refresh: true }).then(() => providers.refetch());
+                  void refreshProviders();
                 }}
               >
                 Check again
               </Button>
             </div>
+            {signIn.error ? (
+              <p className={styles.error} role="alert">
+                {signIn.error}
+              </p>
+            ) : null}
           </Step>
         </ol>
 
@@ -262,6 +287,7 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
             <span className={styles.note}>You can link repositories and sign in to agents later.</span>
           ) : null}
         </footer>
+        <ProviderSignInDialog session={signIn.session} onClose={signIn.close} />
       </div>
     </main>
   );

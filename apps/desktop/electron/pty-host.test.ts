@@ -67,6 +67,45 @@ describe('ptyRuntimeDir', () => {
 });
 
 describe('PtyHost (ADR-037)', () => {
+  it('keeps ephemeral provider sign-in output out of journals and registry and kills it on client disconnect', async () => {
+    const runtimeDir = tempRuntimeDir();
+    const pidPath = path.join(runtimeDir, 'child.pid');
+    const token = readOrCreateToken(runtimeDir, () => randomUUID());
+    const core = new PtyHostCore({ runtimeDir, token });
+    await core.listen();
+    const client = new PtyHostClient({ runtimeDir, spawnHost: () => { throw new Error('host already listening'); } });
+    try {
+      const session = await client.create({
+        agent: 'temporary-sign-in',
+        cmd: '/bin/sh',
+        args: ['-c', 'sleep 60 & echo $! > "$1"; printf "transient-auth-secret-marker\\n"; wait', 'sh', pidPath],
+        cwd: os.tmpdir(),
+        ephemeral: true,
+      });
+      await waitFor(async () => (await client.tail(session.id)).includes('transient-auth-secret-marker'));
+      await waitFor(async () => fs.existsSync(pidPath));
+      const pid = Number(fs.readFileSync(pidPath, 'utf8').trim());
+      expect(pid).toBeGreaterThan(1);
+      expect(await client.list()).not.toContainEqual(expect.objectContaining({ id: session.id }));
+      expect(core.list()).not.toContainEqual(expect.objectContaining({ id: session.id }));
+      expect(fs.existsSync(path.join(runtimeDir, `pty-${session.id}.log`))).toBe(false);
+      const registry = fs.readFileSync(path.join(runtimeDir, 'pty-registry.json'), 'utf8');
+      expect(registry).not.toContain(session.id);
+      expect(registry).not.toContain('transient-auth-secret-marker');
+
+      client.disconnect();
+      await waitForProcessExit(pid);
+      const reattached = new PtyHostClient({ runtimeDir, spawnHost: () => { throw new Error('host should still be running'); } });
+      await waitFor(async () => !(await reattached.list()).some((item) => item.id === session.id));
+      reattached.disconnect();
+    } finally {
+      client.disconnect();
+      core.terminateAll();
+      await core.close();
+      await removeDirRobust(runtimeDir);
+    }
+  }, 60_000);
+
   it('keeps sessions alive across client disconnect and reattaches with output intact', async () => {
     const runtimeDir = tempRuntimeDir();
     const token = readOrCreateToken(runtimeDir, () => randomUUID());

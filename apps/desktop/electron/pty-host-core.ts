@@ -33,6 +33,8 @@ const IDLE_EXIT_MS = 60_000;
 interface HostSession extends TerminalSessionInfo {
   proc: pty.IPty;
   tail: string;
+  ephemeral: boolean;
+  owner?: net.Socket;
   budgetTimer?: NodeJS.Timeout;
   forceKillTimer?: NodeJS.Timeout;
 }
@@ -92,6 +94,9 @@ export class PtyHostCore {
 
   async close(): Promise<void> {
     if (this.idleTimer) clearTimeout(this.idleTimer);
+    for (const session of [...this.sessions.values()]) {
+      if (session.ephemeral) await this.closeSession(session.id);
+    }
     for (const client of this.clients) client.destroy();
     await new Promise<void>((resolve) => {
       if (!this.server) return resolve();
@@ -101,7 +106,7 @@ export class PtyHostCore {
 
   /** Session infos (no process handles), for tests and the client mirror. */
   list(): TerminalSessionInfo[] {
-    return [...this.sessions.values()].map((session) => this.infoOf(session));
+    return [...this.sessions.values()].filter((session) => !session.ephemeral).map((session) => this.infoOf(session));
   }
 
   tail(id: string): string {
@@ -139,6 +144,9 @@ export class PtyHostCore {
     });
     const drop = () => {
       this.clients.delete(socket);
+      for (const session of [...this.sessions.values()]) {
+        if (session.ephemeral && session.owner === socket) void this.closeSession(session.id);
+      }
       this.armIdleExit();
     };
     socket.on('close', drop);
@@ -153,7 +161,7 @@ export class PtyHostCore {
         case 'list':
           return this.reply(socket, request.id, true, this.list());
         case 'create':
-          return this.reply(socket, request.id, true, this.create(request.session));
+          return this.reply(socket, request.id, true, this.create(request.session, request.session.ephemeral ? socket : undefined));
         case 'tail':
           return this.reply(socket, request.id, true, this.tail(request.sessionId));
         case 'write':
@@ -163,7 +171,7 @@ export class PtyHostCore {
         case 'signal':
           return this.reply(socket, request.id, true, this.signal(request.sessionId, request.signal));
         case 'close':
-          return this.reply(socket, request.id, true, this.closeSession(request.sessionId));
+          return this.reply(socket, request.id, true, await this.closeSession(request.sessionId));
         case 'shutdown':
           this.reply(socket, request.id, true, null);
           this.onIdleExit?.();
@@ -185,7 +193,7 @@ export class PtyHostCore {
     for (const client of this.clients) client.write(frame);
   }
 
-  create(request: PtyCreateRequest): TerminalSessionInfo {
+  create(request: PtyCreateRequest, owner?: net.Socket): TerminalSessionInfo {
     if (
       request.maxSeconds !== undefined &&
       (!Number.isSafeInteger(request.maxSeconds) || request.maxSeconds < 1 || request.maxSeconds > 31_536_000)
@@ -222,10 +230,12 @@ export class PtyHostCore {
       createdAt: new Date().toISOString(),
       proc,
       tail: '',
+      ephemeral: request.ephemeral === true,
+      owner,
     };
     proc.onData((chunk: string) => {
       session.tail = (session.tail + chunk).slice(-MAX_TAIL_CHARS);
-      this.appendJournal(id, chunk);
+      if (!session.ephemeral) this.appendJournal(id, chunk);
       this.broadcast({ event: 'data', sessionId: id, chunk });
     });
     proc.onExit(({ exitCode }: { exitCode: number }) => {
@@ -294,20 +304,33 @@ export class PtyHostCore {
     return true;
   }
 
-  closeSession(id: string): boolean {
+  async closeSession(id: string): Promise<boolean> {
     const session = this.sessions.get(id);
     if (!session) return false;
     session.exitReason = 'user-stop';
-    try {
-      session.proc.kill();
-    } catch {
-      // already gone
-    }
     this.clearTimers(session);
     this.sessions.delete(id);
     this.writeRegistry();
     this.armIdleExit();
+    this.signalProcessTree(session, 'SIGTERM');
+    if (!(await waitForSessionExit(session, 1_500))) {
+      this.signalProcessTree(session, 'SIGKILL');
+      await waitForSessionExit(session, 1_500);
+    }
     return true;
+  }
+
+  private signalProcessTree(session: HostSession, signal: NodeJS.Signals): void {
+    try {
+      if (process.platform === 'win32') session.proc.kill();
+      else process.kill(-session.proc.pid, signal);
+    } catch {
+      try {
+        process.kill(session.proc.pid, signal);
+      } catch {
+        // The process already exited.
+      }
+    }
   }
 
   /** Terminate every session (explicit host shutdown only, never on detach). */
@@ -326,7 +349,15 @@ export class PtyHostCore {
   }
 
   private infoOf(session: HostSession): TerminalSessionInfo {
-    const { proc: _proc, tail: _tail, budgetTimer: _budgetTimer, forceKillTimer: _forceKillTimer, ...info } = session;
+    const {
+      proc: _proc,
+      tail: _tail,
+      ephemeral: _ephemeral,
+      owner: _owner,
+      budgetTimer: _budgetTimer,
+      forceKillTimer: _forceKillTimer,
+      ...info
+    } = session;
     return info;
   }
 
@@ -390,4 +421,17 @@ export class PtyHostCore {
     session.budgetTimer = undefined;
     session.forceKillTimer = undefined;
   }
+}
+
+function waitForSessionExit(session: HostSession, timeoutMs: number): Promise<boolean> {
+  if (session.exitCode !== null) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const deadline = Date.now() + timeoutMs;
+    const check = () => {
+      if (session.exitCode !== null) return resolve(true);
+      if (Date.now() >= deadline) return resolve(false);
+      setTimeout(check, 25).unref();
+    };
+    check();
+  });
 }

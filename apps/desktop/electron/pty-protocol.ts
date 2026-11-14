@@ -31,6 +31,8 @@ export interface PtyCreateRequest {
   args?: string[];
   cwd: string;
   maxSeconds?: number;
+  /** Transient process: no scrollback journal/registry entry, killed when its client disconnects. */
+  ephemeral?: boolean;
   cols?: number;
   rows?: number;
 }
