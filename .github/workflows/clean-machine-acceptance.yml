@@ -67,6 +67,13 @@ jobs:
               raise SystemExit(f'version mismatch: source={version}, bundle={bundle}, desktop={package}')
           print(f'packaged Desktop and backend: {version}')
           PYCODE
+      - name: Retain exact Linux package for provider acceptance
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: desktop-linux-${{ github.sha }}
+          path: apps/desktop/release/linux-unpacked
+          if-no-files-found: error
+          retention-days: 1
       - name: Real packaged Electron E2E with isolated HOME
         env:
           ATK_E2E_APP_PATH: ${{ github.workspace }}/apps/desktop/release/linux-unpacked/agent-toolkit-desktop
