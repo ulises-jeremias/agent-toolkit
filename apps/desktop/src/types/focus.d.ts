@@ -60,6 +60,8 @@ export interface FocusUsage {
 export interface FocusThread {
   id: string;
   title: string;
+  /** Durable workspace Person identity when this thread was started from People. */
+  personId?: string | null;
   workspace: string;
   projectName: string | null;
   cwd: string;
@@ -141,6 +143,7 @@ export type FocusLiveUpdate =
 export interface FocusCreateThreadInput {
   cwd: string;
   projectName: string | null;
+  personId?: string | null;
   provider: FocusProviderId;
   model: string | null;
   permissionMode: FocusPermissionMode;

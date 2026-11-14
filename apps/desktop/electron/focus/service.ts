@@ -16,7 +16,7 @@ import type {
 } from '../../src/types/focus';
 import { isSafeModelId, type AdapterSink, type ProviderSession, type ProviderSessionFactory } from './adapter';
 import { ClaudeSession } from './claude';
-import { isThreadId, newThreadId, ThreadJournal } from './journal';
+import { isPersonId, isThreadId, newThreadId, ThreadJournal } from './journal';
 import { probeProviders, type ProbeOptions } from './providers';
 
 /**
@@ -128,12 +128,15 @@ export class FocusService {
     if (!MODES.includes(input.permissionMode)) return fail('Unknown permission mode.');
     if (!this.factories[input.provider]) return fail('Focus sessions are not available for this provider yet.');
     if (typeof input.cwd !== 'string' || !isDirectory(input.cwd)) return fail('The project folder does not exist.');
+    if (input.personId !== undefined && input.personId !== null && !isPersonId(input.personId))
+      return fail('That Person ID is not valid.');
     const model = cleanModel(input.model);
     if (model === undefined) return fail('That model name is not valid.');
     const now = new Date().toISOString();
     const thread: FocusThread = {
       id: newThreadId(),
       title: typeof input.title === 'string' ? input.title.trim().slice(0, 120) : '',
+      personId: input.personId ?? null,
       workspace,
       projectName: typeof input.projectName === 'string' && input.projectName ? input.projectName.slice(0, 120) : null,
       cwd: input.cwd,

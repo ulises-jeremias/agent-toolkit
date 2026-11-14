@@ -5,6 +5,7 @@ import { useAgents, useLibrarySkills, useMcpProviders, useProviders } from '../.
 import { requireClient, useBackend } from '../../data/backend';
 import { errorMessage, type Person, type PersonSession } from '../../lib/api';
 import { useTerminalSessions } from '../../data/terminal';
+import { useFocusBridge, useFocusThreads } from '../../data/focus';
 import { useSessionContext } from '../../shell/useSessionContext';
 import {
   Button,
@@ -376,6 +377,8 @@ export default function People() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const terminals = useTerminalSessions();
+  const focusBridge = useFocusBridge();
+  const { threads: focusThreads } = useFocusThreads();
   const workspace = context.workspace;
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<Person | null>(null);
@@ -454,13 +457,28 @@ export default function People() {
   const selectedSessionHistory = selected
     ? (sessionHistory.data?.sessions.filter((session) => session.person_id === selected.id).slice(0, 5) ?? [])
     : [];
+  const selectedFocusThreads = selected
+    ? focusThreads.filter((thread) => thread.personId === selected.id && thread.workspace === workspace)
+    : [];
+  const activeFocusThreads = selectedFocusThreads.filter(
+    (thread) => thread.status === 'running' || thread.status === 'awaiting-approval',
+  );
   const selectedActivity = selected
     ? personActivitySummary(sessionHistory.data?.sessions ?? [], selected.id)
     : undefined;
   const displaySession = selectedSession ?? selectedRecentSession;
   const activePersonIds = useMemo(
-    () => new Set(workspacePersonSessions.flatMap((session) => (session.personId ? [session.personId] : []))),
-    [workspacePersonSessions],
+    () =>
+      new Set([
+        ...workspacePersonSessions.flatMap((session) => (session.personId ? [session.personId] : [])),
+        ...focusThreads
+          .filter(
+            (thread) =>
+              thread.workspace === workspace && (thread.status === 'running' || thread.status === 'awaiting-approval'),
+          )
+          .flatMap((thread) => (thread.personId ? [thread.personId] : [])),
+      ]),
+    [workspacePersonSessions, focusThreads, workspace],
   );
   const formOpen = creating || editing !== null || importDraft !== null;
 
@@ -623,9 +641,9 @@ export default function People() {
                 meta={selected.role}
                 actions={
                   <StatusBadge
-                    tone={selectedSession ? 'ok' : selected.archived ? 'idle' : 'info'}
+                    tone={selectedSession || activeFocusThreads.length > 0 ? 'ok' : selected.archived ? 'idle' : 'info'}
                     label={
-                      selectedSession
+                      selectedSession || activeFocusThreads.length > 0
                         ? selected.archived
                           ? 'Archived · session open'
                           : 'Session open'
@@ -651,6 +669,54 @@ export default function People() {
                         ? `Last local PTY stopped at its ${selectedRecentSession.maxSeconds}s runtime limit.`
                         : `Last local PTY exited with code ${selectedRecentSession.exitCode ?? 'unknown'}.`}
                     </p>
+                  ) : null}
+                  {activeFocusThreads.length > 0 ? (
+                    <section aria-label={`${selected.name} active Focus sessions`}>
+                      <h3>Active Focus sessions</h3>
+                      <ul className={styles.sessionHistory}>
+                        {activeFocusThreads.map((thread) => (
+                          <li key={thread.id}>
+                            <span>{thread.projectName || thread.cwd}</span>
+                            <StatusBadge
+                              tone={thread.status === 'awaiting-approval' ? 'warn' : 'ok'}
+                              label={thread.status === 'awaiting-approval' ? 'Needs approval' : 'Working'}
+                            />
+                            <small>
+                              {thread.provider}
+                              {thread.model ? ` · ${thread.model}` : ''}
+                            </small>
+                            <Button variant="secondary" onClick={() => navigate(href('/focus', { thread: thread.id }))}>
+                              Open in Focus
+                            </Button>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  ) : null}
+                  {selectedFocusThreads.length > 0 ? (
+                    <section aria-label={`${selected.name} Focus history`}>
+                      <h3>Focus history</h3>
+                      <ul className={styles.sessionHistory}>
+                        {selectedFocusThreads.slice(0, 5).map((thread) => (
+                          <li key={thread.id}>
+                            <span>{thread.title || thread.projectName || thread.cwd}</span>
+                            <StatusBadge
+                              tone={
+                                thread.status === 'error' ? 'err' : thread.status === 'interrupted' ? 'warn' : 'idle'
+                              }
+                              label={thread.status}
+                            />
+                            <small>
+                              {thread.provider}
+                              {thread.model ? ` · ${thread.model}` : ''} · {thread.turns} turns
+                            </small>
+                            <Button variant="secondary" onClick={() => navigate(href('/focus', { thread: thread.id }))}>
+                              Open in Focus
+                            </Button>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
                   ) : null}
                   {selectedActivity && sessionHistory.isSuccess ? (
                     <p aria-label={`${selected.name} activity summary`}>{personActivityLine(selectedActivity)}</p>
@@ -693,7 +759,7 @@ export default function People() {
                             {session.status !== 'running' && session.source !== 'swarm' ? (
                               <Button
                                 variant="secondary"
-                                disabled={!terminals.available || Boolean(selectedSession) || selected.archived}
+                                disabled={!focusBridge || Boolean(selectedSession) || selected.archived}
                                 onClick={() => {
                                   setStartingFrom(session);
                                   setStarting(selected);
@@ -777,7 +843,7 @@ export default function People() {
                     ) : !selected.archived ? (
                       <Button
                         variant="primary"
-                        disabled={!terminals.available}
+                        disabled={!focusBridge}
                         onClick={() => {
                           setStartingFrom(null);
                           setStarting(selected);

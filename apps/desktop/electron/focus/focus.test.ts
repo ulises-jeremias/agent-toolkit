@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FocusEvent, FocusLiveUpdate, FocusProviderStatus } from '../../src/types/focus';
 import { clipOutput, describeTool } from './adapter.js';
 import { ClaudeSession, claudeArgs } from './claude.js';
-import { focusRoot, isThreadId, newThreadId, ThreadJournal } from './journal.js';
+import { focusRoot, isPersonId, isThreadId, newThreadId, parseThread, ThreadJournal } from './journal.js';
 import { probeProviders } from './providers.js';
 import { FocusService } from './service.js';
 
@@ -99,6 +99,40 @@ describe('thread journal', () => {
     expect(isThreadId('../../etc')).toBe(false);
     expect(isThreadId('th_UPPER')).toBe(false);
     expect(ThreadJournal.open(tempWorkspace(), '../x')).toBeNull();
+  });
+
+  it('keeps an optional Person relationship on new Focus threads and accepts legacy metadata', () => {
+    const h = harness();
+    const created = h.service.createThread({
+      cwd: h.workspace,
+      projectName: 'demo',
+      provider: 'claude',
+      model: null,
+      permissionMode: 'ask',
+      personId: 'reviewer_1',
+    });
+    expect(created).toMatchObject({ ok: true, value: { personId: 'reviewer_1' } });
+    if (!created.ok) throw new Error(created.error);
+    expect(h.service.readThread(created.value.id)?.thread.personId).toBe('reviewer_1');
+    expect(h.service.listThreads()[0]?.personId).toBe('reviewer_1');
+    expect(isPersonId('../../outside')).toBe(false);
+    expect(h.service.createThread({
+      cwd: h.workspace,
+      projectName: 'demo',
+      provider: 'claude',
+      model: null,
+      permissionMode: 'ask',
+      personId: '../outside',
+    })).toMatchObject({ ok: false, error: 'That Person ID is not valid.' });
+
+    const legacy = parseThread({
+      id: 'th_legacy123456',
+      cwd: h.workspace,
+      provider: 'claude',
+      permissionMode: 'ask',
+      status: 'idle',
+    }, 'th_legacy123456', h.workspace);
+    expect(legacy?.personId).toBeNull();
   });
 
   it('skips a torn final line instead of losing the history', () => {

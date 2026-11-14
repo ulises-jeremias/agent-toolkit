@@ -9,6 +9,7 @@ import { useMemoryFile, useMemoryList } from '../../data/memory';
 import { useProjects } from '../../data/projects';
 import { useWorkspacePacks } from '../../data/workspacePacks';
 import { useTerminalSessions } from '../../data/terminal';
+import { useFocusThreads } from '../../data/focus';
 import { activePersonSessionsForWorkspace } from '../../data/personSessionScope';
 import { useSwarms } from '../../data/swarms';
 import { personCharacterSprite } from '../people/avatar';
@@ -41,6 +42,7 @@ export default function WorldView() {
   const { backend, client } = useBackend();
   const { context, href } = useSessionContext();
   const terminalSessions = useTerminalSessions();
+  const { threads: focusThreads } = useFocusThreads();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const focusProject = params.get('project');
@@ -58,6 +60,16 @@ export default function WorldView() {
   const livePersonPtys = useMemo(
     () => activePersonSessionsForWorkspace(terminalSessions.sessions, context.workspace),
     [terminalSessions.sessions, context.workspace],
+  );
+  const livePersonFocusThreads = useMemo(
+    () =>
+      focusThreads.filter(
+        (thread) =>
+          thread.workspace === context.workspace &&
+          thread.personId &&
+          (thread.status === 'running' || thread.status === 'awaiting-approval'),
+      ),
+    [focusThreads, context.workspace],
   );
   const canonicalSessionsQuery = useQuery({
     queryKey: ['person-sessions', context.workspace],
@@ -78,7 +90,11 @@ export default function WorldView() {
   const peopleQuery = useQuery({
     queryKey: ['people', context.workspace],
     queryFn: () => requireClient(client).people(context.workspace),
-    enabled: Boolean(client && context.workspace && (livePersonPtys.length > 0 || hasLiveSwarmSessions)),
+    enabled: Boolean(
+      client &&
+      context.workspace &&
+      (livePersonPtys.length > 0 || livePersonFocusThreads.length > 0 || hasLiveSwarmSessions),
+    ),
     staleTime: 15_000,
   });
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -197,8 +213,40 @@ export default function WorldView() {
         },
       ];
     });
-    return [...ptyEntries, ...swarmEntries];
-  }, [livePersonPtys, peopleQuery.data, projects, workspacePath, canonicalSessionsQuery.data, swarmsQuery.data]);
+    const focusEntries = livePersonFocusThreads.flatMap((thread) => {
+      const person = thread.personId ? peopleById.get(thread.personId) : undefined;
+      const project = projects.find(
+        (candidate) =>
+          candidate.name === thread.projectName &&
+          pathIsWithin(thread.cwd, resolveProjectTarget(workspacePath, candidate.target)),
+      );
+      if (!person || !project) return [];
+      return [
+        {
+          id: thread.id,
+          personId: person.id,
+          name: person.name,
+          role: person.role,
+          cwd: thread.cwd,
+          projectId: project.name,
+          provider: thread.provider,
+          model: thread.resolvedModel ?? thread.model ?? undefined,
+          origin: 'focus' as const,
+          avatarCharacter: personCharacterSprite(person),
+          avatarAccent: person.avatar?.accent,
+        },
+      ];
+    });
+    return [...ptyEntries, ...focusEntries, ...swarmEntries];
+  }, [
+    livePersonPtys,
+    livePersonFocusThreads,
+    peopleQuery.data,
+    projects,
+    workspacePath,
+    canonicalSessionsQuery.data,
+    swarmsQuery.data,
+  ]);
 
   const harnessNotice = backend?.harness?.notice ?? null;
 

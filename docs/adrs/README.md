@@ -49,6 +49,7 @@ Single source: [`docs/adrs/`](./) — 40 records. Engineering ADRs use `ADR-0xx`
 | [ADR-043](ADR-043-provider-adapter.md) | First-party thin ProviderAdapter; T3 Code not adopted |
 | [ADR-044](ADR-044-desktop-session-runtime.md) | Desktop session runtime in the Electron main process; new frontend over the V services |
 | [ADR-045](ADR-045-desktop-focus-private-journals.md) | Desktop Focus journals in private app storage with nondestructive legacy migration |
+| [ADR-046](ADR-046-person-sessions-use-focus.md) | Person-initiated coding sessions use Focus |
 | [0001](0001-capability-declaration-and-external-provenance-lock.md) | Capability declaration and external provenance lock |
 | [0002](0002-design-assessment-as-design-unit.md) | Design assessment as design unit |
 | [0003](0003-pack-semantics-products-own-installation.md) | Pack semantics — products own installation |
