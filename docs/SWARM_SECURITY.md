@@ -65,7 +65,7 @@ specific validation guarantee.
 ## Herdr / tmux & Runner Separation
 
 - **Backend separation:** Herdr ([SWARM_HERDR.md](SWARM_HERDR.md)) and tmux ([SWARM_TMUX.md](SWARM_TMUX.md)) are adapters implementing `SwarmUIBackend` — no recipe/handoff/budget/git logic in adapters. Orchestrator never branches on backend for correctness; backend metadata stays in backend state. See adapter separation diagram in [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md).
-- **Runner isolation:** provider permission behavior varies by runner. The Claude adapter currently uses `--dangerously-skip-permissions`; see Runtime boundary. `--runner skeleton` does not invoke an LLM.
+- **Runner permissions:** provider permission behavior varies by runner. The Claude adapter uses Claude Code's native permission prompts by default; no Swarm option bypasses them. `--runner skeleton` does not invoke an LLM. An approval prompt may leave an unattended worker waiting for user input; inspect the actual worker session and do not count a stall as completed work.
 - **State & privacy:** state under `.agent-toolkit/swarm/runs/<run-id>/` is filesystem-authoritative. Local state does not imply that provider requests, logs, or inherited environment are private. The Herdr plugin delegates orchestration to Toolkit.
 
 Related: [SWARMS.md](SWARMS.md) · [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md) (security boundaries, runtime layers) · [SWARM_RECIPES.md](SWARM_RECIPES.md) · [SWARM_HANDOFFS.md](SWARM_HANDOFFS.md) · [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) · [SWARM_HERDR.md](SWARM_HERDR.md) · [SWARM_TMUX.md](SWARM_TMUX.md) · [HOW_TO_CREATE_SWARM_RECIPE.md](HOW_TO_CREATE_SWARM_RECIPE.md)
