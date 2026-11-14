@@ -226,6 +226,28 @@ describe('thread journal', () => {
     }
   });
 
+  it('fails closed on an oversized legacy journal without reading or marking it migrated', () => {
+    const h = harness();
+    const id = start(h);
+    const legacyEvents = path.join(focusRoot(h.workspace), id, 'events.jsonl');
+    const external = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-focus-large-migration-'));
+    const storageRoot = path.join(external, 'focus-journals');
+    const limit = 64 * 1024 * 1024;
+    ThreadJournal.open(h.workspace, id)?.append(1, { type: 'user', text: 'legacy event' });
+    fs.truncateSync(legacyEvents, limit + 1);
+
+    try {
+      expect(() => ThreadJournal.list(h.workspace, storageRoot)).toThrow(/exceeds the 64 MiB migration limit/);
+      expect(fs.statSync(legacyEvents).size).toBe(limit + 1);
+      expect(fs.existsSync(path.join(path.dirname(focusRoot(h.workspace, storageRoot)), 'migration-v1.json'))).toBe(
+        false,
+      );
+      expect(fs.existsSync(path.join(focusRoot(h.workspace, storageRoot), id))).toBe(false);
+    } finally {
+      fs.rmSync(external, { recursive: true, force: true });
+    }
+  });
+
   it('rejects a legacy ancestor swapped to a symlink during metadata open', () => {
     const h = harness();
     const id = start(h);
