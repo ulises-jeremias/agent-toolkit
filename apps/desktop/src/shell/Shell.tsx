@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { HashRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router';
 import { useBackend, useHealth } from '../data/backend';
 import { FocusProvider, useFocusProviders, useFocusThreads } from '../data/focus';
@@ -189,6 +189,10 @@ function RedirectTo({ path }: { path: string }) {
 
 function ShellFrame() {
   const location = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    if (mainRef.current) mainRef.current.scrollTop = 0;
+  }, [location.pathname]);
   return (
     <div className={styles.shell} data-destination={location.pathname}>
       <a
@@ -211,7 +215,7 @@ function ShellFrame() {
         <TopBar />
         <StaleNotice />
         <SectionTabs />
-        <main id="main" className={styles.content} tabIndex={-1}>
+        <main ref={mainRef} id="main" className={styles.content} tabIndex={-1}>
           <Routes>
             <Route path="/" element={null} />
             {DESTINATIONS.map(({ path, label, component: Destination }) => (

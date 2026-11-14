@@ -144,6 +144,26 @@ test('supervisor starts the real backend and the shell connects', async () => {
   // backend connectivity is already verified by waitForBackend above.
 });
 
+test('destination navigation starts the next document at the top after scrolling', async () => {
+  const { app, page } = desktop;
+  await setViewport(app, 1024, 640);
+  try {
+    await goTo(page, 'Settings');
+    const main = page.locator('#main');
+    await expect.poll(() => main.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThan(0);
+    await main.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+
+    await goTo(page, 'Library');
+    await expect(page.getByRole('heading', { name: 'Library board' })).toBeVisible();
+    await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBe(0);
+  } finally {
+    await setViewport(app, 1280, 800);
+  }
+});
+
 test('the top bar names the default ~/.ai-workspace workspace and offers search', async () => {
   const { page, workspace } = desktop;
   const top = page.getByRole('banner');
