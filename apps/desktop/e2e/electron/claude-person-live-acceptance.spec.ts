@@ -7,11 +7,40 @@ import { goTo } from './navigation';
 
 const LIVE_CLAUDE = process.env['ATK_LIVE_CLAUDE_ACCEPTANCE'] === '1';
 
+async function stopDetachedPtyHost(root: string): Promise<void> {
+  try {
+    const registry = JSON.parse(fs.readFileSync(path.join(root, 'pty-runtime', 'pty-registry.json'), 'utf8')) as {
+      pid?: number;
+    };
+    if (typeof registry.pid !== 'number') return;
+    try {
+      process.kill(registry.pid, 'SIGTERM');
+    } catch {
+      return;
+    }
+    const deadline = Date.now() + 5_000;
+    while (Date.now() < deadline) {
+      try {
+        process.kill(registry.pid, 0);
+      } catch {
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    throw new Error(`Test-owned PTY host ${registry.pid} did not stop.`);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('did not stop')) throw error;
+  }
+}
+
 test.skip(!LIVE_CLAUDE, 'Set ATK_LIVE_CLAUDE_ACCEPTANCE=1 with Claude Code authenticated outside the scratch profile.');
 
 test('packaged Desktop starts a Person with Claude, reviews changes, stops safely, and recovers history', async () => {
   test.setTimeout(12 * 60_000);
-  let desktop: Desktop | null = await openDesktop({ preserveRootOnClose: true });
+  let desktop: Desktop | null = await openDesktop({
+    preserveRootOnClose: true,
+    preservePtyHostOnClose: true,
+  });
   const profileRoot = desktop.root;
   const repo = path.join(desktop.home, 'code', 'person-live-acceptance');
   const output = path.join(repo, 'person-live-result.txt');
@@ -122,6 +151,8 @@ test('packaged Desktop starts a Person with Claude, reviews changes, stops safel
     await page.keyboard.press('Enter');
     await expect(terminal.locator('.xterm-rows')).toContainText(repo, { timeout: 15_000 });
     await expect(terminal.locator('.xterm-rows')).toContainText('PERSON_LIVE_TERMINAL_OK', { timeout: 15_000 });
+    const terminalId = await page.getByRole('tab', { name: /shell/ }).getAttribute('data-session-id');
+    expect(terminalId).toBeTruthy();
 
     // Interrupt a read-only response while it is actively streaming. Claude's
     // shell tool backgrounds long sleeps, so a sleep-based cancellation would
@@ -150,6 +181,7 @@ test('packaged Desktop starts a Person with Claude, reviews changes, stops safel
       initWorkspace: false,
       skipOnboarding: true,
       preserveRootOnClose: true,
+      preservePtyHostOnClose: true,
     });
     ({ app, page } = desktop);
     await waitForBackend(page);
@@ -167,6 +199,21 @@ test('packaged Desktop starts a Person with Claude, reviews changes, stops safel
     await expect(log.getByRole('region', { name: 'Turn 2' }).locator('[data-outcome="interrupted"]')).toBeVisible();
     expect(fs.readFileSync(output, 'utf8').trim()).toBe(exactLine);
 
+    await goTo(page, 'Terminal');
+    const terminalRow = page.locator(`tr[data-session-id="${terminalId}"]`);
+    await expect(terminalRow).toBeVisible();
+    await terminalRow.getByRole('button', { name: 'shell', exact: true }).click();
+    const recoveredTerminal = page.getByLabel('Terminal for shell');
+    await expect(recoveredTerminal.locator('.xterm-rows')).toContainText('PERSON_LIVE_TERMINAL_OK', {
+      timeout: 15_000,
+    });
+    await recoveredTerminal.click();
+    await page.keyboard.type("printf 'PERSON_LIVE_TERMINAL_RESUMED\\n'");
+    await page.keyboard.press('Enter');
+    await expect(recoveredTerminal.locator('.xterm-rows')).toContainText('PERSON_LIVE_TERMINAL_RESUMED', {
+      timeout: 15_000,
+    });
+
     await goTo(page, 'World');
     await page.getByRole('button', { name: /^person-live-acceptance:/ }).click();
     await expect(page.getByRole('region', { name: 'Selected place' })).toContainText('person-live-acceptance');
@@ -181,6 +228,7 @@ test('packaged Desktop starts a Person with Claude, reviews changes, stops safel
     await expect(page.getByRole('log', { name: 'Conversation' })).toContainText(exactLine);
   } finally {
     await desktop?.close();
+    await stopDetachedPtyHost(profileRoot);
     fs.rmSync(profileRoot, { recursive: true, force: true });
   }
 });
