@@ -78,6 +78,7 @@ function ThreadList({
 function Header({
   thread,
   models,
+  permissionModes,
   inspectorOpen,
   onToggleInspector,
   onOpenTerminal,
@@ -86,6 +87,7 @@ function Header({
 }: {
   thread: FocusThread;
   models: ReadonlyArray<{ id: string; label: string }>;
+  permissionModes?: FocusPermissionMode[];
   inspectorOpen: boolean;
   onToggleInspector: () => void;
   onOpenTerminal: () => void;
@@ -150,7 +152,11 @@ function Header({
             onChange={(event) => void patch({ permissionMode: event.target.value as FocusPermissionMode })}
           >
             {MODE_OPTIONS.map((option) => (
-              <option key={option.id} value={option.id}>
+              <option
+                key={option.id}
+                value={option.id}
+                disabled={permissionModes !== undefined && !permissionModes.includes(option.id)}
+              >
                 {option.label}
               </option>
             ))}
@@ -347,6 +353,7 @@ export default function FocusView() {
             <Header
               thread={active}
               models={provider?.models ?? []}
+              permissionModes={provider?.permissionModes}
               inspectorOpen={inspectorOpen}
               onToggleInspector={() => setInspectorOpen((open) => !open)}
               onOpenTerminal={() => void openTerminal(active)}

@@ -345,6 +345,11 @@ export class FocusService {
     if (!isDirectory(thread.cwd)) return fail(`The project folder no longer exists: ${thread.cwd}`);
     const status = statuses.find((entry) => entry.id === thread.provider);
     if (!status?.installed || !status.binary) return fail(`${status?.label ?? thread.provider} is not installed.`);
+    if (status.permissionModes && !status.permissionModes.includes(thread.permissionMode)) {
+      return fail(
+        `${status.label} does not support this Focus permission mode. Update the CLI, then check providers again.`,
+      );
+    }
     if (status.auth === 'signed-out') {
       return fail(
         `${status.label} is not signed in. Run \`${status.signInHint ?? 'the provider login'}\` in a terminal.`,

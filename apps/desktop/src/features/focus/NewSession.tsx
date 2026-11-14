@@ -4,7 +4,7 @@ import { useLinkProject } from '../../data/projects';
 import type { ProjectListEntry } from '../../lib/api';
 import type { FocusPermissionMode, FocusProviderId, FocusProviderStatus } from '../../types/focus';
 import { Button, PixelIcon } from '../../ui';
-import { MODE_OPTIONS, providerBlocker } from './labels';
+import { MODE_OPTIONS, permissionModeBlocker, providerBlocker } from './labels';
 import styles from './focus.module.css';
 
 export interface NewSessionDefaults {
@@ -102,7 +102,8 @@ export function NewSession({
       },
     });
 
-  const canStart = Boolean(bridge && activeProject && activeProvider && task.trim()) && !starting;
+  const modeBlocker = activeProvider ? permissionModeBlocker(activeProvider, mode) : null;
+  const canStart = Boolean(bridge && activeProject && activeProvider && task.trim() && !modeBlocker) && !starting;
 
   return (
     <form className={styles.start} onSubmit={(event) => void submit(event)} aria-labelledby="focus-start-title">
@@ -174,11 +175,20 @@ export function NewSession({
             onChange={(event) => setMode(event.target.value as FocusPermissionMode)}
           >
             {MODE_OPTIONS.map((option) => (
-              <option key={option.id} value={option.id}>
+              <option
+                key={option.id}
+                value={option.id}
+                disabled={activeProvider !== undefined && permissionModeBlocker(activeProvider, option.id) !== null}
+              >
                 {option.label}
               </option>
             ))}
           </select>
+          {modeBlocker ? (
+            <p className={styles.startError} role="status">
+              {modeBlocker}
+            </p>
+          ) : null}
           <p className={styles.startHint} data-danger={mode === 'bypass' || undefined}>
             {MODE_OPTIONS.find((option) => option.id === mode)?.hint}
           </p>

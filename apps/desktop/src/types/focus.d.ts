@@ -42,6 +42,8 @@ export interface FocusProviderStatus {
   authDetail: string;
   /** Command the user can run to sign in, when signed out. */
   signInHint: string | null;
+  /** Permission modes reported by the installed CLI; omitted for adapters without this probe. */
+  permissionModes?: FocusPermissionMode[];
   models: FocusModelOption[];
   capabilities: FocusProviderCapabilities;
   checkedAt: string;
