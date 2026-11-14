@@ -280,17 +280,26 @@ describe('killProcessTree', () => {
         cmd: '/bin/sh',
         args: ['-c', 'sleep 60 & echo GC:$!; wait'],
       });
-      const grandchildPid = await new Promise<number>((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error('no grandchild pid within 10s')), 10_000);
-        const off = service.onData((id, chunk) => {
-          const match = chunk.match(/GC:(\d+)/);
-          if (id === session.id && match) {
-            clearTimeout(timer);
-            off();
-            resolve(Number(match[1]));
-          }
-        });
-      });
+      const outputPid = (output: string): number | undefined => {
+        const match = output.match(/GC:(\d+)/);
+        return match ? Number(match[1]) : undefined;
+      };
+      // create() snapshots the PTY tail before returning. The child can print
+      // during that await, before this test subscribes to live output, so check
+      // the buffered tail before waiting for a new data event.
+      const grandchildPid =
+        outputPid(service.tail(session.id)) ??
+        (await new Promise<number>((resolve, reject) => {
+          const timer = setTimeout(() => reject(new Error('no grandchild pid within 10s')), 10_000);
+          const off = service.onData((id, chunk) => {
+            const pid = outputPid(chunk);
+            if (id === session.id && pid !== undefined) {
+              clearTimeout(timer);
+              off();
+              resolve(pid);
+            }
+          });
+        }));
       expect(() => process.kill(grandchildPid, 0)).not.toThrow();
       expect(service.signal(session.id, 'term')).toBe(true);
       // The whole group got SIGTERM: the grandchild must be gone too.
