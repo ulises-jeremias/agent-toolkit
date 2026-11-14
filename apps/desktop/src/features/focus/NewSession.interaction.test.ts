@@ -91,6 +91,34 @@ describe('NewSession', () => {
     expect(onRefreshProviders).toHaveBeenCalledOnce();
   });
 
+  it('stops a temporary sign-in if its screen closes while the PTY is starting', async () => {
+    let finishStart: ((result: { ok: true; sessionId: string }) => void) | undefined;
+    const providerSignInStart = vi.fn(
+      () => new Promise<{ ok: true; sessionId: string }>((resolve) => (finishStart = resolve)),
+    );
+    const providerSignInFinish = vi.fn(async () => true);
+    window.atk = { focus: {} as FocusBridge, providerSignInStart, providerSignInFinish } as unknown as AtkBridge;
+    const user = userEvent.setup();
+
+    const view = render(
+      createElement(NewSession, {
+        workspace: '/ws',
+        projects: [{ name: 'demo', target: '/ws/demo', status: 'ok' }],
+        projectsLoading: false,
+        providers: [{ ...provider, auth: 'signed-out', authDetail: 'Not signed in' }],
+        providersLoading: false,
+        onRefreshProviders: vi.fn(),
+        onStarted: vi.fn(),
+      }),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Sign in' }));
+    view.unmount();
+    finishStart?.({ ok: true, sessionId: 'temporary-orphan' });
+
+    await waitFor(() => expect(providerSignInFinish).toHaveBeenCalledWith('temporary-orphan'));
+  });
+
   it('explains the sign-in blocker beside the provider choices and disabled start action', () => {
     window.atk = { focus: {} as FocusBridge } as AtkBridge;
     const signedOut = {

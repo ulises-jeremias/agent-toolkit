@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ProviderSignInId } from '../../types/electron';
 
 export interface ProviderSignInSession {
@@ -12,7 +12,15 @@ export function useProviderSignIn(onRefresh: () => void | Promise<void>) {
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState<ProviderSignInId | null>(null);
   const startingRef = useRef(false);
+  const mountedRef = useRef(true);
   const bridge = window.atk;
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const start = useCallback(async (provider: ProviderSignInId) => {
     if (!window.atk || startingRef.current) return;
@@ -22,19 +30,27 @@ export function useProviderSignIn(onRefresh: () => void | Promise<void>) {
     try {
       const result = await window.atk.providerSignInStart(provider);
       if (!result.ok) {
-        setError(
-          result.error === 'unavailable'
-            ? 'This provider sign-in is not available on this machine.'
-            : 'Could not launch the sign-in process.',
-        );
+        if (mountedRef.current) {
+          setError(
+            result.error === 'unavailable'
+              ? 'This provider sign-in is not available on this machine.'
+              : 'Could not launch the sign-in process.',
+          );
+        }
+        return;
+      }
+      if (!mountedRef.current) {
+        await window.atk.providerSignInFinish(result.sessionId);
         return;
       }
       setSession({ provider, sessionId: result.sessionId });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not start provider sign-in.');
+      if (mountedRef.current) {
+        setError(cause instanceof Error ? cause.message : 'Could not start provider sign-in.');
+      }
     } finally {
       startingRef.current = false;
-      setStarting(null);
+      if (mountedRef.current) setStarting(null);
     }
   }, []);
 
