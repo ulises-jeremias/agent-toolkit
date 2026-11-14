@@ -353,14 +353,6 @@
       "source": "scripts/world-art-pxl/landmarks.px.js",
       "sha256": "9f85aa1638434cfca04d8f0b2ff728487b3dedf7d368b693a3b2b578d4d72396"
     },
-    "landmark-library": {
-      "file": "landmark-library.png",
-      "w": 64,
-      "h": 64,
-      "frames": 1,
-      "source": "scripts/world-art-pxl/landmarks.px.js",
-      "sha256": "a4508a15a4028fe73c5f9c16bf82c68b6c729200036bb7b333d70fdfdfd25b85"
-    },
     "landmark-operations": {
       "file": "landmark-operations.png",
       "w": 48,
@@ -400,6 +392,14 @@
       "frames": 1,
       "source": "scripts/world-art-pxl/landmarks.px.js",
       "sha256": "2ead12c3febc4e9f86b91d6d31844d26a8a13f18a16e3d450f7b3f2899a6bf84"
+    },
+    "landmark-library": {
+      "file": "landmark-library.png",
+      "w": 64,
+      "h": 64,
+      "frames": 1,
+      "source": "scripts/world-art-pxl/library.px.js",
+      "sha256": "b4df4133d88b8b7f3f8ee5ef753aa33d4f013d79bfe02a495685a25847a4e2aa"
     },
     "agent-plate": {
       "file": "agent-plate.png",

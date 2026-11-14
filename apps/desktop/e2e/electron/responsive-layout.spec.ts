@@ -105,6 +105,15 @@ test('Responsive matrix: shell and primary actions stay usable at baseline, mini
         size,
         `${size.key}: destinations rail`,
       );
+      if (size.key === 'narrow') {
+        const label = page.locator('[data-label-kind="place"]').first();
+        const typography = await label.evaluate((node) => {
+          const style = getComputedStyle(node);
+          return { fontFamily: style.fontFamily, fontSize: Number.parseFloat(style.fontSize) };
+        });
+        expect(typography.fontFamily, 'World names use the readable interface face').toContain('IBM Plex Sans');
+        expect(typography.fontSize, 'World names remain readable in the minimum window').toBeGreaterThanOrEqual(11);
+      }
       await page.screenshot({ path: `test-results/review/responsive-${size.key}.png`, fullPage: true });
     }
 

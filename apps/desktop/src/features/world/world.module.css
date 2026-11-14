@@ -99,7 +99,7 @@
 }
 
 :root[data-theme='dusk'] .worldAtmosphere {
-  background: linear-gradient(180deg, rgb(35 43 91 / 36%), rgb(24 27 62 / 48%));
+  background: linear-gradient(180deg, rgb(35 43 91 / 24%), rgb(24 27 62 / 34%));
 }
 
 /* Crossing a project doorway keeps the map in place while its real scene
@@ -530,8 +530,10 @@
   position: absolute;
   z-index: 10;
   transform: translate(-50%, 0);
-  font-family: var(--font-display);
-  font-size: clamp(7px, calc(var(--world-tile-size, 16px) * 0.34), 12px);
+  font-family: var(--font-body);
+  font-size: clamp(11px, calc(var(--world-tile-size, 16px) * 0.38), 15px);
+  font-weight: 600;
+  letter-spacing: 0.01em;
   line-height: 1.3;
   color: var(--world-plaque-fg, #f3edda);
   background: var(--world-plaque-bg, rgba(26, 22, 38, 0.9));
@@ -550,7 +552,7 @@
 .worldLabel[data-label-kind='place'] {
   width: max-content;
   max-width: 12rem;
-  font-size: clamp(7px, calc(var(--world-tile-size, 16px) * 0.34), 12px);
+  font-size: clamp(11px, calc(var(--world-tile-size, 16px) * 0.38), 15px);
   white-space: nowrap;
   overflow-wrap: normal;
   clip-path: polygon(
@@ -588,7 +590,7 @@
 .worldLabel[data-sign='true'] {
   opacity: 0.92;
   border-bottom-width: 3px;
-  font-size: clamp(6px, calc(var(--world-tile-size, 16px) * 0.3), 10px);
+  font-size: clamp(11px, calc(var(--world-tile-size, 16px) * 0.36), 13px);
 }
 
 .worldLabelDetail {
