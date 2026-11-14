@@ -51,7 +51,10 @@ describe('OpenCode ACP protocol', () => {
     expect(sink.delta).toHaveBeenCalledWith(expect.any(String), 'assistant', 'ACP_OK');
     expect(sink.item).toHaveBeenCalledWith({ type: 'assistant', itemId: expect.any(String), text: 'ACP_OK' });
     expect(sink.turnFinished).toHaveBeenCalledWith(
-      expect.objectContaining({ outcome: 'completed', usage: { inputTokens: 3, cachedInputTokens: 0, outputTokens: 2, costUsd: null } }),
+      expect.objectContaining({
+        outcome: 'completed',
+        usage: { inputTokens: 3, cachedInputTokens: 0, outputTokens: 2, costUsd: null },
+      }),
     );
   });
 
@@ -65,10 +68,20 @@ describe('OpenCode ACP protocol', () => {
     expect(session.respondApproval(request?.requestId ?? '', 'allow')).toBe(true);
     await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(1));
     expect(sink.item).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'tool.started', itemId: 'tool-write-1', kind: 'command', title: 'touch result.txt' }),
+      expect.objectContaining({
+        type: 'tool.started',
+        itemId: 'tool-write-1',
+        kind: 'command',
+        title: 'touch result.txt',
+      }),
     );
     expect(sink.item).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'tool.finished', itemId: 'tool-write-1', ok: true, output: expect.stringContaining('Created result.txt') }),
+      expect.objectContaining({
+        type: 'tool.finished',
+        itemId: 'tool-write-1',
+        ok: true,
+        output: expect.stringContaining('Created result.txt'),
+      }),
     );
   });
 
@@ -78,7 +91,16 @@ describe('OpenCode ACP protocol', () => {
     await vi.waitFor(() => expect(userInput).toHaveBeenCalledTimes(1));
     const [requestId, questions] = userInput.mock.calls[0] ?? [];
     expect(questions).toEqual([
-      expect.objectContaining({ id: 'color', header: 'Color', isSecret: false, isOther: true, options: [{ label: 'Blue', description: '' }, { label: 'Red', description: '' }] }),
+      expect.objectContaining({
+        id: 'color',
+        header: 'Color',
+        isSecret: false,
+        isOther: true,
+        options: [
+          { label: 'Blue', description: '' },
+          { label: 'Red', description: '' },
+        ],
+      }),
     ]);
     expect(session.respondUserInput(requestId ?? '', { color: ['Blue'] })).toBe(true);
     await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(1));
@@ -91,7 +113,11 @@ describe('OpenCode ACP protocol', () => {
     await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(1));
     expect(userInput).not.toHaveBeenCalled();
     expect(sink.item).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'notice', level: 'warning', text: expect.stringContaining('sensitive information') }),
+      expect.objectContaining({
+        type: 'notice',
+        level: 'warning',
+        text: expect.stringContaining('sensitive information'),
+      }),
     );
   });
 
@@ -100,7 +126,27 @@ describe('OpenCode ACP protocol', () => {
     session.send('hold');
     await vi.waitFor(() => expect(sink.session).toHaveBeenCalled());
     session.interrupt();
-    await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledWith(expect.objectContaining({ outcome: 'interrupted' })));
+    await vi.waitFor(() =>
+      expect(sink.turnFinished).toHaveBeenCalledWith(expect.objectContaining({ outcome: 'interrupted' })),
+    );
+  });
+
+  it('drains queued prompts once and in order after interruption', async () => {
+    const { session, sink } = harness();
+    session.send('hold');
+    await vi.waitFor(() => expect(sink.session).toHaveBeenCalled());
+    session.send('queued one');
+    session.send('queued two');
+    session.interrupt();
+    await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(3));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(sink.delta).toHaveBeenCalledTimes(2);
+    expect(sink.turnFinished.mock.calls.map(([result]) => result?.outcome)).toEqual([
+      'interrupted',
+      'completed',
+      'completed',
+    ]);
   });
 
   it('reports queued turns as failed when the provider exits during an active turn', async () => {
