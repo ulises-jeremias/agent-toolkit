@@ -93,9 +93,9 @@ test('Responsive matrix: shell and primary actions stay usable at baseline, mini
       await page.keyboard.press('Escape');
       await expect(paletteInput.first()).toBeHidden();
 
-      // A dense destination (Library board) also fits without overflow.
+      // The dense Library view also fits without overflow.
       await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
-      await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+      await expect(page.getByRole('heading', { level: 1, name: 'Library' })).toBeVisible();
       await expectNoHorizontalOverflow(page, size, `${size.key} (library)`);
 
       // Back to World; the rail stays inside the window (the terminal drawer only exists with an open session).
