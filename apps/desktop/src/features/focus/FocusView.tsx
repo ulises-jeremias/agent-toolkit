@@ -222,13 +222,23 @@ function Inspector({ thread, workspace, onClose }: { thread: FocusThread; worksp
   const lastSeq = timeline.events.at(-1)?.seq ?? 0;
   const lastType = timeline.events.at(-1)?.type;
 
-  // The working tree changes when a tool finishes or a turn ends: re-read Git then, not on a timer.
+  // Refresh the working tree when journal events report completed provider work.
   useEffect(() => {
     if (lastType !== 'tool.finished' && lastType !== 'turn.finished') return;
-    void queryClient.invalidateQueries({
-      predicate: (query) => query.queryKey[0] === 'projects' && String(query.queryKey[1]).startsWith('git'),
-    });
-    void queryClient.invalidateQueries({ queryKey: ['files'] });
+    const refresh = () => {
+      void queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === 'projects' && String(query.queryKey[1]).startsWith('git'),
+      });
+      void queryClient.invalidateQueries({ queryKey: ['files'] });
+    };
+    refresh();
+    // Some providers publish turn completion just before their final file write
+    // becomes visible to Git. Re-read once after that short filesystem settle
+    // window so Focus does not keep showing the clean snapshot from tool exit.
+    const settleTimer = lastType === 'turn.finished' ? window.setTimeout(refresh, 300) : undefined;
+    return () => {
+      if (settleTimer !== undefined) window.clearTimeout(settleTimer);
+    };
   }, [queryClient, lastSeq, lastType]);
 
   if (!thread.projectName) {
