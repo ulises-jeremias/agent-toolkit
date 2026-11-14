@@ -42,7 +42,8 @@ async function expectFitsViewport(locator: Locator, page: Page, label: string) {
   return bounds!;
 }
 
-test('Packaged Desktop reflows at 200% and 320 CSS px, including keyboard-scrollable data tables', async (_fixtures, testInfo) => {
+test('Packaged Desktop reflows at 200% and 320 CSS px, including keyboard-scrollable data tables', async ({ playwright }, testInfo) => {
+  expect(playwright).toBeDefined();
   const desktop = await openDesktop();
   try {
     const { app, page, workspace } = desktop;
