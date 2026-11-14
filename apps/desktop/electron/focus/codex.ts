@@ -59,6 +59,23 @@ function approvalDecisions(value: unknown): string[] | null {
   return Array.isArray(value) ? value.filter((decision): decision is string => typeof decision === 'string') : [];
 }
 
+function approvalDecisionLabels(value: unknown): string {
+  if (!Array.isArray(value)) return 'no supported choices';
+  const labels = value.map((decision) => {
+    if (typeof decision === 'string') return decision;
+    const record = asRecord(decision);
+    return record ? Object.keys(record).join('|') || 'object choice' : typeof decision;
+  });
+  return labels.length > 0 ? labels.join(', ') : 'no supported choices';
+}
+
+function hasSafeApprovalChoices(decisions: string[] | null): boolean {
+  return (
+    decisions === null ||
+    (decisions.includes('accept') && (decisions.includes('decline') || decisions.includes('cancel')))
+  );
+}
+
 function firstLine(value: string, max = 160): string {
   const line = value.split('\n').find((part) => part.trim()) ?? '';
   return line.length > max ? `${line.slice(0, max - 1)}…` : line;
@@ -194,7 +211,11 @@ export class CodexSession implements ProviderSession {
     if (!pending) return false;
     const answer =
       pending.dialect === 'v2'
-        ? { allow: 'accept', 'allow-session': 'acceptForSession', deny: 'decline' }[decision]
+        ? {
+            allow: 'accept',
+            'allow-session': 'acceptForSession',
+            deny: pending.availableDecisions?.includes('decline') === false ? 'cancel' : 'decline',
+          }[decision]
         : { allow: 'approved', 'allow-session': 'approved_for_session', deny: 'denied' }[decision];
     // A session grant is never inferred. If the server supplied a list,
     // enforce it exactly; without one only one-shot compatibility decisions
@@ -459,11 +480,11 @@ export class CodexSession implements ProviderSession {
     if (method === 'item/commandExecution/requestApproval' || method === 'execCommandApproval') {
       const dialect = method.startsWith('item/') ? 'v2' : 'legacy';
       const decisions = approvalDecisions(params['availableDecisions']);
-      if (decisions && (!decisions.includes('accept') || !decisions.includes('decline'))) {
+      if (!hasSafeApprovalChoices(decisions)) {
         this.sink.item({
           type: 'notice',
           level: 'error',
-          text: 'Codex requested an approval choice that Focus cannot present safely. The request was refused.',
+          text: `Codex requested choices Focus cannot present safely (${approvalDecisionLabels(params['availableDecisions'])}). The request was refused.`,
         });
         this.write({
           id: rpcId,
@@ -499,11 +520,11 @@ export class CodexSession implements ProviderSession {
     if (method === 'item/fileChange/requestApproval' || method === 'applyPatchApproval') {
       const dialect = method.startsWith('item/') ? 'v2' : 'legacy';
       const decisions = approvalDecisions(params['availableDecisions']);
-      if (decisions && (!decisions.includes('accept') || !decisions.includes('decline'))) {
+      if (!hasSafeApprovalChoices(decisions)) {
         this.sink.item({
           type: 'notice',
           level: 'error',
-          text: 'Codex requested an approval choice that Focus cannot present safely. The request was refused.',
+          text: `Codex requested choices Focus cannot present safely (${approvalDecisionLabels(params['availableDecisions'])}). The request was refused.`,
         });
         this.write({
           id: rpcId,
