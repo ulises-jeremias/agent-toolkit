@@ -1,21 +1,21 @@
 /**
  * Shared camera math (Cozy Pixel World). Terrain, art and hit geometry share
  * one camera scale; sprites keep their manifest dimensions. The camera
- * quantizes to whole source pixels at integer zoom — never fractional
- * (ADR-035 craft rules: 16px source tiles, integer multiples).
+ * quantizes tile sizes to whole CSS pixels. The canvas and DOM art layers use
+ * nearest-neighbor rendering at intermediate ratios when that avoids leaving
+ * a large empty frame around a fitted landscape.
  */
 
-export const WORLD_ZOOMS = [16, 32, 48, 64, 80] as const;
+export const WORLD_ZOOMS = [16, 24, 32, 40, 48, 56, 64, 72, 80] as const;
 
 export interface Point {
   x: number;
   y: number;
 }
 
-/** Use the room's largest fitting pixel scale; grounds keep the player-first valley scale. */
-export function responsiveCameraZoom(mode: 'grounds' | 'interior', viewport: Point, tiles: Point): number {
-  if (mode === 'interior') return fitCamera(viewport, tiles).zoom;
-  return viewport.x < 1280 ? 32 : viewport.x >= 1600 ? 64 : 48;
+/** Choose the largest crisp scale that fits the actual room and world bounds. */
+export function responsiveCameraZoom(viewport: Point, tiles: Point): number {
+  return fitCamera(viewport, tiles).zoom;
 }
 
 /** Largest crisp zoom with a 24px gutter, or edge-to-edge when that avoids halving scale. */

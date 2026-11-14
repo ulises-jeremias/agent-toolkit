@@ -48,6 +48,7 @@ export function ProjectChangesPanel({
   const log = useProjectGitLog(workspace, active);
   const show = useProjectGitShow(workspace, active, commitHash);
   const busy = stage.isPending || unstage.isPending || commit.isPending || stageHunk.isPending;
+  const data = status.data;
 
   useEffect(() => {
     setSelection(null);
@@ -56,9 +57,18 @@ export function ProjectChangesPanel({
     setActionError('');
   }, [active]);
 
+  // In Focus, the first useful view after an agent turn is the change itself.
+  // Select a file when the working tree becomes dirty so the operator can
+  // inspect its real diff without hunting through the list. Keep explicit user
+  // selections (and commit-history selections) untouched.
+  useEffect(() => {
+    if (selection || commitHash || !data?.ok) return;
+    const file = data.unstaged[0] ?? data.untracked[0] ?? data.staged[0];
+    if (file) setSelection({ path: file.path, staged: data.staged.includes(file) });
+  }, [commitHash, data, selection]);
+
   if (linked.length === 0) return null;
 
-  const data = status.data;
   const runAction = (fn: () => Promise<{ ok: boolean; detail: string }>, done?: string) => {
     setActionError('');
     fn()

@@ -17,6 +17,7 @@ const focus: FocusBridge = {
   deleteThread: (id) => ipcRenderer.invoke('atk:focus-thread-delete', id),
   send: (id, text) => ipcRenderer.invoke('atk:focus-send', id, text),
   respondApproval: (id, requestId, decision) => ipcRenderer.invoke('atk:focus-approval', id, requestId, decision),
+  respondUserInput: (id, requestId, answers) => ipcRenderer.invoke('atk:focus-user-input', id, requestId, answers),
   interrupt: (id) => ipcRenderer.invoke('atk:focus-interrupt', id),
   onUpdate: (listener) => {
     const wrapped = (_event: unknown, payload: unknown): void => {
@@ -30,6 +31,10 @@ const focus: FocusBridge = {
 };
 
 const bridge: AtkBridge = {
+  preferences: {
+    read: () => ipcRenderer.invoke('atk:preferences-read'),
+    update: (patch) => ipcRenderer.invoke('atk:preferences-update', patch),
+  },
   focus,
   backendStatus: () => ipcRenderer.invoke('atk:backend-status'),
   updateStatus: () => ipcRenderer.invoke('atk:update-status'),

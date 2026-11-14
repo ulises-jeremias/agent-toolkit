@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router';
 import { requireClient, useBackend } from '../../data/backend';
 import { useFocusThreads } from '../../data/focus';
@@ -13,6 +13,7 @@ import { OPEN_TERMINAL_DOCK_EVENT } from '../../shell/events';
 import { useSessionContext } from '../../shell/useSessionContext';
 import { useAttention } from '../office/useAttention';
 import { Button } from '../../ui';
+import { useAppearance } from '../../design/theme';
 import { buildValley, SPRITE_SIZE, type ValleyPersonFigure, type ValleyPlace, type ValleyScene } from './model';
 import { manifestEntry, valleyUrl, type ValleyManifestEntry } from './assets';
 import styles from './valley.module.css';
@@ -151,22 +152,44 @@ export default function ValleyView() {
     return [...pty, ...swarm];
   }, [livePersonPtys, people.data, projects.data, canonical.data, swarms.data]);
 
-  const [scale] = useState(() => scaleFor(window.innerHeight));
   const viewport = useRef<HTMLDivElement>(null);
+  const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const appearance = useAppearance();
+
+  useLayoutEffect(() => {
+    const element = viewport.current;
+    if (!element) return;
+    const measure = () => setViewportSize({ width: element.clientWidth, height: window.innerHeight });
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    window.addEventListener('resize', measure);
+    measure();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
+
+  const sceneInput = useMemo(
+    () => ({
+      projects: projects.data?.projects ?? [],
+      threads,
+      personFigures,
+      jobsRunning: activeJobIds(jobs.data).length,
+      attention: attention.items.length,
+      people: people.data?.people.length ?? 0,
+    }),
+    [projects.data, threads, personFigures, jobs.data, attention.items.length, people.data],
+  );
+  const baseScene = useMemo(() => buildValley({ ...sceneInput, minWidth: 400 }), [sceneInput]);
+  const availableWidth = viewportSize.width || window.innerWidth;
+  const desiredScale = scaleFor(viewportSize.height || window.innerHeight);
+  const scale = Math.max(1, Math.min(desiredScale, Math.floor((availableWidth / baseScene.width) * 4) / 4));
 
   const scene: ValleyScene = useMemo(
-    () =>
-      buildValley({
-        projects: projects.data?.projects ?? [],
-        threads,
-        personFigures,
-        jobsRunning: activeJobIds(jobs.data).length,
-        attention: attention.items.length,
-        people: people.data?.people.length ?? 0,
-        minWidth: Math.max(400, Math.round((viewport.current?.clientWidth ?? 1024) / scale)),
-      }),
-    [projects.data, threads, personFigures, jobs.data, attention.items.length, people.data, scale],
+    () => buildValley({ ...sceneInput, minWidth: Math.max(400, Math.round(availableWidth / scale)) }),
+    [sceneInput, availableWidth, scale],
   );
 
   const selected = scene.places.find((place) => place.id === selectedId) ?? null;
@@ -195,7 +218,14 @@ export default function ValleyView() {
           <h1 className={styles.title}>{workspace ? folderName(workspace) : 'Workspace'}</h1>
           <p className={styles.lede}>
             {scene.places.filter((place) => place.kind === 'project').length} projects ·{' '}
-            {threads.filter((thread) => thread.status === 'running' || thread.status === 'awaiting-approval').length}{' '}
+            {
+              threads.filter(
+                (thread) =>
+                  thread.status === 'running' ||
+                  thread.status === 'awaiting-approval' ||
+                  thread.status === 'awaiting-input',
+              ).length
+            }{' '}
             sessions working
           </p>
         </div>
@@ -223,6 +253,7 @@ export default function ValleyView() {
       <div className={styles.viewport} ref={viewport} data-testid="valley-viewport">
         <div
           className={styles.scene}
+          data-theme={appearance.resolvedTheme}
           style={{ width, height: SCENE_HEIGHT * scale }}
           role="group"
           aria-label="Workspace village"
@@ -230,8 +261,10 @@ export default function ValleyView() {
           <div
             className={styles.sky}
             aria-hidden="true"
+            data-testid="valley-sky"
+            data-art={appearance.resolvedTheme === 'dusk' ? 'sky_dusk' : 'sky_day'}
             style={{
-              backgroundImage: `url(${valleyUrl('sky_day.png')})`,
+              backgroundImage: `url(${valleyUrl(appearance.resolvedTheme === 'dusk' ? 'sky_dusk.png' : 'sky_day.png')})`,
               backgroundSize: `${16 * scale}px ${SCENE_HEIGHT * scale}px`,
             }}
           />
@@ -258,6 +291,16 @@ export default function ValleyView() {
 
           <Sprite name="river" x={scene.riverX} bottom={LANE + 54} scale={scale} />
           <Sprite name="bridge" x={scene.bridgeX} bottom={LANE + 18} scale={scale} />
+          {scene.lamps.map((x, index) => (
+            <Sprite
+              key={`lamp-${index}`}
+              name={appearance.resolvedTheme === 'dusk' ? 'lamp_post_lit' : 'lamp_post'}
+              x={x}
+              bottom={LANE}
+              scale={scale}
+              className={appearance.resolvedTheme === 'dusk' ? styles.lit : undefined}
+            />
+          ))}
 
           {scene.places.map((place) => {
             const lit = place.lit;
@@ -265,7 +308,13 @@ export default function ValleyView() {
             const isHouse = place.kind === 'project';
             return (
               <div key={place.id}>
-                <Sprite name={spriteName} x={place.x} bottom={LANE} scale={scale} />
+                <Sprite
+                  name={spriteName}
+                  x={place.x}
+                  bottom={LANE}
+                  scale={scale}
+                  className={lit ? styles.lit : undefined}
+                />
                 {isHouse && lit && CHIMNEY[place.sprite] ? (
                   <Sprite
                     name="smoke"

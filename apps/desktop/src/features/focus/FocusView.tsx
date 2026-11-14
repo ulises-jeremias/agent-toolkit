@@ -95,7 +95,8 @@ function Header({
   const bridge = useFocusBridge();
   const [renaming, setRenaming] = useState(false);
   const [title, setTitle] = useState(thread.title);
-  const busy = thread.status === 'running' || thread.status === 'awaiting-approval';
+  const busy =
+    thread.status === 'running' || thread.status === 'awaiting-approval' || thread.status === 'awaiting-input';
 
   useEffect(() => {
     setTitle(thread.title);
@@ -131,7 +132,11 @@ function Header({
           />
         ) : (
           <h1 className={styles.title}>
-            <button type="button" onClick={() => setRenaming(true)} title="Rename this session">
+            <button
+              type="button"
+              onClick={() => setRenaming(true)}
+              title={`${threadTitle(thread)} — Rename this session`}
+            >
               {threadTitle(thread)}
             </button>
           </h1>
@@ -356,6 +361,11 @@ export default function FocusView() {
           </>
         ) : requested && !loaded ? (
           <p className={styles.quiet}>Loading sessions…</p>
+        ) : requested ? (
+          <div className={styles.quiet} role="status">
+            <p>This saved session is no longer available in this workspace.</p>
+            <Button onClick={() => select(null)}>Return to sessions</Button>
+          </div>
         ) : (
           <NewSession
             workspace={workspace}

@@ -17,8 +17,9 @@ light sources (authored lighting, not a recolor).
 
 ## Pixel discipline
 
-- 16px source tile; multi-tile sprites (houses 48×64, landmarks 48×72,
-  trees 48×48); integer zoom only, `imageSmoothingEnabled=false`.
+- 16px source tile; multi-tile sprites (houses 48×64, most landmarks
+  48×72, Library 48×64, trees 48×48); integer zoom only,
+  `imageSmoothingEnabled=false`.
 - One light direction (top-left), hard pixel shadows, 1px ink outline
   (`#2b2135`), limited color ramps per material, no anti-aliasing.
 - Animation is restrained and environmental: 2-frame water, lamp flicker,
@@ -30,9 +31,10 @@ light sources (authored lighting, not a recolor).
 
 Shared `pal()` + `ramps()` for ink, plaster, wood, terracotta, slate,
 leaf/grass greens, dirt, plaza stone, creek teal, flower accents, lamp
-warmth and hood/cloak character colors. Meadow uses the palette as
-authored; Dusk is a separately authored lighting pass in the world theme
-(lit windows, lamp glow, water reflection), never a CSS inversion.
+warmth and hood/cloak character colors. Meadow uses the palette as authored.
+Dusk uses authored windows, lamp glow and water reflection under a restrained,
+even blue-hour ground tint; it is not a CSS inversion. The grass surround still
+reads too green in Dusk and remains an open art-direction issue.
 
 ## Pipeline
 
@@ -114,6 +116,25 @@ share this chrome; Dusk deepens the canvas and warms the gold.
   here, not claimed.
 - Known polish backlog (tracked in #1741): forest density on the east
   bank, Dusk halo softening, flower-box detail on house-cottage.
+
+## Continuing product rescue iteration — 2026-11-12
+
+- Rebuilt the Library landmark from its trusted PXL source as a 48×64
+  glasshouse with a broad book window, structural roof ribs and a separate
+  entrance. The previous 48×72 sprite exceeded its four-tile semantic lot and
+  visually collided with the Workspace building; the revised height now fits
+  that lot. The PXL generator owns the PNG and both manifests.
+- Ran the source Electron app with the real local backend at 1024×640,
+  1440×900 and 1920×1080 in Meadow and Dusk. Opened the 1920×1080 Meadow and
+  compact 1024×640 Dusk captures after the footprint correction. Screenshots
+  remain private under `.audit-private/world-library-64px-final/`.
+- Changed the navigation rail so Focus precedes the optional World. The
+  renderer smoke test now verifies the semantic map role; the renderer suite
+  passes 7/7, and packaged-shell keyboard/reduced-motion checks pass 2/2.
+- This iteration is not visual acceptance. Dusk grass still reads too green;
+  the Workspace label crowds the Library roof at compact scale; the remaining
+  civic façades and overall valley composition still need PXL art direction and
+  another capture/critique pass. Do not treat this note as sign-off.
 
 ## Finalization review (post-merge, from packaged captures)
 

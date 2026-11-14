@@ -1,0 +1,218 @@
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { expect, test } from '@playwright/test';
+import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtures';
+import { goTo } from './navigation';
+
+const LIVE_CODEX = process.env['ATK_LIVE_CODEX_ACCEPTANCE'] === '1';
+const CAPTURE_DIR = process.env['ATK_CAPTURE_DIR'];
+
+async function capture(page: Desktop['page'], name: string): Promise<void> {
+  if (!CAPTURE_DIR) return;
+  fs.mkdirSync(CAPTURE_DIR, { recursive: true });
+  await page.screenshot({ path: path.join(CAPTURE_DIR, `${name}.png`) });
+}
+
+test.skip(
+  !LIVE_CODEX,
+  'Set ATK_LIVE_CODEX_ACCEPTANCE=1 with CODEX_HOME pointing to an authenticated disposable-test account.',
+);
+
+test('packaged Desktop completes a real Codex task, stops safely, and reports provider resume limits', async () => {
+  test.setTimeout(12 * 60_000);
+  let desktop: Desktop | null = await openDesktop({ preserveRootOnClose: true });
+  const profileRoot = desktop.root;
+  const repo = path.join(desktop.home, 'code', 'codex-live-acceptance');
+  const output = path.join(repo, 'live-result.txt');
+  const exactLine = 'Codex real-provider acceptance succeeded.';
+  const task = `Create live-result.txt in this repository with exactly this one line: ${exactLine}\nDo not run shell commands or edit any other file. Then briefly confirm the filename.`;
+
+  try {
+    fs.mkdirSync(repo, { recursive: true });
+    // A fresh HOME makes interactive zsh offer its setup menu; seed an empty
+    // config inside this disposable profile so terminal input reaches the shell.
+    fs.writeFileSync(path.join(desktop.home, '.zshrc'), '# Isolated acceptance shell.\n');
+    execFileSync('git', ['init', '--quiet', repo]);
+    execFileSync(
+      'git',
+      [
+        '-C',
+        repo,
+        '-c',
+        'user.name=Agent Toolkit Acceptance',
+        '-c',
+        'user.email=acceptance@example.invalid',
+        'commit',
+        '--allow-empty',
+        '-m',
+        'Initial disposable repository',
+      ],
+      { stdio: 'pipe' },
+    );
+
+    let { app, page } = desktop;
+    await waitForBackend(page);
+    const pickRepository = (folder: string) =>
+      app.evaluate(({ dialog }, selected) => {
+        dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [selected] });
+      }, folder);
+
+    await goTo(page, 'Projects');
+    await pickRepository(repo);
+    await page.getByRole('button', { name: 'Link a repository' }).click();
+    await expect(page.getByRole('button', { name: /^codex-live-acceptance\s/ })).toBeVisible();
+    expect(fs.realpathSync(path.join(desktop.workspace, 'projects', 'codex-live-acceptance'))).toBe(
+      fs.realpathSync(repo),
+    );
+
+    await goTo(page, 'Focus');
+    await page.getByLabel('Project', { exact: true }).selectOption('codex-live-acceptance');
+    const codex = page.getByRole('radio', { name: /^Codex\b/ });
+    await expect(codex).toBeEnabled();
+    await codex.check();
+    await page.getByLabel('Permissions', { exact: true }).selectOption('accept-edits');
+    await page.getByRole('textbox', { name: 'Task' }).fill(task);
+    await expect(page.getByRole('button', { name: 'Start session' })).toBeEnabled();
+    await page.getByRole('button', { name: 'Start session' }).click();
+
+    const log = page.getByRole('log', { name: 'Conversation' });
+    await expect(log).toContainText(task);
+    await expect.poll(() => fs.existsSync(output), { timeout: 240_000, intervals: [500, 1000, 2000] }).toBe(true);
+    await expect.poll(() => fs.readFileSync(output, 'utf8').trim(), { timeout: 10_000 }).toBe(exactLine);
+    await expect(log.locator('[data-outcome="completed"]')).toBeVisible({ timeout: 120_000 });
+    await setViewport(app, 1440, 900);
+    // Focus should refresh Git after the provider turn and select the first
+    // changed file, making the real diff inspectable without leaving the
+    // coding context or manually choosing a file.
+    const focusChanges = page.getByRole('region', { name: 'Changes', exact: true });
+    await expect(focusChanges.getByRole('heading', { name: 'Untracked (1)' })).toBeVisible({ timeout: 15_000 });
+    await expect(focusChanges.getByLabel('Diff for live-result.txt')).toContainText(exactLine);
+    await capture(page, 'focus-live-completed-1440x900');
+    await setViewport(app, 1024, 640);
+    await capture(page, 'focus-live-completed-1024x640');
+    await setViewport(app, 1440, 900);
+
+    // Review the actual provider-produced untracked-file diff before staging.
+    await goTo(page, 'Projects');
+    await page
+      .getByRole('list', { name: 'Untracked files' })
+      .getByRole('button', { name: /live-result\.txt/ })
+      .click();
+    await expect(page.locator('[aria-label="Diff for live-result.txt"]')).toContainText(exactLine);
+    await page.getByRole('button', { name: 'Terminal', exact: true }).click();
+    const terminal = page.getByLabel('Terminal for shell');
+    await expect(terminal).toBeVisible();
+    await terminal.click();
+    await page.keyboard.type('pwd; echo atk-live-terminal');
+    await page.keyboard.press('Enter');
+    await expect(terminal.locator('.xterm-rows')).toContainText(repo, { timeout: 10_000 });
+    await expect(terminal.locator('.xterm-rows')).toContainText('atk-live-terminal', { timeout: 10_000 });
+
+    // A second, read-only turn is deliberately cancelled while the real
+    // provider is working. It must produce an interrupted result, not a fake
+    // completion or a filesystem change.
+    await goTo(page, 'Focus');
+    await expect(page).toHaveURL(/#\/focus/);
+    const sessions = page.getByRole('navigation', { name: 'Sessions' });
+    const threadButton = sessions.getByRole('button').filter({ hasText: /live-result\.txt/ });
+    await expect(threadButton).toBeVisible();
+    await threadButton.click();
+    const composer = page.getByRole('textbox', { name: 'Message', exact: true });
+    await expect(composer).toBeEnabled();
+    await composer.fill(
+      "Use the terminal to run python3 -c 'import time; time.sleep(45)' and do not edit any files. After it exits, briefly confirm. I will stop this turn while it is waiting.",
+    );
+    await expect(page.getByRole('button', { name: 'Send', exact: true })).toBeEnabled();
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+    const stop = page.getByRole('button', { name: 'Stop' });
+    await expect(stop).toBeVisible({ timeout: 30_000 });
+    await stop.click();
+    await expect(log.locator('[data-outcome="interrupted"]')).toBeVisible({ timeout: 30_000 });
+    expect(fs.readFileSync(output, 'utf8').trim()).toBe(exactLine);
+    await capture(page, 'focus-live-interrupted-1440x900');
+
+    // Close and relaunch against the same scratch HOME, userData, workspace,
+    // and provider credentials. The provider CLI itself remains the installed
+    // authenticated binary; no credential files are copied into the fixture.
+    await desktop.close();
+    desktop = null;
+    desktop = await openDesktop({
+      root: profileRoot,
+      initWorkspace: false,
+      skipOnboarding: false,
+      preserveRootOnClose: true,
+    });
+    ({ app, page } = desktop);
+    await waitForBackend(page);
+    await goTo(page, 'Focus');
+    const reopenedSessions = page.getByRole('navigation', { name: 'Sessions' });
+    const reopenedThread = reopenedSessions.getByRole('button').filter({ hasText: /live-result\.txt/ });
+    await expect(reopenedThread).toBeVisible({ timeout: 30_000 });
+    await reopenedThread.click();
+    const reopenedLog = page.getByRole('log', { name: 'Conversation' });
+    await expect(reopenedLog).toContainText(task);
+    await expect(reopenedLog.locator('[data-outcome="interrupted"]')).toBeVisible();
+    expect(fs.readFileSync(output, 'utf8').trim()).toBe(exactLine);
+
+    const resumeComposer = page.getByRole('textbox', { name: 'Message', exact: true });
+    await resumeComposer.fill(
+      'Run `cat live-result.txt` in the project, then reply with its exact contents. Do not edit any files.',
+    );
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+    const followupTurn = reopenedLog.getByRole('region', { name: 'Turn 3' });
+    await expect
+      .poll(
+        async () => {
+          if (
+            await followupTurn
+              .getByRole('alert')
+              .isVisible()
+              .catch(() => false)
+          )
+            return 'failed';
+          if (
+            await followupTurn
+              .locator('[data-outcome="completed"]')
+              .isVisible()
+              .catch(() => false)
+          )
+            return 'completed';
+          return null;
+        },
+        { timeout: 120_000 },
+      )
+      .not.toBeNull();
+    const failure = followupTurn.getByRole('alert');
+    if (await failure.isVisible()) {
+      await expect(failure).toContainText('The saved provider conversation could not be resumed');
+    } else {
+      await expect(followupTurn.locator('[data-outcome="completed"]')).toBeVisible();
+      await expect(followupTurn).toContainText(exactLine);
+    }
+    await capture(page, 'focus-live-recovered-1440x900');
+    await expect(reopenedLog.getByRole('region', { name: 'Turn 1' })).toContainText(exactLine);
+
+    // World remains an optional semantic layer, and opening the project house
+    // keeps a canonical route back to the same project and session.
+    await goTo(page, 'World');
+    await page.getByRole('button', { name: /codex-live-acceptance · Project/ }).click();
+    await expect(page.getByRole('application', { name: 'Interior of codex-live-acceptance' })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: 'Checking live workspace details' })).toHaveCount(0);
+    // The semantic house doorway uses a short 280ms view transition; wait for
+    // that authored transition to finish before preserving the design-review image.
+    await page.waitForTimeout(350);
+    await capture(page, 'world-live-project-interior-1440x900');
+    await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Focus' }).click();
+    const returnedThread = page
+      .getByRole('navigation', { name: 'Sessions' })
+      .getByRole('button')
+      .filter({ hasText: /live-result\.txt/ });
+    await expect(returnedThread).toBeVisible();
+    await returnedThread.click();
+    await expect(page.locator('header p').filter({ hasText: 'codex-live-acceptance' })).toBeVisible();
+  } finally {
+    await desktop?.close();
+    fs.rmSync(profileRoot, { recursive: true, force: true });
+  }
+});

@@ -64,14 +64,14 @@ function meadowField(x: number, y: number, scale: number, salt: number): number 
 
 /** Irregular grove patches seeded on a coarse lattice, not checkerboard tiles. */
 function insideGrove(x: number, y: number): boolean {
-  const cellSize = 9;
+  const cellSize = 11;
   const cellX = Math.floor(x / cellSize);
   const cellY = Math.floor(y / cellSize);
   for (let gy = cellY - 1; gy <= cellY + 1; gy++) {
     for (let gx = cellX - 1; gx <= cellX + 1; gx++) {
       const seedX = gx * cellSize + 2 + (h2(gx, gy, 23) % 5);
       const seedY = gy * cellSize + 2 + (h2(gx, gy, 29) % 5);
-      const radius = 4 + (h2(gx, gy, 31) % 4);
+      const radius = 3 + (h2(gx, gy, 31) % 3);
       const dx = x - seedX;
       const dy = (y - seedY) * 1.15;
       if (dx * dx + dy * dy <= radius * radius) return true;
@@ -148,6 +148,12 @@ function baseGround(p: Painter) {
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
       if (p.isBlocked(x, y)) continue;
+      // The terrain canvas ends at the semantic map bounds, while the valley
+      // backdrop continues under it in the viewport. Let the last four tiles
+      // converge to the same quiet grass tile as that backdrop; otherwise the
+      // broad biome fields stop at a hard rectangle around the whole village.
+      const edgeDistance = Math.min(x, y, p.cols - 1 - x, p.rows - 1 - y);
+      const edgeBlend = Math.min(1, edgeDistance / 4);
       // Let the low-frequency fields span enough of the palette to produce
       // visibly different meadow biomes even on a compact empty workspace.
       // Broad, overlapping moisture bands make whole clearings feel like
@@ -156,16 +162,20 @@ function baseGround(p: Painter) {
       // horizontal bands across the valley at the scale of the full map.
       const fieldX = x * 0.82 + y * 0.57;
       const fieldY = y * 0.82 - x * 0.57;
-      const moisture = meadowField(fieldX, fieldY, 12, 11) * 0.72 + meadowField(fieldX, fieldY, 24, 17) * 0.28;
+      const regionalMoisture = meadowField(fieldX, fieldY, 12, 11) * 0.72 + meadowField(fieldX, fieldY, 24, 17) * 0.28;
+      const moisture = 0.22 + (regionalMoisture - 0.22) * edgeBlend;
       const bloom = meadowField(x, y, 6, 19);
       const roll = h2(x, y, 1) % 23;
-      if (bloom > 0.8 && roll < 12) {
+      // Keep tiny wildflowers grouped by the broad bloom field. Dense floral
+      // tiles belong to deliberate glades, not to a repeating confetti layer.
+      if (edgeDistance >= 2 && bloom > 0.94 && roll < 12) {
         p.set(x, y, ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'][h2(x, y, 12) % 4]!);
       } else {
         const grass = Math.max(0, Math.min(5, Math.floor((moisture - 0.22) * 9)));
         // Each moisture band has four authored tile patterns. Spatially
         // seeded choice breaks up repeated 16px stamps without adding noise.
-        const texture = Math.min(3, Math.floor(meadowField(x, y, 5, 59) * 4));
+        const textureVariants = Math.min(4, edgeDistance + 1);
+        const texture = Math.min(textureVariants - 1, Math.floor(meadowField(x, y, 5, 59) * textureVariants));
         p.set(x, y, `grass-${grass * 4 + texture}`);
       }
     }
@@ -469,15 +479,16 @@ function creek(
   const bankCenter = Math.floor((minCenterX + maxCenterX) / 2);
   const baseX = preferredFitsBank ? preferredX : bankCenter;
   const corridorRadius = (maxCenterX - runMinX) / 2;
-  const broadBend = Math.min(4.8, corridorRadius * 1.25);
-  const softBend = Math.min(1.2, corridorRadius * 0.45);
+  const broadBend = Math.min(7.2, corridorRadius * 1.35);
+  const softBend = Math.min(1.6, corridorRadius * 0.4);
   const creekRows = Array.from({ length: p.rows }, (_, y) => {
     const along = y - bridgeY;
-    // The bridge remains the fixed crossing while the stream swings through a
-    // wide, low-frequency S-curve. A shorter bend keeps its banks irregular
-    // without creating per-row jitter.
-    const anchoredSoftBend = Math.sin(along * 0.31 + 0.7) - Math.sin(0.7);
-    const desiredX = baseX + Math.sin(along * 0.22) * broadBend + anchoredSoftBend * softBend;
+    // Keep the bridge anchored and aim the stream along an S-shaped course.
+    // Lot reservations can flatten parts of the route, so the planner below
+    // prioritizes a safe, connected bank over the ideal curve.
+    const anchoredSoftBend = Math.sin(along * 0.3 + 0.7) - Math.sin(0.7);
+    const broadPhase = (Math.PI * along) / Math.max(8, p.rows - 3);
+    const desiredX = baseX + Math.sin(broadPhase) * broadBend + anchoredSoftBend * softBend;
     const pool = Math.sin(along * 0.25 + 0.9);
     // Keep the channel mostly one tile wide so it reads as a stream through
     // the valley instead of a moat between the civic commons and homes.
@@ -694,11 +705,11 @@ function flowerGlades(p: Painter) {
   // every bloom beside the creek and leave the civic quarter as a bare lawn.
   // Include the outer fringe so narrow, path-bound civic banks can still host
   // a clipped edge glade instead of reserving all blooms for open interiors.
-  const target = Math.min(22, Math.max(8, Math.floor((p.cols * p.rows) / 30)));
+  const target = Math.min(7, Math.max(3, Math.floor((p.cols * p.rows) / 125)));
   const hasProjectDistrict = p.projectLots.length > 0;
   const minX = hasProjectDistrict ? 1 : 2;
   const minY = hasProjectDistrict ? 1 : 3;
-  const centerSpacing = hasProjectDistrict ? 4 : 5;
+  const centerSpacing = hasProjectDistrict ? 6 : 7;
   const candidates: { x: number; y: number; rank: number }[] = [];
   for (let y = minY; y < p.rows - 2; y++) {
     for (let x = minX; x < p.cols - 2; x++) {
@@ -714,8 +725,8 @@ function flowerGlades(p: Painter) {
     if (centers.some((center) => Math.hypot(center.x - candidate.x, center.y - candidate.y) < centerSpacing))
       return false;
     centers.push(candidate);
-    const radiusX = 4 + (h2(candidate.x, candidate.y, 137) % 2);
-    const radiusY = 2 + (h2(candidate.x, candidate.y, 139) % 2);
+    const radiusX = 2 + (h2(candidate.x, candidate.y, 137) % 2);
+    const radiusY = 1 + (h2(candidate.x, candidate.y, 139) % 2);
     const blooms = ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'] as const;
     const primary = h2(candidate.x, candidate.y, 149) % blooms.length;
     const secondary = (primary + 1 + (h2(candidate.x, candidate.y, 157) % 3)) % blooms.length;
@@ -770,8 +781,8 @@ function flowerPatchSprites(p: Painter) {
   candidates.sort((a, b) => a.rank - b.rank || a.y - b.y || a.x - b.x);
 
   const placed: { x: number; y: number }[] = [];
-  const minimumPatches = p.projectLots.length > 0 ? 4 : 3;
-  const target = Math.min(8, Math.max(minimumPatches, Math.floor((p.cols * p.rows) / 140)));
+  const minimumPatches = p.projectLots.length > 0 ? 2 : 1;
+  const target = Math.min(4, Math.max(minimumPatches, Math.floor((p.cols * p.rows) / 250)));
   const onBank = (candidate: { x: number; y: number }, side: 'west' | 'east') => {
     const waterXs = Array.from({ length: p.cols }, (_, x) => x).filter((x) => p.get(x, candidate.y) === 'water');
     if (waterXs.length === 0) return false; // The paved crossing row has no open-water bank.
@@ -901,7 +912,7 @@ function groveAnchors(p: Painter, meadowHeart?: { x: number; y: number }): Set<s
   // Keep substantial woodland even after landmarks and project houses occupy
   // the map. More small clusters create sheltered clearings without placing a
   // uniform tree grid across the walkable meadow.
-  const target = Math.min(16, Math.max(14, Math.floor((p.cols * p.rows) / 90)));
+  const target = Math.min(12, Math.max(10, Math.floor((p.cols * p.rows) / 120)));
   const candidates: { x: number; y: number; rank: number; projectClearing: boolean }[] = [];
   for (let y = 3; y < p.rows - 3; y++) {
     for (let x = 4; x < p.cols - 4; x++) {

@@ -5,6 +5,7 @@ import type { FocusService } from './focus/service';
 import { createDefaultHarnessFromProcess, isDefaultHarnessPath } from './harness';
 import type { HarnessController, HarnessSwitchResult } from './harness-controller';
 import type { McpSecretStore } from './mcp-secrets';
+import type { DesktopPreferenceStore } from './preferences';
 import { TerminalCwdError, type TerminalService } from './terminal';
 import type { UpdateChecker, UpdateStatus } from './update-check';
 
@@ -14,6 +15,7 @@ export interface IpcDeps {
   getWindow: () => BrowserWindow | null;
   getHarness: () => HarnessController | null;
   getMcpSecrets?: () => McpSecretStore | null;
+  getPreferences?: () => DesktopPreferenceStore | null;
   getFocus?: () => FocusService | null;
   getUpdateChecker?: () => UpdateChecker | null;
   chooseProjectDirectory?: (defaultPath: string) => Promise<string | null>;
@@ -35,6 +37,13 @@ const NO_HARNESS: HarnessSwitchResult = { ok: false, error: 'unavailable', messa
  * do, so frame checks would be theater.)
  */
 export function registerIpc(deps: IpcDeps): void {
+  ipcMain.handle('atk:preferences-read', () => deps.getPreferences?.()?.read() ?? null);
+  ipcMain.handle('atk:preferences-update', (_event, patch: unknown) => {
+    if (!isRecord(patch)) return deps.getPreferences?.()?.read() ?? null;
+    const allowed = ['onboardingComplete', 'theme', 'motion', 'routes'];
+    if (Object.keys(patch).some((key) => !allowed.includes(key))) return deps.getPreferences?.()?.read() ?? null;
+    return deps.getPreferences?.()?.set(patch) ?? null;
+  });
   ipcMain.handle('atk:backend-status', () => {
     const snapshot = deps.getBackend()?.snapshot() ?? null;
     if (!snapshot) return null;
@@ -262,6 +271,11 @@ export function registerIpc(deps: IpcDeps): void {
     typeof requestId === 'string' &&
     (decision === 'allow' || decision === 'allow-session' || decision === 'deny')
       ? (focus()?.respondApproval(id, requestId, decision) ?? unavailable)
+      : unavailable,
+  );
+  ipcMain.handle('atk:focus-user-input', (_event, id: unknown, requestId: unknown, answers: unknown) =>
+    typeof id === 'string' && typeof requestId === 'string' && isRecord(answers)
+      ? (focus()?.respondUserInput(id, requestId, answers as Record<string, string[]>) ?? unavailable)
       : unavailable,
   );
   ipcMain.handle('atk:focus-interrupt', (_event, id: unknown) =>

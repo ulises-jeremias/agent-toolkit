@@ -305,6 +305,7 @@ export function focusCommands(
   const status: Record<string, string> = {
     running: 'working',
     'awaiting-approval': 'needs your answer',
+    'awaiting-input': 'has a question for you',
     interrupted: 'stopped',
     error: 'failed',
   };

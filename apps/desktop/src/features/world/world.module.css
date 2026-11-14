@@ -88,6 +88,20 @@
   outline: none;
 }
 
+/* Blue hour belongs to the whole visible valley, not the moving rectangle of
+   map tiles. Keep this atmosphere fixed to the viewport as the player pans;
+   semantic controls and the camera HUD remain above it. */
+.worldAtmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+
+:root[data-theme='dusk'] .worldAtmosphere {
+  background: linear-gradient(180deg, rgb(35 43 91 / 36%), rgb(24 27 62 / 48%));
+}
+
 /* Crossing a project doorway keeps the map in place while its real scene
    changes underneath it. A brief pixel-step dissolve makes the change legible
    without slowing down a work action or scaling the pixel art out of focus. */
@@ -356,6 +370,17 @@
   background-position: left bottom;
 }
 
+/* Dusk uses the authored transparent window pass for project facades. */
+:root[data-theme='dusk'] .entity[data-facade^='house-'] .entitySprite::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--house-lit-src);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+}
+
 /* Live Person/job characters idle gently; working ones move faster.
    Idle motion is cosmetic only — it never implies a job is running.
    A live Person NPC carries its durable accent as a soft ground shadow. */
@@ -371,7 +396,7 @@
 .entity:focus-visible {
   outline: var(--focus-ring);
   outline-offset: 2px;
-  z-index: 6;
+  z-index: 11;
 }
 
 .entity[data-selected='true'] {
@@ -789,39 +814,6 @@
 
 .entity {
   z-index: 4;
-}
-
-/* Dusk tints terrain beneath the authored sprites. Keep this inside the
-   transformed camera layer, above the canvas and below décor/entities. */
-.mapWorld::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
-}
-
-:root[data-theme='meadow'] .mapWorld::after {
-  /* A few broad pools of reflected light make the meadow feel like a place
-     at late morning, without tinting authored sprites or creating fake state.
-     The overlay is static and sits below the trees, signs and characters. */
-  background:
-    radial-gradient(ellipse at 16% 10%, rgb(255 222 141 / 11%), transparent 38%),
-    radial-gradient(ellipse at 80% 24%, rgb(117 224 221 / 8%), transparent 33%),
-    radial-gradient(ellipse at 50% 100%, rgb(22 39 47 / 13%), transparent 44%),
-    linear-gradient(180deg, rgb(255 245 209 / 3%), transparent 30%, rgb(31 42 39 / 9%));
-}
-
-:root[data-theme='dusk'] .mapWorld::after {
-  /* Blue-hour ground, with warm clearings and a cool creek shimmer. Multiply
-     keeps terrain legible while making the daylight meadow distinctly dusk;
-     this layer stays below authored buildings, characters and lanterns. */
-  background:
-    radial-gradient(ellipse at 16% 22%, rgb(255 190 104 / 38%), transparent 30%),
-    radial-gradient(ellipse at 55% 62%, rgb(93 194 209 / 34%), transparent 28%),
-    radial-gradient(ellipse at 84% 24%, rgb(255 194 110 / 36%), transparent 24%),
-    linear-gradient(180deg, rgb(31 39 87 / 42%), rgb(35 37 77 / 38%));
-  mix-blend-mode: multiply;
 }
 
 /* World theme pack picker (single Hornero Valley pack today) */

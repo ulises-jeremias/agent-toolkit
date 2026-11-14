@@ -13,9 +13,11 @@ import type {
   FocusThread,
   FocusThreadPatch,
   FocusThreadSnapshot,
+  FocusUserInputQuestion,
 } from '../../src/types/focus';
 import { isSafeModelId, type AdapterSink, type ProviderSession, type ProviderSessionFactory } from './adapter';
 import { ClaudeSession } from './claude';
+import { CodexSession } from './codex';
 import { isThreadId, newThreadId, ThreadJournal } from './journal';
 import { probeProviders, type ProbeOptions } from './providers';
 
@@ -51,6 +53,7 @@ interface Runtime {
   turn: number;
   turnOpen: boolean;
   pendingApprovals: Set<string>;
+  pendingUserInputs: Set<string>;
   idleTimer: NodeJS.Timeout | null;
   interruptTimer: NodeJS.Timeout | null;
   interrupting: boolean;
@@ -58,6 +61,7 @@ interface Runtime {
 
 const DEFAULT_FACTORIES: Partial<Record<FocusProviderId, ProviderSessionFactory>> = {
   claude: (options, sink) => new ClaudeSession(options, sink),
+  codex: (options, sink) => new CodexSession(options, sink),
 };
 
 function ok<T>(value: T): FocusResult<T> {
@@ -203,6 +207,9 @@ export class FocusService {
     if (!journal) return fail('Session not found.');
     const runtime = this.runtimeFor(journal);
     if (runtime.pendingApprovals.size > 0) return fail('Answer the pending approval first.');
+    if (runtime.pendingUserInputs.size > 0) return fail('Answer the pending Codex question first.');
+    if (runtime.turnOpen && !runtime.session?.acceptsInputWhileRunning)
+      return fail('Wait for the agent to finish or stop the current turn before sending another message.');
     if (!runtime.session?.alive) {
       runtime.starting ??= this.startSession(runtime).finally(() => {
         runtime.starting = null;
@@ -213,6 +220,11 @@ export class FocusService {
     // The launch awaited a provider check; the thread may have been deleted or the app closed meanwhile.
     if (this.closed || this.runtimes.get(id) !== runtime) return fail('This session is no longer open.');
     if (runtime.pendingApprovals.size > 0) return fail('Answer the pending approval first.');
+    if (runtime.pendingUserInputs.size > 0) return fail('Answer the pending Codex question first.');
+    // Two sends may have awaited the same startup. Recheck before journaling
+    // so a rejected concurrent turn never appears as an accepted user message.
+    if (runtime.turnOpen && !runtime.session?.acceptsInputWhileRunning)
+      return fail('Wait for the agent to finish or stop the current turn before sending another message.');
     this.clearIdle(runtime);
     this.record(runtime, { type: 'user', text: message }, { openTurn: 'user' });
     if (!journal.thread.title) this.setThread(journal, { title: titleFrom(message) });
@@ -226,6 +238,18 @@ export class FocusService {
       return fail('This approval is no longer pending.');
     if (!runtime.session.respondApproval(requestId, decision)) return fail('This approval is no longer pending.');
     this.resolveApproval(runtime, requestId, decision, 'user');
+    return ok(true);
+  }
+
+  respondUserInput(id: string, requestId: string, answers: Record<string, string[]>): FocusResult<true> {
+    const runtime = this.runtimes.get(id);
+    if (!runtime?.session || !runtime.pendingUserInputs.has(requestId))
+      return fail('This question is no longer pending.');
+    if (!runtime.session.respondUserInput(requestId, answers)) return fail('This question is no longer pending.');
+    runtime.pendingUserInputs.delete(requestId);
+    // Answers travel only to the provider. The durable event records the resolution, never values.
+    this.append(runtime, { type: 'userInput.resolved', requestId, by: 'user' });
+    this.syncWaitingStatus(runtime);
     return ok(true);
   }
 
@@ -284,6 +308,7 @@ export class FocusService {
       turn: journal.thread.turns,
       turnOpen: false,
       pendingApprovals: new Set(),
+      pendingUserInputs: new Set(),
       idleTimer: null,
       interruptTimer: null,
       interrupting: false,
@@ -301,15 +326,24 @@ export class FocusService {
     this.reconciled.add(workspace);
     for (const journal of ThreadJournal.list(workspace)) {
       const { status, id, turns } = journal.thread;
-      if ((status !== 'running' && status !== 'awaiting-approval') || this.runtimes.has(id)) continue;
+      if (
+        (status !== 'running' && status !== 'awaiting-approval' && status !== 'awaiting-input') ||
+        this.runtimes.has(id)
+      ) continue;
       const events = journal.readEvents();
       const open = new Set<string>();
+      const openInputs = new Set<string>();
       for (const event of events) {
         if (event.type === 'approval.requested') open.add(event.requestId);
         if (event.type === 'approval.resolved') open.delete(event.requestId);
+        if (event.type === 'userInput.requested') openInputs.add(event.requestId);
+        if (event.type === 'userInput.resolved') openInputs.delete(event.requestId);
       }
       for (const requestId of open) {
         journal.append(turns, { type: 'approval.resolved', requestId, decision: 'deny', by: 'shutdown' });
+      }
+      for (const requestId of openInputs) {
+        journal.append(turns, { type: 'userInput.resolved', requestId, by: 'shutdown' });
       }
       journal.append(turns, {
         type: 'turn.finished',
@@ -385,11 +419,22 @@ export class FocusService {
         if (!isCurrent()) return;
         this.record(runtime, request, { openTurn: 'provider' });
         runtime.pendingApprovals.add(request.requestId);
-        this.setThread(runtime.journal, { status: 'awaiting-approval' });
+        this.syncWaitingStatus(runtime);
       },
       approvalCancelled: (requestId) => {
         if (!isCurrent()) return;
         this.resolveApproval(runtime, requestId, 'deny', 'interrupt');
+      },
+      userInput: (requestId, questions: FocusUserInputQuestion[]) => {
+        if (!isCurrent()) return;
+        this.record(runtime, { type: 'userInput.requested', requestId, questions }, { openTurn: 'provider' });
+        runtime.pendingUserInputs.add(requestId);
+        this.syncWaitingStatus(runtime);
+      },
+      userInputCancelled: (requestId, by: 'provider' | 'interrupt' | 'shutdown') => {
+        if (!isCurrent() || !runtime.pendingUserInputs.delete(requestId)) return;
+        this.append(runtime, { type: 'userInput.resolved', requestId, by });
+        this.syncWaitingStatus(runtime);
       },
       turnFinished: (result) => {
         if (!isCurrent() || !runtime.turnOpen) return;
@@ -468,7 +513,14 @@ export class FocusService {
     if (!runtime.pendingApprovals.delete(requestId)) return;
     const event = runtime.journal.append(runtime.turn, { type: 'approval.resolved', requestId, decision, by });
     this.options.emit({ kind: 'event', threadId: runtime.journal.thread.id, event });
-    if (runtime.turnOpen && runtime.pendingApprovals.size === 0) this.setThread(runtime.journal, { status: 'running' });
+    this.syncWaitingStatus(runtime);
+  }
+
+  private syncWaitingStatus(runtime: Runtime): void {
+    if (!runtime.turnOpen) return;
+    if (runtime.pendingUserInputs.size > 0) this.setThread(runtime.journal, { status: 'awaiting-input' });
+    else if (runtime.pendingApprovals.size > 0) this.setThread(runtime.journal, { status: 'awaiting-approval' });
+    else this.setThread(runtime.journal, { status: 'running' });
   }
 
   private closeTurn(
@@ -484,6 +536,14 @@ export class FocusService {
     runtime.interruptTimer = null;
     for (const requestId of [...runtime.pendingApprovals])
       this.resolveApproval(runtime, requestId, 'deny', approvalsBy);
+    for (const requestId of [...runtime.pendingUserInputs]) {
+      runtime.pendingUserInputs.delete(requestId);
+      this.append(runtime, {
+        type: 'userInput.resolved',
+        requestId,
+        by: approvalsBy === 'shutdown' ? 'shutdown' : 'interrupt',
+      });
+    }
     const event = runtime.journal.append(runtime.turn, {
       type: 'turn.finished',
       outcome,

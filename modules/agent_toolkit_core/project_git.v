@@ -160,7 +160,8 @@ pub fn project_git_status_typed(root string, project string) ProjectGitStatusRes
 }
 
 // project_git_diff_typed returns the unified diff for one file, staged
-// (index vs HEAD) or unstaged (working tree vs index).
+// (index vs HEAD) or unstaged (working tree vs index). Untracked files are
+// compared with the empty tree so their contents can be reviewed before staging.
 pub fn project_git_diff_typed(root string, project string, path string, staged bool) ProjectGitDiffResponse {
 	if !valid_repo_relative_path(path) {
 		return ProjectGitDiffResponse{
@@ -171,12 +172,47 @@ pub fn project_git_diff_typed(root string, project string, path string, staged b
 			detail: 'invalid repository-relative path'
 		}
 	}
-	mut args := ['diff', '--no-color']
+	mut untracked := false
+	if !staged {
+		indexed := git_run(root, ['ls-files', '--error-unmatch', '--', path]) or {
+			return ProjectGitDiffResponse{
+				ok: false
+				project: project
+				path: path
+				staged: staged
+				detail: err.msg()
+			}
+		}
+		if indexed.exit_code == 1 {
+			if !os.is_file(os.join_path(root, path)) {
+				return ProjectGitDiffResponse{
+					ok: false
+					project: project
+					path: path
+					staged: staged
+					detail: 'untracked file no longer exists'
+				}
+			}
+			untracked = true
+		} else if indexed.exit_code != 0 {
+			msg := indexed.stderr.trim_space()
+			return ProjectGitDiffResponse{
+				ok: false
+				project: project
+				path: path
+				staged: staged
+				detail: if msg.len > 0 { msg } else { 'git ls-files exited with code ${indexed.exit_code}' }
+			}
+		}
+	}
+	mut args := if untracked { ['diff', '--no-index', '--no-color', '--', '/dev/null', path] } else { ['diff', '--no-color'] }
 	if staged {
 		args << '--cached'
 	}
-	args << '--'
-	args << path
+	if !untracked {
+		args << '--'
+		args << path
+	}
 	res := git_run(root, args) or {
 		return ProjectGitDiffResponse{
 			ok: false
@@ -186,7 +222,7 @@ pub fn project_git_diff_typed(root string, project string, path string, staged b
 			detail: err.msg()
 		}
 	}
-	if res.exit_code != 0 {
+	if res.exit_code != 0 && !(untracked && res.exit_code == 1 && res.stderr.trim_space().len == 0) {
 		msg := res.stderr.trim_space()
 		return ProjectGitDiffResponse{
 			ok: false

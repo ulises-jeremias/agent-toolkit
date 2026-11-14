@@ -1,6 +1,11 @@
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import readline from 'node:readline';
-import type { FocusApprovalDecision, FocusModelOption, FocusPermissionMode, FocusUsage } from '../../src/types/focus';
+import type {
+  FocusApprovalDecision,
+  FocusModelOption,
+  FocusPermissionMode,
+  FocusUserInputQuestion,
+} from '../../src/types/focus';
 import {
   clipInput,
   clipOutput,
@@ -17,9 +22,11 @@ import {
  * thread, one Codex thread inside it, turns started with `turn/start`.
  * Approvals arrive as server-initiated requests and are answered by id.
  *
- * Shapes follow the bindings `codex app-server generate-ts` emits for
- * codex-cli 0.167.2. Frames this adapter does not know are ignored; server
- * requests it cannot serve are refused so Codex never waits on us.
+ * The initial v2 baseline was checked against `codex app-server generate-ts`
+ * for codex-cli 0.167.2. Later versions add server requests such as blocking
+ * user input; this adapter handles the supported shape if emitted and safely
+ * refuses malformed or unknown requests.
+ * Unknown notifications are ignored; unhandled server requests are refused.
  */
 
 interface Policy {
@@ -47,8 +54,26 @@ function asString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
 
-function num(value: unknown): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+function approvalDecisions(value: unknown): string[] | null {
+  if (value === undefined || value === null) return null;
+  return Array.isArray(value) ? value.filter((decision): decision is string => typeof decision === 'string') : [];
+}
+
+function approvalDecisionLabels(value: unknown): string {
+  if (!Array.isArray(value)) return 'no supported choices';
+  const labels = value.map((decision) => {
+    if (typeof decision === 'string') return decision;
+    const record = asRecord(decision);
+    return record ? Object.keys(record).join('|') || 'object choice' : typeof decision;
+  });
+  return labels.length > 0 ? labels.join(', ') : 'no supported choices';
+}
+
+function hasSafeApprovalChoices(decisions: string[] | null): boolean {
+  return (
+    decisions === null ||
+    (decisions.includes('accept') && (decisions.includes('decline') || decisions.includes('cancel')))
+  );
 }
 
 function firstLine(value: string, max = 160): string {
@@ -76,7 +101,21 @@ interface PendingApproval {
   rpcId: number | string;
   /** v2 requests answer `accept`/`decline`; the legacy pair answers `approved`/`denied`. */
   dialect: 'v2' | 'legacy';
+  /** The server is authoritative when it supplies the choices for this prompt. */
+  availableDecisions: string[] | null;
 }
+
+interface PendingUserInput {
+  rpcId: number | string;
+  questionIds: Set<string>;
+}
+
+interface PendingRequest {
+  settle: (result: Json | null, error: Json | null) => void;
+  timer: NodeJS.Timeout;
+}
+
+const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 
 interface FileChange {
   path: string;
@@ -91,30 +130,40 @@ function fileChanges(item: Json): FileChange[] {
     const path = asString(change?.['path']);
     if (!change || !path) return [];
     const kind = asRecord(change['kind']);
-    return [{ path, kind: asString(change['kind']) ?? asString(kind?.['type']) ?? 'update', diff: asString(change['diff']) ?? '' }];
+    return [
+      {
+        path,
+        kind: asString(change['kind']) ?? asString(kind?.['type']) ?? 'update',
+        diff: asString(change['diff']) ?? '',
+      },
+    ];
   });
 }
 
 export class CodexSession implements ProviderSession {
+  readonly acceptsInputWhileRunning = false;
   private readonly child: ChildProcessWithoutNullStreams;
-  private readonly waiting = new Map<number, (result: Json | null, error: Json | null) => void>();
+  private readonly waiting = new Map<number, PendingRequest>();
   private readonly approvals = new Map<string, PendingApproval>();
+  private readonly userInputs = new Map<string, PendingUserInput>();
   private readonly changesByItem = new Map<string, FileChange[]>();
   private readonly outbox: string[] = [];
   private nextId = 1;
   private threadId: string | null = null;
   private turnId: string | null = null;
-  private lastUsage: FocusUsage | null = null;
+  private completedTurnId: string | null = null;
   private stderrTail = '';
   private disposed = false;
   private exited = false;
   private failed: string | null = null;
+  private killTimer: NodeJS.Timeout | null = null;
 
   constructor(
     private readonly options: AdapterStartOptions,
     private readonly sink: AdapterSink,
     /** Tests run a scripted stand-in through `node`; production passes nothing. */
     argsPrefix: readonly string[] = [],
+    private readonly requestTimeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
   ) {
     this.child = spawn(options.binary, [...argsPrefix, 'app-server'], {
       cwd: options.cwd,
@@ -160,29 +209,76 @@ export class CodexSession implements ProviderSession {
   respondApproval(requestId: string, decision: FocusApprovalDecision): boolean {
     const pending = this.approvals.get(requestId);
     if (!pending) return false;
-    this.approvals.delete(requestId);
     const answer =
       pending.dialect === 'v2'
-        ? { allow: 'accept', 'allow-session': 'acceptForSession', deny: 'decline' }[decision]
+        ? {
+            allow: 'accept',
+            'allow-session': 'acceptForSession',
+            deny: pending.availableDecisions?.includes('decline') === false ? 'cancel' : 'decline',
+          }[decision]
         : { allow: 'approved', 'allow-session': 'approved_for_session', deny: 'denied' }[decision];
+    // A session grant is never inferred. If the server supplied a list,
+    // enforce it exactly; without one only one-shot compatibility decisions
+    // are available.
+    if (decision === 'allow-session' && !pending.availableDecisions?.includes(answer)) return false;
+    if (pending.availableDecisions && !pending.availableDecisions.includes(answer)) return false;
+    this.approvals.delete(requestId);
     this.write({ id: pending.rpcId, result: { decision: answer } });
+    return true;
+  }
+
+  respondUserInput(requestId: string, answers: Record<string, string[]>): boolean {
+    const pending = this.userInputs.get(requestId);
+    if (!pending) return false;
+    const answerIds = Object.keys(answers);
+    if (
+      answerIds.length !== pending.questionIds.size ||
+      answerIds.some((id) => !pending.questionIds.has(id)) ||
+      Object.values(answers).some((values) =>
+        !Array.isArray(values) ||
+        values.length === 0 ||
+        values.length > 20 ||
+        values.some((value) => typeof value !== 'string' || !value.trim() || value.length > 12_000),
+      )
+    ) return false;
+    const response = Object.fromEntries(answerIds.map((id) => [id, { answers: answers[id] }]));
+    if (!this.write({ id: pending.rpcId, result: { answers: response } })) return false;
+    this.userInputs.delete(requestId);
     return true;
   }
 
   interrupt(): void {
     if (!this.alive || !this.threadId || !this.turnId) return;
     for (const requestId of [...this.approvals.keys()]) this.respondApproval(requestId, 'deny');
-    void this.request('turn/interrupt', { threadId: this.threadId, turnId: this.turnId });
+    for (const requestId of [...this.userInputs.keys()])
+      this.cancelUserInput(requestId, 'The turn was interrupted.', 'interrupt');
+    void this.request('turn/interrupt', { threadId: this.threadId, turnId: this.turnId }).catch((error: unknown) => {
+      if (!this.alive) return;
+      this.sink.item({
+        type: 'notice',
+        level: 'error',
+        text: `Codex could not interrupt: ${error instanceof Error ? error.message : String(error)}`,
+      });
+    });
   }
 
   dispose(now = false): void {
     if (this.disposed) return;
     this.disposed = true;
+    for (const requestId of [...this.userInputs.keys()])
+      this.cancelUserInput(requestId, 'Focus session closed.', 'shutdown');
+    this.failWaiting('Codex session closed.');
     if (this.exited) return;
     if (now) {
-      this.kill('SIGTERM');
+      // Shutdown may exit Electron before a fallback timer runs. Stop the whole
+      // process group now; an interrupt already had its grace period in the service.
+      this.kill('SIGKILL');
       return;
     }
+    this.killTimer = setTimeout(() => {
+      if (!this.exited) this.kill('SIGKILL');
+    }, 5_000);
+    this.killTimer.unref();
     try {
       this.child.stdin.end();
     } catch {
@@ -191,9 +287,6 @@ export class CodexSession implements ProviderSession {
     setTimeout(() => {
       if (!this.exited) this.kill('SIGTERM');
     }, 1_500).unref();
-    setTimeout(() => {
-      if (!this.exited) this.kill('SIGKILL');
-    }, 5_000).unref();
   }
 
   private kill(signal: NodeJS.Signals): void {
@@ -206,21 +299,40 @@ export class CodexSession implements ProviderSession {
     }
   }
 
-  private write(frame: Json): void {
-    if (this.exited || this.child.stdin.destroyed) return;
+  private write(frame: Json): boolean {
+    if (this.exited || this.child.stdin.destroyed || !this.child.stdin.writable) return false;
     this.child.stdin.write(`${JSON.stringify(frame)}\n`);
+    return true;
   }
 
   private request(method: string, params: Json): Promise<Json> {
     const id = this.nextId;
     this.nextId += 1;
     return new Promise((resolve, reject) => {
-      this.waiting.set(id, (result, error) => {
+      const settle = (result: Json | null, error: Json | null): void => {
         if (error) reject(new Error(asString(error['message']) ?? `${method} failed`));
         else resolve(result ?? {});
-      });
-      this.write({ id, method, params });
+      };
+      const timer = setTimeout(() => {
+        if (!this.waiting.delete(id)) return;
+        settle(null, { message: `Codex ${method} request timed out after ${this.requestTimeoutMs} ms.` });
+      }, this.requestTimeoutMs);
+      timer.unref();
+      this.waiting.set(id, { settle, timer });
+      if (!this.write({ id, method, params })) {
+        clearTimeout(timer);
+        this.waiting.delete(id);
+        settle(null, { message: `Codex process is unavailable while sending ${method}.` });
+      }
     });
+  }
+
+  private failWaiting(message: string): void {
+    for (const [id, pending] of this.waiting) {
+      clearTimeout(pending.timer);
+      pending.settle(null, { message });
+      this.waiting.delete(id);
+    }
   }
 
   private async handshake(): Promise<void> {
@@ -232,7 +344,13 @@ export class CodexSession implements ProviderSession {
       this.write({ method: 'initialized' });
       const policy = CODEX_POLICY[this.options.permissionMode];
       const model = this.options.model && isSafeModelId(this.options.model) ? this.options.model : null;
-      const common = { cwd: this.options.cwd, approvalPolicy: policy.approvalPolicy, sandbox: policy.sandbox, model };
+      const common = {
+        cwd: this.options.cwd,
+        approvalPolicy: policy.approvalPolicy,
+        approvalsReviewer: 'user',
+        sandbox: policy.sandbox,
+        model,
+      };
       const started = this.options.resumeSessionId
         ? await this.request('thread/resume', { threadId: this.options.resumeSessionId, excludeTurns: true, ...common })
         : await this.request('thread/start', common);
@@ -244,15 +362,20 @@ export class CodexSession implements ProviderSession {
       for (const text of this.outbox.splice(0)) this.startTurn(text);
     } catch (error) {
       this.failed = error instanceof Error ? error.message : String(error);
-      if (this.outbox.length > 0) this.reportStartFailure();
+      this.reportStartFailure();
     }
   }
 
   /** The thread could not be opened: fail the waiting turn and let the service see the exit. */
   private reportStartFailure(): void {
+    if (this.exited) return;
     this.outbox.length = 0;
     this.stderrTail = `${this.failed ?? 'Codex could not start a thread.'}\n${this.stderrTail}`.trim();
     this.kill('SIGTERM');
+    this.killTimer = setTimeout(() => {
+      if (!this.exited) this.kill('SIGKILL');
+    }, 1_500);
+    this.killTimer.unref();
   }
 
   private async loadModels(): Promise<void> {
@@ -282,9 +405,17 @@ export class CodexSession implements ProviderSession {
       input: [{ type: 'text', text, text_elements: [] }],
     }).then(
       (result) => {
-        this.turnId = asString(asRecord(result['turn'])?.['id']) ?? this.turnId;
+        const id = asString(asRecord(result['turn'])?.['id']);
+        if (id && id !== this.completedTurnId && this.turnId === null) this.turnId = id;
       },
       (error: unknown) => {
+        if (error instanceof Error && error.message.includes('request timed out after')) {
+          this.kill('SIGTERM');
+          this.killTimer = setTimeout(() => {
+            if (!this.exited) this.kill('SIGKILL');
+          }, 1_500);
+          this.killTimer.unref();
+        }
         this.sink.turnFinished({
           outcome: 'failed',
           detail: error instanceof Error ? error.message : String(error),
@@ -298,8 +429,9 @@ export class CodexSession implements ProviderSession {
   private onClose(code: number | null, signal: string | null): void {
     if (this.exited) return;
     this.exited = true;
-    for (const settle of this.waiting.values()) settle(null, { message: 'Codex exited.' });
-    this.waiting.clear();
+    if (this.killTimer) clearTimeout(this.killTimer);
+    this.killTimer = null;
+    this.failWaiting('Codex exited.');
     this.sink.exited({
       code,
       signal,
@@ -321,9 +453,12 @@ export class CodexSession implements ProviderSession {
     const id = frame['id'];
     if (!method) {
       if (typeof id === 'number') {
-        const settle = this.waiting.get(id);
-        this.waiting.delete(id);
-        settle?.(asRecord(frame['result']), asRecord(frame['error']));
+        const pending = this.waiting.get(id);
+        if (pending) {
+          clearTimeout(pending.timer);
+          this.waiting.delete(id);
+          pending.settle(asRecord(frame['result']), asRecord(frame['error']));
+        }
       }
       return;
     }
@@ -333,11 +468,32 @@ export class CodexSession implements ProviderSession {
   }
 
   private onServerRequest(rpcId: number | string, method: string, params: Json): void {
+    if (
+      (params['threadId'] !== undefined && params['threadId'] !== this.threadId) ||
+      (params['turnId'] !== undefined && params['turnId'] !== this.turnId)
+    ) {
+      this.write({ id: rpcId, error: { code: -32602, message: 'This request does not belong to the active turn' } });
+      return;
+    }
     const requestId = `codex-${String(rpcId)}`;
     const itemId = asString(params['itemId']) ?? asString(params['callId']);
     if (method === 'item/commandExecution/requestApproval' || method === 'execCommandApproval') {
+      const dialect = method.startsWith('item/') ? 'v2' : 'legacy';
+      const decisions = approvalDecisions(params['availableDecisions']);
+      if (!hasSafeApprovalChoices(decisions)) {
+        this.sink.item({
+          type: 'notice',
+          level: 'error',
+          text: `Codex requested choices Focus cannot present safely (${approvalDecisionLabels(params['availableDecisions'])}). The request was refused.`,
+        });
+        this.write({
+          id: rpcId,
+          error: { code: -32601, message: 'This approval choice is not supported by this client' },
+        });
+        return;
+      }
       const command = displayCommand(params['command'], params['commandActions']) || 'command';
-      this.approvals.set(requestId, { rpcId, dialect: method.startsWith('item/') ? 'v2' : 'legacy' });
+      this.approvals.set(requestId, { rpcId, dialect, availableDecisions: decisions });
       this.sink.approval({
         type: 'approval.requested',
         requestId,
@@ -345,14 +501,39 @@ export class CodexSession implements ProviderSession {
         tool: 'Shell',
         kind: 'command',
         title: firstLine(command),
-        input: clipInput({ command, cwd: params['cwd'], reason: params['reason'] }),
-        canAllowForSession: true,
+        input: clipInput({
+          command,
+          cwd: params['cwd'],
+          reason: params['reason'],
+          kind: params['kind'],
+          networkApprovalContext: params['networkApprovalContext'],
+          additionalPermissions: params['additionalPermissions'],
+          proposedExecpolicyAmendment: params['proposedExecpolicyAmendment'],
+          proposedNetworkPolicyAmendments: params['proposedNetworkPolicyAmendments'],
+          availableDecisions: params['availableDecisions'],
+        }),
+        canAllowForSession:
+          decisions?.includes(dialect === 'v2' ? 'acceptForSession' : 'approved_for_session') ?? false,
       });
       return;
     }
     if (method === 'item/fileChange/requestApproval' || method === 'applyPatchApproval') {
+      const dialect = method.startsWith('item/') ? 'v2' : 'legacy';
+      const decisions = approvalDecisions(params['availableDecisions']);
+      if (!hasSafeApprovalChoices(decisions)) {
+        this.sink.item({
+          type: 'notice',
+          level: 'error',
+          text: `Codex requested choices Focus cannot present safely (${approvalDecisionLabels(params['availableDecisions'])}). The request was refused.`,
+        });
+        this.write({
+          id: rpcId,
+          error: { code: -32601, message: 'This approval choice is not supported by this client' },
+        });
+        return;
+      }
       const changes = (itemId ? this.changesByItem.get(itemId) : undefined) ?? [];
-      this.approvals.set(requestId, { rpcId, dialect: method.startsWith('item/') ? 'v2' : 'legacy' });
+      this.approvals.set(requestId, { rpcId, dialect, availableDecisions: decisions });
       this.sink.approval({
         type: 'approval.requested',
         requestId,
@@ -360,16 +541,53 @@ export class CodexSession implements ProviderSession {
         tool: 'Edit',
         kind: 'edit',
         title: changes.map((change) => change.path).join(', ') || 'file changes',
-        input: clipInput({ changes, reason: params['reason'] }),
-        canAllowForSession: true,
+        input: clipInput({
+          changes,
+          reason: params['reason'],
+          grantRoot: params['grantRoot'],
+          availableDecisions: params['availableDecisions'],
+        }),
+        canAllowForSession:
+          decisions?.includes(dialect === 'v2' ? 'acceptForSession' : 'approved_for_session') ?? false,
       });
       return;
     }
+    if (method === 'item/tool/requestUserInput') {
+      const questions = this.parseUserInputQuestions(params['questions']);
+      if (
+        params['threadId'] !== this.threadId ||
+        params['turnId'] !== this.turnId ||
+        params['isBlocking'] !== true ||
+        !questions ||
+        this.userInputs.size > 0
+      ) {
+        this.sink.item({
+          type: 'notice',
+          level: 'error',
+          text: 'Codex sent a stale, invalid, non-blocking, or overlapping question request. Focus refused it safely.',
+        });
+        this.write({ id: rpcId, error: { code: -32602, message: 'Unsupported user input request' } });
+        return;
+      }
+      this.userInputs.set(requestId, { rpcId, questionIds: new Set(questions.map((question) => question.id)) });
+      this.sink.userInput(requestId, questions);
+      return;
+    }
     // Anything else would need UI this app does not have yet. Refuse it so the turn can continue or fail visibly.
+    this.sink.item({
+      type: 'notice',
+      level: 'error',
+      text: `Codex requested ${method}, which Focus does not support yet. The request was refused.`,
+    });
     this.write({ id: rpcId, error: { code: -32601, message: `${method} is not supported by this client` } });
   }
 
   private onNotification(method: string, params: Json): void {
+    // Child/native-agent threads share the transport, but not this Focus journal.
+    if (params['threadId'] !== undefined && params['threadId'] !== this.threadId) return;
+    if (params['turnId'] !== undefined && this.turnId !== null && params['turnId'] !== this.turnId) return;
+    const notifiedTurn = asString(asRecord(params['turn'])?.['id']);
+    if (method === 'turn/completed' && notifiedTurn !== this.turnId) return;
     switch (method) {
       case 'item/agentMessage/delta': {
         const itemId = asString(params['itemId']);
@@ -394,21 +612,16 @@ export class CodexSession implements ProviderSession {
         this.onItemCompleted(asRecord(params['item']));
         return;
       case 'thread/tokenUsage/updated': {
-        const last = asRecord(asRecord(params['tokenUsage'])?.['last']);
-        if (!last) return;
-        const cached = num(last['cachedInputTokens']);
-        this.lastUsage = {
-          inputTokens: Math.max(0, num(last['inputTokens']) - cached),
-          cachedInputTokens: cached,
-          outputTokens: num(last['outputTokens']),
-          costUsd: null,
-        };
+        // Codex's `last` is the latest active context, while `total` is
+        // thread-cumulative. Neither is a per-turn delta. Do not publish it as
+        // FocusUsage: the service aggregates that value as turn spend.
         return;
       }
       case 'serverRequest/resolved': {
         // Codex settled a request itself (for example the turn was interrupted).
         const requestId = `codex-${String(params['requestId'])}`;
         if (this.approvals.delete(requestId)) this.sink.approvalCancelled(requestId);
+        if (this.userInputs.delete(requestId)) this.sink.userInputCancelled(requestId, 'provider');
         return;
       }
       case 'error': {
@@ -423,6 +636,50 @@ export class CodexSession implements ProviderSession {
       default:
         return;
     }
+  }
+
+  private parseUserInputQuestions(value: unknown): FocusUserInputQuestion[] | null {
+    if (!Array.isArray(value) || value.length === 0 || value.length > 8) return null;
+    const questions: FocusUserInputQuestion[] = [];
+    const ids = new Set<string>();
+    for (const entry of value) {
+      const question = asRecord(entry);
+      const id = asString(question?.['id']);
+      const header = asString(question?.['header']);
+      const prompt = asString(question?.['question']);
+      if (!question || !id || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$/.test(id) || ids.has(id) || !header || !prompt) return null;
+      if (header.length > 100 || prompt.length > 2_000) return null;
+      ids.add(id);
+      const rawOptions = question['options'];
+      if (rawOptions !== undefined && (!Array.isArray(rawOptions) || rawOptions.length > 30)) return null;
+      const options: FocusUserInputQuestion['options'] = [];
+      const optionLabels = new Set<string>();
+      for (const rawOption of (rawOptions as unknown[] | undefined) ?? []) {
+        const option = asRecord(rawOption);
+        const label = asString(option?.['label']);
+        const description = asString(option?.['description']);
+        if (!label || !label.trim() || optionLabels.has(label) || !description || label.length > 300 || description.length > 1_000) return null;
+        optionLabels.add(label);
+        options.push({ label, description });
+      }
+      questions.push({
+        id,
+        header,
+        question: prompt,
+        isOther: question['isOther'] === true,
+        isSecret: question['isSecret'] === true,
+        options,
+      });
+    }
+    return questions;
+  }
+
+  private cancelUserInput(requestId: string, message: string, by: 'interrupt' | 'shutdown'): void {
+    const pending = this.userInputs.get(requestId);
+    if (!pending) return;
+    this.write({ id: pending.rpcId, error: { code: -32800, message } });
+    this.userInputs.delete(requestId);
+    this.sink.userInputCancelled(requestId, by);
   }
 
   private onItemStarted(item: Json | null): void {
@@ -503,7 +760,8 @@ export class CodexSession implements ProviderSession {
       case 'commandExecution': {
         const ok = item['status'] === 'completed' && (item['exitCode'] === 0 || item['exitCode'] === null);
         const output = asString(item['aggregatedOutput']) ?? '';
-        const suffix = typeof item['exitCode'] === 'number' && item['exitCode'] !== 0 ? `\n(exit ${item['exitCode']})` : '';
+        const suffix =
+          typeof item['exitCode'] === 'number' && item['exitCode'] !== 0 ? `\n(exit ${item['exitCode']})` : '';
         this.sink.item({ type: 'tool.finished', itemId: id, ok, ...clipOutput(`${output}${suffix}`) });
         return;
       }
@@ -534,16 +792,22 @@ export class CodexSession implements ProviderSession {
 
   private onTurnCompleted(turn: Json | null): void {
     const status = asString(turn?.['status']);
+    this.completedTurnId = this.turnId;
     this.turnId = null;
-    const usage = this.lastUsage;
-    this.lastUsage = null;
+    this.approvals.clear();
+    this.changesByItem.clear();
     const error = asRecord(turn?.['error']);
     const details = [asString(error?.['message']), asString(error?.['additionalDetails'])].filter(Boolean).join('\n');
     this.sink.turnFinished({
       outcome: status === 'completed' ? 'completed' : status === 'interrupted' ? 'interrupted' : 'failed',
-      detail: status === 'completed' ? null : status === 'interrupted' ? 'Stopped by you.' : details || 'Codex reported an error.',
+      detail:
+        status === 'completed'
+          ? null
+          : status === 'interrupted'
+            ? 'Stopped by you.'
+            : details || 'Codex reported an error.',
       durationMs: typeof turn?.['durationMs'] === 'number' ? turn['durationMs'] : null,
-      usage,
+      usage: null,
     });
   }
 }

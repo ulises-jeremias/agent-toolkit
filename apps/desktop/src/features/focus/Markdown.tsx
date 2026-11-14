@@ -49,7 +49,7 @@ export function parseBlocks(source: string): Block[] {
       blocks.push({ type: 'code', lang: fence[2] ?? '', text: body.join('\n') });
       continue;
     }
-    const heading = /^(#{1,6})\s+(.*)$/.exec(line);
+    const heading = /^\s{0,3}(#{1,6})\s+(.*)$/.exec(line);
     if (heading) {
       blocks.push({
         type: 'heading',
@@ -106,7 +106,7 @@ export function parseBlocks(source: string): Block[] {
     const body: string[] = [];
     while (index < lines.length) {
       const current = lines[index] ?? '';
-      if (!current.trim() || /^\s*(```|~~~|#{1,6}\s|>)/.test(current) || LIST_ITEM.test(current)) break;
+      if (!current.trim() || /^\s{0,3}(```|~~~|#{1,6}\s|>)/.test(current) || LIST_ITEM.test(current)) break;
       body.push(current);
       index += 1;
     }

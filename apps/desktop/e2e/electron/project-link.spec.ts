@@ -36,7 +36,7 @@ test('links an existing project from the GUI and places it in the world', async 
     expect(fs.realpathSync(path.join(desktop.workspace, 'projects', 'garden-api'))).toBe(fs.realpathSync(repo));
 
     await goTo(page, 'World');
-    await expect(page.getByRole('button', { name: /^garden-api:/ })).toBeAttached({ timeout: 30_000 });
+    await expect(page.getByRole('button', { name: /^garden-api\s+·\s+Project\b/ })).toBeAttached({ timeout: 30_000 });
   } finally {
     await desktop.close();
   }

@@ -51,6 +51,7 @@ export function NewSession({
   const [task, setTask] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
+  const startingRef = useRef(false);
 
   const activeProject = selectStartProject(usable, project);
   const activeProvider = ready.find((entry) => entry.id === providerId) ?? ready[0];
@@ -67,7 +68,10 @@ export function NewSession({
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!bridge || !activeProject || !activeProvider || !task.trim()) return;
+    if (startingRef.current || !bridge || !activeProject || !activeProvider || !task.trim()) return;
+    // State updates paint later. Keyboard and pointer submissions can land in
+    // the same turn, so guard the async boundary synchronously as well.
+    startingRef.current = true;
     setError(null);
     setStarting(true);
     try {
@@ -91,6 +95,7 @@ export function NewSession({
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not start the session. Please try again.');
     } finally {
+      startingRef.current = false;
       setStarting(false);
     }
   };
@@ -116,7 +121,7 @@ export function NewSession({
       <textarea
         id="focus-start-task"
         className={styles.startTask}
-        rows={4}
+        rows={3}
         value={task}
         ref={taskRef}
         placeholder="Fix the failing test in src/math.test.js"
@@ -192,6 +197,12 @@ export function NewSession({
             Check again
           </button>
         </legend>
+        {!providersLoading && ready.length === 0 && providers.length > 0 ? (
+          <p className={styles.startProviderNotice} role="status" aria-live="polite">
+            No coding agent is signed in. Run the login command shown beside an installed agent, then choose Check
+            again.
+          </p>
+        ) : null}
         {providersLoading && providers.length === 0 ? (
           <p className={styles.startEmpty}>Checking installed agents…</p>
         ) : null}
@@ -224,11 +235,6 @@ export function NewSession({
             </label>
           );
         })}
-        {!providersLoading && ready.length === 0 && providers.length > 0 ? (
-          <p className={styles.startError} role="alert">
-            No agent is ready. Install Claude Code and sign in with <code>claude auth login</code>, then check again.
-          </p>
-        ) : null}
       </fieldset>
 
       {activeProvider && activeProvider.models.length > 0 ? (
@@ -254,10 +260,29 @@ export function NewSession({
       ) : null}
 
       <div className={styles.startActions}>
-        <Button type="submit" variant="primary" disabled={!canStart} busy={starting} busyLabel="Starting…">
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={!canStart}
+          busy={starting}
+          busyLabel="Starting…"
+          aria-describedby="focus-start-hint"
+        >
           Start session
         </Button>
-        <span className={styles.startHint}>Ctrl + Enter</span>
+        <span
+          id="focus-start-hint"
+          className={styles.startHint}
+          data-danger={(!activeProvider && !providersLoading) || undefined}
+        >
+          {providersLoading
+            ? 'Checking agents…'
+            : activeProvider
+              ? 'Ctrl + Enter'
+              : providers.length > 0
+                ? 'Sign in to an agent to start'
+                : 'Install a supported coding agent to start'}
+        </span>
       </div>
     </form>
   );

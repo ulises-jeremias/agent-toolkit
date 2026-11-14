@@ -148,16 +148,25 @@ describe('WorldEntityMap activation', () => {
     return { layout, onActivate, onSelect, user, ...rendered };
   }
 
-  it('opens at the human player with the world camera following at exploration scale', async () => {
+  it('provides a transparent authored Dusk window layer for each real project facade', () => {
+    renderMap();
+    const house = screen.getByRole('button', { name: /alpha · Project/i });
+    const facade = house.getAttribute('data-facade');
+    expect(facade).toMatch(/^house-/);
+    expect(house.style.getPropertyValue('--house-lit-src')).toBe(`url('/world/${facade}_lit.png')`);
+    expect(house.querySelector('[style*="background-image"]')).not.toBeNull();
+  });
+
+  it('opens with the complete workspace framed and keeps walking explicit', async () => {
     window.localStorage.clear();
     renderMap(baseInput({ projects: [] }));
 
     const world = screen.getByRole('application', { name: 'test world' });
     const player = screen.getByRole('img', { name: 'You, exploring the workspace' });
-    await waitFor(() => expect(world).toHaveAttribute('data-camera-mode', 'follow'));
+    await waitFor(() => expect(world).toHaveAttribute('data-camera-mode', 'fit'));
     expect(player).toHaveAttribute('data-ready', 'true');
     expect(player).toHaveStyle({ visibility: 'visible' });
-    expect(world).toHaveAttribute('data-zoom', '48');
+    expect(world).toHaveAttribute('data-zoom', '16');
   });
 
   it('persists the human player appearance per workspace and resets for another workspace', async () => {
@@ -263,8 +272,11 @@ describe('WorldEntityMap activation', () => {
 
   it('shows house name signs at idle and reveals a semantic plaque on hover', async () => {
     const { user } = renderMap();
-    // Houses (places) carry always-on name signs; objects stay clear until hover.
+    // Project houses carry always-on name signs. The workspace hall uses the
+    // persistent header for its identity, leaving the tightly packed Library
+    // roofline clear of a second always-on plaque.
     expect(document.querySelector('[data-sign="true"]')).not.toBeNull();
+    expect(document.querySelector('[data-entity-label-for="place:workspace"][data-sign="true"]')).toBeNull();
     // At idle only house signs and the spawn's proximity plaque are visible.
     for (const label of document.querySelectorAll('[data-entity-label-for]')) {
       expect(label.getAttribute('data-sign') === 'true' || label.getAttribute('data-nearby') === 'true').toBe(true);

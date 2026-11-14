@@ -1,5 +1,54 @@
 > **Historical log.** This file preserves dated visual review records. For the current art direction, acceptance checks, and latest review, see [VISUAL_QA.md](VISUAL_QA.md).
 
+## Responsive Meadow/Dusk renderer iteration — 2026-11-12
+
+Opened actual source-Electron captures at 1024×640 and 1920×1080 with the real
+1.49 backend and a registered disposable Git repository. The previous renderer
+computed scale only once from initial window height, let the village exceed the
+compact viewport, and selected the Meadow sky for both appearance modes. In the
+first compact capture the workshop and map edge were clipped and the viewport had
+a horizontal scroll range. The large capture showed the map confined to a narrow
+part of a wide window. Meadow and Dusk were nearly indistinguishable.
+
+The follow-up iteration measures the viewport with `ResizeObserver`, fits a
+pixelated scene scale to the available width, centers and clips the scene, selects
+the Dusk sky/tint when Dusk is active, and adds environmental lamps without
+pretending that idle buildings contain working agents. Only places backed by
+current sessions/jobs receive the activity glow. The capture test asserts the
+correct sky asset and hidden horizontal overflow. It passes for both themes at
+both sizes. The scene may have a one-CSS-pixel internal overflow from fractional
+pixel scaling; the viewport clips it and exposes no scrollbar.
+
+The capture matrix now also covers 1440×900. Opened follow-up captures in
+`/home/ulisesjcf/.ai-workspace/.audit-private/world-review-responsive/` for all
+three sizes in both themes. The valley spans the content width and the Dusk sunset
+reads clearly at each size. Large captures still have broad vertical negative
+space; the app needs interior/other-surface review, keyboard interaction review
+and another art-direction critique. This is one improvement iteration, not visual
+sign-off.
+
+## Full application surface tour — 2026-11-12
+
+Ran the actual Electron capture tour against the real bundled 1.49 backend with an
+isolated profile, disposable Git repository and local runtime jobs. Updated the tour
+to follow the current rail/tab navigation, cover Focus, and open an actual changed
+file against a disposable base commit. The tour passes and creates 60 destination
+captures across Meadow/Dusk and 1024×640, 1440×900, 1920×1080, plus the Person-create
+and reviewed-import dialogs. The temporary profile has no provider credentials, so
+Focus truthfully displays the signed-out start state. Separate live Claude/Codex task
+evidence remains in the live-acceptance report.
+
+Opened compact contact sheets for both themes and the large Meadow tour, then opened
+full-resolution Focus, Projects/diff, Operations, Library, Settings and Dusk World.
+The 1920×1080 layouts remain readable and the Git diff is real, but broad unused
+vertical space persists in the World and some other destinations; this is most visible
+in the World at large sizes. The terminal dock remains visible across routes because it
+is a global live terminal. Onboarding, project interiors, an authenticated live Focus
+conversation with streamed tool/approval states, error/loading/disconnected screens,
+and keyboard/screen-reader review were not part of this capture tour. No screenshots
+were copied into the repository; local review files are under
+`/home/ulisesjcf/.ai-workspace/.audit-private/desktop-visual-matrix/`.
+
 # Desktop visual QA
 
 ## Packaged v1.45.1 screenshot refresh — 2026-10-16

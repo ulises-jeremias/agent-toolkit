@@ -16,7 +16,7 @@ import type { FocusEvent, FocusEventBody, FocusThread } from '../../src/types/fo
 const THREAD_ID = /^th_[a-z0-9]{10,40}$/;
 const PROVIDERS = ['claude', 'codex', 'opencode'];
 const MODES = ['ask', 'accept-edits', 'plan', 'bypass'];
-const STATUSES = ['idle', 'running', 'awaiting-approval', 'interrupted', 'error'];
+const STATUSES = ['idle', 'running', 'awaiting-approval', 'awaiting-input', 'interrupted', 'error'];
 
 export function isThreadId(value: unknown): value is string {
   return typeof value === 'string' && THREAD_ID.test(value);

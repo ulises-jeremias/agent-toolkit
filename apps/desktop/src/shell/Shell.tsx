@@ -13,6 +13,7 @@ import { DestinationBoundary, Kbd, LoadingState, PixelIcon, ReceiptsProvider } f
 import { CommandPalette, openCommandPalette } from './CommandPalette';
 import { DESTINATIONS, railOwner, sectionTabs, type Destination } from './destinations';
 import { HOME_PATH } from './home';
+import { NavigationContinuity } from './NavigationContinuity';
 import { LiveIndicator, StaleNotice } from './LiveIndicator';
 import { TerminalDock } from './TerminalDock';
 import { useSessionContext } from './useSessionContext';
@@ -24,7 +25,9 @@ function RailCount({ path }: { path: string }) {
   const { items } = useAttention();
   const { threads } = useFocusThreads();
   if (path === '/focus') {
-    const waiting = threads.filter((thread) => thread.status === 'awaiting-approval').length;
+    const waiting = threads.filter(
+      (thread) => thread.status === 'awaiting-approval' || thread.status === 'awaiting-input',
+    ).length;
     const working = threads.filter((thread) => thread.status === 'running').length;
     if (waiting > 0) {
       return (
@@ -210,7 +213,7 @@ function ShellFrame() {
         <SectionTabs />
         <main id="main" className={styles.content} tabIndex={-1}>
           <Routes>
-            <Route path="/" element={<RedirectTo path={HOME_PATH} />} />
+            <Route path="/" element={null} />
             {DESTINATIONS.map(({ path, label, component: Destination }) => (
               <Route
                 key={path}
@@ -248,7 +251,11 @@ function useOnboardingGate() {
 function ShellRoot() {
   const { active, complete } = useOnboardingGate();
   if (active) return <Onboarding onComplete={complete} />;
-  return <ShellFrame />;
+  return (
+    <NavigationContinuity>
+      <ShellFrame />
+    </NavigationContinuity>
+  );
 }
 
 export default function Shell() {

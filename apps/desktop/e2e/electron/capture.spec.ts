@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtures';
@@ -15,6 +17,7 @@ const OUT_DIR =
 
 const SIZES = [
   { width: 1024, height: 640 },
+  { width: 1440, height: 900 },
   { width: 1920, height: 1080 },
 ] as const;
 const THEMES = ['meadow', 'dusk'] as const;
@@ -22,9 +25,10 @@ const DESTINATIONS = WORLD_ONLY
   ? ['World']
   : ([
       'World',
+      'Focus',
       'Attention',
       'Operations',
-      'Workspace',
+      'Projects',
       'Library',
       'People',
       'Insights',
@@ -39,6 +43,32 @@ let desktop: Desktop;
 
 test.beforeAll(async () => {
   desktop = await openDesktop();
+  // Populate six registered repositories so the visual tour reviews every
+  // authored project-house silhouette together, not one lucky facade.
+  const repositories = [
+    'garden-api',
+    'valley-project-0',
+    'valley-project-1',
+    'valley-project-3',
+    'valley-project-4',
+    'valley-project-5',
+  ];
+  for (const name of repositories) {
+    const repository = path.join(desktop.home, 'code', name);
+    fs.mkdirSync(path.join(repository, 'src'), { recursive: true });
+    fs.writeFileSync(path.join(repository, 'README.md'), `# ${name}\n`);
+    const source = path.join(repository, 'src', name === 'garden-api' ? 'api.ts' : 'index.ts');
+    fs.writeFileSync(source, `export const status = () => '${name}-working';\n`);
+    execFileSync('git', ['init', '-q'], { cwd: repository });
+    execFileSync('git', ['config', 'user.name', 'Desktop Visual QA'], { cwd: repository });
+    execFileSync('git', ['config', 'user.email', 'visual-qa@example.invalid'], { cwd: repository });
+    execFileSync('git', ['add', '.'], { cwd: repository });
+    execFileSync('git', ['commit', '-qm', 'Add initial API endpoint'], { cwd: repository });
+    fs.writeFileSync(source, `export const status = () => '${name}-ready';\n`);
+    execFileSync(desktop.backendBin, ['project', 'add', repository, '--workspace', desktop.workspace], {
+      stdio: 'pipe',
+    });
+  }
 });
 
 test.afterAll(async () => {
@@ -56,6 +86,9 @@ async function startJob(page: Page, cmd: string): Promise<void> {
   await dialog.getByRole('textbox', { name: 'Command', exact: true }).fill(cmd);
   await dialog.getByRole('button', { name: 'Start job' }).click();
   await expect(dialog).toBeHidden();
+  const receipt = page.getByRole('button', { name: 'Dismiss: Job started' });
+  await expect(receipt).toBeVisible();
+  await receipt.click();
 }
 
 async function settle(page: Page): Promise<void> {
@@ -68,7 +101,7 @@ async function settle(page: Page): Promise<void> {
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
 }
 
-test('capture every destination in Meadow and Dusk at both sizes', async () => {
+test('capture every destination in Meadow and Dusk at all supported sizes', async () => {
   test.setTimeout(10 * 60_000);
   const { app, page } = desktop;
   await waitForBackend(page);
@@ -101,13 +134,34 @@ test('capture every destination in Meadow and Dusk at both sizes', async () => {
       await setViewport(app, size.width, size.height);
       await expect.poll(() => page.evaluate(() => [innerWidth, innerHeight])).toEqual([size.width, size.height]);
       for (const destination of DESTINATIONS) {
-        await nav(page).getByRole('link', { name: destination }).click();
+        await goTo(page, destination);
         if (destination === 'World') {
-          await expect(page.getByRole('group', { name: 'Workspace village' })).toBeVisible();
+          const world = page.getByRole('application', { name: 'Semantic workspace world' });
+          await expect(world).toBeVisible();
+          await expect(world).toHaveAttribute('data-camera-mode', 'fit');
+          const frame = await world.evaluate((element) => {
+            const region = element.querySelector<HTMLElement>('[data-world-map]');
+            if (!region) throw new Error('Semantic world map frame is missing');
+            const rect = region.getBoundingClientRect();
+            const viewport = element.getBoundingClientRect();
+            return {
+              mapWidth: rect.width,
+              mapHeight: rect.height,
+              viewportWidth: viewport.width,
+              viewportHeight: viewport.height,
+            };
+          });
+          expect(frame.mapWidth).toBeLessThanOrEqual(frame.viewportWidth);
+          expect(frame.mapHeight).toBeLessThanOrEqual(frame.viewportHeight);
+          expect(frame.mapWidth / frame.viewportWidth).toBeGreaterThanOrEqual(0.8);
           // A visible route/header can precede the workspace query. Wait for a
           // real canonical landmark so design-review captures never preserve
           // the loading background as if it were an empty world.
           await expect(page.locator('[data-entity-id="object:library"]')).toBeVisible();
+        }
+        if (destination === 'Projects') {
+          await page.getByRole('button', { name: /src\/api\.ts/ }).click();
+          await expect(page.locator('[aria-label="Diff for src/api.ts"]')).toContainText('ready');
         }
         if (destination === 'People' && !createdPerson) {
           await page.getByRole('button', { name: 'Create Person' }).click();

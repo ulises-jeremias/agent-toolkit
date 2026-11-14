@@ -151,6 +151,10 @@ export interface UpdateStatus {
 }
 
 export interface AtkBridge {
+  preferences: {
+    read: () => Promise<DesktopPreferences>;
+    update: (patch: Partial<Omit<DesktopPreferences, 'version'>>) => Promise<DesktopPreferences>;
+  };
   /** Structured provider sessions (ADR-044). */
   focus: import('./focus').FocusBridge;
   backendStatus: () => Promise<BackendState | null>;
@@ -184,6 +188,19 @@ export interface AtkBridge {
   onPtyData: (listener: (event: PtyDataEvent) => void) => Unsubscribe;
   onPtyExit: (listener: (event: PtyExitEvent) => void) => Unsubscribe;
   onPtyProviderSession: (listener: (event: PtyProviderSessionEvent) => void) => Unsubscribe;
+}
+
+export interface DesktopRouteMemory {
+  pathname: string;
+  search: string;
+}
+
+export interface DesktopPreferences {
+  version: 1;
+  onboardingComplete: boolean;
+  theme: 'system' | 'meadow' | 'dusk';
+  motion: 'system' | 'reduced';
+  routes: Record<string, DesktopRouteMemory>;
 }
 
 export interface McpSecretStatus {

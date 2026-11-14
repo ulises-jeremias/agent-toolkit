@@ -81,8 +81,7 @@ export function Dialog({
       // this event is stale and must not close the new session.
       if (dialog.open) return;
       blurWithin(dialog);
-      if (returnFocus.current === null) return;
-      restoreFocus(returnFocus);
+      if (returnFocus.current !== null) restoreFocus(returnFocus);
       onClose();
     };
     dialog.addEventListener('close', handleClose);
@@ -92,12 +91,16 @@ export function Dialog({
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    const preventCancel = (event: Event) => {
-      if (closeDisabled) event.preventDefault();
+    const handleCancel = (event: Event) => {
+      // Keep Escape under React state control. Letting the browser close the
+      // native dialog first can race the next render and reopen a still-owned
+      // dialog before its queued `close` event reaches the parent.
+      event.preventDefault();
+      if (!closeDisabled) onClose();
     };
-    dialog.addEventListener('cancel', preventCancel);
-    return () => dialog.removeEventListener('cancel', preventCancel);
-  }, [closeDisabled]);
+    dialog.addEventListener('cancel', handleCancel);
+    return () => dialog.removeEventListener('cancel', handleCancel);
+  }, [closeDisabled, onClose]);
 
   return (
     <dialog

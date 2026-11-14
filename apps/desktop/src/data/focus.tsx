@@ -23,11 +23,13 @@ export class FocusStore {
   private threads: readonly FocusThread[] = NO_THREADS;
   private threadsLoaded = false;
   private readonly timelines = new Map<string, ThreadTimeline>();
+  private readonly drafts = new Map<string, string>();
   private readonly loading = new Set<string>();
   private readonly listeners = new Set<() => void>();
   private pendingDeltas: Array<Extract<FocusLiveUpdate, { kind: 'delta' }>> = [];
   private flushHandle: ReturnType<typeof setTimeout> | null = null;
   private touchedDuringReload: Set<string> | null = null;
+  private reloadGeneration = 0;
 
   constructor(private readonly bridge: FocusBridge | undefined) {}
 
@@ -43,6 +45,15 @@ export class FocusStore {
   getThreads = (): readonly FocusThread[] => this.threads;
 
   getThreadsLoaded = (): boolean => this.threadsLoaded;
+
+  getDraft(threadId: string): string {
+    return this.drafts.get(threadId) ?? '';
+  }
+
+  setDraft(threadId: string, text: string): void {
+    if (text) this.drafts.set(threadId, text);
+    else this.drafts.delete(threadId);
+  }
 
   getTimeline(id: string | null): ThreadTimeline {
     return (id && this.timelines.get(id)) || EMPTY_TIMELINE;
@@ -66,10 +77,14 @@ export class FocusStore {
   /** Re-read the thread list, e.g. after the workspace changed. */
   async reload(): Promise<void> {
     if (!this.bridge) return;
+    const generation = ++this.reloadGeneration;
     // Anything the runtime pushes while the list is in flight is newer than the list.
     const touched = new Set<string>();
     this.touchedDuringReload = touched;
     const listed = await this.bridge.listThreads();
+    // Workspace changes and connect can overlap. A superseded response must not
+    // replace the thread list or clear a newer reload's live-update set.
+    if (generation !== this.reloadGeneration) return;
     if (this.touchedDuringReload === touched) this.touchedDuringReload = null;
     const listedIds = new Set(listed.map((thread) => thread.id));
     const newer = this.threads.filter((thread) => touched.has(thread.id));
@@ -114,6 +129,7 @@ export class FocusStore {
       case 'removed':
         this.threads = this.threads.filter((thread) => thread.id !== update.threadId);
         this.timelines.delete(update.threadId);
+        this.drafts.delete(update.threadId);
         break;
       case 'event': {
         this.flushDeltas(false);

@@ -29,13 +29,13 @@ const valley = (dusk) => {
     stamp("wheel", 80, LANE - 80 + 24),
     stamp("lodge", 176, LANE - 76),
     stamp("banner", 260, LANE - 76 + 4 - 4),
-    stamp("house_a", 272, LANE - 72),
-    stamp("house_b", 336, LANE - 72),
+    stamp("house-cottage", 272, LANE - 72),
+    stamp("house-studio", 336, LANE - 72),
     stamp("lamp_post", 268, LANE - 40),
     stamp("nest_post", 52, LANE - 36),
     stamp("hornero_perch", 53, LANE - 36 - 10),                         // perched on the nest rim
     stamp("smoke", 144, 41),                                            // workshop chimney mouth
-    stamp("smoke", 310, 45),                                            // house_a chimney mouth
+    stamp("smoke", 310, 45),                                            // house-cottage chimney mouth
     stamp("bush_2", 118, LANE - 14), stamp("woodpile", 150, LANE - 12),
     stamp("signpost", 2, LANE - 24),
     tile("bush_1", 200, LANE - 12, 2, 1),
@@ -53,7 +53,7 @@ const valley = (dusk) => {
     // shade the valley (everything below the far hills) so the lit windows read as the accent
     items.push(layer("dusk", { shade: 1 }, rect(0, 96, 400, 104, "k")))
     items.push(stamp("library_lit", 0, LANE - 104), stamp("workshop_lit", 80, LANE - 80),
-      stamp("lodge_lit", 176, LANE - 76), stamp("house_a_lit", 272, LANE - 72), stamp("house_b_lit", 336, LANE - 72),
+      stamp("lodge_lit", 176, LANE - 76), stamp("house-cottage_lit", 272, LANE - 72), stamp("house-studio_lit", 336, LANE - 72),
       stamp("lamp_post_lit", 260, LANE - 48))
   }
   return items
@@ -64,8 +64,8 @@ scene("valley_dusk", { w: 400, h: 200, bg: "V" }, ...valley(true))
 
 // Contact sheet of every exported asset (not parts), for review at a glance.
 sheet("contact", ["sky_day", "sky_dusk", "hills_far", "hills_mid", "ground", "river", "bridge",
-  "cloud_1", "cloud_2", "cloud_3", "house_a", "house_a_lit", "house_b", "house_b_lit", "house_c", "house_c_lit",
-  "house_d", "house_d_lit", "library", "library_lit", "workshop", "workshop_lit", "lodge", "lodge_lit",
+  "cloud_1", "cloud_2", "cloud_3", "house-cottage", "house-cottage_lit", "house-studio", "house-studio_lit", "house-workshop", "house-workshop_lit",
+  "house-tower", "house-tower_lit", "library", "library_lit", "workshop", "workshop_lit", "lodge", "lodge_lit",
   "tree_oak", "tree_pine", "tree_birch", "bush_1", "bush_2", "flowers_1", "flowers_2", "reeds", "rock_1",
   "fence", "signpost", "woodpile", "lamp_post", "lamp_post_lit", "nest_post", "agent_*", "hornero_*",
   "bubble_*", "wheel", "smoke", "banner", "grass_sway", "water_shine"], { cols: 8, pad: 2 })

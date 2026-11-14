@@ -3,19 +3,29 @@ include("palette.px.js")
 const R=(c,s)=>c.rng(s)
 function blades(c,seed,n,col="f"){const r=R(c,seed);for(let i=0;i<n;i++){const x=1+Math.floor(r()*14),y=2+Math.floor(r()*13);c.px(x,y,col);c.px(x,y-1,col)}}
 function dots(c,seed,n,cols){const r=R(c,seed);for(let i=0;i<n;i++){const x=Math.floor(r()*16),y=Math.floor(r()*16);c.px(x,y,cols[Math.floor(r()*cols.length)])}}
-function grassBase(c,seed){c.rect(0,0,16,16,"G");dots(c,seed,4,["g","g","f"]);c.px(1,1,"g")}
-function grass(name,seed,fn){sprite(name,{w:16,h:16},(c)=>{grassBase(c,seed);if(fn)fn(c)})}
+function grassBase(c,seed,base="G"){
+  // Broad meadow surfaces stay quiet at map scale. One short, low-contrast
+  // blade breaks tile seams without turning every square into pixel confetti.
+  const r=R(c,seed);const x=2+Math.floor(r()*12),y=2+Math.floor(r()*12);
+  c.rect(0,0,16,16,base);c.vline(x,y,2,"x")
+}
+function grass(name,seed){
+  // Grass tiles carry only the broad palette field. Distinct plant marks are
+  // placed as complete vegetation sprites so the ground does not dissolve
+  // into one random pixel per tile at overview scale.
+  sprite(name,{w:16,h:16},(c)=>grassBase(c,seed,"G"))
+}
 grass("grass-a",1)
-grass("grass-b",2,c=>blades(c,21,5))
-grass("grass-c",3,c=>{blades(c,31,3);c.px(11,10,"w")})
-grass("grass-d",4,c=>blades(c,41,9))
-grass("grass-e",5,c=>{dots(c,51,7,["g","g","f"]);c.px(4,4,"g")})
-grass("grass-f",6,c=>{blades(c,61,4,"g");c.px(5,11,"w")})
-grass("grass-g",7,c=>{blades(c,71,12,"f");blades(c,72,3,"g")})
-grass("grass-h",8,c=>{c.px(2,8,"f");blades(c,81,2)})
-sprite("dirt",{w:16,h:16},(c)=>{c.rect(0,0,16,16,"o");dots(c,91,12,["O","d","O"]);c.hline(2,4,4,"O");c.hline(9,11,4,"O")})
+grass("grass-b",2)
+grass("grass-c",3)
+grass("grass-d",4)
+grass("grass-e",5)
+grass("grass-f",6)
+grass("grass-g",7)
+grass("grass-h",8)
+sprite("dirt",{w:16,h:16},(c)=>{c.rect(0,0,16,16,"o");dots(c,91,3,["O","d","O"]);c.hline(2,4,4,"O");c.hline(9,11,4,"O")})
 // dirt with grass edge on named side
-function dirtEdge(name,side){sprite(name,{w:16,h:16},(c)=>{c.rect(0,0,16,16,"o");dots(c,93,8,["O","d"]);
+function dirtEdge(name,side){sprite(name,{w:16,h:16},(c)=>{c.rect(0,0,16,16,"o");dots(c,93,2,["O","d"]);
   if(side==="n"){c.rect(0,0,16,3,"G");c.hline(0,3,16,"f");blades(c,94,2)}
   if(side==="s"){c.rect(0,13,16,3,"G");c.hline(0,12,16,"f")}
   if(side==="w"){c.rect(0,0,3,16,"G");c.vline(3,0,16,"f")}
@@ -31,11 +41,31 @@ plaza("plaza",101,false);plaza("plaza-b",102,true)
 // water: 32x16, frame0/frame1 differ by wave offset
 sprite("water",{w:32,h:16},(c)=>{c.rect(0,0,32,16,"A");c.rect(0,12,32,4,"z");
   for(let f=0;f<2;f++){const o=f*16;c.hline(o+2,4,6,"a");c.hline(o+9,9,5,"a");c.px(o+4,12,"z");c.px(o+12,3,"z");if(f){c.hline(o+5,6,4,"w")}else{c.hline(o+3,7,4,"w")}}})
-function waterEdge(name,side){sprite(name,{w:16,h:16},(c)=>{c.rect(0,0,16,16,"A");c.hline(2,5,6,"a");c.hline(8,10,5,"a");
-  if(side==="n"){c.rect(0,0,16,3,"G");c.hline(0,3,16,"a");c.hline(0,4,16,"z")}
-  if(side==="s"){c.rect(0,13,16,3,"G");c.hline(0,12,16,"a");c.hline(0,11,16,"z")}
-  if(side==="w"){c.rect(0,0,3,16,"G");c.vline(3,0,16,"a");c.vline(4,0,16,"z")}
-  if(side==="e"){c.rect(13,0,3,16,"G");c.vline(12,0,16,"a");c.vline(11,0,16,"z")}})}
+function waterEdge(name,side){sprite(name,{w:16,h:16},(c)=>{
+  // Shore cells remain meadow; only an uneven, shallow lip joins the channel.
+  // Filling these tiles with water made a one-tile creek read as a wide canal.
+  grassBase(c,side==="e"?311:312);
+  if(side==="e"){
+    c.poly([11,0,16,0,16,16,12,16,11,13,10,11,11,8,9,6,10,3],"A");
+    c.poly([10,0,11,0,10,3,9,6,11,8,10,11,12,13,13,16,11,16,10,13,9,11,10,8,8,6,9,3],"a");
+    c.vline(14,2,3,"z");c.px(12,10,"w");
+  }
+  if(side==="w"){
+    c.poly([0,0,5,0,6,3,7,6,5,8,6,11,4,13,3,16,0,16],"A");
+    c.poly([5,0,6,0,7,3,8,6,6,8,7,11,5,13,4,16,3,16,4,13,6,11,5,8,7,6,6,3],"a");
+    c.vline(2,2,3,"z");c.px(4,10,"w");
+  }
+  if(side==="n"){
+    c.poly([0,11,3,10,6,11,9,9,12,10,16,9,16,16,0,16],"A");
+    c.poly([0,10,3,9,6,10,9,8,12,9,16,8,16,10,12,11,9,10,6,12,3,11,0,12],"a");
+    c.hline(3,13,4,"z");c.px(12,11,"w");
+  }
+  if(side==="s"){
+    c.poly([0,0,16,0,16,7,12,6,9,8,6,7,3,9,0,8],"A");
+    c.poly([0,8,3,9,6,7,9,8,12,6,16,7,16,9,12,8,9,10,6,9,3,11,0,10],"a");
+    c.hline(9,2,4,"z");c.px(3,7,"w");
+  }
+})}
 waterEdge("water-edge-n","n");waterEdge("water-edge-s","s");waterEdge("water-edge-e","e");waterEdge("water-edge-w","w")
 sprite("bridge",{w:48,h:48},(c)=>{c.rect(0,0,48,48,"A");c.rect(0,34,48,14,"z");c.rect(0,44,48,4,"Z");
   c.hline(3,4,7,"a");c.hline(30,7,6,"a");c.hline(12,11,5,"w");c.hline(36,2,5,"a");c.hline(5,40,6,"a");c.hline(28,42,7,"a");c.hline(40,37,5,"w");c.px(20,5,"z");c.px(8,44,"A");
@@ -50,7 +80,7 @@ sprite("bridge",{w:48,h:48},(c)=>{c.rect(0,0,48,48,"A");c.rect(0,34,48,14,"z");c
   c.rect(0,13,48,3,"b");c.hline(0,13,48,"d");c.rect(0,33,48,3,"b");c.hline(0,35,48,"D");
   // worn entry stones at both deck ends
   c.rect(0,20,6,11,"P");c.rect(42,20,6,11,"P");c.hline(0,25,6,"q");c.hline(42,24,6,"q");c.vline(3,20,11,"q");c.vline(44,20,11,"q");c.px(1,21,"p");c.px(46,29,"p");c.px(4,28,"w");c.px(43,22,"w")})
-function flowers(name,col,seed){sprite(name,{w:16,h:16},(c)=>{grassBase(c,seed);const r=R(c,seed+9);for(let i=0;i<5;i++){const x=2+Math.floor(r()*12),y=3+Math.floor(r()*11);c.px(x,y,"f");c.px(x,y+1,"f");c.px(x,y-1,col);c.px(x-1,y,col);c.px(x+1,y,col);c.px(x,y,col==="w"?"Y":col==="Y"?"w":col)}if(col==="w"){c.px(8,6,"Y")}})}
+function flowers(name,col,seed){sprite(name,{w:16,h:16},(c)=>{grassBase(c,seed);const r=R(c,seed+9);for(const [cx,cy] of [[5,8],[11,5]]){const x=cx+Math.floor(r()*3)-1,y=cy+Math.floor(r()*3)-1;c.vline(x,y+1,2,"f");c.px(x,y,col);c.px(x-1,y+1,"g")}if(col==="w")c.px(5,8,"Y")})}
 flowers("flowers-poppy","r",201);flowers("flowers-daisy","w",202);flowers("flowers-lavender","V",203);flowers("flowers-gold","Y",204)
 sprite("bush",{w:16,h:12},(c)=>{c.ellipse(8,8,7,4,"F");c.circ(5,6,3,"G");c.circ(10,5,4,"G");c.circ(8,4,3,"g");c.px(4,4,"g");c.px(11,3,"g");c.px(6,7,"r");c.px(12,7,"r");c.hline(4,11,9,"k")})
 sprite("rock",{w:16,h:12},(c)=>{c.poly([1,11,3,5,7,2,13,4,15,11],"M");c.poly([3,5,7,2,10,4,6,6],"m");c.hline(2,11,13,"k");c.px(5,4,"w")})
@@ -63,23 +93,23 @@ sprite("fence-h",{w:16,h:12},(c)=>{c.rect(1,3,3,8,"D");c.rect(12,3,3,8,"D");c.re
 sprite("fence-v",{w:12,h:16},(c)=>{c.rect(4,0,3,16,"D");c.rect(1,4,10,2,"d");c.rect(1,11,10,2,"d");c.vline(4,0,16,"b");c.px(5,2,"k")})
 sprite("sign",{w:16,h:16},(c)=>{c.rect(7,7,2,8,"b");c.rect(2,1,12,7,"d");c.box(2,1,12,7,"b");c.hline(4,4,8,"c");c.hline(4,6,5,"e");c.px(12,3,"Y")})
 // --- Round 3 append: more grass, wildflower patches, worn trails ---
-grass("grass-i",9,c=>{blades(c,91,6);c.px(5,6,"w");c.px(11,12,"r")})
-grass("grass-j",10,c=>{dots(c,101,14,["g","f","G"]);blades(c,102,2,"g")})
-grass("grass-k",11,c=>{blades(c,111,8,"f");c.px(8,8,"Y");c.px(3,12,"Y")})
-grass("grass-l",12,c=>{c.px(4,4,"P");c.px(12,9,"P");blades(c,121,4);dots(c,122,6,["g"])})
-grass("grass-m",13,c=>{blades(c,131,3);c.px(6,5,"V");c.px(10,11,"V");c.px(8,8,"w")})
-grass("grass-n",14,c=>{blades(c,141,14,"g");c.px(7,7,"g")})
-grass("grass-o",15,c=>{dots(c,151,18,["f","g"]);c.px(13,13,"r");c.px(2,6,"w")})
-grass("grass-p",16,c=>{blades(c,161,5,"f");blades(c,162,5,"g");c.px(9,3,"h")})
-grass("grass-q",17,c=>{c.px(3,3,"g");c.px(12,12,"g");blades(c,171,7);c.px(8,14,"Y")})
-grass("grass-r",18,c=>{dots(c,181,10,["g"]);c.px(5,10,"r");c.px(10,5,"r");blades(c,182,2)})
-grass("grass-s",19,c=>{blades(c,191,10);c.px(4,7,"q");dots(c,192,4,["P"])})
-grass("grass-t",20,c=>{blades(c,201,4,"g");c.px(6,6,"h");c.px(11,10,"w");c.px(9,13,"V")})
-grass("grass-u",21,c=>{dots(c,211,20,["g","G","f"]);blades(c,212,3,"f")})
-grass("grass-v",22,c=>{blades(c,221,6);c.rect(7,7,2,2,"f");c.px(8,6,"g")})
-grass("grass-w",23,c=>{blades(c,231,9,"f");c.px(2,13,"Y");c.px(14,4,"w")})
-grass("grass-x",24,c=>{dots(c,241,12,["g","f"]);blades(c,242,5);c.px(7,9,"r");c.px(12,6,"Y");c.px(4,12,"w")})
-function wildPatch(name,main,light,seed){sprite(name,{w:40,h:28},(c)=>{c.rect(0,0,40,28,"G");const r0=R(c,seed);for(let i=0;i<60;i++)c.px(Math.floor(r0()*40),Math.floor(r0()*28),["g","f","G"][Math.floor(r0()*3)]);for(let i=0;i<14;i++){const x=1+Math.floor(r0()*38),y=2+Math.floor(r0()*25);c.px(x,y,"f");c.px(x,y-1,"f")}const r=R(c,seed+2);for(let i=0;i<26;i++){const x=2+Math.floor(r()*36),y=3+Math.floor(r()*23);c.px(x,y,"f");c.px(x,y+1,"f");c.px(x,y-1,main);c.px(x-1,y,main);c.px(x+1,y,light);c.px(x,y,light)}for(let i=0;i<8;i++){const x=2+Math.floor(r()*36),y=3+Math.floor(r()*23);c.px(x,y,"w");c.px(x+1,y+1,main)}})}
+grass("grass-i",9)
+grass("grass-j",10)
+grass("grass-k",11)
+grass("grass-l",12)
+grass("grass-m",13)
+grass("grass-n",14)
+grass("grass-o",15)
+grass("grass-p",16)
+grass("grass-q",17)
+grass("grass-r",18)
+grass("grass-s",19)
+grass("grass-t",20)
+grass("grass-u",21)
+grass("grass-v",22)
+grass("grass-w",23)
+grass("grass-x",24)
+function wildPatch(name,main,light,seed){sprite(name,{w:40,h:28},(c)=>{c.rect(0,0,40,28,"G");const r=R(c,seed);for(const [cx,cy] of [[7,17],[15,10],[25,18],[33,12]]){const x=cx+Math.floor(r()*5)-2,y=cy+Math.floor(r()*3)-1;c.vline(x,y+2,3,"f");c.vline(x+1,y+3,2,"f");c.px(x,y,main);c.px(x-1,y+1,light);c.px(x+1,y,main)}for(const [x,y] of [[5,22],[19,20],[29,23]]){c.px(x,y,"w");c.vline(x,y+1,2,"f")}})}
 wildPatch("wildflower-patch-rose","r","h",501)
 wildPatch("wildflower-patch-lilac","V","v",502)
 wildPatch("wildflower-patch-gold","Y","L",503)
@@ -89,9 +119,9 @@ function trail(shape,v){sprite(`trail-${shape}-${v}`,{w:16,h:16},(c)=>{grassBase
   if(shape==="dot"){c.ellipse(8,8,4,4,"o");c.ellipse(8,8,3,2,"o");c.px(7,7,"O");c.px(9,9,"d")}
   else{const arm=(d)=>{if(d==="N")c.rect(4,0,8,8,"o");if(d==="S")c.rect(4,8,8,8,"o");if(d==="W")c.rect(0,4,8,8,"o");if(d==="E")c.rect(8,4,8,8,"o")};cs.forEach(arm);c.rect(4,4,8,8,"o")}
   const r=R(c,700+v*31+shape.charCodeAt(0)*3+shape.length*17);
-  for(let i=0;i<14;i++){const x=Math.floor(r()*16),y=Math.floor(r()*16);if(c.is(x,y,"o"))c.px(x,y,["O","d","P","o"][Math.floor(r()*4)])}
+  for(let i=0;i<4;i++){const x=Math.floor(r()*16),y=Math.floor(r()*16);if(c.is(x,y,"o"))c.px(x,y,["O","d","P","o"][Math.floor(r()*4)])}
   // worn irregular edges: grass bites into path, dirt specks into grass
-  for(let i=0;i<10;i++){const x=Math.floor(r()*16),y=Math.floor(r()*16);if(c.is(x,y,"o")&&(x<5||x>10||y<5||y>10))c.px(x,y,r()>.5?"G":"f")}
-  for(let i=0;i<5;i++){const x=Math.floor(r()*16),y=Math.floor(r()*16);if(!c.is(x,y,"o"))c.px(x,y,"o")}
+  for(let i=0;i<4;i++){const x=Math.floor(r()*16),y=Math.floor(r()*16);if(c.is(x,y,"o")&&(x<5||x>10||y<5||y>10))c.px(x,y,r()>.5?"G":"f")}
+  for(let i=0;i<2;i++){const x=Math.floor(r()*16),y=Math.floor(r()*16);if(!c.is(x,y,"o"))c.px(x,y,"o")}
   c.px(7,7,"P");if(shape!=="dot")c.px(9,10,"O")})}
 for(const shape of Object.keys(TRAIL))for(let v=0;v<4;v++)trail(shape,v)

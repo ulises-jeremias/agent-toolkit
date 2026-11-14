@@ -6,6 +6,7 @@ import type {
   FocusPermissionMode,
   FocusToolKind,
   FocusUsage,
+  FocusUserInputQuestion,
 } from '../../src/types/focus';
 
 /** What a provider adapter reports back to the session service. */
@@ -22,6 +23,8 @@ export interface AdapterSink {
   approval(request: Extract<FocusEventBody, { type: 'approval.requested' }>): void;
   /** The provider withdrew a pending approval (for example the call was cancelled). */
   approvalCancelled(requestId: string): void;
+  userInput(requestId: string, questions: FocusUserInputQuestion[]): void;
+  userInputCancelled(requestId: string, by: 'provider' | 'interrupt' | 'shutdown'): void;
   turnFinished(result: {
     outcome: 'completed' | 'interrupted' | 'failed';
     detail: string | null;
@@ -54,8 +57,10 @@ export interface AdapterStartOptions {
 /** One live provider process bound to one Focus thread. */
 export interface ProviderSession {
   readonly alive: boolean;
+  readonly acceptsInputWhileRunning: boolean;
   send(text: string): void;
   respondApproval(requestId: string, decision: FocusApprovalDecision): boolean;
+  respondUserInput(requestId: string, answers: Record<string, string[]>): boolean;
   interrupt(): void;
   /** Release the process. `now` stops it at once (app shutdown) instead of letting it wind down. */
   dispose(now?: boolean): void;

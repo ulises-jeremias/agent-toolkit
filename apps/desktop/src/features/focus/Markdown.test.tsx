@@ -50,6 +50,13 @@ describe('parseBlocks', () => {
   it('treats an unclosed fence as code so streaming text does not flicker', () => {
     expect(parseBlocks('```js\nconst a =')).toEqual([{ type: 'code', lang: 'js', text: 'const a =' }]);
   });
+
+  it('parses valid indented headings without stalling on four-space text', () => {
+    expect(parseBlocks('   ## Indented\n\n    # Not a heading')).toEqual([
+      { type: 'heading', level: 2, text: 'Indented' },
+      { type: 'paragraph', text: '    # Not a heading' },
+    ]);
+  });
 });
 
 describe('Markdown', () => {

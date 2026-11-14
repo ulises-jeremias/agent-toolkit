@@ -52,14 +52,16 @@ describe('buildValley', () => {
         thread('th_failed', 'garden-api', 'error'),
         thread('th_run', 'garden-api', 'running', 'codex'),
         thread('th_ask', 'garden-api', 'awaiting-approval'),
+        thread('th_input', 'garden-api', 'awaiting-input', 'codex'),
         thread('th_other', 'elsewhere', 'running'),
       ],
     });
     const house = scene.places.find((place) => place.kind === 'project');
-    expect(house).toMatchObject({ lit: true, asking: 1, summary: '1 session needs your answer' });
+    expect(house).toMatchObject({ lit: true, asking: 2, summary: '2 sessions need your answer' });
     // The session waiting for you stands first.
     expect(house?.figures.map((figure) => [figure.params['thread'], figure.state, figure.family])).toEqual([
       ['th_ask', 'asking', 'ember'],
+      ['th_input', 'asking', 'river'],
       ['th_run', 'working', 'river'],
     ]);
   });

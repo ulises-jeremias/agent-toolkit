@@ -133,11 +133,11 @@ export function WorldEntityMap({
   onActivate,
 }: WorldEntityMapProps): ReactNode {
   const regionRef = useRef<HTMLDivElement>(null);
-  const [zoom, setZoom] = useState<number>(48);
+  const [zoom, setZoom] = useState<number>(32);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  // Start at a playable scale around the human avatar. Fit world remains one
-  // click away for workspace overview and direct productivity navigation.
-  const [cameraMode, setCameraMode] = useState<'frame' | 'fit' | 'manual' | 'follow'>('follow');
+  // Start with the whole semantic workspace in view. Walking is an explicit
+  // mode; ordinary navigation and inspection should not begin as a game.
+  const [cameraMode, setCameraMode] = useState<'frame' | 'fit' | 'manual' | 'follow'>('fit');
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const drag = useRef<{ x: number; y: number; panX: number; panY: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
@@ -473,12 +473,11 @@ export function WorldEntityMap({
       const current = movementStateRef.current;
       if (current.cameraMode === 'follow') {
         const viewport = { x: region.clientWidth, y: region.clientHeight };
-        // Project rooms are small enough to frame at the largest crisp scale.
-        // Grounds keep the wider player-first view. Explicit zoom and Fit world
-        // choices always take priority.
+        // Keep the complete semantic area visible at the largest crisp scale.
+        // Explicit zoom and Fit world choices always take priority.
         let followZoom = current.zoom;
         if (!userAdjustedZoomRef.current && viewport.x > 0) {
-          const responsiveZoom = responsiveCameraZoom(mode, viewport, { x: cols, y: rows });
+          const responsiveZoom = responsiveCameraZoom(viewport, { x: cols, y: rows });
           if (current.zoom !== responsiveZoom) {
             followZoom = responsiveZoom;
             setZoom(responsiveZoom);
@@ -607,6 +606,9 @@ export function WorldEntityMap({
       style={{
         backgroundImage: `url('/world/grass-a.png')`,
         backgroundSize: `${zoom}px ${zoom}px`,
+        // Keep the viewport meadow on the same tile origin as the moving map.
+        // This lets the terrain's quiet outer edge continue beyond its bounds.
+        backgroundPosition: `${pan.x}px ${pan.y}px`,
       }}
       role="application"
       aria-label={ariaLabel}
@@ -629,6 +631,7 @@ export function WorldEntityMap({
         }
       }}
     >
+      <div className={styles.worldAtmosphere} aria-hidden="true" />
       {/* Keyboard pan lives on a real button so the map region itself stays non-interactive. */}
       <button
         ref={panFocusRef}
@@ -697,7 +700,7 @@ export function WorldEntityMap({
           .filter(
             (entity) =>
               entity.kind !== 'character' &&
-              (entity.kind === 'place' ||
+              ((entity.kind === 'place' && entity.id !== 'place:workspace') ||
                 entity.id === selectedId ||
                 entity.id === hoveredId ||
                 entity.id === nearbyId),
@@ -712,7 +715,7 @@ export function WorldEntityMap({
                 data-entity-label-for={entity.id}
                 aria-hidden="true"
                 data-label-kind={entity.kind}
-                data-sign={entity.kind === 'place' && !isActive ? 'true' : undefined}
+                data-sign={entity.kind === 'place' && entity.id !== 'place:workspace' && !isActive ? 'true' : undefined}
                 data-nearby={isNearby ? 'true' : undefined}
                 data-selected={isActive ? 'true' : undefined}
                 style={{
@@ -885,6 +888,7 @@ function EntityTile({
       className={styles.entity}
       data-kind={entity.kind}
       data-theme-key={entity.themeKey}
+      data-facade={entity.facade}
       data-entity-id={entity.id}
       data-activity={entity.activity ?? 'calm'}
       data-state={entity.state}
@@ -902,6 +906,9 @@ function EntityTile({
         width: entity.w * tileSize,
         height: entity.h * tileSize,
         ['--world-tile-size' as string]: `${tileSize}px`,
+        ['--house-lit-src' as string]: entity.facade?.startsWith('house-')
+          ? `url('/world/${entity.facade}_lit.png')`
+          : undefined,
         ...(entity.characterAccent ? { ['--person-accent' as string]: entity.characterAccent } : {}),
       }}
       onClick={canInspect ? () => activateEntity(entity, onSelect, onActivate) : undefined}

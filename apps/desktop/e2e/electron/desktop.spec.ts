@@ -137,8 +137,11 @@ test.afterAll(async () => {
 test('supervisor starts the real backend and the shell connects', async () => {
   const { page } = desktop;
   await waitForBackend(page);
-  await expect(page.getByRole('group', { name: 'Workspace village' })).toBeVisible();
-  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'What should we work on?' })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Task' })).toBeVisible();
+  // Provider availability is machine-specific. The fresh profile may have no
+  // authenticated agent, which Focus explains in its own provider fieldset;
+  // backend connectivity is already verified by waitForBackend above.
 });
 
 test('the top bar names the default ~/.ai-workspace workspace and offers search', async () => {
@@ -169,7 +172,7 @@ test('Ctrl+K opens the command palette and keeps session context', async () => {
 test('palette actions open the same reviewed terminal, job, loop, and swarm workflows', async () => {
   const { page } = desktop;
   const openAction = async (search: string, pattern: string | RegExp) => {
-    await page.keyboard.press('Control+k');
+    await page.getByRole('button', { name: /Search or run a command/ }).click();
     const palette = page.getByRole('dialog', { name: 'Commands' });
     await palette.getByLabel('Filter commands').fill(search);
     const option = palette.getByRole('option').first();
@@ -277,7 +280,7 @@ test('palette protects backend restart behind a consequence review', async () =>
     page.getByText('Reading workspace, projects, memory, tools, jobs, and active People sessions'),
   ).toBeHidden();
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-  await expect(page.getByRole('group', { name: 'Workspace village' })).toBeVisible();
+  await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
   await page.keyboard.press('Control+k');
   const palette = page.getByRole('dialog', { name: 'Commands' });
   await palette.getByLabel('Filter commands').fill('Restart backend');
@@ -332,6 +335,30 @@ test('workspace reads the scratch workspace through the backend', async () => {
   await goTo(page, 'Context');
   await expect(page.getByRole('region', { name: 'Context budget' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Personas' })).toContainText(/architect|implementer/);
+});
+
+test('Projects previews untracked file contents before staging', async () => {
+  const { app, page } = desktop;
+  const repo = path.join(desktop.home, 'code', 'untracked-diff-review');
+  fs.mkdirSync(repo, { recursive: true });
+  initializeTestRepository(repo);
+  fs.writeFileSync(path.join(repo, 'new file.txt'), 'Visible before staging.\n');
+
+  await goTo(page, 'Projects');
+  await app.evaluate(({ dialog }, selected) => {
+    dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [selected] });
+  }, repo);
+  await page.getByRole('button', { name: 'Link a repository' }).click();
+  const project = page
+    .getByRole('list', { name: 'Linked projects' })
+    .getByRole('button', { name: /^untracked-diff-review\b/ });
+  await expect(project).toBeVisible();
+  await project.click();
+  await page
+    .getByRole('list', { name: 'Untracked files' })
+    .getByRole('button', { name: /new file\.txt/ })
+    .click();
+  await expect(page.locator('[aria-label="Diff for new file.txt"]')).toContainText('Visible before staging.');
 });
 
 test('library shows catalog vs detected vs configured vs verified without dumping envelopes', async () => {
@@ -720,12 +747,28 @@ test('Library searches typed catalog metadata and reveals provenance and compati
 });
 
 test('Library installs only the checked Skills for a target', async () => {
-  const isolated = await openDesktop();
+  // Electron's single-instance lock is global to the application even when a
+  // test supplies a second HOME and user-data-dir. Close the suite's primary
+  // app before opening this clean profile so Playwright cannot attach the new
+  // test to the old renderer. Restore the primary app for subsequent cases.
+  await desktop.close();
+  let isolated: Desktop | undefined;
   try {
+    isolated = await openDesktop();
     const { page } = isolated;
+    await waitForBackend(page);
+    // NavigationContinuity restores the first route after the supervised
+    // workspace arrives. Wait for that clean-profile restore to finish before
+    // driving Library, or its initial Focus redirect can race the click.
+    await expect(page.getByRole('heading', { level: 1, name: 'What should we work on?' })).toBeVisible();
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
+    await expect(
+      page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }),
+    ).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
     await expect(page.getByText('Loading the skills catalog')).toBeHidden();
+    await page.getByRole('searchbox', { name: 'Find a capability' }).fill('');
+    await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
     const catalog = page.getByRole('region', { name: 'Skills catalog' });
     // Check exactly one Skill, review it, and install it for Claude Code.
     await catalog.getByLabel('Select review for installation').check();
@@ -742,7 +785,8 @@ test('Library installs only the checked Skills for a target', async () => {
     expect(fs.existsSync(path.join(isolated.home, '.claude', 'skills', 'pr-fallback', 'SKILL.md'))).toBe(false);
     await expect(catalog.getByRole('button', { name: /review accessibility/ })).toContainText('verified');
   } finally {
-    await isolated.close();
+    await isolated?.close();
+    desktop = await openDesktop();
   }
 });
 
@@ -1068,7 +1112,7 @@ test('swarm start reviews canonical topology and keeps runner separate from adap
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
   await page.getByRole('button', { name: 'Start swarm' }).click();
   const dialog = page.getByRole('dialog', { name: 'Start a swarm' });
-  await expect(dialog.getByText('.ai-workspace')).toBeVisible();
+  await expect(dialog.getByText('.ai-workspace', { exact: true })).toBeVisible();
   await dialog.getByLabel('Project').selectOption('swarm-project');
   await expect(dialog.getByText(projectRoot)).toBeVisible();
   await expect(dialog.getByLabel('Team recipe')).toContainText('pair · 3 roles');
@@ -1298,7 +1342,9 @@ test('theme choice applies immediately and survives a reload', async () => {
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
   await page.getByRole('radio', { name: /Dusk/ }).check();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dusk');
+  await expect.poll(() => page.evaluate(() => window.atk?.preferences.read())).toMatchObject({ theme: 'dusk' });
   await page.reload();
+  await expect.poll(() => page.evaluate(() => window.atk?.preferences.read())).toMatchObject({ theme: 'dusk' });
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dusk');
   await page.getByRole('radio', { name: /Meadow/ }).check();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'meadow');

@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -112,6 +112,44 @@ describe('Dialog', () => {
     await user.click(screen.getByRole('button', { name: 'Done' }));
     expect(screen.queryByText('body')).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
+  });
+
+  it('closes from Escape through the controlled owner without reopening the native dialog', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    const dialog = screen.getByRole('dialog', { name: 'Start a job' });
+    const cancel = new Event('cancel', { cancelable: true });
+
+    await act(async () => {
+      dialog.dispatchEvent(cancel);
+    });
+
+    expect(cancel.defaultPrevented).toBe(true);
+    expect(screen.queryByText('body')).not.toBeInTheDocument();
+  });
+
+  it('still reports a native close when there is no safe focus target to restore', async () => {
+    function NestedHarness() {
+      const [open, setOpen] = useState(false);
+      return (
+        <>
+          <dialog open>
+            <button onClick={() => setOpen(true)}>Open nested dialog</button>
+          </dialog>
+          <Dialog open={open} onClose={() => setOpen(false)} title="Nested">
+            <p>Nested body</p>
+          </Dialog>
+        </>
+      );
+    }
+
+    const user = userEvent.setup();
+    render(<NestedHarness />);
+    await user.click(screen.getByRole('button', { name: 'Open nested dialog' }));
+    const nested = screen.getByRole('dialog', { name: 'Nested' }) as HTMLDialogElement;
+    await act(async () => nested.close());
+    await waitFor(() => expect(screen.queryByText('Nested body')).not.toBeInTheDocument());
   });
 });
 
