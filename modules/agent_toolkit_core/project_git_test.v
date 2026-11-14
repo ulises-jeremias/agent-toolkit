@@ -65,6 +65,13 @@ fn test_project_git_round_trip_stage_unstage_commit() {
 	diff := project_git_diff_typed(base, 'demo', 'a.txt', false)
 	assert diff.ok, diff.detail
 	assert diff.diff.contains('+two')
+	untracked_diff := project_git_diff_typed(base, 'demo', 'c.txt', false)
+	assert untracked_diff.ok, untracked_diff.detail
+	assert untracked_diff.diff.contains('+++ b/c.txt')
+	assert untracked_diff.diff.contains('+see')
+	clean_working_diff := project_git_diff_typed(base, 'demo', 'b.txt', false)
+	assert clean_working_diff.ok
+	assert clean_working_diff.diff == ''
 	staged_diff := project_git_diff_typed(base, 'demo', 'a.txt', true)
 	assert staged_diff.ok
 	assert staged_diff.diff == ''
