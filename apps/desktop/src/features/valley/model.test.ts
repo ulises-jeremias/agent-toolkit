@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildValley, cameraFor, hash, HOUSE_SPRITES, type ValleyInput } from './model';
+import { buildValley, cameraFor, hash, HOUSE_SPRITES, threadsForWorkspace, type ValleyInput } from './model';
 
 const base: ValleyInput = {
   projects: [],
@@ -135,6 +135,18 @@ describe('buildValley', () => {
     expect(scene.riverX).toBeGreaterThan(sorted.at(-2)?.x ?? 0);
     expect(scene.width).toBeGreaterThan(900);
     expect(buildValley({ ...base, minWidth: 640 }).width).toBe(640);
+  });
+});
+
+describe('threadsForWorkspace', () => {
+  it('keeps sessions scoped to the selected workspace, even when project names match', () => {
+    const threads = [
+      { id: 'current', workspace: '/work/current', projectName: 'api' },
+      { id: 'stale', workspace: '/work/previous', projectName: 'api' },
+    ];
+
+    expect(threadsForWorkspace(threads, '/work/current').map((thread) => thread.id)).toEqual(['current']);
+    expect(threadsForWorkspace(threads, '')).toEqual([]);
   });
 });
 

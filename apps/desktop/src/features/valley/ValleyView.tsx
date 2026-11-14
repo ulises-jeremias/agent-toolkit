@@ -14,7 +14,14 @@ import { useSessionContext } from '../../shell/useSessionContext';
 import { useAttention } from '../office/useAttention';
 import { Button } from '../../ui';
 import { useAppearance } from '../../design/theme';
-import { buildValley, SPRITE_SIZE, type ValleyPersonFigure, type ValleyPlace, type ValleyScene } from './model';
+import {
+  buildValley,
+  SPRITE_SIZE,
+  threadsForWorkspace,
+  type ValleyPersonFigure,
+  type ValleyPlace,
+  type ValleyScene,
+} from './model';
 import { manifestEntry, valleyUrl, type ValleyManifestEntry } from './assets';
 import styles from './valley.module.css';
 
@@ -91,6 +98,7 @@ export default function ValleyView() {
   const workspace = backend?.harness?.path ?? '';
   const projects = useProjects(workspace);
   const { threads } = useFocusThreads();
+  const workspaceThreads = useMemo(() => threadsForWorkspace(threads, workspace), [threads, workspace]);
   const jobs = useJobs();
   const attention = useAttention();
   const terminals = useTerminalSessions();
@@ -174,13 +182,13 @@ export default function ValleyView() {
   const sceneInput = useMemo(
     () => ({
       projects: projects.data?.projects ?? [],
-      threads,
+      threads: workspaceThreads,
       personFigures,
       jobsRunning: activeJobIds(jobs.data).length,
       attention: attention.items.length,
       people: people.data?.people.length ?? 0,
     }),
-    [projects.data, threads, personFigures, jobs.data, attention.items.length, people.data],
+    [projects.data, workspaceThreads, personFigures, jobs.data, attention.items.length, people.data],
   );
   const baseScene = useMemo(() => buildValley({ ...sceneInput, minWidth: 400 }), [sceneInput]);
   const availableWidth = viewportSize.width || window.innerWidth;
