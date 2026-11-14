@@ -214,7 +214,9 @@ export function NewSession({
           </p>
         ) : null}
         {providersLoading && providers.length === 0 ? (
-          <p className={styles.startEmpty}>Checking installed agents…</p>
+          <p className={styles.startEmpty} role="status" aria-live="polite">
+            Checking installed agents…
+          </p>
         ) : null}
         {providers.map((provider) => {
           const blocker = providerBlocker(provider);
