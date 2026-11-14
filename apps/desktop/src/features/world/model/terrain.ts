@@ -1034,7 +1034,14 @@ function forest(p: Painter, projectlessMeadow = false) {
       // A tree may root among flowers; the crown and shaded trunk naturally
       // interrupt a meadow patch without turning the blossom cells into noise.
       if (!ground.startsWith('grass') && !ground.startsWith('flowers')) continue;
-      const edge = x < 6 || x >= p.cols - 6 || y < 3 || y >= p.rows - 4;
+      // Vary each forest margin with low-frequency landscape structure. A
+      // fixed six-tile rectangle made the valley's outer planting read like
+      // a box even when individual groves were irregular.
+      const westMargin = 4 + Math.floor(meadowField(0, y, 9, 401) * 4);
+      const eastMargin = 4 + Math.floor(meadowField(0, y, 9, 409) * 4);
+      const northMargin = 2 + Math.floor(meadowField(x, 0, 9, 419) * 3);
+      const southMargin = 3 + Math.floor(meadowField(x, 0, 9, 421) * 4);
+      const edge = x < westMargin || x >= p.cols - eastMargin || y < northMargin || y >= p.rows - southMargin;
       const nearCreek = [-4, -3, -2, -1, 0, 1, 2, 3, 4].some((dx) => p.get(x + dx, y) === 'water');
       const roll = h2(x, y, 3) % 31;
       const nearestLot = p.projectLots.reduce((distance, lot) => {
@@ -1088,13 +1095,13 @@ function forest(p: Painter, projectlessMeadow = false) {
         const tree =
           nearCreek && kind < 4
             ? 'tree-willow'
-            : kind < 2
+            : kind < 3
               ? 'tree-pine'
               : kind < 7
                 ? 'tree-blossom'
-                : kind < 10
+                : kind < 11
                   ? 'tree-amber'
-                  : kind === 10
+                  : kind === 11
                     ? 'tree-rune'
                     : 'tree-round';
         p.sprite(`tree:${x},${y}`, x, y, tree, 48, 48, -16 + canopyOffsetX, -32 + canopyOffsetY, false);

@@ -1345,6 +1345,33 @@ describe('layoutWorld', () => {
     expect(interiorTrees.length).toBeGreaterThan(3);
   });
 
+  it('varies the woodland silhouette around a populated valley', () => {
+    const layout = layoutWorld(
+      buildWorldModel(
+        baseInput({
+          projects: ['garden', 'project-zero', 'project-one', 'project-three', 'project-four', 'project-five'].map(
+            (name) => ({ name, target: `/${name}`, status: 'ok' as const }),
+          ),
+        }),
+      ),
+    );
+    const trees = paintTerrain(layout.entities, layout.cols, layout.rows).decor.filter(({ sprite }) =>
+      sprite.startsWith('tree-'),
+    );
+    const northFringe = trees.filter(({ y }) => y <= 5);
+    const speciesCounts = new Map<string, number>();
+    for (const { sprite } of trees) speciesCounts.set(sprite, (speciesCounts.get(sprite) ?? 0) + 1);
+    const dominantShare = Math.max(...speciesCounts.values()) / trees.length;
+
+    expect(trees.length).toBeGreaterThan(20);
+    expect(
+      new Set(northFringe.map(({ y }) => y)).size,
+      'the north planting should not form one ruler-straight row',
+    ).toBeGreaterThan(1);
+    expect(speciesCounts.size, 'the village should have several distinct tree silhouettes').toBeGreaterThanOrEqual(4);
+    expect(dominantShare, 'one tree silhouette should not dominate the whole village').toBeLessThan(0.4);
+  });
+
   it('keeps a wooded frame around a populated project settlement', () => {
     const layout = layoutWorld(
       buildWorldModel(

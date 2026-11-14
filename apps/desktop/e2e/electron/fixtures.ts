@@ -138,6 +138,7 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
   // listed as tabs in this spec's fresh app instance.
   env['AGENT_TOOLKIT_PTY_RUNTIME_DIR'] = path.join(root, 'pty-runtime');
   env['XDG_CONFIG_HOME'] = path.join(home, '.config');
+  env['XDG_CACHE_HOME'] = path.join(home, '.cache');
   env['XDG_DATA_HOME'] = path.join(home, '.local', 'share');
   // The Electron supervisor must launch the same binary used to scaffold and
   // smoke this workspace. Otherwise a stale dist/ binary can win discovery
