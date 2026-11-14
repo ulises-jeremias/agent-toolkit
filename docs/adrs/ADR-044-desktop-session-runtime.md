@@ -65,6 +65,22 @@ transcript tailing rather than driving them. No art from any of them is reused.
   by a scripted stand-in plus a recorded real-provider run.
 - The interactive PTY path (People → Start, Terminal) keeps working unchanged.
 
+## Implementation correction — 2026-11-14
+
+Focus permission mode `ask` now maps to Claude Code's `manual` mode instead of `default`.
+The installed Claude Code 2.1.325 accepts `manual`; `default` can approve some tools using
+CLI heuristics or user settings, which does not meet Focus's explicit approval promise. A
+source-build Electron run with a disposable repository showed a pending file-edit approval
+before the change and applied the file only after `Allow once`. Older Claude Code versions
+have not been checked for `manual` support; provider discovery does not yet detect this mode
+capability, so an older CLI may report a start failure rather than being blocked in advance.
+
+Git and file review invalidation now lives in the always-mounted Focus view and responds to
+`tool.finished` and `turn.finished`, including when the optional inspector was closed during
+the edit. Real Git API responses showed the new file as untracked. The full live-provider
+journey through panel rendering, terminal input, restart and World routing still needs a
+completed acceptance run; no conclusion is drawn from the partial run.
+
 ## Alternatives rejected
 
 - **Adapter in V (ADR-043)**: correct ownership, wrong cost; see Context 2.

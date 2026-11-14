@@ -772,7 +772,7 @@ describe('claude adapter argv', () => {
       '--permission-prompt-tool',
       'stdio',
       '--permission-mode',
-      'default',
+      'manual',
     ]);
     expect(claudeArgs({ model: 'opus', permissionMode: 'bypass', resumeSessionId: 's1' }).slice(-6)).toEqual(
       ['--permission-mode', 'bypassPermissions', '--model', 'opus', '--resume', 's1'].slice(-6),

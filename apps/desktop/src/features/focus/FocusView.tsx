@@ -212,20 +212,6 @@ function Header({
 
 function Inspector({ thread, workspace, onClose }: { thread: FocusThread; workspace: string; onClose: () => void }) {
   const [tab, setTab] = useState<'changes' | 'files'>('changes');
-  const queryClient = useQueryClient();
-  const timeline = useFocusTimeline(thread.id);
-  const lastSeq = timeline.events.at(-1)?.seq ?? 0;
-  const lastType = timeline.events.at(-1)?.type;
-
-  // The working tree changes when a tool finishes or a turn ends: re-read Git then, not on a timer.
-  useEffect(() => {
-    if (lastType !== 'tool.finished' && lastType !== 'turn.finished') return;
-    void queryClient.invalidateQueries({
-      predicate: (query) => query.queryKey[0] === 'projects' && String(query.queryKey[1]).startsWith('git'),
-    });
-    void queryClient.invalidateQueries({ queryKey: ['files'] });
-  }, [queryClient, lastSeq, lastType]);
-
   if (!thread.projectName) {
     return (
       <aside className={styles.inspector} aria-label="Changes and files">
@@ -267,6 +253,7 @@ function Inspector({ thread, workspace, onClose }: { thread: FocusThread; worksp
  * and files sit beside it; a real terminal opens in the same folder.
  */
 export default function FocusView() {
+  const queryClient = useQueryClient();
   const { backend } = useBackend();
   const workspace = backend?.harness?.path ?? '';
   const [params, setParams] = useSearchParams();
@@ -288,6 +275,20 @@ export default function FocusView() {
 
   const requested = params.get('thread');
   const active = threads.find((thread) => thread.id === requested) ?? null;
+  const activeThreadId = active?.id ?? null;
+  const timeline = useFocusTimeline(activeThreadId);
+  const lastSeq = timeline.events.at(-1)?.seq ?? 0;
+  const lastType = timeline.events.at(-1)?.type;
+
+  // Refresh review surfaces as soon as the active provider changes a file,
+  // even when the optional inspector is closed during the tool call.
+  useEffect(() => {
+    if (!activeThreadId || (lastType !== 'tool.finished' && lastType !== 'turn.finished')) return;
+    void queryClient.invalidateQueries({
+      predicate: (query) => query.queryKey[0] === 'projects' && String(query.queryKey[1]).startsWith('git'),
+    });
+    void queryClient.invalidateQueries({ queryKey: ['files'] });
+  }, [activeThreadId, lastSeq, lastType, queryClient]);
 
   const select = useCallback(
     (id: string | null) => {
