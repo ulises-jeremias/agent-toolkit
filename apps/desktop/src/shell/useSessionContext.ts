@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 import { useBackend } from '../data/backend';
 import { readContext, withContext, writeContext, type SessionContext } from './sessionContext';
+import { currentDesktopPreferences } from './desktopPreferences';
 
 export interface SessionContextApi {
   context: SessionContext;
@@ -42,7 +43,11 @@ export function useSessionContext(): SessionContextApi {
   const href = useCallback(
     (path: string, extra: Record<string, string | undefined> = {}) => {
       const pty = 'pty' in extra ? extra.pty : (params.get('pty') ?? undefined);
-      return withContext(path, context, { ...extra, pty });
+      const rememberedThread =
+        path === '/focus' ? currentDesktopPreferences().routes[context.workspace]?.focusThread : undefined;
+      const thread =
+        path === '/focus' ? ('thread' in extra ? extra.thread : (params.get('thread') ?? rememberedThread)) : undefined;
+      return withContext(path, context, { ...extra, pty, thread });
     },
     [context, params],
   );

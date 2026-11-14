@@ -80,7 +80,7 @@ export default function Operations() {
       <PageHeader
         eyebrow="Operations"
         title="Operations"
-        lede="The world opens a job, loop, swarm or doctor report here. The board lists only what serve returned."
+        lede="Track commands and workflows running in this workspace. Select a run to inspect its progress, results, or errors."
         actions={
           <>
             <Button
@@ -119,8 +119,9 @@ export default function Operations() {
             <QueryView query={jobs} loading="Loading jobs" errorTitle="Could not load jobs">
               {() =>
                 list.length === 0 ? (
-                  <EmptyState title="No jobs on the backend.">
-                    Open one from the world, or start a command here. Nothing is invented while the list is empty.
+                  <EmptyState title="No work is running.">
+                    Start a command or choose a workflow below. New work will appear here with its real output and
+                    status.
                   </EmptyState>
                 ) : (
                   <JobTable jobs={list} selectedId={selectedId} onSelect={selectJob} />
@@ -146,8 +147,7 @@ export default function Operations() {
           ) : (
             <Panel title="Inspector">
               <EmptyState title="Nothing selected.">
-                Pick a job, loop or swarm. Progress and status come from GET /api/v1/events and the job log — never a
-                decorative bar.
+                Choose a run to see its steps, output, and current status.
               </EmptyState>
             </Panel>
           )}

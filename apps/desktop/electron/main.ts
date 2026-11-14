@@ -253,6 +253,7 @@ async function shutdown(): Promise<void> {
     // Close live turns in the journal before anything else can fail.
     focus?.shutdown();
     focus = null;
+    await terminals?.terminateEphemeral();
     terminals?.dispose();
     terminals = null;
     const activeBackend = backend;

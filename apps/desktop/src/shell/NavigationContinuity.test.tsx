@@ -1,19 +1,25 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { MemoryRouter, useLocation } from 'react-router';
+import { Link, MemoryRouter, useLocation } from 'react-router';
 import { NavigationContinuity } from './NavigationContinuity';
-import { rememberRoute, updateDesktopPreferences } from './desktopPreferences';
+import { currentDesktopPreferences, rememberRoute, updateDesktopPreferences } from './desktopPreferences';
+import { useSessionContext } from './useSessionContext';
 
 const state = vi.hoisted(() => ({ workspace: '/one' }));
 vi.mock('../data/backend', () => ({ useBackend: () => ({ backend: { harness: { path: state.workspace } } }) }));
 
 function Location() {
   const location = useLocation();
+  const { href } = useSessionContext();
   return (
-    <output aria-label="current location">
-      {location.pathname}
-      {location.search}
-    </output>
+    <>
+      <output aria-label="current location">
+        {location.pathname}
+        {location.search}
+      </output>
+      <Link to={href('/world')}>World</Link>
+      <Link to={href('/focus')}>Focus</Link>
+    </>
   );
 }
 
@@ -63,6 +69,16 @@ describe('workspace navigation continuity', () => {
     await waitFor(() => expectLocation('/focus', { workspace: '/two', thread: 'thread-two' }));
     expect(screen.getByLabelText('current location')).not.toHaveTextContent('private');
     expect(screen.getByLabelText('current location')).not.toHaveTextContent('pty=');
+  });
+
+  it('keeps the selected Focus thread while visiting World and returns to that thread', async () => {
+    render(<App initial="/focus?workspace=%2Fone&thread=thread-1" />);
+    await waitFor(() => expectLocation('/focus', { workspace: '/one', thread: 'thread-1' }));
+    await waitFor(() => expect(currentDesktopPreferences().routes['/one']?.focusThread).toBe('thread-1'));
+    screen.getByRole('link', { name: 'World' }).click();
+    await waitFor(() => expectLocation('/world', { workspace: '/one' }));
+    screen.getByRole('link', { name: 'Focus' }).click();
+    await waitFor(() => expectLocation('/focus', { workspace: '/one', thread: 'thread-1' }));
   });
 
   it('starts a workspace without saved navigation in Focus', async () => {

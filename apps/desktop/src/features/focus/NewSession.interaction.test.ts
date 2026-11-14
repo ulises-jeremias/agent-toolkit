@@ -10,6 +10,19 @@ vi.mock('../../data/projects', () => ({
   useLinkProject: () => ({ mutate: vi.fn(), isPending: false, error: null }),
 }));
 
+vi.mock('./ProviderSignInDialog', () => ({
+  ProviderSignInDialog: ({
+    session,
+    onClose,
+  }: {
+    session: { sessionId: string } | null;
+    onClose: (session: { sessionId: string } | null) => void;
+  }) =>
+    session
+      ? createElement('button', { type: 'button', onClick: () => onClose(session) }, 'Close temporary sign-in')
+      : null,
+}));
+
 const provider: FocusProviderStatus = {
   id: 'claude',
   label: 'Claude Code',
@@ -49,6 +62,35 @@ afterEach(() => {
 });
 
 describe('NewSession', () => {
+  it('launches a fixed provider sign-in and refreshes actual account status when it closes', async () => {
+    const providerSignInStart = vi.fn(async () => ({
+      ok: true as const,
+      sessionId: 'temporary-1',
+    }));
+    const providerSignInFinish = vi.fn(async () => true);
+    window.atk = { focus: {} as FocusBridge, providerSignInStart, providerSignInFinish } as unknown as AtkBridge;
+    const onRefreshProviders = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      createElement(NewSession, {
+        workspace: '/ws',
+        projects: [{ name: 'demo', target: '/ws/demo', status: 'ok' }],
+        projectsLoading: false,
+        providers: [{ ...provider, auth: 'signed-out', authDetail: 'Not signed in' }],
+        providersLoading: false,
+        onRefreshProviders,
+        onStarted: vi.fn(),
+      }),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Sign in' }));
+    expect(providerSignInStart).toHaveBeenCalledWith('claude');
+    await user.click(await screen.findByRole('button', { name: 'Close temporary sign-in' }));
+    await waitFor(() => expect(providerSignInFinish).toHaveBeenCalledWith('temporary-1'));
+    expect(onRefreshProviders).toHaveBeenCalledOnce();
+  });
+
   it('explains the sign-in blocker beside the provider choices and disabled start action', () => {
     window.atk = { focus: {} as FocusBridge } as AtkBridge;
     const signedOut = {

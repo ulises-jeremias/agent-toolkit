@@ -146,7 +146,11 @@ pub fn parse_git_status_v2(project string, text string) ProjectGitStatusResponse
 // project_git_status_typed reads the working-tree state of the project
 // repository rooted at root (already resolved + validated by the caller).
 pub fn project_git_status_typed(root string, project string) ProjectGitStatusResponse {
-	res := git_run(root, ['status', '--porcelain=v2', '--branch']) or {
+	// Include files beneath untracked directories. The Changes view needs an
+	// actual file path to open a diff; Git's default `normal` mode reports only
+	// the directory (for example `src/`), which cannot be diffed or staged as
+	// the single-file selection represented by this API.
+	res := git_run(root, ['status', '--porcelain=v2', '--branch', '--untracked-files=all']) or {
 		return ProjectGitStatusResponse{
 			ok: false
 			project: project

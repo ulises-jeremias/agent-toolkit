@@ -24,7 +24,7 @@ describe('DesktopPreferenceStore', () => {
       theme: 'dusk',
       motion: 'reduced',
       routes: {
-        '/home/user/workspace': { pathname: '/focus', search: '?project=web&thread=thread_1&pty=secret' },
+        '/home/user/workspace': { pathname: '/focus', search: '?project=web&thread=thread_1&pty=secret', focusThread: 'thread_1' },
       },
     });
 
@@ -33,6 +33,7 @@ describe('DesktopPreferenceStore', () => {
     expect(restored.routes['/home/user/workspace']).toEqual({
       pathname: '/focus',
       search: '?workspace=%2Fhome%2Fuser%2Fworkspace&project=web&thread=thread_1',
+      focusThread: 'thread_1',
     });
     expect(fs.statSync(path.join(dir, 'desktop-preferences.json')).mode & 0o777).toBe(0o600);
   });
@@ -43,7 +44,7 @@ describe('DesktopPreferenceStore', () => {
       routes: {
         relative: { pathname: '/focus', search: '' },
         '/workspace/one': { pathname: 'https://example.com', search: '?thread=abc' },
-        '/workspace/two': { pathname: '/focus', search: '?thread=../../etc/passwd&project=valid' },
+        '/workspace/two': { pathname: '/focus', search: '?thread=../../etc/passwd&project=valid', focusThread: '../../etc/passwd' },
       },
     });
     expect(safe.routes).toEqual({

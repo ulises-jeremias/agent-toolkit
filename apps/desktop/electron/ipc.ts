@@ -6,6 +6,7 @@ import { createDefaultHarnessFromProcess, isDefaultHarnessPath } from './harness
 import type { HarnessController, HarnessSwitchResult } from './harness-controller';
 import type { McpSecretStore } from './mcp-secrets';
 import type { DesktopPreferenceStore } from './preferences';
+import { resolveProviderSignIn } from './provider-sign-in';
 import { TerminalCwdError, type TerminalService } from './terminal';
 import type { UpdateChecker, UpdateStatus } from './update-check';
 
@@ -37,6 +38,7 @@ const NO_HARNESS: HarnessSwitchResult = { ok: false, error: 'unavailable', messa
  * do, so frame checks would be theater.)
  */
 export function registerIpc(deps: IpcDeps): void {
+  const signInOwners = new Map<string, { sender: Electron.WebContents; dispose: () => void }>();
   ipcMain.handle('atk:preferences-read', () => deps.getPreferences?.()?.read() ?? null);
   ipcMain.handle('atk:preferences-update', (_event, patch: unknown) => {
     if (!isRecord(patch)) return deps.getPreferences?.()?.read() ?? null;
@@ -223,6 +225,40 @@ export function registerIpc(deps: IpcDeps): void {
         }
       })(),
   );
+  ipcMain.handle('atk:provider-sign-in-start', async (event, provider: unknown) => {
+    const command = resolveProviderSignIn(provider);
+    const terminals = deps.getTerminals();
+    if (!command || !terminals) return { ok: false, error: 'unavailable' };
+    try {
+      const session = await terminals.createEphemeral(command.terminal);
+      const sender = event.sender;
+      const dispose = () => {
+        sender.removeListener('render-process-gone', revoke);
+        sender.removeListener('destroyed', revoke);
+        sender.removeListener('did-start-navigation', revoke);
+        signInOwners.delete(session.id);
+      };
+      const revoke = () => {
+        dispose();
+        void terminals.close(session.id);
+      };
+      signInOwners.set(session.id, { sender, dispose });
+      sender.once('render-process-gone', revoke);
+      sender.once('destroyed', revoke);
+      sender.once('did-start-navigation', revoke);
+      if (sender.isDestroyed()) revoke();
+      return { ok: true, sessionId: session.id };
+    } catch {
+      return { ok: false, error: 'launch-failed' };
+    }
+  });
+  ipcMain.handle('atk:provider-sign-in-finish', async (event, sessionId: unknown) => {
+    if (typeof sessionId !== 'string' || !sessionId) return false;
+    const owner = signInOwners.get(sessionId);
+    if (!owner || owner.sender !== event.sender) return false;
+    owner.dispose();
+    return (await deps.getTerminals()?.closeEphemeral(sessionId)) ?? false;
+  });
   ipcMain.handle('atk:pty-write', (_event, id: unknown, data: unknown) =>
     typeof id === 'string' && typeof data === 'string' ? (deps.getTerminals()?.write(id, data) ?? false) : false,
   );

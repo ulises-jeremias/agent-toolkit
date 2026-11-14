@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAgents, useInstallReceipts, useLibrarySkills, useProviders, useTools } from '../../data/catalog';
-import { useReport, useSubQuery } from '../../data/commands';
+import { useSubQuery } from '../../data/commands';
 import { requireClient, useBackend } from '../../data/backend';
 import { useProjects } from '../../data/projects';
 import { useSessionContext } from '../../shell/useSessionContext';
@@ -249,8 +249,6 @@ export default function Library() {
   const { client, backend } = useBackend();
   const { context } = useSessionContext();
   const workspacePath = context.workspace || backend?.harness?.path || '';
-  const inventory = useReport('inventory');
-  const catalogRoot = inventory.data?.data['root'];
   const tools = useTools();
   const receipts = useInstallReceipts();
   const agents = useAgents();
@@ -448,16 +446,12 @@ export default function Library() {
 
   return (
     <div className={styles.room}>
-      <p className={styles.mark}>Cozy Pixel World · library board</p>
+      <p className={styles.mark}>Skills · agents · tools</p>
       <PageHeader
         surface="panel"
         eyebrow="Library"
-        title="Library board"
-        lede={
-          catalogRoot
-            ? `Shelves from ${catalogRoot}. Catalog membership and receipt-backed installs stay distinct. Memory is not this room; live activity is shown in Operations.`
-            : 'Catalog membership and receipt-backed installs stay distinct. Memory is not this room; live activity is shown in Operations.'
-        }
+        title="Library"
+        lede="Find skills, agents, and integrations for your coding tools. Preview the files and scope; approve each change before it is applied."
         actions={
           <ButtonRow>
             <Button

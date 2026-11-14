@@ -137,6 +137,10 @@ export interface PtyExitEvent {
   exitReason?: 'time-budget' | 'user-stop' | 'app-shutdown';
 }
 
+export type ProviderSignInId = 'claude' | 'codex';
+export type ProviderSignInStartResult =
+  { ok: true; sessionId: string } | { ok: false; error: 'unavailable' | 'launch-failed' };
+
 export type Unsubscribe = () => void;
 
 /** Notify-only update check result (mirrors electron/update-check.ts). */
@@ -185,6 +189,8 @@ export interface AtkBridge {
   ptyResize: (id: string, cols: number, rows: number) => Promise<boolean>;
   ptySignal: (id: string, signal: 'int' | 'term' | 'kill') => Promise<boolean>;
   ptyClose: (id: string) => Promise<boolean>;
+  providerSignInStart: (provider: ProviderSignInId) => Promise<ProviderSignInStartResult>;
+  providerSignInFinish: (id: string) => Promise<boolean>;
   onPtyData: (listener: (event: PtyDataEvent) => void) => Unsubscribe;
   onPtyExit: (listener: (event: PtyExitEvent) => void) => Unsubscribe;
   onPtyProviderSession: (listener: (event: PtyProviderSessionEvent) => void) => Unsubscribe;
@@ -193,6 +199,8 @@ export interface AtkBridge {
 export interface DesktopRouteMemory {
   pathname: string;
   search: string;
+  /** Last selected Focus thread, retained while the user visits other destinations. */
+  focusThread?: string;
 }
 
 export interface DesktopPreferences {

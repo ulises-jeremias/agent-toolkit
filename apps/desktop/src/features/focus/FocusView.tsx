@@ -373,8 +373,9 @@ export default function FocusView() {
             projectsLoading={projects.isLoading}
             providers={providers.data ?? []}
             providersLoading={providers.isLoading}
-            onRefreshProviders={() => {
-              void bridge.providers({ refresh: true }).then(() => providers.refetch());
+            onRefreshProviders={async () => {
+              await bridge.providers({ refresh: true });
+              await providers.refetch();
             }}
             defaults={{ project: params.get('project') ?? undefined }}
             onStarted={select}

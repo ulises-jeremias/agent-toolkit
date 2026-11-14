@@ -5,6 +5,7 @@ import type {
   PtyExitEvent,
   PtyDataEvent,
   PtyProviderSessionEvent,
+  ProviderSignInId,
 } from '../src/types/electron';
 import type { FocusBridge, FocusLiveUpdate } from '../src/types/focus';
 
@@ -65,6 +66,8 @@ const bridge: AtkBridge = {
   ptyResize: (id: string, cols: number, rows: number) => ipcRenderer.invoke('atk:pty-resize', id, cols, rows),
   ptySignal: (id: string, signal: 'int' | 'term' | 'kill') => ipcRenderer.invoke('atk:pty-signal', id, signal),
   ptyClose: (id: string) => ipcRenderer.invoke('atk:pty-close', id),
+  providerSignInStart: (provider: ProviderSignInId) => ipcRenderer.invoke('atk:provider-sign-in-start', provider),
+  providerSignInFinish: (id: string) => ipcRenderer.invoke('atk:provider-sign-in-finish', id),
   onPtyData: (listener) => {
     const wrapped = (_event: unknown, payload: unknown): void => {
       listener(payload as PtyDataEvent);

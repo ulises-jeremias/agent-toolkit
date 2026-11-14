@@ -5,6 +5,8 @@ import type { ProjectListEntry } from '../../lib/api';
 import type { FocusPermissionMode, FocusProviderId, FocusProviderStatus } from '../../types/focus';
 import { Button, PixelIcon } from '../../ui';
 import { MODE_OPTIONS, providerBlocker } from './labels';
+import { ProviderSignInDialog } from './ProviderSignInDialog';
+import { useProviderSignIn } from './useProviderSignIn';
 import styles from './focus.module.css';
 
 export interface NewSessionDefaults {
@@ -36,7 +38,7 @@ export function NewSession({
   projectsLoading: boolean;
   providers: readonly FocusProviderStatus[];
   providersLoading: boolean;
-  onRefreshProviders: () => void;
+  onRefreshProviders: () => void | Promise<void>;
   defaults?: NewSessionDefaults;
   onStarted: (threadId: string) => void;
 }) {
@@ -52,6 +54,7 @@ export function NewSession({
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const startingRef = useRef(false);
+  const signIn = useProviderSignIn(onRefreshProviders);
 
   const activeProject = selectStartProject(usable, project);
   const activeProvider = ready.find((entry) => entry.id === providerId) ?? ready[0];
@@ -193,7 +196,7 @@ export function NewSession({
       <fieldset className={styles.providers}>
         <legend>
           Agent
-          <button type="button" className={styles.linkButton} onClick={onRefreshProviders}>
+          <button type="button" className={styles.linkButton} onClick={() => void onRefreshProviders()}>
             Check again
           </button>
         </legend>
@@ -209,14 +212,16 @@ export function NewSession({
         {providers.map((provider) => {
           const blocker = providerBlocker(provider);
           const selected = activeProvider?.id === provider.id;
+          const signInId = provider.id === 'claude' || provider.id === 'codex' ? provider.id : null;
           return (
-            <label
+            <div
               key={provider.id}
               className={styles.provider}
               data-selected={selected || undefined}
               data-blocked={blocker ? true : undefined}
             >
               <input
+                id={`focus-provider-${provider.id}`}
                 type="radio"
                 name="focus-provider"
                 value={provider.id}
@@ -227,12 +232,24 @@ export function NewSession({
                   setModel('');
                 }}
               />
-              <span className={styles.providerName}>
+              <label htmlFor={`focus-provider-${provider.id}`} className={styles.providerName}>
                 {provider.label}
                 {provider.version ? <span className={styles.providerVersion}>{provider.version}</span> : null}
-              </span>
+              </label>
               <span className={styles.providerState}>{blocker ?? provider.authDetail}</span>
-            </label>
+              {provider.installed && provider.auth !== 'ready' && signInId ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  disabled={signIn.starting !== null}
+                  busy={signIn.starting === provider.id}
+                  onClick={() => void signIn.start(signInId)}
+                >
+                  Sign in
+                </Button>
+              ) : null}
+            </div>
           );
         })}
       </fieldset>
@@ -284,6 +301,12 @@ export function NewSession({
                 : 'Install a supported coding agent to start'}
         </span>
       </div>
+      {signIn.error ? (
+        <p className={styles.startError} role="alert">
+          {signIn.error}
+        </p>
+      ) : null}
+      <ProviderSignInDialog session={signIn.session} onClose={signIn.close} />
     </form>
   );
 }

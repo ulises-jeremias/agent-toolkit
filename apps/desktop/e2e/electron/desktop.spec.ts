@@ -376,7 +376,7 @@ test('library shows catalog vs detected vs configured vs verified without dumpin
   await expect(personas).toContainText(/in catalog|No agent definitions in the catalog/i);
   await expect(page.getByText(/plugin\/list/i)).toHaveCount(0);
   await expect(page.getByRole('region', { name: 'Memory' })).toHaveCount(0);
-  await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Library' })).toBeVisible();
   await page.screenshot({ path: 'test-results/review/library.png', fullPage: true });
 });
 
@@ -384,7 +384,7 @@ test('a contextual tool destination opens the same target-specific Library revie
   const { page } = desktop;
   const appUrl = page.url().split('#')[0];
   await page.goto(`${appUrl}#/library?install_target=claude-code`);
-  await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Library' })).toBeVisible();
   const review = page.getByRole('dialog', { name: 'Review capability installation' });
   await expect(review).toBeVisible();
   await expect(review.getByRole('checkbox', { name: 'Claude Code' })).toBeChecked();
@@ -474,7 +474,7 @@ test('Library installs Skills and preserves user changes during reviewed removal
     await route.continue();
   });
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Library' })).toBeVisible();
   await expect(page.getByText('Discovering coding tools')).toBeHidden();
   await expect(page.getByText('Loading agent definitions')).toBeHidden();
   await expect(page.getByText('Loading the skills catalog')).toBeHidden();
@@ -691,7 +691,7 @@ test('Library installs Skills and preserves user changes during reviewed removal
 test('Library searches typed catalog metadata and reveals provenance and compatibility', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Library' })).toBeVisible();
   await expect(page.getByText('Loading the skills catalog')).toBeHidden();
   const search = page.getByRole('searchbox', { name: 'Find a capability' });
   await search.fill('mcp-audit');
@@ -765,10 +765,10 @@ test('Library installs only the checked Skills for a target', async () => {
     await expect(
       page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }),
     ).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Library' })).toBeVisible();
     await expect(page.getByText('Loading the skills catalog')).toBeHidden();
     await page.getByRole('searchbox', { name: 'Find a capability' }).fill('');
-    await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Library' })).toBeVisible();
     const catalog = page.getByRole('region', { name: 'Skills catalog' });
     // Check exactly one Skill, review it, and install it for Claude Code.
     await catalog.getByLabel('Select review for installation').check();
@@ -831,7 +831,7 @@ test('Library discovers workspace context bundles beside the catalog without ins
   await page.reload();
   await waitForBackend(page);
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Library' })).toBeVisible();
   const bundles = page.getByRole('region', { name: 'Workspace context bundles' });
   await expect(bundles).toContainText('Release context');
   await expect(bundles).toContainText('Client context');
