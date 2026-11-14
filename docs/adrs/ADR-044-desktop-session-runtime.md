@@ -39,10 +39,10 @@ transcript tailing rather than driving them. No art from any of them is reused.
 2. **One canonical model**: thread → turn → event (`apps/desktop/src/types/focus.d.ts`). Adapters
    normalise native frames into `user`, `assistant`, `reasoning`, `tool.started`, `tool.finished`,
    `approval.requested`, `approval.resolved`, `turn.started`, `turn.finished`, `notice`.
-3. **The journal is the only history**: `<workspace>/.agent-toolkit/focus/threads/<id>/thread.json`
-   plus append-only `events.jsonl`. Streaming deltas are live-only. A turn that was running when the
-   app exited is closed in the journal as `interrupted`; nothing is shown as running without a live
-   process.
+3. **The journal is the only history**: thread metadata plus append-only `events.jsonl`. Streaming
+   deltas are live-only. A turn that was running when the app exited is closed in the journal as
+   `interrupted`; nothing is shown as running without a live process. ADR-045 supersedes this ADR's
+   original workspace-local storage path with private app storage and a nondestructive migration.
 4. **Provider readiness comes from the provider**: `claude auth status --json`, `codex login status`,
    `opencode auth list`. A binary on PATH is "installed", never "ready". Account identifiers are
    dropped in the main process.

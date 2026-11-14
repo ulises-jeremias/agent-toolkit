@@ -34,6 +34,8 @@ const INTERRUPT_GRACE_MS = 8_000;
 export interface FocusServiceOptions {
   getWorkspace: () => string | null;
   emit: (update: FocusLiveUpdate) => void;
+  /** App-owned storage boundary; journals are keyed by canonical workspace path beneath it. */
+  journalRoot?: string;
   env?: () => NodeJS.ProcessEnv;
   factories?: Partial<Record<FocusProviderId, ProviderSessionFactory>>;
   probe?: (options: ProbeOptions) => Promise<FocusProviderStatus[]>;
@@ -114,7 +116,7 @@ export class FocusService {
     const workspace = this.options.getWorkspace();
     if (!workspace) return [];
     this.reconcile(workspace);
-    return ThreadJournal.list(workspace)
+    return ThreadJournal.list(workspace, this.options.journalRoot)
       .map((journal) => this.runtimes.get(journal.thread.id)?.journal.thread ?? journal.thread)
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   }
@@ -147,7 +149,7 @@ export class FocusService {
       lastError: null,
       usage: { inputTokens: 0, cachedInputTokens: 0, outputTokens: 0, costUsd: null },
     };
-    const journal = ThreadJournal.create(workspace, thread);
+    const journal = ThreadJournal.create(workspace, thread, this.options.journalRoot);
     this.options.emit({ kind: 'thread', thread: journal.thread });
     return ok(journal.thread);
   }
@@ -271,7 +273,7 @@ export class FocusService {
     const workspace = this.options.getWorkspace();
     if (!workspace) return null;
     this.reconcile(workspace);
-    return ThreadJournal.open(workspace, id);
+    return ThreadJournal.open(workspace, id, this.options.journalRoot);
   }
 
   private runtimeFor(journal: ThreadJournal): Runtime {
@@ -299,7 +301,7 @@ export class FocusService {
   private reconcile(workspace: string): void {
     if (this.reconciled.has(workspace)) return;
     this.reconciled.add(workspace);
-    for (const journal of ThreadJournal.list(workspace)) {
+    for (const journal of ThreadJournal.list(workspace, this.options.journalRoot)) {
       const { status, id, turns } = journal.thread;
       if ((status !== 'running' && status !== 'awaiting-approval') || this.runtimes.has(id)) continue;
       const events = journal.readEvents();
