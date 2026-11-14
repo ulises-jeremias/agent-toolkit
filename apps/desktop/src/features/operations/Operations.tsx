@@ -56,6 +56,25 @@ function patchParams(setParams: ReturnType<typeof useSearchParams>[1], patch: Re
   );
 }
 
+function patchParamsForDialog(
+  setParams: ReturnType<typeof useSearchParams>[1],
+  expectedDialog: string,
+  patch: Record<string, string | null>,
+): void {
+  setParams(
+    (current) => {
+      if (current.get('dialog') !== expectedDialog) return current;
+      const next = new URLSearchParams(current);
+      for (const [key, value] of Object.entries(patch)) {
+        if (value) next.set(key, value);
+        else next.delete(key);
+      }
+      return next;
+    },
+    { replace: true },
+  );
+}
+
 /**
  * Operations inspector: jobs, loops, swarms and doctor.
  * The world and Office link here. This destination is not a second home.
@@ -110,8 +129,8 @@ export default function Operations() {
       />
       <StartJobDialog
         open={dialog === 'start-job'}
-        onClose={() => patchParams(setParams, { dialog: null })}
-        onStarted={(id) => patchParams(setParams, { job: id, dialog: null })}
+        onClose={() => patchParamsForDialog(setParams, 'start-job', { dialog: null })}
+        onStarted={(id) => patchParamsForDialog(setParams, 'start-job', { job: id, dialog: null })}
       />
       <Stack>
         <div className={`${styles.split} ${styles.board}`}>
@@ -160,14 +179,14 @@ export default function Operations() {
           onRun={(name) => patchParams(setParams, { loop: name, dialog: 'run-loop' })}
           onSchedule={(name) => patchParams(setParams, { loop: name, schedule: '1' })}
           onCloseSchedule={() => patchParams(setParams, { schedule: null })}
-          onCloseDialog={() => patchParams(setParams, { dialog: null })}
-          onStarted={(id) => patchParams(setParams, { job: id, dialog: null })}
+          onCloseDialog={() => patchParamsForDialog(setParams, 'run-loop', { dialog: null })}
+          onStarted={(id) => patchParamsForDialog(setParams, 'run-loop', { job: id, dialog: null })}
         />
         <SwarmsPanel
           selectedId={selectedSwarm}
           dialogOpen={dialog === 'start-swarm'}
           onSelect={(id) => patchParams(setParams, { swarm: id })}
-          onCloseDialog={() => patchParams(setParams, { dialog: null })}
+          onCloseDialog={() => patchParamsForDialog(setParams, 'start-swarm', { dialog: null })}
         />
         <DoctorPanel />
       </Stack>
