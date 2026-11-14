@@ -36,6 +36,10 @@ therefore leaves an avoidable redirect surface.
 5. A symlink, hard link, malformed migration marker or unsafe legacy thread
    fails closed and is surfaced as a Focus history error. The app does not
    silently treat rejected legacy history as an empty successful migration.
+6. A legacy metadata or event file larger than 64 MiB is rejected before it is
+   read into memory. The original workspace data remains untouched and no
+   migration marker is written, so the user can retain the old app or recover
+   the oversized history without risking an unbounded allocation at startup.
 
 The intended boundary is repository/workspace content versus app-owned local
 state. After migration, normal Focus reads, writes and deletion use the private
@@ -70,8 +74,8 @@ guarantee.
   clean it up as part of migration or deletion in the new store.
 - Tests cover symlink and hard-link rejection, nondestructive byte-for-byte
   migration, interrupted migration recovery, the ancestor-replacement race,
-  and POSIX private-store permissions. macOS and Windows junction/reparse-point
-  results are a release gate for closing #1777.
+  oversized-file rejection and POSIX private-store permissions. macOS and
+  Windows junction/reparse-point results are a release gate for closing #1777.
 
 ## Alternatives considered
 

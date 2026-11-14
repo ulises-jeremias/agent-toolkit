@@ -19,6 +19,7 @@ const THREAD_ID = /^th_[a-z0-9]{10,40}$/;
 const PROVIDERS = ['claude', 'codex', 'opencode'];
 const MODES = ['ask', 'accept-edits', 'plan', 'bypass'];
 const STATUSES = ['idle', 'running', 'awaiting-approval', 'interrupted', 'error'];
+const MAX_LEGACY_JOURNAL_FILE_BYTES = 64 * 1024 * 1024;
 
 export function isThreadId(value: unknown): value is string {
   return typeof value === 'string' && THREAD_ID.test(value);
@@ -164,6 +165,9 @@ function readWorkspaceBufferNoFollow(file: string, workspace: string): Buffer {
   const fd = openRegularNoFollow(file, fs.constants.O_RDONLY);
   try {
     const opened = fs.fstatSync(fd, { bigint: true });
+    if (opened.size > BigInt(MAX_LEGACY_JOURNAL_FILE_BYTES)) {
+      throw new Error('Legacy Focus journal file exceeds the 64 MiB migration limit');
+    }
     const after = workspacePathIdentity(workspace, file);
     const unchanged =
       before.length === after.length &&
@@ -175,7 +179,19 @@ function readWorkspaceBufferNoFollow(file: string, workspace: string): Buffer {
     if (!unchanged || opened.dev !== leaf.dev || opened.ino !== leaf.ino) {
       throw new Error('Legacy Focus journal path changed while opening');
     }
-    return fs.readFileSync(fd);
+    const chunks: Buffer[] = [];
+    const chunk = Buffer.allocUnsafe(64 * 1024);
+    let totalBytes = 0;
+    while (true) {
+      const bytesRead = fs.readSync(fd, chunk, 0, chunk.length, null);
+      if (bytesRead === 0) break;
+      totalBytes += bytesRead;
+      if (totalBytes > MAX_LEGACY_JOURNAL_FILE_BYTES) {
+        throw new Error('Legacy Focus journal file exceeds the 64 MiB migration limit');
+      }
+      chunks.push(Buffer.from(chunk.subarray(0, bytesRead)));
+    }
+    return Buffer.concat(chunks, totalBytes);
   } finally {
     fs.closeSync(fd);
   }
