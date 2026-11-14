@@ -90,7 +90,12 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
           questions: [{ id: 'purpose', header: 'Purpose', question: 'Enter the private value', isSecret: true }],
         },
       });
-    if (text === 'approval' || text === 'approval-limited' || text === 'approval-unsupported')
+    if (
+      text === 'approval' ||
+      text === 'approval-limited' ||
+      text === 'approval-cancel-deny' ||
+      text === 'approval-unsupported'
+    )
       write({
         id: 'approval',
         method: 'item/commandExecution/requestApproval',
@@ -105,8 +110,10 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
           availableDecisions:
             text === 'approval-limited'
               ? ['accept', 'decline']
-              : text === 'approval-unsupported'
+              : text === 'approval-cancel-deny'
                 ? ['accept', 'cancel']
+                : text === 'approval-unsupported'
+                  ? ['cancel']
                 : [
                     'accept',
                     'acceptForSession',

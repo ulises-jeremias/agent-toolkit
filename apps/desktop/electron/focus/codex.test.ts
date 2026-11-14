@@ -154,6 +154,15 @@ describe('Codex app-server protocol', () => {
     await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(1));
     expect(sink.item).toHaveBeenCalledWith(expect.objectContaining({ text: 'accept' }));
   });
+  it('maps an explicit user denial to cancel when Codex offers no decline choice', async () => {
+    const { session, sink } = harness();
+    session.send('approval-cancel-deny');
+    await vi.waitFor(() => expect(sink.approval).toHaveBeenCalledTimes(1));
+    expect(sink.approval).toHaveBeenCalledWith(expect.objectContaining({ canAllowForSession: false }));
+    expect(session.respondApproval('codex-approval', 'deny')).toBe(true);
+    await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(1));
+    expect(sink.item).toHaveBeenCalledWith(expect.objectContaining({ text: 'cancel' }));
+  });
   it('refuses an approval allowlist that has no safe one-shot allow and deny choices', async () => {
     const { session, sink } = harness();
     session.send('approval-unsupported');
@@ -162,7 +171,7 @@ describe('Codex app-server protocol', () => {
         expect.objectContaining({
           type: 'notice',
           level: 'error',
-          text: expect.stringContaining('cannot present safely'),
+          text: expect.stringContaining('choices Focus cannot present safely (cancel)'),
         }),
       ),
     );
