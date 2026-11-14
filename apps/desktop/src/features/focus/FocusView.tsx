@@ -132,7 +132,11 @@ function Header({
           />
         ) : (
           <h1 className={styles.title}>
-            <button type="button" onClick={() => setRenaming(true)} title="Rename this session">
+            <button
+              type="button"
+              onClick={() => setRenaming(true)}
+              title={`${threadTitle(thread)} — Rename this session`}
+            >
               {threadTitle(thread)}
             </button>
           </h1>

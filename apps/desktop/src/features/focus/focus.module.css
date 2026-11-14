@@ -156,16 +156,22 @@
 }
 
 .title button {
+  display: -webkit-box;
+  width: 100%;
   max-width: 100%;
+  overflow: hidden;
   padding: 0;
   border: 0;
   background: none;
   font: inherit;
   letter-spacing: inherit;
+  line-height: 1.2;
   text-align: left;
-  overflow: hidden;
+  white-space: normal;
+  overflow-wrap: anywhere;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   cursor: text;
 }
 
