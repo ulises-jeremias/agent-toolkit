@@ -3,10 +3,14 @@ import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { AdapterSink } from './adapter';
+import type { AdapterSink, AdapterStartOptions } from './adapter';
 import { CodexSession } from './codex';
 const sessions: CodexSession[] = [];
-function harness(args: string[] = [], requestTimeoutMs = 30_000) {
+function harness(
+  args: string[] = [],
+  requestTimeoutMs = 30_000,
+  permissionMode: AdapterStartOptions['permissionMode'] = 'ask',
+) {
   const sink: AdapterSink = {
     session: vi.fn(),
     models: vi.fn(),
@@ -25,7 +29,7 @@ function harness(args: string[] = [], requestTimeoutMs = 30_000) {
       cwd: process.cwd(),
       env: process.env,
       model: null,
-      permissionMode: 'ask',
+      permissionMode,
       resumeSessionId: null,
     },
     sink,
@@ -93,7 +97,7 @@ describe('Codex app-server protocol', () => {
     );
   });
   it('answers a blocking question using the app-server shape without emitting answers to the journal sink', async () => {
-    const { session, sink } = harness();
+    const { session, sink } = harness([], 30_000, 'plan');
     session.send('question');
     await vi.waitFor(() => expect(sink.userInput).toHaveBeenCalledTimes(1));
     expect(sink.userInput).toHaveBeenCalledWith('codex-question', [
@@ -106,8 +110,21 @@ describe('Codex app-server protocol', () => {
     expect(sink.item).not.toHaveBeenCalledWith(expect.objectContaining({ text: 'private token' }));
     expect(session.respondUserInput('codex-question', { purpose: ['again'] })).toBe(false);
   });
-  it('cancels a blocking question when the turn is interrupted', async () => {
+  it('does not turn a non-plan user input request into a blocking prompt', async () => {
     const { session, sink } = harness();
+    session.send('question-nonblocking');
+    await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(1));
+    expect(sink.userInput).not.toHaveBeenCalled();
+    expect(sink.item).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'notice',
+        level: 'error',
+        text: expect.stringContaining('non-blocking'),
+      }),
+    );
+  });
+  it('cancels a blocking question when the turn is interrupted', async () => {
+    const { session, sink } = harness([], 30_000, 'plan');
     session.send('question');
     await vi.waitFor(() => expect(sink.userInput).toHaveBeenCalledTimes(1));
     session.interrupt();

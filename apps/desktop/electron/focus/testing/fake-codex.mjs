@@ -18,6 +18,10 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
   const reply = (result) => write({ id: frame.id, result });
   if (frame.method === 'initialize') {
     if (process.argv.includes('--hang-initialize')) return;
+    if (frame.params.capabilities?.experimentalApi !== true) {
+      write({ id: frame.id, error: { message: 'Codex experimental API capability was not enabled' } });
+      return;
+    }
     reply({});
   }
   if (frame.method === 'thread/start' || frame.method === 'thread/resume') {
@@ -26,6 +30,15 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
   }
   if (frame.method === 'model/list') reply({ data: [] });
   if (frame.method === 'turn/start') {
+    if (
+      frame.params.collaborationMode?.mode === 'plan' &&
+      (frame.params.collaborationMode.settings.model !== 'test-model' ||
+        frame.params.collaborationMode.settings.reasoning_effort !== null ||
+        frame.params.collaborationMode.settings.developer_instructions !== null)
+    ) {
+      write({ id: frame.id, error: { message: 'Codex plan collaboration settings were not forwarded' } });
+      return;
+    }
     notify('turn/started', { threadId: 'parent', turn: { id: 'turn-1' } });
     if (process.argv.includes('--hang-turn-start')) return;
     reply({ turn: { id: 'turn-1' } });
@@ -78,7 +91,7 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
         method: 'item/tool/requestUserInput',
         params: { threadId: 'parent', turnId: 'turn-1', itemId: 'q', isBlocking: true, questions: [] },
       });
-    if (text === 'question')
+    if (text === 'question' || text === 'question-nonblocking')
       write({
         id: 'question',
         method: 'item/tool/requestUserInput',
@@ -86,7 +99,8 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
           threadId: 'parent',
           turnId: 'turn-1',
           itemId: 'q',
-          isBlocking: true,
+          // Codex only blocks for questions in its `plan` collaboration mode.
+          isBlocking: frame.params.collaborationMode?.mode === 'plan',
           questions: [{ id: 'purpose', header: 'Purpose', question: 'Enter the private value', isSecret: true }],
         },
       });

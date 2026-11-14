@@ -151,6 +151,7 @@ export class CodexSession implements ProviderSession {
   private nextId = 1;
   private threadId: string | null = null;
   private turnId: string | null = null;
+  private resolvedModel: string | null = null;
   private completedTurnId: string | null = null;
   private stderrTail = '';
   private disposed = false;
@@ -339,7 +340,7 @@ export class CodexSession implements ProviderSession {
     try {
       await this.request('initialize', {
         clientInfo: { name: 'agent-toolkit-desktop', title: 'Agent Toolkit Desktop', version: '1' },
-        capabilities: null,
+        capabilities: { experimentalApi: true },
       });
       this.write({ method: 'initialized' });
       const policy = CODEX_POLICY[this.options.permissionMode];
@@ -357,7 +358,8 @@ export class CodexSession implements ProviderSession {
       const threadId = asString(asRecord(started['thread'])?.['id']);
       if (!threadId) throw new Error('Codex did not return a thread.');
       this.threadId = threadId;
-      this.sink.session(threadId, asString(started['model']));
+      this.resolvedModel = asString(started['model']) ?? model;
+      this.sink.session(threadId, this.resolvedModel);
       void this.loadModels();
       for (const text of this.outbox.splice(0)) this.startTurn(text);
     } catch (error) {
@@ -400,9 +402,21 @@ export class CodexSession implements ProviderSession {
 
   private startTurn(text: string): void {
     if (!this.threadId) return;
+    const collaborationMode =
+      this.options.permissionMode === 'plan' && this.resolvedModel
+        ? {
+            mode: 'plan',
+            settings: {
+              model: this.resolvedModel,
+              reasoning_effort: null,
+              developer_instructions: null,
+            },
+          }
+        : undefined;
     this.request('turn/start', {
       threadId: this.threadId,
       input: [{ type: 'text', text, text_elements: [] }],
+      ...(collaborationMode ? { collaborationMode } : {}),
     }).then(
       (result) => {
         const id = asString(asRecord(result['turn'])?.['id']);
