@@ -507,7 +507,7 @@ export default function People() {
       <PageHeader
         eyebrow="Roster"
         title="People"
-        lede="Durable collaborators in this workspace. Configuration alone never starts a process or places a character in the world."
+        lede="Save collaborators to reuse in future sessions. Creating one does not start work; choose when to start a real session."
         actions={
           <ButtonRow>
             <input
@@ -573,7 +573,8 @@ export default function People() {
                 {() =>
                   people.length === 0 ? (
                     <EmptyState title="No People yet.">
-                      Create a reusable collaborator. Offline People do not appear as workers in the world.
+                      Add a name and working preferences, then start this collaborator whenever you want to work with
+                      them.
                     </EmptyState>
                   ) : (
                     <div className={styles.roster}>

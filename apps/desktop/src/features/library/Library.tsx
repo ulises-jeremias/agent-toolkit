@@ -448,16 +448,12 @@ export default function Library() {
 
   return (
     <div className={styles.room}>
-      <p className={styles.mark}>Cozy Pixel World · library board</p>
+      <p className={styles.mark}>Skills · agents · tools</p>
       <PageHeader
         surface="panel"
         eyebrow="Library"
-        title="Library board"
-        lede={
-          catalogRoot
-            ? `Shelves from ${catalogRoot}. Catalog membership and receipt-backed installs stay distinct. Memory is not this room; live activity is shown in Operations.`
-            : 'Catalog membership and receipt-backed installs stay distinct. Memory is not this room; live activity is shown in Operations.'
-        }
+        title="Library"
+        lede="Find skills, agents, and integrations for your coding tools. Preview the files and scope; approve each change before it is applied."
         actions={
           <ButtonRow>
             <Button
