@@ -13,6 +13,7 @@ import { ProjectChangesPanel } from '../workspace/ProjectChangesPanel';
 import { Conversation } from './Conversation';
 import { MODE_OPTIONS, relativeTime, STATUS_LABEL, threadTitle } from './labels';
 import { NewSession } from './NewSession';
+import { usePermissionModeGuard } from './PermissionModeGuard';
 import styles from './focus.module.css';
 
 const WIDE_WINDOW = '(min-width: 78.0625rem)';
@@ -109,6 +110,12 @@ function Header({
     const result = await bridge?.updateThread(thread.id, change);
     if (result && !result.ok) onError(result.error);
   };
+  const permissionGuard = usePermissionModeGuard(
+    thread.permissionMode,
+    provider?.label ?? 'This provider',
+    thread.cwd,
+    (permissionMode) => void patch({ permissionMode }),
+  );
 
   return (
     <header className={styles.header}>
@@ -154,7 +161,7 @@ function Header({
             value={thread.permissionMode}
             disabled={busy}
             title={busy ? 'Stop the running turn to change this' : undefined}
-            onChange={(event) => void patch({ permissionMode: event.target.value as FocusPermissionMode })}
+            onChange={(event) => permissionGuard.choose(event.target.value as FocusPermissionMode)}
           >
             {MODE_OPTIONS.map((option) => (
               <option
@@ -217,6 +224,7 @@ function Header({
           }}
         />
       </div>
+      {permissionGuard.dialog}
     </header>
   );
 }

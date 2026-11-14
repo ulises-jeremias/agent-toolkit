@@ -58,6 +58,23 @@ test('Focus start composer keeps the task and primary action visible in a compac
     await page.getByRole('textbox', { name: 'Task' }).fill('Review the current project changes');
     await expect(page.getByRole('textbox', { name: 'Task' })).toHaveValue('Review the current project changes');
 
+    const permissions = page.getByLabel('Permissions');
+    await permissions.selectOption('bypass');
+    const bypassDialog = page.getByRole('dialog', { name: 'Enable unrestricted access?' });
+    await expect(bypassDialog).toBeVisible();
+    await expect(bypassDialog).toContainText('does not enforce an operating-system sandbox');
+    await expect(bypassDialog.getByRole('button', { name: 'Keep current permissions' })).toBeFocused();
+    await bypassDialog.getByRole('button', { name: 'Keep current permissions' }).click();
+    await expect(permissions).toHaveValue('ask');
+    await permissions.selectOption('bypass');
+    await page
+      .getByRole('dialog', { name: 'Enable unrestricted access?' })
+      .getByRole('button', {
+        name: 'Enable without asking',
+      })
+      .click();
+    await expect(permissions).toHaveValue('bypass');
+
     const start = page.locator('form[aria-labelledby="focus-start-title"]');
     const startButton = page.getByRole('button', { name: 'Start session' });
     await expect(startButton).toBeEnabled();

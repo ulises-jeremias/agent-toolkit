@@ -5,6 +5,7 @@ import type { ProjectListEntry } from '../../lib/api';
 import type { FocusPermissionMode, FocusProviderId, FocusProviderStatus } from '../../types/focus';
 import { Button, PixelIcon } from '../../ui';
 import { MODE_OPTIONS, permissionModeSupported, providerBlocker } from './labels';
+import { usePermissionModeGuard } from './PermissionModeGuard';
 import styles from './focus.module.css';
 
 export interface NewSessionDefaults {
@@ -55,6 +56,12 @@ export function NewSession({
 
   const activeProject = selectStartProject(usable, project);
   const activeProvider = ready.find((entry) => entry.id === providerId) ?? ready[0];
+  const permissionGuard = usePermissionModeGuard(
+    mode,
+    activeProvider?.label ?? 'This provider',
+    activeProject?.target ?? 'the selected folder',
+    setMode,
+  );
 
   useEffect(() => {
     if (activeProvider && !permissionModeSupported(activeProvider, mode)) setMode('ask');
@@ -180,7 +187,7 @@ export function NewSession({
           <select
             id="focus-start-mode"
             value={mode}
-            onChange={(event) => setMode(event.target.value as FocusPermissionMode)}
+            onChange={(event) => permissionGuard.choose(event.target.value as FocusPermissionMode)}
           >
             {MODE_OPTIONS.map((option) => (
               <option
@@ -296,6 +303,7 @@ export function NewSession({
                 : 'Install a supported coding agent to start'}
         </span>
       </div>
+      {permissionGuard.dialog}
     </form>
   );
 }
