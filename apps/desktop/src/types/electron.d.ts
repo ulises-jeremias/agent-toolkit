@@ -139,8 +139,7 @@ export interface PtyExitEvent {
 
 export type ProviderSignInId = 'claude' | 'codex';
 export type ProviderSignInStartResult =
-  | { ok: true; sessionId: string }
-  | { ok: false; error: 'unavailable' | 'launch-failed' };
+  { ok: true; sessionId: string } | { ok: false; error: 'unavailable' | 'launch-failed' };
 
 export type Unsubscribe = () => void;
 
@@ -200,6 +199,8 @@ export interface AtkBridge {
 export interface DesktopRouteMemory {
   pathname: string;
   search: string;
+  /** Last selected Focus thread, retained while the user visits other destinations. */
+  focusThread?: string;
 }
 
 export interface DesktopPreferences {

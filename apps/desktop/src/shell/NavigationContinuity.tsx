@@ -60,9 +60,12 @@ export function NavigationContinuity({ children }: { children: ReactNode }) {
       const value = params.get(key);
       if (value && /^[\w.@-]{1,256}$/.test(value)) safe.set(key, value);
     }
+    const current = currentDesktopPreferences().routes[workspace];
+    const focusThread = location.pathname === '/focus' ? (params.get('thread') ?? undefined) : current?.focusThread;
     rememberRoute(workspace, {
       pathname: KNOWN.has(location.pathname) ? location.pathname : HOME_PATH,
       search: `?${safe.toString()}`,
+      ...(focusThread && /^[\w.@-]{1,256}$/.test(focusThread) ? { focusThread } : {}),
     });
   }, [workspace, location.pathname, location.search, staleScope, needsRestore, navigate, params]);
 

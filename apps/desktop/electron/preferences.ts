@@ -30,7 +30,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function safeRoute(value: unknown, workspace: string): DesktopRouteMemory | null {
+function safeRoute(value: unknown, workspace: string, focusThread: unknown): DesktopRouteMemory | null {
   if (typeof value !== 'string' || value.length > 1024) return null;
   try {
     const url = new URL(value, 'http://desktop.invalid');
@@ -41,7 +41,9 @@ function safeRoute(value: unknown, workspace: string): DesktopRouteMemory | null
       const item = url.searchParams.get(key);
       if (item && /^[\w.@-]{1,256}$/.test(item)) params.set(key, item);
     }
-    return { pathname: url.pathname, search: `?${params.toString()}` };
+    const safe: DesktopRouteMemory = { pathname: url.pathname, search: `?${params.toString()}` };
+    if (typeof focusThread === 'string' && /^[\w.@-]{1,256}$/.test(focusThread)) safe.focusThread = focusThread;
+    return safe;
   } catch {
     return null;
   }
@@ -56,6 +58,7 @@ export function validatePreferences(value: unknown): DesktopPreferences {
       const safe = safeRoute(
         isRecord(route) ? `${String(route.pathname ?? '')}${String(route.search ?? '')}` : route,
         workspace,
+        isRecord(route) ? route.focusThread : undefined,
       );
       if (safe) routes[workspace] = safe;
     }
