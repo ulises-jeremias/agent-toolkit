@@ -113,6 +113,37 @@ describe('Dialog', () => {
     expect(screen.queryByText('body')).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
+
+  it('notifies its owner when a nested dialog closes without a focus target to restore', async () => {
+    function NestedHarness() {
+      const [paletteOpen, setPaletteOpen] = useState(false);
+      const [formOpen, setFormOpen] = useState(false);
+      return (
+        <>
+          <Button onClick={() => setPaletteOpen(true)}>Open commands</Button>
+          <Dialog open={paletteOpen} onClose={() => setPaletteOpen(false)} title="Commands">
+            <Button onClick={() => setFormOpen(true)}>Open terminal form</Button>
+          </Dialog>
+          <Dialog open={formOpen} onClose={() => setFormOpen(false)} title="New terminal session">
+            <p>terminal form</p>
+          </Dialog>
+        </>
+      );
+    }
+
+    const user = userEvent.setup();
+    render(<NestedHarness />);
+    await user.click(screen.getByRole('button', { name: 'Open commands' }));
+    await user.click(screen.getByRole('button', { name: 'Open terminal form' }));
+
+    const form = screen.getByRole('dialog', { name: 'New terminal session' }) as HTMLDialogElement;
+    await act(async () => {
+      form.dispatchEvent(new Event('cancel', { cancelable: true }));
+    });
+
+    expect(screen.queryByText('terminal form')).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Commands' })).toBeInTheDocument();
+  });
 });
 
 describe('ConfirmAction', () => {
