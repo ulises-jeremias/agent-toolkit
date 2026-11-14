@@ -340,7 +340,7 @@ export class CodexSession implements ProviderSession {
     try {
       await this.request('initialize', {
         clientInfo: { name: 'agent-toolkit-desktop', title: 'Agent Toolkit Desktop', version: '1' },
-        capabilities: { experimentalApi: true },
+        capabilities: { experimentalApi: this.options.permissionMode === 'plan' },
       });
       this.write({ method: 'initialized' });
       const policy = CODEX_POLICY[this.options.permissionMode];

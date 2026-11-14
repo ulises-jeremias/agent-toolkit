@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 const write = (frame) => process.stdout.write(`${JSON.stringify(frame)}\n`);
 const notify = (method, params) => write({ method, params });
 process.on('SIGTERM', () => {});
+let experimentalApi = false;
 const grandchildFlagIndex = process.argv.indexOf('--spawn-grandchild');
 if (grandchildFlagIndex >= 0) {
   const pidFile = process.argv[grandchildFlagIndex + 1];
@@ -18,10 +19,7 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
   const reply = (result) => write({ id: frame.id, result });
   if (frame.method === 'initialize') {
     if (process.argv.includes('--hang-initialize')) return;
-    if (frame.params.capabilities?.experimentalApi !== true) {
-      write({ id: frame.id, error: { message: 'Codex experimental API capability was not enabled' } });
-      return;
-    }
+    experimentalApi = frame.params.capabilities?.experimentalApi === true;
     reply({});
   }
   if (frame.method === 'thread/start' || frame.method === 'thread/resume') {
@@ -30,6 +28,14 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
   }
   if (frame.method === 'model/list') reply({ data: [] });
   if (frame.method === 'turn/start') {
+    if (frame.params.collaborationMode && !experimentalApi) {
+      write({ id: frame.id, error: { message: 'Codex experimental API capability was not enabled' } });
+      return;
+    }
+    if (experimentalApi && frame.params.collaborationMode?.mode !== 'plan') {
+      write({ id: frame.id, error: { message: 'Codex experimental mode may only be used for Plan turns' } });
+      return;
+    }
     if (
       frame.params.collaborationMode?.mode === 'plan' &&
       (frame.params.collaborationMode.settings.model !== 'test-model' ||
