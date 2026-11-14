@@ -99,7 +99,13 @@
 }
 
 :root[data-theme='dusk'] .worldAtmosphere {
-  background: linear-gradient(180deg, rgb(35 43 91 / 24%), rgb(24 27 62 / 34%));
+  /* The upper-right sky carries cool moonlight; the lower-left valley keeps
+     a restrained last warmth. Soft viewport lighting avoids a flat grey
+     wash while preserving the same authored Meadow geometry. */
+  background:
+    radial-gradient(ellipse 68% 72% at 78% 18%, rgb(88 132 185 / 13%), transparent 78%),
+    radial-gradient(ellipse 62% 56% at 36% 104%, rgb(224 137 82 / 10%), transparent 74%),
+    linear-gradient(180deg, rgb(35 43 91 / 18%), rgb(24 27 62 / 25%));
 }
 
 /* Crossing a project doorway keeps the map in place while its real scene
