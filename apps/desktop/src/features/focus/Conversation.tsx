@@ -46,7 +46,7 @@ function Reasoning({ text, streaming }: { text: string; streaming: boolean }) {
   );
 }
 
-function Item({ item }: { item: TimelineItem }) {
+function Item({ item, providerLabel }: { item: TimelineItem; providerLabel: string }) {
   switch (item.kind) {
     case 'user':
       return (
@@ -75,10 +75,10 @@ function Item({ item }: { item: TimelineItem }) {
         <div className={styles.userInputRecord}>
           <strong>
             {item.pending
-              ? 'Codex is waiting for your answer'
+              ? `${providerLabel} is waiting for your answer`
               : item.resolvedBy === 'user'
-                ? 'Input request answered'
-                : 'Input request dismissed'}
+                ? `${providerLabel} question answered`
+                : `${providerLabel} question dismissed`}
           </strong>
           {!item.pending
             ? item.questions.map((question) => (
@@ -96,9 +96,11 @@ function Item({ item }: { item: TimelineItem }) {
 
 function UserInputBar({
   request,
+  providerLabel,
   onSubmit,
 }: {
   request: Extract<TimelineItem, { kind: 'user-input' }>;
+  providerLabel: string;
   onSubmit: (answers: Record<string, string[]>) => Promise<boolean>;
 }) {
   const [values, setValues] = useState<Record<string, string>>({});
@@ -128,7 +130,7 @@ function UserInputBar({
   return (
     <form
       className={`${styles.approval} ${styles.userInput}`}
-      aria-label="Codex asks a question"
+      aria-label={`${providerLabel} asks a question`}
       onSubmit={(event) => {
         event.preventDefault();
         if (!ready || submitting) return;
@@ -138,7 +140,7 @@ function UserInputBar({
         });
       }}
     >
-      <strong className={styles.approvalQuestion}>Codex needs your input</strong>
+      <strong className={styles.approvalQuestion}>{providerLabel} needs your input</strong>
       {request.questions.map((question) => {
         return (
           <fieldset className={styles.userInputQuestion} key={question.id}>
@@ -214,11 +216,11 @@ function UserInputBar({
   );
 }
 
-function Turn({ turn }: { turn: TimelineTurn }) {
+function Turn({ turn, providerLabel }: { turn: TimelineTurn; providerLabel: string }) {
   return (
     <section className={styles.turn} aria-label={`Turn ${turn.turn}`}>
       {turn.items.map((item) => (
-        <Item key={item.key} item={item} />
+        <Item key={item.key} item={item} providerLabel={providerLabel} />
       ))}
     </section>
   );
@@ -370,7 +372,7 @@ export function Conversation({
             </p>
           ) : null}
           {turns.map((turn) => (
-            <Turn key={turn.turn} turn={turn} />
+            <Turn key={turn.turn} turn={turn} providerLabel={providerLabel} />
           ))}
           {thread.status === 'running' && !approval ? (
             <p className={styles.working} role="status">
@@ -394,6 +396,7 @@ export function Conversation({
         <UserInputBar
           key={userInput.requestId}
           request={userInput}
+          providerLabel={providerLabel}
           onSubmit={(answers) => run(bridge?.respondUserInput(thread.id, userInput.requestId, answers))}
         />
       ) : null}

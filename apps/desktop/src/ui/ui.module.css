@@ -53,7 +53,7 @@
 
 .button[data-variant='secondary'] {
   background: var(--action-secondary-bg);
-  border-color: var(--border-default);
+  border-color: var(--border-control);
   color: var(--action-secondary-fg);
 }
 .button[data-variant='secondary']:hover:not(:disabled) {
@@ -250,8 +250,6 @@
   background: var(--surface-hover);
 }
 
-
-
 .table :is(th, td)[data-align='end'] {
   text-align: right;
 }
@@ -333,7 +331,6 @@
   background: var(--status-ok-bg);
 }
 
-
 .badge[data-tone='warn'] {
   color: var(--status-warn-fg);
   background: var(--status-warn-bg);
@@ -399,7 +396,7 @@
   min-height: var(--target-min);
   padding: 0 var(--space-2);
   background: var(--surface-sunken);
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-md);
   font-size: var(--text-md);
 }

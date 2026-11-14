@@ -97,6 +97,15 @@ export interface ValleyInput {
   minWidth: number;
 }
 
+/** Keep transient/stale Focus store entries from another workspace out of this World. */
+export function threadsForWorkspace<T extends Pick<FocusThread, 'workspace'>>(
+  threads: readonly T[],
+  workspace: string,
+): T[] {
+  if (!workspace) return [];
+  return threads.filter((thread) => thread.workspace === workspace);
+}
+
 export const SPRITE_SIZE = {
   lodge: { w: 96, h: 76 },
   library: { w: 80, h: 104 },

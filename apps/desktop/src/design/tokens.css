@@ -199,6 +199,8 @@
   --border-subtle: var(--cw-menu-800);
   --border-default: var(--cw-menu-700);
   --border-strong: var(--cw-menu-500);
+  /* Interactive outlines must remain distinct from both the control fill and its surface. */
+  --border-control: var(--cw-menu-muted);
   --border-chrome: var(--cw-menu-800);
 
   --accent-gold: var(--cw-gold);
@@ -282,6 +284,7 @@
   --border-subtle: #19272b;
   --border-default: var(--cw-menu-700);
   --border-strong: var(--cw-menu-500);
+  --border-control: var(--cw-menu-muted);
   --border-chrome: #19272b;
 
   --accent-gold: var(--cw-gold-strong);

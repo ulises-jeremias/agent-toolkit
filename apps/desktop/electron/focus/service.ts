@@ -18,6 +18,7 @@ import type {
 import { isSafeModelId, type AdapterSink, type ProviderSession, type ProviderSessionFactory } from './adapter';
 import { ClaudeSession } from './claude';
 import { CodexSession } from './codex';
+import { OpenCodeSession } from './opencode';
 import { isThreadId, newThreadId, ThreadJournal } from './journal';
 import { probeProviders, type ProbeOptions } from './providers';
 
@@ -62,6 +63,7 @@ interface Runtime {
 const DEFAULT_FACTORIES: Partial<Record<FocusProviderId, ProviderSessionFactory>> = {
   claude: (options, sink) => new ClaudeSession(options, sink),
   codex: (options, sink) => new CodexSession(options, sink),
+  opencode: (options, sink) => new OpenCodeSession(options, sink),
 };
 
 function ok<T>(value: T): FocusResult<T> {
@@ -129,6 +131,8 @@ export class FocusService {
     if (!PROVIDERS.includes(input.provider)) return fail('Unknown provider.');
     if (!MODES.includes(input.permissionMode)) return fail('Unknown permission mode.');
     if (!this.factories[input.provider]) return fail('Focus sessions are not available for this provider yet.');
+    if (input.provider === 'opencode' && input.permissionMode !== 'ask')
+      return fail('OpenCode applies its own project and global permission policies. Focus currently supports Ask mode only.');
     if (typeof input.cwd !== 'string' || !isDirectory(input.cwd)) return fail('The project folder does not exist.');
     const model = cleanModel(input.model);
     if (model === undefined) return fail('That model name is not valid.');
@@ -164,6 +168,13 @@ export class FocusService {
   updateThread(id: string, patch: FocusThreadPatch): FocusResult<FocusThread> {
     const journal = this.journalFor(id);
     if (!journal) return fail('Session not found.');
+    if (
+      journal.thread.provider === 'opencode' &&
+      patch.permissionMode !== undefined &&
+      patch.permissionMode !== 'ask'
+    ) {
+      return fail('OpenCode applies its own project and global permission policies. Focus currently supports Ask mode only.');
+    }
     const runtime = this.runtimes.get(id);
     const next: Partial<FocusThread> = {};
     if (typeof patch.title === 'string') next.title = patch.title.trim().slice(0, 120);

@@ -159,6 +159,8 @@ export function stringifyToolResult(content: unknown): string {
       .map((part) => {
         const text = field(part, 'text');
         if (typeof text === 'string') return text;
+        const nestedText = field(field(part, 'content'), 'text');
+        if (typeof nestedText === 'string') return nestedText;
         const type = field(part, 'type');
         return typeof type === 'string' ? `[${type}]` : '';
       })

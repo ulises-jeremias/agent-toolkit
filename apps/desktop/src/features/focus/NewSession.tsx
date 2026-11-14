@@ -4,7 +4,7 @@ import { useLinkProject } from '../../data/projects';
 import type { ProjectListEntry } from '../../lib/api';
 import type { FocusPermissionMode, FocusProviderId, FocusProviderStatus } from '../../types/focus';
 import { Button, PixelIcon } from '../../ui';
-import { MODE_OPTIONS, providerBlocker } from './labels';
+import { MODE_OPTIONS, permissionModeSupported, providerBlocker } from './labels';
 import styles from './focus.module.css';
 
 export interface NewSessionDefaults {
@@ -55,6 +55,10 @@ export function NewSession({
 
   const activeProject = selectStartProject(usable, project);
   const activeProvider = ready.find((entry) => entry.id === providerId) ?? ready[0];
+
+  useEffect(() => {
+    if (activeProvider && !permissionModeSupported(activeProvider, mode)) setMode('ask');
+  }, [activeProvider, mode]);
 
   useEffect(() => {
     if (defaults?.project) setProject(defaults.project);
@@ -179,13 +183,19 @@ export function NewSession({
             onChange={(event) => setMode(event.target.value as FocusPermissionMode)}
           >
             {MODE_OPTIONS.map((option) => (
-              <option key={option.id} value={option.id}>
+              <option
+                key={option.id}
+                value={option.id}
+                disabled={activeProvider ? !permissionModeSupported(activeProvider, option.id) : false}
+              >
                 {option.label}
               </option>
             ))}
           </select>
           <p className={styles.startHint} data-danger={mode === 'bypass' || undefined}>
-            {MODE_OPTIONS.find((option) => option.id === mode)?.hint}
+            {activeProvider?.id === 'opencode'
+              ? 'OpenCode applies its own project and global policies. Focus shows approval requests that OpenCode sends.'
+              : MODE_OPTIONS.find((option) => option.id === mode)?.hint}
           </p>
         </div>
       </div>
@@ -204,7 +214,9 @@ export function NewSession({
           </p>
         ) : null}
         {providersLoading && providers.length === 0 ? (
-          <p className={styles.startEmpty}>Checking installed agents…</p>
+          <p className={styles.startEmpty} role="status" aria-live="polite">
+            Checking installed agents…
+          </p>
         ) : null}
         {providers.map((provider) => {
           const blocker = providerBlocker(provider);

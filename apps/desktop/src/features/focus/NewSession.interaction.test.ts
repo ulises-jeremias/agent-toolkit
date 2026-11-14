@@ -49,6 +49,22 @@ afterEach(() => {
 });
 
 describe('NewSession', () => {
+  it('announces provider discovery while the first agent check is pending', () => {
+    render(
+      createElement(NewSession, {
+        workspace: '/ws',
+        projects: [],
+        projectsLoading: true,
+        providers: [],
+        providersLoading: true,
+        onRefreshProviders: vi.fn(),
+        onStarted: vi.fn(),
+      }),
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Checking installed agents…');
+  });
+
   it('explains the sign-in blocker beside the provider choices and disabled start action', () => {
     window.atk = { focus: {} as FocusBridge } as AtkBridge;
     const signedOut = {

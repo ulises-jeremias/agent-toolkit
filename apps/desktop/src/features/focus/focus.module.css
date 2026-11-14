@@ -205,7 +205,7 @@
   min-height: 1.75rem;
   max-width: 11rem;
   padding: 0 var(--space-2);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-md);
   background: var(--surface-panel);
   font-size: var(--text-sm);
@@ -713,7 +713,7 @@
   width: 100%;
   min-height: 2.5rem;
   padding: 0 var(--space-2);
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-sm);
   background: var(--surface-base);
   color: var(--text-primary);
@@ -724,13 +724,13 @@
 .composer {
   width: min(100% - 2 * var(--space-5), 50rem);
   margin: 0 auto var(--space-4);
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-lg);
   background: var(--surface-panel);
 }
 
 .composer:focus-within {
-  border-color: var(--border-strong);
+  border-color: var(--focus-ring);
 }
 
 .composerInput {
@@ -811,7 +811,7 @@
   width: 100%;
   min-height: 8rem;
   padding: var(--space-3);
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-lg);
   background: var(--surface-panel);
   font-size: var(--text-lg);
@@ -850,7 +850,7 @@
   width: 100%;
   min-height: var(--target-min);
   padding: 0 var(--space-2);
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-md);
   background: var(--surface-sunken);
 }

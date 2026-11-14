@@ -83,7 +83,13 @@ export function providerBlocker(provider: FocusProviderStatus): string | null {
   if (!provider.capabilities.sessions) return 'Detected. Sessions here are not available for it yet';
   if (provider.auth === 'signed-out')
     return `${provider.authDetail}. Run \`${provider.signInHint ?? 'its login command'}\` in a terminal`;
+  if (provider.id === 'opencode' && provider.auth === 'unknown')
+    return 'OpenCode authentication could not be verified. Check its account status, then choose Check again';
   return null;
+}
+
+export function permissionModeSupported(provider: FocusProviderStatus, mode: FocusPermissionMode): boolean {
+  return provider.capabilities.permissionModes?.includes(mode) ?? true;
 }
 
 export function threadTitle(thread: Pick<FocusThread, 'title'>): string {

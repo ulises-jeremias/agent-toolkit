@@ -28,13 +28,17 @@ const mocks = vi.hoisted(() => ({
     truncated: false,
     detail: '',
   },
+  diffRequest: vi.fn(),
 }));
 
 vi.mock('../../data/projects', () => {
   const mutation = () => ({ isPending: false, mutateAsync: vi.fn(async () => ({ ok: true, detail: '' })) });
   return {
     useProjectGitCommit: mutation,
-    useProjectGitDiff: () => ({ data: mocks.diff, isPending: false, isError: false }),
+    useProjectGitDiff: (...args: unknown[]) => {
+      mocks.diffRequest(...args);
+      return { data: mocks.diff, isPending: false, isError: false };
+    },
     useProjectGitLog: () => ({ data: { ok: true, project: 'demo', commits: [], detail: '' }, isPending: false }),
     useProjectGitShow: () => ({ isPending: false, isError: false }),
     useProjectGitStage: mutation,
@@ -57,6 +61,18 @@ describe('ProjectChangesPanel', () => {
       expect(screen.getByLabelText('Diff for live-result.txt')).toHaveTextContent(
         '+Codex real-provider acceptance succeeded.',
       ),
+    );
+  });
+
+  it('switches the selected file diff to the index after staging it', async () => {
+    render(<ProjectChangesPanel workspace="/ws" projects={[{ name: 'demo', status: 'ok' }]} />);
+
+    expect(await screen.findByRole('heading', { name: 'Untracked (1)' })).toBeVisible();
+    await screen.getByRole('button', { name: /^Stage$/ }).click();
+
+    await waitFor(() => expect(mocks.diffRequest).toHaveBeenLastCalledWith('/ws', 'demo', 'live-result.txt', true));
+    expect(screen.getByLabelText('Diff for live-result.txt')).toHaveTextContent(
+      '+Codex real-provider acceptance succeeded.',
     );
   });
 });
