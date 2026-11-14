@@ -22,6 +22,16 @@ export function modeLabel(mode: FocusPermissionMode): string {
   return MODE_OPTIONS.find((option) => option.id === mode)?.label ?? mode;
 }
 
+export function providerSupportsPermissionMode(provider: FocusProviderStatus, mode: FocusPermissionMode): boolean {
+  return provider.permissionModes === undefined || provider.permissionModes.includes(mode);
+}
+
+export function permissionModeBlocker(provider: FocusProviderStatus, mode: FocusPermissionMode): string | null {
+  if (providerSupportsPermissionMode(provider, mode)) return null;
+  const version = provider.version ? ` ${provider.version}` : '';
+  return `${provider.label}${version} does not support ${modeLabel(mode)} in Focus. Update the CLI, then check again.`;
+}
+
 export const STATUS_LABEL: Record<FocusThreadStatus, string> = {
   idle: 'Ready',
   running: 'Working',

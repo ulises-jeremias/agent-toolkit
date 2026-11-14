@@ -61,13 +61,27 @@ export function collectDescendants(pid: number | undefined): number[] {
   return out;
 }
 
-export function killDescendants(pid: number | undefined): void {
+export function killDescendants(pid: number | undefined, preserve: ReadonlySet<number> = new Set()): void {
   for (const child of collectDescendants(pid)) {
+    if (preserve.has(child)) continue;
     try {
       process.kill(child, 'SIGKILL');
     } catch {
       // Already exited between listing and signalling.
     }
+  }
+}
+
+function preservedPtyHostTree(root: string, preserve: boolean): Set<number> {
+  if (!preserve) return new Set();
+  try {
+    const registry = JSON.parse(fs.readFileSync(path.join(root, 'pty-runtime', 'pty-registry.json'), 'utf8')) as {
+      pid?: number;
+    };
+    if (typeof registry.pid !== 'number') return new Set();
+    return new Set([registry.pid, ...collectDescendants(registry.pid)]);
+  } catch {
+    return new Set();
   }
 }
 
@@ -86,6 +100,8 @@ function assertBuilt(): void {
 export interface Desktop {
   app: ElectronApplication;
   page: Page;
+  /** Scratch profile root, used by close/reopen acceptance journeys. */
+  root: string;
   /** Scratch HOME; the default harness is `$HOME/.ai-workspace` when created. */
   home: string;
   /** Scratch workspace scaffolded by the real CLI when `initWorkspace` is true. */
@@ -102,6 +118,12 @@ export interface OpenDesktopOptions {
   skipOnboarding?: boolean;
   /** Extra Chromium/Electron launch args (e.g. --force-device-scale-factor=2 for HiDPI). */
   launchArgs?: string[];
+  /** Reuse a preserved scratch profile root for close/reopen acceptance. */
+  root?: string;
+  /** Keep this profile after close so another Electron process can reopen it. */
+  preserveRootOnClose?: boolean;
+  /** Keep the detached PTY host alive for a true terminal-recovery acceptance. */
+  preservePtyHostOnClose?: boolean;
 }
 
 /**
@@ -113,7 +135,8 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
   const skipOnboarding = options.skipOnboarding ?? true;
   assertBuilt();
   const backendBin = backendBinary();
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-desktop-e2e-'));
+  const root = options.root ?? fs.mkdtempSync(path.join(os.tmpdir(), 'atk-desktop-e2e-'));
+  fs.mkdirSync(root, { recursive: true });
   const home = path.join(root, 'home');
   // The default harness, so the supervisor resolves it without an override.
   const workspace = path.join(home, '.ai-workspace');
@@ -190,15 +213,19 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
   return {
     app,
     page,
+    root,
     home,
     workspace,
     backendBin,
     close: async () => {
       const process = app.process();
+      // A retained detached host and its PTY children must survive both the
+      // normal-close and timeout cleanup paths for restart acceptance.
+      const preserved = preservedPtyHostTree(root, Boolean(options.preservePtyHostOnClose));
       // Snapshot descendants before close: once the Electron main exits,
       // survivors are reparented and can no longer be found by walking
       // from its pid — yet they still hold Playwright's pipes (#1622).
-      const descendantsAtClose = collectDescendants(process.pid);
+      const descendantsAtClose = collectDescendants(process.pid).filter((pid) => !preserved.has(pid));
       let killTimer: ReturnType<typeof setTimeout> | undefined;
       try {
         await Promise.race([
@@ -210,10 +237,9 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
               } catch {
                 // The Electron process may have exited while shutdown was pending.
               }
-              // Electron children (renderer, backend, PTY host) inherit the
-              // main process's stdio. If any survive the SIGKILL they keep
-              // Playwright's pipes open and the worker never exits (#1622).
-              killDescendants(process.pid);
+              // Renderer/backend children inherit the main process's stdio.
+              // The detached PTY host uses ignored stdio and is handled apart.
+              killDescendants(process.pid, preserved);
               resolve();
             }, 20_000);
           }),
@@ -230,21 +256,23 @@ export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Des
             // Already exited during close; nothing to reap.
           }
         }
-        killDescendants(process.pid);
+        killDescendants(process.pid, preserved);
         // The detached PTY host outlives the app by design; in tests it must
         // not outlive the launch, or its PTYs leak into the shared worker.
-        try {
-          const registry = JSON.parse(fs.readFileSync(path.join(root, 'pty-runtime', 'pty-registry.json'), 'utf8')) as {
-            pid?: number;
-          };
-          if (typeof registry.pid === 'number') {
-            killDescendants(registry.pid);
-            globalThis.process.kill(registry.pid, 'SIGTERM');
+        if (!options.preservePtyHostOnClose) {
+          try {
+            const registry = JSON.parse(
+              fs.readFileSync(path.join(root, 'pty-runtime', 'pty-registry.json'), 'utf8'),
+            ) as { pid?: number };
+            if (typeof registry.pid === 'number') {
+              killDescendants(registry.pid);
+              globalThis.process.kill(registry.pid, 'SIGTERM');
+            }
+          } catch {
+            // No host was spawned for this launch, or it already exited.
           }
-        } catch {
-          // No host was spawned for this launch, or it already exited.
         }
-        fs.rmSync(root, { recursive: true, force: true });
+        if (!options.preserveRootOnClose) fs.rmSync(root, { recursive: true, force: true });
       }
     },
   };

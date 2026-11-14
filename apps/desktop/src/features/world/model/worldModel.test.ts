@@ -221,6 +221,32 @@ describe('buildWorldModel', () => {
     expect(character?.detail).not.toContain('PTY');
   });
 
+  it('links a live Person Focus character directly to its canonical thread', () => {
+    const model = buildWorldModel(
+      baseInput({
+        projects: [{ name: 'alpha', target: '/repos/alpha', status: 'ok' }],
+        personSessions: [
+          {
+            id: 'th_abc123',
+            personId: 'mara',
+            name: 'Mara',
+            role: 'implementer',
+            cwd: '/repos/alpha',
+            projectId: 'alpha',
+            provider: 'claude',
+            model: 'sonnet',
+            origin: 'focus',
+          },
+        ],
+      }),
+    );
+    expect(model.entities.find((entity) => entity.id === 'character:person:mara:th_abc123')).toMatchObject({
+      hrefPath: '/focus',
+      hrefExtra: { thread: 'th_abc123' },
+      projectId: 'alpha',
+    });
+  });
+
   it('surfaces harness notices on the workspace grounds tile', () => {
     const model = buildWorldModel(
       baseInput({

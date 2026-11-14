@@ -16,7 +16,7 @@ import type {
 } from '../../src/types/focus';
 import { isSafeModelId, type AdapterSink, type ProviderSession, type ProviderSessionFactory } from './adapter';
 import { ClaudeSession } from './claude';
-import { isThreadId, newThreadId, ThreadJournal } from './journal';
+import { isPersonId, isThreadId, newThreadId, ThreadJournal } from './journal';
 import { probeProviders, type ProbeOptions } from './providers';
 
 /**
@@ -128,12 +128,15 @@ export class FocusService {
     if (!MODES.includes(input.permissionMode)) return fail('Unknown permission mode.');
     if (!this.factories[input.provider]) return fail('Focus sessions are not available for this provider yet.');
     if (typeof input.cwd !== 'string' || !isDirectory(input.cwd)) return fail('The project folder does not exist.');
+    if (input.personId !== undefined && input.personId !== null && !isPersonId(input.personId))
+      return fail('That Person ID is not valid.');
     const model = cleanModel(input.model);
     if (model === undefined) return fail('That model name is not valid.');
     const now = new Date().toISOString();
     const thread: FocusThread = {
       id: newThreadId(),
       title: typeof input.title === 'string' ? input.title.trim().slice(0, 120) : '',
+      personId: input.personId ?? null,
       workspace,
       projectName: typeof input.projectName === 'string' && input.projectName ? input.projectName.slice(0, 120) : null,
       cwd: input.cwd,
@@ -342,6 +345,11 @@ export class FocusService {
     if (!isDirectory(thread.cwd)) return fail(`The project folder no longer exists: ${thread.cwd}`);
     const status = statuses.find((entry) => entry.id === thread.provider);
     if (!status?.installed || !status.binary) return fail(`${status?.label ?? thread.provider} is not installed.`);
+    if (status.permissionModes && !status.permissionModes.includes(thread.permissionMode)) {
+      return fail(
+        `${status.label} does not support this Focus permission mode. Update the CLI, then check providers again.`,
+      );
+    }
     if (status.auth === 'signed-out') {
       return fail(
         `${status.label} is not signed in. Run \`${status.signInHint ?? 'the provider login'}\` in a terminal.`,

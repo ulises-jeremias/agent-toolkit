@@ -200,7 +200,7 @@ export interface WorldDomainInput {
     avatarCharacter?: SemanticEntity['characterSprite'];
     avatarAccent?: string;
     /** 'swarm' sessions live in a swarm adapter, not a Desktop PTY. */
-    origin?: 'pty' | 'swarm';
+    origin?: 'pty' | 'swarm' | 'focus';
     runId?: string;
     swarmRole?: string;
   }>;

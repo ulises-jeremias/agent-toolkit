@@ -16,6 +16,7 @@ import type { FocusEvent, FocusEventBody, FocusThread } from '../../src/types/fo
  */
 
 const THREAD_ID = /^th_[a-z0-9]{10,40}$/;
+const PERSON_ID = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 const PROVIDERS = ['claude', 'codex', 'opencode'];
 const MODES = ['ask', 'accept-edits', 'plan', 'bypass'];
 const STATUSES = ['idle', 'running', 'awaiting-approval', 'interrupted', 'error'];
@@ -23,6 +24,10 @@ const MAX_LEGACY_JOURNAL_FILE_BYTES = 64 * 1024 * 1024;
 
 export function isThreadId(value: unknown): value is string {
   return typeof value === 'string' && THREAD_ID.test(value);
+}
+
+export function isPersonId(value: unknown): value is string {
+  return typeof value === 'string' && PERSON_ID.test(value);
 }
 
 export function newThreadId(now = Date.now()): string {
@@ -239,10 +244,12 @@ export function parseThread(raw: unknown, id: string, workspace: string): FocusT
   const provider = text(data['provider']);
   const permissionMode = text(data['permissionMode']);
   const status = text(data['status']);
+  const personId = data['personId'] === undefined || data['personId'] === null ? null : data['personId'];
   if (data['id'] !== id || !cwd || !path.isAbsolute(cwd)) return null;
   if (!provider || !PROVIDERS.includes(provider)) return null;
   if (!permissionMode || !MODES.includes(permissionMode)) return null;
   if (!status || !STATUSES.includes(status)) return null;
+  if (personId !== null && !isPersonId(personId)) return null;
   const usage = (typeof data['usage'] === 'object' && data['usage'] !== null ? data['usage'] : {}) as Record<
     string,
     unknown
@@ -251,6 +258,7 @@ export function parseThread(raw: unknown, id: string, workspace: string): FocusT
   return {
     id,
     title: (text(data['title']) ?? '').slice(0, 120),
+    personId,
     workspace,
     projectName: text(data['projectName']),
     cwd,

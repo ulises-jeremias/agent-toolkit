@@ -2,7 +2,12 @@ import { execFile } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import type { FocusModelOption, FocusProviderId, FocusProviderStatus } from '../../src/types/focus';
+import type {
+  FocusModelOption,
+  FocusPermissionMode,
+  FocusProviderId,
+  FocusProviderStatus,
+} from '../../src/types/focus';
 import { needsShell } from './adapter';
 
 /**
@@ -88,6 +93,28 @@ const CLAUDE_MODELS: FocusModelOption[] = [
   { id: 'sonnet', label: 'Sonnet' },
   { id: 'haiku', label: 'Haiku' },
 ];
+
+const CLAUDE_PERMISSION_MODES: Readonly<Record<string, FocusPermissionMode>> = {
+  default: 'ask',
+  manual: 'ask',
+  acceptEdits: 'accept-edits',
+  plan: 'plan',
+  bypassPermissions: 'bypass',
+};
+
+/** Read the installed CLI's own choices so Focus never assumes a permission flag exists. */
+export function claudePermissionModes(help: string): FocusPermissionMode[] {
+  const start = help.indexOf('--permission-mode');
+  if (start < 0) return [];
+  const nextFlag = help.indexOf('\n  --', start + '--permission-mode'.length);
+  const section = help.slice(start, nextFlag < 0 ? start + 600 : nextFlag);
+  const choices = /\bchoices:\s*([\s\S]*?)\)/i.exec(section)?.[1];
+  if (!choices) return [];
+  const available = new Set(Object.keys(CLAUDE_PERMISSION_MODES));
+  return [...new Set(choices.match(/[A-Za-z][A-Za-z0-9]*/g) ?? [])]
+    .filter((mode) => available.has(mode))
+    .map((mode) => CLAUDE_PERMISSION_MODES[mode]!);
+}
 
 interface ProviderSpec {
   id: FocusProviderId;
@@ -202,9 +229,10 @@ async function probeOne(spec: ProviderSpec, options: ProbeOptions): Promise<Focu
   };
   const binary = find(spec.binary);
   if (!binary) return base;
-  const [version, auth] = await Promise.all([
+  const [version, auth, help] = await Promise.all([
     run(binary, ['--version'], PROBE_TIMEOUT_MS),
     spec.auth(binary, run).catch(() => ({ auth: 'unknown' as const, authDetail: 'Account status check failed' })),
+    spec.id === 'claude' ? run(binary, ['--help'], PROBE_TIMEOUT_MS) : Promise.resolve(null),
   ]);
   return {
     ...base,
@@ -212,6 +240,7 @@ async function probeOne(spec: ProviderSpec, options: ProbeOptions): Promise<Focu
     binary,
     version: versionOf(`${version.stdout}\n${version.stderr}`),
     ...auth,
+    ...(help ? { permissionModes: claudePermissionModes(`${help.stdout}\n${help.stderr}`) } : {}),
     signInHint: auth.auth === 'ready' ? null : spec.signIn,
   };
 }

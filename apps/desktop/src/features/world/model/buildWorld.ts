@@ -100,14 +100,20 @@ function pushPersonCharacters(
       characterSprite: session.avatarCharacter,
       characterAccent: session.avatarAccent,
       availability: 'present',
-      hrefPath: session.origin === 'swarm' ? '/operations' : '/people',
+      hrefPath: session.origin === 'swarm' ? '/operations' : session.origin === 'focus' ? '/focus' : '/people',
       hrefExtra:
-        session.origin === 'swarm' ? { swarm: session.runId ?? '' } : { person: session.personId, session: session.id },
+        session.origin === 'swarm'
+          ? { swarm: session.runId ?? '' }
+          : session.origin === 'focus'
+            ? { thread: session.id }
+            : { person: session.personId, session: session.id },
       projectId,
       detail:
         session.origin === 'swarm'
           ? `${session.role} · ${session.provider ?? 'runner unknown'}${session.model ? ` · ${session.model}` : ''} · Swarm ${session.swarmRole ?? session.role} in run ${session.runId ?? ''} — inspect in Operations`
-          : `${session.role} · ${session.provider ?? 'runner unknown'}${session.model ? ` · ${session.model}` : ''} · PTY ${session.id}`,
+          : session.origin === 'focus'
+            ? `${session.role} · ${session.provider ?? 'runner unknown'}${session.model ? ` · ${session.model}` : ''} · active Focus thread — open in Focus`
+            : `${session.role} · ${session.provider ?? 'runner unknown'}${session.model ? ` · ${session.model}` : ''} · PTY ${session.id}`,
       standAtId,
     });
   }

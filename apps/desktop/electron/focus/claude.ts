@@ -26,7 +26,10 @@ import {
  */
 
 const PERMISSION_MODE: Record<FocusPermissionMode, string> = {
-  ask: 'default',
+  // `default` may auto-allow tools based on Claude Code's own heuristics or
+  // settings. Focus's Ask mode promises an explicit user decision, so use the
+  // CLI's manual mode and route every prompt through the stdio approval bridge.
+  ask: 'manual',
   'accept-edits': 'acceptEdits',
   plan: 'plan',
   bypass: 'bypassPermissions',

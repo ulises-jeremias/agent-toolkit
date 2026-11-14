@@ -6,8 +6,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FocusEvent, FocusLiveUpdate, FocusProviderStatus } from '../../src/types/focus';
 import { clipOutput, describeTool } from './adapter.js';
 import { ClaudeSession, claudeArgs } from './claude.js';
-import { focusRoot, isThreadId, newThreadId, ThreadJournal } from './journal.js';
-import { probeProviders } from './providers.js';
+import { focusRoot, isPersonId, isThreadId, newThreadId, parseThread, ThreadJournal } from './journal.js';
+import { claudePermissionModes, probeProviders } from './providers.js';
 import { FocusService } from './service.js';
 
 const FAKE = path.join(__dirname, 'testing', 'fake-claude.mjs');
@@ -99,6 +99,46 @@ describe('thread journal', () => {
     expect(isThreadId('../../etc')).toBe(false);
     expect(isThreadId('th_UPPER')).toBe(false);
     expect(ThreadJournal.open(tempWorkspace(), '../x')).toBeNull();
+  });
+
+  it('keeps an optional Person relationship on new Focus threads and accepts legacy metadata', () => {
+    const h = harness();
+    const created = h.service.createThread({
+      cwd: h.workspace,
+      projectName: 'demo',
+      provider: 'claude',
+      model: null,
+      permissionMode: 'ask',
+      personId: 'reviewer_1',
+    });
+    expect(created).toMatchObject({ ok: true, value: { personId: 'reviewer_1' } });
+    if (!created.ok) throw new Error(created.error);
+    expect(h.service.readThread(created.value.id)?.thread.personId).toBe('reviewer_1');
+    expect(h.service.listThreads()[0]?.personId).toBe('reviewer_1');
+    expect(isPersonId('../../outside')).toBe(false);
+    expect(
+      h.service.createThread({
+        cwd: h.workspace,
+        projectName: 'demo',
+        provider: 'claude',
+        model: null,
+        permissionMode: 'ask',
+        personId: '../outside',
+      }),
+    ).toMatchObject({ ok: false, error: 'That Person ID is not valid.' });
+
+    const legacy = parseThread(
+      {
+        id: 'th_legacy123456',
+        cwd: h.workspace,
+        provider: 'claude',
+        permissionMode: 'ask',
+        status: 'idle',
+      },
+      'th_legacy123456',
+      h.workspace,
+    );
+    expect(legacy?.personId).toBeNull();
   });
 
   it('skips a torn final line instead of losing the history', () => {
@@ -738,7 +778,7 @@ describe('claude adapter argv', () => {
       '--permission-prompt-tool',
       'stdio',
       '--permission-mode',
-      'default',
+      'manual',
     ]);
     expect(claudeArgs({ model: 'opus', permissionMode: 'bypass', resumeSessionId: 's1' }).slice(-6)).toEqual(
       ['--permission-mode', 'bypassPermissions', '--model', 'opus', '--resume', 's1'].slice(-6),
@@ -799,6 +839,13 @@ describe('provider probe', () => {
     const statuses = await probeProviders({
       find: (name) => (name === 'opencode' ? null : `/bin/${name}`),
       run: async (binary, args) => {
+        if (args[0] === '--help')
+          return {
+            code: 0,
+            stdout:
+              '--permission-mode <mode> Permission mode (choices: "acceptEdits", "auto", "bypassPermissions", "manual", "dontAsk", "plan")\n  --permission-prompts <target>',
+            stderr: '',
+          };
         if (args[0] === '--version')
           return {
             code: 0,
@@ -830,9 +877,24 @@ describe('provider probe', () => {
       version: '2.1.322',
       authDetail: 'Signed in with Claude subscription (pro)',
       signInHint: null,
+      permissionModes: ['accept-edits', 'bypass', 'ask', 'plan'],
     });
     expect(statuses[1]?.signInHint).toBe('codex login');
     expect(JSON.stringify(statuses)).not.toMatch(/example\.com|Secret Org/);
+  });
+
+  it('supports the legacy default alias and fails closed when help omits permission choices', () => {
+    expect(
+      claudePermissionModes(
+        '--permission-mode <mode> Permission mode (choices: "default", "acceptEdits", "bypassPermissions", "plan")\n  --resume',
+      ),
+    ).toEqual(['ask', 'accept-edits', 'bypass', 'plan']);
+    expect(
+      claudePermissionModes(
+        '--permission-mode <mode> Permission mode (choices: "acceptEdits", "bypassPermissions", "plan")\n  --resume',
+      ),
+    ).toEqual(['accept-edits', 'bypass', 'plan']);
+    expect(claudePermissionModes('--permission-mode <mode>\n  --resume')).toEqual([]);
   });
 
   it('keeps the other providers when one probe throws, and reads "not logged in" before "logged in"', async () => {
@@ -851,5 +913,20 @@ describe('provider probe', () => {
       ['opencode', true, 'ready'],
     ]);
     expect(statuses[0]?.authDetail).toBe('Could not be checked');
+  });
+});
+
+describe('provider permission capability enforcement', () => {
+  it('does not start or record a turn when the CLI cannot enforce the selected mode', async () => {
+    const h = harness(tempWorkspace(), {}, { ...READY, permissionModes: ['plan'] });
+    const id = start(h);
+    const result = await h.service.send(id, 'Make a change under Ask mode.');
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: 'Claude Code does not support this Focus permission mode. Update the CLI, then check providers again.',
+    });
+    expect(h.events(id)).toEqual([]);
+    expect(fs.existsSync(h.argvLog)).toBe(false);
   });
 });

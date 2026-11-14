@@ -197,6 +197,53 @@ pub fn project_git_diff_typed(root string, project string, path string, staged b
 		}
 	}
 	mut diff := res.stdout
+	// `git diff` omits untracked files, leaving the review panel unable to
+	// inspect a newly created file. Only use a no-index patch after confirming
+	// that the selected path is absent from the index; otherwise a clean tracked
+	// file would be misrepresented as an addition.
+	if !staged && diff.len == 0 {
+		tracked := git_run(root, ['ls-files', '--error-unmatch', '--', path]) or {
+			return ProjectGitDiffResponse{
+				ok: false
+				project: project
+				path: path
+				staged: staged
+				detail: err.msg()
+			}
+		}
+		if tracked.exit_code != 0 {
+			added := git_run(root, [
+				'diff',
+				'--no-index',
+				'--no-color',
+				'--src-prefix=a/',
+				'--dst-prefix=b/',
+				'--',
+				'/dev/null',
+				path,
+			]) or {
+				return ProjectGitDiffResponse{
+					ok: false
+					project: project
+					path: path
+					staged: staged
+					detail: err.msg()
+				}
+			}
+			if added.exit_code == 1 && added.stderr.trim_space().len == 0 {
+				diff = added.stdout
+			} else if added.exit_code != 0 {
+				msg := added.stderr.trim_space()
+				return ProjectGitDiffResponse{
+					ok: false
+					project: project
+					path: path
+					staged: staged
+					detail: if msg.len > 0 { msg } else { 'git diff exited with code ${added.exit_code}' }
+				}
+			}
+		}
+	}
 	mut truncated := false
 	if diff.len > max_git_diff_chars {
 		mut cut := max_git_diff_chars
