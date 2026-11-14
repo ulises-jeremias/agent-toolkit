@@ -58,7 +58,7 @@ fn test_project_git_round_trip_stage_unstage_commit() {
 	os.write_file(os.join_path(base, 'src', 'nested.txt'), 'nested\n') or { panic(err.msg()) }
 	initial_status := project_git_status_typed(base, 'demo')
 	assert initial_status.ok, initial_status.detail
-	assert initial_status.untracked.map(it.path) == ['c file.txt', 'src/nested.txt']
+	assert initial_status.untracked.map(it.path) == ['b.txt', 'c file.txt', 'src/nested.txt']
 	staged := project_git_stage_typed(base, 'demo', ['b.txt'])
 	assert staged.ok, staged.detail
 	assert staged.staged.map(it.path) == ['b.txt']
