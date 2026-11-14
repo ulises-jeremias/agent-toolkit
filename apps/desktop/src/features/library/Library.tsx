@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAgents, useInstallReceipts, useLibrarySkills, useProviders, useTools } from '../../data/catalog';
-import { useReport, useSubQuery } from '../../data/commands';
+import { useSubQuery } from '../../data/commands';
 import { requireClient, useBackend } from '../../data/backend';
 import { useProjects } from '../../data/projects';
 import { useSessionContext } from '../../shell/useSessionContext';
@@ -249,8 +249,6 @@ export default function Library() {
   const { client, backend } = useBackend();
   const { context } = useSessionContext();
   const workspacePath = context.workspace || backend?.harness?.path || '';
-  const inventory = useReport('inventory');
-  const catalogRoot = inventory.data?.data['root'];
   const tools = useTools();
   const receipts = useInstallReceipts();
   const agents = useAgents();
