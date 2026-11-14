@@ -106,6 +106,10 @@ function UserInputBar({
   const [values, setValues] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const firstAnswer = useRef<HTMLInputElement>(null);
+  useLayoutEffect(() => {
+    firstAnswer.current?.focus();
+  }, []);
   const answers = Object.fromEntries(
     request.questions.map((question) => {
       const selected = values[question.id] ?? '';
@@ -141,7 +145,7 @@ function UserInputBar({
       }}
     >
       <strong className={styles.approvalQuestion}>{providerLabel} needs your input</strong>
-      {request.questions.map((question) => {
+      {request.questions.map((question, questionIndex) => {
         return (
           <fieldset className={styles.userInputQuestion} key={question.id}>
             <legend>{question.header}</legend>
@@ -151,6 +155,7 @@ function UserInputBar({
                 {question.options.map((option, index) => (
                   <div key={option.label}>
                     <input
+                      ref={questionIndex === 0 && index === 0 ? firstAnswer : undefined}
                       id={`focus-option-${question.id}-${index}`}
                       type="radio"
                       aria-label={option.label}
@@ -194,6 +199,7 @@ function UserInputBar({
                     : 'Your answer'}
               </span>
               <input
+                ref={questionIndex === 0 && question.options.length === 0 ? firstAnswer : undefined}
                 type={question.isSecret ? 'password' : 'text'}
                 autoComplete="off"
                 onKeyDown={(event) => {
@@ -282,11 +288,13 @@ export function Conversation({
   const turns = useMemo(() => buildTimeline(timeline.events, timeline.live), [timeline.events, timeline.live]);
   const approval = pendingApproval(turns);
   const userInput = pendingUserInput(turns);
+  const userInputRequestId = userInput?.requestId;
   const [draft, setDraft] = useState(() => focusStore.getDraft(thread.id));
   const scroller = useRef<HTMLDivElement>(null);
   const pinned = useRef(true);
   const composer = useRef<HTMLTextAreaElement>(null);
   const activeThreadId = useRef(thread.id);
+  const previousUserInputId = useRef<string | null>(null);
   const running =
     thread.status === 'running' || thread.status === 'awaiting-approval' || thread.status === 'awaiting-input';
   const waitingForTurn = (running && !provider?.capabilities?.sendWhileRunning) || Boolean(approval || userInput);
@@ -304,6 +312,15 @@ export function Conversation({
     pinned.current = true;
     composer.current?.focus();
   }, [focusStore, thread.id]);
+
+  useLayoutEffect(() => {
+    if (userInputRequestId) {
+      previousUserInputId.current = userInputRequestId;
+    } else if (previousUserInputId.current) {
+      previousUserInputId.current = null;
+      composer.current?.focus();
+    }
+  }, [userInputRequestId]);
 
   const run = useCallback(
     async (action: Promise<{ ok: true } | { ok: false; error: string }> | undefined) => {

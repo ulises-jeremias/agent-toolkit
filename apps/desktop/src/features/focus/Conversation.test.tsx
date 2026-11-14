@@ -144,7 +144,7 @@ describe('Conversation', () => {
   });
 
   it('announces OpenCode questions and collects answers without persisting private values', async () => {
-    const { api, user } = setup(
+    const { api, store, user } = setup(
       thread({ provider: 'opencode', status: 'awaiting-input' }),
       journal([
         { type: 'user', text: 'choose a plan' },
@@ -179,6 +179,7 @@ describe('Conversation', () => {
     expect(conversation).toHaveAttribute('aria-live', 'polite');
     expect(conversation).toHaveTextContent('OpenCode is waiting for your answer');
     expect(dialog).toHaveTextContent('Choose a plan');
+    expect(screen.getByRole('radio', { name: /Careful/ })).toHaveFocus();
     await user.click(screen.getByRole('radio', { name: /Careful/ }));
     await user.type(screen.getByLabelText('Private answer'), 'do-not-store-this');
     await user.click(screen.getByRole('button', { name: 'Continue' }));
@@ -188,6 +189,19 @@ describe('Conversation', () => {
         token: ['user_note: do-not-store-this'],
       }),
     );
+    store.apply({
+      kind: 'event',
+      threadId: 'th_test000001',
+      event: {
+        seq: 4,
+        at: '2026-11-12T00:00:01.000Z',
+        turn: 1,
+        type: 'userInput.resolved',
+        requestId: 'opencode-q1',
+        by: 'user',
+      },
+    });
+    await waitFor(() => expect(screen.getByLabelText('Message')).toHaveFocus());
     expect(dialog).not.toHaveTextContent('do-not-store-this');
   });
 
