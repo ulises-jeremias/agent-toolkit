@@ -69,7 +69,10 @@ exit 2
     const dialog = page.getByRole('dialog', { name: 'Sign in to Claude Code' });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByLabel('Temporary provider sign-in terminal')).toBeVisible();
-    await dialog.locator('.xterm').click();
+    // The sign-in terminal must be ready for keyboard input immediately; a
+    // mouse click would hide a broken initial-focus handoff in the modal.
+    const terminalInput = dialog.locator('.xterm-helper-textarea');
+    await expect(terminalInput).toBeFocused();
     await page.keyboard.type('test-code');
     await page.keyboard.press('Enter');
     await expect(dialog.getByRole('status')).toContainText('exited with code 0');
