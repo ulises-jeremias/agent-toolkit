@@ -141,7 +141,10 @@ describe('OpenCode ACP protocol', () => {
     await vi.waitFor(() => expect(sink.turnFinished).toHaveBeenCalledTimes(3));
     await new Promise((resolve) => setTimeout(resolve, 50));
 
-    expect(sink.delta).toHaveBeenCalledTimes(2);
+    expect(sink.delta.mock.calls.map(([, kind, delta]) => [kind, delta])).toEqual([
+      ['assistant', 'QUEUED_ONE'],
+      ['assistant', 'QUEUED_TWO'],
+    ]);
     expect(sink.turnFinished.mock.calls.map(([result]) => result?.outcome)).toEqual([
       'interrupted',
       'completed',

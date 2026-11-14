@@ -71,16 +71,17 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
           requestedSchema: {
             type: 'object',
             properties: {
-              [text === 'secret-question' ? 'api_key' : 'color']: text === 'secret-question'
-                ? { type: 'string', title: 'API key', format: 'password' }
-                : {
-                type: 'string',
-                title: 'Color',
-                oneOf: [
-                  { const: 'blue', title: 'Blue' },
-                  { const: 'red', title: 'Red' },
-                ],
-              },
+              [text === 'secret-question' ? 'api_key' : 'color']:
+                text === 'secret-question'
+                  ? { type: 'string', title: 'API key', format: 'password' }
+                  : {
+                      type: 'string',
+                      title: 'Color',
+                      oneOf: [
+                        { const: 'blue', title: 'Blue' },
+                        { const: 'red', title: 'Red' },
+                      ],
+                    },
               ...(text === 'question' ? { color_custom: { type: 'string' } } : {}),
             },
             required: ['color'],
@@ -90,11 +91,18 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
     } else if (text === 'hold') {
       return;
     } else if (text === 'failure') {
-      write({ id: frame.id, error: { code: -32603, message: 'Insufficient balance. See https://provider.example/billing/work_12345678901234567890' } });
+      write({
+        id: frame.id,
+        error: {
+          code: -32603,
+          message: 'Insufficient balance. See https://provider.example/billing/work_12345678901234567890',
+        },
+      });
     } else {
+      const response = text === 'queued one' ? 'QUEUED_ONE' : text === 'queued two' ? 'QUEUED_TWO' : 'ACP_OK';
       notify('session/update', {
         sessionId,
-        update: { sessionUpdate: 'agent_message_chunk', content: { type: 'text', text: 'ACP_OK' } },
+        update: { sessionUpdate: 'agent_message_chunk', content: { type: 'text', text: response } },
       });
       reply({ stopReason: 'end_turn', usage: { inputTokens: 3, outputTokens: 2 } });
     }
@@ -128,7 +136,10 @@ readline.createInterface({ input: process.stdin }).on('line', (line) => {
     const accepted = frame.result?.action === 'accept' && frame.result.content?.color === 'blue';
     notify('session/update', {
       sessionId,
-      update: { sessionUpdate: 'agent_message_chunk', content: { type: 'text', text: accepted ? 'Blue selected.' : 'Question cancelled.' } },
+      update: {
+        sessionUpdate: 'agent_message_chunk',
+        content: { type: 'text', text: accepted ? 'Blue selected.' : 'Question cancelled.' },
+      },
     });
     write({ id: promptRequestId, result: { stopReason: 'end_turn' } });
     promptRequestId = null;
