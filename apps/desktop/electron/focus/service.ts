@@ -300,7 +300,7 @@ export class FocusService {
    */
   private reconcile(workspace: string): void {
     if (this.reconciled.has(workspace)) return;
-    this.reconciled.add(workspace);
+    // Cache only successful reconciliation; storage/migration failures must remain retryable.
     for (const journal of ThreadJournal.list(workspace, this.options.journalRoot)) {
       const { status, id, turns } = journal.thread;
       if ((status !== 'running' && status !== 'awaiting-approval') || this.runtimes.has(id)) continue;
@@ -322,6 +322,7 @@ export class FocusService {
       });
       journal.update({ status: 'interrupted' });
     }
+    this.reconciled.add(workspace);
   }
 
   private async startSession(runtime: Runtime): Promise<FocusResult<true>> {
