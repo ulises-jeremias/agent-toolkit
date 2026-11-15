@@ -25,7 +25,8 @@ mkdir -p /tmp/atk-daily-driver/src /tmp/atk-daily-driver/test
 cd /tmp/atk-daily-driver && git init
 printf 'export const sum = (a, b) => a - b;\n' > src/sum.mjs
 printf "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { sum } from '../src/sum.mjs';\ntest('sum', () => assert.equal(sum(2, 3), 5));\n" > test/sum.test.mjs
-git add . && git commit -m 'test: establish failing fixture'
+git add . && git -c user.name='Daily Driver Fixture' -c user.email='fixture@example.invalid' commit -m 'test: establish failing fixture'
+# Expected baseline: this test FAILS until the coding provider fixes src/sum.mjs.
 node --test
 ```
 
