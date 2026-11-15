@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import type {
   FocusApprovalDecision,
@@ -105,11 +106,24 @@ export function clipOutput(text: string): { output: string; truncated: boolean }
   return { output: `${head}\n…\n${tail}`, truncated: true };
 }
 
+function realPathForDisplay(file: string): string {
+  const resolved = path.resolve(file);
+  try {
+    return fs.realpathSync.native(resolved);
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code !== 'ENOENT' && code !== 'ENOTDIR') return resolved;
+    const parent = path.dirname(resolved);
+    if (parent === resolved) return resolved;
+    return path.join(realPathForDisplay(parent), path.basename(resolved));
+  }
+}
+
 function relative(cwd: string, file: unknown): string {
   if (typeof file !== 'string' || !file) return '';
   if (!path.isAbsolute(file)) return file;
-  const rel = path.relative(cwd, file);
-  return rel && !rel.startsWith('..') ? rel : file;
+  const rel = path.relative(realPathForDisplay(cwd), realPathForDisplay(file));
+  return rel && rel !== '..' && !rel.startsWith(`..${path.sep}`) && !path.isAbsolute(rel) ? rel : file;
 }
 
 function firstLine(value: unknown, max = 160): string {

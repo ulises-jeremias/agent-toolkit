@@ -98,10 +98,12 @@ async function createWindow(): Promise<void> {
   }
 
   if (!focus) {
-    // Sessions are journaled inside the workspace serve runs in, so history follows the workspace.
+    // Keep normal transcript operations in private app storage. The one-time
+    // legacy import still validates paths in the user-writable workspace.
     focus = new FocusService({
       getWorkspace: () => supervisor.snapshot().harness?.path ?? harnessController.resolve().path,
       emit: (update) => mainWindow?.webContents.send('atk:focus-update', update),
+      journalRoot: path.join(app.getPath('userData'), 'focus-journals'),
     });
   }
 

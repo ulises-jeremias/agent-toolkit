@@ -2,11 +2,11 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FocusEvent, FocusLiveUpdate, FocusProviderStatus } from '../../src/types/focus';
 import { clipOutput, describeTool } from './adapter.js';
 import { ClaudeSession, claudeArgs } from './claude.js';
-import { isThreadId, newThreadId, ThreadJournal } from './journal.js';
+import { focusRoot, isThreadId, newThreadId, ThreadJournal } from './journal.js';
 import { probeProviders } from './providers.js';
 import { FocusService } from './service.js';
 
@@ -45,7 +45,7 @@ function harness(
   workspace = tempWorkspace(),
   env: NodeJS.ProcessEnv = {},
   provider: FocusProviderStatus = READY,
-  timing: { idleMs?: number; interruptGraceMs?: number } = {},
+  timing: { idleMs?: number; interruptGraceMs?: number; journalRoot?: string } = {},
 ): Harness {
   const updates: FocusLiveUpdate[] = [];
   const argvLog = path.join(workspace, 'argv.log');
@@ -141,6 +141,194 @@ describe('thread journal', () => {
     expect(fs.readFileSync(sentinel, 'utf8')).toBe('do not touch');
   });
 
+  it('moves history into private app storage once and leaves workspace data intact', () => {
+    const h = harness();
+    const id = start(h);
+    const legacy = ThreadJournal.open(h.workspace, id);
+    if (!legacy) throw new Error('Expected the newly created legacy thread');
+    legacy.append(1, { type: 'user', text: 'preserve this history' });
+    const originalEventsInModel = legacy.readEvents();
+    const legacyRoot = focusRoot(h.workspace);
+    const legacyEvents = path.join(legacyRoot, id, 'events.jsonl');
+    const originalEvents = fs.readFileSync(legacyEvents);
+    const legacyMeta = path.join(legacyRoot, id, 'thread.json');
+    const originalMeta = fs.readFileSync(legacyMeta);
+    const appData = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-focus-app-data-'));
+    const storageRoot = path.join(appData, 'focus-journals');
+
+    try {
+      const migrated = ThreadJournal.list(h.workspace, storageRoot);
+      expect(migrated.map((journal) => journal.thread.id)).toEqual([id]);
+      expect(migrated[0]?.readEvents()).toEqual(legacy.readEvents());
+      expect(fs.readFileSync(legacyEvents)).toEqual(originalEvents);
+      expect(fs.readFileSync(path.join(focusRoot(h.workspace, storageRoot), id, 'events.jsonl'))).toEqual(
+        originalEvents,
+      );
+      expect(fs.readFileSync(path.join(focusRoot(h.workspace, storageRoot), id, 'thread.json'))).toEqual(originalMeta);
+      expect(fs.existsSync(path.join(path.dirname(focusRoot(h.workspace, storageRoot)), 'migration-v1.json'))).toBe(
+        true,
+      );
+      if (process.platform !== 'win32') {
+        expect(fs.statSync(storageRoot).mode & 0o777).toBe(0o700);
+        expect(fs.statSync(focusRoot(h.workspace, storageRoot)).mode & 0o777).toBe(0o700);
+        expect(fs.statSync(path.join(focusRoot(h.workspace, storageRoot), id)).mode & 0o777).toBe(0o700);
+      }
+
+      const sentinel = path.join(appData, 'sentinel.txt');
+      fs.writeFileSync(sentinel, 'preserved');
+      fs.unlinkSync(legacyEvents);
+      fs.symlinkSync(sentinel, legacyEvents);
+      expect(ThreadJournal.list(h.workspace, storageRoot)[0]?.readEvents()).toEqual(originalEventsInModel);
+      expect(fs.readFileSync(sentinel, 'utf8')).toBe('preserved');
+    } finally {
+      fs.rmSync(appData, { recursive: true, force: true });
+    }
+  });
+
+  it('creates and reopens new service threads under the app-owned journal root', () => {
+    const workspace = tempWorkspace();
+    const appData = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-focus-service-data-'));
+    const storageRoot = path.join(appData, 'focus-journals');
+    const h = harness(workspace, {}, READY, { journalRoot: storageRoot });
+
+    try {
+      const id = start(h);
+      expect(path.relative(workspace, focusRoot(workspace, storageRoot))).toMatch(/^\.\./);
+      expect(fs.existsSync(path.join(workspace, '.agent-toolkit', 'focus', 'threads', id))).toBe(false);
+      expect(h.service.listThreads().map((thread) => thread.id)).toEqual([id]);
+      expect(h.service.readThread(id)?.thread.id).toBe(id);
+    } finally {
+      fs.rmSync(appData, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses to migrate a symlinked legacy event log and preserves its target', () => {
+    const h = harness();
+    const id = start(h);
+    const legacyRoot = focusRoot(h.workspace);
+    const legacyEvents = path.join(legacyRoot, id, 'events.jsonl');
+    const external = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-focus-migration-'));
+    const sentinel = path.join(external, 'sentinel.txt');
+    const storageRoot = path.join(external, 'focus-journals');
+    fs.writeFileSync(sentinel, 'do not touch');
+    ThreadJournal.open(h.workspace, id)?.append(1, { type: 'user', text: 'legacy event' });
+    fs.unlinkSync(legacyEvents);
+    fs.symlinkSync(sentinel, legacyEvents);
+
+    try {
+      expect(() => ThreadJournal.list(h.workspace, storageRoot)).toThrow(/Symlink/);
+      expect(fs.readFileSync(sentinel, 'utf8')).toBe('do not touch');
+      expect(fs.existsSync(path.join(path.dirname(focusRoot(h.workspace, storageRoot)), 'migration-v1.json'))).toBe(
+        false,
+      );
+    } finally {
+      fs.rmSync(external, { recursive: true, force: true });
+    }
+  });
+
+  it('fails closed on an oversized legacy journal without reading or marking it migrated', () => {
+    const h = harness();
+    const id = start(h);
+    const legacyEvents = path.join(focusRoot(h.workspace), id, 'events.jsonl');
+    const external = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-focus-large-migration-'));
+    const storageRoot = path.join(external, 'focus-journals');
+    const limit = 64 * 1024 * 1024;
+    ThreadJournal.open(h.workspace, id)?.append(1, { type: 'user', text: 'legacy event' });
+    fs.truncateSync(legacyEvents, limit + 1);
+
+    try {
+      expect(() => ThreadJournal.list(h.workspace, storageRoot)).toThrow(/exceeds the 64 MiB migration limit/);
+      expect(fs.statSync(legacyEvents).size).toBe(limit + 1);
+      expect(fs.existsSync(path.join(path.dirname(focusRoot(h.workspace, storageRoot)), 'migration-v1.json'))).toBe(
+        false,
+      );
+      expect(fs.existsSync(path.join(focusRoot(h.workspace, storageRoot), id))).toBe(false);
+    } finally {
+      fs.rmSync(external, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects a legacy ancestor swapped to a symlink during metadata open', () => {
+    const h = harness();
+    const id = start(h);
+    const legacyRoot = focusRoot(h.workspace);
+    const legacyMeta = path.join(legacyRoot, id, 'thread.json');
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-focus-race-'));
+    const outsideThreads = path.join(outside, 'threads');
+    const originalThreads = `${legacyRoot}.original`;
+    fs.cpSync(legacyRoot, outsideThreads, { recursive: true });
+    const storageRoot = path.join(outside, 'focus-journals');
+    const originalOpen = fs.openSync.bind(fs);
+    let swapped = false;
+    const openSpy = vi.spyOn(fs, 'openSync').mockImplementation((file, flags, mode) => {
+      if (!swapped && typeof file === 'string' && path.resolve(file) === legacyMeta) {
+        swapped = true;
+        fs.renameSync(legacyRoot, originalThreads);
+        fs.symlinkSync(outsideThreads, legacyRoot, process.platform === 'win32' ? 'junction' : 'dir');
+        try {
+          return originalOpen(file, flags, mode);
+        } finally {
+          fs.unlinkSync(legacyRoot);
+          fs.renameSync(originalThreads, legacyRoot);
+        }
+      }
+      return originalOpen(file, flags, mode);
+    });
+
+    try {
+      expect(() => ThreadJournal.list(h.workspace, storageRoot)).toThrow(/Could not safely migrate Focus thread/);
+      expect(swapped).toBe(true);
+      expect(fs.existsSync(path.join(path.dirname(focusRoot(h.workspace, storageRoot)), 'migration-v1.json'))).toBe(
+        false,
+      );
+      expect(fs.existsSync(path.join(focusRoot(h.workspace, storageRoot), id))).toBe(false);
+    } finally {
+      openSpy.mockRestore();
+      fs.rmSync(outside, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects a symlinked private storage root before migrating workspace data', () => {
+    const h = harness();
+    const appData = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-focus-app-data-'));
+    const external = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-focus-storage-target-'));
+    const storageRoot = path.join(appData, 'focus-journals');
+    const sentinel = path.join(external, 'sentinel.txt');
+    fs.writeFileSync(sentinel, 'preserved');
+    fs.symlinkSync(external, storageRoot, process.platform === 'win32' ? 'junction' : 'dir');
+
+    try {
+      expect(() => ThreadJournal.list(h.workspace, storageRoot)).toThrow(/Unsafe Focus journal storage directory/);
+      expect(fs.readFileSync(sentinel, 'utf8')).toBe('preserved');
+    } finally {
+      fs.rmSync(appData, { recursive: true, force: true });
+      fs.rmSync(external, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects hard-linked event logs before reading or appending', () => {
+    const h = harness();
+    const id = start(h);
+    const journal = ThreadJournal.open(h.workspace, id);
+    if (!journal) throw new Error('Expected the newly created thread');
+    journal.append(1, { type: 'user', text: 'seed history' });
+    const events = path.join(focusRoot(h.workspace), id, 'events.jsonl');
+    const sentinel = path.join(h.workspace, 'linked-events.txt');
+    fs.renameSync(events, sentinel);
+    fs.linkSync(sentinel, events);
+
+    expect(() => journal.readEvents()).toThrow(/Hard-linked/);
+    expect(() => journal.append(2, { type: 'assistant', itemId: 'blocked', text: 'blocked' })).toThrow(/Hard-linked/);
+    expect(fs.readFileSync(sentinel, 'utf8')).toContain('seed history');
+
+    const metadata = path.join(focusRoot(h.workspace), id, 'thread.json');
+    const linkedMetadata = path.join(h.workspace, 'linked-metadata.json');
+    fs.renameSync(metadata, linkedMetadata);
+    fs.linkSync(linkedMetadata, metadata);
+    expect(ThreadJournal.open(h.workspace, id)).toBeNull();
+    expect(fs.readFileSync(linkedMetadata, 'utf8')).toContain(id);
+  });
+
   it('rejects symlinked Focus directories and refuses recursive deletion', () => {
     const h = harness();
     const id = start(h);
@@ -205,6 +393,27 @@ describe('thread journal', () => {
       costUsd: null,
     });
     expect(h.service.listThreads()).toHaveLength(1);
+  });
+
+  it('does not accept a metadata-only destination as a completed migration', () => {
+    const h = harness();
+    const id = start(h);
+    ThreadJournal.open(h.workspace, id)?.append(1, { type: 'user', text: 'keep the old record' });
+    const legacyEvents = path.join(focusRoot(h.workspace), id, 'events.jsonl');
+    const originalEvents = fs.readFileSync(legacyEvents);
+    const appData = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-focus-partial-migration-'));
+    const storageRoot = path.join(appData, 'focus-journals');
+    const destination = path.join(focusRoot(h.workspace, storageRoot), id);
+    fs.mkdirSync(destination, { recursive: true });
+    fs.copyFileSync(path.join(focusRoot(h.workspace), id, 'thread.json'), path.join(destination, 'thread.json'));
+
+    try {
+      expect(() => ThreadJournal.list(h.workspace, storageRoot)).toThrow(/resume Focus thread migration/);
+      expect(fs.readFileSync(legacyEvents)).toEqual(originalEvents);
+      expect(fs.existsSync(path.join(path.dirname(destination), '..', 'migration-v1.json'))).toBe(false);
+    } finally {
+      fs.rmSync(appData, { recursive: true, force: true });
+    }
   });
 });
 
@@ -538,12 +747,35 @@ describe('claude adapter argv', () => {
 });
 
 describe('tool descriptions', () => {
+  it('keeps aliased workspace paths relative when the provider reports the real path', () => {
+    const workspace = tempWorkspace();
+    const alias = `${workspace}.alias`;
+    const physicalWorkspace = fs.realpathSync(workspace);
+    const physicalFile = path.join(physicalWorkspace, 'nested', 'file.ts');
+    fs.mkdirSync(path.dirname(physicalFile));
+    fs.writeFileSync(physicalFile, 'export {};');
+    fs.symlinkSync(workspace, alias, process.platform === 'win32' ? 'junction' : 'dir');
+
+    try {
+      expect(describeTool('Edit', { file_path: physicalFile }, alias)).toEqual({
+        kind: 'edit',
+        title: path.join('nested', 'file.ts'),
+      });
+    } finally {
+      fs.rmSync(alias, { recursive: true, force: true });
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
   it('classifies provider tools into neutral kinds with a readable title', () => {
     expect(describeTool('Bash', { command: 'npm test\nnpm run lint' }, '/repo')).toEqual({
       kind: 'command',
       title: 'npm test',
     });
-    expect(describeTool('Edit', { file_path: '/repo/src/a.ts' }, '/repo')).toEqual({ kind: 'edit', title: 'src/a.ts' });
+    expect(describeTool('Edit', { file_path: '/repo/src/a.ts' }, '/repo')).toEqual({
+      kind: 'edit',
+      title: path.join('src', 'a.ts'),
+    });
     expect(describeTool('Read', { file_path: '/elsewhere/b.ts' }, '/repo')).toEqual({
       kind: 'read',
       title: '/elsewhere/b.ts',
