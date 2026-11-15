@@ -52,7 +52,8 @@ describe('active Focus permission consent', () => {
     const dialog = screen.getByRole('dialog', { name: 'Enable unrestricted access?' });
     expect(dialog).toBeVisible();
     await user.click(screen.getByRole('button', { name: 'Enable without asking' }));
-    expect(apply).toHaveBeenCalledExactlyOnceWith('bypass');
+    expect(apply).toHaveBeenCalledOnce();
+    expect(apply).toHaveBeenCalledWith('bypass');
   });
 
   it('does not grant unrestricted access when the user dismisses the confirmation', async () => {
