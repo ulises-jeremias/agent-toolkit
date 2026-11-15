@@ -135,6 +135,38 @@ describe('NewSession', () => {
     expect(send).toHaveBeenCalledOnce();
   });
 
+  it('invalidates unrestricted consent when the selected repository changes', async () => {
+    const createThread = vi.fn(async () => ({ ok: true as const, value: created }));
+    const send = vi.fn(async () => ({ ok: true as const, value: true as const }));
+    window.atk = { focus: { createThread, send } as unknown as FocusBridge } as AtkBridge;
+    const user = userEvent.setup();
+    render(
+      createElement(NewSession, {
+        workspace: '/ws',
+        projects: [
+          { name: 'demo', target: '/ws/demo', status: 'ok' },
+          { name: 'other', target: '/ws/other', status: 'ok' },
+        ],
+        projectsLoading: false,
+        providers: [provider],
+        providersLoading: false,
+        onRefreshProviders: vi.fn(),
+        onStarted: vi.fn(),
+      }),
+    );
+
+    await user.selectOptions(screen.getByLabelText('Permissions'), 'bypass');
+    expect(screen.getByRole('dialog', { name: 'Enable unrestricted access?' })).toBeVisible();
+    await user.selectOptions(screen.getByLabelText('Project'), 'other');
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Enable unrestricted access?' })).not.toBeInTheDocument(),
+    );
+    expect(screen.getByLabelText('Permissions')).toHaveValue('ask');
+    expect(createThread).not.toHaveBeenCalled();
+    await user.selectOptions(screen.getByLabelText('Permissions'), 'bypass');
+    expect(screen.getByRole('dialog', { name: 'Enable unrestricted access?' })).toHaveTextContent('/ws/other');
+  });
+
   it('creates only one session when keyboard and pointer submissions overlap', async () => {
     let finishCreate: ((result: Awaited<ReturnType<FocusBridge['createThread']>>) => void) | undefined;
     const createThread = vi.fn(
