@@ -60,6 +60,7 @@ export function NewSession({
     mode,
     activeProvider?.label ?? 'This provider',
     activeProject?.target ?? 'the selected folder',
+    `${activeProvider?.id ?? 'none'}:${activeProject?.name ?? 'none'}`,
     setMode,
   );
 
