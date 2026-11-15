@@ -167,6 +167,48 @@ describe('NewSession', () => {
     expect(screen.getByRole('dialog', { name: 'Enable unrestricted access?' })).toHaveTextContent('/ws/other');
   });
 
+  it('revokes an already confirmed bypass when switching project or provider', async () => {
+    const createThread = vi.fn(async () => ({ ok: true as const, value: created }));
+    const send = vi.fn(async () => ({ ok: true as const, value: true as const }));
+    window.atk = { focus: { createThread, send } as unknown as FocusBridge } as AtkBridge;
+    const user = userEvent.setup();
+    const codex: FocusProviderStatus = { ...provider, id: 'codex', label: 'Codex' };
+    render(
+      createElement(NewSession, {
+        workspace: '/ws',
+        projects: [
+          { name: 'demo', target: '/ws/demo', status: 'ok' },
+          { name: 'other', target: '/ws/other', status: 'ok' },
+        ],
+        projectsLoading: false,
+        providers: [provider, codex],
+        providersLoading: false,
+        onRefreshProviders: vi.fn(),
+        onStarted: vi.fn(),
+      }),
+    );
+    await user.type(screen.getByLabelText('Task'), 'Check the project');
+    await user.selectOptions(screen.getByLabelText('Permissions'), 'bypass');
+    await user.click(screen.getByRole('button', { name: 'Enable without asking' }));
+    expect(screen.getByLabelText('Permissions')).toHaveValue('bypass');
+
+    await user.selectOptions(screen.getByLabelText('Project'), 'other');
+    expect(screen.getByLabelText('Permissions')).toHaveValue('ask');
+    await user.selectOptions(screen.getByLabelText('Permissions'), 'bypass');
+    await user.click(screen.getByRole('button', { name: 'Enable without asking' }));
+    expect(screen.getByLabelText('Permissions')).toHaveValue('bypass');
+
+    await user.click(screen.getByRole('radio', { name: /Codex/ }));
+    expect(screen.getByLabelText('Permissions')).toHaveValue('ask');
+    await user.click(screen.getByRole('button', { name: 'Start session' }));
+    await waitFor(() =>
+      expect(createThread).toHaveBeenCalledWith(
+        expect.objectContaining({ cwd: '/ws/other', provider: 'codex', permissionMode: 'ask' }),
+      ),
+    );
+    expect(send).toHaveBeenCalledOnce();
+  });
+
   it('creates only one session when keyboard and pointer submissions overlap', async () => {
     let finishCreate: ((result: Awaited<ReturnType<FocusBridge['createThread']>>) => void) | undefined;
     const createThread = vi.fn(
