@@ -114,6 +114,7 @@ function Header({
     thread.permissionMode,
     provider?.label ?? 'This provider',
     thread.cwd,
+    `${thread.id}:${thread.provider}`,
     (permissionMode) => void patch({ permissionMode }),
   );
 
