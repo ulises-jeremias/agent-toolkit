@@ -72,32 +72,18 @@ export function Dialog({
     }
   });
 
-  // Escape (or any native close) while the parent still says open.
+  // Keep Escape under React's control: allowing the native dialog to close first
+  // can race an unrelated render that reopens it before the queued `close` event.
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    const handleClose = () => {
-      // The native close event is queued: if the dialog was reopened before it ran,
-      // this event is stale and must not close the new session.
-      if (dialog.open) return;
-      blurWithin(dialog);
-      if (returnFocus.current === null) return;
-      restoreFocus(returnFocus);
-      onClose();
+    const handleCancel = (event: Event) => {
+      event.preventDefault();
+      if (!closeDisabled) onClose();
     };
-    dialog.addEventListener('close', handleClose);
-    return () => dialog.removeEventListener('close', handleClose);
-  }, [onClose]);
-
-  useEffect(() => {
-    const dialog = ref.current;
-    if (!dialog) return;
-    const preventCancel = (event: Event) => {
-      if (closeDisabled) event.preventDefault();
-    };
-    dialog.addEventListener('cancel', preventCancel);
-    return () => dialog.removeEventListener('cancel', preventCancel);
-  }, [closeDisabled]);
+    dialog.addEventListener('cancel', handleCancel);
+    return () => dialog.removeEventListener('cancel', handleCancel);
+  }, [closeDisabled, onClose]);
 
   return (
     <dialog

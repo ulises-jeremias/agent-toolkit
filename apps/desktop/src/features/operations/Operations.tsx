@@ -41,10 +41,32 @@ import { LogLines } from './LogLines';
 import { LoopsPanel } from './Loops';
 import { SwarmsPanel } from './Swarms';
 import styles from './operations.module.css';
+import { DialogOpeningGuard } from './dialogOpeningGuard';
 
 function patchParams(setParams: ReturnType<typeof useSearchParams>[1], patch: Record<string, string | null>): void {
   setParams(
     (current) => {
+      const next = new URLSearchParams(current);
+      for (const [key, value] of Object.entries(patch)) {
+        if (value) next.set(key, value);
+        else next.delete(key);
+      }
+      return next;
+    },
+    { replace: true },
+  );
+}
+
+function patchParamsForDialog(
+  setParams: ReturnType<typeof useSearchParams>[1],
+  expectedDialog: string,
+  patch: Record<string, string | null>,
+  isCurrent: () => boolean,
+): void {
+  if (!isCurrent()) return;
+  setParams(
+    (current) => {
+      if (!isCurrent() || current.get('dialog') !== expectedDialog) return current;
       const next = new URLSearchParams(current);
       for (const [key, value] of Object.entries(patch)) {
         if (value) next.set(key, value);
@@ -67,6 +89,25 @@ export default function Operations() {
   const selectedSwarm = params.get('swarm');
   const scheduleName = params.get('schedule') === '1' ? selectedLoop : null;
   const dialog = params.get('dialog');
+  const guardRef = useRef<DialogOpeningGuard | null>(null);
+  if (!guardRef.current) guardRef.current = new DialogOpeningGuard();
+  const guard = guardRef.current;
+  guard.observe(dialog);
+  const currentOpening = dialog ? guard.capture(dialog) : () => false;
+  const openDialog = (name: string, extra: Record<string, string | null> = {}) => {
+    guard.invalidate();
+    patchParams(setParams, { ...extra, dialog: name });
+  };
+  const closeDialog = (name: string) => {
+    if (!currentOpening()) return;
+    guard.invalidate();
+    patchParamsForDialog(setParams, name, { dialog: null }, () => true);
+  };
+  const completeDialog = (name: string, id: string) => {
+    if (!currentOpening()) return;
+    guard.invalidate();
+    patchParamsForDialog(setParams, name, { job: id, dialog: null }, () => true);
+  };
   const jobs = useJobs();
   const { connection } = useLiveStatus();
   const offline = connection === 'offline';
@@ -84,14 +125,14 @@ export default function Operations() {
         actions={
           <>
             <Button
-              onClick={() => patchParams(setParams, { dialog: 'start-swarm' })}
+              onClick={() => openDialog('start-swarm')}
               disabled={offline}
               title={offline ? 'The backend is not answering' : undefined}
             >
               Start swarm
             </Button>
             <Button
-              onClick={() => patchParams(setParams, { dialog: 'run-loop' })}
+              onClick={() => openDialog('run-loop')}
               disabled={offline}
               title={offline ? 'The backend is not answering' : undefined}
             >
@@ -99,7 +140,7 @@ export default function Operations() {
             </Button>
             <Button
               variant="primary"
-              onClick={() => patchParams(setParams, { dialog: 'start-job' })}
+              onClick={() => openDialog('start-job')}
               disabled={offline}
               title={offline ? 'The backend is not answering' : undefined}
             >
@@ -110,8 +151,8 @@ export default function Operations() {
       />
       <StartJobDialog
         open={dialog === 'start-job'}
-        onClose={() => patchParams(setParams, { dialog: null })}
-        onStarted={(id) => patchParams(setParams, { job: id, dialog: null })}
+        onClose={() => closeDialog('start-job')}
+        onStarted={(id) => completeDialog('start-job', id)}
       />
       <Stack>
         <div className={`${styles.split} ${styles.board}`}>
@@ -157,17 +198,17 @@ export default function Operations() {
           scheduleName={scheduleName}
           dialogOpen={dialog === 'run-loop'}
           onSelect={(name) => patchParams(setParams, { loop: name })}
-          onRun={(name) => patchParams(setParams, { loop: name, dialog: 'run-loop' })}
+          onRun={(name) => openDialog('run-loop', { loop: name })}
           onSchedule={(name) => patchParams(setParams, { loop: name, schedule: '1' })}
           onCloseSchedule={() => patchParams(setParams, { schedule: null })}
-          onCloseDialog={() => patchParams(setParams, { dialog: null })}
-          onStarted={(id) => patchParams(setParams, { job: id, dialog: null })}
+          onCloseDialog={() => closeDialog('run-loop')}
+          onStarted={(id) => completeDialog('run-loop', id)}
         />
         <SwarmsPanel
           selectedId={selectedSwarm}
           dialogOpen={dialog === 'start-swarm'}
           onSelect={(id) => patchParams(setParams, { swarm: id })}
-          onCloseDialog={() => patchParams(setParams, { dialog: null })}
+          onCloseDialog={() => closeDialog('start-swarm')}
         />
         <DoctorPanel />
       </Stack>
