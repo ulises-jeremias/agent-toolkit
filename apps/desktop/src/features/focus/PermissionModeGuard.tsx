@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { FocusPermissionMode } from '../../types/focus';
 import { Button, Dialog } from '../../ui';
 
@@ -7,14 +7,20 @@ export function usePermissionModeGuard(
   current: FocusPermissionMode,
   providerLabel: string,
   cwd: string,
+  contextKey: string,
   apply: (mode: FocusPermissionMode) => void,
 ): { choose: (mode: FocusPermissionMode) => void; dialog: ReactNode } {
-  const [pending, setPending] = useState<FocusPermissionMode | null>(null);
+  const [pending, setPending] = useState<{ mode: FocusPermissionMode; key: string } | null>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
+
+  // Consent belongs to one exact provider/project/thread, never to a reused dialog.
+  const key = JSON.stringify([contextKey, providerLabel, cwd]);
+  useEffect(() => setPending(null), [key]);
+  const confirmedPending = pending?.key === key ? pending : null;
 
   const choose = (mode: FocusPermissionMode) => {
     if (mode === 'bypass' && current !== 'bypass') {
-      setPending(mode);
+      setPending({ mode, key });
       return;
     }
     apply(mode);
@@ -22,7 +28,7 @@ export function usePermissionModeGuard(
 
   const dialog = (
     <Dialog
-      open={pending !== null}
+      open={confirmedPending !== null}
       onClose={() => setPending(null)}
       title="Enable unrestricted access?"
       description={
@@ -42,7 +48,7 @@ export function usePermissionModeGuard(
           <Button
             variant="danger"
             onClick={() => {
-              if (pending) apply(pending);
+              if (confirmedPending) apply(confirmedPending.mode);
               setPending(null);
             }}
           >
