@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { _electron as electron } from '@playwright/test';
+import { assertFreshFirstRunState } from './first-run-state.mjs';
 
 const APP_DIR = path.resolve(process.cwd());
 const REPO = path.resolve(APP_DIR, '..', '..');
@@ -115,6 +116,7 @@ async function launch() {
 // (headless Electron cannot drive it); the main-process dialog is stubbed
 // to return the fixture path, exactly what a user picking it produces.
 async function phaseFirstRun() {
+  assertFreshFirstRunState(ROOT);
   fs.mkdirSync(HOME_DIR, { recursive: true });
   // The fixture is an existing repo outside the new workspace, as in real
   // use. (This journey originally exposed that the server rejected such
