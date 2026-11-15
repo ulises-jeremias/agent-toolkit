@@ -53,14 +53,21 @@ export function NewSession({
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const startingRef = useRef(false);
+  // A bypass grant applies only to the exact project/provider it was confirmed for.
+  const consentScopeRef = useRef<string | null>(null);
 
   const activeProject = selectStartProject(usable, project);
   const activeProvider = ready.find((entry) => entry.id === providerId) ?? ready[0];
+  const consentScope = JSON.stringify([workspace, activeProject?.name, activeProject?.target, activeProvider?.id]);
+  useEffect(() => {
+    if (consentScopeRef.current !== null && consentScopeRef.current !== consentScope) setMode('ask');
+    consentScopeRef.current = consentScope;
+  }, [consentScope]);
   const permissionGuard = usePermissionModeGuard(
     mode,
     activeProvider?.label ?? 'This provider',
     activeProject?.target ?? 'the selected folder',
-    `${activeProvider?.id ?? 'none'}:${activeProject?.name ?? 'none'}`,
+    consentScope,
     setMode,
   );
 
@@ -115,7 +122,10 @@ export function NewSession({
   const linkFolder = () =>
     link.mutate(undefined, {
       onSuccess: (linked) => {
-        if (linked) setProject(linked.name);
+        if (linked) {
+          setMode('ask');
+          setProject(linked.name);
+        }
       },
     });
 
@@ -150,7 +160,10 @@ export function NewSession({
             <select
               id="focus-start-project"
               value={activeProject?.name ?? ''}
-              onChange={(event) => setProject(event.target.value)}
+              onChange={(event) => {
+                setMode('ask');
+                setProject(event.target.value);
+              }}
             >
               {usable.map((entry) => (
                 <option key={entry.name} value={entry.name}>
@@ -243,6 +256,7 @@ export function NewSession({
                 checked={selected}
                 disabled={blocker !== null}
                 onChange={() => {
+                  setMode('ask');
                   setProviderId(provider.id);
                   setModel('');
                 }}
