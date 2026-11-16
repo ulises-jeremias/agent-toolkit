@@ -8,16 +8,16 @@ origin:
 upstream:
   repository: latent-spaces/brag
   path: skills/brag
-  ref: c36b8341e1a983a49cc2a797d759634497172848
+  ref: 7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a
   license: MIT
-  version: c36b834
+  version: 7c98a08
 trust:
   tier: experimental
-  reviewed_at: '2026-11-02'
+  reviewed_at: '2026-11-16'
   reviewed_by: ulises-jeremias
 maintenance:
   status: active
-  last_checked: '2026-11-02'
+  last_checked: '2026-11-16'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -41,7 +41,7 @@ You built it. Now let's brag about it.
 
 ## Invocation dispatch (must happen first)
 
-**Model check.** If you are Claude Opus 5.5 and the invocation doesn't ask for the full workflow (`--full`, "use the full brag") or for voiceover (`--voice`, which brag-slim doesn't do), switch to brag-slim: read `<skill-dir>/slim.md` (the /brag-slim skill, bundled here) and follow it for the rest of this run instead of this file. Pass along the user's input, and pass any other options (`--no-music`, `--title`, …) as plain-language direction. Tell the user in one line first, e.g. "You're on Opus 5.5, so I'm using /brag-slim: I build the whole video myself. Say 'use the full brag' to switch back." If you are any other model, or can't tell which model you are, skip this check.
+**Model check.** If you are Claude Opus 5.5, Claude Sonnet 5.5 or Claude Fable 5.2 and the invocation doesn't ask for the full workflow (`--full`, "use the full brag") or for voiceover (`--voice`, which brag-slim doesn't do), switch to brag-slim: read `<skill-dir>/slim.md` (the /brag-slim skill, bundled here) and follow it for the rest of this run instead of this file. Pass along the user's input, and pass any other options (`--no-music`, `--title`, …) as plain-language direction. Tell the user in one line first, e.g. "You're on Sonnet 5.5, so I'm using /brag-slim: I build the whole video myself. Say 'use the full brag' to switch back." If you are any other model, or can't tell which model you are, skip this check.
 
 Before inspecting the project, parse the complete `/brag` invocation. If the
 invocation contains `--voice`, set `voice.enabled = true`. Enable narration
@@ -80,6 +80,8 @@ Parse these options:
 | `--no-sfx` | flag | sfx on |
 | `--title` | string | inferred from project |
 | `--voice` | flag | narration off |
+
+Pixel size at 30fps: landscape is 1920×1080, vertical is 1080×1920, square is 1080×1080. These are the same frames `/brag-slim` uses.
 
 Voice is opt-in. If `--voice` is present, use Kokoro via Hyperframes and do
 not add any provider-selection logic. The voice workflow is intentionally
@@ -137,7 +139,7 @@ Write `<output-dir>/brag-plan.md` (where `<output-dir>` is `brag-output/` or the
 
 When music is selected, include a compact `Music cue guidance` section: read the bundled track's cue preset from `<skill-dir>/assets/music/cues/` if present, otherwise note cues will be detected at composition time (any track now supports beat sync — see `references/audio.md`). Cue metadata is optional timing guidance only: story, readability, pacing, and product clarity stay primary.
 
-**Gate:** `<output-dir>/brag-plan.md` exists with a full storyboard. Scene durations sum to 15–25 seconds.
+**Gate:** `<output-dir>/brag-plan.md` exists with a full storyboard. Scene durations sum to 15–25 seconds, or to the explicit `--duration` when the user set one.
 
 ---
 
@@ -161,7 +163,7 @@ Write the composition brief and use Hyperframes to create the video implementati
 
 Validate, preview, render to `<output-dir>/brag.mp4`, pick the best poster frame into `<output-dir>/brag.jpg`, bake that poster as the video's frame 0 so it's the idle thumbnail everywhere, and write `<output-dir>/share-copy.txt`.
 
-**Gate:** `<output-dir>/brag.mp4` exists. A best-frame poster `<output-dir>/brag.jpg` is picked (not an arbitrary frame) and baked as frame 0 of `brag.mp4`. Share copy is written.
+**Gate:** `<output-dir>/brag.mp4` exists. A best-frame poster `<output-dir>/brag.jpg` is picked (not an arbitrary frame) and baked as frame 0 of `brag.mp4`, replacing that frame rather than adding one. Share copy is written.
 
 ---
 
@@ -189,13 +191,13 @@ Always allow a freeform creative direction to refine or override the preset.
 
 These apply to every brag video regardless of tone.
 
-**Short.** 15–25 seconds. Not one second more without a reason. This holds whether or not narration is on; narration does not extend the window.
+**Short.** 15–25 seconds. Not one second more without a reason. An explicit `--duration` is that reason: the scenes sum to the number the user asked for, and the plan says so. This holds whether or not narration is on; narration does not extend the window.
 
 **Readable.** Keep the pace high through motion and cuts, never by flashing text. Every line a viewer must read holds long enough to read it (short label ~0.8s settled; a sentence ~0.3s per word). Fast-in, then hold — never fast-in, then gone.
 
 **Specific.** The video must feel like it was made for this exact project, not any project.
 
-**Show the thing.** At least one scene must display actual UI, copy, or a key visual from the product. No abstract filler.
+**Show the thing.** At least one scene must display actual UI, copy, or a key visual from the product. No abstract filler. If the product displays data about people (messages, contacts, followers, customer, health or finance records), show the real interface with obviously placeholder records, never rows from the project's database or exports: the video is made to be shared, and those people never agreed to be in it.
 
 **No generic SaaS language.** "Streamline your workflow" is banned. Use the project's actual copy and claims.
 

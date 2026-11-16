@@ -92,6 +92,8 @@ Transition mood: [mood] → Scene 3
 **Audio summary:** [one sentence describing the full audio arc]
 ```
 
+Use 1920×1080 for landscape, 1080×1920 for vertical, and 1080×1080 for square, at 30fps, unless the user asks for another size.
+
 ## Planning the scenes
 
 The default pattern is:
@@ -113,7 +115,9 @@ But adapt it. These are the right scene counts for each tone:
 
 ## Duration guidance
 
-Scene durations must sum to 15-25 seconds. Count them.
+If the user passed `--duration`, scene durations must sum to that many seconds. Write the number in the plan. Do not also force the 15–25 window.
+
+If the user did not pass `--duration`, scene durations must sum to 15-25 seconds. Count them.
 
 - Under 15 seconds: too thin, add a scene or lengthen holds.
 - Over 25 seconds: cut a scene or tighten timing.

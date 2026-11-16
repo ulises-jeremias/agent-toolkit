@@ -87,6 +87,8 @@ Read `sfx-analysis.md` before choosing files — it lists safer picks by use cas
 
 32 CC0 single keypress WAV files (`keypress-001.wav` through `keypress-032.wav`). Each is a distinct key sound at a slightly different velocity and character. Use these for per-character typing animations — randomize across the set so repeated characters don't sound robotic.
 
+These wavs are not entries in `sfx-analysis.json`. That file covers the 228 `.ogg` files in `casino/`, `impact/`, `interface/`, and `ui/`. Pick keypresses by filename.
+
 **Source:** [Keyboard Soundpack #1](https://opengameart.org/content/keyboard-soundpack-1-typing-and-single-keystrokes) by unicae_games — CC0
 
 ### `interface/` — UI sounds
@@ -277,8 +279,11 @@ The preset and `analyze_music_cues.py` share the rich schema:
 
 - `duration`, `tempo`
 - `beats`: beat-grid points with `time` and normalized `intensity`
-- `strongCues`: highest-value landing moments with `time`, `intensity`, and `kind` (`strong_beat` / `onset_peak`)
+- `strongCues`: up to 64 highest-value landing moments across the full track, ordered by time, with `time`, `intensity`, and `kind` (`strong_beat` / `onset_peak`)
+- `windowStrongCues` (newer analyses only): the strongest cues inside the requested window, strongest first, up to `--top-cues` (default 10). The Markdown's "Strong Cues In Window" shows the same list.
 - `scoring`: feature and normalization metadata
+
+For a section of the track, pass `--window-start` and `--window-duration` (defaults 0 and 25). `windowStrongCues` then lists that section's strongest cues, picked before the 64-cue cap. Older presets don't have it: filter `strongCues` to the window, and rerun the analyzer if that leaves nothing useful.
 
 `hyperframes beats` is the simpler floor: a plain beat grid with a per-beat strength, no strong-cue array.
 

@@ -7,50 +7,50 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adrs/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-11-11T03:37:31.130196Z
+Generated: 2026-11-16T06:32:24.285917Z
 Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 
 ## `design/brag`
 
-- **Trust:** `experimental` reviewed_at=2026-11-02 by=ulises-jeremias
+- **Trust:** `experimental` reviewed_at=2026-11-16 by=ulises-jeremias
 - **Maintenance:** `active` last_activity=?
 - **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=True shell=True network=True cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:5951c480c9d92bf0322ce09b929880baf43a307eb20d49b07ab9f05199f04d4a`
+- **Provenance digest:** `sha256:f18f916506342a8032b1d1c0b3e2c23228ecdb2d9aa951a576e1411926052fdf`
 
 ### Source `upstream` — `latent-spaces/brag/skills/brag`
 
 - **Repository:** `latent-spaces/brag`
 - **Path:** `skills/brag`
-- **Requested:** `commit` `c36b8341e1a983a49cc2a797d759634497172848` (declaration intent)
-- **Resolved commit:** `c36b8341e1a983a49cc2a797d759634497172848`
-- **Content checksum:** `sha256:77af31eaf1247f3a9cec00c0d38508aefc5c6245d1fb708017c40d44ceb51769`
-- **Body checksum:** `sha256:d024756eef132fb4788a00ef69408f5b60af8e495f3a15dfabb567089893d4aa` (must match local SKILL.md body)
+- **Requested:** `commit` `7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a` (declaration intent)
+- **Resolved commit:** `7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a`
+- **Content checksum:** `sha256:723bddbb056a6c292b4e7e557b5ba6f77576fbcdfaa9090e171e2a56f59ad5e2`
+- **Body checksum:** `sha256:578ca9772b37eadcb112d82c83a18636090539c07177459cbcf031b5bb1855c0` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/brag/LICENSE` checksum=`sha256:92d538e0da9abeaafff8ecfc62e142f5053fa92b2c3ef29978742c325c554089`
   - Declaration expected `license: MIT` — mismatch requires review
-- **Resolved at:** `2026-11-02T04:51:24.249697Z` version=`c36b834`
+- **Resolved at:** `2026-11-16T06:32:24.123739Z` version=`7c98a08`
 
 - **Per-skill attribution:** `skills/design/brag/UPSTREAM.md`
 
 ## `design/brag-slim`
 
-- **Trust:** `experimental` reviewed_at=2026-11-02 by=ulises-jeremias
+- **Trust:** `experimental` reviewed_at=2026-11-16 by=ulises-jeremias
 - **Maintenance:** `active` last_activity=?
 - **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=False shell=True network=True cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:a4f34eb3958bc28f30915bbf46ec865811501eb36e21d68fedbfbbbd8bfaf8bd`
+- **Provenance digest:** `sha256:10d91e805754c2b2b140b9baedc22d6bfd79ba37a51c7e8d804d8f70862138d6`
 
 ### Source `upstream` — `latent-spaces/brag/skills/brag-slim`
 
 - **Repository:** `latent-spaces/brag`
 - **Path:** `skills/brag-slim`
-- **Requested:** `commit` `78100ba246612a09ba275ae130845c72c4d7ed97` (declaration intent)
-- **Resolved commit:** `78100ba246612a09ba275ae130845c72c4d7ed97`
-- **Content checksum:** `sha256:452bc71352181e7353a80fce1c65e550a0f6d272c6495530a058d17c1d6abd61`
-- **Body checksum:** `sha256:c91d9f2976461067cadc61174d9358b9f701a30479ed7a6a282f2d4d1d4a8d62` (must match local SKILL.md body)
+- **Requested:** `commit` `7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a` (declaration intent)
+- **Resolved commit:** `7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a`
+- **Content checksum:** `sha256:e4c44a335d33afe028f79c31d245e2ba09f97c0a1263e81b4d4d6fc4d025e42c`
+- **Body checksum:** `sha256:c5258b0f2ea2d4d7e2d94e023713e4d5a7d2c0f4a65dd3cab339b878fd7279d9` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/brag-slim/LICENSE` checksum=`sha256:92d538e0da9abeaafff8ecfc62e142f5053fa92b2c3ef29978742c325c554089`
   - Declaration expected `license: MIT` — mismatch requires review
-- **Resolved at:** `2026-11-02T04:51:24.249697Z` version=`78100ba`
+- **Resolved at:** `2026-11-16T06:32:24.123739Z` version=`7c98a08`
 
 - **Per-skill attribution:** `skills/design/brag-slim/UPSTREAM.md`
 
@@ -535,23 +535,23 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 
 ## `quality/blast-radius`
 
-- **Trust:** `experimental` reviewed_at=2026-11-02 by=ulises-jeremias
+- **Trust:** `experimental` reviewed_at=2026-11-16 by=ulises-jeremias
 - **Maintenance:** `active` last_activity=?
 - **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=False shell=False network=False cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:3a4a7d43b1fc2590404ca84f65ae52346260fefd2119d118ba1c7560932e22b2`
+- **Provenance digest:** `sha256:491b2291e7a68a95dfd0ae572f1ea7f28339df67fd35c90cec1edaaf6a49503a`
 
 ### Source `upstream` — `cursor/plugins/pstack/skills/blast-radius`
 
 - **Repository:** `cursor/plugins`
 - **Path:** `pstack/skills/blast-radius`
-- **Requested:** `commit` `df581122cde17e6e27686b5a448bde23e4ad4318` (declaration intent)
-- **Resolved commit:** `df581122cde17e6e27686b5a448bde23e4ad4318`
-- **Content checksum:** `sha256:812c854772f8829d9c1fea7aa9b4c402ba26cde46555e1e1b90c1a7439253739`
-- **Body checksum:** `sha256:0312c17e21d6e4a9e217f95cbe3d50eedbc8c273007f305a009d77699a54dc4a` (must match local SKILL.md body)
+- **Requested:** `commit` `bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7` (declaration intent)
+- **Resolved commit:** `bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7`
+- **Content checksum:** `sha256:c5a5398f0a14c7af309b5e128b1edfd85e9e42e1688347f5fb29b5031176d126`
+- **Body checksum:** `sha256:620394b8c7ec32c10a73875c98b1fa11a19bfb1a28cce604612beb980ffa3a21` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/quality/blast-radius/LICENSE` checksum=`sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e`
   - Declaration expected `license: MIT` — mismatch requires review
-- **Resolved at:** `2026-11-02T04:51:24.249697Z` version=`df58112`
+- **Resolved at:** `2026-11-16T06:32:24.123739Z` version=`bf0c7cd`
 
 - **Per-skill attribution:** `skills/quality/blast-radius/UPSTREAM.md`
 
