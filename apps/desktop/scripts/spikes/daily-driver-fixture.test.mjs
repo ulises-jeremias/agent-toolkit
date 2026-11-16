@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync, rmSync, mkdtempSync, mkdirSync, chmodSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, rmSync, mkdtempSync, mkdirSync, chmodSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -70,4 +70,17 @@ test('fixture does not execute inherited global Git hooks', { skip: process.plat
   const directory = child.stdout.trim();
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   assert.equal(existsSync(sentinel), false, 'global pre-commit hook must not execute');
+});
+
+test('fixture removes temporary project if Git initialization fails', (t) => {
+  const root = mkdtempSync(join(tmpdir(), 'atk-fixture-failure-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const fixtureModule = pathToFileURL(join(import.meta.dirname, 'daily-driver-fixture.mjs')).href;
+  // An empty PATH makes git unavailable; invoke Node by absolute executable.
+  const child = spawnSync(process.execPath, ['--input-type=module', '-e',
+    `import { createFixture } from ${JSON.stringify(fixtureModule)}; createFixture({ root: ${JSON.stringify(root)} });`],
+    { encoding: 'utf8', env: { ...process.env, PATH: '' } });
+  assert.notEqual(child.status, 0, 'setup must fail when git is missing');
+  assert.match(child.stderr, /ENOENT|git/);
+  assert.deepEqual(readdirSync(root), [], 'failed fixture must not leave a partial repository');
 });
