@@ -214,3 +214,19 @@ test('Gate 0 macOS bundle rejects non-executable payloads without claiming real 
   }
 });
 
+
+test('Gate 0 preflight removes partial fixture when Git is unavailable', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'atk-gate0-failure-'));
+  try {
+    const output = join(dir, 'evidence');
+    // Node runs via process.execPath, but an empty PATH prevents Git initialization.
+    const result = run(output, undefined, { PATH: '' });
+    assert.notEqual(result.status, 0, 'preflight must fail when Git is unavailable');
+    assert.match(result.stderr, /Could not create disposable Git fixture/);
+    assert.equal(existsSync(join(output, 'fixture')), false, 'partial Git project must be removed');
+    assert.equal(existsSync(join(output, 'baseline.json')), false, 'failure must not emit acceptance evidence');
+    assert.equal(existsSync(join(output, 'README.md')), false, 'failure must not emit a success-looking report');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
