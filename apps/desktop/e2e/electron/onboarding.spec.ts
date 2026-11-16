@@ -106,6 +106,22 @@ test.describe('first-run missing harness', () => {
     await expect(page.getByRole('listitem').filter({ hasText: 'Workspace folder' })).toContainText(workspace);
     await capture(page, 'fallback-03-created');
 
+    // D01 regression: this launch started with a truly absent workspace.
+    // Link an existing Git directory from the GUI after creating the workspace,
+    // without invoking workspace init or project-link CLI commands in the fixture.
+    const repo = path.join(desktop.home, 'code', 'clean-start-repo');
+    fs.mkdirSync(path.join(repo, '.git'), { recursive: true });
+    await desktop.app.evaluate(({ dialog }, folder) => {
+      dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [folder] });
+    }, repo);
+    await page.getByRole('button', { name: 'Choose a repository folder' }).click();
+    const linked = page.getByRole('listitem').filter({ hasText: 'A repository to work on' });
+    await expect(linked).toContainText('clean-start-repo', { timeout: 30_000 });
+    expect(fs.realpathSync(path.join(workspace, 'projects', 'clean-start-repo'))).toBe(
+      fs.realpathSync(repo),
+    );
+    await capture(page, 'fallback-04-repository-linked');
+
     await enterWorld(page, 'fallback-');
   });
 });
