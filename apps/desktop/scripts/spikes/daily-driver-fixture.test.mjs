@@ -57,9 +57,9 @@ test('fixture does not execute inherited global Git hooks', { skip: process.plat
   mkdirSync(hooks);
   const sentinel = join(home, 'hook-executed');
   const hook = join(hooks, 'pre-commit');
-  writeFileSync(hook, '#!/bin/sh\\ntouch ' + JSON.stringify(sentinel) + '\\nexit 17\\n');
+  writeFileSync(hook, '#!/bin/sh\ntouch ' + JSON.stringify(sentinel) + '\nexit 17\n');
   chmodSync(hook, 0o755);
-  writeFileSync(join(home, '.gitconfig'), '[core]\\n\\thooksPath = ' + hooks + '\\n');
+  writeFileSync(join(home, '.gitconfig'), '[core]\n\thooksPath = ' + hooks + '\n');
   const fixtureModule = pathToFileURL(join(import.meta.dirname, 'daily-driver-fixture.mjs')).href;
   const env = { ...process.env, HOME: home, XDG_CONFIG_HOME: home };
   delete env.GIT_CONFIG_GLOBAL;
