@@ -14,6 +14,10 @@ const gitEnv = { ...process.env };
 for (const name of Object.keys(gitEnv)) {
   if (name.startsWith('GIT_')) delete gitEnv[name];
 }
+// Ignore host-level Git policy, including core.hooksPath and signing settings.
+// A disposable acceptance fixture must not run hooks from the user's global config.
+gitEnv.GIT_CONFIG_NOSYSTEM = '1';
+gitEnv.GIT_CONFIG_GLOBAL = process.platform === 'win32' ? 'NUL' : '/dev/null';
 
 export function createFixture({ root = tmpdir() } = {}) {
   const directory = mkdtempSync(join(root, 'atk-daily-driver-'));

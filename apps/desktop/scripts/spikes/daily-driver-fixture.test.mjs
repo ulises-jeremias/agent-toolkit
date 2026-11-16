@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, rmSync, mkdtempSync, mkdirSync, chmodSync, existsSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { createFixture } from './daily-driver-fixture.mjs';
 
@@ -45,4 +46,28 @@ test('fixture ignores inherited Git overrides and commit signing', (t) => {
   for (const name of Object.keys(cleanEnv)) if (name.startsWith('GIT_')) delete cleanEnv[name];
   assert.equal(execFileSync('git', ['-C', directory, 'status', '--porcelain'], { encoding: 'utf8', env: cleanEnv }).trim(), '');
   assert.equal(execFileSync('git', ['-C', directory, 'log', '-1', '--format=%s'], { encoding: 'utf8', env: cleanEnv }).trim(), 'test: establish failing fixture');
+});
+
+// A global hooksPath can execute arbitrary host hooks on every fixture commit.
+// The field-trial fixture must remain hermetic even when the tester has one.
+test('fixture does not execute inherited global Git hooks', { skip: process.platform === 'win32' }, (t) => {
+  const home = mkdtempSync(join(tmpdir(), 'atk-git-home-'));
+  t.after(() => rmSync(home, { recursive: true, force: true }));
+  const hooks = join(home, 'hooks');
+  mkdirSync(hooks);
+  const sentinel = join(home, 'hook-executed');
+  const hook = join(hooks, 'pre-commit');
+  writeFileSync(hook, '#!/bin/sh\ntouch ' + JSON.stringify(sentinel) + '\nexit 17\n');
+  chmodSync(hook, 0o755);
+  writeFileSync(join(home, '.gitconfig'), '[core]\n\thooksPath = ' + hooks + '\n');
+  const fixtureModule = pathToFileURL(join(import.meta.dirname, 'daily-driver-fixture.mjs')).href;
+  const env = { ...process.env, HOME: home, XDG_CONFIG_HOME: home };
+  delete env.GIT_CONFIG_GLOBAL;
+  const child = spawnSync(process.execPath, ['--input-type=module', '-e',
+    `import { createFixture } from ${JSON.stringify(fixtureModule)}; console.log(createFixture());`],
+    { encoding: 'utf8', env });
+  assert.equal(child.status, 0, child.stderr);
+  const directory = child.stdout.trim();
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  assert.equal(existsSync(sentinel), false, 'global pre-commit hook must not execute');
 });
