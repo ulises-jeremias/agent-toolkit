@@ -4,7 +4,7 @@
  * Desktop D01-D07 field trial. Never touches the user's existing projects.
  * This is a fixture, NOT evidence of a live provider or Desktop acceptance.
  */
-import { mkdtempSync, mkdirSync, writeFileSync, realpathSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -21,14 +21,19 @@ gitEnv.GIT_CONFIG_GLOBAL = process.platform === 'win32' ? 'NUL' : '/dev/null';
 
 export function createFixture({ root = tmpdir() } = {}) {
   const directory = mkdtempSync(join(root, 'atk-daily-driver-'));
-  mkdirSync(join(directory, 'src'));
-  mkdirSync(join(directory, 'test'));
-  writeFileSync(join(directory, 'src', 'sum.mjs'), 'export const sum = (a, b) => a - b;\n');
-  writeFileSync(join(directory, 'test', 'sum.test.mjs'),
-    "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { sum } from '../src/sum.mjs';\ntest('sum', () => assert.equal(sum(2, 3), 5));\n");
-  execFileSync('git', ['init', '-q', directory], { env: gitEnv });
-  execFileSync('git', ['-C', directory, 'add', '--', 'src/sum.mjs', 'test/sum.test.mjs'], { env: gitEnv });
-  execFileSync('git', ['-C', directory, '-c', 'user.name=Toolkit Fixture', '-c', 'user.email=fixture@invalid.example', '-c', 'commit.gpgsign=false', 'commit', '-qm', 'test: establish failing fixture'], { env: gitEnv });
+  try {
+    mkdirSync(join(directory, 'src'));
+    mkdirSync(join(directory, 'test'));
+    writeFileSync(join(directory, 'src', 'sum.mjs'), 'export const sum = (a, b) => a - b;\n');
+    writeFileSync(join(directory, 'test', 'sum.test.mjs'),
+      "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { sum } from '../src/sum.mjs';\ntest('sum', () => assert.equal(sum(2, 3), 5));\n");
+    execFileSync('git', ['init', '-q', directory], { env: gitEnv });
+    execFileSync('git', ['-C', directory, 'add', '--', 'src/sum.mjs', 'test/sum.test.mjs'], { env: gitEnv });
+    execFileSync('git', ['-C', directory, '-c', 'user.name=Toolkit Fixture', '-c', 'user.email=fixture@invalid.example', '-c', 'commit.gpgsign=false', 'commit', '-qm', 'test: establish failing fixture'], { env: gitEnv });
+  } catch (error) {
+    rmSync(directory, { recursive: true, force: true });
+    throw error;
+  }
   return directory;
 }
 
