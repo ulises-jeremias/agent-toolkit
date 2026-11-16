@@ -136,7 +136,8 @@ function filePresence(filename) {
 
 function makeFixture(dir) {
   const root = path.join(dir, 'fixture');
-  fs.mkdirSync(path.join(root, 'src'), { recursive: true });
+  try {
+    fs.mkdirSync(path.join(root, 'src'), { recursive: true });
   fs.mkdirSync(path.join(root, 'test'), { recursive: true });
   fs.writeFileSync(path.join(root, 'src', 'sum.mjs'), 'export const sum = (a, b) => a - b;\n');
   fs.writeFileSync(path.join(root, 'test', 'sum.test.mjs'),
@@ -153,6 +154,11 @@ function makeFixture(dir) {
   }
   return { directory: 'fixture/', failing_test_confirmed: true,
     instruction: 'Fix the sum implementation without changing the test; run node --test and show the diff.' };
+  } catch (error) {
+    // A failed Git command or baseline test must not leave a misleading partial fixture.
+    fs.rmSync(root, { recursive: true, force: true });
+    throw error;
+  }
 }
 
 function markdown(data) {
