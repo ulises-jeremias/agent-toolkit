@@ -20,8 +20,13 @@ export function inspectEvidence(rows) {
     if (row.outcome === 'pass' && row.evidence_level === 'U') errors.push(`${prefix}: unverified evidence cannot pass`);
     if (row.evidence_level === 'P' && row.outcome === 'pass') {
       for (const field of REQUIRED) if (typeof row[field] !== 'string' || !row[field].trim() || row[field].includes('<')) errors.push(`${prefix}: missing concrete ${field}`);
-      if (!Array.isArray(row.logs) || !row.logs.length) errors.push(`${prefix}: packaged pass requires log references`);
-      if (!Array.isArray(row.screenshots) || !row.screenshots.length) errors.push(`${prefix}: packaged pass requires screenshot references`);
+      // Non-empty arrays alone are not evidence: [null], [""], and template markers
+      // must not qualify as packaged runs. This checks shape, not authenticity.
+      for (const field of ['logs', 'screenshots']) {
+        if (!Array.isArray(row[field]) || !row[field].length || row[field].some(ref => typeof ref !== 'string' || !ref.trim() || ref.includes('<'))) {
+          errors.push(`${prefix}: packaged pass requires concrete ${field} references`);
+        }
+      }
       if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(row.timestamp_utc ?? '') || Number.isNaN(Date.parse(row.timestamp_utc))) errors.push(`${prefix}: timestamp_utc must be valid UTC ISO-8601`);
     }
     journeys[id].evidence++;
