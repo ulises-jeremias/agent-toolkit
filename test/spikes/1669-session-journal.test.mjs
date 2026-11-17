@@ -104,3 +104,30 @@ test('provider transport cannot spoof app thread or sequence provenance', async 
   await assert.rejects(projectTransport(spoofed(), other), /foreign thread/);
   assert.equal(other.status, 'idle');
 });
+
+test('journal event payloads are isolated from caller and inspector mutation', () => {
+  const journal = new SessionJournal('isolated-thread');
+  const payload = { tool: { arguments: { path: 'safe.txt' } } };
+  const start = journal.append({ type: 'start', runId: 'r', payload });
+  payload.tool.arguments.path = 'caller-mutated.txt';
+  start.payload.tool.arguments.path = 'return-mutated.txt';
+  const inspected = journal.events;
+  inspected[0].payload.tool.arguments.path = 'inspector-mutated.txt';
+  const snapshot = journal.snapshot();
+  snapshot.events[0].payload.tool.arguments.path = 'snapshot-mutated.txt';
+  assert.equal(journal.events[0].payload.tool.arguments.path, 'safe.txt');
+  assert.equal(SessionJournal.replay('isolated-thread', journal.events).events[0].payload.tool.arguments.path, 'safe.txt');
+});
+
+test('invalid payload cannot partially commit a run or corrupt its event cursor', () => {
+  const journal = new SessionJournal('isolated-thread');
+  assert.throws(
+    () => journal.append({ type: 'start', runId: 'bad', payload: { callback: () => {} } }),
+    /could not be cloned|DataCloneError/,
+  );
+  assert.equal(journal.status, 'idle');
+  assert.equal(journal.run, null);
+  assert.equal(journal.events.length, 0);
+  journal.append({ type: 'start', runId: 'good' });
+  assert.deepEqual(journal.events.map(event => event.sequence), [1]);
+});
