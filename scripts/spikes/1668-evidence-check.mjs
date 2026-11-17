@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 export const JOURNEYS = Array.from({ length: 10 }, (_, i) => `D${String(i + 1).padStart(2, '0')}`);
 const LEVELS = new Set(['P', 'S', 'R', 'M', 'U']);
 const OUTCOMES = new Set(['pass', 'fail', 'blocked', 'unverified']);
-const REQUIRED = ['toolkit_sha', 'package_version', 'platform', 'provider', 'workspace', 'timestamp_utc', 'steps_to_reproduce', 'observed', 'expected', 'tested_by'];
+const REQUIRED = ['execution_id', 'toolkit_sha', 'package_version', 'platform', 'provider', 'workspace', 'timestamp_utc', 'steps_to_reproduce', 'observed', 'expected', 'tested_by'];
 
 export function inspectEvidence(rows) {
   const errors = [];
@@ -35,11 +35,11 @@ export function inspectEvidence(rows) {
     else if (journeys[id].status === 'unverified' && row.outcome === 'blocked') journeys[id].status = 'blocked';
   }
   // A set of individually passing journeys is not a coherent installed build.
-  // Only one exact package/source/platform combination can qualify a baseline.
+  // Only one exact package/source/platform AND uninterrupted execution can qualify a baseline.
   const qualifying = rows.filter(row => row && !Array.isArray(row) && row.outcome === 'pass' && row.evidence_level === 'P');
   const groups = new Map();
   for (const row of qualifying) {
-    const key = JSON.stringify([row.toolkit_sha, row.package_version, row.platform]);
+    const key = JSON.stringify([row.toolkit_sha, row.package_version, row.platform, row.execution_id]);
     if (!groups.has(key)) groups.set(key, new Set());
     groups.get(key).add(row.journey_id);
   }
