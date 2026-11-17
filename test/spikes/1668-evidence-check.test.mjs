@@ -53,3 +53,18 @@ test('one complete coherent build can qualify despite unrelated historical evide
   rows.push({ ...valid('D01'), toolkit_sha: 'older-build' });
   assert.equal(inspectEvidence(rows).releaseReady, true);
 });
+
+test('packaged evidence rejects null, blank and template artifact references', () => {
+  for (const field of ['logs', 'screenshots']) {
+    for (const invalid of [null, '', '   ', '<redacted path>']) {
+      const rows = Array.from({ length: 7 }, (_, i) => valid(`D0${i + 1}`));
+      rows[3][field] = [invalid];
+      const result = inspectEvidence(rows);
+      assert.equal(result.releaseReady, false, `${field} ${String(invalid)}`);
+      assert.match(result.errors.join('\\n'), new RegExp(field));
+    }
+  }
+  const rows = Array.from({ length: 7 }, (_, i) => valid(`D0${i + 1}`));
+  rows[0].logs = ['valid-log', null];
+  assert.equal(inspectEvidence(rows).releaseReady, false);
+});
