@@ -117,9 +117,7 @@ test.describe('first-run missing harness', () => {
     await page.getByRole('button', { name: 'Choose a repository folder' }).click();
     const linked = page.getByRole('listitem').filter({ hasText: 'A repository to work on' });
     await expect(linked).toContainText('clean-start-repo', { timeout: 30_000 });
-    expect(fs.realpathSync(path.join(workspace, 'projects', 'clean-start-repo'))).toBe(
-      fs.realpathSync(repo),
-    );
+    expect(fs.realpathSync(path.join(workspace, 'projects', 'clean-start-repo'))).toBe(fs.realpathSync(repo));
     await capture(page, 'fallback-04-repository-linked');
 
     await enterWorld(page, 'fallback-');
