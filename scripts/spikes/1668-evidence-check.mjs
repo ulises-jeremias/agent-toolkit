@@ -44,7 +44,16 @@ export function inspectEvidence(rows) {
     groups.get(key).add(row.journey_id);
   }
   const required = JOURNEYS.slice(0, 7);
-  const coherent = [...groups.values()].some(ids => required.every(id => ids.has(id)));
+  // A failed, blocked or unverified observation in the same uninterrupted trial
+  // vetoes that trial, even when another row claims a packaged pass. Retests
+  // must use a new execution_id rather than cherry-picking successful rows.
+  const coherent = [...groups.entries()].some(([key, ids]) => {
+    if (!required.every(id => ids.has(id))) return false;
+    const [sha, pkg, platform, execution] = JSON.parse(key);
+    return !rows.some(row => row && !Array.isArray(row) && required.includes(row.journey_id) &&
+      row.toolkit_sha === sha && row.package_version === pkg && row.platform === platform &&
+      row.execution_id === execution && (row.outcome !== 'pass' || row.evidence_level !== 'P'));
+  });
   return { errors, journeys, releaseReady: errors.length === 0 && coherent && required.every(id => journeys[id].status === 'packaged-pass') };
 }
 
