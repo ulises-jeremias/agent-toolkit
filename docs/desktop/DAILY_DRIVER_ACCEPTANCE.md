@@ -51,6 +51,7 @@ Task prompt: **"Fix the failing sum test without modifying the test, explain the
 
 ```yaml
 mission: 1667
+execution_id: "<unique uninterrupted field trial ID shared by D01-D07>"
 journey_id: D03
 outcome: fail # pass|fail|blocked|unverified
 evidence_level: U # P|S|R|M|U
@@ -70,6 +71,8 @@ screenshots: ["<redacted screenshot artifact>"]
 related_issues: []
 tested_by: "<tester>"
 ```
+
+For packaged Gate 0 validation, D01–D07 must share one concrete `execution_id` in addition to exact source, installer and platform identity. A separate launch or repeat trial receives a new ID; never stitch successes from different trials into one acceptance result. This is a self-reported grouping check, not proof of artifact authenticity.
 
 Do not commit auth headers, raw private provider conversations, account names, secret-containing terminal output or proprietary code.
 
