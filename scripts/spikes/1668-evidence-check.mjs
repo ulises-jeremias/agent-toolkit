@@ -29,7 +29,18 @@ export function inspectEvidence(rows) {
     else if (journeys[id].status !== 'packaged-pass' && row.outcome === 'fail') journeys[id].status = 'fail';
     else if (journeys[id].status === 'unverified' && row.outcome === 'blocked') journeys[id].status = 'blocked';
   }
-  return { errors, journeys, releaseReady: errors.length === 0 && JOURNEYS.slice(0, 7).every(id => journeys[id].status === 'packaged-pass') };
+  // A set of individually passing journeys is not a coherent installed build.
+  // Only one exact package/source/platform combination can qualify a baseline.
+  const qualifying = rows.filter(row => row && !Array.isArray(row) && row.outcome === 'pass' && row.evidence_level === 'P');
+  const groups = new Map();
+  for (const row of qualifying) {
+    const key = JSON.stringify([row.toolkit_sha, row.package_version, row.platform]);
+    if (!groups.has(key)) groups.set(key, new Set());
+    groups.get(key).add(row.journey_id);
+  }
+  const required = JOURNEYS.slice(0, 7);
+  const coherent = [...groups.values()].some(ids => required.every(id => ids.has(id)));
+  return { errors, journeys, releaseReady: errors.length === 0 && coherent && required.every(id => journeys[id].status === 'packaged-pass') };
 }
 
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
