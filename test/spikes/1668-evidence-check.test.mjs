@@ -85,3 +85,15 @@ test('missing or placeholder execution identity cannot certify packaged acceptan
     assert.match(result.errors.join('\\n'), /execution_id/);
   }
 });
+
+test('a conflicting failure in the same field trial vetoes release readiness', () => {
+  const rows = Array.from({ length: 7 }, (_, i) => valid(`D0${i + 1}`));
+  rows.push({ ...valid('D05'), outcome: 'fail', evidence_level: 'P', observed: 'approval was not handled' });
+  assert.equal(inspectEvidence(rows).releaseReady, false);
+});
+
+test('a historical failure in a separate trial does not veto a complete retest', () => {
+  const rows = Array.from({ length: 7 }, (_, i) => valid(`D0${i + 1}`));
+  rows.push({ ...valid('D05'), execution_id: 'previous-trial', outcome: 'fail', evidence_level: 'P' });
+  assert.equal(inspectEvidence(rows).releaseReady, true);
+});
