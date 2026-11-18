@@ -1,4 +1,7 @@
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { inspectEvidence } from './1668-evidence-check.mjs';
 
 // Gate 0 evidence validator; this is NOT a provider test or a release sign-off.
 export const JOURNEYS = Array.from({ length: 10 }, (_, i) => `D${String(i + 1).padStart(2, '0')}`);
@@ -40,10 +43,18 @@ export function packagedGateStatus(rows) {
   }
   if (errors.length) return { ready: false, errors };
   const missing = JOURNEYS.slice(0, 7).filter(id => !rows.some(row => row.journey_id === id && row.outcome === 'pass' && row.evidence_level === 'P'));
-  return { ready: missing.length === 0, missing };
+  // This legacy entrypoint must never be less strict than the canonical Gate 0
+  // checker: seven individually passing rows can still describe different
+  // installations, providers, workspaces, tasks or interrupted trials.
+  const canonical = inspectEvidence(rows);
+  if (canonical.errors.length) errors.push(...canonical.errors);
+  if (!canonical.releaseReady && missing.length === 0 && errors.length === 0) {
+    errors.push('D01-D07: no coherent uninterrupted packaged trial (see canonical evidence checker)');
+  }
+  return { ready: missing.length === 0 && canonical.releaseReady && errors.length === 0, missing, ...(errors.length ? { errors } : {}) };
 }
 
-if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
     const rows = JSON.parse(readFileSync(process.argv[2], 'utf8'));
     const status = packagedGateStatus(rows);
