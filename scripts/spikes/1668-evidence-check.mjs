@@ -71,7 +71,9 @@ export function inspectEvidence(rows) {
       row.platform === platform && row.execution_id === execution &&
       row.outcome === 'pass' && row.evidence_level === 'P');
     if (new Set(sessionRows.map(row => row.workspace)).size !== 1 ||
-        new Set(sessionRows.map(row => row.provider)).size !== 1) return false;
+        new Set(sessionRows.map(row => row.provider)).size !== 1 ||
+        new Set(sessionRows.map(row => row.test_task)).size !== 1 ||
+        sessionRows.some(row => typeof row.test_task !== 'string' || !row.test_task.trim() || row.test_task.includes('<'))) return false;
     return !rows.some(row => row && !Array.isArray(row) && required.includes(row.journey_id) &&
       row.toolkit_sha === sha && row.package_version === pkg && row.platform === platform &&
       row.execution_id === execution && (row.outcome !== 'pass' || row.evidence_level !== 'P'));
