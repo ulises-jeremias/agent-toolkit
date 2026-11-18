@@ -25,9 +25,9 @@ test('missing artifacts and placeholder values invalidate packaged pass', () => 
   assert.match(result.errors.join('\n'), /screenshot/);
   assert.match(result.errors.join('\n'), /toolkit_sha/);
 });
-test('duplicate and failed rows never override a valid packaged pass', () => {
+test('historical failed rows do not override a complete later packaged trial', () => {
   const rows = Array.from({ length: 7 }, (_, i) => valid(`D0${i + 1}`));
-  rows.push({ ...valid('D01'), outcome: 'fail', evidence_level: 'S' });
+  rows.push({ ...valid('D01'), execution_id: 'previous-trial', outcome: 'fail', evidence_level: 'S' });
   assert.equal(inspectEvidence(rows).releaseReady, true);
 });
 test('invalid rows are rejected and no empty ledger is accepted', () => {
