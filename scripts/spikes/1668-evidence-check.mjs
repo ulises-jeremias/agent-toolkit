@@ -1,5 +1,7 @@
 // Gate 0 evidence checker. Validates claims, not artifact authenticity.
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 export const JOURNEYS = Array.from({ length: 10 }, (_, i) => `D${String(i + 1).padStart(2, '0')}`);
 const LEVELS = new Set(['P', 'S', 'R', 'M', 'U']);
@@ -89,7 +91,7 @@ export function inspectEvidence(rows) {
   return { errors, journeys, releaseReady: errors.length === 0 && coherent && required.every(id => journeys[id].status === 'packaged-pass') };
 }
 
-if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
     const result = inspectEvidence(JSON.parse(readFileSync(process.argv[2], 'utf8')));
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
