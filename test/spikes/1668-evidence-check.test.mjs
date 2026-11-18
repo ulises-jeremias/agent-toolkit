@@ -1,5 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { copyFileSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { inspectEvidence } from '../../scripts/spikes/1668-evidence-check.mjs';
 
 const valid = id => ({ mission: 1667, execution_id: 'trial-2026-11-17-a', journey_id: id, outcome: 'pass', evidence_level: 'P', toolkit_sha: 'abc123', package_version: 'v1 + sha256', platform: 'Linux', provider: 'Claude Code installed auth', workspace: '/tmp/fixture', test_task: 'sum-fixture', timestamp_utc: '2026-11-17T12:00:00Z', steps_to_reproduce: 'open packaged app and perform task', observed: 'task executed', expected: 'task executed', tested_by: 'tester', logs: ['redacted-log'], screenshots: ['redacted-screen'] });
@@ -147,5 +152,23 @@ test('impossible UTC calendar dates cannot certify packaged acceptance', () => {
     const result = inspectEvidence(rows);
     assert.equal(result.releaseReady, false, timestamp);
     assert.match(result.errors.join('\n'), /timestamp_utc/);
+  }
+});
+
+
+test('evidence CLI executes and fails closed when installed under a path containing URL fragments', () => {
+  const root = mkdtempSync(join(tmpdir(), 'gate0-cli-'));
+  try {
+    const folder = join(root, 'desktop #1');
+    mkdirSync(folder);
+    const script = join(folder, '1668-evidence-check.mjs');
+    const ledger = join(folder, 'evidence.json');
+    copyFileSync(fileURLToPath(new URL('../../scripts/spikes/1668-evidence-check.mjs', import.meta.url)), script);
+    writeFileSync(ledger, '[]');
+    const run = spawnSync(process.execPath, [script, ledger], { encoding: 'utf8' });
+    assert.equal(run.status, 1, `stdout: ${run.stdout}; stderr: ${run.stderr}`);
+    assert.match(run.stdout, /"releaseReady": false/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
   }
 });
