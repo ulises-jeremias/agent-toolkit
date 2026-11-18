@@ -15,7 +15,7 @@ test('packaged evidence must include reproducible provenance', () => {
   assert.ok(validateLedger([{ journey_id: 'D01', outcome: 'pass', evidence_level: 'P' }]).length > 5);
 });
 test('complete coherent P rows can satisfy the gate', () => {
-  const rows = Array.from({length: 7}, (_, i) => ({mission:1667, execution_id:'trial-a', journey_id:`D0${i+1}`, outcome:'pass', evidence_level:'P', workspace:'/tmp/fixture', test_task:'sum-fixture', expected:'sum test passes', screenshots:['redacted screenshot'], toolkit_sha:'a'.repeat(40), package_version:'test+sha256:abc', platform:'Linux', provider:'authenticated provider', timestamp_utc:'2026-11-07T00:00:00Z', steps_to_reproduce:'open installed app', observed:'test observed', tested_by:'tester', logs:['redacted artifact reference']}));
+  const rows = Array.from({length: 7}, (_, i) => ({mission:1667, execution_id:'trial-a', journey_id:`D0${i+1}`, outcome:'pass', evidence_level:'P', workspace:'/tmp/fixture', test_task:'sum-fixture', expected:'sum test passes', screenshots:['redacted screenshot'], toolkit_sha:'a'.repeat(40), package_version:'v1.49.0 sha256:' + 'b'.repeat(64), platform:'Linux', provider:'authenticated provider', timestamp_utc:'2026-11-07T00:00:00Z', steps_to_reproduce:'open installed app', observed:'test observed', tested_by:'tester', logs:['redacted artifact reference']}));
   assert.equal(packagedGateStatus(rows).ready, true);
 });
 
@@ -34,7 +34,7 @@ test('placeholder metadata and artifact references cannot certify P evidence', (
 
 test('malformed or non-UTC timestamps cannot certify P evidence', () => {
   const row = { journey_id: 'D01', outcome: 'pass', evidence_level: 'P',
-    toolkit_sha: 'a'.repeat(40), package_version: 'v1.49.0 sha256:abc',
+    toolkit_sha: 'a'.repeat(40), package_version: 'v1.49.0 sha256:' + 'b'.repeat(64),
     platform: 'Linux', provider: 'authenticated provider',
     timestamp_utc: '2026-99-99T00:00:00Z', steps_to_reproduce: 'open app',
     observed: 'actual event', tested_by: 'tester', logs: ['artifact://redacted-log'] };
@@ -47,7 +47,7 @@ test('conflicting packaged results cannot be cherry-picked into a passing gate',
   const rows = Array.from({ length: 7 }, (_, i) => ({
     mission: 1667, execution_id: 'trial-a', journey_id: `D0${i + 1}`, outcome: 'pass', evidence_level: 'P',
     workspace: '/tmp/fixture', test_task: 'sum-fixture', expected: 'sum test passes', screenshots: ['redacted screenshot'],
-    toolkit_sha: 'a'.repeat(40), package_version: 'v1.49.0 sha256:abc',
+    toolkit_sha: 'a'.repeat(40), package_version: 'v1.49.0 sha256:' + 'b'.repeat(64),
     platform: 'Linux', provider: 'authenticated provider',
     timestamp_utc: '2026-11-07T00:00:00Z',
     steps_to_reproduce: 'open installed app', observed: 'actual event',
@@ -64,7 +64,7 @@ test('legacy acceptance cannot stitch individually valid rows from different tri
   const rows = Array.from({ length: 7 }, (_, i) => ({
     mission: 1667, execution_id: 'trial-a', journey_id: `D0${i + 1}`,
     outcome: 'pass', evidence_level: 'P', toolkit_sha: 'a'.repeat(40),
-    package_version: 'v1.49.0 sha256:abc', platform: 'Linux',
+    package_version: 'v1.49.0 sha256:' + 'b'.repeat(64), platform: 'Linux',
     provider: 'Claude Code authenticated', workspace: '/tmp/fixture',
     test_task: 'sum-fixture', timestamp_utc: '2026-11-07T00:00:00Z',
     steps_to_reproduce: 'open installed app', observed: 'actual event',
@@ -82,7 +82,7 @@ test('legacy acceptance rejects impossible UTC calendar dates', () => {
   const rows = Array.from({ length: 7 }, (_, i) => ({
     mission: 1667, execution_id: 'trial-a', journey_id: `D0${i + 1}`,
     outcome: 'pass', evidence_level: 'P', toolkit_sha: 'a'.repeat(40),
-    package_version: 'v1.49.0 sha256:abc', platform: 'Linux',
+    package_version: 'v1.49.0 sha256:' + 'b'.repeat(64), platform: 'Linux',
     provider: 'Claude Code authenticated', workspace: '/tmp/fixture',
     test_task: 'sum-fixture', timestamp_utc: '2026-11-07T00:00:00Z',
     steps_to_reproduce: 'open installed app', observed: 'actual event',
