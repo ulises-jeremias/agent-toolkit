@@ -69,7 +69,15 @@ export function validateLedger(ledger) {
         check(ordered.every(run => run[key] === ordered[0][key]),
           `packaged field trial D01-D07 must share ${key}`);
       }
-      check(ordered.every(run => typeof run.execution_id === 'string' &&\n        run.execution_id.trim().length > 0 && !/[<>]/.test(run.execution_id)),\n        'packaged field trial requires concrete execution_id');\n      check(ordered.every(run => typeof run.package_version === 'string' &&\n        /sha256:[a-f0-9]{64}(?![a-f0-9])/i.test(run.package_version)),\n        'packaged field trial requires full installer sha256');\n      check(ordered.every(run => /^[0-9a-f]{40}$/i.test(run.toolkit_sha ?? '')),\n        'packaged field trial requires full toolkit SHA');\n      check(ordered.every((run, index) => index === 0 ||
+      check(ordered.every(run => typeof run.execution_id === 'string' &&
+        run.execution_id.trim().length > 0 && !/[<>]/.test(run.execution_id)),
+        'packaged field trial requires concrete execution_id');
+      check(ordered.every(run => typeof run.package_version === 'string' &&
+        /sha256:[a-f0-9]{64}(?![a-f0-9])/i.test(run.package_version)),
+        'packaged field trial requires full installer sha256');
+      check(ordered.every(run => /^[0-9a-f]{40}$/i.test(run.toolkit_sha ?? '')),
+        'packaged field trial requires full toolkit SHA');
+      check(ordered.every((run, index) => index === 0 ||
         (Number.isFinite(Date.parse(run.timestamp_utc)) &&
           Date.parse(run.timestamp_utc) >= Date.parse(ordered[index - 1].timestamp_utc))),
         'packaged field trial D01-D07 timestamps must be chronological');
