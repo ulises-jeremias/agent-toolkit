@@ -110,3 +110,19 @@ test('one field trial cannot stitch different workspaces or active providers', (
   rows[1].provider = 'discovery: Claude, Codex, OpenCode';
   assert.equal(inspectEvidence(rows).releaseReady, true, 'D02 discovery may enumerate other providers');
 });
+
+test('a field trial cannot claim recovery before the task started', () => {
+  const rows = Array.from({ length: 7 }, (_, i) => ({
+    ...valid(`D0${i + 1}`),
+    timestamp_utc: new Date(Date.UTC(2026, 10, 17, 12, i)).toISOString(),
+  }));
+  assert.equal(inspectEvidence(rows).releaseReady, true);
+  rows[6].timestamp_utc = '2026-11-17T12:02:00Z';
+  assert.equal(inspectEvidence(rows).releaseReady, false);
+});
+
+test('duplicate packaged passes in one trial cannot conceal a contradictory chronology', () => {
+  const rows = Array.from({ length: 7 }, (_, i) => valid(`D0${i + 1}`));
+  rows.push({ ...valid('D04'), timestamp_utc: '2026-11-17T11:00:00Z' });
+  assert.equal(inspectEvidence(rows).releaseReady, false);
+});
