@@ -6,6 +6,14 @@ const LEVELS = new Set(['P', 'S', 'R', 'M', 'U']);
 const OUTCOMES = new Set(['pass', 'fail', 'blocked', 'unverified']);
 const REQUIRED = ['execution_id', 'toolkit_sha', 'package_version', 'platform', 'provider', 'workspace', 'timestamp_utc', 'steps_to_reproduce', 'observed', 'expected', 'tested_by'];
 
+function validUtcTimestamp(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(value)) return false;
+  const time = Date.parse(value);
+  // Date.parse normalizes impossible calendar dates (for example February 30).
+  // A normalized timestamp must not be treated as evidence of a real event.
+  return Number.isFinite(time) && new Date(time).toISOString().slice(0, 19) === value.slice(0, 19);
+}
+
 export function inspectEvidence(rows) {
   const errors = [];
   if (!Array.isArray(rows)) return { errors: ['expected JSON array of evidence rows'], releaseReady: false, journeys: {} };
@@ -27,7 +35,7 @@ export function inspectEvidence(rows) {
           errors.push(`${prefix}: packaged pass requires concrete ${field} references`);
         }
       }
-      if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(row.timestamp_utc ?? '') || Number.isNaN(Date.parse(row.timestamp_utc))) errors.push(`${prefix}: timestamp_utc must be valid UTC ISO-8601`);
+      if (!validUtcTimestamp(row.timestamp_utc)) errors.push(`${prefix}: timestamp_utc must be valid UTC ISO-8601`);
     }
     journeys[id].evidence++;
     if (row.outcome === 'pass' && row.evidence_level === 'P' && !errors.some(e => e.startsWith(`${prefix}:`))) journeys[id].status = 'packaged-pass';

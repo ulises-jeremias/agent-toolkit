@@ -139,3 +139,13 @@ test('a field trial cannot stitch distinct coding tasks or omit task identity', 
   rows[5].test_task = 'sum-fixture';
   assert.equal(inspectEvidence(rows).releaseReady, true);
 });
+
+test('impossible UTC calendar dates cannot certify packaged acceptance', () => {
+  for (const timestamp of ['2026-02-30T12:00:00Z', '2026-11-31T12:00:00Z', '2026-11-17T24:00:00Z']) {
+    const rows = Array.from({ length: 7 }, (_, i) => valid(`D0${i + 1}`));
+    rows[3].timestamp_utc = timestamp;
+    const result = inspectEvidence(rows);
+    assert.equal(result.releaseReady, false, timestamp);
+    assert.match(result.errors.join('\n'), /timestamp_utc/);
+  }
+});
