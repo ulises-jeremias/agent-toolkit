@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { inspectEvidence } from '../../scripts/spikes/1668-evidence-check.mjs';
 
-const valid = id => ({ mission: 1667, execution_id: 'trial-2026-11-17-a', journey_id: id, outcome: 'pass', evidence_level: 'P', toolkit_sha: 'abc123', package_version: 'v1 + sha256', platform: 'Linux', provider: 'Claude Code installed auth', workspace: '/tmp/fixture', timestamp_utc: '2026-11-17T12:00:00Z', steps_to_reproduce: 'open packaged app and perform task', observed: 'task executed', expected: 'task executed', tested_by: 'tester', logs: ['redacted-log'], screenshots: ['redacted-screen'] });
+const valid = id => ({ mission: 1667, execution_id: 'trial-2026-11-17-a', journey_id: id, outcome: 'pass', evidence_level: 'P', toolkit_sha: 'abc123', package_version: 'v1 + sha256', platform: 'Linux', provider: 'Claude Code installed auth', workspace: '/tmp/fixture', test_task: 'sum-fixture', timestamp_utc: '2026-11-17T12:00:00Z', steps_to_reproduce: 'open packaged app and perform task', observed: 'task executed', expected: 'task executed', tested_by: 'tester', logs: ['redacted-log'], screenshots: ['redacted-screen'] });
 
 test('all seven packaged journeys with concrete evidence can satisfy baseline', () => {
   const result = inspectEvidence(Array.from({ length: 7 }, (_, i) => valid(`D0${i + 1}`)));
@@ -125,4 +125,17 @@ test('duplicate packaged passes in one trial cannot conceal a contradictory chro
   const rows = Array.from({ length: 7 }, (_, i) => valid(`D0${i + 1}`));
   rows.push({ ...valid('D04'), timestamp_utc: '2026-11-17T11:00:00Z' });
   assert.equal(inspectEvidence(rows).releaseReady, false);
+});
+
+
+test('a field trial cannot stitch distinct coding tasks or omit task identity', () => {
+  const rows = Array.from({ length: 7 }, (_, i) => valid(`D0${i + 1}`));
+  rows[5].test_task = 'different-task';
+  assert.equal(inspectEvidence(rows).releaseReady, false);
+  for (const missing of [undefined, '', '<task>']) {
+    rows[5].test_task = missing;
+    assert.equal(inspectEvidence(rows).releaseReady, false);
+  }
+  rows[5].test_task = 'sum-fixture';
+  assert.equal(inspectEvidence(rows).releaseReady, true);
 });
