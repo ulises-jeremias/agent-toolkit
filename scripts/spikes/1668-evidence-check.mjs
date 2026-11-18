@@ -50,6 +50,18 @@ export function inspectEvidence(rows) {
   const coherent = [...groups.entries()].some(([key, ids]) => {
     if (!required.every(id => ids.has(id))) return false;
     const [sha, pkg, platform, execution] = JSON.parse(key);
+    // D01-D07 are an ordered uninterrupted journey. A complete set of IDs
+    // with D07 timestamped before D03 is not evidence of that journey.
+    // Equal timestamps are permitted because capture precision is seconds.
+    const trialRows = rows.filter(row => row && !Array.isArray(row) &&
+      required.includes(row.journey_id) && row.toolkit_sha === sha &&
+      row.package_version === pkg && row.platform === platform &&
+      row.execution_id === execution && row.outcome === 'pass' &&
+      row.evidence_level === 'P');
+    const times = required.map(id => trialRows.filter(row => row.journey_id === id));
+    if (times.some(matches => matches.length !== 1)) return false;
+    const ordered = times.map(matches => Date.parse(matches[0].timestamp_utc));
+    if (ordered.some((time, index) => index > 0 && time < ordered[index - 1])) return false;
     // A single field trial must not silently switch the tested project or
     // active provider mid-task. D02 discovery may enumerate other providers;
     // D03-D07 must describe the same coding session context.
