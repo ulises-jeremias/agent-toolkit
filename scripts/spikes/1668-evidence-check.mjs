@@ -9,7 +9,7 @@ const OUTCOMES = new Set(['pass', 'fail', 'blocked', 'unverified']);
 // Validate provenance syntax only; checksum matching to the actual installer
 // remains an independent packaged-host acceptance requirement.
 const SOURCE_SHA = /^[a-f0-9]{40}$/i;
-const PACKAGE_CHECKSUM = /(?:^|\\s|[+;,])sha256:([a-f0-9]{64})(?=$|\\s|[;,])/i;
+const PACKAGE_CHECKSUM = /(?:^|\s|[+;,])sha256:([a-f0-9]{64})(?=$|\s|[;,])/i;
 const REQUIRED = ['execution_id', 'toolkit_sha', 'package_version', 'platform', 'provider', 'workspace', 'timestamp_utc', 'steps_to_reproduce', 'observed', 'expected', 'tested_by'];
 
 function validUtcTimestamp(value) {
