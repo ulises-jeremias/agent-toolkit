@@ -183,3 +183,12 @@ test('short source IDs and truncated package checksums cannot certify an install
   assert.match(result.errors.join(' '), /toolkit_sha must be a full 40-character Git SHA/);
   assert.match(result.errors.join(' '), /package_version must include a full sha256/);
 });
+
+
+test('future-dated packaged evidence cannot certify an already completed trial', () => {
+  const rows = Array.from({ length: 7 }, (_, i) => valid(`D0${i + 1}`));
+  rows[3].timestamp_utc = '2099-01-01T00:00:00Z';
+  const result = inspectEvidence(rows);
+  assert.equal(result.releaseReady, false);
+  assert.match(result.errors.join('\n'), /timestamp_utc cannot be in the future/);
+});
