@@ -6,6 +6,10 @@ import { pathToFileURL } from 'node:url';
 export const JOURNEYS = Array.from({ length: 10 }, (_, i) => `D${String(i + 1).padStart(2, '0')}`);
 const LEVELS = new Set(['P', 'S', 'R', 'M', 'U']);
 const OUTCOMES = new Set(['pass', 'fail', 'blocked', 'unverified']);
+// Validate provenance syntax only; checksum matching to the actual installer
+// remains an independent packaged-host acceptance requirement.
+const SOURCE_SHA = /^[a-f0-9]{40}$/i;
+const PACKAGE_CHECKSUM = /(?:^|\\s|[+;,])sha256:([a-f0-9]{64})(?=$|\\s|[;,])/i;
 const REQUIRED = ['execution_id', 'toolkit_sha', 'package_version', 'platform', 'provider', 'workspace', 'timestamp_utc', 'steps_to_reproduce', 'observed', 'expected', 'tested_by'];
 
 function validUtcTimestamp(value) {
@@ -30,6 +34,8 @@ export function inspectEvidence(rows) {
     if (row.outcome === 'pass' && row.evidence_level === 'U') errors.push(`${prefix}: unverified evidence cannot pass`);
     if (row.evidence_level === 'P' && row.outcome === 'pass') {
       for (const field of REQUIRED) if (typeof row[field] !== 'string' || !row[field].trim() || row[field].includes('<')) errors.push(`${prefix}: missing concrete ${field}`);
+      if (!SOURCE_SHA.test(row.toolkit_sha ?? '')) errors.push(`${prefix}: toolkit_sha must be a full 40-character Git SHA`);
+      if (!PACKAGE_CHECKSUM.test(row.package_version ?? '')) errors.push(`${prefix}: package_version must include a full sha256 installer checksum`);
       // Non-empty arrays alone are not evidence: [null], [""], and template markers
       // must not qualify as packaged runs. This checks shape, not authenticity.
       for (const field of ['logs', 'screenshots']) {
