@@ -41,7 +41,7 @@ test('packaged field trial requires matching provenance for every D01-D07 run', 
   const ledger = clone();
   const makeRun = id => ({
     journey_id: id, execution_id: 'trial-2026-11-10', workspace: '/tmp/fixture', test_task: 'sum-fix', outcome: 'pass', evidence_level: 'P',
-    toolkit_sha: 'a'.repeat(40), package_version: 'v1.49.0 sha256:' + 'b'.repeat(64) + '',
+    toolkit_sha: 'a'.repeat(40), package_version: 'v1.49.0 sha256:' + 'b'.repeat(64),
     platform: 'linux-x64', provider: 'claude', timestamp_utc: '2026-11-10T09:00:00Z',
     steps_to_reproduce: 'Open packaged app and perform task',
     observed: 'Completed real provider task', tested_by: 'tester',
@@ -66,7 +66,7 @@ test('packaged field trial requires matching provenance for every D01-D07 run', 
 test('field trial cannot reuse provenance while substituting observation or artifacts', () => {
   const ledger = clone();
   const makeRun = id => ({ journey_id: id, execution_id: 'trial-2026-11-10', workspace: '/tmp/fixture', test_task: 'sum-fix', outcome: 'pass', evidence_level: 'P',
-    toolkit_sha: 'a'.repeat(40), package_version: 'v1.49.0 sha256:' + 'b'.repeat(64) + '',
+    toolkit_sha: 'a'.repeat(40), package_version: 'v1.49.0 sha256:' + 'b'.repeat(64),
     platform: 'linux-x64', provider: 'claude', timestamp_utc: '2026-11-11T12:00:00Z',
     steps_to_reproduce: 'Open packaged app', observed: 'Real task result',
     tested_by: 'tester', logs: ['artifacts/redacted/run.log'] });
