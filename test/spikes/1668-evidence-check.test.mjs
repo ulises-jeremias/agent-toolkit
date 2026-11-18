@@ -97,3 +97,16 @@ test('a historical failure in a separate trial does not veto a complete retest',
   rows.push({ ...valid('D05'), execution_id: 'previous-trial', outcome: 'fail', evidence_level: 'P' });
   assert.equal(inspectEvidence(rows).releaseReady, true);
 });
+
+
+test('one field trial cannot stitch different workspaces or active providers', () => {
+  const rows = Array.from({ length: 7 }, (_, i) => valid(`D0${i + 1}`));
+  rows[5].workspace = '/tmp/other-project';
+  assert.equal(inspectEvidence(rows).releaseReady, false);
+  rows[5].workspace = rows[0].workspace;
+  rows[4].provider = 'Codex installed auth';
+  assert.equal(inspectEvidence(rows).releaseReady, false);
+  rows[4].provider = rows[0].provider;
+  rows[1].provider = 'discovery: Claude, Codex, OpenCode';
+  assert.equal(inspectEvidence(rows).releaseReady, true, 'D02 discovery may enumerate other providers');
+});

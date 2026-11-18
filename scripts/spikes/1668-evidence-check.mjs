@@ -50,6 +50,16 @@ export function inspectEvidence(rows) {
   const coherent = [...groups.entries()].some(([key, ids]) => {
     if (!required.every(id => ids.has(id))) return false;
     const [sha, pkg, platform, execution] = JSON.parse(key);
+    // A single field trial must not silently switch the tested project or
+    // active provider mid-task. D02 discovery may enumerate other providers;
+    // D03-D07 must describe the same coding session context.
+    const sessionRows = rows.filter(row => row && !Array.isArray(row) &&
+      ['D03', 'D04', 'D05', 'D06', 'D07'].includes(row.journey_id) &&
+      row.toolkit_sha === sha && row.package_version === pkg &&
+      row.platform === platform && row.execution_id === execution &&
+      row.outcome === 'pass' && row.evidence_level === 'P');
+    if (new Set(sessionRows.map(row => row.workspace)).size !== 1 ||
+        new Set(sessionRows.map(row => row.provider)).size !== 1) return false;
     return !rows.some(row => row && !Array.isArray(row) && required.includes(row.journey_id) &&
       row.toolkit_sha === sha && row.package_version === pkg && row.platform === platform &&
       row.execution_id === execution && (row.outcome !== 'pass' || row.evidence_level !== 'P'));
