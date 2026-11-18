@@ -44,6 +44,7 @@ export function inspectEvidence(rows) {
         }
       }
       if (!validUtcTimestamp(row.timestamp_utc)) errors.push(`${prefix}: timestamp_utc must be valid UTC ISO-8601`);
+      else if (Date.parse(row.timestamp_utc) > Date.now()) errors.push(`${prefix}: timestamp_utc cannot be in the future`);
     }
     journeys[id].evidence++;
     if (row.outcome === 'pass' && row.evidence_level === 'P' && !errors.some(e => e.startsWith(`${prefix}:`))) journeys[id].status = 'packaged-pass';
