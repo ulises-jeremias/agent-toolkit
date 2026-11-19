@@ -65,10 +65,18 @@ export function validateLedger(ledger) {
       'packaged field trial requires exactly ordered D01-D07 P-level runs');
     const ordered = trialRuns.length === 7 ? trialRuns : [];
     if (ordered.every(Boolean)) {
-      for (const key of ['toolkit_sha', 'package_version', 'platform']) {
+      for (const key of ['execution_id', 'toolkit_sha', 'package_version', 'platform', 'workspace', 'test_task']) {
         check(ordered.every(run => run[key] === ordered[0][key]),
           `packaged field trial D01-D07 must share ${key}`);
       }
+      check(ordered.every(run => typeof run.execution_id === 'string' &&
+        run.execution_id.trim().length > 0 && !/[<>]/.test(run.execution_id)),
+        'packaged field trial requires concrete execution_id');
+      check(ordered.every(run => typeof run.package_version === 'string' &&
+        /sha256:[a-f0-9]{64}(?![a-f0-9])/i.test(run.package_version)),
+        'packaged field trial requires full installer sha256');
+      check(ordered.every(run => /^[0-9a-f]{40}$/i.test(run.toolkit_sha ?? '')),
+        'packaged field trial requires full toolkit SHA');
       check(ordered.every((run, index) => index === 0 ||
         (Number.isFinite(Date.parse(run.timestamp_utc)) &&
           Date.parse(run.timestamp_utc) >= Date.parse(ordered[index - 1].timestamp_utc))),
@@ -94,7 +102,7 @@ export function validateLedger(ledger) {
     for (const id of ids.slice(0, 7)) {
       const trialRuns = Array.isArray(field.runs) ? field.runs : [];
       const evidenceRuns = Array.isArray(journeys[id]?.runs) ? journeys[id].runs : [];
-      const keys = ['journey_id', 'toolkit_sha', 'package_version', 'platform', 'provider', 'timestamp_utc', 'steps_to_reproduce', 'observed', 'tested_by'];
+      const keys = ['journey_id', 'execution_id', 'toolkit_sha', 'package_version', 'platform', 'provider', 'workspace', 'test_task', 'timestamp_utc', 'steps_to_reproduce', 'observed', 'tested_by'];
       const matches = trialRuns.some(trial => trial?.journey_id === id &&
         trial.outcome === 'pass' && trial.evidence_level === 'P' &&
         evidenceRuns.some(record => record?.outcome === 'pass' && record?.evidence_level === 'P' &&

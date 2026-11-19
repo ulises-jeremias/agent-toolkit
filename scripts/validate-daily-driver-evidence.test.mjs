@@ -9,8 +9,9 @@ function acceptedFixture() {
     const id = `D${String(i).padStart(2, '0')}`;
     const required = i <= 7;
     const run = {
-      journey_id: id, outcome: 'pass', evidence_level: 'P',
-      toolkit_sha: 'a'.repeat(40), package_version: 'installed-package@1',
+      journey_id: id, execution_id: 'fixture-trial-001', workspace: '/tmp/fixture',
+      test_task: 'fixture-only-change', outcome: 'pass', evidence_level: 'P',
+      toolkit_sha: 'a'.repeat(40), package_version: 'installed-package@1 sha256:' + 'b'.repeat(64),
       platform: 'linux-x64', provider: 'claude',
       timestamp_utc: '2026-11-10T12:00:00Z',
       steps_to_reproduce: 'Open packaged app and execute journey',

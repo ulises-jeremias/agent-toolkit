@@ -40,8 +40,8 @@ test('packaged field trial cannot be certified by an unrelated placeholder', () 
 test('packaged field trial requires matching provenance for every D01-D07 run', () => {
   const ledger = clone();
   const makeRun = id => ({
-    journey_id: id, outcome: 'pass', evidence_level: 'P',
-    toolkit_sha: 'a'.repeat(40), package_version: 'v1.49.0 sha256:fixture',
+    journey_id: id, execution_id: 'trial-2026-11-10', workspace: '/tmp/fixture', test_task: 'sum-fix', outcome: 'pass', evidence_level: 'P',
+    toolkit_sha: 'a'.repeat(40), package_version: 'v1.49.0 sha256:' + 'b'.repeat(64),
     platform: 'linux-x64', provider: 'claude', timestamp_utc: '2026-11-10T09:00:00Z',
     steps_to_reproduce: 'Open packaged app and perform task',
     observed: 'Completed real provider task', tested_by: 'tester',
@@ -65,8 +65,8 @@ test('packaged field trial requires matching provenance for every D01-D07 run', 
 
 test('field trial cannot reuse provenance while substituting observation or artifacts', () => {
   const ledger = clone();
-  const makeRun = id => ({ journey_id: id, outcome: 'pass', evidence_level: 'P',
-    toolkit_sha: 'a'.repeat(40), package_version: 'v1.49.0 sha256:real',
+  const makeRun = id => ({ journey_id: id, execution_id: 'trial-2026-11-10', workspace: '/tmp/fixture', test_task: 'sum-fix', outcome: 'pass', evidence_level: 'P',
+    toolkit_sha: 'a'.repeat(40), package_version: 'v1.49.0 sha256:' + 'b'.repeat(64),
     platform: 'linux-x64', provider: 'claude', timestamp_utc: '2026-11-11T12:00:00Z',
     steps_to_reproduce: 'Open packaged app', observed: 'Real task result',
     tested_by: 'tester', logs: ['artifacts/redacted/run.log'] });
@@ -82,4 +82,27 @@ test('field trial cannot reuse provenance while substituting observation or arti
   assert.match(validateLedger(ledger).join(' '), /missing matching P-level D03 run/);
   ledger.packaged_field_trial.runs[2].logs = [];
   assert.match(validateLedger(ledger).join(' '), /missing concrete artifact reference/);
+});
+
+test('structured accepted gate cannot stitch separate executions or truncated installer digests', () => {
+  const ledger = clone();
+  const ids = ['D01','D02','D03','D04','D05','D06','D07'];
+  const makeRun = id => ({
+    journey_id: id, execution_id: 'trial-a', workspace: '/tmp/fixture', test_task: 'sum-fix',
+    outcome: 'pass', evidence_level: 'P', toolkit_sha: 'a'.repeat(40),
+    package_version: 'v1.49.0 sha256:' + 'b'.repeat(64),
+    platform: 'linux-x64', provider: 'claude', timestamp_utc: '2026-11-10T09:00:00Z',
+    steps_to_reproduce: 'Open installed app', observed: 'Observed actual work',
+    tested_by: 'tester', logs: ['artifacts/redacted/run.log'],
+  });
+  for (const id of ids) ledger.journeys[id] = { outcome: 'pass', evidence_level: 'P', runs: [makeRun(id)] };
+  ledger.packaged_field_trial = { outcome: 'pass', evidence_level: 'P', runs: ids.map(makeRun) };
+  ledger.status = 'accepted'; ledger.evidence_level = 'P';
+  assert.deepEqual(validateLedger(ledger), []);
+  ledger.packaged_field_trial.runs[6].execution_id = 'trial-b';
+  assert.match(validateLedger(ledger).join(' '), /share execution_id/);
+  ledger.packaged_field_trial.runs[6].execution_id = 'trial-a';
+  for (const id of ids) ledger.journeys[id].runs[0].package_version = 'v1.49.0 sha256:abc';
+  for (const run of ledger.packaged_field_trial.runs) run.package_version = 'v1.49.0 sha256:abc';
+  assert.match(validateLedger(ledger).join(' '), /full installer sha256/);
 });
