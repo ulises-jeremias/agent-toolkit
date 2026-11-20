@@ -1,42 +1,42 @@
 capabilities:
   design/brag:
-    provenance_digest: sha256:5951c480c9d92bf0322ce09b929880baf43a307eb20d49b07ab9f05199f04d4a
+    provenance_digest: sha256:f18f916506342a8032b1d1c0b3e2c23228ecdb2d9aa951a576e1411926052fdf
     sources:
       upstream:
         path: skills/brag
         repository: latent-spaces/brag
         requested:
-          ref: c36b8341e1a983a49cc2a797d759634497172848
+          ref: 7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a
           type: commit
         resolved:
-          body_checksum: sha256:d024756eef132fb4788a00ef69408f5b60af8e495f3a15dfabb567089893d4aa
-          commit: c36b8341e1a983a49cc2a797d759634497172848
-          content_checksum: sha256:77af31eaf1247f3a9cec00c0d38508aefc5c6245d1fb708017c40d44ceb51769
+          body_checksum: sha256:578ca9772b37eadcb112d82c83a18636090539c07177459cbcf031b5bb1855c0
+          commit: 7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a
+          content_checksum: sha256:723bddbb056a6c292b4e7e557b5ba6f77576fbcdfaa9090e171e2a56f59ad5e2
           license:
             checksum: sha256:92d538e0da9abeaafff8ecfc62e142f5053fa92b2c3ef29978742c325c554089
             source_path: skills/design/brag/LICENSE
             spdx: MIT
-          resolved_at: '2026-11-02T04:51:24.249697Z'
-          version: c36b834
+          resolved_at: '2026-11-16T06:32:24.123739Z'
+          version: 7c98a08
   design/brag-slim:
-    provenance_digest: sha256:a4f34eb3958bc28f30915bbf46ec865811501eb36e21d68fedbfbbbd8bfaf8bd
+    provenance_digest: sha256:10d91e805754c2b2b140b9baedc22d6bfd79ba37a51c7e8d804d8f70862138d6
     sources:
       upstream:
         path: skills/brag-slim
         repository: latent-spaces/brag
         requested:
-          ref: 78100ba246612a09ba275ae130845c72c4d7ed97
+          ref: 7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a
           type: commit
         resolved:
-          body_checksum: sha256:c91d9f2976461067cadc61174d9358b9f701a30479ed7a6a282f2d4d1d4a8d62
-          commit: 78100ba246612a09ba275ae130845c72c4d7ed97
-          content_checksum: sha256:452bc71352181e7353a80fce1c65e550a0f6d272c6495530a058d17c1d6abd61
+          body_checksum: sha256:c5258b0f2ea2d4d7e2d94e023713e4d5a7d2c0f4a65dd3cab339b878fd7279d9
+          commit: 7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a
+          content_checksum: sha256:e4c44a335d33afe028f79c31d245e2ba09f97c0a1263e81b4d4d6fc4d025e42c
           license:
             checksum: sha256:92d538e0da9abeaafff8ecfc62e142f5053fa92b2c3ef29978742c325c554089
             source_path: skills/design/brag-slim/LICENSE
             spdx: MIT
-          resolved_at: '2026-11-02T04:51:24.249697Z'
-          version: 78100ba
+          resolved_at: '2026-11-16T06:32:24.123739Z'
+          version: 7c98a08
   design/frontend-design:
     provenance_digest: sha256:607628946521b586e97cea8dfb1c14c92c99a4b4dbe40d2106031c5498208255
     sources:
@@ -489,24 +489,24 @@ capabilities:
           resolved_at: '2026-09-21T06:40:27.115970Z'
           version: f78f194
   quality/blast-radius:
-    provenance_digest: sha256:3a4a7d43b1fc2590404ca84f65ae52346260fefd2119d118ba1c7560932e22b2
+    provenance_digest: sha256:491b2291e7a68a95dfd0ae572f1ea7f28339df67fd35c90cec1edaaf6a49503a
     sources:
       upstream:
         path: pstack/skills/blast-radius
         repository: cursor/plugins
         requested:
-          ref: df581122cde17e6e27686b5a448bde23e4ad4318
+          ref: bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7
           type: commit
         resolved:
-          body_checksum: sha256:0312c17e21d6e4a9e217f95cbe3d50eedbc8c273007f305a009d77699a54dc4a
-          commit: df581122cde17e6e27686b5a448bde23e4ad4318
-          content_checksum: sha256:812c854772f8829d9c1fea7aa9b4c402ba26cde46555e1e1b90c1a7439253739
+          body_checksum: sha256:620394b8c7ec32c10a73875c98b1fa11a19bfb1a28cce604612beb980ffa3a21
+          commit: bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7
+          content_checksum: sha256:c5a5398f0a14c7af309b5e128b1edfd85e9e42e1688347f5fb29b5031176d126
           license:
             checksum: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
             source_path: skills/quality/blast-radius/LICENSE
             spdx: MIT
-          resolved_at: '2026-11-02T04:51:24.249697Z'
-          version: df58112
+          resolved_at: '2026-11-16T06:32:24.123739Z'
+          version: bf0c7cd
   quality/deslop:
     provenance_digest: sha256:ed2b1207e571ffbe1e1b9e719d05af2e7de7434b00a9660b2d519ec4a58468f0
     sources:

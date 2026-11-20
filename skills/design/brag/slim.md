@@ -1,6 +1,6 @@
 ---
 name: brag-slim
-description: Turn a project directory or a website URL into a short, shareable launch video with music, motion, and share copy. One file, no bundled assets — built entirely by the model with the tools already on the machine. Use when someone says "/brag-slim", "let's /brag about this", "brag about a website", "make a launch video", or wants to show off what they built. If the /brag skill is also installed, let /brag handle those phrases; it hands off here on Opus 5.5.
+description: Turn a project directory or a website URL into a short, shareable launch video with music, motion, and share copy. One file, no bundled assets — built entirely by the model with the tools already on the machine. Use when someone says "/brag-slim", "let's /brag about this", "brag about a website", "make a launch video", or wants to show off what they built. If the /brag skill is also installed, let /brag handle those phrases; it hands off here on Opus 5.5, Sonnet 5.5 and Fable 5.2.
 ---
 
 # /brag-slim
@@ -34,7 +34,7 @@ If the input matches no type, or there's no input and the current directory isn'
 
 Read the code: the main page, styles (exact colors and fonts), README, routes and key components. The best material is the product **in use** — find its 2–3 beats: entry → key action → result.
 
-You have the source, so use it directly: import or render the project's real components, stylesheets, fonts, images and animations in the video instead of rebuilding them.
+You have the source, so use it directly: import or render the project's real components, stylesheets, fonts, images and animations in the video instead of rebuilding them. If the components can't render outside their app (server components that need a database, router hooks), keep the real design system anyway: compile the project's own stylesheet with its own build tool, with the video's markup as the only content source, and mirror the components' markup with their class lists copied from the source. Rebuild visuals by hand only when neither works.
 
 Don't read build output (`dist/`, `.next/`, `build/`), lock files, test files, `.git/`, env and secret files (`.env`, `.env.*`), key and credential material (`.pem`, `.key`, `id_rsa`, service-account JSON, anything under `secrets/` or `credentials/`), local config that commonly holds tokens, or anything `.gitignore` excludes for those reasons.
 
@@ -54,6 +54,8 @@ Before planning, answer: What is it (one sentence)? Who is it for, and what does
 
 Everything gathered here can end up in a public video. Never carry secrets, API keys, tokens, internal hostnames or URLs, real customer or user names, email addresses, or other personal data into the plan, the video, or the share copy. If the real UI shows such data, swap in plausible fictional stand-ins and say so in the plan.
 
+Also check the tools the build will need: a video encoder (ffmpeg), a headless browser and, for a project, its own build tool. If one is missing, ask before fetching it, and offer a fetch that leaves both the system and the project untouched (`uv run --with imageio-ffmpeg`, `npx -y <tool>@<the project's version>`, an installed browser driver with the system browser) ahead of a system install or a new project dependency. Say what you fetched when you deliver.
+
 ## 2. Plan
 
 Write `brag-plan.md`: the angle, the hook, 2–3 highlights, the punchline, tone, visual identity, and a scene-by-scene storyboard with durations that sum to the target, with the music's tempo chosen now and every cut on a beat.
@@ -67,12 +69,13 @@ If the user points at one part — a new version, a new feature, one angle — m
 - **Short.** 15–25 seconds; 18–22 is the sweet spot.
 - **Clear to a stranger.** After one viewing, someone who's never heard of it knows what it does, who it's for, and how to get it. Lead with that, not with how it's built.
 - **The hook is everything.** The first 2 seconds decide whether anyone keeps watching. Plan it first.
-- **Show the thing.** Reuse the real thing from the source — its UI, components, copy, images, videos and animations — rather than re-creating it. Rebuild only what you can't reuse. Prefer the working app doing its job over a landing page describing it. Small illustrative UI text is fine when showing the product in use (a filename, an "Exported" toast); invented claims, numbers, or testimonials are not. Never abstract filler.
+- **Show the thing.** Reuse the real thing from the source — its UI, components, copy, images, videos and animations — rather than re-creating it. Rebuild only what you can't reuse. Prefer the working app doing its job over a landing page describing it. Small illustrative UI text is fine when showing the product in use (a filename, an "Exported" toast); invented claims, numbers, or testimonials are not. Never abstract filler. If the product displays data about people (messages, contacts, followers, customer, health or finance records), show the real interface with obviously placeholder records, never rows from the project's database or exports: the video is made to be shared, and those people never agreed to be in it.
 - **Specific.** It must feel made for this exact project. Use its own copy and claims; no generic SaaS language ("streamline your workflow" is banned).
 - **Readable.** Pace comes from motion and cuts, not from pulling text away early. Any line the viewer is meant to read stays fully visible and settled long enough to read it (roughly 0.3s per word), counted from when the whole line is on screen. Text that's only texture doesn't need to be read.
 - **Make it alive.** Things that appear one by one, simulated clicks, swipes, and typing beat static slides.
 - **Funny earns its place.** Humor comes from the project's own absurdity, not from trying.
 - **Every frame postable.** Any frozen frame should be worth sharing.
+- **Clear of the platform's own UI.** Reels, TikTok and Shorts draw their username, caption, audio line and buttons over a vertical video. In `vertical`, keep anything meant to be read between about 13% and 80% of the height (y 250–1536 at 1080×1920) and out of the right 140px of the lower half. Check one still with those bands drawn over it before the full render.
 
 ## Tones
 
@@ -94,9 +97,9 @@ Write the music and sound effects as one piece: effects in the same key and the 
 
 ## 3. Build, check, render
 
-Build it with tools already on the machine. If something essential is missing, ask before installing anything, and prefer a package manager over `curl | sh`. If you draw the video in a browser, make every frame a pure function of time and wait for fonts and images to load before capturing each one.
+Build it with tools already on the machine. If something essential is missing, ask before installing anything, and prefer a package manager over `curl | sh`. If you draw the video in a browser, make every frame a pure function of time and wait for fonts and images to load before capturing each one. When you reuse the project's own CSS, hide inactive scenes with `display: none`, not `visibility: hidden`, which a child's `visibility: visible` overrides.
 
-Before the full render, look at stills from every scene *and* from mid-transition, and fix overflow, collisions, and low contrast. A plain crossfade between two busy layouts makes a muddy double exposure; stagger it (old content out, then new content in) or dip through the background. Then render `brag.mp4`.
+Before the full render, look at stills from every scene *and* from mid-transition, and fix overflow, collisions, and low contrast. Take the mid-transition times from the timeline, at each element's exit end and the next one's entry start, rather than picking them by eye: an overlap that lasts a frame or two falls between hand-picked stills. A plain crossfade between two busy layouts makes a muddy double exposure; stagger it (old content out, then new content in) or dip through the background. Then render `brag.mp4` and check the file, not just the frames: its frame count is duration × fps, and a frame at a known time shows what the plan puts there. A render can exit cleanly and still drop frames, for example when an overlay's PNG frames switch between RGB and RGBA mid-sequence, so convert such a sequence to one pixel format first.
 
 ## 4. Deliver
 
