@@ -5,24 +5,46 @@ import os
 import agent_toolkit_server
 import cli
 
+// veasel_desktop_candidates lists the canonical Veasel Desktop installs
+// the gui shim prefers (#1804): the Desktop moved to veasel-labs/veasel
+// in the One Runtime consolidation, so `agent-toolkit gui` launches it
+// when present and only falls back to a legacy Toolkit Desktop install.
+fn veasel_desktop_candidates() []string {
+	mut candidates := []string{}
+	if configured := os.getenv_opt('VEASEL_DESKTOP_BIN') {
+		if configured.len > 0 {
+			candidates << configured
+		}
+	}
+	home := os.home_dir()
+	candidates << os.join_path(home, '.local', 'bin', 'veasel-desktop')
+	candidates << os.join_path(home, '.local', 'opt', 'veasel-desktop', 'veasel-desktop')
+	candidates << '/usr/bin/veasel-desktop'
+	if found := os.find_abs_path_of_executable('veasel-desktop') {
+		candidates << found
+	}
+	return candidates
+}
+
 fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 	ver := agent_toolkit_core.resolve_toolkit_version()
 	release := 'https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v${ver}'
+	veasel_release := 'https://github.com/veasel-labs/veasel/releases'
 	if opts.install {
 		return render(agent_toolkit_core.CommandResult{
 			command: 'gui'
-			ok: false
-			message: 'Desktop installation from the CLI is unavailable. Install the Electron AppImage/deb, DMG, or Windows installer from ${release}.'
+			ok:      false
+			message: 'Desktop installation from the CLI is unavailable. The Desktop now ships as Veasel (AppImage/DEB, DMG, or Windows installer) from ${veasel_release}; legacy Toolkit Desktop builds remain at ${release}.'
 		}, mode)
 	}
 	if opts.headless {
 		return render(agent_toolkit_core.CommandResult{
 			command: 'gui'
-			ok: false
-			message: 'The Electron Desktop does not have a headless GUI mode. Use Desktop E2E or agent-toolkit serve for automation.'
+			ok:      false
+			message: 'The Desktop does not have a headless GUI mode. Use agent-toolkit serve for automation.'
 		}, mode)
 	}
-	mut candidates := []string{}
+	mut candidates := veasel_desktop_candidates()
 	configured := os.getenv('AGENT_TOOLKIT_DESKTOP_BIN')
 	if configured.len > 0 {
 		candidates << configured
@@ -43,22 +65,28 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 	if opts.dry_run {
 		return render(agent_toolkit_core.CommandResult{
 			command: 'gui'
-			ok: true
-			message: if bin.len > 0 { 'Would launch ${bin}' } else { 'No installed Desktop found. Install the Electron application from ${release}.' }
-			data: {'binary': bin}
+			ok:      true
+			message: if bin.len > 0 {
+				'Would launch ${bin}'
+			} else {
+				'No installed Desktop found. Install Veasel from ${veasel_release} or set VEASEL_DESKTOP_BIN.'
+			}
+			data:    {
+				'binary': bin
+			}
 		}, mode)
 	}
 	if bin.len == 0 {
 		return render(agent_toolkit_core.CommandResult{
 			command: 'gui'
-			ok: false
-			message: 'No installed Desktop found. Install the Electron application from ${release} or set AGENT_TOOLKIT_DESKTOP_BIN.'
+			ok:      false
+			message: 'No installed Desktop found. The Desktop now ships as Veasel: install it from ${veasel_release} or set VEASEL_DESKTOP_BIN (legacy Toolkit Desktop installs and AGENT_TOOLKIT_DESKTOP_BIN are still honored).'
 		}, mode)
 	}
 	os.execvp(bin, [bin]) or {
 		return render(agent_toolkit_core.CommandResult{
 			command: 'gui'
-			ok: false
+			ok:      false
 			message: 'Could not launch ${bin}: ${err}'
 		}, mode)
 	}
@@ -383,9 +411,9 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 		report := agent_toolkit_server.run_serve(opts)
 		res := agent_toolkit_core.CommandResult{
 			command: 'serve'
-			ok: report.ok
+			ok:      report.ok
 			message: report.message
-			data: report.data
+			data:    report.data
 		}
 		return render(res, mode)
 	}
@@ -625,7 +653,7 @@ If the matrix file is missing, prints where it is expected (research pipeline).
 		return agent_toolkit_core.swarm_prune_help_text()
 	}
 	if name == 'serve' {
-		return 'Usage: agent-toolkit serve [--host HOST] [--port PORT] [--allow-remote] [--auth-token TOKEN] [--no-browser] [--json]
+		return "Usage: agent-toolkit serve [--host HOST] [--port PORT] [--allow-remote] [--auth-token TOKEN] [--no-browser] [--json]
 
 Run the agent-toolkit HTTP server (feature-complete API over core).
 
@@ -633,7 +661,7 @@ Run the agent-toolkit HTTP server (feature-complete API over core).
   --port PORT       Port (default 3847)
   --allow-remote    Allow binding non-localhost (requires --auth-token)
   --auth-token TEXT Bearer token for remote access (or env AGENT_TOOLKIT_TOKEN)
-  --no-browser      Don\'t open browser on start
+  --no-browser      Don't open browser on start
   --json            Structured CommandResult JSON
 
 Examples:
@@ -642,13 +670,13 @@ Examples:
   agent-toolkit serve --host 0.0.0.0 --allow-remote --auth-token \$TOKEN
 
 See: docs/v/advanced-command-disposition.md
-'
+"
 	}
 	if name == 'completion' {
 		return completion_help_text()
 	}
 	mut c := cli.Command{
-		name: name
+		name:        name
 		description: '${name} — not implemented in the product V CLI (see docs/v/advanced-command-disposition.md)'
 	}
 	c.setup()
