@@ -13,6 +13,7 @@ Usage:
   creative_project.py status <dir>
   creative_project.py doctor
 """
+
 from __future__ import annotations
 
 import argparse
@@ -21,7 +22,6 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -151,6 +151,10 @@ def verify_sources(data: dict) -> list[str]:
         st = p.stat()
         if st.st_size != s["size"] or st.st_mtime_ns != s["mtime_ns"]:
             problems.append(f"source changed since add: {p}")
+            continue
+        expected_hash = s.get("sha256_head_1mb")
+        if expected_hash and sha256_head(p) != expected_hash:
+            problems.append(f"source content changed since add: {p}")
     return problems
 
 
@@ -158,8 +162,10 @@ def cmd_status(args: argparse.Namespace) -> None:
     root = Path(args.dir).resolve()
     data = load(root)
     print(f"project: {data['name']}  updated: {data['updated']}")
-    print(f"sources: {len(data['sources'])}  operations: {len(data['operations'])}  "
-          f"artifacts: {len(data['artifacts'])}")
+    print(
+        f"sources: {len(data['sources'])}  operations: {len(data['operations'])}  "
+        f"artifacts: {len(data['artifacts'])}"
+    )
     problems = verify_sources(data)
     if problems:
         for p in problems:
@@ -182,17 +188,19 @@ def probe_tool(name: str, cmd: str, ver_args: list[str]) -> dict:
 
 def cmd_doctor(args: argparse.Namespace) -> None:
     rows = [probe_tool(n, c, a) for n, (c, a) in TOOLS.items()]
-    if args.json:
-        print(json.dumps(rows, indent=2))
-        return
-    for r in rows:
-        print(f"{r['tool']:<14} {r['status']:<26} {r['detail']}")
     core = {"kdenlive", "melt", "ffmpeg", "ffprobe"}
     missing = [r["tool"] for r in rows if r["tool"] in core and r["status"] != "available"]
+    if args.json:
+        print(json.dumps(rows, indent=2))
+    else:
+        for r in rows:
+            print(f"{r['tool']:<14} {r['status']:<26} {r['detail']}")
     if missing:
-        print(f"core tools missing: {', '.join(missing)}")
+        if not args.json:
+            print(f"core tools missing: {', '.join(missing)}")
         raise SystemExit(1)
-    print("core media tools available (MCP servers still need per-tool diagnose)")
+    if not args.json:
+        print("core media tools available (MCP servers still need per-tool diagnose)")
 
 
 def main() -> None:
@@ -206,13 +214,13 @@ def main() -> None:
     a.add_argument("dir")
     a.add_argument("media")
     a.set_defaults(fn=cmd_add_source)
-    l = sub.add_parser("log-op")
-    l.add_argument("dir")
-    l.add_argument("--tool", required=True)
-    l.add_argument("--action", required=True)
-    l.add_argument("--status", default="succeeded")
-    l.add_argument("--artifact", action="append")
-    l.set_defaults(fn=cmd_log_op)
+    log_parser = sub.add_parser("log-op")
+    log_parser.add_argument("dir")
+    log_parser.add_argument("--tool", required=True)
+    log_parser.add_argument("--action", required=True)
+    log_parser.add_argument("--status", default="succeeded")
+    log_parser.add_argument("--artifact", action="append")
+    log_parser.set_defaults(fn=cmd_log_op)
     s = sub.add_parser("status")
     s.add_argument("dir")
     s.set_defaults(fn=cmd_status)

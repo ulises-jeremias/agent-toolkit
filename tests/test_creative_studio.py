@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -78,33 +79,46 @@ def test_helper_init_status_and_source_preservation(tmp_path: Path) -> None:
     assert _run_helper("add-source", str(proj), str(media)).returncode == 0
     assert _run_helper("status", str(proj)).returncode == 0
 
-    # Mutating the source must make status fail: sources are evidence.
-    media.write_bytes(b"y" * 4096)
+    # Hash verification catches a same-size edit even if its timestamp is restored.
+    added_stat = media.stat()
+    media.write_bytes(b"y" * 2048)
+    os.utime(media, ns=(added_stat.st_atime_ns, added_stat.st_mtime_ns))
     result = _run_helper("status", str(proj))
     assert result.returncode != 0
-    assert "FAIL" in result.stdout
+    assert "source content changed since add" in result.stdout
 
 
 def test_helper_rejects_path_traversal(tmp_path: Path) -> None:
     proj = tmp_path / "proj"
     assert _run_helper("init", str(proj)).returncode == 0
     result = _run_helper(
-        "log-op", str(proj), "--tool", "x", "--action", "bad",
-        "--artifact", "/etc/passwd",
+        "log-op",
+        str(proj),
+        "--tool",
+        "x",
+        "--action",
+        "bad",
+        "--artifact",
+        "/etc/passwd",
     )
     assert result.returncode != 0
     assert "escapes" in (result.stdout + result.stderr)
 
 
-def test_helper_doctor_reports_core_tools() -> None:
-    result = _run_helper("doctor", "--json")
+def test_helper_doctor_reports_core_tools(tmp_path: Path) -> None:
+    empty_path = tmp_path / "empty-path"
+    empty_path.mkdir(exist_ok=True)
+    result = subprocess.run(
+        [sys.executable, str(HELPER_PATH), "doctor", "--json"],
+        capture_output=True,
+        text=True,
+        timeout=60,
+        env={**os.environ, "PATH": str(empty_path)},
+    )
     rows = {r["tool"]: r["status"] for r in json.loads(result.stdout)}
     for core in ("kdenlive", "melt", "ffmpeg", "ffprobe"):
-        assert core in rows
-    if shutil.which("ffmpeg") is None:
-        assert result.returncode != 0
-    else:
-        assert rows["ffmpeg"] == "available"
+        assert rows[core] == "unsupported"
+    assert result.returncode == 1
 
 
 def test_registry_owns_creative_skills() -> None:
@@ -170,19 +184,41 @@ def test_audio_loudnorm_roundtrip_preserves_source(tmp_path: Path) -> None:
     src = tmp_path / "tone.wav"
     out = tmp_path / "tone_norm.wav"
     subprocess.run(
-        ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-         "-f", "lavfi", "-i", "sine=frequency=1000:duration=2",
-         "-c:a", "pcm_s16le", str(src)],
-        check=True, timeout=60,
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-y",
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=1000:duration=2",
+            "-c:a",
+            "pcm_s16le",
+            str(src),
+        ],
+        check=True,
+        timeout=60,
     )
     before = src.read_bytes()
 
     def lufs(path: Path) -> float:
         proc = subprocess.run(
-            ["ffmpeg", "-hide_banner", "-i", str(path),
-             "-af", "loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json",
-             "-f", "null", "-"],
-            capture_output=True, text=True, timeout=60,
+            [
+                "ffmpeg",
+                "-hide_banner",
+                "-i",
+                str(path),
+                "-af",
+                "loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json",
+                "-f",
+                "null",
+                "-",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=60,
         )
         start, end = proc.stderr.rindex("{"), proc.stderr.rindex("}") + 1
         return float(json.loads(proc.stderr[start:end])["input_i"])
@@ -190,9 +226,22 @@ def test_audio_loudnorm_roundtrip_preserves_source(tmp_path: Path) -> None:
     input_i = lufs(src)
     assert not out.exists()
     subprocess.run(
-        ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src),
-         "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-c:a", "pcm_s16le", str(out)],
-        check=True, timeout=60,
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-y",
+            "-i",
+            str(src),
+            "-af",
+            "loudnorm=I=-16:TP=-1.5:LRA=11",
+            "-c:a",
+            "pcm_s16le",
+            str(out),
+        ],
+        check=True,
+        timeout=60,
     )
     output_i = lufs(out)
     assert abs(output_i - (-16.0)) < 1.0, (input_i, output_i)
