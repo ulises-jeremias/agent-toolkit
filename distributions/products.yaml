@@ -239,6 +239,14 @@ products:
         - tooling/mermaid
         - architecture/architecture-diagram
         - architecture/c4-model
+        - creative/creative-studio
+        - creative/video-editing
+        - creative/video-analysis
+        - creative/motion-graphics
+        - creative/image-editing
+        - creative/audio-production
+        - creative/content-production
+        - creative/media-qa
       agents:
         - agentic-security-reviewer
         - architect
@@ -258,9 +266,78 @@ products:
         - security-engineer
         - security-reviewer
         - tdd-guide
+        - creative-director
+        - video-editor
+        - motion-designer
+        - audio-engineer
+        - visual-designer
+        - media-qa-reviewer
       hooks: []
       mcp: []
     security:
       approval_required: false
       default_enabled: true
       rationale: opt-in complete catalog
+
+  - id: agent-toolkit-creative-studio
+    name: Agent Toolkit Creative Studio
+    description: 'AI-native creative production: portable skills and agents that drive real applications (Kdenlive, Blender, GIMP/Krita/Inkscape, OBS, REAPER, FFmpeg) through reviewed, pinned MCP integrations, preserving editable native projects. Opt-in: creative MCP servers are never enabled for every coding session. See docs/adrs/ADR-046-creative-studio-ecosystem.md.'
+    version_source: VERSION
+    stability: experimental
+    includes:
+      skills:
+        - creative/creative-studio
+        - creative/video-editing
+        - creative/video-analysis
+        - creative/motion-graphics
+        - creative/image-editing
+        - creative/audio-production
+        - creative/content-production
+        - creative/media-qa
+        - design/brag
+        - design/brag-slim
+      agents:
+        - creative-director
+        - video-editor
+        - motion-designer
+        - audio-engineer
+        - visual-designer
+        - media-qa-reviewer
+      hooks: []
+      mcp:
+        - kdenlive
+    excludes: []
+    targets:
+      claude-code:
+        plugin_id: agent-toolkit-creative-studio
+        manifest: plugins/agent-toolkit-creative-studio/.claude-plugin/plugin.json
+      cursor:
+        plugin_id: agent-toolkit-creative-studio
+        manifest: plugins/agent-toolkit-creative-studio/.cursor-plugin/plugin.json
+    requires:
+      executables:
+        - name: uvx
+          description: uv tool runner for the Kdenlive MCP server pinned to the evaluated upstream commit
+          install_url: https://docs.astral.sh/uv/getting-started/installation/
+          required: false
+          capability: mcp:kdenlive
+        - name: ffmpeg
+          description: FFmpeg/ffprobe for media inspection, loudness and exports
+          install_url: https://ffmpeg.org/download.html
+          required: true
+          capability: media:ffmpeg
+        - name: kdenlive
+          description: Kdenlive + MLT (melt) for editable video projects via the kdenlive MCP
+          install_url: https://kdenlive.org/en/download/
+          required: false
+          capability: mcp:kdenlive
+        - name: blender
+          description: Blender for motion graphics (headless or Lab MCP)
+          install_url: https://www.blender.org/download/
+          required: false
+          capability: mcp:blender
+      env: []
+    security:
+      approval_required: true
+      default_enabled: false
+      rationale: Creative MCP servers write media files and (Blender) can execute Python; skills stay opt-in per ADR-046 and each MCP entry declares its own approval class.

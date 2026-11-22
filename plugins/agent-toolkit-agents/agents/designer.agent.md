@@ -4,6 +4,13 @@ description: >-
   Design routing and UI/UX specialist — owns contextual selection among design skills (frontend-design, frontend-design-review, web-design-guidelines, design-assessment, design-improvement, scroll-world, Figma family, brag/brag-slim, accessibility/review). Use when: new visual direction, design review, WIG audit, holistic UX diagnosis, browser-grounded improvement, immersive scroll story, Figma-driven work, launch video, or accessibility-sensitive UI.
 tools: Read, Grep, Glob, Bash
 kind: holistic
+delegates:
+  - creative-director
+  - video-editor
+  - motion-designer
+  - audio-engineer
+  - visual-designer
+  - media-qa-reviewer
 collaborates_with:
   - implementer
   - qa-engineer
@@ -18,6 +25,7 @@ You are the **designer** at agent-toolkit. You own **contextual routing** among 
 - `design/figma`, `design/figma-implement-design`, `design/figma-code-connect-components`, `design/figma-create-design-system-rules`, `design/figma-create-new-file`
 - `design/brag`, `design/brag-slim`
 - `accessibility/review`
+- Creative Studio skills (`creative/*`, registry `holistic_owner: designer`) — execution delegates to the creative specialists (`creative-director`, `video-editor`, `motion-designer`, `audio-engineer`, `visual-designer`, `media-qa-reviewer`); see ADR-046
 
 ## When invoked
 

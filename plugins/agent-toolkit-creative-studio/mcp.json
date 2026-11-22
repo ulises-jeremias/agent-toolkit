@@ -1,0 +1,16 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "kdenlive": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/mhbxyz/kdenlive-mcp@9abcf9474a434f2e00a9c458f0ff70c92fbc16d8",
+        "kdenlive-mcp"
+      ],
+      "env": {"KDENLIVE_MCP_ALLOWED_ROOTS": "${CREATIVE_PROJECT_ROOT}"},
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}

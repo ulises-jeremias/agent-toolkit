@@ -28,6 +28,16 @@
       "workspace",
       "workspace-knowledge-sync"
     ],
+    "creative": [
+      "audio-production",
+      "content-production",
+      "creative-studio",
+      "image-editing",
+      "media-qa",
+      "motion-graphics",
+      "video-analysis",
+      "video-editing"
+    ],
     "data": [
       "dbt-validation",
       "snowflake-validation"
@@ -222,6 +232,46 @@
       "id": "core/workspace-knowledge-sync",
       "name": "workspace-knowledge-sync",
       "domain": "core"
+    },
+    {
+      "id": "creative/audio-production",
+      "name": "audio-production",
+      "domain": "creative"
+    },
+    {
+      "id": "creative/content-production",
+      "name": "content-production",
+      "domain": "creative"
+    },
+    {
+      "id": "creative/creative-studio",
+      "name": "creative-studio",
+      "domain": "creative"
+    },
+    {
+      "id": "creative/image-editing",
+      "name": "image-editing",
+      "domain": "creative"
+    },
+    {
+      "id": "creative/media-qa",
+      "name": "media-qa",
+      "domain": "creative"
+    },
+    {
+      "id": "creative/motion-graphics",
+      "name": "motion-graphics",
+      "domain": "creative"
+    },
+    {
+      "id": "creative/video-analysis",
+      "name": "video-analysis",
+      "domain": "creative"
+    },
+    {
+      "id": "creative/video-editing",
+      "name": "video-editing",
+      "domain": "creative"
     },
     {
       "id": "data/dbt-validation",

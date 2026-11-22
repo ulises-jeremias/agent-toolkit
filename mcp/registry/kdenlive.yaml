@@ -1,0 +1,77 @@
+# MCP Provider: kdenlive
+# Research: docs/creative-studio/UPSTREAM_EVALUATION.md · mcp/templates/kdenlive/
+id: kdenlive
+display_name: Kdenlive
+purpose: Inspect, edit and render native Kdenlive projects (timeline cuts, titles, subtitles, effects, renders with validation)
+implementation:
+  provenance: community
+  package: "mcp-kdenlive (PyPI) — command: kdenlive-mcp; NOT the unrelated PyPI name 'kdenlive-mcp'"
+  repository: https://github.com/mhbxyz/kdenlive-mcp
+  license: MIT
+  version_policy: pin evaluated revision 9abcf9474a434f2e00a9c458f0ff70c92fbc16d8 (2026-11-13) or a reviewed release
+transport:
+  supported: [stdio]
+  preferred: stdio
+auth:
+  supported: [none]
+  preferred: none
+  env: [KDENLIVE_MCP_ALLOWED_ROOTS]
+tools:
+  read:
+    - diagnose_environment
+    - inspect_project
+    - get_timeline
+    - list_project_media
+    - probe_media
+    - list_render_presets
+    - list_profiles
+    - list_markers
+    - list_effects
+    - list_subtitles
+    - get_render_job
+    - list_render_jobs
+  write:
+    - create_project
+    - save_project_copy
+    - add_media_to_bin
+    - relink_media
+    - add_track
+    - insert_clip
+    - move_clip
+    - trim_clip
+    - split_clip
+    - remove_clip
+    - set_clip_volume
+    - set_clip_fades
+    - add_marker
+    - update_marker
+    - remove_marker
+    - add_effect
+    - update_effect
+    - remove_effect
+    - add_mix
+    - remove_mix
+    - add_title
+    - import_subtitles
+    - render_project
+    - start_render
+    - cancel_render_job
+  destructive: []
+approval:
+  default: bounded-write
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 8000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: native
+  copilot-cli: unknown-blocked
+  gemini-cli: unknown-blocked
+  windsurf: manual
+  pi: unknown-blocked
+  codex: native
+security:
+  network_hosts: []
+  secret_storage: none required
+  notes: Linux only. Requires system kdenlive, melt (MLT 7.x) and ffprobe (FFmpeg >=6). All file access is contained by KDENLIVE_MCP_ALLOWED_ROOTS; the server writes a timestamped .backup-*.kdenlive before each edit and never overwrites sources. Verified on HorneroOS with Kdenlive 26.08.3 / MLT 7.42.0 / FFmpeg n9.1 (editable project + validated render).

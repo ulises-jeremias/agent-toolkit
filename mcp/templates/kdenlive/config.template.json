@@ -1,0 +1,8 @@
+{
+  "name": "kdenlive",
+  "command": "kdenlive-mcp",
+  "args": [],
+  "env": {
+    "KDENLIVE_MCP_ALLOWED_ROOTS": "${CREATIVE_PROJECT_ROOT}"
+  }
+}

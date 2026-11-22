@@ -3,7 +3,7 @@
 # Do not hand-edit counts; validate with: python3 scripts/validate-skill-capability.py --check
 # Schema: schemas/skill-capability-registry.schema.json
 version: 1
-count: 107
+count: 115
 generated: true
 skills:
 - id: accessibility/review
@@ -551,6 +551,257 @@ skills:
   - assistant
   specialist_justified: false
   contraindications: Sync only — do not invent learnings without evidence; cite source files
+- id: creative/audio-production
+  domain: creative
+  purpose: Audio inspection, EBU R128 loudness, cleanup and DAW workflows — FFmpeg loudnorm/volumedetect, REAPER via MCP for real sessions, OBS capture discipline; originals and .rpp projects preserved.
+  origin: first-party
+  holistic_owner: designer
+  role: creation
+  context_cost: medium
+  network_required: false
+  mcp_required:
+  - reaper
+  - obs
+  requires: []
+  triggers:
+  - audio production
+  - loudness
+  - reaper
+  - voiceover
+  - normalize audio
+  overlap:
+  - creative/video-editing
+  complementary:
+  - creative/video-editing
+  - creative/media-qa
+  prerequisites: []
+  follow_ups:
+  - creative/media-qa
+  secondary_owners:
+  - qa-engineer
+  specialist_agents:
+  - audio-engineer
+  specialist_justified: true
+  contraindications: Never enable recording, streaming or microphone capture without an explicit user action; REAPER is proprietary opt-in.
+- id: creative/content-production
+  domain: creative
+  purpose: Reusable content recipes (tutorials, demos, release trailers, walkthroughs, shorts, thumbnails) composed from the creative skills, extending design/brag for launch videos instead of competing with it.
+  origin: first-party
+  holistic_owner: designer
+  role: creation
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - youtube tutorial
+  - product demo video
+  - release trailer
+  - short-form clip
+  - content production
+  overlap:
+  - design/brag
+  - design/brag-slim
+  complementary:
+  - design/brag
+  - creative/video-editing
+  - creative/image-editing
+  prerequisites: []
+  follow_ups:
+  - creative/media-qa
+  secondary_owners:
+  - qa-engineer
+  specialist_agents:
+  - creative-director
+  specialist_justified: true
+  contraindications: Launch videos from a website/app delegate to design/brag; never invent product features or screenshots.
+- id: creative/creative-studio
+  domain: creative
+  purpose: Orchestrate AI-managed creative production across real applications (Kdenlive, Blender, GIMP/Krita/Inkscape, OBS, REAPER, FFmpeg) — honest availability discovery, per-step tool selection, portable project manifest, editable-project preservation.
+  origin: first-party
+  holistic_owner: designer
+  role: ops
+  context_cost: medium
+  network_required: false
+  mcp_required:
+  - kdenlive
+  requires: []
+  triggers:
+  - creative studio
+  - make a trailer
+  - produce a video
+  - multimedia production
+  - AI video editing
+  overlap:
+  - creative/content-production
+  complementary:
+  - creative/video-analysis
+  - creative/video-editing
+  - creative/media-qa
+  prerequisites: []
+  follow_ups:
+  - creative/video-analysis
+  secondary_owners:
+  - qa-engineer
+  specialist_agents:
+  - creative-director
+  specialist_justified: true
+  contraindications: Never manufacture readiness, timestamps or progress; sources are read-only and outputs never overwrite.
+- id: creative/image-editing
+  domain: creative
+  purpose: Layer-aware image editing with GIMP, Krita and Inkscape through MCP — retouching, compositing, masks, thumbnails and SVG assets with native XCF/KRA/SVG sources plus checked exports.
+  origin: first-party
+  holistic_owner: designer
+  role: creation
+  context_cost: medium
+  network_required: false
+  mcp_required:
+  - gimp
+  - krita
+  - inkscape
+  requires: []
+  triggers:
+  - edit image
+  - thumbnail
+  - gimp
+  - krita
+  - inkscape
+  - svg asset
+  overlap:
+  - design/figma
+  complementary:
+  - creative/content-production
+  - creative/media-qa
+  prerequisites: []
+  follow_ups:
+  - creative/media-qa
+  secondary_owners:
+  - qa-engineer
+  specialist_agents:
+  - visual-designer
+  specialist_justified: true
+  contraindications: Never flatten the only copy; report application/MCP compatibility honestly (Krita version matters).
+- id: creative/media-qa
+  domain: creative
+  purpose: Objective media verification — codec/resolution/duration, loudness, black/freeze frames, A/V sync, subtitle sanity, native-project reopen tests and source-preservation proofs before any delivery claim.
+  origin: first-party
+  holistic_owner: designer
+  role: validation
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - verify render
+  - media qa
+  - check export
+  - validate video
+  - qa report
+  overlap: []
+  complementary:
+  - creative/video-editing
+  - creative/audio-production
+  - creative/motion-graphics
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - qa-engineer
+  specialist_agents:
+  - media-qa-reviewer
+  specialist_justified: true
+  contraindications: Exit code 0 is not a pass; missing evidence is reported as missing, never converted into success.
+- id: creative/motion-graphics
+  domain: creative
+  purpose: Motion graphics and 3D with Blender — logo animations, title sequences and validated renders preserving .blend sources; headless bpy by default, Blender Lab MCP only behind an explicit high-risk gate.
+  origin: first-party
+  holistic_owner: designer
+  role: creation
+  context_cost: medium
+  network_required: false
+  mcp_required:
+  - blender
+  requires: []
+  triggers:
+  - motion graphics
+  - blender
+  - logo animation
+  - title sequence
+  - 3d render
+  overlap:
+  - design/scroll-world
+  complementary:
+  - creative/video-editing
+  - creative/media-qa
+  prerequisites: []
+  follow_ups:
+  - creative/media-qa
+  secondary_owners:
+  - qa-engineer
+  specialist_agents:
+  - motion-designer
+  specialist_justified: true
+  contraindications: Blender MCP Python execution is arbitrary code execution — explicit authorization, loopback, bounded project directory.
+- id: creative/video-analysis
+  domain: creative
+  purpose: Evidence-backed video understanding — ffprobe metadata, scene-cut and silence detection, frame extraction, timestamped transcription and a trustworthy source index; never invent timestamps or scene content.
+  origin: first-party
+  holistic_owner: designer
+  role: research
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - analyze video
+  - transcribe
+  - scene detection
+  - find highlights
+  - video metadata
+  overlap: []
+  complementary:
+  - creative/video-editing
+  prerequisites: []
+  follow_ups:
+  - creative/video-editing
+  secondary_owners:
+  - qa-engineer
+  specialist_agents:
+  - video-editor
+  specialist_justified: true
+  contraindications: No transcription tool installed means no subtitles; large model downloads need explicit approval.
+- id: creative/video-editing
+  domain: creative
+  purpose: Intelligent nonlinear editing with Kdenlive through MCP — real editable .kdenlive projects (tracks, cuts, trims, crossfades, titles, subtitles, narration, music) and validated renders.
+  origin: first-party
+  holistic_owner: designer
+  role: creation
+  context_cost: medium
+  network_required: false
+  mcp_required:
+  - kdenlive
+  requires: []
+  triggers:
+  - edit video
+  - kdenlive
+  - cut footage
+  - video timeline
+  - add subtitles
+  overlap:
+  - creative/content-production
+  complementary:
+  - creative/video-analysis
+  - creative/audio-production
+  - creative/media-qa
+  prerequisites:
+  - creative/video-analysis
+  follow_ups:
+  - creative/media-qa
+  secondary_owners:
+  - qa-engineer
+  specialist_agents:
+  - video-editor
+  specialist_justified: true
+  contraindications: Never replace an editable timeline with FFmpeg concatenation; never overwrite exports or modify sources.
 - id: data/dbt-validation
   domain: data
   purpose: HOW — Run dbt checks as documented in the target repo (parse, compile, test, selective run).

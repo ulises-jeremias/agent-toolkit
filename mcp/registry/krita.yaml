@@ -1,0 +1,42 @@
+# MCP Provider: krita
+# Research: docs/creative-studio/UPSTREAM_EVALUATION.md
+id: krita
+display_name: Krita
+purpose: Digital painting and illustration in Krita (brush engine, layers, selections, filters) with KRA preservation
+implementation:
+  provenance: community
+  package: "KritaPilot (Krita Python plug-in + MCP server)"
+  repository: https://github.com/jowinjohnchemban/kritapilot
+  license: MIT
+  version_policy: pin evaluated revision 8a72d0bb7e7d6a6f2da036161ea006bb6fbb189c (2026-11-22); fallback SanSaSane/krita-mcp (CC0, 31 ops)
+transport:
+  supported: [stdio]
+  preferred: stdio
+auth:
+  supported: [none]
+  preferred: none
+  env: []
+tools:
+  read:
+    - document/layer inspection and canvas preview (98 tools + 7 prompts at the pinned revision)
+  write:
+    - brush strokes, layers, selections, filters, exports
+  destructive: []
+approval:
+  default: bounded-write
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 8000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: unknown-blocked
+  copilot-cli: unknown-blocked
+  gemini-cli: unknown-blocked
+  windsurf: manual
+  pi: unknown-blocked
+  codex: unknown-blocked
+security:
+  network_hosts: []
+  secret_storage: none required
+  notes: Upstream tested on Krita 5.3.4; Krita must be running with the plug-in enabled. Verify against the installed Krita version before claiming support. Not yet verified end-to-end.

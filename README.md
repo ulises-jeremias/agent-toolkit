@@ -337,7 +337,7 @@ Every skill's `holistic_owner` in `capabilities/skills/registry.yaml` is one of 
 | 🤝 `assistant` | **Orchestrator** — intent → context → proportional delegation → synthesis | `core/*`, discovery, `output-handshake` |
 | 📋 `planner` | Decomposition, PRD/TRD, work items, estimation, capacity | `delivery` (11 inc. `planning`, `project-assessment`, `workflow-generic-project`) |
 | 🏗️ `architect` | System design, tradeoffs, C4, ADRs/TRDs, cloud patterns | `architecture` (2), `cloud` (2), `delivery` (adr/trd/decision-log/technical-assessment), `tooling/mermaid` |
-| 🎨 `designer` | Visual direction, UX, Figma, design system, a11y — contextual routing | `design` (10), `accessibility/review` |
+| 🎨 `designer` | Visual direction, UX, Figma, creative production, design system, a11y — contextual routing | `design` (10), `creative` (8), `accessibility/review` |
 | 🔨 `implementer` | Feature/bug/refactoring delivery, build/test loop, docs generation | `delivery/task`, `ops/docs-generator` |
 | 🔍 `reviewer` | Independent quality/craft, change-safety, anti-slop (`blast-radius`, `deep-review`, `deslop`, `unslop`) | `quality` (4) |
 | 🧪 `qa-engineer` | Behavioral verification, lint gates, browser automation, E2E, bug triage | `quality/megalinter*` (4), `tooling/playwright-cli`, `tooling/chrome-devtools`, `delivery/bug` |
@@ -348,7 +348,7 @@ Every skill's `holistic_owner` in `capabilities/skills/registry.yaml` is one of 
 
 **Orchestrator** (not in daily count): `client-workflow-bootstrap` — meta-generates `<client>` packs/knowledge into `~/.ai-workspace` (interview-driven; not a delivery persona).
 
-**Specialists (6 opt-in, archived 7 → `references/` #865):** `code-reviewer`, `security-reviewer` + `agentic-security-reviewer`, `e2e-runner`, `tdd-guide`, `build-error-resolver` — kept per the agent-vs-skill rule (independent verification, disjoint surface, noisy output, large diagnostic context). Archived specialists live on as inline references (`reviewer/references/`, `researcher/references/LOOKUP_GUIDE.md`, `platform-engineer/references/WORKSTATION_OPS.md`) — no knowledge deleted. Full migration map and routing chains: [`docs/AGENT_TAXONOMY.md`](docs/AGENT_TAXONOMY.md) §3/§8.
+**Specialists (12 opt-in):** quality/review specialists `code-reviewer`, `security-reviewer`, `agentic-security-reviewer`, `e2e-runner`, `tdd-guide`, `build-error-resolver`; Creative Studio specialists `creative-director`, `video-editor`, `motion-designer`, `audio-engineer`, `visual-designer`, `media-qa-reviewer`. They handle focused, domain-specific work. Seven archived specialists live as inline references (`reviewer/references/`, `researcher/references/LOOKUP_GUIDE.md`, `platform-engineer/references/WORKSTATION_OPS.md`) — no knowledge deleted. Full migration map and routing chains: [`docs/AGENT_TAXONOMY.md`](docs/AGENT_TAXONOMY.md) §3/§8.
 
 Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · taxonomy: [`docs/AGENT_TAXONOMY.md`](docs/AGENT_TAXONOMY.md) · routing: [`docs/SKILL_ROUTING.md`](docs/SKILL_ROUTING.md) · personas on disk under `agents/` (see inventory)
 
@@ -436,7 +436,7 @@ Templates live in [`mcp/templates/`](mcp/templates/) and use clearly marked plac
 
 > **New:** Every plugin in [`plugins/`](./plugins/) now ships as an **Agent Plugins 1.0** portable bundle (`plugin.json` + `skills/` + `mcp.json`) for **Cursor, VS Code, GitHub Copilot, ChatGPT/Codex, Kiro** — plus legacy `.claude-plugin/` for **Claude Code** (dual emit until Claude supports the spec). See [docs/AGENT_PLUGINS.md](docs/AGENT_PLUGINS.md).
 
-Five products are declared in [`distributions/products.yaml`](distributions/products.yaml): four stable marketplace products and the experimental full-catalog bundle.
+Six products are declared in [`distributions/products.yaml`](distributions/products.yaml): four stable marketplace products and two opt-in experimental products (the full-catalog bundle and Creative Studio).
 
 | Product | Portable (Agent Plugins 1.0) | What's included |
 | --------- | ------------------------------ | ----------------- |
@@ -445,6 +445,7 @@ Five products are declared in [`distributions/products.yaml`](distributions/prod
 | `agent-toolkit-forge` | `plugin.json` + `skills/` (8) | GitHub/GitLab workflows, CI fixes, comment resolution, contribution planning, and generic delivery |
 | `agent-toolkit-craft` | `plugin.json` + `skills/` (3) | Writing quality and change-safety capabilities |
 | `agent-toolkit-complete` | `plugin.json` + `skills/` (full catalog) + `mcp.json` | Full skill catalog (experimental; portable manifest included, marketplace pending) — count via `agent-toolkit inventory` |
+| `agent-toolkit-creative-studio` | `plugin.json` + creative `skills/` + `agents/` + pinned Kdenlive MCP | Opt-in creative production workflows; system applications and MCP server are optional and documented in [Creative Studio](docs/creative-studio/README.md) |
 
 Plugin manifests: [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) · [`.cursor-plugin/marketplace.json`](.cursor-plugin/marketplace.json) · `plugins/<id>/plugin.json` (Agent Plugins `$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) · `plugins/<id>/mcp.json` (where applicable)
 
@@ -463,6 +464,7 @@ Packs bundle skills, agents, and loops for a specific team context. Load a pack 
 | `architecture` | Architecture, ADRs, cloud design, diagramming, C4 |
 | `code-quality` | Code quality, MegaLinter, CodeQL, CI fix, inventory |
 | `design-engineering` | Design-engineering, frontend, a11y, Chrome DevTools |
+| `creative-studio` | Portable creative workflows for video, motion, image, audio and media QA; requires the relevant local applications and MCP servers |
 
 Browse packs: [`packs/`](packs/)
 

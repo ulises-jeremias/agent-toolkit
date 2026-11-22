@@ -1,0 +1,43 @@
+# MCP Provider: blender
+# Research: docs/creative-studio/UPSTREAM_EVALUATION.md · mcp/templates/blender/
+id: blender
+display_name: Blender
+purpose: Create and edit Blender scenes, animation, materials and renders while preserving .blend sources (official Blender Lab MCP preferred)
+implementation:
+  provenance: official
+  package: "Blender Lab add-on + MCP server (projects.blender.org/lab/blender_mcp)"
+  repository: https://projects.blender.org/lab/blender_mcp
+  license: GPL-3.0
+  version_policy: pin evaluated revision dbbf836ad4b1025f14a2b3b504c43903f39e0b04 (2026-09-29) or a reviewed release; community alternative ahujasid/mcp-for-blender (MIT) is documented but not the default
+transport:
+  supported: [stdio]
+  preferred: stdio
+auth:
+  supported: [none]
+  preferred: none
+  env: []
+tools:
+  read:
+    - scene inspection and render status (see upstream readme_tools.rst at the pinned revision)
+  write:
+    - scene/object/material/animation edits and renders (see upstream readme_tools.rst at the pinned revision)
+  destructive:
+    - arbitrary Blender Python execution when exposed by the add-on
+approval:
+  default: explicit
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 8000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: unknown-blocked
+  copilot-cli: unknown-blocked
+  gemini-cli: unknown-blocked
+  windsurf: manual
+  pi: unknown-blocked
+  codex: unknown-blocked
+security:
+  network_hosts: []
+  secret_storage: none required
+  notes: HIGH RISK — Blender MCP can execute model-generated Python inside Blender, which is arbitrary local code execution. Require explicit user authorization per session, loopback only, writes restricted to the creative project directory, and save a .blend copy before connecting. Prefer headless `blender -b --python` for deterministic jobs (verified on Blender 5.3.0). MCP path not yet verified end-to-end.

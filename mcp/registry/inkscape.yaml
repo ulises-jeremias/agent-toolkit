@@ -1,0 +1,48 @@
+# MCP Provider: inkscape
+# Research: docs/creative-studio/UPSTREAM_EVALUATION.md
+id: inkscape
+display_name: Inkscape
+purpose: Vector editing and SVG pipelines in Inkscape (headless batch mode plus a live D-Bus bridge with undoable edits)
+implementation:
+  provenance: community
+  package: "aravindev/inkscape_mcp"
+  repository: https://github.com/aravindev/inkscape_mcp
+  license: MIT
+  version_policy: pin evaluated revision 1b99ff8a2de0671d92ac09077f96acaf1d1a6dfc (2026-11-09) or a reviewed release
+transport:
+  supported: [stdio]
+  preferred: stdio
+auth:
+  supported: [none]
+  preferred: none
+  env: []
+tools:
+  read:
+    - inkscape_analysis
+    - inkscape_system
+    - inkscape_metadata
+  write:
+    - inkscape_file
+    - inkscape_vector
+    - inkscape_extension
+    - inkscape_gradient
+    - inkscape_live
+  destructive: []
+approval:
+  default: bounded-write
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 8000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: unknown-blocked
+  copilot-cli: unknown-blocked
+  gemini-cli: unknown-blocked
+  windsurf: manual
+  pi: unknown-blocked
+  codex: unknown-blocked
+security:
+  network_hosts: []
+  secret_storage: none required
+  notes: Eight portmanteau tools dispatch by operation string. Headless mode needs no GUI; live mode needs a running Inkscape (D-Bus on Linux). SVG stays the editable source. Not yet verified end-to-end.

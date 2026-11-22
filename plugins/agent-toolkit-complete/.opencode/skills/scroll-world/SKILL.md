@@ -21,7 +21,10 @@ upstream:
   license: MIT
   version: 71cc36d
 trust:
-  tier: experimental
+  tier: reviewed
+  reviewed_at: '2026-10-16'
+  reviewed_by: ulises-jeremias
+  reviewed_provenance: sha256:ae98e445ac7fe03c515e260c16ceec23b1efce52f2d5fc8d6d7ce22affe2ec50
 maintenance:
   status: active
   last_checked: '2026-10-11'

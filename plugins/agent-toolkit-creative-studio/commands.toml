@@ -1,0 +1,90 @@
+[[commands]]
+name = "creative_studio"
+description = "creative/creative-studio"
+prompt = """
+Follow the `creative-studio` skill instructions for {{args}}.
+
+@{skills/creative-studio/SKILL.md}
+"""
+
+[[commands]]
+name = "video_editing"
+description = "creative/video-editing"
+prompt = """
+Follow the `video-editing` skill instructions for {{args}}.
+
+@{skills/video-editing/SKILL.md}
+"""
+
+[[commands]]
+name = "video_analysis"
+description = "creative/video-analysis"
+prompt = """
+Follow the `video-analysis` skill instructions for {{args}}.
+
+@{skills/video-analysis/SKILL.md}
+"""
+
+[[commands]]
+name = "motion_graphics"
+description = "creative/motion-graphics"
+prompt = """
+Follow the `motion-graphics` skill instructions for {{args}}.
+
+@{skills/motion-graphics/SKILL.md}
+"""
+
+[[commands]]
+name = "image_editing"
+description = "creative/image-editing"
+prompt = """
+Follow the `image-editing` skill instructions for {{args}}.
+
+@{skills/image-editing/SKILL.md}
+"""
+
+[[commands]]
+name = "audio_production"
+description = "creative/audio-production"
+prompt = """
+Follow the `audio-production` skill instructions for {{args}}.
+
+@{skills/audio-production/SKILL.md}
+"""
+
+[[commands]]
+name = "content_production"
+description = "creative/content-production"
+prompt = """
+Follow the `content-production` skill instructions for {{args}}.
+
+@{skills/content-production/SKILL.md}
+"""
+
+[[commands]]
+name = "media_qa"
+description = "creative/media-qa"
+prompt = """
+Follow the `media-qa` skill instructions for {{args}}.
+
+@{skills/media-qa/SKILL.md}
+"""
+
+[[commands]]
+name = "brag"
+description = "design/brag"
+prompt = """
+Follow the `brag` skill instructions for {{args}}.
+
+@{skills/brag/SKILL.md}
+"""
+
+[[commands]]
+name = "brag_slim"
+description = "design/brag-slim"
+prompt = """
+Follow the `brag-slim` skill instructions for {{args}}.
+
+@{skills/brag-slim/SKILL.md}
+"""
+

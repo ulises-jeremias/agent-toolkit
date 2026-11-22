@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Creative Studio (ADR-046): eight first-party `creative/` skills
+  (creative-studio orchestration, video-analysis, video-editing,
+  motion-graphics, image-editing, audio-production, content-production,
+  media-qa), six creative specialist agents backed by `designer`, eight
+  pinned MCP registry entries (kdenlive verified end-to-end; blender,
+  gimp, krita, inkscape, obs, reaper, comfyui documented), the opt-in
+  `agent-toolkit-creative-studio` product, the `creative-studio` pack, and
+  a portable project/manifest helper with an environment doctor. Upstream
+  evidence: `docs/creative-studio/UPSTREAM_EVALUATION.md`.
+
+
 ## [1.49.0] — 2026-11-11
 
 ### Security

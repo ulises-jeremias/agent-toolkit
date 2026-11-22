@@ -93,6 +93,10 @@ Reserved for anti-slop, static analysis, and deep review. Skills in this section
 | Figma-driven work | `design/figma` → `figma-implement-design` (node → code 1:1), `figma-code-connect-components` (Code Connect), `figma-create-design-system-rules` (`AGENTS.md` rules), `figma-create-new-file` (new file via `whoami`); canvas Plugin API → opt-in `figma-use` pack |
 | Accessibility-sensitive UI (needs WCAG 2.2 AA, SC mapping, mode-aware findings) | `accessibility/review` |
 | Launch / share video for a project or site | `design/brag` (Hyperframes) or `design/brag-slim` (model-built, no bundled assets) |
+| Edit real footage / trailer / tutorial (editable timeline) | `creative/creative-studio` → `creative/video-analysis` → `creative/video-editing` (Kdenlive MCP), gate with `creative/media-qa` |
+| Motion graphics, logo animation, title sequence | `creative/motion-graphics` (Blender; headless default, Lab MCP high-risk gate) |
+| Thumbnail, compositing, SVG asset | `creative/image-editing` (GIMP/Krita/Inkscape MCP, layered sources) |
+| Voiceover, loudness, DAW session, screen capture | `creative/audio-production` (FFmpeg loudnorm, REAPER/OBS MCP; never auto-record) |
 
 **Anti-pattern — do not mechanically chain:** `design-assessment` → `frontend-design-review` → `web-design-guidelines` → `frontend-design` → `design-improvement` on every ticket. Typically one of (assessment **or** review **or** guidelines) plus at most one Figma skill and optionally `accessibility/review`; `design-improvement` only after an assessment exists. See `capabilities/skills/registry.yaml` for `overlap`/`contraindications` and `agents/designer/AGENT.md` five-scenario test.
 

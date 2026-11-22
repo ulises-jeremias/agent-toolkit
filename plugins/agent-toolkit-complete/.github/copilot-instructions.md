@@ -111,6 +111,14 @@ Full stable skill catalog coverage for consumers who want everything (
 - **mermaid**: tooling/mermaid
 - **architecture-diagram**: architecture/architecture-diagram
 - **c4-model**: architecture/c4-model
+- **creative-studio**: creative/creative-studio
+- **video-editing**: creative/video-editing
+- **video-analysis**: creative/video-analysis
+- **motion-graphics**: creative/motion-graphics
+- **image-editing**: creative/image-editing
+- **audio-production**: creative/audio-production
+- **content-production**: creative/content-production
+- **media-qa**: creative/media-qa
 
 ## Available agents
 
@@ -132,3 +140,9 @@ Full stable skill catalog coverage for consumers who want everything (
 - **security-engineer**: security-engineer
 - **security-reviewer**: security-reviewer
 - **tdd-guide**: tdd-guide
+- **creative-director**: creative-director
+- **video-editor**: video-editor
+- **motion-designer**: motion-designer
+- **audio-engineer**: audio-engineer
+- **visual-designer**: visual-designer
+- **media-qa-reviewer**: media-qa-reviewer
