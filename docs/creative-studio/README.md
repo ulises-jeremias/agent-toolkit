@@ -18,13 +18,15 @@ flagship environment; nothing here depends on it.
 ```bash
 # 1. System tools (example: Arch/HorneroOS)
 sudo pacman -S kdenlive mlt ffmpeg blender
-# 2. Kdenlive MCP (PyPI name is mcp-kdenlive)
-pipx install mcp-kdenlive && kdenlive-mcp diagnose
+# 2. Pinned Kdenlive MCP server (requires uv/uvx)
+uv tool install --from 'git+https://github.com/mhbxyz/kdenlive-mcp@9abcf9474a434f2e00a9c458f0ff70c92fbc16d8' mcp-kdenlive
+kdenlive-mcp diagnose
 # 3. New project
 python3 skills/creative/creative-studio/scripts/creative_project.py init ~/Videos/my-trailer
 python3 skills/creative/creative-studio/scripts/creative_project.py add-source ~/Videos/my-trailer /path/clip.mp4
 # 4. Point your MCP client at mcp/templates/kdenlive/ with
 #    KDENLIVE_MCP_ALLOWED_ROOTS=~/Videos/my-trailer and ask for an edit.
+# The bundled MCP config launches the same immutable upstream revision via uvx.
 ```
 
 ## Contributor map
@@ -40,6 +42,6 @@ python3 skills/creative/creative-studio/scripts/creative_project.py add-source ~
 ## Disable / uninstall
 
 Remove the product with the normal Agent Toolkit uninstall flow, delete MCP
-client entries, and `pipx uninstall mcp-kdenlive`. Creative projects,
+client entries, and `uv tool uninstall mcp-kdenlive`. Creative projects,
 native editor files and backups are user data and are never deleted by
 uninstall.

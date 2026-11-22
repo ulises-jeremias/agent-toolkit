@@ -436,7 +436,7 @@ Templates live in [`mcp/templates/`](mcp/templates/) and use clearly marked plac
 
 > **New:** Every plugin in [`plugins/`](./plugins/) now ships as an **Agent Plugins 1.0** portable bundle (`plugin.json` + `skills/` + `mcp.json`) for **Cursor, VS Code, GitHub Copilot, ChatGPT/Codex, Kiro** — plus legacy `.claude-plugin/` for **Claude Code** (dual emit until Claude supports the spec). See [docs/AGENT_PLUGINS.md](docs/AGENT_PLUGINS.md).
 
-Five products are declared in [`distributions/products.yaml`](distributions/products.yaml): four stable marketplace products and the experimental full-catalog bundle.
+Six products are declared in [`distributions/products.yaml`](distributions/products.yaml): four stable marketplace products and two opt-in experimental products (the full-catalog bundle and Creative Studio).
 
 | Product | Portable (Agent Plugins 1.0) | What's included |
 | --------- | ------------------------------ | ----------------- |
@@ -445,6 +445,7 @@ Five products are declared in [`distributions/products.yaml`](distributions/prod
 | `agent-toolkit-forge` | `plugin.json` + `skills/` (8) | GitHub/GitLab workflows, CI fixes, comment resolution, contribution planning, and generic delivery |
 | `agent-toolkit-craft` | `plugin.json` + `skills/` (3) | Writing quality and change-safety capabilities |
 | `agent-toolkit-complete` | `plugin.json` + `skills/` (full catalog) + `mcp.json` | Full skill catalog (experimental; portable manifest included, marketplace pending) — count via `agent-toolkit inventory` |
+| `agent-toolkit-creative-studio` | `plugin.json` + creative `skills/` + `agents/` + pinned Kdenlive MCP | Opt-in creative production workflows; system applications and MCP server are optional and documented in [Creative Studio](docs/creative-studio/README.md) |
 
 Plugin manifests: [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) · [`.cursor-plugin/marketplace.json`](.cursor-plugin/marketplace.json) · `plugins/<id>/plugin.json` (Agent Plugins `$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) · `plugins/<id>/mcp.json` (where applicable)
 

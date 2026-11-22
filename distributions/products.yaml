@@ -316,6 +316,11 @@ products:
         manifest: plugins/agent-toolkit-creative-studio/.cursor-plugin/plugin.json
     requires:
       executables:
+        - name: uvx
+          description: uv tool runner for the Kdenlive MCP server pinned to the evaluated upstream commit
+          install_url: https://docs.astral.sh/uv/getting-started/installation/
+          required: false
+          capability: mcp:kdenlive
         - name: ffmpeg
           description: FFmpeg/ffprobe for media inspection, loudness and exports
           install_url: https://ffmpeg.org/download.html
