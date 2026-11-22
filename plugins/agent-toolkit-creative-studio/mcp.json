@@ -1,0 +1,6 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "kdenlive": { "type": "stdio", "command": "kdenlive-mcp", "env": {"KDENLIVE_MCP_ALLOWED_ROOTS": "${CREATIVE_PROJECT_ROOT}"}, "cwd": "${PLUGIN_ROOT}" }
+  }
+}

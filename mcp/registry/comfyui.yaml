@@ -1,0 +1,42 @@
+# MCP Provider: comfyui
+# Research: docs/creative-studio/UPSTREAM_EVALUATION.md
+id: comfyui
+display_name: ComfyUI
+purpose: Run local ComfyUI generation workflows (image/video models) through the official Comfy-Org MCP server
+implementation:
+  provenance: official
+  package: "Comfy-Org/comfy-mcp (shells out to `comfy --where local --json`)"
+  repository: https://github.com/Comfy-Org/comfy-mcp
+  license: MIT OR Apache-2.0 (dual-licensed; see upstream LICENSE files)
+  version_policy: pin evaluated revision 105dca212a90a723d360f737f8f2a0f5b815e37f (2026-11-19); upstream status is beta
+transport:
+  supported: [stdio]
+  preferred: stdio
+auth:
+  supported: [none]
+  preferred: none
+  env: [COMFYUI_URL]
+tools:
+  read:
+    - workflow/model/job inspection (42 tools at the pinned revision; see upstream README)
+  write:
+    - workflow runs and asset generation against a local ComfyUI
+  destructive: []
+approval:
+  default: explicit
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 8000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: unknown-blocked
+  copilot-cli: unknown-blocked
+  gemini-cli: unknown-blocked
+  windsurf: manual
+  pi: unknown-blocked
+  codex: unknown-blocked
+security:
+  network_hosts: [127.0.0.1]
+  secret_storage: none required for local use
+  notes: Optional and GPU/VRAM-heavy; never installed by default and never auto-download models. Requires a separately installed local ComfyUI. Record workflow + prompt provenance for every generated asset. Not yet verified end-to-end.

@@ -1,0 +1,39 @@
+{
+  "name": "@agent-toolkit/agent-toolkit-creative-studio",
+  "version": "1.49.0",
+  "description": "AI-native creative production: portable skills and agents that drive real applications (Kdenlive, Blender, GIMP/Krita/Inkscape, OBS, REAPER, FFmpeg) through reviewed, pinned MCP integrations, preserving editable native projects. Opt-in: creative MCP servers are never enabled for every coding session. See docs/adrs/ADR-046-creative-studio-ecosystem.md.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ulises-jeremias/agent-toolkit"
+  },
+  "keywords": [
+    "agent-toolkit",
+    "pi",
+    "skills",
+    "agents",
+    "creative-studio"
+  ],
+  "pi": {
+    "skills": [
+      "skills/creative-studio/SKILL.md",
+      "skills/video-editing/SKILL.md",
+      "skills/video-analysis/SKILL.md",
+      "skills/motion-graphics/SKILL.md",
+      "skills/image-editing/SKILL.md",
+      "skills/audio-production/SKILL.md",
+      "skills/content-production/SKILL.md",
+      "skills/media-qa/SKILL.md",
+      "skills/brag/SKILL.md",
+      "skills/brag-slim/SKILL.md"
+    ],
+    "agents": [
+      "agents/creative-director/AGENT.md",
+      "agents/video-editor/AGENT.md",
+      "agents/motion-designer/AGENT.md",
+      "agents/audio-engineer/AGENT.md",
+      "agents/visual-designer/AGENT.md",
+      "agents/media-qa-reviewer/AGENT.md"
+    ]
+  }
+}

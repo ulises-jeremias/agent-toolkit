@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `./scripts/generate-skill-matrix.vsh` to regenerate, or `./scripts/generate-skill-matrix.vsh --check` in CI.
 
-_Generated from 5 products × 107 skills × 18 agents._
+_Generated from 6 products × 115 skills × 24 agents._
 
 ## Products and targets
 
@@ -12,7 +12,8 @@ _Generated from 5 products × 107 skills × 18 agents._
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 18 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 8 | 0 |
 | `agent-toolkit-craft` | stable | claude-code, cursor | 3 | 0 |
-| `agent-toolkit-complete` | experimental | — | 107 | 18 |
+| `agent-toolkit-complete` | experimental | — | 115 | 24 |
+| `agent-toolkit-creative-studio` | experimental | claude-code, cursor, executables, requires, security | 10 | 6 |
 
 ## Skills → Products
 
@@ -35,6 +36,14 @@ _Generated from 5 products × 107 skills × 18 agents._
 | `core/project` | `agent-toolkit-complete` | — |
 | `core/workspace` | `agent-toolkit-complete` | — |
 | `core/workspace-knowledge-sync` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
+| `creative/audio-production` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
+| `creative/content-production` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
+| `creative/creative-studio` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
+| `creative/image-editing` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
+| `creative/media-qa` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
+| `creative/motion-graphics` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
+| `creative/video-analysis` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
+| `creative/video-editing` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
 | `data/dbt-validation` | `agent-toolkit-complete` | — |
 | `data/snowflake-validation` | `agent-toolkit-complete` | — |
 | `delivery/adr` | `agent-toolkit-complete` | — |
@@ -58,8 +67,8 @@ _Generated from 5 products × 107 skills × 18 agents._
 | `delivery/work-item` | `agent-toolkit-complete` | — |
 | `delivery/workflow-client-bootstrap` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `delivery/workflow-generic-project` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
-| `design/brag` | `agent-toolkit-complete` | — |
-| `design/brag-slim` | `agent-toolkit-complete` | — |
+| `design/brag` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
+| `design/brag-slim` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
 | `design/design-assessment` | `agent-toolkit-complete` | — |
 | `design/design-improvement` | `agent-toolkit-complete` | — |
 | `design/figma` | `agent-toolkit-complete` | — |
@@ -133,13 +142,17 @@ _Generated from 5 products × 107 skills × 18 agents._
 | `agentic-security-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `architect` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `assistant` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `audio-engineer` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
 | `build-error-resolver` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `client-workflow-bootstrap` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `code-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
+| `creative-director` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
 | `data-engineer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `designer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `e2e-runner` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `implementer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `media-qa-reviewer` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
+| `motion-designer` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
 | `planner` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `platform-engineer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `qa-engineer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
@@ -148,6 +161,8 @@ _Generated from 5 products × 107 skills × 18 agents._
 | `security-engineer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `security-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `tdd-guide` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `video-editor` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
+| `visual-designer` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
 
 ## How to read
 

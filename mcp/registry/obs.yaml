@@ -1,0 +1,43 @@
+# MCP Provider: obs
+# Research: docs/creative-studio/UPSTREAM_EVALUATION.md
+id: obs
+display_name: OBS Studio
+purpose: Control OBS scenes, sources, audio and recordings through obs-websocket v5 with dry-run previews
+implementation:
+  provenance: community
+  package: "aaronckj/obs-studio-mcp"
+  repository: https://github.com/aaronckj/obs-studio-mcp
+  license: MIT
+  version_policy: pin evaluated revision 599b382d97ab554bc21951b725bef3faf3085779 (2026-07-28) or a reviewed release
+transport:
+  supported: [stdio]
+  preferred: stdio
+auth:
+  supported: [bearer-env]
+  preferred: bearer-env
+  env: [OBS_WEBSOCKET_PASSWORD]
+tools:
+  read:
+    - scene/source/status queries (see upstream README at the pinned revision)
+  write:
+    - scene and source changes, text overlays, audio levels (all support dry_run=true)
+  destructive:
+    - start/stop recording and streaming
+approval:
+  default: explicit
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 8000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: unknown-blocked
+  copilot-cli: unknown-blocked
+  gemini-cli: unknown-blocked
+  windsurf: manual
+  pi: unknown-blocked
+  codex: unknown-blocked
+security:
+  network_hosts: [127.0.0.1]
+  secret_storage: environment variable
+  notes: Talks to the obs-websocket server built into OBS 28+ on loopback. NEVER start recording, streaming or microphone capture without an explicit user action for that session. On Wayland, capture goes through the xdg portal. Not yet verified end-to-end.

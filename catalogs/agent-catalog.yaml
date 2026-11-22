@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 18
+count: 24
 agents:
   - id: agentic-security-reviewer
     name: agentic-security-reviewer
@@ -33,6 +33,14 @@ agents:
       - security-engineer
     collaborates_with:
       - client-workflow-bootstrap
+  - id: audio-engineer
+    name: audio-engineer
+    description: 'Audio production specialist — loudness, cleanup, voice/music balance, REAPER sessions via MCP and OBS capture discipline. Use when: voiceover, podcast/audio-only work, loudness targets, DAW sessions'
+    kind: specialist
+    collaborates_with:
+      - creative-director
+      - video-editor
+      - media-qa-reviewer
   - id: build-error-resolver
     name: build-error-resolver
     description: 'Build and TypeScript error resolution specialist — large diagnostic context, root-cause triage across tsc/lint/webpack/vite. Use when platform-engineer delegates CI failure logs or fix requires full'
@@ -47,6 +55,14 @@ agents:
     name: code-reviewer
     description: 'Expert code review specialist — quality/correctness/security/performance/testing with severity-ranked findings. Use when reviewer/qa-engineer delegates deep craft or PR explicitly warrants independe'
     kind: specialist
+  - id: creative-director
+    name: creative-director
+    description: 'Creative production lead — owns briefs, storyboards, pacing and cross-application orchestration for video, motion, image and audio work (creative-studio, content-production). Use when: trailers, tut'
+    kind: specialist
+    collaborates_with:
+      - designer
+      - qa-engineer
+      - implementer
   - id: data-engineer
     name: data-engineer
     description: 'Data engineering specialist — dbt/Snowflake validation, Jupyter notebooks, data artifact stewardship. Use when: dbt parse/compile/test, Snowflake read-only checks, notebook scaffolding, or validatin'
@@ -62,6 +78,13 @@ agents:
     name: designer
     description: 'Design routing and UI/UX specialist — owns contextual selection among design skills (frontend-design, frontend-design-review, web-design-guidelines, design-assessment, design-improvement, scroll-wor'
     kind: holistic
+    delegates:
+      - creative-director
+      - video-editor
+      - motion-designer
+      - audio-engineer
+      - visual-designer
+      - media-qa-reviewer
     collaborates_with:
       - implementer
       - qa-engineer
@@ -86,6 +109,21 @@ agents:
       - researcher
       - reviewer
       - security-engineer
+  - id: media-qa-reviewer
+    name: media-qa-reviewer
+    description: 'Independent media verification specialist — objective render checks (codecs, resolution, duration, loudness, black/freeze, A/V sync), native-project reopen tests and source-preservation proofs. Use '
+    kind: specialist
+    collaborates_with:
+      - creative-director
+      - qa-engineer
+  - id: motion-designer
+    name: motion-designer
+    description: 'Motion graphics and 3D specialist — Blender logo animations, title sequences, camera/material/animation work and validated renders preserving .blend sources. Use when: intros/outros, animated titles'
+    kind: specialist
+    collaborates_with:
+      - creative-director
+      - visual-designer
+      - media-qa-reviewer
   - id: planner
     name: planner
     description: 'Expert planning specialist for complex features and refactoring. Use before starting any significant implementation to break down work, identify risks, and create an actionable plan.'
@@ -169,3 +207,19 @@ agents:
     name: tdd-guide
     description: 'Test-Driven Development specialist — enforces red-green-refactor with AAA, test doubles and behavior-first coverage. Use when implementer delegates test-first discipline or task explicitly requires '
     kind: specialist
+  - id: video-editor
+    name: video-editor
+    description: 'Nonlinear video editing specialist — builds and refines editable Kdenlive projects through MCP (cuts, tracks, titles, subtitles, mixes, validated renders). Use when: cutting footage, assembling time'
+    kind: specialist
+    collaborates_with:
+      - creative-director
+      - audio-engineer
+      - media-qa-reviewer
+  - id: visual-designer
+    name: visual-designer
+    description: 'Still-image and vector specialist — thumbnails, compositing, retouching and SVG assets in GIMP/Krita/Inkscape with layered native sources. Use when: thumbnails, key art, logos, overlays, social asse'
+    kind: specialist
+    collaborates_with:
+      - creative-director
+      - designer
+      - motion-designer

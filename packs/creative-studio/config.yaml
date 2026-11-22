@@ -1,0 +1,43 @@
+# Creative Studio Pack — docs-only per ADR-0003 (not loaded by `agent-toolkit build`)
+pack: creative-studio
+version: "1.0"
+# Advisory only — not applied by `loop run --pack`.
+# Installation is owned by the agent-toolkit-creative-studio product
+# (distributions/products.yaml). See docs/adrs/ADR-046-creative-studio-ecosystem.md.
+skills:
+  creative/creative-studio:
+    enabled: true
+  creative/video-editing:
+    enabled: true
+  creative/video-analysis:
+    enabled: true
+  creative/motion-graphics:
+    enabled: true
+  creative/image-editing:
+    enabled: true
+  creative/audio-production:
+    enabled: true
+  creative/content-production:
+    enabled: true
+  creative/media-qa:
+    enabled: true
+  design/brag:
+    enabled: true
+  design/brag-slim:
+    enabled: true
+# Advisory only — not applied by `loop run --pack`.
+agents:
+  creative-director:
+    enabled: true
+  video-editor:
+    enabled: true
+  motion-designer:
+    enabled: true
+  audio-engineer:
+    enabled: true
+  visual-designer:
+    enabled: true
+  media-qa-reviewer:
+    enabled: true
+# MCP (opt-in, per-project allowed roots): kdenlive (verified),
+# blender/gimp/krita/inkscape/obs/reaper/comfyui (documented, unverified).

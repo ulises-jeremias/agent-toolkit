@@ -1,0 +1,42 @@
+# MCP Provider: reaper
+# Research: docs/creative-studio/UPSTREAM_EVALUATION.md
+id: reaper
+display_name: REAPER
+purpose: Drive real REAPER DAW sessions (tracks, items, FX, renders) through a ReaScript bridge while preserving native .rpp projects
+implementation:
+  provenance: community
+  package: "danishaft-reaper-mcp (uv tool install danishaft-reaper-mcp)"
+  repository: https://github.com/danishaft/reaper-mcp
+  license: MIT
+  version_policy: pin evaluated revision b4c0487010ff5d5033ce37484da6a56b9c6a8f27 (2026-08-05) or a reviewed release
+transport:
+  supported: [stdio]
+  preferred: stdio
+auth:
+  supported: [none]
+  preferred: none
+  env: []
+tools:
+  read:
+    - session/track/item inspection (172 tools total at the pinned revision; see upstream README)
+  write:
+    - track and item edits, FX parameters, markers, renders
+  destructive: []
+approval:
+  default: bounded-write
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 8000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: unknown-blocked
+  copilot-cli: unknown-blocked
+  gemini-cli: unknown-blocked
+  windsurf: manual
+  pi: unknown-blocked
+  codex: unknown-blocked
+security:
+  network_hosts: []
+  secret_storage: none required
+  notes: REAPER itself is proprietary software — explicit user opt-in and licensing apply; never install or license it automatically. Work on copies of sessions; personal hardware routing stays in local REAPER configuration. Not yet verified end-to-end.

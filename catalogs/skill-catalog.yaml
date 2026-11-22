@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 107
+count: 115
 skills:
   - id: accessibility/review
     name: review
@@ -86,6 +86,46 @@ skills:
     name: workspace-knowledge-sync
     domain: core
     description: 'Syncs knowledge to the agentic-harness knowledge base and AGENTS.md learned facts. Use when the assistant discovers new patterns, learns user preferences, workspace facts, or identifies information wo'
+    stability: stable
+  - id: creative/audio-production
+    name: audio-production
+    domain: creative
+    description: 'Audio inspection, loudness, cleanup and DAW workflows — FFmpeg loudnorm/volumedetect for measurable processing, REAPER (via MCP) for real sessions, OBS for capture. Preserves originals and native .r'
+    stability: stable
+  - id: creative/content-production
+    name: content-production
+    domain: creative
+    description: 'Reusable content recipes — YouTube tutorials, product demos, release trailers, walkthroughs, short-form clips and thumbnails — composed from the creative skills, extending brag for launch videos i'
+    stability: stable
+  - id: creative/creative-studio
+    name: creative-studio
+    domain: creative
+    description: 'Orchestrate an AI-managed creative production across real applications (Kdenlive, Blender, GIMP/Krita/Inkscape, OBS, REAPER, FFmpeg) — discover what is actually available, pick the right tool per st'
+    stability: stable
+  - id: creative/image-editing
+    name: image-editing
+    domain: creative
+    description: 'Layer-aware image editing and design assets with GIMP, Krita and Inkscape through MCP — retouching, compositing, masks, thumbnails and SVG artwork with native editable sources (XCF/KRA/SVG) plus che'
+    stability: stable
+  - id: creative/media-qa
+    name: media-qa
+    domain: creative
+    description: 'Objective verification for media deliverables — codec/resolution/duration checks, loudness, black/freeze frames, A/V sync, subtitle sanity, native-project reopen tests and source-preservation proofs'
+    stability: stable
+  - id: creative/motion-graphics
+    name: motion-graphics
+    domain: creative
+    description: 'Motion graphics and 3D with Blender — logo animations, title sequences, scene/camera/material work and validated renders that preserve the .blend source. Headless bpy for deterministic jobs; Blender'
+    stability: stable
+  - id: creative/video-analysis
+    name: video-analysis
+    domain: creative
+    description: 'Evidence-backed video understanding — ffprobe metadata, scene-cut detection, silence detection, frame extraction, speech transcription with timestamps, and a source index an editor can trust. Use be'
+    stability: stable
+  - id: creative/video-editing
+    name: video-editing
+    domain: creative
+    description: 'Intelligent nonlinear video editing with Kdenlive through MCP — build and refine real editable .kdenlive projects (tracks, cuts, trims, crossfades, titles, subtitles, narration, music), render with '
     stability: stable
   - id: data/dbt-validation
     name: dbt-validation

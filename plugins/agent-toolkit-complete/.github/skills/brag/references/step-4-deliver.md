@@ -9,6 +9,8 @@ npx hyperframes check   # brag's single pre-render gate — fix every error it r
 
 Fix all errors. `check` is brag's single pre-render gate — run it and fix everything it reports, including WCAG contrast failures (they gate as errors, not warnings). Each contrast finding carries a suggested compliant color, so apply it or adjust within the palette family and re-run `check` — most fixes need no screenshot. There is no per-element contrast escape hatch for real text; the only bypass is `check --no-contrast`, which skips the entire WCAG pass (all-or-nothing), not a way to accept one borderline element. For exact contrast thresholds, layout escape hatches, and reporting details, follow the current hyperframes-cli `check` guidance. `check`'s layout pass backstops the "keep all text readable" creative law — fix any reported overflow.
 
+Read the contrast coverage too. If the composition has visible DOM text but reports `0/0 text checks` or zero elements checked, its contrast is unverified even if `check` prints "passed". Inspect `npx hyperframes check --json` and the sampled frames to find what was skipped. If unsupported `oklch()` colors are the cause, convert the affected colors to equivalent sRGB hex or `rgb()` values, verify that the palette still matches, and rerun `check`. Continue only when the expected text is actually audited and the contrast findings are resolved; `--no-contrast` does not satisfy this gate.
+
 For a visual gut-check before rendering, optionally capture key frames:
 
 ```bash
@@ -40,7 +42,7 @@ npx hyperframes render --quality draft --output ../brag.mp4
 
 For final delivery:
 ```bash
-npx hyperframes render --quality high --output ../brag.mp4
+npx hyperframes render --quality delivery --output ../brag.mp4
 ```
 
 ## Pick the poster frame
@@ -65,7 +67,7 @@ Replace **only** the first frame's pixels with `brag.jpg`, leaving every other f
 ```bash
 ffmpeg -y -i brag.mp4 -i brag.jpg \
   -filter_complex "[0:v][1:v]overlay=0:0:enable='eq(n,0)'[v]" \
-  -map "[v]" -map 0:a? -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p \
+  -map "[v]" -map "0:a?" -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p \
   -c:a copy -movflags +faststart brag.poster.mp4 \
   && mv brag.poster.mp4 brag.mp4
 ```

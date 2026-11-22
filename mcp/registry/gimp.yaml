@@ -1,0 +1,42 @@
+# MCP Provider: gimp
+# Research: docs/creative-studio/UPSTREAM_EVALUATION.md
+id: gimp
+display_name: GIMP
+purpose: Layer-aware raster editing in GIMP 3.2 (adjustments, transforms, selections, layers, text, filters) with XCF preservation
+implementation:
+  provenance: community
+  package: "gimp-mcp/gimp-mcp (plug-in + MCP server)"
+  repository: https://github.com/gimp-mcp/gimp-mcp
+  license: GPL-3.0
+  version_policy: pin evaluated revision f25a74a5ced0586adb49d64692f4f465a391404c (2026-11-21) or a reviewed release
+transport:
+  supported: [stdio]
+  preferred: stdio
+auth:
+  supported: [none]
+  preferred: none
+  env: []
+tools:
+  read:
+    - image/layer inspection (80 tools total at the pinned revision; see upstream README)
+  write:
+    - adjustments, transforms, selections, layers, drawing, text, filters, exports
+  destructive: []
+approval:
+  default: bounded-write
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 8000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: unknown-blocked
+  copilot-cli: unknown-blocked
+  gemini-cli: unknown-blocked
+  windsurf: manual
+  pi: unknown-blocked
+  codex: unknown-blocked
+security:
+  network_hosts: []
+  secret_storage: none required
+  notes: Targets GIMP 3.2.x. Work on copies inside the creative project; XCF stays the editable source. Not yet verified end-to-end.

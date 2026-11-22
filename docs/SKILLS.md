@@ -58,7 +58,7 @@ Tool compatibility is declared via optional `tools` frontmatter and validated by
 
 ## Skill Domains
 
-Skills live under `skills/<domain>/<name>/`. There are **14 domains** (103+ skills). Membership in marketplace products is a subset — see [`SKILL_PRODUCT_MATRIX.md`](SKILL_PRODUCT_MATRIX.md) and `agent-toolkit inventory`.
+Skills live under `skills/<domain>/<name>/`. There are **15 domains** (115 skills). Membership in marketplace products is a subset — see [`SKILL_PRODUCT_MATRIX.md`](SKILL_PRODUCT_MATRIX.md) and `agent-toolkit inventory`.
 
 | Domain | Count | Examples |
 |--------|------:|----------|
@@ -76,6 +76,7 @@ Skills live under `skills/<domain>/<name>/`. There are **14 domains** (103+ skil
 | `architecture` | 1 | `c4-model` |
 | `accessibility` | 1 | `review` |
 | `quality` | 9 | `megalinter`, `codeql`, `unslop`, `blast-radius`, `deslop`, `deep-review` |
+| `creative` | 8 | `creative-studio`, `video-editing`, `video-analysis`, `motion-graphics`, `image-editing`, `audio-production`, `content-production`, `media-qa` |
 
 Tool compatibility is declared in each `SKILL.md` `tools:` frontmatter. Do not maintain a second compatibility matrix here — use the catalog.
 
