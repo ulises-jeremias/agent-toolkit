@@ -5,8 +5,8 @@ description: 'Audio production specialist — loudness, cleanup, voice/music bal
 mode: subagent
 color: secondary
 permission:
-  bash: allow
-  edit: allow
+  bash: ask
+  edit: ask
 ---
 # Audio Engineer
 

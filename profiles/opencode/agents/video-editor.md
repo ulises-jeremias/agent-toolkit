@@ -6,8 +6,8 @@ description: 'Nonlinear video editing specialist — builds and refines editable
 mode: subagent
 color: secondary
 permission:
-  bash: allow
-  edit: allow
+  bash: ask
+  edit: ask
 ---
 # Video Editor
 

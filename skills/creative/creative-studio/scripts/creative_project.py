@@ -78,6 +78,14 @@ def sha256_head(path: Path, limit: int = 1 << 20) -> str:
     return h.hexdigest()
 
 
+def sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def cmd_init(args: argparse.Namespace) -> None:
     root = Path(args.dir).resolve()
     if manifest_path(root).exists():
@@ -108,7 +116,7 @@ def cmd_add_source(args: argparse.Namespace) -> None:
         "path": str(media),
         "size": st.st_size,
         "mtime_ns": st.st_mtime_ns,
-        "sha256_head_1mb": sha256_head(media),
+        "sha256": sha256_file(media),
         "added": now(),
         "note": "referenced only; never modified in place",
     }
@@ -141,8 +149,9 @@ def cmd_log_op(args: argparse.Namespace) -> None:
     print(f"logged: {args.tool} — {args.action} ({args.status})")
 
 
-def verify_sources(data: dict) -> list[str]:
+def verify_sources(data: dict) -> tuple[list[str], list[str]]:
     problems = []
+    warnings = []
     for s in data["sources"]:
         p = Path(s["path"])
         if not p.is_file():
@@ -152,9 +161,19 @@ def verify_sources(data: dict) -> list[str]:
         if st.st_size != s["size"] or st.st_mtime_ns != s["mtime_ns"]:
             problems.append(f"source changed since add: {p}")
             continue
-        expected_hash = s.get("sha256_head_1mb")
-        if expected_hash and sha256_head(p) != expected_hash:
+        expected_hash = s.get("sha256")
+        if expected_hash and sha256_file(p) != expected_hash:
             problems.append(f"source content changed since add: {p}")
+            continue
+        legacy_hash = s.get("sha256_head_1mb")
+        if legacy_hash:
+            if sha256_head(p) != legacy_hash:
+                problems.append(f"source content changed since add: {p}")
+                continue
+            warnings.append(f"source has only a first-MiB digest: {p}")
+        elif not expected_hash:
+            warnings.append(f"source has no content digest: {p}")
+    return problems, warnings
     return problems
 
 
@@ -166,12 +185,19 @@ def cmd_status(args: argparse.Namespace) -> None:
         f"sources: {len(data['sources'])}  operations: {len(data['operations'])}  "
         f"artifacts: {len(data['artifacts'])}"
     )
-    problems = verify_sources(data)
+    problems, warnings = verify_sources(data)
+    for warning in warnings:
+        print(f"WARN {warning}")
     if problems:
         for p in problems:
             print(f"FAIL {p}")
         raise SystemExit(1)
-    print("sources unchanged: OK")
+    if warnings:
+        print(
+            f"source metadata verified; {len(warnings)} source digest(s) need stronger verification"
+        )
+    else:
+        print("source content verified: OK")
 
 
 def probe_tool(name: str, cmd: str, ver_args: list[str]) -> dict:
@@ -180,7 +206,21 @@ def probe_tool(name: str, cmd: str, ver_args: list[str]) -> dict:
         return {"tool": name, "status": "unsupported", "detail": "not on PATH"}
     try:
         out = subprocess.run([exe, *ver_args], capture_output=True, text=True, timeout=15)
-        version = (out.stdout or out.stderr).strip().splitlines()[0][:80]
+        output = (out.stdout or out.stderr).strip()
+        if out.returncode != 0:
+            detail = output.splitlines()[0][:80] if output else "no version output"
+            return {
+                "tool": name,
+                "status": "configured-unavailable",
+                "detail": f"version command exited {out.returncode}: {detail}",
+            }
+        if not output:
+            return {
+                "tool": name,
+                "status": "configured-unavailable",
+                "detail": "version command returned no output",
+            }
+        version = output.splitlines()[0][:80]
     except Exception as exc:  # noqa: BLE001 - report, never crash the doctor
         return {"tool": name, "status": "configured-unavailable", "detail": str(exc)}
     return {"tool": name, "status": "available", "detail": f"{version} [{exe}]"}

@@ -68,7 +68,7 @@ def _run_helper(*args: str) -> subprocess.CompletedProcess[str]:
 def test_helper_init_status_and_source_preservation(tmp_path: Path) -> None:
     proj = tmp_path / "proj"
     media = tmp_path / "clip.bin"
-    media.write_bytes(b"x" * 2048)
+    media.write_bytes(b"x" * (2 << 20))
 
     assert _run_helper("init", str(proj), "--name", "unit").returncode == 0
     data = json.loads((proj / "project.json").read_text())
@@ -79,13 +79,62 @@ def test_helper_init_status_and_source_preservation(tmp_path: Path) -> None:
     assert _run_helper("add-source", str(proj), str(media)).returncode == 0
     assert _run_helper("status", str(proj)).returncode == 0
 
-    # Hash verification catches a same-size edit even if its timestamp is restored.
+    # Full-file hash verification catches a same-size tail edit with restored mtime.
     added_stat = media.stat()
-    media.write_bytes(b"y" * 2048)
+    media.write_bytes(b"x" * ((2 << 20) - 1) + b"y")
     os.utime(media, ns=(added_stat.st_atime_ns, added_stat.st_mtime_ns))
     result = _run_helper("status", str(proj))
     assert result.returncode != 0
     assert "source content changed since add" in result.stdout
+
+
+def test_doctor_rejects_core_tool_that_exits_nonzero(tmp_path: Path, monkeypatch) -> None:
+    helper = _helper()
+    broken_tool = tmp_path / "ffmpeg"
+    broken_tool.write_text("#!/bin/sh\necho 'ffmpeg 9.0'\nexit 1\n")
+    broken_tool.chmod(0o755)
+    monkeypatch.setattr(helper.shutil, "which", lambda _command: str(broken_tool))
+
+    result = helper.probe_tool("ffmpeg", "ffmpeg", ["-version"])
+
+    assert result["status"] == "configured-unavailable"
+    assert "exited 1" in result["detail"]
+
+
+def test_status_labels_legacy_partial_digest_as_sampled(tmp_path: Path) -> None:
+    proj = tmp_path / "proj"
+    media = tmp_path / "clip.bin"
+    media.write_bytes(b"x" * 2048)
+    assert _run_helper("init", str(proj)).returncode == 0
+    assert _run_helper("add-source", str(proj), str(media)).returncode == 0
+
+    manifest = json.loads((proj / "project.json").read_text())
+    source = manifest["sources"][0]
+    source["sha256_head_1mb"] = source.pop("sha256")
+    (proj / "project.json").write_text(json.dumps(manifest))
+
+    result = _run_helper("status", str(proj))
+
+    assert result.returncode == 0
+    assert "first-MiB digest" in result.stdout
+    assert "need stronger verification" in result.stdout
+
+
+def test_status_warns_when_legacy_source_has_no_digest(tmp_path: Path) -> None:
+    proj = tmp_path / "proj"
+    media = tmp_path / "clip.bin"
+    media.write_bytes(b"x" * 2048)
+    assert _run_helper("init", str(proj)).returncode == 0
+    assert _run_helper("add-source", str(proj), str(media)).returncode == 0
+
+    manifest = json.loads((proj / "project.json").read_text())
+    manifest["sources"][0].pop("sha256")
+    (proj / "project.json").write_text(json.dumps(manifest))
+
+    result = _run_helper("status", str(proj))
+
+    assert result.returncode == 0
+    assert "source has no content digest" in result.stdout
 
 
 def test_helper_rejects_path_traversal(tmp_path: Path) -> None:

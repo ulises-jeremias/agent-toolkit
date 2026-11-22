@@ -5,8 +5,8 @@ description: 'Still-image and vector specialist — thumbnails, compositing, ret
 mode: subagent
 color: secondary
 permission:
-  bash: allow
-  edit: allow
+  bash: ask
+  edit: ask
 ---
 # Visual Designer
 

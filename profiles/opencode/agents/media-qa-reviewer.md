@@ -6,8 +6,8 @@ description: 'Independent media verification specialist — objective render che
 mode: subagent
 color: secondary
 permission:
-  bash: allow
-  edit: allow
+  bash: ask
+  edit: ask
 ---
 # Media QA Reviewer
 

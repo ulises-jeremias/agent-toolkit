@@ -5,8 +5,8 @@ description: 'Motion graphics and 3D specialist — Blender logo animations, tit
 mode: subagent
 color: secondary
 permission:
-  bash: allow
-  edit: allow
+  bash: ask
+  edit: ask
 ---
 # Motion Designer
 

@@ -6,8 +6,8 @@ description: 'Creative production lead — owns briefs, storyboards, pacing and 
 mode: subagent
 color: secondary
 permission:
-  bash: allow
-  edit: allow
+  bash: ask
+  edit: ask
 ---
 # Creative Director
 
