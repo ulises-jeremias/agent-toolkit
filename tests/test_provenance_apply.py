@@ -105,6 +105,7 @@ def test_apply_skill_update_sets_experimental(tmp_path, monkeypatch):
         "  role: orchestrator\n"
         "trust:\n"
         "  tier: reviewed\n"
+        "  reviewed_at: '2026-11-02'\n"
         "  reviewed_by: tester\n"
         "  reviewed_provenance: sha256:" + ("a" * 64) + "\n"
         "distribution:\n"
@@ -131,6 +132,8 @@ def test_apply_skill_update_sets_experimental(tmp_path, monkeypatch):
     fm, body = prov._split_skill_file(skill)
     assert fm["trust"]["tier"] == "experimental"
     assert "reviewed_provenance" not in fm["trust"]
+    assert "reviewed_at" not in fm["trust"]
+    assert "reviewed_by" not in fm["trust"]
     assert body == "\n# New body\n"
     assert fm["upstream"]["ref"] == "v10.1.0"
     assert fm["upstream"]["commit"] == "b" * 40
