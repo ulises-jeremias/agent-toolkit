@@ -54,6 +54,13 @@ green main), and the `agent-toolkit gui` shim redirecting to the Veasel
 Desktop is implemented (#1804). The legacy Desktop here is retired;
 existing installs keep working and are never force-migrated.
 
+New Toolkit release tags publish the CLI and portable capability
+distributions only. Electron packaging remains a pull-request compatibility
+check; Electron installers are not uploaded to new releases. The legacy
+update panel detects whether the current platform's installer exists before
+reporting an update, and links users to Veasel when it does not. Existing
+Toolkit Desktop release assets and user data are left untouched.
+
 ## Publishing into the Veasel catalog by reference (#1806)
 
 Plugins from this repository enter the official Veasel catalog

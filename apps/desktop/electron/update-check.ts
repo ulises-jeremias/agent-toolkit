@@ -20,6 +20,8 @@ export interface UpdateStatus {
   current: string;
   latest: string | null;
   updateAvailable: boolean;
+  /** Whether the latest release still publishes a compatible Desktop package. */
+  desktopAvailable: boolean;
   releaseUrl: string | null;
   /** ISO timestamp of the last successful live check, when known. */
   checkedAt: string | null;
@@ -29,11 +31,15 @@ export interface UpdateStatus {
 
 interface UpdateCache {
   latest: string;
+  desktopAvailable: boolean;
   releaseUrl: string | null;
   checkedAtMs: number;
 }
 
-type FetchFn = (url: string, init: { signal: AbortSignal; headers: Record<string, string> }) => Promise<{
+type FetchFn = (
+  url: string,
+  init: { signal: AbortSignal; headers: Record<string, string> },
+) => Promise<{
   ok: boolean;
   status: number;
   text: () => Promise<string>;
@@ -68,14 +74,56 @@ export function isNewerVersion(latest: string, current: string): boolean {
   return a.prerelease > b.prerelease;
 }
 
+function hasDesktopAsset(assets: unknown[], platform: NodeJS.Platform, arch: string): boolean {
+  const names = assets.flatMap((asset) =>
+    typeof asset === 'object' && asset !== null && 'name' in asset && typeof asset.name === 'string'
+      ? [asset.name]
+      : [],
+  );
+  if (platform === 'linux' && arch === 'x64') {
+    return names.some(
+      (name) =>
+        name.startsWith('agent-toolkit-desktop-') &&
+        (name.endsWith('-linux-x86_64.AppImage') || name.endsWith('-linux-amd64.deb')),
+    );
+  }
+  if (platform === 'linux' && arch === 'arm64') {
+    return names.some(
+      (name) =>
+        name.startsWith('agent-toolkit-desktop-') &&
+        (name.endsWith('-linux-arm64.AppImage') || name.endsWith('-linux-arm64.deb')),
+    );
+  }
+  if (platform === 'darwin' && (arch === 'arm64' || arch === 'x64')) {
+    const suffix = arch === 'arm64' ? '-mac-arm64.dmg' : '-mac-x64.dmg';
+    return names.some((name) => name.startsWith('agent-toolkit-desktop-') && name.endsWith(suffix));
+  }
+  return (
+    platform === 'win32' &&
+    arch === 'x64' &&
+    names.some((name) => name.startsWith('agent-toolkit-desktop-') && name.endsWith('-win-x64.exe'))
+  );
+}
+
 /** Extract the version + page URL from a GitHub `releases/latest` body. */
-export function parseLatestRelease(text: string): { version: string; url: string | null } | null {
+export function parseLatestRelease(
+  text: string,
+  platform: NodeJS.Platform = process.platform,
+  arch: string = process.arch,
+): { version: string; url: string | null; desktopAvailable: boolean } | null {
   try {
-    const data = JSON.parse(text) as { tag_name?: unknown; html_url?: unknown; draft?: unknown };
+    const data = JSON.parse(text) as {
+      tag_name?: unknown;
+      html_url?: unknown;
+      draft?: unknown;
+      assets?: unknown;
+    };
     if (data.draft === true || typeof data.tag_name !== 'string') return null;
     const version = data.tag_name.trim().replace(/^v/i, '');
     if (!parseVersion(version)) return null;
-    return { version, url: typeof data.html_url === 'string' ? data.html_url : null };
+    const assets = Array.isArray(data.assets) ? data.assets : [];
+    const desktopAvailable = hasDesktopAsset(assets, platform, arch);
+    return { version, url: typeof data.html_url === 'string' ? data.html_url : null, desktopAvailable };
   } catch {
     return null;
   }
@@ -130,7 +178,12 @@ export class UpdateChecker {
       if (!response.ok) throw new Error(`release check returned HTTP ${response.status}`);
       const release = parseLatestRelease(await response.text());
       if (!release) throw new Error('release check returned an unreadable response');
-      const entry: UpdateCache = { latest: release.version, releaseUrl: release.url, checkedAtMs: this.now() };
+      const entry: UpdateCache = {
+        latest: release.version,
+        desktopAvailable: release.desktopAvailable,
+        releaseUrl: release.url,
+        checkedAtMs: this.now(),
+      };
       this.writeCache(entry);
       return this.toStatus(entry, 'live', '');
     } catch (error) {
@@ -141,6 +194,7 @@ export class UpdateChecker {
         current: this.current,
         latest: null,
         updateAvailable: false,
+        desktopAvailable: false,
         releaseUrl: null,
         checkedAt: null,
         source: 'unavailable',
@@ -153,7 +207,8 @@ export class UpdateChecker {
     return {
       current: this.current,
       latest: entry.latest,
-      updateAvailable: isNewerVersion(entry.latest, this.current),
+      updateAvailable: entry.desktopAvailable && isNewerVersion(entry.latest, this.current),
+      desktopAvailable: entry.desktopAvailable,
       releaseUrl: entry.releaseUrl,
       checkedAt: new Date(entry.checkedAtMs).toISOString(),
       source,
@@ -164,10 +219,16 @@ export class UpdateChecker {
   private readCache(): UpdateCache | null {
     try {
       const data = JSON.parse(fs.readFileSync(this.cachePath, 'utf8')) as Partial<UpdateCache>;
-      if (typeof data.latest !== 'string' || typeof data.checkedAtMs !== 'number') return null;
+      if (
+        typeof data.latest !== 'string' ||
+        typeof data.checkedAtMs !== 'number' ||
+        typeof data.desktopAvailable !== 'boolean'
+      )
+        return null;
       if (!parseVersion(data.latest)) return null;
       return {
         latest: data.latest,
+        desktopAvailable: data.desktopAvailable,
         releaseUrl: typeof data.releaseUrl === 'string' ? data.releaseUrl : null,
         checkedAtMs: data.checkedAtMs,
       };

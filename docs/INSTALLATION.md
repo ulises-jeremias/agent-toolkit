@@ -55,16 +55,16 @@ agent-toolkit swarm runners --json
 
 ## Primary install (recommended)
 
-### Graphical Desktop app
+### Graphical app
 
-Download the latest [Agent Toolkit Desktop release](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
-for Linux, macOS, or Windows. The Electron package includes the canonical
-backend, so a separate CLI install, source checkout, or developer toolchain is
-not required for normal Desktop use. Start with the [Desktop product guide](desktop/README.md)
-for onboarding, People, projects, Library, Operations, and terminal workflows.
+Install the supported [Veasel graphical app](https://github.com/veasel-labs/veasel/releases/latest).
+Agent Toolkit Desktop is a legacy compatibility app; new Toolkit releases no
+longer publish Electron installers. Existing installations and their data
+remain on the device and are not automatically imported into Veasel. Keep a
+backup before removing an old Toolkit installation or its data directory.
 
 The CLI install below is for terminal-first setup, scripting, CI, and headless
-workflows. Desktop users can perform their basic workspace setup from the GUI.
+workflows.
 
 > **Support matrix:** the single source is [`docs/TRUST.md#Installation channels`](TRUST.md#installation-channels) — GitHub Releases (canonical artifact), PyPI, npm, Homebrew, AUR, GHCR container, Claude/Cursor marketplaces, Agent Plugins artifacts. The **canonical artifact** is the native V binary from a GitHub Release; PyPI/npm/marketplaces are distribution adapters, Homebrew/AUR are downstream packages that fetch the canonical artifact. V is canonical, Python is a thin launcher.
 

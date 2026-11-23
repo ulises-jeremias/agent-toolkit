@@ -144,6 +144,7 @@ export interface UpdateStatus {
   current: string;
   latest: string | null;
   updateAvailable: boolean;
+  desktopAvailable: boolean;
   releaseUrl: string | null;
   checkedAt: string | null;
   source: 'live' | 'cache' | 'unavailable';
