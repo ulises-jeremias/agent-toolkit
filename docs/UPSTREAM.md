@@ -7,7 +7,7 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adrs/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-11-16T06:32:24.285917Z
+Generated: 2026-11-23T06:29:38.915118Z
 Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 
 ## `design/brag`
@@ -143,23 +143,23 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 
 ## `design/web-design-guidelines`
 
-- **Trust:** `experimental` reviewed_at=2026-11-02 by=ulises-jeremias
+- **Trust:** `experimental` reviewed_at=2026-11-23 by=ulises-jeremias
 - **Maintenance:** `active` last_activity=2026-08-18
 - **Distribution:** `vendored` redistribution_allowed=False
 - **Security (declared):** scripts=False shell=False network=True cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:44bc35d0e878dd8dad439f16053961a619620bffb884802a8bf2e971099c0291`
+- **Provenance digest:** `sha256:133cf4eb01ddeb8a517d87446e7f10dc2bd7893f24503e8e652190e425d32eae`
 
 ### Source `wrapper` — `vercel-labs/agent-skills/skills/web-design-guidelines`
 
 - **Repository:** `vercel-labs/agent-skills`
 - **Path:** `skills/web-design-guidelines`
-- **Requested:** `commit` `ba46938889d4e58635362fb8f618e1178ac3ec46` (declaration intent)
-- **Resolved commit:** `ba46938889d4e58635362fb8f618e1178ac3ec46`
-- **Content checksum:** `sha256:e7388131bec5efbde353168e2fb8c2f486e28eb22038ef061774b69a72a30860`
-- **Body checksum:** `sha256:17d7239c9233292386c96805dd2182708e594b0a6bec9c385fb201b3e5977b3f` (must match local SKILL.md body)
+- **Requested:** `commit` `53b6e3ddf96b3fa83af97b1783ed805b582ad3a7` (declaration intent)
+- **Resolved commit:** `53b6e3ddf96b3fa83af97b1783ed805b582ad3a7`
+- **Content checksum:** `sha256:87d6ef3362a2cc559c7314303df403581015d942bb0a96f214e88e35119e4ee0`
+- **Body checksum:** `sha256:1916070d282d0211fdac9a0c86791cce38a0bf3e3166ab62ff18434573ac81b9` (must match local SKILL.md body)
 - **Observed license:** `NOASSERTION` source_path=`?` checksum=`?`
   - Declaration expected `license: NOASSERTION` — mismatch requires review
-- **Resolved at:** `2026-11-02T04:51:24.249697Z` version=`ba46938`
+- **Resolved at:** `2026-11-23T06:29:38.767990Z` version=`53b6e3d`
 
 ### Source `rules` — `vercel-labs/web-interface-guidelines/command.md`
 
@@ -659,23 +659,23 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 
 ## `quality/unslop`
 
-- **Trust:** `experimental` reviewed_at=2026-11-02 by=ulises-jeremias
+- **Trust:** `experimental` reviewed_at=2026-11-23 by=ulises-jeremias
 - **Maintenance:** `active` last_activity=?
 - **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=False shell=False network=False cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:b86d401d7574684678746990fb221ad2fbc15932cca14b6afad01080461f8344`
+- **Provenance digest:** `sha256:4d957a2bc2d38282728a355728b59f3b0b9961e0aa531eedae54ca406138e6f6`
 
 ### Source `upstream` — `cursor/plugins/pstack/skills/unslop`
 
 - **Repository:** `cursor/plugins`
 - **Path:** `pstack/skills/unslop`
-- **Requested:** `commit` `bc697d0a5a163cec979e362b601e36f5616083fd` (declaration intent)
-- **Resolved commit:** `bc697d0a5a163cec979e362b601e36f5616083fd`
-- **Content checksum:** `sha256:009292c4dd2930ff75216ce64f57af1ad00e0a0bf7afb66730683a3a598b0a86`
-- **Body checksum:** `sha256:4398ebd335a9da1ff7e557196f58142d72b4fa3b1377dea59fb735894030565e` (must match local SKILL.md body)
+- **Requested:** `commit` `2f87c854fe3e2fcda44ca86b46ede35aad3c46b7` (declaration intent)
+- **Resolved commit:** `2f87c854fe3e2fcda44ca86b46ede35aad3c46b7`
+- **Content checksum:** `sha256:3c8321f5fa325d54ec2a67c7c2df36663a5dbb0775f11b3e6b8f7674a8a5634d`
+- **Body checksum:** `sha256:3c1e7f636524080c450afbbaa6e8a747647bda738072ae38c80a9d8ec97efe75` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/quality/unslop/LICENSE` checksum=`sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e`
   - Declaration expected `license: MIT` — mismatch requires review
-- **Resolved at:** `2026-11-02T04:51:24.249697Z` version=`bc697d0`
+- **Resolved at:** `2026-11-23T06:29:38.767990Z` version=`2f87c85`
 
 - **Per-skill attribution:** `skills/quality/unslop/UPSTREAM.md`
 
