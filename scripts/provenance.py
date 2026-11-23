@@ -1153,12 +1153,43 @@ def _path_exists_at(repository: str, path: str, commit: str) -> bool | None:
         return None
 
 
-def _discover_updates(lock: dict) -> list[dict]:
+def _nonredistributable_sources(declarations: dict[str, dict]) -> list[dict]:
+    """List upstream sources that policy forbids copying into a sync PR."""
+    blocked: list[dict] = []
+    for cap_id, declaration in sorted(declarations.items()):
+        fm = declaration.get("frontmatter") or {}
+        distribution = fm.get("distribution") or {}
+        if (
+            not isinstance(distribution, dict)
+            or distribution.get("redistribution_allowed") is not False
+        ):
+            continue
+        for source in declaration.get("sources") or []:
+            blocked.append(
+                {
+                    "capability": cap_id,
+                    "source": source.get("_source_id", "upstream"),
+                    "repository": source.get("repository", ""),
+                    "path": source.get("path", ""),
+                    "reason": "distribution.redistribution_allowed is false",
+                }
+            )
+    return blocked
+
+
+def _discover_updates(lock: dict, declarations: dict[str, dict] | None = None) -> list[dict]:
     """Compare locked sources to path-scoped HEAD / newer semver tags."""
     updates: list[dict] = []
+    declarations = declarations if declarations is not None else _discover_declarations()
+    blocked_sources = {
+        (entry["capability"], entry["source"])
+        for entry in _nonredistributable_sources(declarations)
+    }
     caps = lock.get("capabilities", {})
     for cap_id in sorted(caps.keys()):
         for source_id, src in sorted(caps[cap_id].get("sources", {}).items()):
+            if (cap_id, source_id) in blocked_sources:
+                continue
             repo = src.get("repository", "")
             path = src.get("path", "")
             locked = (src.get("resolved") or {}).get("commit", "")
@@ -1393,13 +1424,21 @@ def cmd_updates(args: argparse.Namespace) -> int:
         print(f"lock not found at {LOCK_PATH}", file=sys.stderr)
         return 1
 
-    updates = _discover_updates(lock)
     declarations = _discover_declarations()
+    blocked = _nonredistributable_sources(declarations)
+    updates = _discover_updates(lock, declarations)
 
     # Print discovery
     apply = bool(getattr(args, "apply", False))
     as_json = bool(getattr(args, "json", False))
     if not apply:
+        for entry in blocked:
+            msg = (
+                f"{entry['capability']} {entry['source']}: update sync blocked: "
+                f"{entry['reason']} ({entry['repository']} path={entry['path']})"
+            )
+            if not as_json:
+                print(msg, file=sys.stderr)
         for entry in updates:
             msg = (
                 f"{entry['capability']} {entry['source']}: update available "
@@ -1423,7 +1462,12 @@ def cmd_updates(args: argparse.Namespace) -> int:
                     )
 
         if as_json:
-            print(json.dumps({"updates": updates, "count": len(updates)}, indent=2))
+            print(
+                json.dumps(
+                    {"updates": updates, "blocked": blocked, "count": len(updates)},
+                    indent=2,
+                )
+            )
             return 0
 
         if updates:
@@ -1436,11 +1480,21 @@ def cmd_updates(args: argparse.Namespace) -> int:
                 file=sys.stderr,
             )
         else:
-            print("No updates — all locked commits are current for their paths/tags.")
+            if blocked:
+                print(
+                    "No eligible updates — one or more upstream sources are blocked by distribution policy."
+                )
+            else:
+                print("No updates — all locked commits are current for their paths/tags.")
         return 0
 
     # --apply
     if not updates:
+        for entry in blocked:
+            print(
+                f"blocked {entry['capability']}/{entry['source']}: {entry['reason']}",
+                file=sys.stderr,
+            )
         print("No updates to apply.")
         return 0
 
