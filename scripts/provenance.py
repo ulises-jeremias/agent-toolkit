@@ -189,6 +189,38 @@ def _skill_md_path_for_source(spath: str) -> str:
     return f"{spath.rstrip('/')}/SKILL.md"
 
 
+def _vendored_file_for_source(skill_path: Path, source_id: str, source_path: str) -> Path:
+    """Return the local file that contains this source's vendored bytes."""
+    if source_id == "rules" or source_path == "command.md":
+        for candidate in (
+            skill_path.parent / "references" / "web-interface-guidelines.md",
+            skill_path.parent / "references" / Path(source_path).name,
+        ):
+            if candidate.is_file():
+                return candidate
+    return skill_path
+
+
+def _license_file_for_source(
+    skill_path: Path, source_id: str, license_id: str, distribution: dict
+) -> Path | None:
+    """Resolve the declared license file before conventional skill-level paths."""
+    attribution_file = distribution.get("attribution_file")
+    if isinstance(attribution_file, str) and attribution_file.strip():
+        candidate = skill_path.parent / attribution_file
+        if candidate.is_file():
+            return candidate
+    if source_id == "rules" or license_id == "MIT":
+        candidate = skill_path.parent / "references" / "LICENSE"
+        if candidate.is_file():
+            return candidate
+    for name in ("LICENSE.txt", "LICENSE"):
+        candidate = skill_path.parent / name
+        if candidate.is_file():
+            return candidate
+    return None
+
+
 def _is_skill_md_source(spath: str) -> bool:
     p = _skill_md_path_for_source(spath)
     return p.endswith("SKILL.md")
@@ -376,11 +408,9 @@ def _build_lock_data(
                 # Cannot build resolved without 40-char SHA — use placeholder but mark error elsewhere
                 # For now fallback to ref if it's SHA, else empty and check will fail
                 commit = ref if SHA40_RE.match(ref or "") else ""
-            # Content checksum: per-source artifact
-            # For single-source, it's SKILL.md; for multi-source, each source maps to its vendored file:
-            # - wrapper (vercel-labs/agent-skills) -> SKILL.md
-            # - rules (vercel-labs/web-interface-guidelines) -> references/web-interface-guidelines.md
-            # Generic fallback: skill_path for most, references/<basename> for others
+            # Content checksum: per-source artifact. Rules may be the only
+            # upstream source after a first-party wrapper replaces a restricted
+            # wrapper; source identity, not source count, determines its file.
             # For distribution: external, fetch upstream raw bytes at resolved commit instead of local vendored file
             content_checksum = ""
             try:
@@ -422,18 +452,7 @@ def _build_lock_data(
                             raise
                 # Fallback: vendored local file
                 if not content_checksum or content_checksum == "sha256:" + "0" * 64:
-                    vendored_path = skill_path
-                    if len(src_list) > 1:
-                        if sid == "rules" or spath == "command.md":
-                            candidate = (
-                                skill_path.parent / "references" / "web-interface-guidelines.md"
-                            )
-                            if candidate.exists():
-                                vendored_path = candidate
-                            else:
-                                candidate = skill_path.parent / "references" / Path(spath).name
-                                if candidate.exists():
-                                    vendored_path = candidate
+                    vendored_path = _vendored_file_for_source(skill_path, sid, spath)
                     if vendored_path.exists():
                         content_checksum = _file_sha256(vendored_path)
                     else:
@@ -455,15 +474,7 @@ def _build_lock_data(
                     body_checksum = ex_res["body_checksum"]
             if not body_checksum:
                 try:
-                    vendored_for_body = skill_path
-                    if len(src_list) > 1 and (sid == "rules" or spath == "command.md"):
-                        candidate = skill_path.parent / "references" / "web-interface-guidelines.md"
-                        if candidate.exists():
-                            vendored_for_body = candidate
-                        else:
-                            candidate = skill_path.parent / "references" / Path(spath).name
-                            if candidate.exists():
-                                vendored_for_body = candidate
+                    vendored_for_body = _vendored_file_for_source(skill_path, sid, spath)
                     if vendored_for_body.exists():
                         if vendored_for_body.name == "SKILL.md":
                             _fm, body = _split_skill_file(vendored_for_body)
@@ -475,20 +486,10 @@ def _build_lock_data(
 
             # License observed: per-source
             license_obj: dict = {"spdx": lic}
-            # For multi-source, try per-source LICENSE
-            lic_path = None
-            if len(src_list) > 1 and (sid == "rules" or lic == "MIT"):
-                # rules source has LICENSE in references/
-                cand = skill_path.parent / "references" / "LICENSE"
-                if cand.exists():
-                    lic_path = cand
-            if lic_path is None:
-                # Fallback to skill dir LICENSE.txt / LICENSE
-                cand = skill_path.parent / "LICENSE.txt"
-                if cand.exists():
-                    lic_path = cand
-                elif (skill_path.parent / "LICENSE").exists():
-                    lic_path = skill_path.parent / "LICENSE"
+            distribution = decl.get("frontmatter", {}).get("distribution", {})
+            if not isinstance(distribution, dict):
+                distribution = {}
+            lic_path = _license_file_for_source(skill_path, sid, lic, distribution)
             if lic_path is not None and lic_path.exists():
                 license_obj["source_path"] = str(lic_path.relative_to(REPO_ROOT))
                 try:
@@ -762,21 +763,9 @@ def cmd_check(args: argparse.Namespace) -> int:
                 )
                 if dist == "vendored" or dist is None:  # default assume vendored for upstream
                     try:
-                        vendored_path = skill_path
-                        if len(decl_src_list) > 1 and (
-                            sid == "rules" or dsrc.get("path") == "command.md"
-                        ):
-                            cand = skill_path.parent / "references" / "web-interface-guidelines.md"
-                            if cand.exists():
-                                vendored_path = cand
-                            else:
-                                cand2 = (
-                                    skill_path.parent
-                                    / "references"
-                                    / Path(dsrc.get("path", "")).name
-                                )
-                                if cand2.exists():
-                                    vendored_path = cand2
+                        vendored_path = _vendored_file_for_source(
+                            skill_path, sid, dsrc.get("path", "")
+                        )
                         actual = _file_sha256(vendored_path)
                         if actual != cksum:
                             errors.append(
@@ -887,7 +876,9 @@ def _generate_upstream_md_content(declarations: dict[str, dict], lock: dict | No
     lines.append(
         "- **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adrs/0001-*.md`"
     )
-    lines.append("- **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`")
+    lines.append(
+        "- **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` plus declared distribution resources and attribution files"
+    )
     lines.append("")
     lines.append(f"Generated: {datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')}")
     lines.append(
@@ -957,14 +948,23 @@ def _generate_upstream_md_content(declarations: dict[str, dict], lock: dict | No
             lines.append(f"- **Resolved commit:** `{res.get('commit', '?')}`")
             lines.append(f"- **Content checksum:** `{res.get('content_checksum', '?')}`")
             if res.get("body_checksum"):
+                body_target = (
+                    "local SKILL.md body"
+                    if _skill_md_path_for_source(str(path)).endswith("SKILL.md")
+                    else "vendored file bytes"
+                )
                 lines.append(
-                    f"- **Body checksum:** `{res.get('body_checksum')}` (must match local SKILL.md body)"
+                    f"- **Body checksum:** `{res.get('body_checksum')}` (must match {body_target})"
                 )
             lic_obj = res.get("license", {})
             lines.append(
                 f"- **Observed license:** `{lic_obj.get('spdx', lic)}` source_path=`{lic_obj.get('source_path', '?')}` checksum=`{lic_obj.get('checksum', '?')}`"
             )
-            lines.append(f"  - Declaration expected `license: {lic}` — mismatch requires review")
+            observed_license = lic_obj.get("spdx", lic)
+            if lic and observed_license == lic:
+                lines.append(f"  - License declaration matches observed `{lic}`")
+            else:
+                lines.append(f"  - Declaration expected `license: {lic}` — mismatch requires review")
             lines.append(
                 f"- **Resolved at:** `{res.get('resolved_at', '?')}` version=`{res.get('version', '?')}`"
             )

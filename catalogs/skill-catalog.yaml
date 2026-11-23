@@ -310,7 +310,7 @@ skills:
   - id: design/web-design-guidelines
     name: web-design-guidelines
     domain: design
-    description: 'Review UI code for Web Interface Guidelines compliance. Use when asked to "review my UI", "check accessibility", "audit design", "review UX", or "check my site against best practices".'
+    description: 'Review frontend code for accessibility, interaction, content, and performance issues using the bundled Web Interface Guidelines. Use when asked to review a UI, audit accessibility, or check frontend i'
     stability: stable
   - id: forge/fix-merge-conflicts
     name: fix-merge-conflicts
