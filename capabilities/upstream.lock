@@ -114,7 +114,7 @@ capabilities:
           resolved_at: '2026-10-16T13:04:45.390836Z'
           version: 71cc36d
   design/web-design-guidelines:
-    provenance_digest: sha256:44bc35d0e878dd8dad439f16053961a619620bffb884802a8bf2e971099c0291
+    provenance_digest: sha256:c532951dc08c9953e721602dd0932d4a5b874ffec7a6689a8b179f2230b5d276
     sources:
       rules:
         path: command.md
@@ -130,22 +130,8 @@ capabilities:
             checksum: sha256:6cd1609c9c12233507cdd2ce0d32e9a721e3c27494951be06b90090deeeb7af2
             source_path: skills/design/web-design-guidelines/references/LICENSE
             spdx: MIT
-          resolved_at: '2026-11-02T04:51:24.249697Z'
+          resolved_at: '2026-11-23T14:40:39.672887Z'
           version: 4ecfb9f
-      wrapper:
-        path: skills/web-design-guidelines
-        repository: vercel-labs/agent-skills
-        requested:
-          ref: ba46938889d4e58635362fb8f618e1178ac3ec46
-          type: commit
-        resolved:
-          body_checksum: sha256:17d7239c9233292386c96805dd2182708e594b0a6bec9c385fb201b3e5977b3f
-          commit: ba46938889d4e58635362fb8f618e1178ac3ec46
-          content_checksum: sha256:e7388131bec5efbde353168e2fb8c2f486e28eb22038ef061774b69a72a30860
-          license:
-            spdx: NOASSERTION
-          resolved_at: '2026-11-02T04:51:24.249697Z'
-          version: ba46938
   integrations/confluence-admin:
     provenance_digest: sha256:05b93f92c8b879f69b4b7ab7d18bb6ce3290d15454d62173fd96294ad678bf45
     sources:

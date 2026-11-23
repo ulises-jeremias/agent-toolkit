@@ -5,9 +5,9 @@ Human-readable provenance for third-party capability content. Canonical sources:
 
 - **Declaration:** `SKILL.md` frontmatter (`origin`, `sources`/`upstream`, `trust`, `maintenance`, `distribution`, `security`) — see `schemas/upstream.schema.json`
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adrs/0001-*.md`
-- **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
+- **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` plus declared distribution resources and attribution files
 
-Generated: 2026-11-23T13:35:08.120002Z
+Generated: 2026-11-23T14:42:54.022423Z
 Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 
 ## `design/brag`
@@ -27,7 +27,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:723bddbb056a6c292b4e7e557b5ba6f77576fbcdfaa9090e171e2a56f59ad5e2`
 - **Body checksum:** `sha256:578ca9772b37eadcb112d82c83a18636090539c07177459cbcf031b5bb1855c0` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/brag/LICENSE` checksum=`sha256:92d538e0da9abeaafff8ecfc62e142f5053fa92b2c3ef29978742c325c554089`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-11-16T06:32:24.123739Z` version=`7c98a08`
 
 - **Per-skill attribution:** `skills/design/brag/UPSTREAM.md`
@@ -49,7 +49,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:e4c44a335d33afe028f79c31d245e2ba09f97c0a1263e81b4d4d6fc4d025e42c`
 - **Body checksum:** `sha256:c5258b0f2ea2d4d7e2d94e023713e4d5a7d2c0f4a65dd3cab339b878fd7279d9` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/brag-slim/LICENSE` checksum=`sha256:92d538e0da9abeaafff8ecfc62e142f5053fa92b2c3ef29978742c325c554089`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-11-16T06:32:24.123739Z` version=`7c98a08`
 
 - **Per-skill attribution:** `skills/design/brag-slim/UPSTREAM.md`
@@ -71,7 +71,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:4f3463b7cabac7780259cd8fdb1536804a996e44c7c8cf5613bf3cf7b40d8764`
 - **Body checksum:** `sha256:6a79024776b961ef7bf1d7c41fd2054134473a36d4ca07ff18fc99357cc2b6ca` (must match local SKILL.md body)
 - **Observed license:** `Apache-2.0` source_path=`skills/design/frontend-design/LICENSE.txt` checksum=`sha256:0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594`
-  - Declaration expected `license: Apache-2.0` — mismatch requires review
+  - License declaration matches observed `Apache-2.0`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`41bbe19`
 
 - **Per-skill attribution:** `skills/design/frontend-design/UPSTREAM.md`
@@ -93,7 +93,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:e3201014bd72f7ae34020bda5b4a5395214bca8b6601b94d11edfac36c99fe37`
 - **Body checksum:** `sha256:13029dfb9274aac92db5869c5977ff4923af1f213ab9571cd4f0b701829c1a78` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/frontend-design-review/LICENSE` checksum=`sha256:d9a1b1e30d633d5732ea18e3cba9538d293ebc53e1a9e4e96ab739e0c5c4f1cb`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`cbfd1b6`
 
 ## `design/pxl-pixel-art`
@@ -113,7 +113,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:df7e520ca2dc44814a6467198086d6afb4f400fa0720f3b91356d758f60e85dd`
 - **Body checksum:** `sha256:f8626f60e2970838500ac3905241db48aad7244850010629f7c9768c5780292a` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/pxl-pixel-art/LICENSE` checksum=`sha256:533fb75ff225f6b8568170ca596bf201ec7f30b7509616bff7cfe250e52e77d8`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-11-11T03:37:30.727566Z` version=`21fee41`
 
 - **Per-skill attribution:** `skills/design/pxl-pixel-art/UPSTREAM.md`
@@ -136,7 +136,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:d73e262a58c72b50778c0315539a1b82f5f8ca731c3db74bbab52b90deaeb919`
 - **Body checksum:** `sha256:5fedc60fae0f27555db56ae79e104281d793e7b58208f22136f64f0d47989e0c` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/scroll-world/LICENSE` checksum=`sha256:c4b96a7a050b85026eb68ac5b5fee2778384b14371aaeac50891dbadd848d309`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-10-16T13:04:45.390836Z` version=`71cc36d`
 
 - **Per-skill attribution:** `skills/design/scroll-world/UPSTREAM.md`
@@ -144,22 +144,10 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 ## `design/web-design-guidelines`
 
 - **Trust:** `experimental` reviewed_at=2026-11-02 by=ulises-jeremias
-- **Maintenance:** `active` last_activity=2026-08-18
-- **Distribution:** `vendored` redistribution_allowed=False
-- **Security (declared):** scripts=False shell=False network=True cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:44bc35d0e878dd8dad439f16053961a619620bffb884802a8bf2e971099c0291`
-
-### Source `wrapper` — `vercel-labs/agent-skills/skills/web-design-guidelines`
-
-- **Repository:** `vercel-labs/agent-skills`
-- **Path:** `skills/web-design-guidelines`
-- **Requested:** `commit` `ba46938889d4e58635362fb8f618e1178ac3ec46` (declaration intent)
-- **Resolved commit:** `ba46938889d4e58635362fb8f618e1178ac3ec46`
-- **Content checksum:** `sha256:e7388131bec5efbde353168e2fb8c2f486e28eb22038ef061774b69a72a30860`
-- **Body checksum:** `sha256:17d7239c9233292386c96805dd2182708e594b0a6bec9c385fb201b3e5977b3f` (must match local SKILL.md body)
-- **Observed license:** `NOASSERTION` source_path=`?` checksum=`?`
-  - Declaration expected `license: NOASSERTION` — mismatch requires review
-- **Resolved at:** `2026-11-02T04:51:24.249697Z` version=`ba46938`
+- **Maintenance:** `active` last_activity=2026-11-23
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=False cve_policy=not-applicable mcp=[] hooks=[]
+- **Provenance digest:** `sha256:c532951dc08c9953e721602dd0932d4a5b874ffec7a6689a8b179f2230b5d276`
 
 ### Source `rules` — `vercel-labs/web-interface-guidelines/command.md`
 
@@ -168,10 +156,10 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Requested:** `commit` `4ecfb9fb8d1d3b7009674869b3aaee2f904042e1` (declaration intent)
 - **Resolved commit:** `4ecfb9fb8d1d3b7009674869b3aaee2f904042e1`
 - **Content checksum:** `sha256:d246b026f4f29b5823a9cc857f9edf3d2507002e055e32040cadeaf3b38e0234`
-- **Body checksum:** `sha256:d246b026f4f29b5823a9cc857f9edf3d2507002e055e32040cadeaf3b38e0234` (must match local SKILL.md body)
+- **Body checksum:** `sha256:d246b026f4f29b5823a9cc857f9edf3d2507002e055e32040cadeaf3b38e0234` (must match vendored file bytes)
 - **Observed license:** `MIT` source_path=`skills/design/web-design-guidelines/references/LICENSE` checksum=`sha256:6cd1609c9c12233507cdd2ce0d32e9a721e3c27494951be06b90090deeeb7af2`
-  - Declaration expected `license: MIT` — mismatch requires review
-- **Resolved at:** `2026-11-02T04:51:24.249697Z` version=`4ecfb9f`
+  - License declaration matches observed `MIT`
+- **Resolved at:** `2026-11-23T14:40:39.672887Z` version=`4ecfb9f`
 
 ## `integrations/confluence-admin`
 
@@ -190,7 +178,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:27dcacf3a65858286bc3429c068268655846c003fbfff129c01b380666260a32`
 - **Body checksum:** `sha256:d3ab250bf97bac007a6b684e47b0954a5899151a0c2b56699386b1ec825dd90a` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-admin/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`7967966`
 
 ## `integrations/confluence-analytics`
@@ -210,7 +198,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:f8f1b56be715de041cad6ecaaa4047cccaadbf6af17b7c5f31e56df706011f03`
 - **Body checksum:** `sha256:4f6f27c11a7aa6cac726f36417c7cedf0b07177e660258858f9489d4c96c1d92` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-analytics/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`9cd07b2`
 
 ## `integrations/confluence-assistant`
@@ -230,7 +218,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:04427b5403befb19a1de4d5dd6edf97585e43b1b7dfd34c20a094ffbedfa105b`
 - **Body checksum:** `sha256:5c13f9522635845a5188d4fca6715295005569d4a4471f0ff4216dd13bbd13ad` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-assistant/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`d5e1cca`
 
 ## `integrations/confluence-attachment`
@@ -250,7 +238,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:a969f4581dcd99e52ee02d3dd228d13885cf680f7f8679dec9008a21b1e92e55`
 - **Body checksum:** `sha256:b540e704143b37fa106bc159d241540bdd6bddf896e72a61450da078bb7ec7ac` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-attachment/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`9cd07b2`
 
 ## `integrations/confluence-bulk`
@@ -270,7 +258,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:49289a6f8fb48fa1c27361fda220379609e4386ea4bf8a1bd31aa32b70ad3ae6`
 - **Body checksum:** `sha256:464fd53fbbe899792afaf36d1107b596eb3b21f6492137f1229a0c36959de151` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-bulk/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`9cd07b2`
 
 ## `integrations/confluence-comment`
@@ -290,7 +278,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:bcef9d905207a0a479321b673b7c5f0580e758480b94bbe0e020f4f3074fb3cd`
 - **Body checksum:** `sha256:162c8d2bd63822082b688acd843cd1eed948c2abe42651b70f8738399201866a` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-comment/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`9cd07b2`
 
 ## `integrations/confluence-hierarchy`
@@ -310,7 +298,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:0b9f77e340b546b7b5ec95779f49a73a62785b4498ff9da7c1b6b6d360983632`
 - **Body checksum:** `sha256:9d9233c7b09c4ae2d8dc5208e2e096b53ed9e77eaadaefb9f2455a2274a6f015` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-hierarchy/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`9cd07b2`
 
 ## `integrations/confluence-jira`
@@ -330,7 +318,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:78de75a47508cd655221266947f131fd0a5b72fadd6e2cbc819d913791d80e51`
 - **Body checksum:** `sha256:d0e32dd674ade44b8608913347e5cd8a226cb758218f03a0bf929617d65236d4` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-jira/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`9cd07b2`
 
 ## `integrations/confluence-label`
@@ -350,7 +338,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:2dcda2cadd5d817c1b76f4aaa0cc350c60034f300fd79bf9b92c0ba076fb3a93`
 - **Body checksum:** `sha256:8e005338cf4038f07ccb3b007645aa0c50fee296f87f450c604f961414322622` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-label/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`7967966`
 
 ## `integrations/confluence-ops`
@@ -370,7 +358,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:c7c482e780258755119255275e9f5239b1daad295895c7e1244aef4276cbd051`
 - **Body checksum:** `sha256:9219a10dddc1a29ff415b3d6acffbc339854f17e88ccd26ecb15f699e1138877` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-ops/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`9cd07b2`
 
 ## `integrations/confluence-page`
@@ -390,7 +378,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:4cc0a8082c66c88e816e8e3539bab82e48c897beded6c2546de3eb43934699fb`
 - **Body checksum:** `sha256:8c628e6f047c12e75b94c7d80b78a9409f58799e35a5bc699f1b9954b8ecc780` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-page/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`9cd07b2`
 
 ## `integrations/confluence-permission`
@@ -410,7 +398,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:3d056a68ed31d8f98ee95533b0f24c8b6a861616e2cbc9912d7f3cb7b6ba8637`
 - **Body checksum:** `sha256:fc1f94e40caabbb857bb3fbff2de053566364c20bbaf1d9e6e9eb1d42d80fa0b` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-permission/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`7967966`
 
 ## `integrations/confluence-property`
@@ -430,7 +418,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:d570dd7f5e698128159d647eed7c8c469bad410bae2dbb01ca16a0c6b2a46580`
 - **Body checksum:** `sha256:11cba8ff0d5b927c27d066cfb996cc4935ba39cbc98306529a3d3e08187d783a` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-property/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`7967966`
 
 ## `integrations/confluence-search`
@@ -450,7 +438,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:592416f1c0e1d9f2e56221654508df532d97657331568ee73bf53f3fa377ab6a`
 - **Body checksum:** `sha256:2a1f2fc0d192084c17e8cc2d7c83a1eeaad3c03cbc8ba3b5e0cd3e0382352b05` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-search/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`9cd07b2`
 
 ## `integrations/confluence-space`
@@ -470,7 +458,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:053f2bb89e62e27bfd8f5501f4fbdd35bb4e9cc6ef580924c87414cd80309e2c`
 - **Body checksum:** `sha256:54ae98d3bcdab85daea426e015829655e3622764163479bac3b3444a48c239a2` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-space/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`7967966`
 
 ## `integrations/confluence-template`
@@ -490,7 +478,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:fc5afd08d3e491ce1689e737099e4416f9973632a9ce87588867470c4b23cd47`
 - **Body checksum:** `sha256:15a8927b7ae4d64e670cd4be29e92760144cde7aac18f4dc5f6b005a9ab8b13e` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-template/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`9cd07b2`
 
 ## `integrations/confluence-watch`
@@ -510,7 +498,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:511311b6622738bdce2cd2809bd0eed17f028134890469685cf8f302c72bc660`
 - **Body checksum:** `sha256:52a87a02903150dbb15c23b54d8dff7221dab85f33aa09b90affc09191be78e6` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/confluence-watch/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`7967966`
 
 ## `integrations/jira-assistant`
@@ -530,7 +518,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:446dd320d85d1360336592f1c75ac977570ae5cb3defc135ba2d457060a5c907`
 - **Body checksum:** `sha256:4cb72c43367616fe14752e48a02557223d270710d3e76af49ead1c6789b94e6a` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/jira-assistant/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-21T06:40:27.115970Z` version=`f78f194`
 
 ## `quality/blast-radius`
@@ -550,7 +538,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:c5a5398f0a14c7af309b5e128b1edfd85e9e42e1688347f5fb29b5031176d126`
 - **Body checksum:** `sha256:620394b8c7ec32c10a73875c98b1fa11a19bfb1a28cce604612beb980ffa3a21` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/quality/blast-radius/LICENSE` checksum=`sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-11-16T06:32:24.123739Z` version=`bf0c7cd`
 
 - **Per-skill attribution:** `skills/quality/blast-radius/UPSTREAM.md`
@@ -572,7 +560,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:f176e27cb64fb44668bd5f690dc70a3595083816ef6f0ecc37b21ea6d1e6503d`
 - **Body checksum:** `sha256:d40e71977da3326f996903185a7337c40ec00a38dde68db96603d9cef5f891b3` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/quality/deslop/LICENSE` checksum=`sha256:702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`b21ab16`
 
 - **Per-skill attribution:** `skills/quality/deslop/UPSTREAM.md`
@@ -594,7 +582,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:7088ce3909d0cd9e5069edfb8fd20c86cb7c31b955a09fa3f4634eac40f6d289`
 - **Body checksum:** `sha256:d9fd2383a1059aa3a259210850d055309cdd438221c9fb3fcd8de8d65e75ffe4` (must match local SKILL.md body)
 - **Observed license:** `AGPL-3.0` source_path=`skills/quality/megalinter/LICENSE` checksum=`sha256:0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0`
-  - Declaration expected `license: AGPL-3.0` — mismatch requires review
+  - License declaration matches observed `AGPL-3.0`
 - **Resolved at:** `2026-11-02T04:51:24.249697Z` version=`v10.2.0`
 
 ## `quality/megalinter-check`
@@ -614,7 +602,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:05868f0c0f3da1338e5dd8fca3a7813a0b1d2c8215a2ef355c0882ae3231565e`
 - **Body checksum:** `sha256:e0ad4dcb6144ed37c1380787ef0b61b7817a3c253de2fafcabeb28d195b1badf` (must match local SKILL.md body)
 - **Observed license:** `AGPL-3.0` source_path=`skills/quality/megalinter-check/LICENSE` checksum=`sha256:0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0`
-  - Declaration expected `license: AGPL-3.0` — mismatch requires review
+  - License declaration matches observed `AGPL-3.0`
 - **Resolved at:** `2026-11-02T04:51:24.249697Z` version=`v10.2.0`
 
 ## `quality/megalinter-fix`
@@ -634,7 +622,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:e23f95655b6135054b0cd5dca3465ac3d8fc161399de68ac0966ee53c48d3bde`
 - **Body checksum:** `sha256:a9defc28e86f2ba1e8be6df4eefb40fdb2525b90282ea420ec7f0d19cb7a6411` (must match local SKILL.md body)
 - **Observed license:** `AGPL-3.0` source_path=`skills/quality/megalinter-fix/LICENSE` checksum=`sha256:0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0`
-  - Declaration expected `license: AGPL-3.0` — mismatch requires review
+  - License declaration matches observed `AGPL-3.0`
 - **Resolved at:** `2026-11-02T04:51:24.249697Z` version=`v10.2.0`
 
 ## `quality/megalinter-setup`
@@ -654,7 +642,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:da22b0f8fd2f9103a22bb3a095ab357e014523fcd91d36839293c327fd423a21`
 - **Body checksum:** `sha256:0a85d27d8a772684ae505e17f6cb026ea876e62a91bd91bcfc22b39f77487803` (must match local SKILL.md body)
 - **Observed license:** `AGPL-3.0` source_path=`skills/quality/megalinter-setup/LICENSE` checksum=`sha256:0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0`
-  - Declaration expected `license: AGPL-3.0` — mismatch requires review
+  - License declaration matches observed `AGPL-3.0`
 - **Resolved at:** `2026-11-02T04:51:24.249697Z` version=`v10.2.0`
 
 ## `quality/unslop`
@@ -674,7 +662,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:3c8321f5fa325d54ec2a67c7c2df36663a5dbb0775f11b3e6b8f7674a8a5634d`
 - **Body checksum:** `sha256:3c1e7f636524080c450afbbaa6e8a747647bda738072ae38c80a9d8ec97efe75` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/quality/unslop/LICENSE` checksum=`sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-11-23T13:35:07.697273Z` version=`2f87c85`
 
 - **Per-skill attribution:** `skills/quality/unslop/UPSTREAM.md`
@@ -696,7 +684,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Content checksum:** `sha256:6f4dcde3ddb784565ec99a9b21d7555b35b089e0e5f903026bc95c5efbb88a84`
 - **Body checksum:** `sha256:ba559d5f67ab0ea98d5d2668581ebadba3d160cc96fda0e6a3ad1f13bd8c0b60` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/tooling/cli-for-agents/LICENSE` checksum=`sha256:702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0`
-  - Declaration expected `license: MIT` — mismatch requires review
+  - License declaration matches observed `MIT`
 - **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`26a1497`
 
 - **Per-skill attribution:** `skills/tooling/cli-for-agents/UPSTREAM.md`

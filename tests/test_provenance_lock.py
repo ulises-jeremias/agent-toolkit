@@ -372,6 +372,26 @@ def test_frontend_design_trust_experimental_unbound():
     )
 
 
+def test_single_source_guidelines_lock_tracks_bundled_reference_and_license():
+    cap_id = "design/web-design-guidelines"
+    declaration = prov._discover_declarations()[cap_id]
+    assert len(declaration["sources"]) == 1
+
+    existing_lock = yaml.safe_load(prov.LOCK_PATH.read_text())
+    generated = prov._build_lock_data({cap_id: declaration}, existing_lock)
+    resolved = generated["capabilities"][cap_id]["sources"]["rules"]["resolved"]
+    reference = (
+        prov.REPO_ROOT
+        / "skills/design/web-design-guidelines/references/web-interface-guidelines.md"
+    )
+    license_file = prov.REPO_ROOT / "skills/design/web-design-guidelines/references/LICENSE"
+
+    assert resolved["content_checksum"] == prov._file_sha256(reference)
+    assert resolved["body_checksum"] == prov._file_sha256_raw(reference)
+    assert resolved["license"]["source_path"] == str(license_file.relative_to(prov.REPO_ROOT))
+    assert resolved["license"]["checksum"] == prov._file_sha256_raw(license_file)
+
+
 def test_first_party_omitted_from_lock():
     lock = yaml.safe_load(prov.LOCK_PATH.read_text())
     # first-party skills must not appear — lock is sparse
