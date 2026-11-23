@@ -3,7 +3,7 @@
 Last updated: 2026-11-23. States follow ADR-046. "Verified" means executed
 on the evaluation host (HorneroOS/Arch, RTX 3060); anything else is
 source-inspected only. Statuses: `ready-verified`, `verified with
-limitations`, `experimental`, `unavailable`, `incompatible (suspected)`,
+limitations`, `experimental`, `unavailable`, `incompatible`,
 `deferred`.
 
 ## Integrations
@@ -17,7 +17,7 @@ limitations`, `experimental`, `unavailable`, `incompatible (suspected)`,
 | Inkscape MCP (`inkscape-mcp` 2.0.0, headless) | Inkscape 1.4.4 | ready-verified (headless) | diagnostics pass; info/validate/objects on a real SVG; convert → PNG 400×200 verified; source SVG unchanged. Live D-Bus mode not run |
 | Blender Lab MCP @ dbbf836 | Blender 5.3.0 | experimental | source-inspected; high-risk Python execution gate; interactive session not yet run |
 | GIMP MCP @ f25a74a | GIMP 3.2.8 | experimental (not yet verified) | plug-in installed into an isolated HOME; needs a graphical GIMP session (or Xvfb, absent on host) for its socket server — not run to avoid touching the user's live desktop |
-| KritaPilot @ 8a72d0b | Krita 6.0.4.1 (upstream tested 5.3.4) | incompatible (suspected) | major-version gap vs upstream-tested Krita; not loaded — do not force; needs upstream Krita 6 evidence first |
+| KritaPilot @ 8a72d0b | Krita 6.0.4.1 (upstream tested 5.3.4) | experimental (not yet verified) | major-version gap vs upstream-tested Krita; not loaded — do not force; needs upstream Krita 6 evidence first |
 | OBS MCP (aaronckj) @ 599b382 | OBS 33.0.1 (obs-websocket v5) | experimental (not yet verified) | source-inspected; dry_run supported; needs a running OBS with explicit user-started session |
 | REAPER MCP @ b4c0487 | REAPER installed (proprietary, opt-in) | experimental (not yet verified) | source-inspected; needs running REAPER + ReaScript bridge; only disposable projects may be used |
 | ComfyUI MCP @ 105dca2 | ComfyUI not installed | deferred | beta upstream; optional; no automatic model downloads |
