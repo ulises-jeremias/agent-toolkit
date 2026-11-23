@@ -8,6 +8,7 @@ flagship environment; nothing here depends on it.
 - Architecture: [ADR-046](../adrs/ADR-046-creative-studio-ecosystem.md)
 - Upstream evaluation: [UPSTREAM_EVALUATION.md](UPSTREAM_EVALUATION.md)
 - Compatibility: [COMPATIBILITY.md](COMPATIBILITY.md)
+- Flagship HorneroOS video (prepared): [FLAGSHIP_HORNERO_VIDEO.md](FLAGSHIP_HORNERO_VIDEO.md)
 - Skills: `skills/creative/` · Agents: `agents/creative-director` (+5 specialists)
 - MCP: `mcp/registry/{kdenlive,blender,gimp,krita,inkscape,obs,reaper,comfyui}.yaml`
 - Product: `agent-toolkit-creative-studio` (opt-in) · Pack: `packs/creative-studio/`
