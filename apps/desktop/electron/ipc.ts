@@ -49,7 +49,7 @@ export function registerIpc(deps: IpcDeps): void {
         current: 'unknown',
         latest: null,
         updateAvailable: false,
-        desktopAvailable: false,
+        desktopAvailable: null,
         releaseUrl: null,
         checkedAt: null,
         source: 'unavailable',

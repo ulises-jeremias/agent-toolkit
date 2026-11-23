@@ -104,7 +104,12 @@ describe('UpdateChecker', () => {
       },
     });
     const status = await checker.status();
-    expect(status).toMatchObject({ latest: null, updateAvailable: false, source: 'unavailable' });
+    expect(status).toMatchObject({
+      latest: null,
+      updateAvailable: false,
+      desktopAvailable: null,
+      source: 'unavailable',
+    });
     expect(status.detail).toContain('offline');
   });
 

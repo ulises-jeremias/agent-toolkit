@@ -89,13 +89,13 @@ function DesktopUpdateStatus() {
       <KeyValue
         items={[
           { label: 'Installed', value: status.current, mono: true },
-          ...(status.desktopAvailable
+          ...(status.desktopAvailable === true
             ? [{ label: 'Latest release', value: status.latest ?? 'Unknown', mono: status.latest !== null }]
             : []),
           ...(status.checkedAt ? [{ label: 'Checked', value: new Date(status.checkedAt).toLocaleString() }] : []),
         ]}
       />
-      {!status.desktopAvailable ? (
+      {status.desktopAvailable === false ? (
         <p role="status">
           This legacy Desktop is no longer published. Install Veasel to receive the supported graphical app and updates:{' '}
           <a href="https://github.com/veasel-labs/veasel/releases/latest" target="_blank" rel="noreferrer">
@@ -103,6 +103,8 @@ function DesktopUpdateStatus() {
           </a>
           . Existing Toolkit data remains in its current location; Veasel does not import or modify it.
         </p>
+      ) : status.desktopAvailable === null ? (
+        <p role="status">{status.detail || 'Desktop release availability could not be verified.'}</p>
       ) : status.updateAvailable && status.releaseUrl ? (
         <p role="status">
           Agent Toolkit Desktop {status.latest} is available. Updates are installed manually while Desktop builds are

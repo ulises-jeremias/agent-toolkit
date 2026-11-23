@@ -21,7 +21,7 @@ export interface UpdateStatus {
   latest: string | null;
   updateAvailable: boolean;
   /** Whether the latest release still publishes a compatible Desktop package. */
-  desktopAvailable: boolean;
+  desktopAvailable: boolean | null;
   releaseUrl: string | null;
   /** ISO timestamp of the last successful live check, when known. */
   checkedAt: string | null;
@@ -194,7 +194,7 @@ export class UpdateChecker {
         current: this.current,
         latest: null,
         updateAvailable: false,
-        desktopAvailable: false,
+        desktopAvailable: null,
         releaseUrl: null,
         checkedAt: null,
         source: 'unavailable',
