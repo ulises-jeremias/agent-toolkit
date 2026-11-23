@@ -1,16 +1,19 @@
-# Get started with Agent Toolkit Desktop
+# Get started with the Veasel graphical app
 
-This guide takes you from a fresh install to a working project, a configured
-Person and a real coding session. The graphical setup is the normal path: you
-do not need to install the CLI, edit Toolkit configuration files or clone the
-repository to use Desktop.
+The supported graphical app is [Veasel](https://github.com/veasel-labs/veasel/releases/latest).
+Agent Toolkit Desktop is a legacy compatibility application and is no longer
+published with new Toolkit releases. Existing Toolkit Desktop installations
+and their data remain in place and are not automatically imported into Veasel.
+Follow the [Veasel documentation](https://github.com/veasel-labs/veasel/tree/main/docs)
+for graphical setup. This guide's remaining Desktop steps document the legacy
+application for existing installations; CLI installation and automation remain
+supported here.
 
 ## 1. Install Desktop
 
-Download the latest [Agent Toolkit Desktop release](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
-for your system. Choose the AppImage or `.deb` on Linux, the `.dmg` on macOS,
-or the Windows installer. Desktop includes the matching Toolkit backend and
-world assets.
+New Toolkit releases do not publish Electron installers. If you already have
+Agent Toolkit Desktop installed, it continues to use its existing application
+and data directory. New graphical installations should use Veasel.
 
 For platform-specific notes and CLI/automation installation, see
 [Installation](INSTALLATION.md). The CLI is an optional path for scripting,

@@ -30,24 +30,49 @@ describe('parseVersion / isNewerVersion', () => {
 
 describe('parseLatestRelease', () => {
   it('reads tag + URL and rejects drafts or junk', () => {
-    expect(parseLatestRelease('{"tag_name":"v1.48.0","html_url":"https://example.invalid/r"}')).toEqual({
+    expect(
+      parseLatestRelease(
+        '{"tag_name":"v1.48.0","html_url":"https://example.invalid/r","assets":[{"name":"agent-toolkit-desktop-1.48.0-linux-amd64.deb"}]}',
+      ),
+    ).toEqual({
       version: '1.48.0',
       url: 'https://example.invalid/r',
+      desktopAvailable: true,
     });
     expect(parseLatestRelease('{"tag_name":"v1.48.0","draft":true}')).toBeNull();
     expect(parseLatestRelease('{"tag_name":"weekly"}')).toBeNull();
     expect(parseLatestRelease('not json')).toBeNull();
+    expect(parseLatestRelease('{"tag_name":"v1.49.0","assets":[{"name":"agent-toolkit-linux-x86_64"}]}')).toMatchObject(
+      { version: '1.49.0', desktopAvailable: false },
+    );
+    expect(
+      parseLatestRelease(
+        '{"tag_name":"v1.49.0","assets":[{"name":"agent-toolkit-desktop-1.49.0-linux-x86_64.AppImage"}]}',
+        'win32',
+        'x64',
+      ),
+    ).toMatchObject({ version: '1.49.0', desktopAvailable: false });
+    expect(
+      parseLatestRelease(
+        '{"tag_name":"v1.49.0","assets":[{"name":"agent-toolkit-desktop-1.49.0-win-x64.exe"}]}',
+        'win32',
+        'x64',
+      ),
+    ).toMatchObject({ version: '1.49.0', desktopAvailable: true });
   });
 });
 
 describe('UpdateChecker', () => {
-  const okFetch =
-    (version: string) =>
-    async () => ({
-      ok: true,
-      status: 200,
-      text: async () => JSON.stringify({ tag_name: `v${version}`, html_url: 'https://example.invalid/r' }),
-    });
+  const okFetch = (version: string) => async () => ({
+    ok: true,
+    status: 200,
+    text: async () =>
+      JSON.stringify({
+        tag_name: `v${version}`,
+        html_url: 'https://example.invalid/r',
+        assets: [{ name: 'agent-toolkit-desktop-linux-x86_64.AppImage' }],
+      }),
+  });
 
   it('reports an available update from a live check and caches it', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-update-'));
@@ -64,7 +89,7 @@ describe('UpdateChecker', () => {
       },
     });
     const first = await checker.status();
-    expect(first).toMatchObject({ latest: '1.48.0', updateAvailable: true, source: 'live' });
+    expect(first).toMatchObject({ latest: '1.48.0', updateAvailable: true, desktopAvailable: true, source: 'live' });
     const second = await checker.status();
     expect(second.source).toBe('cache');
     expect(calls).toBe(1);
@@ -79,7 +104,12 @@ describe('UpdateChecker', () => {
       },
     });
     const status = await checker.status();
-    expect(status).toMatchObject({ latest: null, updateAvailable: false, source: 'unavailable' });
+    expect(status).toMatchObject({
+      latest: null,
+      updateAvailable: false,
+      desktopAvailable: null,
+      source: 'unavailable',
+    });
     expect(status.detail).toContain('offline');
   });
 
@@ -88,7 +118,12 @@ describe('UpdateChecker', () => {
     const cachePath = path.join(dir, 'update-check.json');
     fs.writeFileSync(
       cachePath,
-      JSON.stringify({ latest: '1.48.0', releaseUrl: 'https://example.invalid/r', checkedAtMs: 0 }),
+      JSON.stringify({
+        latest: '1.48.0',
+        desktopAvailable: true,
+        releaseUrl: 'https://example.invalid/r',
+        checkedAtMs: 0,
+      }),
     );
     const checker = new UpdateChecker({
       currentVersion: '1.47.5',
@@ -100,5 +135,24 @@ describe('UpdateChecker', () => {
     });
     const status = await checker.status();
     expect(status).toMatchObject({ latest: '1.48.0', updateAvailable: true, source: 'cache' });
+  });
+
+  it('does not claim a Desktop update when a CLI-only release is latest', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-update-cli-only-'));
+    const checker = new UpdateChecker({
+      currentVersion: '1.48.0',
+      cachePath: path.join(dir, 'update-check.json'),
+      fetchFn: async () => ({
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            tag_name: 'v1.49.0',
+            html_url: 'https://example.invalid/r',
+            assets: [{ name: 'agent-toolkit-linux-x86_64' }],
+          }),
+      }),
+    });
+    expect(await checker.status()).toMatchObject({ latest: '1.49.0', desktopAvailable: false, updateAvailable: false });
   });
 });

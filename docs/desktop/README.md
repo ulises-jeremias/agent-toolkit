@@ -1,5 +1,12 @@
 # Agent Toolkit Desktop
 
+> **Legacy application:** New Agent Toolkit releases no longer publish this
+> Electron app. The supported graphical runtime is [Veasel](https://github.com/veasel-labs/veasel/releases/latest).
+> Existing Toolkit Desktop data stays at its current location; Veasel does not
+> automatically import or modify it. Do not remove the legacy data directory
+> until any needed settings, skills, workflows, or local state have been
+> reviewed and backed up.
+
 > **Product reboot (2026-11-04):** Real daily-driver acceptance is currently **unverified** even where component workflow entries are marked `ok`. See [mission #1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667), [RFC](../rfcs/1667-agent-toolkit-daily-driver.md), and [installed-product acceptance protocol](DAILY_DRIVER_ACCEPTANCE.md). Do not interpret the existing screenshot gallery as proof of provider-session usability.
 
 Agent Toolkit Desktop is a standalone Electron workstation over the canonical

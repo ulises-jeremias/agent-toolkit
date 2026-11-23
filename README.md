@@ -6,9 +6,9 @@
 
 # agent-toolkit
 
-> **New here?** Start with the [Desktop guide](docs/desktop/README.md) for a graphical workspace tour, or use [Getting Started](docs/GETTING_STARTED.md) for the CLI.
+> **New here?** Install the supported [Veasel graphical app](https://github.com/veasel-labs/veasel/releases/latest), or use [Getting Started](docs/GETTING_STARTED.md) for the Agent Toolkit CLI.
 
-**A semantic developer workspace represented as a living pixel valley — with reusable capabilities for every major coding assistant**
+**Portable skills, agent definitions, workflows, integrations, and a native automation CLI for coding assistants**
 
 [![CI](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=CI)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
 [![Desktop CI](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/desktop.yml?branch=main&label=Desktop%20CI)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/desktop.yml)
@@ -33,24 +33,24 @@
 
 ## ✨ What is agent-toolkit?
 
-**Agent Toolkit Desktop** is the flagship GUI for a semantic developer workspace. Projects have their own houses in a cozy pixel valley; shared capabilities, memory, operations and terminals each have a meaningful place. The world is a real navigation surface, while compact inspectors handle precise work.
-
-The canonical V engine powers both Desktop and CLI. Domain operations stay shared, so projects, People, capabilities, sessions and runs mean the same thing in the GUI and in automation. Only real jobs and live sessions appear as working characters.
-
-The toolkit also distributes reusable skills, Agent Definitions, MCP templates and loop workflows across coding assistants — one catalog, deployed to each tool's native format.
+Agent Toolkit is the portable capability layer and native CLI. It distributes
+reusable Skills, Agent Definitions, MCP templates, and workflow recipes across
+coding assistants. [Veasel](https://github.com/veasel-labs/veasel) is the
+supported graphical runtime and consumes portable capabilities from this
+repository. The Electron Desktop remains available to existing installations
+for compatibility, but is no longer published with new Toolkit releases.
 
 ```mermaid
 flowchart LR
   A[Skills · Agent Definitions · MCP · Loops] --> B[Agent Toolkit V engine]
   B --> C[CLI and automation]
-  B --> D[agent-toolkit serve API]
-  D --> E[Electron + React Desktop]
-  E --> F[World · People · Library · Operations · Terminal]
+  B --> D[Portable catalogs and profiles]
+  D --> E[Veasel graphical runtime]
 ```
 
 ### Desktop app (GUI)
 
-Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installer on Windows from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest). The Electron app bundles its backend; normal workspace setup does not require a separate CLI, source checkout, or manual configuration files. Start with the [Desktop guide](docs/desktop/README.md) for supported workflows and current limits.
+Install the supported [Veasel graphical app](https://github.com/veasel-labs/veasel/releases/latest). Agent Toolkit Desktop is a legacy compatibility application: existing installations and their data remain untouched, but new Toolkit releases no longer publish Electron installers. See the [legacy Desktop guide](docs/desktop/README.md) for preservation details.
 
 <p align="center">
   <img src="static/demo/world-demo.gif" width="100%" alt="Walking through the Agent Toolkit Desktop valley: the player explores a workspace where each project is a house" />
