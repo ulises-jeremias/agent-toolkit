@@ -1432,6 +1432,7 @@ def cmd_updates(args: argparse.Namespace) -> int:
     apply = bool(getattr(args, "apply", False))
     as_json = bool(getattr(args, "json", False))
     if not apply:
+        blocked_keys = {(entry["capability"], entry["source"]) for entry in blocked}
         for entry in blocked:
             msg = (
                 f"{entry['capability']} {entry['source']}: update sync blocked: "
@@ -1455,6 +1456,8 @@ def cmd_updates(args: argparse.Namespace) -> int:
             for cap_id in sorted(caps.keys()):
                 for source_id, src in sorted(caps[cap_id].get("sources", {}).items()):
                     if (cap_id, source_id) in updated_keys:
+                        continue
+                    if (cap_id, source_id) in blocked_keys:
                         continue
                     locked = (src.get("resolved") or {}).get("commit", "")
                     print(
@@ -1489,12 +1492,12 @@ def cmd_updates(args: argparse.Namespace) -> int:
         return 0
 
     # --apply
+    for entry in blocked:
+        print(
+            f"blocked {entry['capability']}/{entry['source']}: {entry['reason']}",
+            file=sys.stderr,
+        )
     if not updates:
-        for entry in blocked:
-            print(
-                f"blocked {entry['capability']}/{entry['source']}: {entry['reason']}",
-                file=sys.stderr,
-            )
         print("No updates to apply.")
         return 0
 
@@ -1538,7 +1541,7 @@ def cmd_updates(args: argparse.Namespace) -> int:
     if docs_rc != 0:
         errors.append("provenance.py docs failed after apply")
 
-    summary = {"applied": applied, "errors": errors, "count": len(applied)}
+    summary = {"applied": applied, "blocked": blocked, "errors": errors, "count": len(applied)}
     if as_json:
         print(json.dumps(summary, indent=2))
     else:

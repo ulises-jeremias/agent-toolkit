@@ -116,3 +116,39 @@ def test_json_discovery_reports_blocked_sources(monkeypatch, capsys):
     assert payload["count"] == 0
     assert payload["updates"] == []
     assert payload["blocked"][0]["reason"] == "distribution.redistribution_allowed is false"
+
+
+def test_text_discovery_does_not_claim_blocked_source_is_up_to_date(monkeypatch, capsys):
+    declarations = {
+        "cap": {
+            "frontmatter": {"distribution": {"redistribution_allowed": False}},
+            "sources": [{"_source_id": "src", "repository": "owner/upstream", "path": "skills/x"}],
+        }
+    }
+    lock = _lock("skills/x")
+    monkeypatch.setattr(prov, "_load_lock", lambda: lock)
+    monkeypatch.setattr(prov, "_discover_declarations", lambda: declarations)
+    monkeypatch.setattr(prov, "_discover_updates", lambda lock, declarations: [])
+
+    assert prov.cmd_updates(argparse.Namespace(apply=False, json=False)) == 0
+    captured = capsys.readouterr()
+    assert "update sync blocked" in captured.err
+    assert "up-to-date" not in captured.out
+    assert "blocked by distribution policy" in captured.out
+
+
+def test_apply_reports_blocked_source_without_applying_it(monkeypatch, capsys):
+    declarations = {
+        "cap": {
+            "frontmatter": {"distribution": {"redistribution_allowed": False}},
+            "sources": [{"_source_id": "src", "repository": "owner/upstream", "path": "skills/x"}],
+        }
+    }
+    monkeypatch.setattr(prov, "_load_lock", lambda: _lock("skills/x"))
+    monkeypatch.setattr(prov, "_discover_declarations", lambda: declarations)
+    monkeypatch.setattr(prov, "_discover_updates", lambda lock, declarations: [])
+
+    assert prov.cmd_updates(argparse.Namespace(apply=True, json=False)) == 0
+    captured = capsys.readouterr()
+    assert "blocked cap/src" in captured.err
+    assert "No updates to apply." in captured.out
