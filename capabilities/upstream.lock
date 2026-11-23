@@ -603,24 +603,24 @@ capabilities:
           resolved_at: '2026-11-02T04:51:24.249697Z'
           version: v10.2.0
   quality/unslop:
-    provenance_digest: sha256:b86d401d7574684678746990fb221ad2fbc15932cca14b6afad01080461f8344
+    provenance_digest: sha256:4d957a2bc2d38282728a355728b59f3b0b9961e0aa531eedae54ca406138e6f6
     sources:
       upstream:
         path: pstack/skills/unslop
         repository: cursor/plugins
         requested:
-          ref: bc697d0a5a163cec979e362b601e36f5616083fd
+          ref: 2f87c854fe3e2fcda44ca86b46ede35aad3c46b7
           type: commit
         resolved:
-          body_checksum: sha256:4398ebd335a9da1ff7e557196f58142d72b4fa3b1377dea59fb735894030565e
-          commit: bc697d0a5a163cec979e362b601e36f5616083fd
-          content_checksum: sha256:009292c4dd2930ff75216ce64f57af1ad00e0a0bf7afb66730683a3a598b0a86
+          body_checksum: sha256:3c1e7f636524080c450afbbaa6e8a747647bda738072ae38c80a9d8ec97efe75
+          commit: 2f87c854fe3e2fcda44ca86b46ede35aad3c46b7
+          content_checksum: sha256:3c8321f5fa325d54ec2a67c7c2df36663a5dbb0775f11b3e6b8f7674a8a5634d
           license:
             checksum: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
             source_path: skills/quality/unslop/LICENSE
             spdx: MIT
-          resolved_at: '2026-11-02T04:51:24.249697Z'
-          version: bc697d0
+          resolved_at: '2026-11-23T13:35:07.697273Z'
+          version: 2f87c85
   tooling/cli-for-agents:
     provenance_digest: sha256:d6cdfd7f5e54dadf687862230de4794bc309f5f89846cdf81c19f7341956ba6d
     sources:
