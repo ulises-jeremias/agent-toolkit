@@ -964,7 +964,9 @@ def _generate_upstream_md_content(declarations: dict[str, dict], lock: dict | No
             if lic and observed_license == lic:
                 lines.append(f"  - License declaration matches observed `{lic}`")
             else:
-                lines.append(f"  - Declaration expected `license: {lic}` — mismatch requires review")
+                lines.append(
+                    f"  - Declaration expected `license: {lic}` — mismatch requires review"
+                )
             lines.append(
                 f"- **Resolved at:** `{res.get('resolved_at', '?')}` version=`{res.get('version', '?')}`"
             )
