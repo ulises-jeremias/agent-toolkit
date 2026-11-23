@@ -45,11 +45,17 @@ jobs:
           python3 scripts/provenance.py updates --json > /tmp/updates.json
           cat /tmp/updates.json
           COUNT=$(python3 -c "import json; print(json.load(open('/tmp/updates.json'))['count'])")
+          BLOCKED=$(python3 -c "import json; print(len(json.load(open('/tmp/updates.json')).get('blocked', [])))")
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "blocked=$BLOCKED" >> "$GITHUB_OUTPUT"
           if [ "$COUNT" -eq 0 ]; then
-            echo "No updates — all locked commits current for their paths/tags."
+            if [ "$BLOCKED" -gt 0 ]; then
+              echo "No eligible updates; $BLOCKED upstream source(s) are blocked by distribution policy."
+            else
+              echo "No updates available for the locked paths/tags."
+            fi
           else
-            echo "Updates available: $COUNT"
+            echo "Eligible updates available: $COUNT; blocked sources: $BLOCKED"
           fi
 
       - name: Offline provenance integrity
