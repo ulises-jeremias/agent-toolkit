@@ -1306,7 +1306,8 @@ def _apply_skill_update(
     trust = dict(overlay.get("trust") or {})
     trust["tier"] = "experimental"
     trust.pop("reviewed_provenance", None)
-    trust["reviewed_at"] = datetime.now(timezone.utc).date().isoformat()
+    trust.pop("reviewed_at", None)
+    trust.pop("reviewed_by", None)
     overlay["trust"] = trust
 
     # Bump declaration pin
