@@ -2,9 +2,8 @@
 
 Last updated: 2026-11-23. States follow ADR-046. "Verified" means executed
 on the evaluation host (HorneroOS/Arch, RTX 3060); anything else is
-source-inspected only. Statuses: `ready-verified`, `verified with
-limitations`, `experimental`, `unavailable`, `incompatible`,
-`deferred`.
+source-inspected only. Statuses: `ready-verified`, `verified with limitations`,
+`experimental`, `unavailable`, `incompatible`, and `deferred`.
 
 ## Integrations
 
@@ -28,7 +27,7 @@ limitations`, `experimental`, `unavailable`, `incompatible`,
 | Client | Status | Notes |
 |--------|--------|-------|
 | Muse | ready-verified (Kdenlive + Inkscape MCP via stdio drivers) | Full edit/render/subtitle flows executed from this client |
-| Veasel (dev build of `fix/skill-frontmatter-compat`) | verified with limitations | Plugin link discovers 8 creative skills + kdenlive MCP after the frontmatter fix (veasel-labs/veasel#798); configured MCP initializes and its tools load; session trust + per-call approval API verified. Full agent-driven edit **not** completed: local 8B models (qwen3:8b, llama3.1:8b via Ollama) did not reliably invoke MCP tools (calls emitted as text / delegation loops). Needs a tool-capable model (maintainer's configured provider key was not reachable from the test process). Bubblewrap sandbox also hides `$HOME`-installed MCP servers and the workspace — veasel-labs/veasel#799 |
+| Veasel packaged Linux artifact (PR #800 build; source `ab2a9f03`) | verified with limitations | The installed home-scoped `mcp-kdenlive` PATH command initialized, listed 37 tools, and completed the read-only `diagnose_environment` call through required Bubblewrap after per-session trust and explicit call approval. The [Veasel CI artifact](https://github.com/veasel-labs/veasel/actions/runs/45153660067) archive SHA-256 is `f965bb37184409543a4006ccecbe06fa7b5a3b7c29d8e9bd08bee13c7ad2ca78`. A separate packaged MCP boundary fixture confirmed that an explicit workspace grant permits writes inside the session workspace while a sibling sentinel outside it remains unreadable. This used a local deterministic OpenAI-compatible provider fixture, not a paid provider. The real-provider creative edit workflow and same-session visual TUI continuation remain **not verified**; see veasel-labs/veasel#550 and #799. |
 | Claude Code / Codex / OpenCode | experimental | Upstream kdenlive-mcp client matrix reports passes; re-verify per client before claiming |
 | Cursor / others | not yet verified | Standard stdio MCP expected; no claim made |
 
