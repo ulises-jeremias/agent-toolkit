@@ -452,96 +452,6 @@ h3 {
 .semantic-item strong {
   color: var(--cream);
 }
-.quote-strip {
-  padding: 26px 0;
-  border-block: 1px solid rgb(193 220 191 / 17%);
-  color: var(--sun-text);
-  font: 400 10px/1.8 var(--pixel);
-  text-align: center;
-}
-
-/* Semantic destinations: signposts to real routes. No JS required;
-   every card is a plain link. Silkscreen is used only for sign labels. */
-.valley-destinations {
-  overflow-x: clip;
-  padding: clamp(64px, 9vw, 110px) 0;
-  background: linear-gradient(180deg, var(--paper), #f1e8cf);
-}
-.destination-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-top: 34px;
-}
-.destination-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 22px;
-  border: 2px solid var(--pine);
-  background: #fffdf4;
-  color: var(--ink);
-  text-decoration: none;
-  box-shadow: 6px 6px 0 rgb(28 36 25/0.14);
-}
-.destination-card:hover {
-  color: var(--ink);
-  border-color: var(--terracotta);
-  transform: translateY(-2px);
-}
-.destination-card .sign-art {
-  width: 72px;
-  height: auto;
-  image-rendering: pixelated;
-}
-.destination-card .sign {
-  font: 400 9px/1.7 var(--pixel);
-  letter-spacing: 0.06em;
-  color: var(--ember-text);
-  text-transform: uppercase;
-}
-.destination-card strong {
-  font-size: 1.15rem;
-}
-.destination-card p {
-  margin: 0;
-  color: var(--muted-ink);
-  font-size: 0.93rem;
-}
-.destination-card .go {
-  margin-top: auto;
-  color: var(--pine);
-  font-weight: 700;
-}
-.truth-note {
-  margin-top: 28px;
-  padding: 18px 20px;
-  border-left: 4px solid var(--terracotta);
-  background: #fff3df;
-  color: var(--ink);
-}
-.truth-note a {
-  color: #8a3b1e;
-  font-weight: 700;
-}
-.valley-scene {
-  position: relative;
-  overflow: hidden;
-  border: 2px solid var(--pine);
-  /* Governed PXL website art (#1762): layered Hornero Valley scene.
-     Gradient remains as fallback while the PNG loads. */
-  background:
-    url("/world-art/hero-valley.png") center 62% / cover no-repeat,
-    linear-gradient(180deg, #bfe3c0 0 38%, #7fb069 38% 62%, #2f5d43 62%);
-  image-rendering: pixelated;
-  min-height: 280px;
-  aspect-ratio: 21 / 9;
-}
-@media (max-width: 680px) {
-  .destination-grid {
-    grid-template-columns: 1fr;
-  }
-}
 .hero {
   position: relative;
   overflow: hidden;
@@ -639,14 +549,6 @@ h3 {
 .legacy-desktop-notice .button-row {
   margin-top: 16px;
 }
-.hero-art {
-  position: relative;
-  width: min(1100px, 100%);
-  margin: clamp(42px, 6vw, 72px) auto 0;
-}
-
-/* One orchestrated entrance: copy rises in sequence, then the valley art.
-   The global reduced-motion block below collapses this to a static hero. */
 @keyframes hero-rise {
   from {
     transform: translateY(14px);
@@ -669,54 +571,6 @@ h3 {
 }
 .hero-copy > *:nth-child(5) {
   animation-delay: 0.32s;
-}
-.hero-art {
-  animation: hero-rise 0.9s cubic-bezier(0.22, 0.8, 0.3, 1) 0.3s both;
-}
-.hero-art::before {
-  position: absolute;
-  z-index: 0;
-  right: 3%;
-  bottom: -28px;
-  left: 3%;
-  height: 48px;
-  content: "";
-  background: #142e2e;
-  clip-path: polygon(3% 0, 97% 0, 100% 70%, 0 70%);
-}
-.hero-screen {
-  z-index: 1;
-  overflow: hidden;
-  aspect-ratio: 3 / 2;
-  border-color: #b6d18c;
-  background: #1e3c33;
-}
-.hero-screen img {
-  image-rendering: pixelated;
-  object-position: center;
-}
-.hero-screen::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-  border: 1px solid rgb(239 247 204 / 28%);
-  pointer-events: none;
-}
-.hero-sign {
-  position: absolute;
-  z-index: 3;
-  right: -18px;
-  bottom: 34px;
-  padding: 10px 14px;
-  border: 2px solid #9bb974;
-  color: var(--cream);
-  background: var(--pine);
-  box-shadow: 5px 5px 0 #08181d;
-  font: 400 9px/1.7 var(--pixel);
-  transform: rotate(2deg);
-}
-.hero-sign span {
-  color: var(--sun);
 }
 .hero-caption {
   position: relative;
@@ -769,17 +623,6 @@ h3 {
     padding-inline: 13px;
     font-size: 0.9rem;
   }
-  .hero-art {
-    width: 100%;
-    margin: 0;
-  }
-  .hero-art::before {
-    bottom: -23px;
-  }
-  .hero-sign {
-    right: -14px;
-    bottom: 42px;
-  }
   .hero-caption {
     font-size: 10px;
   }
@@ -788,41 +631,6 @@ h3 {
     margin: 26px 0 0;
     font-size: 0.8rem;
   }
-}
-.home-story {
-  display: grid;
-  grid-template-columns: 0.85fr 1.15fr;
-  gap: 44px;
-  align-items: center;
-}
-.story-beacon {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  padding: 1px;
-  background: var(--line);
-}
-.story-beacon > div {
-  min-height: 190px;
-  padding: 24px 20px;
-  background: #163438;
-}
-.story-beacon img {
-  width: 46px;
-  height: 46px;
-  margin-bottom: 18px;
-  image-rendering: pixelated;
-  object-fit: contain;
-}
-.story-beacon strong {
-  display: block;
-  color: var(--sun);
-  font: 400 9px/1.7 var(--pixel);
-}
-.story-beacon p {
-  margin: 8px 0 0;
-  color: var(--muted);
-  font-size: 0.9rem;
 }
 .closing-banner {
   position: relative;
@@ -874,34 +682,6 @@ h3 {
 }
 .page-hero-art img {
   object-position: center 40%;
-}
-.definition-rail {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
-  align-items: stretch;
-  gap: 10px;
-  margin: 36px 0;
-}
-.definition {
-  padding: 18px;
-  border-top: 2px solid var(--leaf);
-  background: #173436;
-}
-.definition b {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--sun);
-  font: 400 9px/1.7 var(--pixel);
-}
-.definition p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.88rem;
-}
-.definition-arrow {
-  align-self: center;
-  color: var(--river-light);
-  font: 400 15px var(--code);
 }
 .download-option {
   display: grid;
@@ -1511,18 +1291,6 @@ h3 {
     line-height: 1.3;
     letter-spacing: -0.065em;
   }
-  .hero-art {
-    margin-top: 28px;
-  }
-  .hero-screen img {
-    object-fit: cover;
-  }
-  .hero-sign {
-    right: -5px;
-    bottom: 21px;
-    max-width: 150px;
-    font-size: 7px;
-  }
   .hero-caption {
     grid-template-columns: 1fr;
     font-size: 9px;
@@ -1550,40 +1318,11 @@ h3 {
     min-height: 130px;
     padding: 16px;
   }
-  .story-beacon {
-    grid-template-columns: 1fr;
-  }
-  .story-beacon > div {
-    display: grid;
-    grid-template-columns: 44px 1fr;
-    gap: 3px 16px;
-    min-height: unset;
-    padding: 18px;
-  }
-  .story-beacon img {
-    grid-row: span 2;
-    margin: 0;
-  }
-  .story-beacon p {
-    margin: 0;
-  }
   .page-hero {
     padding-block: 56px 40px;
   }
   .page-hero-art {
     aspect-ratio: 4 / 3;
-  }
-  .definition-rail {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  .definition-arrow {
-    justify-self: center;
-    transform: rotate(90deg);
-  }
-  .definition-arrow:nth-of-type(5) {
-    display: block;
   }
   .download-option {
     grid-template-columns: 1fr;
