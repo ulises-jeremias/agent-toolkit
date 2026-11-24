@@ -190,6 +190,15 @@ context.task(name: 'build-cli', help: 'Build build/agent-toolkit', depends: ['ge
 		exit(rc)
 	}
 	cp(out, join_path(r, 'build', 'agent-toolkit-v')) or {}
+	bundle := join_path(r, 'modules', 'agent_toolkit_core', 'embedded_data.bundle.gz')
+	if !is_file(bundle) {
+		eprintln('missing offline resource bundle: ${bundle}')
+		exit(1)
+	}
+	cp(bundle, join_path(r, 'build', 'embedded_data.bundle.gz')) or {
+		eprintln('could not stage offline resource bundle: ${err}')
+		exit(1)
+	}
 })
 
 context.task(
@@ -214,6 +223,15 @@ context.task(
 		dest := join_path(bindir, 'agent-toolkit')
 		cp(from, dest) or {}
 		chmod(dest, 0o755) or {}
+		bundle := join_path(r, 'build', 'embedded_data.bundle.gz')
+		if !is_file(bundle) {
+			eprintln('missing offline resource bundle: ${bundle}; run build-cli first')
+			exit(1)
+		}
+		cp(bundle, join_path(bindir, 'embedded_data.bundle.gz')) or {
+			eprintln('could not install offline resource bundle: ${err}')
+			exit(1)
+		}
 		println('Installed ${dest} (V canonical). Rollback: docs/v/archive/rollback.md')
 	}
 )
