@@ -71,14 +71,14 @@ test("home explains the portable toolkit and its product boundaries", async ({
     (await page.locator('meta[property="og:image"]').getAttribute("content")) ??
       "",
   );
-  expect(imageURL.pathname).toBe("/site/og-portable.svg");
+  expect(imageURL.pathname).toBe("/site/og-portable.png");
   const ogImage = await page.request.get(
     new URL(imageURL.pathname, page.url()).href,
   );
   expect(ogImage.ok()).toBeTruthy();
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
     "content",
-    /agent-toolkit\.io\/site\/og-portable\.svg/,
+    /agent-toolkit\.io\/site\/og-portable\.png/,
   );
   await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute(
     "content",
