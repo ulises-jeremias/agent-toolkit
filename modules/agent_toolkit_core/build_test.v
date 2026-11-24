@@ -143,6 +143,16 @@ fn test_run_build_check_detects_creative_plugin_resource_drift() {
 	})
 	assert !hidden_extra.ok
 	assert hidden_extra.drift.any(it.contains('unexpected in plugins: skills/brag/.metadata/unexpected.txt')), hidden_extra.message
+	os.rmdir_all(os.join_path(root, 'plugins', 'agent-toolkit-creative-studio')) or {
+		assert false, err.msg()
+	}
+	missing_product := run_build(BuildOptions{
+		check:   true
+		target:  'agent-plugins'
+		product: 'agent-toolkit-creative-studio'
+	})
+	assert !missing_product.ok
+	assert missing_product.drift.any(it.contains('missing plugin product: agent-toolkit-creative-studio')), missing_product.message
 }
 
 fn test_skill_tree_drift_includes_hidden_files() {

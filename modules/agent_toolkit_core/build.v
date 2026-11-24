@@ -137,6 +137,9 @@ fn detect_plugin_drift(work_root string, plugins_root string, product_id string,
 	mut drift := []string{}
 	plugin_product := os.join_path(plugins_root, product_id)
 	if !os.is_dir(plugin_product) {
+		if product_id == 'agent-toolkit-creative-studio' && target_id == 'agent-plugins' {
+			drift << 'missing plugin product: ${product_id}'
+		}
 		return drift
 	}
 	work_product := os.join_path(work_root, product_id)
