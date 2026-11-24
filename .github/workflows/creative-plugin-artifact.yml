@@ -24,6 +24,10 @@ jobs:
         env:
           AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
         run: ./build/agent-toolkit build --target agent-plugins --product agent-toolkit-creative-studio --output plugins
+      - name: Verify generated Creative Studio plugin
+        env:
+          AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
+        run: ./build/agent-toolkit build --check --target agent-plugins --product agent-toolkit-creative-studio
       - name: Upload generated plugin
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
