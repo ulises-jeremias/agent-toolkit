@@ -18,20 +18,21 @@ interface Props {
 }
 
 const {
-  title = "Agent Toolkit — a place for real agent work",
-  description = "A semantic AI developer workspace. Projects become places, People are reusable collaborators, and real sessions make work visible.",
-  image = "/site/og-card.jpg",
+  title = "Agent Toolkit — portable capabilities for coding agents",
+  description = "Portable skills, agents, MCP templates, context packs and workflows for AI coding tools.",
+  image = "/site/og-portable.svg",
   noIndex = false,
 } = Astro.props;
-const canonical = new URL(Astro.url.pathname, "https://agent-toolkit.io").href;
-const socialImage = new URL(image, "https://agent-toolkit.io").href;
+const canonical = new URL(Astro.url.pathname, "https://www.agent-toolkit.io")
+  .href;
+const socialImage = new URL(image, "https://www.agent-toolkit.io").href;
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "Agent Toolkit Desktop",
+  name: "Agent Toolkit",
   applicationCategory: "DeveloperApplication",
-  operatingSystem: "Linux, macOS, Windows",
-  url: "https://agent-toolkit.io/",
+  operatingSystem: "Cross-platform CLI",
+  url: "https://www.agent-toolkit.io/",
   downloadUrl:
     "https://github.com/ulises-jeremias/agent-toolkit/releases/latest",
   description,
@@ -62,7 +63,7 @@ const structuredData = {
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Agent Toolkit Desktop — Hornero Valley, a green pixel valley where projects are places and live agent sessions are visible"
+      content="Agent Toolkit — portable skills, agents, MCP templates and workflows for coding tools"
     />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
@@ -70,7 +71,7 @@ const structuredData = {
     <meta name="twitter:image" content={socialImage} />
     <meta
       name="twitter:image:alt"
-      content="Agent Toolkit Desktop — Hornero Valley, a green pixel valley where projects are places and live agent sessions are visible"
+      content="Agent Toolkit — portable skills, agents, MCP templates and workflows for coding tools"
     />
     <script
       type="application/ld+json"

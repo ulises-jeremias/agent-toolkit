@@ -43,24 +43,42 @@ async function captureViewport(page: Page, filename: string) {
   await page.screenshot({ path: path.join(captureDir, filename) });
 }
 
-test("home explains the product and uses the real world capture", async ({
+test("home explains the portable toolkit and its product boundaries", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Your AI agents finally have a place to work.",
+    "Useful capabilities for the coding agents you already use.",
   );
   await expect(
-    page.getByAltText(/original Agent Toolkit valley illustration/i),
+    page.getByRole("heading", { name: "Skills", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Agents", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "MCP", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Workflows", exact: true }),
   ).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     "href",
-    "https://agent-toolkit.io/",
+    "https://www.agent-toolkit.io/",
   );
+  const imageURL = new URL(
+    (await page.locator('meta[property="og:image"]').getAttribute("content")) ??
+      "",
+  );
+  expect(imageURL.pathname).toBe("/site/og-portable.svg");
+  const ogImage = await page.request.get(
+    new URL(imageURL.pathname, page.url()).href,
+  );
+  expect(ogImage.ok()).toBeTruthy();
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
     "content",
-    /agent-toolkit\.io\/site\/og-card\.jpg/,
+    /agent-toolkit\.io\/site\/og-portable\.svg/,
   );
   await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute(
     "content",
@@ -69,52 +87,38 @@ test("home explains the product and uses the real world capture", async ({
   await expect(
     page.locator('meta[property="og:image:height"]'),
   ).toHaveAttribute("content", "630");
-  await expect(page.locator(".hero-screen img")).toHaveJSProperty(
-    "naturalWidth",
-    1536,
-  );
-  await expect(page.locator(".hero-caption")).toContainText(
-    "Illustration · not live product state",
-  );
-  await expect(page.locator(".hero-caption")).toContainText(
-    "Semantic destinations ↓ — no fake live sessions",
-  );
-  await expect(page.locator(".valley-scene")).toBeVisible();
-  await expect(page.locator(".destination-card")).toHaveCount(9);
+  await expect(
+    page.getByRole("link", { name: /get Veasel Code/i }),
+  ).toHaveAttribute("href", "https://www.veasel.dev/downloads/");
+  await expect(
+    page.getByRole("link", { name: /explore capabilities/i }),
+  ).toBeVisible();
   await capturePage(page, "home-desktop.png");
 });
 
-test("semantic destinations link to real routes with reduced motion", async ({
+test("product role links remain clear with reduced motion", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
 
-  const cards = page.locator(".destination-card");
-  await expect(cards).toHaveCount(9);
-  for (const [href, label] of [
-    ["/start/", /Trailhead/i],
-    ["/docs/", /Library/i],
-    ["/people/", /Guild Hall/i],
-    ["/download/", /Waystation/i],
-    ["/changelog/", /Chronicles/i],
-  ] as const) {
-    await expect(
-      page.locator(`.destination-card[href$='${href.replace(/\//g, "\\/")}']`),
-    ).toHaveCount(1);
-    expect(label).toBeTruthy();
-  }
-  // Keyboard: first card is reachable and visibly focused.
+  await expect(
+    page.getByRole("link", { name: /install the CLI/i }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /get Veasel Code/i }),
+  ).toHaveAttribute("href", "https://www.veasel.dev/downloads/");
+  // Keyboard: primary product links remain reachable.
   await page.locator("body").press("Tab");
   const focusedHref = await page.evaluate(
     () => document.activeElement?.getAttribute("href") ?? "",
   );
   expect(typeof focusedHref).toBe("string");
-  await captureViewport(page, "destinations-desktop.png");
+  await captureViewport(page, "product-roles-desktop.png");
 });
 
-test("destination copy and direct links remain available without JavaScript", async ({
+test("portable product navigation works without JavaScript", async ({
   browser,
 }) => {
   const page = await browser.newPage({ javaScriptEnabled: false });
@@ -122,35 +126,29 @@ test("destination copy and direct links remain available without JavaScript", as
   await page.goto("/");
 
   await expect(
-    page.getByRole("heading", { name: /Follow a signpost/ }),
+    page.getByRole("heading", { name: /Useful capabilities/ }),
   ).toBeVisible();
-  await expect(page.locator(".destination-card")).toHaveCount(9);
-  await page.locator(".destination-card[href$='/people/']").click();
-  await expect(page).toHaveURL(/\/people\/$/);
+  await page.getByRole("link", { name: /Explore capabilities/ }).click();
+  await expect(page).toHaveURL(/\/capabilities\/$/);
   await page.close();
 });
 
-test("the world, People and Swarms show semantic product evidence", async ({
+test("legacy product routes are clearly labeled as archives", async ({
   page,
 }) => {
   await page.goto("/world/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "The world is the workspace.",
-  );
-  await expect(page.getByText("Memory", { exact: true })).toBeVisible();
-  await page.goto("/people/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Configure a collaborator once",
-  );
   await expect(
-    page.getByAltText(/only while their real PTY session is running/i),
-  ).toBeVisible();
+    page.getByRole("complementary", { name: /Legacy Desktop archive notice/i }),
+  ).toContainText("retired Agent Toolkit Desktop");
+  await page.goto("/people/");
+  await expect(
+    page.getByRole("complementary", { name: /Legacy Desktop archive notice/i }),
+  ).toContainText("portable capability toolkit");
   await page.goto("/swarms/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Give a team one task",
-  );
-  await expect(page.getByAltText(/Swarm start review/i)).toBeVisible();
-  await capturePage(page, "swarms-desktop.png");
+  await expect(
+    page.getByRole("complementary", { name: /Legacy Desktop archive notice/i }),
+  ).toContainText("Veasel Code");
+  await capturePage(page, "swarms-archive-desktop.png");
   await page.goto("/people/");
   await capturePage(page, "people-desktop.png");
   await page.goto("/world/");
@@ -183,81 +181,35 @@ test("capabilities are searchable and grouped from canonical catalogs", async ({
   await capturePage(page, "capabilities-desktop.png");
 });
 
-test("download page reflects real release assets and keeps a no-script fallback", async ({
+test("download route explains the migration and keeps install paths distinct", async ({
   page,
 }) => {
-  await page.route(
-    "https://api.github.com/repos/ulises-jeremias/agent-toolkit/releases/latest",
-    async (route) => {
-      await route.fulfill({
-        json: {
-          tag_name: "v1.44.0",
-          html_url:
-            "https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.44.0",
-          assets: [
-            {
-              name: "agent-toolkit-desktop-1.44.0-linux-x86_64.AppImage",
-              browser_download_url: "https://github.com/example/linux.AppImage",
-            },
-            {
-              name: "agent-toolkit-desktop-1.44.0-linux-x86_64.deb",
-              browser_download_url: "https://github.com/example/linux.deb",
-            },
-            {
-              name: "agent-toolkit-desktop-1.44.0-linux-arm64.AppImage",
-              browser_download_url: "https://github.com/example/arm.AppImage",
-            },
-            {
-              name: "agent-toolkit-desktop-1.44.0-mac-arm64.dmg",
-              browser_download_url: "https://github.com/example/mac-arm.dmg",
-            },
-            {
-              name: "agent-toolkit-desktop-1.44.0-mac-x64.dmg",
-              browser_download_url: "https://github.com/example/mac-x64.dmg",
-            },
-            {
-              name: "agent-toolkit-desktop-1.44.0-win-x64.exe",
-              browser_download_url: "https://github.com/example/win.exe",
-            },
-          ],
-        },
-      });
-    },
-  );
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/download/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Bring the valley",
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Agent Toolkit Desktop is retired.",
   );
-  await expect(page.locator("#release-status")).toContainText("v1.44.0");
-  await expect(page.locator(".release-assets .download-option")).toHaveCount(5);
-  await page.getByRole("link", { name: "macOS", exact: true }).click();
   await expect(
-    page.locator(".release-assets .download-option:visible"),
-  ).toHaveCount(2);
+    page.getByRole("link", { name: /Download Veasel Code/i }),
+  ).toHaveAttribute("href", "https://www.veasel.dev/downloads/");
   await expect(page.locator(".cli-command")).toContainText(
     "uv tool install agent-toolkit-cli",
   );
-  await page.goto("/download/");
-  await expect(page.locator("#release-status")).toContainText("v1.44.0");
-  await capturePage(page, "download-desktop.png");
+  await expect(page.getByText(/does not automatically import/i)).toBeVisible();
+  await capturePage(page, "download-migration.png");
 });
 
-test("download page keeps its official release link when GitHub is unavailable", async ({
+test("retired Desktop route does not query Electron releases", async ({
   page,
 }) => {
-  await page.route(
-    "https://api.github.com/repos/ulises-jeremias/agent-toolkit/releases/latest",
-    (route) => route.abort(),
-  );
+  await page.route("https://api.github.com/**", (route) => route.abort());
   await page.goto("/download/");
-  await expect(page.locator("#release-status")).toContainText("could not load");
-  await expect(
-    page.getByRole("link", { name: /open latest release/i }),
-  ).toHaveAttribute(
-    "href",
-    "https://github.com/ulises-jeremias/agent-toolkit/releases/latest",
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "retired",
   );
+  await expect(
+    page.getByRole("link", { name: /Install Agent Toolkit CLI/i }),
+  ).toBeVisible();
 });
 
 test("docs render canonical source with curated navigation", async ({
@@ -269,7 +221,9 @@ test("docs render canonical source with curated navigation", async ({
     "Clear paths into the Toolkit.",
   );
   await page.goto("/docs/people/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("People");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "People archive",
+  );
   await expect(
     page.getByRole("link", { name: /view this guide in github/i }),
   ).toBeVisible();
@@ -332,8 +286,8 @@ test("mobile navigation, touch layout and reduced motion remain usable", async (
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await captureViewport(page, "home-mobile.png");
-  await page.locator(".destination-card[href$='/people/']").click();
-  await expect(page).toHaveURL(/\/people\/$/);
+  await page.getByRole("link", { name: /Explore capabilities/ }).click();
+  await expect(page).toHaveURL(/\/capabilities\/$/);
   await page.goto("/");
   await captureViewport(page, "destinations-mobile.png");
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -344,15 +298,15 @@ test("mobile navigation, touch layout and reduced motion remain usable", async (
   await expect(
     page
       .getByRole("navigation", { name: "Mobile navigation" })
-      .getByRole("link", { name: "Hornero Valley" }),
+      .getByRole("link", { name: "Compatibility" }),
   ).toBeVisible();
   await capturePage(page, "mobile-nav-open.png");
   await page
     .getByRole("navigation", { name: "Mobile navigation" })
-    .getByRole("link", { name: "Guild Hall" })
+    .getByRole("link", { name: "Capabilities" })
     .click();
-  await expect(page).toHaveURL("/people/");
-  await capturePage(page, "people-mobile.png");
+  await expect(page).toHaveURL("/capabilities/");
+  await capturePage(page, "capabilities-mobile.png");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect
     .poll(() => page.locator("html").evaluate((element) => element.scrollWidth))

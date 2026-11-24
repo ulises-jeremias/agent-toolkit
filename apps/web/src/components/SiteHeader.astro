@@ -1,20 +1,16 @@
 ---
-import worldMark from "../../../desktop/public/world/landmark-workspace.png";
-
 const navigation = [
-  { href: "/start/", label: "Trailhead" },
-  { href: "/world/", label: "Hornero Valley" },
-  { href: "/people/", label: "Guild Hall" },
-  { href: "/swarms/", label: "Operations" },
-  { href: "/capabilities/", label: "Workshop" },
-  { href: "/docs/", label: "Library" },
+  { href: "/capabilities/", label: "Capabilities" },
+  { href: "/docs/installation/", label: "Install" },
+  { href: "/docs/compatibility/", label: "Compatibility" },
+  { href: "/docs/", label: "Documentation" },
 ];
 const pathname = Astro.url.pathname;
 ---
 
 <header class="site-header">
   <a class="brand" href="/" aria-label="Agent Toolkit home">
-    <img src={worldMark.src} width="40" height="40" alt="" />
+    <img src="/favicon.svg" width="40" height="40" alt="" />
     <span>Agent Toolkit</span>
   </a>
   <nav class="desktop-nav" aria-label="Main navigation">
@@ -26,8 +22,8 @@ const pathname = Astro.url.pathname;
         {item.label}
       </a>
     ))}
-    <a class="nav-download" href="/download/">
-      Download <span aria-hidden="true">↗</span>
+    <a class="nav-download" href="https://www.veasel.dev/downloads/">
+      Get Veasel <span aria-hidden="true">↗</span>
     </a>
   </nav>
   <details class="mobile-nav">
@@ -45,7 +41,8 @@ const pathname = Astro.url.pathname;
           {item.label}
         </a>
       ))}
-      <a href="/download/">Download Desktop</a>
+      <a href="/docs/installation/">Install Agent Toolkit CLI</a>
+      <a href="https://www.veasel.dev/downloads/">Get Veasel Code ↗</a>
     </nav>
   </details>
 </header>

@@ -4,31 +4,31 @@ export const publicDocs = [
     source: "GETTING_STARTED.md",
     title: "Getting started",
     description:
-      "The written twin of the visual /start/ guide: install, first session, first reviewed change.",
+      "Install the portable CLI, preview capability targets and validate provenance.",
     group: "Start here",
   },
   {
     slug: "desktop",
     source: "desktop/README.md",
-    title: "Desktop",
+    title: "Desktop archive",
     description:
-      "Tour the semantic workspace, projects, People, Library and Operations.",
-    group: "Use Agent Toolkit",
+      "Archived reference for the retired Agent Toolkit Desktop. Current graphical app: Veasel Code.",
+    group: "Legacy Desktop archive",
   },
   {
     slug: "world",
     source: "desktop/SEMANTIC_WORLD.md",
-    title: "The semantic world",
+    title: "World archive",
     description:
-      "Why projects, landmarks and runtime presence have spatial meaning.",
-    group: "Understand the model",
+      "Archived World design reference from the retired Agent Toolkit Desktop.",
+    group: "Legacy Desktop archive",
   },
   {
     slug: "installation",
     source: "INSTALLATION.md",
     title: "Installation",
     description:
-      "Desktop, native CLI, package managers and supported platforms.",
+      "Install the supported native CLI and learn about the Veasel graphical application.",
     group: "Start here",
   },
   {
@@ -36,16 +36,16 @@ export const publicDocs = [
     source: "CONCEPTS.md",
     title: "Concepts",
     description:
-      "How projects, capabilities, People, sessions and orchestration fit together.",
+      "How portable skills, agents, context packs, workflows and tools fit together.",
     group: "Understand the model",
   },
   {
     slug: "people",
     source: "PEOPLE.md",
-    title: "People",
+    title: "People archive",
     description:
-      "Durable collaborators, reusable definitions and real runtime sessions.",
-    group: "Use Agent Toolkit",
+      "Archived identity model for the retired Desktop; use portable agent definitions for current Toolkit workflows.",
+    group: "Legacy Desktop archive",
   },
   {
     slug: "skills",
@@ -66,7 +66,8 @@ export const publicDocs = [
     slug: "loops",
     source: "LOOPS.md",
     title: "Loops",
-    description: "Run and schedule recurring workflows with bounded autonomy.",
+    description:
+      "Compose reusable workflows and run bounded automation from supported CLI integrations.",
     group: "Use Agent Toolkit",
   },
   {
@@ -74,14 +75,14 @@ export const publicDocs = [
     source: "SWARMS.md",
     title: "Swarms",
     description:
-      "Coordinate temporary roles, approvals and isolated worktrees.",
+      "Use portable swarm recipes with compatible runners; Veasel owns the canonical graphical session runtime.",
     group: "Use Agent Toolkit",
   },
   {
     slug: "swarm-roles",
     source: "SWARM_ROLES.md",
     title: "Swarm roles",
-    description: "Temporary responsibilities and the canonical role taxonomy.",
+    description: "Portable role recipes that compatible runners can interpret.",
     group: "Use Agent Toolkit",
   },
   {
@@ -105,7 +106,15 @@ export const publicDocs = [
     source: "ARCHITECTURE.md",
     title: "Architecture",
     description:
-      "The shared V engine, API, CLI and Electron Desktop boundaries.",
+      "The portable Toolkit CLI, capability distribution and integration boundaries.",
+    group: "Trust and build",
+  },
+  {
+    slug: "compatibility",
+    source: "COMPATIBILITY.md",
+    title: "Compatibility",
+    description:
+      "Review verified target support and limitations for coding tools and capability formats.",
     group: "Trust and build",
   },
 ];

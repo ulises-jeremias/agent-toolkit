@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Agent Toolkit — portable capabilities for coding agents</title>
+  <desc id="desc">Skills, agents, MCP templates and workflows for AI coding tools.</desc>
+  <rect width="1200" height="630" fill="#12231b"/>
+  <path d="M0 490h1200v140H0z" fill="#1c3b2c"/>
+  <path d="M850 490h350v-80H850zM0 490h160v-45H0z" fill="#294f3c"/>
+  <path d="M0 0h1200v14H0z" fill="#e9c46a"/>
+  <g fill="#a8d169"><rect x="100" y="115" width="14" height="14"/><rect x="1070" y="165" width="10" height="10"/><rect x="940" y="94" width="8" height="8"/><rect x="1040" y="365" width="12" height="12"/></g>
+  <text x="100" y="205" fill="#a8d169" font-family="monospace" font-size="22" letter-spacing="5">PORTABLE CAPABILITIES</text>
+  <text x="96" y="306" fill="#fbf6e9" font-family="sans-serif" font-size="64" font-weight="700">Agent Toolkit</text>
+  <text x="100" y="366" fill="#d3dfd1" font-family="sans-serif" font-size="30">Skills · Agents · MCP · Workflows</text>
+  <g font-family="monospace" font-size="20" font-weight="700"><rect x="100" y="425" width="150" height="54" fill="#e9c46a"/><text x="130" y="460" fill="#12231b">PORTABLE</text><rect x="270" y="425" width="170" height="54" fill="#a8d169"/><text x="300" y="460" fill="#12231b">INSPECTABLE</text><rect x="460" y="425" width="160" height="54" fill="#f7f0dc"/><text x="490" y="460" fill="#12231b">OPEN SOURCE</text></g>
+  <text x="100" y="560" fill="#d3dfd1" font-family="monospace" font-size="19">agent-toolkit.io</text>
+</svg>
