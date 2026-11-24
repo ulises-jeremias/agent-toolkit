@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="static/screenshots/world.png" width="100%" alt="Agent Toolkit Desktop workspace valley" />
-</p>
+<p align="center"><strong>Portable skills, agents, and workflows for AI coding tools.</strong></p>
 
 <div align="center">
 
@@ -11,7 +9,6 @@
 **Portable skills, agent definitions, workflows, integrations, and a native automation CLI for coding assistants**
 
 [![CI](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=CI)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
-[![Desktop CI](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/desktop.yml?branch=main&label=Desktop%20CI)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/desktop.yml)
 [![Latest release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?label=release)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/ulises-jeremias/agent-toolkit/total?label=downloads)](https://github.com/ulises-jeremias/agent-toolkit/releases)
 [![License: MIT](https://img.shields.io/github/license/ulises-jeremias/agent-toolkit)](LICENSE)
@@ -19,7 +16,7 @@
 
 [Documentation](docs/) ·
 [Official website](https://agent-toolkit.io) ·
-[Desktop](#desktop-app-gui) ·
+[Legacy Desktop archive](#desktop-app-gui) ·
 [CLI Install](#-cli-quick-install) ·
 [Skills](#%EF%B8%8F-skills--catalog-via-agent-toolkit-inventory) ·
 [Agents](#-agent-personas) ·
@@ -42,41 +39,12 @@ for compatibility, but is no longer published with new Toolkit releases.
 
 ```mermaid
 flowchart LR
-  A[Skills · Agent Definitions · MCP · Loops] --> B[Agent Toolkit V engine]
-  B --> C[CLI and automation]
-  B --> D[Portable catalogs and profiles]
-  D --> E[Veasel graphical runtime]
+  A[Portable skills / agents / MCP / workflows] --> B[Agent Toolkit CLI: discover / validate / publish]
+  A -. reviewed references and explicit linking .-> C[Veasel Code]
+  C --> D[One V backend and session store]
+  D --> E[Veasel TUI]
+  D --> F[Veasel Desktop: Focus and optional World]
 ```
-
-### Desktop app (GUI)
-
-Install the supported [Veasel graphical app](https://github.com/veasel-labs/veasel/releases/latest). Agent Toolkit Desktop is a legacy compatibility application: existing installations and their data remain untouched, but new Toolkit releases no longer publish Electron installers. See the [legacy Desktop guide](docs/desktop/README.md) for preservation details.
-
-<p align="center">
-  <img src="static/demo/world-demo.gif" width="100%" alt="Walking through the Agent Toolkit Desktop valley: the player explores a workspace where each project is a house" />
-  <br />
-  <sub>Live Desktop walkthrough — <a href="static/demo/world-demo.mp4">watch the full MP4</a></sub>
-</p>
-
-| Playable Meadow valley | Lantern-lit Dusk |
-| --- | --- |
-| <img src="static/screenshots/world.png" width="100%" alt="The workspace valley with its human player, real project houses, shared landmarks, creek and woodland" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The workspace valley and distinct project landmarks under warm Dusk lighting" /> |
-| Project interior | Capability Library |
-| <img src="static/screenshots/project-interior.png" width="100%" alt="A project room with its overview board, real files, memory records, and terminal stations" /> | <img src="static/screenshots/library.png" width="100%" alt="The reusable capability Library with truthful detection and installation evidence" /> |
-| Skill catalog detail | People roster |
-| <img src="docs/desktop/assets/electron/library/catalog-search-details-large.png" width="100%" alt="A searched Skill with catalog provenance, requirements and target support separated from installation evidence" /> | <img src="static/screenshots/people.png" width="100%" alt="A configured offline Person in the durable collaborator roster, with no fake world character" /> |
-| Operations | Real PTY terminal |
-| <img src="static/screenshots/operations.png" width="100%" alt="Operations showing real jobs, outcomes and available loop templates" /> | <img src="static/screenshots/terminal.png" width="100%" alt="A live shell session with real command output in the integrated terminal" /> |
-| Walking & click-to-move | Reviewed Munder import |
-| <img src="static/screenshots/world-walk.png" width="100%" alt="The player walks through the semantic workspace using keyboard or click-to-move" /> | <img src="static/screenshots/people-import.png" width="100%" alt="A Munder hire review showing mapped identity and ignored command fields before saving" /> |
-| First-run welcome | First-run welcome, compact |
-| <img src="static/screenshots/onboarding.png" width="100%" alt="First-run welcome with a preview made from the real workspace hall, Library, creek and bridge sprites" /> | <img src="static/screenshots/onboarding-compact.png" width="100%" alt="Compact first-run setup with the workspace hall, Library, creek and bridge sprites" /> |
-
-<p align="center"><sub>These are real Electron captures from a disposable workspace. Import is a review step; saving a Person never starts a session.</sub></p>
-
-These PNGs are captures from Electron with the real backend and a disposable workspace: offline People stay off the map, and the terminal is a live PTY. Project and landmark names appear when you hover, focus, or select a place, keeping the resting valley clear while preserving keyboard discovery. The links above go directly to CI, licensing, and release information. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
-
----
 
 ## Key Concepts
 
@@ -581,3 +549,37 @@ See [SHOWCASE.md](SHOWCASE.md) for community usage examples and pack walkthrough
 <sub>Built with ❤️ for AI-assisted software delivery</sub>
 
 </div>
+
+## Legacy Desktop archive
+
+The following material documents the historical Agent Toolkit Electron application. It is retained for existing installations and source-history reference; it is not the current Agent Toolkit product or the Veasel Desktop, and new Agent Toolkit releases do not publish its installers.
+
+### Desktop app (GUI)
+
+Install the supported [Veasel graphical app](https://github.com/veasel-labs/veasel/releases/latest). Agent Toolkit Desktop is a legacy compatibility application: existing installations and their data remain untouched, but new Toolkit releases no longer publish Electron installers. See the [legacy Desktop guide](docs/desktop/README.md) for preservation details.
+
+<p align="center">
+  <img src="static/demo/world-demo.gif" width="100%" alt="Walking through the Agent Toolkit Desktop valley: the player explores a workspace where each project is a house" />
+  <br />
+  <sub>Live Desktop walkthrough — <a href="static/demo/world-demo.mp4">watch the full MP4</a></sub>
+</p>
+
+| Playable Meadow valley | Lantern-lit Dusk |
+| --- | --- |
+| <img src="static/screenshots/world.png" width="100%" alt="The workspace valley with its human player, real project houses, shared landmarks, creek and woodland" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The workspace valley and distinct project landmarks under warm Dusk lighting" /> |
+| Project interior | Capability Library |
+| <img src="static/screenshots/project-interior.png" width="100%" alt="A project room with its overview board, real files, memory records, and terminal stations" /> | <img src="static/screenshots/library.png" width="100%" alt="The reusable capability Library with truthful detection and installation evidence" /> |
+| Skill catalog detail | People roster |
+| <img src="docs/desktop/assets/electron/library/catalog-search-details-large.png" width="100%" alt="A searched Skill with catalog provenance, requirements and target support separated from installation evidence" /> | <img src="static/screenshots/people.png" width="100%" alt="A configured offline Person in the durable collaborator roster, with no fake world character" /> |
+| Operations | Real PTY terminal |
+| <img src="static/screenshots/operations.png" width="100%" alt="Operations showing real jobs, outcomes and available loop templates" /> | <img src="static/screenshots/terminal.png" width="100%" alt="A live shell session with real command output in the integrated terminal" /> |
+| Walking & click-to-move | Reviewed Munder import |
+| <img src="static/screenshots/world-walk.png" width="100%" alt="The player walks through the semantic workspace using keyboard or click-to-move" /> | <img src="static/screenshots/people-import.png" width="100%" alt="A Munder hire review showing mapped identity and ignored command fields before saving" /> |
+| First-run welcome | First-run welcome, compact |
+| <img src="static/screenshots/onboarding.png" width="100%" alt="First-run welcome with a preview made from the real workspace hall, Library, creek and bridge sprites" /> | <img src="static/screenshots/onboarding-compact.png" width="100%" alt="Compact first-run setup with the workspace hall, Library, creek and bridge sprites" /> |
+
+<p align="center"><sub>These are real Electron captures from a disposable workspace. Import is a review step; saving a Person never starts a session.</sub></p>
+
+These PNGs are captures from Electron with the real backend and a disposable workspace: offline People stay off the map, and the terminal is a live PTY. Project and landmark names appear when you hover, focus, or select a place, keeping the resting valley clear while preserving keyboard discovery. The links above go directly to CI, licensing, and release information. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
+
+---
