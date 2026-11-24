@@ -35,6 +35,7 @@ const next =
 const toc = headings.filter(
   (heading) => heading.depth === 2 || heading.depth === 3,
 );
+const legacyDesktopDoc = ["desktop", "world", "people"].includes(document.slug);
 ---
 
 <SiteLayout
@@ -106,6 +107,18 @@ const toc = headings.filter(
       <p class="eyebrow">{currentGroup}</p>
       <h1 data-pagefind-meta="title">{document.title}</h1>
       <p class="docs-summary">{document.description}</p>
+      {legacyDesktopDoc && (
+        <aside class="migration-note" aria-label="Legacy documentation notice">
+          <strong>This is an archived Agent Toolkit Desktop guide.</strong>
+          <p>
+            The Toolkit Desktop is retired. Agent Toolkit now distributes
+            portable capabilities and a CLI; Veasel Code is the supported
+            graphical coding product. Legacy Desktop data is not imported
+            automatically.
+          </p>
+          <a href="https://www.veasel.dev/downloads/">Get Veasel Code ↗</a>
+        </aside>
+      )}
       <DocsSearch id={`docs-search-${document.slug}`} />
       <p
         class="screen-caption"

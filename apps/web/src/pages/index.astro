@@ -1,152 +1,127 @@
 ---
 import SiteLayout from "@/layouts/SiteLayout.astro";
-import WorldJourney from "@/components/WorldJourney.astro";
 ---
 
-<SiteLayout>
+<SiteLayout
+  title="Agent Toolkit — portable capabilities for coding agents"
+  description="Discover and distribute portable skills, agents, MCP templates and workflows for AI coding tools. Use Agent Toolkit from the CLI or Veasel Code."
+>
   <section class="hero">
     <div class="wrap hero-inner">
       <div class="hero-copy">
-        <p class="eyebrow">Hornero Valley · v1.49.0 released</p>
-        <h1>Your AI agents finally have a place to work.</h1>
+        <p class="eyebrow">Portable capabilities · CLI and catalog</p>
+        <h1>Useful capabilities for the coding agents you already use.</h1>
         <p class="lede">
-          Projects become places. People become reusable collaborators. Skills,
-          memory and real agent sessions come together in one workspace you can
-          understand at a glance.
+          Agent Toolkit brings skills, agent personas, MCP templates, context
+          packs and repeatable workflows to your coding tools. Keep your
+          capabilities portable; choose the runtime that fits the work.
         </p>
         <div class="button-row">
-          <a class="button" href="/download/">
-            Explore Desktop{" "}
+          <a class="button" href="/capabilities/">
+            Explore capabilities{" "}
             <span class="arrow" aria-hidden="true">
               →
             </span>
           </a>
-          <a class="button secondary" href="/start/">
-            New here? Start the guide{" "}
+          <a class="button secondary" href="/docs/installation/">
+            Install the CLI{" "}
             <span class="arrow" aria-hidden="true">
               →
-            </span>
-          </a>
-          <a class="button secondary" href="/world/">
-            Walk through the world{" "}
-            <span class="arrow" aria-hidden="true">
-              ↗
             </span>
           </a>
         </div>
         <p class="hero-footnote">
-          <strong>No pretend workers.</strong> In Desktop, a Person appears in
-          the world only while a real session is running.
+          <strong>One portable toolkit.</strong> Use supported integrations with
+          Claude Code, Codex, Cursor, OpenCode, Veasel and other coding agents.
+          Support varies by capability and tool.
         </p>
       </div>
-      <figure class="hero-art">
-        <div class="pixel-frame hero-screen">
-          <img
-            src="/site/valley-journey.webp"
-            alt="Original Agent Toolkit valley illustration: a lantern-lit path crosses a bright creek between a project cottage, a grand library and an observatory"
-            fetchpriority="high"
-            width="1536"
-            height="1024"
-          />
-        </div>
-        <figcaption class="hero-caption">
-          <span>Illustration · not live product state</span>
-          <span>Semantic destinations ↓ — no fake live sessions</span>
-        </figcaption>
-        <div class="hero-sign">
-          <span>HORNERO VALLEY</span>
-          <br />a world for real work
-        </div>
-      </figure>
+      <div class="capability-grid" aria-label="Portable capability types">
+        <article>
+          <span>01</span>
+          <h2>Skills</h2>
+          <p>Reusable instructions for focused work.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h2>Agents</h2>
+          <p>Personas and role definitions for compatible tools.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h2>MCP</h2>
+          <p>Templates to configure external tool connections.</p>
+        </article>
+        <article>
+          <span>04</span>
+          <h2>Workflows</h2>
+          <p>Repeatable recipes, loops and context packs.</p>
+        </article>
+      </div>
     </div>
   </section>
-
-  <div class="quote-strip">
-    A WORLD THAT EXPLAINS YOUR WORK — NOT WALLPAPER BEHIND IT
-  </div>
-
-  <WorldJourney />
 
   <section class="section section--glow">
     <div class="wrap">
       <div class="section-intro">
-        <p class="section-kicker">One idea, many ways in</p>
-        <h2>Explore spatially. Work the way you prefer.</h2>
+        <p class="section-kicker">Choose your runtime</p>
+        <h2>Portable capabilities. Clear product roles.</h2>
         <p>
-          Walk the map with your pointer, jump straight from the command
-          palette, use keyboard navigation, or open a conventional inspector.
-          They reach the same canonical operations. Nothing requires a CLI for
-          everyday Desktop work.
+          Agent Toolkit is the portable capability layer and CLI. Veasel Code is
+          the graphical coding application and shared session runtime. The
+          official Veasel catalog curates plugins for that runtime.
         </p>
       </div>
       <div class="semantic-list">
-        <div class="semantic-item">
-          <span class="term">PROJECT</span>
+        <article class="semantic-item">
+          <span class="term">PORTABLE TOOLKIT</span>
           <p>
-            <strong>Building</strong>
-            <br />A real registered project.
-          </p>
-        </div>
-        <div class="semantic-item">
-          <span class="term">CAPABILITIES</span>
-          <p>
-            <strong>Library</strong>
+            <strong>Agent Toolkit</strong>
             <br />
-            Reusable and discoverable.
+            Install and validate capabilities for supported coding tools.
           </p>
-        </div>
-        <div class="semantic-item">
-          <span class="term">DURABLE CONTEXT</span>
+          <a href="/docs/installation/">CLI installation guide →</a>
+        </article>
+        <article class="semantic-item">
+          <span class="term">CODING APPLICATION</span>
           <p>
-            <strong>Memory / Archive</strong>
+            <strong>Veasel Code</strong>
             <br />
-            Remembered records, not files.
+            Use the TUI and Desktop with one canonical backend and shared
+            sessions.
           </p>
-        </div>
-        <div class="semantic-item">
-          <span class="term">AUTOMATION</span>
+          <a href="https://www.veasel.dev/downloads/">Get Veasel Code →</a>
+        </article>
+        <article class="semantic-item">
+          <span class="term">GOVERNED CATALOG</span>
           <p>
-            <strong>Operations</strong>
+            <strong>Official Veasel plugins</strong>
             <br />
-            Jobs, Loops and Swarms.
+            Discover curated manifests with provenance and review status.
           </p>
-        </div>
-        <div class="semantic-item">
-          <span class="term">DIRECT CONTROL</span>
-          <p>
-            <strong>Terminal</strong>
-            <br />A real shell session.
-          </p>
-        </div>
-        <div class="semantic-item">
-          <span class="term">RUNTIME</span>
-          <p>
-            <strong>People at work</strong>
-            <br />
-            Only while their real session runs.
-          </p>
-        </div>
+          <a href="https://github.com/veasel-labs/agent-toolkit">
+            Browse the catalog →
+          </a>
+        </article>
       </div>
     </div>
   </section>
 
   <section class="section section--deep">
     <div class="wrap closing-banner">
-      <p class="section-kicker">Step into your workspace</p>
-      <h2>Make room for real work.</h2>
+      <p class="section-kicker">Inspect before installing</p>
+      <h2>Know what a capability will change.</h2>
       <p>
-        Start with Agent Toolkit Desktop. Use the CLI when you want automation,
-        scripting or a headless workflow.
+        Preview install targets, preserve files you own, and inspect provenance
+        before applying capabilities. Compatibility depends on the target tool;
+        the CLI reports unsupported or unavailable targets instead of guessing.
       </p>
       <div class="button-row">
-        <a class="button" href="/download/">
-          Choose your download{" "}
-          <span class="arrow" aria-hidden="true">
-            →
-          </span>
+        <a class="button" href="/docs/installation/">
+          Read installation guide
         </a>
-        <a class="button secondary" href="/docs/getting-started/">
-          Read the quick start
+        <a class="button secondary" href="/docs/compatibility/">
+          Check compatibility
         </a>
       </div>
     </div>
