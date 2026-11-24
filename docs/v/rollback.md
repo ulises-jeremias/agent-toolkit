@@ -30,6 +30,20 @@ artifact naming are documented in [Releasing](../RELEASING.md); installation
 channels and checksum expectations are in [Installation](../INSTALLATION.md)
 and [Trust](../TRUST.md).
 
+### Source-built CLI
+
+`./make.vsh install-cli` is a source install rather than a package-channel
+rollback. To remove only that installation, delete its executable and the
+offline resource bundle beside it:
+
+```bash
+rm -f ~/.local/bin/agent-toolkit ~/.local/bin/embedded_data.bundle.gz
+```
+
+For a custom `--prefix`, remove those two files from `<prefix>/bin`. This does
+not remove toolkit data, workspaces, or user configuration. Do not apply this
+command to a Homebrew, AUR, or npm-managed installation.
+
 ## Migration history
 
 The V cutover and the retired Python implementation are preserved under
