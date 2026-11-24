@@ -50,3 +50,7 @@ Adopt **A**.
 - [homebrew-tap#4](https://github.com/ulises-jeremias/homebrew-tap/issues/4), [homebrew-tap#5](https://github.com/ulises-jeremias/homebrew-tap/pull/5)
 - [ADR-017](ADR-017-update-ownership.md), [ADR-018](ADR-018-release-artifacts.md), [ADR-021](ADR-021-pypi-binary.md)
 - `distribution/homebrew/README.md`
+
+### Amendment (ADR-047)
+
+The raw floating executable is no longer a complete standalone installation because offline capability data is a SHA-256-verified runtime sidecar. Homebrew now consumes the versioned platform archive (`agent-toolkit-<version>-<os>-<arch>.tar.gz`), which contains the executable, `embedded_data.bundle.gz`, and `LICENSE`. Its updater validates the archive digest against `manifest.json` before opening a PR.

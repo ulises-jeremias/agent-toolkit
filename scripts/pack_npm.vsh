@@ -1,4 +1,5 @@
 #!/usr/bin/env -S v run
+
 // Copy GitHub Release V binaries into npm platform packages (ADR-025 / #536).
 // Usage: RELEASE_BIN_DIR=binaries RELEASE_VERSION=x.y.z ./scripts/pack_npm.vsh
 
@@ -46,6 +47,16 @@ fn write_platform_package(root string, spec PlatformSpec, ver string, src_bin st
 	pkg_dir := join_path(root, 'packages', 'npm', spec.npm)
 	bin_dir := join_path(pkg_dir, 'bin')
 	mkdir_all(bin_dir) or {}
+	bundle_src := join_path(root, 'modules', 'agent_toolkit_core', 'embedded_data.bundle.gz')
+	bundle_dest := join_path(bin_dir, 'embedded_data.bundle.gz')
+	if !is_file(bundle_src) {
+		eprintln('missing offline data bundle: ${bundle_src}')
+		exit(1)
+	}
+	cp(bundle_src, bundle_dest) or {
+		eprintln('cannot copy offline data bundle to ${bundle_dest}: ${err}')
+		exit(1)
+	}
 	mut libc_line := ''
 	if spec.libc.len > 0 {
 		libc_line = '  "libc": ["${spec.libc}"],\n'
@@ -57,7 +68,7 @@ fn write_platform_package(root string, spec PlatformSpec, ver string, src_bin st
   "license": "MIT",
   "os": ["${spec.os}"],
   "cpu": ["${spec.cpu}"],
-${libc_line}  "files": ["README.md", "bin/${spec.bin}"],
+${libc_line}  "files": ["README.md", "bin/${spec.bin}", "bin/embedded_data.bundle.gz"],
   "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
   "bugs": {
     "url": "https://github.com/ulises-jeremias/agent-toolkit/issues"

@@ -49,6 +49,7 @@ JSON Schema: [`schemas/release-manifest.schema.json`](../../schemas/release-mani
 | `name` | string | Always `agent-toolkit`. |
 | `version` | string | Semver **without** a leading `v` (matches archive names in ADR-018). |
 | `gitTag` | string | GitHub tag including `v` when present (`v1.10.0`). |
+| `sourceSha` | string (40 lowercase hex) | Full source commit resolved from `gitTag` when the release assets are built. Consumers MUST verify it resolves to the same commit as the tag. |
 | `channel` | `stable` \| `experimental` | Release channel of this GitHub Release. |
 | `releasedAt` | string (RFC 3339) | UTC timestamp of publish. |
 | `assets` | array | One entry per uploaded file that wrappers may consume. |
@@ -76,6 +77,7 @@ Each `assets[]` entry:
   "name": "agent-toolkit",
   "version": "1.10.0",
   "gitTag": "v1.10.0",
+  "sourceSha": "0123456789abcdef0123456789abcdef01234567",
   "channel": "stable",
   "releasedAt": "2026-08-13T00:00:00Z",
   "assets": [
@@ -98,9 +100,10 @@ Each `assets[]` entry:
 Given host `{os, arch, libc}` and desired `channel`:
 
 1. GET `manifest.json` for the chosen tag (or `latest` **only** after verifying the tag matches `gitTag`).
-2. Select `kind: archive` when the wrapper unpacks (Homebrew/AUR); select `kind: binary` when the wrapper copies a single file (PyPI wheel bundle).
-3. Verify downloaded bytes against `sha256` before install/exec ([#530](https://github.com/ulises-jeremias/agent-toolkit/issues/530), threat model [#563](https://github.com/ulises-jeremias/agent-toolkit/issues/563)).
-4. Do **not** scrape the GitHub HTML releases page as a primary resolver.
+2. Verify `version` and `gitTag`, then resolve the tag through GitHub's commit API and require its full commit SHA to equal `sourceSha`.
+3. Select `kind: archive` when the wrapper unpacks (Homebrew/AUR); select `kind: binary` when the wrapper copies a single file (PyPI wheel bundle).
+4. Verify downloaded bytes against `sha256` before install/exec ([#530](https://github.com/ulises-jeremias/agent-toolkit/issues/530), threat model [#563](https://github.com/ulises-jeremias/agent-toolkit/issues/563)).
+5. Do **not** scrape the GitHub HTML releases page as a primary resolver.
 
 ### Rejected
 

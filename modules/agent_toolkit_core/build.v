@@ -21,13 +21,13 @@ pub:
 	target      string // empty = all Tier-1
 	product     string // empty = all products
 	output_dir  string // empty = <repo>/plugins
-	write_files bool // false for --check (temp only)
+	write_files bool   // false for --check (temp only)
 }
 
 // run_build executes Tier-1 compile (write) or dry-run + drift check.
 pub fn run_build(opts BuildOptions) BuildReport {
 	mut report := BuildReport{
-		ok: true
+		ok:   true
 		mode: if opts.check { 'check' } else { 'build' }
 	}
 	repo := find_repo_root() or {
@@ -137,6 +137,9 @@ fn detect_plugin_drift(work_root string, plugins_root string, product_id string,
 	mut drift := []string{}
 	plugin_product := os.join_path(plugins_root, product_id)
 	if !os.is_dir(plugin_product) {
+		if product_id == 'agent-toolkit-creative-studio' && target_id == 'agent-plugins' {
+			drift << 'missing plugin product: ${product_id}'
+		}
 		return drift
 	}
 	work_product := os.join_path(work_root, product_id)
@@ -154,13 +157,60 @@ fn detect_plugin_drift(work_root string, plugins_root string, product_id string,
 			drift << 'content digest mismatch: ${rel.replace('\\', '/')}'
 		}
 	}
+	if product_id == 'agent-toolkit-creative-studio' && target_id == 'agent-plugins' {
+		drift << skill_tree_drift(os.join_path(work_product, 'skills'), os.join_path(plugin_product, 'skills'))
+	}
 	return drift
 }
 
-// should_check_plugin_drift limits digest compare to shared plugin products
-// (core/agents/forge) for digest parity with plugin check.
+// should_check_plugin_drift limits full digest compare to products with a
+// committed Agent Plugins surface, including Creative Studio.
 fn should_check_plugin_drift(product_id string) bool {
-	return product_id in ['agent-toolkit-core', 'agent-toolkit-agents', 'agent-toolkit-forge']
+	return product_id in ['agent-toolkit-core', 'agent-toolkit-agents', 'agent-toolkit-forge',
+		'agent-toolkit-creative-studio']
+}
+
+// skill_tree_drift compares complete generated Agent Plugins skill trees,
+// including explicitly declared text resources and their provenance outputs.
+fn skill_tree_drift(work_skills string, plugin_skills string) []string {
+	mut drift := []string{}
+	for src in collect_all_files_including_hidden(work_skills) {
+		rel := relative_to(src, work_skills) or { continue }
+		dst := os.join_path(plugin_skills, rel)
+		if !os.is_file(dst) {
+			drift << 'missing in plugins: skills/${rel.replace('\\', '/')}'
+			continue
+		}
+		if file_digest(src) != file_digest(dst) {
+			drift << 'content digest mismatch: skills/${rel.replace('\\', '/')}'
+		}
+	}
+	for dst in collect_all_files_including_hidden(plugin_skills) {
+		rel := relative_to(dst, plugin_skills) or { continue }
+		if !os.is_file(os.join_path(work_skills, rel)) {
+			drift << 'unexpected in plugins: skills/${rel.replace('\\', '/')}'
+		}
+	}
+	return drift
+}
+
+// Drift checks must include hidden files: unlike skill resource discovery,
+// this compares the complete committed output tree.
+fn collect_all_files_including_hidden(dir string) []string {
+	mut out := []string{}
+	if !os.is_dir(dir) {
+		return out
+	}
+	entries := os.ls(dir) or { return out }
+	for entry in entries {
+		path := os.join_path(dir, entry)
+		if os.is_dir(path) {
+			out << collect_all_files_including_hidden(path)
+		} else if os.is_file(path) {
+			out << path
+		}
+	}
+	return out
 }
 
 fn drift_path_pairs(target_id string, work_product string, plugin_product string) [][]string {
@@ -215,8 +265,8 @@ pub fn build_result(report BuildReport) CommandResult {
 	data['emitted_summary'] = emitted.join(',')
 	return CommandResult{
 		command: 'build'
-		ok: report.ok
+		ok:      report.ok
 		message: report.message
-		data: data
+		data:    data
 	}
 }

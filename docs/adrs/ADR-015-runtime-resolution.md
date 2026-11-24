@@ -18,13 +18,13 @@ Highest priority first:
 
 1. **Explicit override** — `--data-dir` (when added) or `AGENT_TOOLKIT_ROOT` / `AI_WORKSPACE` if the path contains a valid data root (`skills/` or `profiles/` / packaged data markers as today).
 2. **Installed shared / external data** — package-manager share dir or XDG data home populated by install/sync (override layer from hybrid packaging).
-3. **Embedded baseline** — resources shipped with the native binary (ADR-011 baseline).
+3. **Embedded baseline** — complete offline resources shipped as the binary's SHA-256-verified sidecar bundle (ADR-047; the tier name remains `embedded` for compatibility).
 4. **Development repository checkout** — walk-up from process CWD / source tree when running from a git checkout (editable/dev mode).
 5. **CWD fallback** — only if it looks like a toolkit root (same safety as ADR-005).
 
 ### Offline
 
-`AGENT_TOOLKIT_OFFLINE=1|true|yes` **must not** download. Missing external data falls back to embedded baseline; if baseline is also missing, fail with a clear `ENV` error (ADR-010 taxonomy).
+`AGENT_TOOLKIT_OFFLINE=1|true|yes` **must not** download. Missing external data falls back to the verified sidecar bundle; if the bundle is missing or its digest does not match the binary, fail with a clear `ENV` error (ADR-010 taxonomy).
 
 ### Channel parity
 

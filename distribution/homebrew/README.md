@@ -16,8 +16,8 @@
 Contract:
 
 - Formula lives **only** in the tap. This repo MUST NOT copy a Formula.
-- Formula installs **GitHub Release V binaries** (ADR-018 floating names), not a Python wheel and not a Homebrew bottle of a source build (ADR-023 option A).
-- Canonical URLs: `agent-toolkit-macos-arm64`, `agent-toolkit-macos-x86_64`, `agent-toolkit-linux-x86_64`, `agent-toolkit-linux-arm64`.
+- Formula installs the versioned GitHub Release standalone archive, including the native V executable, SHA-256-verified offline bundle, and license. It does not install a Python wheel or a Homebrew bottle of a source build.
+- Archive URLs follow `agent-toolkit-<version>-<os>-<arch>.tar.gz`; the formula updater verifies the downloaded archive against `manifest.json` before opening its PR.
 - `brew upgrade` owns the binary. `agent-toolkit update` is capability/profile refresh only (ADR-017).
 - Tap updater opens an **auditable PR** with per-arch sha256; it must not force-push `main`.
 

@@ -48,14 +48,15 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Notifying Homebrew tap for v$VERSION"
 
-      - name: Wait for GitHub Release + source tarball
+      - name: Wait for GitHub Release + standalone archive
         env:
           GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
           TAG="v${VERSION}"
-          # Wait for a darwin V binary (Formula does not use the source tarball).
-          ASSET_URL="https://github.com/ulises-jeremias/agent-toolkit/releases/download/${TAG}/agent-toolkit-macos-arm64"
+          # The formula must install the executable together with its pinned
+          # offline bundle. A raw floating binary is not a complete install.
+          ASSET_URL="https://github.com/ulises-jeremias/agent-toolkit/releases/download/${TAG}/agent-toolkit-${VERSION}-macos-arm64.tar.gz"
           for attempt in $(seq 1 36); do
             REL_OK=0
             BIN_OK=0
@@ -67,13 +68,13 @@ jobs:
               BIN_OK=1
             fi
             if [ "$REL_OK" = "1" ] && [ "$BIN_OK" = "1" ]; then
-              echo "✓ Release $TAG and macos-arm64 V binary are available"
+              echo "✓ Release $TAG and macos-arm64 standalone archive are available"
               exit 0
             fi
             echo "Attempt $attempt/36: release=$REL_OK binary_http=$CODE — waiting 15s..."
             sleep 15
           done
-          echo "::error::Release/tarball not available after retries"
+          echo "::error::Release/standalone archive not available after retries"
           exit 1
 
       - name: Dispatch to homebrew-tap (retry)

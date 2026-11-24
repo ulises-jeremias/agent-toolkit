@@ -24,6 +24,9 @@ distribution:
   mode: vendored
   redistribution_allowed: true
   attribution_file: LICENSE
+  resources:
+    - LICENSE
+    - UPSTREAM.md
 security:
   scripts: false
   shell: true

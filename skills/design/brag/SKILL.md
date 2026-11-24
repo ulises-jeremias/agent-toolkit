@@ -22,6 +22,13 @@ distribution:
   mode: vendored
   redistribution_allowed: true
   attribution_file: LICENSE
+  resources:
+    - LICENSE
+    - UPSTREAM.md
+    - slim.md
+    - scripts/analyze_music_cues.py
+    - scripts/pyproject.toml
+    - scripts/uv.lock
 security:
   scripts: true
   shell: true

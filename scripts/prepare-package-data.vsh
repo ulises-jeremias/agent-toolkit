@@ -1,4 +1,5 @@
 #!/usr/bin/env -S v run
+
 // Copy monorepo capability data into the publishable package tree for hatch builds.
 // Safe to re-run. Destination contents are gitignored except .gitignore.
 // Usage: ./scripts/prepare-package-data.vsh   (from repo root or any subdir)
@@ -17,13 +18,13 @@ fn repo_root() string {
 
 fn main() {
 	root := repo_root()
-	dest := os.join_path(root, 'packages', 'pypi', 'agent-toolkit-cli', 'src', 'agent_toolkit',
-		'data')
+	dest := os.join_path(root, 'packages', 'pypi', 'agent-toolkit-cli', 'src', 'agent_toolkit', 'data')
 	os.mkdir_all(dest) or {
 		eprintln('prepare-package-data: cannot create ${dest}: ${err}')
 		exit(1)
 	}
-	for name in ['skills', 'agents', 'loops', 'profiles', 'mcp', 'catalogs', 'distributions', 'packs', 'capabilities'] {
+	for name in ['skills', 'agents', 'loops', 'profiles', 'mcp', 'catalogs', 'distributions', 'packs',
+		'capabilities'] {
 		src := os.join_path(root, name)
 		target := os.join_path(dest, name)
 		os.rmdir_all(target) or {}
@@ -33,6 +34,12 @@ fn main() {
 			eprintln('prepare-package-data: cannot copy ${src} → ${target}: ${err}')
 			exit(1)
 		}
+	}
+	bundle_src := os.join_path(root, 'modules', 'agent_toolkit_core', 'embedded_data.bundle.gz')
+	bundle_dest := os.join_path(dest, 'embedded_data.bundle.gz')
+	os.cp(bundle_src, bundle_dest) or {
+		eprintln('prepare-package-data: cannot copy ${bundle_src} → ${bundle_dest}: ${err}')
+		exit(1)
 	}
 	println('Prepared package data under ${dest}')
 }

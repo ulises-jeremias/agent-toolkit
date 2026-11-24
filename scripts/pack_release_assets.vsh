@@ -1,4 +1,5 @@
 #!/usr/bin/env -S v run
+
 // Pack ADR-018 floating binaries + versioned archives, SHA256SUMS, and manifest.json.
 // Usage: RELEASE_VERSION=x.y.z RELEASE_BIN_DIR=binaries ./scripts/pack_release_assets.vsh
 
@@ -27,10 +28,11 @@ struct AssetEntry {
 }
 
 struct Manifest {
-	schema_version int    @[json: 'schemaVersion']
+	schema_version int @[json: 'schemaVersion']
 	name           string
 	version        string
 	git_tag        string @[json: 'gitTag']
+	source_sha     string @[json: 'sourceSha']
 	channel        string
 	released_at    string @[json: 'releasedAt']
 	assets         []AssetEntry
@@ -43,6 +45,10 @@ fn file_name(path string) string {
 // file_name_of returns the final path segment (v os.file_name wrapper).
 fn file_name_of(path string) string {
 	return os.file_name(path)
+}
+
+fn repo_root() string {
+	return os.dir(os.dir(@FILE))
 }
 
 fn sha256_file(path string) string {
@@ -80,6 +86,11 @@ fn main() {
 	mut license_path := getenv('LICENSE_PATH')
 	if license_path.len == 0 {
 		license_path = 'LICENSE'
+	}
+	bundle_path := join_path(repo_root(), 'modules/agent_toolkit_core/embedded_data.bundle.gz')
+	if !is_file(bundle_path) {
+		eprintln('missing offline data bundle: ${bundle_path}')
+		exit(1)
 	}
 	mkdir_all(out) or {
 		eprintln('failed to create out dir ${out}: ${err}')
@@ -164,11 +175,15 @@ fn main() {
 					eprintln('cp LICENSE failed: ${err}')
 					exit(1)
 				}
+				cp(bundle_path, join_path(tmpdir, 'embedded_data.bundle.gz')) or {
+					eprintln('cp offline data bundle failed: ${err}')
+					exit(1)
+				}
 				// -X: strip extra file attributes for reproducibility; honor SOURCE_DATE_EPOCH via touch if set
 				if sde_epoch.len > 0 {
-					system('touch -h -d @${sde_epoch} "${tmpdir}/${inner}" "${tmpdir}/LICENSE" 2>/dev/null || true')
+					system('touch -h -d @${sde_epoch} "${tmpdir}/${inner}" "${tmpdir}/LICENSE" "${tmpdir}/embedded_data.bundle.gz" 2>/dev/null || true')
 				}
-				zip_cmd = 'sh -c \'cd "${tmpdir}" && zip -X -q "${archive_path}" "${inner}" LICENSE\''
+				zip_cmd = 'sh -c \'cd "${tmpdir}" && zip -X -q "${archive_path}" "${inner}" LICENSE embedded_data.bundle.gz\''
 			} else {
 				tmpdir := join_path(temp_dir(), 'atk-pack-${spec.arch}')
 				rmdir_all(tmpdir) or {}
@@ -180,10 +195,14 @@ fn main() {
 					eprintln('cp failed to tmpdir: ${err}')
 					exit(1)
 				}
-				if sde_epoch.len > 0 {
-					system('touch -h -d @${sde_epoch} "${tmpdir}/${inner}" 2>/dev/null || true')
+				cp(bundle_path, join_path(tmpdir, 'embedded_data.bundle.gz')) or {
+					eprintln('cp offline data bundle failed: ${err}')
+					exit(1)
 				}
-				zip_cmd = 'sh -c \'cd "${tmpdir}" && zip -X -q "${archive_path}" "${inner}"\''
+				if sde_epoch.len > 0 {
+					system('touch -h -d @${sde_epoch} "${tmpdir}/${inner}" "${tmpdir}/embedded_data.bundle.gz" 2>/dev/null || true')
+				}
+				zip_cmd = 'sh -c \'cd "${tmpdir}" && zip -X -q "${archive_path}" "${inner}" embedded_data.bundle.gz\''
 			}
 			rc := system(zip_cmd)
 			if rc != 0 {
@@ -203,12 +222,17 @@ fn main() {
 				eprintln('cp failed to tmpdir: ${err}')
 				exit(1)
 			}
+			cp(bundle_path, join_path(tmpdir, 'embedded_data.bundle.gz')) or {
+				eprintln('cp offline data bundle failed: ${err}')
+				exit(1)
+			}
 			mut tar_extra := ''
 			if sde_epoch.len > 0 {
 				tar_extra = '--sort=name --owner=0 --group=0 --mtime=@${sde_epoch} '
+				system('touch -h -d @${sde_epoch} "${tmpdir}/${inner}" "${tmpdir}/LICENSE" "${tmpdir}/embedded_data.bundle.gz" 2>/dev/null || true')
 			}
 			cp(license_path, join_path(tmpdir, 'LICENSE')) or {}
-			tar_cmd := 'tar ${tar_extra}-C "${tmpdir}" -czf "${archive_path}" "${inner}" LICENSE'
+			tar_cmd := 'tar ${tar_extra}-C "${tmpdir}" -czf "${archive_path}" "${inner}" LICENSE embedded_data.bundle.gz'
 			rc := system(tar_cmd)
 			if rc != 0 {
 				eprintln('tar failed for ${archive_name}')
@@ -218,25 +242,25 @@ fn main() {
 		packed_names << archive_name
 
 		mut bin_entry := AssetEntry{
-			os:       spec.os_name
-			arch:     spec.arch
-			channel:  'stable'
-			kind:     'binary'
+			os: spec.os_name
+			arch: spec.arch
+			channel: 'stable'
+			kind: 'binary'
 			filename: spec.floating
-			sha256:   sha256_file(dest_float)
-			url:      '${base_url}/${spec.floating}'
-			libc:     spec.libc
+			sha256: sha256_file(dest_float)
+			url: '${base_url}/${spec.floating}'
+			libc: spec.libc
 		}
 		assets << bin_entry
 		mut arch_entry := AssetEntry{
-			os:       spec.os_name
-			arch:     spec.arch
-			channel:  'stable'
-			kind:     'archive'
+			os: spec.os_name
+			arch: spec.arch
+			channel: 'stable'
+			kind: 'archive'
 			filename: archive_name
-			sha256:   sha256_file(archive_path)
-			url:      '${base_url}/${archive_name}'
-			libc:     spec.libc
+			sha256: sha256_file(archive_path)
+			url: '${base_url}/${archive_name}'
+			libc: spec.libc
 		}
 		assets << arch_entry
 	}
@@ -269,6 +293,16 @@ fn main() {
   }'
 	}
 	mut released := ''
+	source_result := os.exec(['git', 'rev-parse', 'HEAD'])
+	if source_result.exit_code != 0 {
+		eprintln('could not resolve release source commit: ${source_result.output}')
+		exit(1)
+	}
+	source_sha := source_result.output.trim_space()
+	if source_sha.len != 40 {
+		eprintln('release source commit is not a full SHA-1: ${source_sha}')
+		exit(1)
+	}
 	if sde_epoch != '' {
 		released = time.unix(sde_epoch.i64()).custom_format('YYYY-MM-DDTHH:mm:ss') + 'Z'
 	} else {
@@ -279,6 +313,7 @@ fn main() {
   "name": "agent-toolkit",
   "version": ${json2.encode(version)},
   "gitTag": ${json2.encode(tag)},
+  "sourceSha": ${json2.encode(source_sha)},
   "channel": "stable",
   "releasedAt": ${json2.encode(released)},
   "assets": [

@@ -10,6 +10,7 @@
     "name",
     "version",
     "gitTag",
+    "sourceSha",
     "channel",
     "releasedAt",
     "assets"
@@ -31,6 +32,11 @@
     "gitTag": {
       "type": "string",
       "minLength": 1
+    },
+    "sourceSha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "Full source commit resolved by the release tag."
     },
     "channel": {
       "type": "string",

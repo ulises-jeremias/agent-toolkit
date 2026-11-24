@@ -6,9 +6,9 @@ Runbook for cutting a versioned release.
 
 Trusted Publishing: PyPI OIDC is registered for **`release.yml`** (environment `pypi`), not `publish.yml`. npm OIDC is `publish-npm.yml` on tag `v*`.
 
-The **canonical artifact** is the native V binary from a GitHub Release (`agent-toolkit-<os>-<arch>` + `SHA256SUMS` + `manifest.json`, ADR-018/ADR-022). Canonical artifacts are **native V binaries**. PyPI `packages/pypi/agent-toolkit-cli` is a launcher wheel. npm lives under `packages/npm/`. Homebrew Formula and AUR PKGBUILD are **not** in this repo (`ulises-jeremias/homebrew-tap`, `ulises-jeremias/aur-packages`). See `distribution/README.md` and `docs/TRUST.md#Installation channels` for the support matrix — `RELEASING.md` and `docs/TRUST.md` are the single sources for the channel matrix and must agree on supported versions.
+The **canonical native artifact** is the platform V binary (`agent-toolkit-<os>-<arch>`) listed in `manifest.json` and covered by `SHA256SUMS`. The **standalone offline install artifact** is the versioned platform archive, which contains that binary, `embedded_data.bundle.gz`, and `LICENSE` (ADR-047). Do not copy a raw manifest `binary` asset into a user installation without also packaging its verified data bundle. PyPI `packages/pypi/agent-toolkit-cli` is a launcher wheel that includes the bundle under `agent_toolkit/data/`; npm platform packages include it beside the executable. Homebrew Formula and AUR PKGBUILD are **not** in this repo (`ulises-jeremias/homebrew-tap`, `ulises-jeremias/aur-packages`). See `distribution/README.md` and `docs/TRUST.md#Installation channels` for the support matrix — `RELEASING.md` and `docs/TRUST.md` are the single sources for the channel matrix and must agree on supported versions.
 
-> **Definitions (ADR-021/ADR-025):** **canonical artifact** = native V binary from GitHub Release (what `SHA256SUMS` covers). **distribution adapter** = PyPI wheel / npm wrapper / marketplace plugin that wraps the canonical artifact. **downstream package** = Homebrew Formula / AUR PKGBUILD that fetches the canonical artifact from the Release. Never publish adapters/downstream without a published canonical artifact.
+> **Definitions (ADR-021/ADR-025/ADR-047):** **canonical binary** = native V executable from GitHub Release (what its manifest entry and `SHA256SUMS` cover). **standalone archive** = canonical binary plus the verified offline resource bundle and license. **distribution adapter** = PyPI wheel / npm wrapper / marketplace plugin that packages the canonical binary with its required data. **downstream package** = Homebrew Formula / AUR PKGBUILD that fetches and installs the standalone archive. Never publish adapters/downstream without a published canonical binary and data bundle.
 
 ## Prepare → review → release → verify
 
@@ -158,10 +158,10 @@ Failure visibility on the releasing repo:
 
 ## Downstream install source (GitHub Release V binaries)
 
-Homebrew (`homebrew-tap`) and AUR (`aur-packages`) install **GitHub Release V binaries** (ADR-018 floating names + `SHA256SUMS`), not a Python wheel. PyPI `agent-toolkit-cli` remains a thin launcher for `uv`/`pip` users ([ADR-021](adrs/ADR-021-pypi-binary.md)). npm `agent-toolkit-cli` + `agent-toolkit-cli-{linux-x64,linux-arm64,darwin-arm64,darwin-x64,win32-x64}` wrap the same binaries ([ADR-025](adrs/ADR-025-npm-binary.md)).
+Homebrew (`homebrew-tap`) and AUR (`aur-packages`) install versioned GitHub Release standalone archives, not raw floating binaries. The archive digest is checked against the release manifest and covers the executable, SHA-256-verified offline bundle, and license. PyPI `agent-toolkit-cli` remains a launcher wheel containing the bundle for `uv`/`pip` users ([ADR-021](adrs/ADR-021-pypi-binary.md)). npm `agent-toolkit-cli` + platform packages ship the executable beside the same bundle ([ADR-025](adrs/ADR-025-npm-binary.md)).
 
-* **Homebrew:** Formula `agent-toolkit.rb` `url`s `agent-toolkit-macos-*` / `agent-toolkit-linux-*` from the GitHub Release. Verify `brew install` then `agent-toolkit version`.
-* **AUR:** `agent-toolkit-bin` PKGBUILD sources the linux ELF + `SHA256SUMS`. Verify `yay -S agent-toolkit-bin` then `agent-toolkit version`.
+* **Homebrew:** Formula `agent-toolkit.rb` selects the versioned `agent-toolkit-<version>-<os>-<arch>.tar.gz` archive from the verified manifest. Verify `brew install` then `agent-toolkit version` and offline skill listing.
+* **AUR:** `agent-toolkit-bin` PKGBUILD selects the matching Linux archive from the verified manifest and installs its bundle under `/usr/share/agent-toolkit/data`. Verify `yay -S agent-toolkit-bin`, `agent-toolkit version`, and offline skill listing.
 
 See `docs/AUR_PLAYBOOK.md` for re-dispatch; downstream repos are the source of truth for their formulas.
 

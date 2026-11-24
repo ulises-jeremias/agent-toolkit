@@ -35,7 +35,7 @@ Adopt **A**. npm name **MUST** be `agent-toolkit-cli`.
 
 No musl/Alpine npm package (ADR-019). No Node business logic. Launcher: resolve optional dep binary → `exec` / spawn with forwarded argv, stdio, signals, exit (same constraints as ADR-021 / [#535](https://github.com/ulises-jeremias/agent-toolkit/issues/535)). Windows quoting tests in [#536](https://github.com/ulises-jeremias/agent-toolkit/issues/536).
 
-Platform packages contain **only** the GitHub Release asset bytes (ADR-018 floating names mapped at pack time). They are not a second compile.
+Platform packages contain the GitHub Release executable plus `embedded_data.bundle.gz`, whose SHA-256 is pinned into that executable at build time. They are not a second compile. The package must keep both files beside each other; the executable fails closed if the bundle is missing or mismatched.
 
 ### Publish
 

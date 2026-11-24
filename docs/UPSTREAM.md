@@ -7,7 +7,7 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adrs/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` plus declared distribution resources and attribution files
 
-Generated: 2026-11-23T14:42:54.022423Z
+Generated: 2026-11-24T03:14:45.327263Z
 Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 
 ## `design/brag`
@@ -16,7 +16,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Maintenance:** `active` last_activity=?
 - **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=True shell=True network=True cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:f18f916506342a8032b1d1c0b3e2c23228ecdb2d9aa951a576e1411926052fdf`
+- **Provenance digest:** `sha256:fe6d38dfa7f093fffbc87cd27eb7f0d60ee9ca86f1273e2b63667497853a8d33`
 
 ### Source `upstream` — `latent-spaces/brag/skills/brag`
 
@@ -24,11 +24,11 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Path:** `skills/brag`
 - **Requested:** `commit` `7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a` (declaration intent)
 - **Resolved commit:** `7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a`
-- **Content checksum:** `sha256:723bddbb056a6c292b4e7e557b5ba6f77576fbcdfaa9090e171e2a56f59ad5e2`
+- **Content checksum:** `sha256:c6b088405b1846a46542f488b5d43072c8579f158880d44553ffa4a010fbb0d7`
 - **Body checksum:** `sha256:578ca9772b37eadcb112d82c83a18636090539c07177459cbcf031b5bb1855c0` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/brag/LICENSE` checksum=`sha256:92d538e0da9abeaafff8ecfc62e142f5053fa92b2c3ef29978742c325c554089`
   - License declaration matches observed `MIT`
-- **Resolved at:** `2026-11-16T06:32:24.123739Z` version=`7c98a08`
+- **Resolved at:** `2026-11-24T03:14:28.226014Z` version=`7c98a08`
 
 - **Per-skill attribution:** `skills/design/brag/UPSTREAM.md`
 
@@ -38,7 +38,7 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Maintenance:** `active` last_activity=?
 - **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=False shell=True network=True cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:10d91e805754c2b2b140b9baedc22d6bfd79ba37a51c7e8d804d8f70862138d6`
+- **Provenance digest:** `sha256:843d19978699b7fd5774a990cacfbee5447836b94768c5a8a8ccd5f93e8d0620`
 
 ### Source `upstream` — `latent-spaces/brag/skills/brag-slim`
 
@@ -46,11 +46,11 @@ Capabilities with external provenance: 33 (first-party omitted; lock is sparse)
 - **Path:** `skills/brag-slim`
 - **Requested:** `commit` `7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a` (declaration intent)
 - **Resolved commit:** `7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a`
-- **Content checksum:** `sha256:e4c44a335d33afe028f79c31d245e2ba09f97c0a1263e81b4d4d6fc4d025e42c`
+- **Content checksum:** `sha256:64453e6631a986975fe08850def44bb03d390685ac3a1655dcf0f374472da0a1`
 - **Body checksum:** `sha256:c5258b0f2ea2d4d7e2d94e023713e4d5a7d2c0f4a65dd3cab339b878fd7279d9` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/brag-slim/LICENSE` checksum=`sha256:92d538e0da9abeaafff8ecfc62e142f5053fa92b2c3ef29978742c325c554089`
   - License declaration matches observed `MIT`
-- **Resolved at:** `2026-11-16T06:32:24.123739Z` version=`7c98a08`
+- **Resolved at:** `2026-11-24T03:14:28.226014Z` version=`7c98a08`
 
 - **Per-skill attribution:** `skills/design/brag-slim/UPSTREAM.md`
 

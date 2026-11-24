@@ -27,6 +27,7 @@ packages/pypi/agent-toolkit-cli/.venv/
 packages/pypi/agent-toolkit-cli/uv.lock
 packages/npm/*/bin/agent-toolkit
 packages/npm/*/bin/agent-toolkit.exe
+packages/npm/*/bin/embedded_data.bundle.gz
 
 # Editor
 .idea/

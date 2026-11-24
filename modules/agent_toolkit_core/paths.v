@@ -21,6 +21,19 @@ pub fn embedded_data_candidates(exe_dir string) []string {
 	return [os.join_path(exe_dir, 'data'), os.join_path(exe_dir, '..', 'data')]
 }
 
+// embedded_bundle_candidates are locations for the offline compressed payload.
+// Keep the payload beside packaged binaries so it never expands into C arrays
+// during native compilation (which can stall macOS release builds).
+pub fn embedded_bundle_candidates(exe_dir string) []string {
+	return [
+		os.join_path(exe_dir, 'embedded_data.bundle.gz'),
+		os.join_path(exe_dir, 'data', 'embedded_data.bundle.gz'),
+		os.join_path(exe_dir, '..', 'data', 'embedded_data.bundle.gz'),
+		'/usr/share/agent-toolkit/data/embedded_data.bundle.gz',
+		'/usr/local/share/agent-toolkit/data/embedded_data.bundle.gz',
+	]
+}
+
 // is_valid_toolkit_root reports whether path looks like toolkit data or a checkout.
 pub fn is_valid_toolkit_root(path string) bool {
 	if path.len == 0 || !os.is_dir(path) {
@@ -116,10 +129,8 @@ pub fn find_toolkit_root_with(fs FsService) !ToolkitRoot {
 		}
 	}
 
-	// 3a. In-memory embedded baseline (full-embed, standalone without XDG/network).
-	// This is the “binario ya tiene todo” tier — populated at compile time via
-	// modules/agent_toolkit_core/embedded_data.v (#766). Wins over checkout/CWD
-	// but after XDG so a fresher user update can override.
+	// 3a. Offline baseline loaded from the verified sidecar bundle. It stays
+	// ahead of checkout/CWD so standalone archives work without network access.
 	if embedded_is_valid_root() {
 		return ToolkitRoot{
 			path: 'embedded'

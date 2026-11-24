@@ -28,7 +28,7 @@ One mental model for how agent-toolkit pieces fit together. Within the toolkit l
 
 No code split — one repo, one `build/agent-toolkit` binary, one Release. Canonical definition: [`docs/ARCHITECTURE.md#two-planes-within-the-toolkit-l15--capability-vs-runtime`](ARCHITECTURE.md#two-planes-within-the-toolkit-l15--capability-vs-runtime) — **Capability** (what is distributed: `skills/`/`agents/` → `distributions/products.yaml` → `plugins/`) vs **Runtime** (what is executed: `workspace`/`memory`/`project`/`loop`/`swarm`).
 
-Summary: Capability data is **embedded** in the binary (`embedded_data.v`, ADR-026) and resolved via `AGENT_TOOLKIT_ROOT` → `XDG` → `embedded` → `FHS` (ADR-015/026). See `docs/adrs/ADR-015-runtime-resolution.md` and `docs/adrs/ADR-026-full-embed.md`.
+Summary: Capability data ships in the binary's SHA-256-verified offline sidecar bundle (`embedded_data.bundle.gz`, ADR-047) and is resolved via `AGENT_TOOLKIT_ROOT` → `XDG` → `embedded` → `FHS` (ADR-015/026). See `docs/adrs/ADR-015-runtime-resolution.md`, `docs/adrs/ADR-026-full-embed.md`, and `docs/adrs/ADR-047-offline-resource-sidecar.md`.
 
 ## Three kinds of packs
 

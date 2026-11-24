@@ -5,7 +5,7 @@ import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from analyze_music_cues import _pick_cues
+from analyze_music_cues import _pick_cues, _validate_window_start
 
 
 class PickCuesTest(unittest.TestCase):
@@ -15,6 +15,23 @@ class PickCuesTest(unittest.TestCase):
         strong, window = _pick_cues(early + late, 100.0, 110.0, 10)
         self.assertEqual(len(strong), 64)
         self.assertEqual([c["time"] for c in window], [101.0, 100.0, 102.0])
+
+
+class PlanningWindowTest(unittest.TestCase):
+    def test_start_after_track_end_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "exceeds track duration"):
+            _validate_window_start(60.0, 30.0)
+
+    def test_start_at_track_end_is_valid(self):
+        _validate_window_start(30.0, 30.0)
+
+    def test_negative_start_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "non-negative"):
+            _validate_window_start(-0.1, 30.0)
+
+    def test_non_finite_start_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "finite"):
+            _validate_window_start(float("nan"), 30.0)
 
 
 if __name__ == "__main__":

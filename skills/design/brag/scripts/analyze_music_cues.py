@@ -122,6 +122,15 @@ def _pick_cues(eligible_cues, window_start, window_end, top_cues):
     return strong_cues, in_window[:top_cues]
 
 
+def _validate_window_start(window_start: float, duration: float) -> None:
+    if not math.isfinite(window_start):
+        raise ValueError("window start must be a finite number")
+    if window_start < 0:
+        raise ValueError("window start must be non-negative")
+    if window_start > duration:
+        raise ValueError(f"window start ({window_start}s) exceeds track duration ({duration}s)")
+
+
 def analyze_track(
     input_path: Path,
     window_start: float,
@@ -131,6 +140,7 @@ def analyze_track(
 ) -> tuple[dict[str, Any], str]:
     y, actual_sr = librosa.load(input_path, sr=sr, mono=True)
     duration = float(librosa.get_duration(y=y, sr=actual_sr))
+    _validate_window_start(window_start, duration)
     window_end = min(duration, window_start + window_duration)
 
     onset_env = librosa.onset.onset_strength(
@@ -295,13 +305,16 @@ def main() -> None:
     parser.add_argument("--sr", type=int, default=44100)
     args = parser.parse_args()
 
-    data, markdown = analyze_track(
-        input_path=args.input,
-        window_start=args.window_start,
-        window_duration=args.window_duration,
-        top_cues=args.top_cues,
-        sr=args.sr,
-    )
+    try:
+        data, markdown = analyze_track(
+            input_path=args.input,
+            window_start=args.window_start,
+            window_duration=args.window_duration,
+            top_cues=args.top_cues,
+            sr=args.sr,
+        )
+    except ValueError as exc:
+        parser.error(str(exc))
 
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     args.output_md.parent.mkdir(parents=True, exist_ok=True)

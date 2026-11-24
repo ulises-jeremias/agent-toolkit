@@ -23,7 +23,7 @@
 
 ## What is this package?
 
-This package ships **only** the floating GitHub Release asset `agent-toolkit-linux-arm64` as `bin/agent-toolkit`. It is **not** a second CLI and is **not** meant to be installed directly.
+This platform package ships the floating GitHub Release executable `agent-toolkit-linux-arm64` as `bin/agent-toolkit` plus the matching SHA-256-verified offline resource bundle. It is **not** a second CLI and is **not** meant to be installed directly.
 
 Install the meta-package instead:
 
