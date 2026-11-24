@@ -34,9 +34,9 @@ fn test_run_build_check_temp_repo() {
 		os.unsetenv('AGENT_TOOLKIT_ROOT')
 	}
 	report := run_build(BuildOptions{
-		check: true
-		target: 'cursor'
-		product: 'agent-toolkit-core'
+		check:       true
+		target:      'cursor'
+		product:     'agent-toolkit-core'
 		write_files: false
 	})
 	assert report.ok, report.message
@@ -72,8 +72,8 @@ fn test_run_build_check_detects_drift() {
 		os.unsetenv('AGENT_TOOLKIT_ROOT')
 	}
 	report := run_build(BuildOptions{
-		check: true
-		target: 'cursor'
+		check:   true
+		target:  'cursor'
 		product: 'agent-toolkit-core'
 	})
 	assert !report.ok
@@ -104,16 +104,16 @@ fn test_run_build_check_detects_creative_plugin_resource_drift() {
 		os.unsetenv('AGENT_TOOLKIT_ROOT')
 	}
 	matching := run_build(BuildOptions{
-		check: true
-		target: 'agent-plugins'
+		check:   true
+		target:  'agent-plugins'
 		product: 'agent-toolkit-creative-studio'
 	})
 	assert matching.ok, matching.message
 	assert matching.drift.len == 0
 	os.rm(os.join_path(plugin_skill, 'scripts', 'uv.lock')) or { assert false, err.msg() }
 	drifted := run_build(BuildOptions{
-		check: true
-		target: 'agent-plugins'
+		check:   true
+		target:  'agent-plugins'
 		product: 'agent-toolkit-creative-studio'
 	})
 	assert !drifted.ok
@@ -125,12 +125,43 @@ fn test_run_build_check_detects_creative_plugin_resource_drift() {
 		assert false, err.msg()
 	}
 	extra := run_build(BuildOptions{
-		check: true
-		target: 'agent-plugins'
+		check:   true
+		target:  'agent-plugins'
 		product: 'agent-toolkit-creative-studio'
 	})
 	assert !extra.ok
 	assert extra.drift.any(it.contains('unexpected in plugins: skills/brag/scripts/undeclared.txt')), extra.message
+	os.rm(os.join_path(plugin_skill, 'scripts', 'undeclared.txt')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(plugin_skill, '.metadata')) or { assert false, err.msg() }
+	os.write_file(os.join_path(plugin_skill, '.metadata', 'unexpected.txt'), 'extra\n') or {
+		assert false, err.msg()
+	}
+	hidden_extra := run_build(BuildOptions{
+		check:   true
+		target:  'agent-plugins'
+		product: 'agent-toolkit-creative-studio'
+	})
+	assert !hidden_extra.ok
+	assert hidden_extra.drift.any(it.contains('unexpected in plugins: skills/brag/.metadata/unexpected.txt')), hidden_extra.message
+}
+
+fn test_skill_tree_drift_includes_hidden_files() {
+	root := os.join_path(os.temp_dir(), 'at-hidden-skill-drift-${os.getpid()}')
+	work_skills := os.join_path(root, 'work', 'skills')
+	plugin_skills := os.join_path(root, 'plugin', 'skills')
+	os.mkdir_all(os.join_path(work_skills, 'brag', '.metadata')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(plugin_skills, 'brag', '.metadata')) or { assert false, err.msg() }
+	os.write_file(os.join_path(work_skills, 'brag', '.metadata', 'source.txt'), 'source\n') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(plugin_skills, 'brag', '.metadata', 'source.txt'), 'stale\n') or {
+		assert false, err.msg()
+	}
+	drift := skill_tree_drift(work_skills, plugin_skills)
+	assert drift.any(it.contains('content digest mismatch: skills/brag/.metadata/source.txt')), drift.str()
+	defer {
+		os.rmdir_all(root) or {}
+	}
 }
 
 fn test_run_build_unknown_target() {
@@ -149,7 +180,7 @@ fn test_run_build_unknown_target() {
 		os.unsetenv('AGENT_TOOLKIT_ROOT')
 	}
 	report := run_build(BuildOptions{
-		check: true
+		check:  true
 		target: 'not-a-target'
 	})
 	assert !report.ok
