@@ -252,10 +252,28 @@ fn emit_skills_under(mut result CompilationResult, mut records []ArtifactRecord,
 			return
 		}
 		dst := os.join_path(dst_dir, 'SKILL.md')
-		write_text_artifact(dst, content, skill.source_path, output_root, mut result, mut records)
+		write_text_artifact(dst, with_binary_asset_note(skill, content), skill.source_path, output_root, mut result, mut records)
 		copy_skill_resources(skill, dst_dir, output_root, mut result, mut records)
 		result.emitted << 'skill:${skill_id}'
 	}
+}
+
+// with_binary_asset_note keeps the upstream body untouched while making the
+// portable artifact honest when the source skill has binary assets that this
+// fail-closed compiler intentionally omits.
+fn with_binary_asset_note(skill LoadedSkill, content string) string {
+	assets_root := os.join_path(os.dir(skill.source_path), 'assets')
+	if !os.is_dir(assets_root) {
+		return content
+	}
+	for path in collect_all_files(assets_root) {
+		ext := os.file_ext(path).to_lower()
+		base := os.file_name(path)
+		if ext !in skill_resource_text_exts && base !in skill_resource_no_ext_names {
+			return content.trim_right(' \n\t\r') + '\n\n## Distribution note\n\nThis portable package omits binary assets. Check that any referenced asset exists before using it; if it is absent, use another locally available or user-provided asset with verified licensing, or omit that part of the workflow.\n'
+		}
+	}
+	return content
 }
 
 fn emit_agents_under(mut result CompilationResult, mut records []ArtifactRecord, graph CanonicalGraph, product LoadedProduct, agents_root string, output_root string) {

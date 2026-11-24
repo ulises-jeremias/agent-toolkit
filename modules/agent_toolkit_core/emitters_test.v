@@ -57,6 +57,7 @@ fn test_compile_skill_declared_resources() {
 	os.mkdir_all(os.join_path(root, 'skills', 'core', 'assistant', 'bin')) or { assert false, err.msg() }
 	os.mkdir_all(os.join_path(root, 'skills', 'core', 'assistant', 'src')) or { assert false, err.msg() }
 	os.mkdir_all(os.join_path(root, 'skills', 'core', 'assistant', 'references')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(root, 'skills', 'core', 'assistant', 'assets')) or { assert false, err.msg() }
 	os.mkdir_all(os.join_path(root, 'distributions')) or { assert false, err.msg() }
 	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'SKILL.md'), '---\nname: assistant\ndistribution:\n  mode: vendored\n  resources:\n  - bin\n  - src/note.txt\n  - src/uv.lock\n---\nbody\n') or {
 		assert false, err.msg()
@@ -74,6 +75,9 @@ fn test_compile_skill_declared_resources() {
 		assert false, err.msg()
 	}
 	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'references', 'ref.md'), '# ref\n') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'assets', 'track.mp3'), 'not executed') or {
 		assert false, err.msg()
 	}
 	os.write_file(os.join_path(root, 'distributions', 'products.yaml'), 'products:\n  - id: demo\n    includes:\n      skills:\n        - core/assistant\n      agents: []\n') or {
@@ -98,6 +102,13 @@ fn test_compile_skill_declared_resources() {
 	assert os.is_file(os.join_path(skill_out, 'src', 'uv.lock'))
 	assert os.is_file(os.join_path(skill_out, 'references', 'ref.md'))
 	assert !os.is_file(os.join_path(skill_out, 'src', 'undeclared.txt'))
+	assert !os.is_file(os.join_path(skill_out, 'assets', 'track.mp3'))
+	out_skill := os.read_file(os.join_path(skill_out, 'SKILL.md')) or {
+		assert false, err.msg()
+		return
+	}
+	assert out_skill.contains('This portable package omits binary assets.')
+	assert out_skill.contains('Distribution note')
 }
 
 fn test_compile_skill_missing_declared_resource_fails() {
