@@ -123,6 +123,8 @@ def _pick_cues(eligible_cues, window_start, window_end, top_cues):
 
 
 def _validate_window_start(window_start: float, duration: float) -> None:
+    if not math.isfinite(window_start):
+        raise ValueError("window start must be a finite number")
     if window_start < 0:
         raise ValueError("window start must be non-negative")
     if window_start > duration:
@@ -303,13 +305,16 @@ def main() -> None:
     parser.add_argument("--sr", type=int, default=44100)
     args = parser.parse_args()
 
-    data, markdown = analyze_track(
-        input_path=args.input,
-        window_start=args.window_start,
-        window_duration=args.window_duration,
-        top_cues=args.top_cues,
-        sr=args.sr,
-    )
+    try:
+        data, markdown = analyze_track(
+            input_path=args.input,
+            window_start=args.window_start,
+            window_duration=args.window_duration,
+            top_cues=args.top_cues,
+            sr=args.sr,
+        )
+    except ValueError as exc:
+        parser.error(str(exc))
 
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     args.output_md.parent.mkdir(parents=True, exist_ok=True)
