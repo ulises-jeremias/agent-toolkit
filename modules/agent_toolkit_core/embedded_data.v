@@ -22,11 +22,27 @@ mut:
 	load_error string
 }
 
-__global embedded_data_cache = sync.new_lazy_lock[EmbeddedDataIndex](load_embedded_data_index)
+__global (
+	embedded_data_cache_lock   &sync.Mutex
+	embedded_data_cache_loaded bool
+	embedded_data_cache        EmbeddedDataIndex
+)
+
+fn init() {
+	embedded_data_cache_lock = sync.new_mutex()
+}
 
 fn embedded_data_index() EmbeddedDataIndex {
-	mut cache := embedded_data_cache
-	return cache.get()
+	mut cache_mutex := embedded_data_cache_lock
+	cache_mutex.lock()
+	defer {
+		cache_mutex.unlock()
+	}
+	if !embedded_data_cache_loaded {
+		embedded_data_cache = load_embedded_data_index()
+		embedded_data_cache_loaded = true
+	}
+	return embedded_data_cache
 }
 
 fn load_embedded_data_index() EmbeddedDataIndex {
