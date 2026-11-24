@@ -130,8 +130,7 @@ fn test_run_build_check_detects_creative_plugin_resource_drift() {
 		product: 'agent-toolkit-creative-studio'
 	})
 	assert !extra.ok
-	assert extra.drift.any(it.contains('unexpected in plugins: skills/brag/scripts/undeclared.txt')),
-		extra.message
+	assert extra.drift.any(it.contains('unexpected in plugins: skills/brag/scripts/undeclared.txt')), extra.message
 }
 
 fn test_run_build_unknown_target() {
