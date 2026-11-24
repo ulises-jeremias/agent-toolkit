@@ -122,6 +122,13 @@ def _pick_cues(eligible_cues, window_start, window_end, top_cues):
     return strong_cues, in_window[:top_cues]
 
 
+def _validate_window_start(window_start: float, duration: float) -> None:
+    if window_start < 0:
+        raise ValueError("window start must be non-negative")
+    if window_start > duration:
+        raise ValueError(f"window start ({window_start}s) exceeds track duration ({duration}s)")
+
+
 def analyze_track(
     input_path: Path,
     window_start: float,
@@ -131,6 +138,7 @@ def analyze_track(
 ) -> tuple[dict[str, Any], str]:
     y, actual_sr = librosa.load(input_path, sr=sr, mono=True)
     duration = float(librosa.get_duration(y=y, sr=actual_sr))
+    _validate_window_start(window_start, duration)
     window_end = min(duration, window_start + window_duration)
 
     onset_env = librosa.onset.onset_strength(
