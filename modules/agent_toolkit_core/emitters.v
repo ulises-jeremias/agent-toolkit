@@ -269,7 +269,7 @@ fn with_binary_asset_note(skill LoadedSkill, content string) string {
 	for path in collect_all_files(assets_root) {
 		ext := os.file_ext(path).to_lower()
 		base := os.file_name(path)
-		if ext !in skill_resource_text_exts && base !in skill_resource_no_ext_names {
+		if ext !in skill_resource_text_exts && base !in skill_resource_text_names {
 			return content.trim_right(' \n\t\r') + '\n\n## Distribution note\n\nThis portable package omits binary assets. Check that any referenced asset exists before using it; if it is absent, use another locally available or user-provided asset with verified licensing, or omit that part of the workflow.\n'
 		}
 	}
@@ -304,8 +304,8 @@ fn emit_agents_under(mut result CompilationResult, mut records []ArtifactRecord,
 }
 
 const skill_resource_text_exts = ['.md', '.txt', '.js', '.mjs', '.cjs', '.ts', '.mts', '.cts', '.json',
-	'.yaml', '.yml', '.toml', '.lock', '.html', '.css', '.py', '.sh', '.ipynb']
-const skill_resource_no_ext_names = ['LICENSE', 'NOTICE', 'UPSTREAM', 'DOWNSTREAM']
+	'.yaml', '.yml', '.toml', '.html', '.css', '.py', '.sh', '.ipynb']
+const skill_resource_text_names = ['LICENSE', 'NOTICE', 'UPSTREAM', 'DOWNSTREAM', 'uv.lock']
 
 // copy_skill_resources ships `references/` (historical convention) plus any
 // files/directories a skill explicitly declares in
@@ -328,7 +328,7 @@ fn copy_skill_resources(skill LoadedSkill, dst_dir string, output_root string, m
 		seen[rel] = true
 		base := os.file_name(src)
 		ext := os.file_ext(src).to_lower()
-		if ext !in skill_resource_text_exts && base !in skill_resource_no_ext_names {
+		if ext !in skill_resource_text_exts && base !in skill_resource_text_names {
 			result.errors << 'skill:${skill.id}: resource ${rel} is not a supported text file'
 			return
 		}
