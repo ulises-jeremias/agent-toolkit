@@ -48,7 +48,7 @@ You built it. Now let's brag about it.
 
 ## Invocation dispatch (must happen first)
 
-**Model check.** If you are Claude Opus 5.5, Claude Sonnet 5.5 or Claude Fable 5.2 and the invocation doesn't ask for the full workflow (`--full`, "use the full brag") or for voiceover (`--voice`, which brag-slim doesn't do), switch to brag-slim: read `<skill-dir>/slim.md` (when that resource is present) and follow it for the rest of this run instead of this file. If it is absent, continue with this workflow and tell the user the slim handoff is unavailable in this installation. Pass along the user's input, and pass any other options (`--no-music`, `--title`, …) as plain-language direction. Tell the user in one line first, e.g. "You're on Sonnet 5.5, so I'm using /brag-slim: I build the whole video myself. Say 'use the full brag' to switch back." If you are any other model, or can't tell which model you are, skip this check.
+**Model check.** If you are Claude Opus 5.5, Claude Sonnet 5.5 or Claude Fable 5.2 and the invocation doesn't ask for the full workflow (`--full`, "use the full brag") or for voiceover (`--voice`, which brag-slim doesn't do), switch to brag-slim: read `<skill-dir>/slim.md` (the /brag-slim skill, bundled here) and follow it for the rest of this run instead of this file. Pass along the user's input, and pass any other options (`--no-music`, `--title`, …) as plain-language direction. Tell the user in one line first, e.g. "You're on Sonnet 5.5, so I'm using /brag-slim: I build the whole video myself. Say 'use the full brag' to switch back." If you are any other model, or can't tell which model you are, skip this check.
 
 Before inspecting the project, parse the complete `/brag` invocation. If the
 invocation contains `--voice`, set `voice.enabled = true`. Enable narration
@@ -124,7 +124,7 @@ Generate the timestamp at the start of the run (`YYYY-MM-DD-HHmmss`) and use it 
 
 ## Skill directory
 
-`<skill-dir>` is the directory containing this `SKILL.md`. Claude Code prints it as "Base directory for this skill" when the skill loads; for other agents it's wherever the skill was installed. Optional bundled assets, when included by the installation, are under `<skill-dir>/assets/`; declared text resources and scripts are under `<skill-dir>/`. Don't guess an install path: a plugin install, a `~/.claude/skills/` copy, and this repo all put it somewhere different. Check for each optional asset before using it; if absent, continue with user-provided or locally available alternatives, or omit that audio element.
+`<skill-dir>` is the directory containing this `SKILL.md`. Claude Code prints it as "Base directory for this skill" when the skill loads; for other agents it's wherever the skill was installed. Bundled assets are under `<skill-dir>/assets/` and scripts under `<skill-dir>/scripts/`. Don't guess an install path: a plugin install, a `~/.claude/skills/` copy, and this repo all put it somewhere different.
 
 ---
 
@@ -144,7 +144,7 @@ Scan the project directory and extract the information needed to plan the brag v
 
 Write `<output-dir>/brag-plan.md` (where `<output-dir>` is `brag-output/` or the timestamped variant chosen above). Answer the planning rubric. Commit to a creative angle. Write the beat-by-beat storyboard including scenes, text, timing, transitions, and SFX cues.
 
-When music is selected, include a compact `Music cue guidance` section: read a bundled track's cue preset from `<skill-dir>/assets/music/cues/` if present; otherwise say cues can be detected at composition time (any track now supports beat sync — see `references/audio.md`). Cue metadata is optional timing guidance only: story, readability, pacing, and product clarity stay primary.
+When music is selected, include a compact `Music cue guidance` section: read the bundled track's cue preset from `<skill-dir>/assets/music/cues/` if present, otherwise note cues will be detected at composition time (any track now supports beat sync — see `references/audio.md`). Cue metadata is optional timing guidance only: story, readability, pacing, and product clarity stay primary.
 
 **Gate:** `<output-dir>/brag-plan.md` exists with a full storyboard. Scene durations sum to 15–25 seconds, or to the explicit `--duration` when the user set one.
 
@@ -218,3 +218,7 @@ Hook (2-3s) → Reveal (2-4s) → 2-3 sharp highlights (5-12s) → Punchline/out
 ```
 
 Adapt this. Not every project needs exactly 3 highlights. The pattern is a starting shape, not a template.
+
+## Distribution note
+
+This portable package omits binary assets. Check that any referenced asset exists before using it; if it is absent, use another locally available or user-provided asset with verified licensing, or omit that part of the workflow.
