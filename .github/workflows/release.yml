@@ -5,9 +5,9 @@ name: Release
 # file — PyPI Trusted Publishing is registered for release.yml, not publish.yml.
 #
 # Job graph:
-#   create-release ─┬─► build-binaries ─► upload-assets ─┬─► publish-pypi (platform wheels from Release assets)
-#                   │                                    └─► docker (reusable workflow; GITHUB_TOKEN cannot trigger on: release)
-#                   └─► sbom (SHOULD CycloneDX; does not prove “secure software”)
+#   create-release (draft) ─┬─► build-binaries ─► upload-assets ─┬─► publish-pypi (platform wheels from Release assets)
+#                           │                                    └─► docker (reusable workflow; GITHUB_TOKEN cannot trigger on: release)
+#                           └─► sbom ──────────────────────────────► publish-release (make public after all gates pass)
 
 on:
   push:
@@ -55,7 +55,9 @@ jobs:
         uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3
         with:
           generate_release_notes: true
-          draft: false
+          # Keep downloads unavailable until every platform artifact and package
+          # has completed. publish-release flips this only after all release jobs pass.
+          draft: true
           prerelease: ${{ contains(github.ref_name, '-') }}
       - name: Wait until release API is readable
         env:
@@ -522,3 +524,27 @@ jobs:
     permissions:
       contents: read
       packages: write
+
+  publish-release:
+    name: Publish verified GitHub Release
+    if: github.event_name == 'push'
+    needs: [upload-assets, sbom, publish-pypi, docker]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Publish only after every distribution gate passes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          gh release edit "$TAG" --draft=false
+          DRAFT="$(gh release view "$TAG" --json isDraft --jq '.isDraft')"
+          if [ "$DRAFT" != "false" ]; then
+            echo "::error::Release $TAG is still a draft"
+            exit 1
+          fi
+          echo "✓ Published $TAG after binary, SBOM, PyPI, and Docker jobs passed"
