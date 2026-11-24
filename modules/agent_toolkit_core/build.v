@@ -154,13 +154,41 @@ fn detect_plugin_drift(work_root string, plugins_root string, product_id string,
 			drift << 'content digest mismatch: ${rel.replace('\\', '/')}'
 		}
 	}
+	if product_id == 'agent-toolkit-creative-studio' && target_id == 'agent-plugins' {
+		drift << skill_tree_drift(os.join_path(work_product, 'skills'), os.join_path(plugin_product, 'skills'))
+	}
 	return drift
 }
 
-// should_check_plugin_drift limits digest compare to shared plugin products
-// (core/agents/forge) for digest parity with plugin check.
+// should_check_plugin_drift limits full digest compare to products with a
+// committed Agent Plugins surface, including Creative Studio.
 fn should_check_plugin_drift(product_id string) bool {
-	return product_id in ['agent-toolkit-core', 'agent-toolkit-agents', 'agent-toolkit-forge']
+	return product_id in ['agent-toolkit-core', 'agent-toolkit-agents', 'agent-toolkit-forge',
+		'agent-toolkit-creative-studio']
+}
+
+// skill_tree_drift compares complete generated Agent Plugins skill trees,
+// including explicitly declared text resources and their provenance outputs.
+fn skill_tree_drift(work_skills string, plugin_skills string) []string {
+	mut drift := []string{}
+	for src in collect_all_files(work_skills) {
+		rel := relative_to(src, work_skills) or { continue }
+		dst := os.join_path(plugin_skills, rel)
+		if !os.is_file(dst) {
+			drift << 'missing in plugins: skills/${rel.replace('\\', '/')}'
+			continue
+		}
+		if file_digest(src) != file_digest(dst) {
+			drift << 'content digest mismatch: skills/${rel.replace('\\', '/')}'
+		}
+	}
+	for dst in collect_all_files(plugin_skills) {
+		rel := relative_to(dst, plugin_skills) or { continue }
+		if !os.is_file(os.join_path(work_skills, rel)) {
+			drift << 'unexpected in plugins: skills/${rel.replace('\\', '/')}'
+		}
+	}
+	return drift
 }
 
 fn drift_path_pairs(target_id string, work_product string, plugin_product string) [][]string {

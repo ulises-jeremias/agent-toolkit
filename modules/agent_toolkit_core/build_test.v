@@ -80,6 +80,46 @@ fn test_run_build_check_detects_drift() {
 	assert report.drift.len >= 1
 }
 
+fn test_run_build_check_detects_creative_plugin_resource_drift() {
+	root := os.join_path(os.temp_dir(), 'at-build-creative-drift-${os.getpid()}')
+	skill_src := os.join_path(root, 'skills', 'design', 'brag')
+	plugin_skill := os.join_path(root, 'plugins', 'agent-toolkit-creative-studio', 'skills', 'brag')
+	os.mkdir_all(os.join_path(skill_src, 'scripts')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(plugin_skill, 'scripts')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(root, 'distributions')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(root, 'loops')) or { assert false, err.msg() }
+	skill := '---\nname: brag\ndistribution:\n  mode: vendored\n  resources:\n  - scripts/analyze.py\n  - scripts/uv.lock\n---\nbody\n'
+	os.write_file(os.join_path(skill_src, 'SKILL.md'), skill) or { assert false, err.msg() }
+	os.write_file(os.join_path(skill_src, 'scripts', 'analyze.py'), 'print("ok")\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(skill_src, 'scripts', 'uv.lock'), 'version = 1\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(plugin_skill, 'SKILL.md'), skill) or { assert false, err.msg() }
+	os.write_file(os.join_path(plugin_skill, 'scripts', 'analyze.py'), 'print("ok")\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(plugin_skill, 'scripts', 'uv.lock'), 'version = 1\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(root, 'distributions', 'products.yaml'), 'products:\n  - id: agent-toolkit-creative-studio\n    includes:\n      skills:\n        - design/brag\n      agents: []\n') or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(root) or {}
+	}
+	os.setenv('AGENT_TOOLKIT_ROOT', root, true)
+	defer {
+		os.unsetenv('AGENT_TOOLKIT_ROOT')
+	}
+	matching := run_build(BuildOptions{
+		check: true
+		target: 'agent-plugins'
+		product: 'agent-toolkit-creative-studio'
+	})
+	assert matching.ok, matching.message
+	assert matching.drift.len == 0
+	os.rm(os.join_path(plugin_skill, 'scripts', 'uv.lock')) or { assert false, err.msg() }
+	drifted := run_build(BuildOptions{
+		check: true
+		target: 'agent-plugins'
+		product: 'agent-toolkit-creative-studio'
+	})
+	assert !drifted.ok
+	assert drifted.drift.any(it.contains('scripts/uv.lock')), drifted.message
+}
+
 fn test_run_build_unknown_target() {
 	root := os.join_path(os.temp_dir(), 'at-build-unk-${os.getpid()}')
 	os.mkdir_all(os.join_path(root, 'skills')) or { assert false, err.msg() }

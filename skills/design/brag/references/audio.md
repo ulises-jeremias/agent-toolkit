@@ -1,6 +1,6 @@
 # Audio reference
 
-All SFX are CC0 (Kenney.nl, public domain). The bundled music is CC BY 4.0 by Sascha Ende (ende.app); see `assets/music/README.md`. Music and SFX should be used by default unless the user passes `--no-music`, `--no-sfx`, the required assets are missing, or the plan explicitly chooses silence as the strongest creative move.
+The upstream source assets are licensed individually: SFX are CC0 (Kenney.nl, public domain) and bundled music is CC BY 4.0 by Sascha Ende (ende.app); see `assets/music/README.md` when available. Distribution packages may omit binary audio assets. Check that an asset exists before referencing it; when absent, use a user-provided or locally available asset with verified licensing, or omit that audio element. Music and SFX should be used by default unless the user passes `--no-music`, `--no-sfx`, required assets are missing, or silence is the strongest creative choice.
 
 Bias toward a smooth, professional result: one tasteful music bed plus a small number of well-timed SFX usually feels better than silence.
 
@@ -35,11 +35,11 @@ Hyperframes implementation note: follow the audio-reactive guidance owned by the
 
 All paths below are relative to `<skill-dir>`, this skill's own directory (see "Skill directory" in `SKILL.md`). It differs by install method, so resolve it rather than assuming `~/.claude/skills/brag/`.
 
-SFX live under `<skill-dir>/assets/sfx/{casino,impact,interface,ui}/`, and the individual keypress set under `<skill-dir>/assets/sfx/keyboard/`.
+When bundled, SFX live under `<skill-dir>/assets/sfx/{casino,impact,interface,ui}/`, and the individual keypress set under `<skill-dir>/assets/sfx/keyboard/`.
 
-Music lives at `<skill-dir>/assets/music/`.
+When bundled, music lives at `<skill-dir>/assets/music/`.
 
-Bundled music cue presets live beside the music:
+When bundled, music cue presets live beside the music:
 
 ```text
 <skill-dir>/assets/music/cues/<track-stem>.music-cues.md

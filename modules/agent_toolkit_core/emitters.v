@@ -285,7 +285,8 @@ fn emit_agents_under(mut result CompilationResult, mut records []ArtifactRecord,
 	}
 }
 
-const skill_resource_text_exts = ['.md', '.txt', '.js', '.mjs', '.cjs', '.ts', '.mts', '.cts', '.json', '.yaml', '.yml', '.toml', '.html', '.css', '.py', '.sh', '.ipynb']
+const skill_resource_text_exts = ['.md', '.txt', '.js', '.mjs', '.cjs', '.ts', '.mts', '.cts', '.json',
+	'.yaml', '.yml', '.toml', '.lock', '.html', '.css', '.py', '.sh', '.ipynb']
 const skill_resource_no_ext_names = ['LICENSE', 'NOTICE', 'UPSTREAM', 'DOWNSTREAM']
 
 // copy_skill_resources ships `references/` (historical convention) plus any
