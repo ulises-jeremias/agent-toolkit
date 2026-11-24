@@ -1,6 +1,6 @@
 # ADR-026: Full-Embed — V Binary Carries All Capability Data (Supersedes ADR-011)
 
-**Status:** Accepted
+**Status:** Offline-first contract accepted; binary embedding superseded by ADR-047
 **Date:** 2026-08-20
 **Deciders:** maintainers (standalone offline-first epic [#766](https://github.com/ulises-jeremias/agent-toolkit/issues/766), spikes #767-773, PR #778)
 **Supersedes:** ADR-011 (Hybrid) — see ADR-011 “Rejected: Full embed-only”
@@ -48,3 +48,7 @@ Hybrid’s minimal baseline left `install` still needing `XDG` download or works
 * Repro: `chezmoi init --apply --source=. --config agentic-workstation.toml` with `agent-toolkit-bin`
 
 **Verified:** 2026-08-20
+
+## Implementation amendment (2026-11-24)
+
+The offline-first product contract remains accepted. The implementation that stored the compressed resource payload in the executable was superseded after exact-head macOS package jobs spent their 60-minute limit compiling the generated C array ([PR #1845 run](https://github.com/ulises-jeremias/agent-toolkit/actions/runs/45335348595)). [ADR-047](ADR-047-offline-resource-sidecar.md) keeps the same complete, offline resource set in a SHA-256-verified sidecar shipped with every supported package. The runtime resolution tier still reports `embedded` for compatibility, but its payload is loaded from the adjacent sidecar.

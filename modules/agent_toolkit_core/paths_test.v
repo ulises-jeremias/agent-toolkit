@@ -16,6 +16,14 @@ fn test_embedded_data_candidates_wheel_layout() {
 	assert is_valid_toolkit_root(pkg_data)
 }
 
+fn test_embedded_bundle_candidates_cover_native_packages() {
+	cands := embedded_bundle_candidates('/opt/pkg/bin')
+	assert '/opt/pkg/bin/embedded_data.bundle.gz' in cands
+	assert '/opt/pkg/bin/data/embedded_data.bundle.gz' in cands
+	assert '/opt/pkg/bin/../data/embedded_data.bundle.gz' in cands
+	assert '/usr/share/agent-toolkit/data/embedded_data.bundle.gz' in cands
+}
+
 fn test_is_valid_toolkit_root_profiles() {
 	dir := os.join_path(os.temp_dir(), 'at-paths-profiles-${os.getpid()}')
 	os.mkdir_all(os.join_path(dir, 'profiles')) or { assert false, err.msg() }

@@ -15,6 +15,15 @@ fn append_bundle_test_u64(mut out []u8, value u64) {
 }
 
 fn test_embedded_bundle_preserves_binary_content_and_directory_listing() {
+	bundle_path := find_embedded_data_bundle() or { panic('offline data bundle not found') }
+	assert os.file_name(bundle_path) == embedded_data_bundle_name
+	bundle := os.read_bytes(bundle_path) or { panic(err) }
+	verify_embedded_data_bundle_sha256(bundle) or { panic(err) }
+	mut tampered_bundle := bundle.clone()
+	tampered_bundle[0] ^= 0xff
+	if _ := verify_embedded_data_bundle_sha256(tampered_bundle) {
+		assert false, 'tampered sidecar passed its compiled SHA-256 check'
+	}
 	assert embedded_is_valid_root()
 	assert embedded_is_dir('skills/design/brag/assets/music')
 	asset := 'skills/design/brag/assets/music/happy-beats-business-moves-vol-1-by-ende-dot-app.mp3'

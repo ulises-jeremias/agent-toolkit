@@ -2,11 +2,13 @@
 module agent_toolkit_core
 
 import compress.gzip
+import crypto.sha256
+import os
 import sync
 
-// The generated bundle keeps the complete offline payload intact while avoiding
-// thousands of individual static embed declarations in the native C build.
-const embedded_data_bundle = $embed_file('embedded_data.bundle.gz')
+// Load the generated resource bundle at runtime. Keeping it beside the binary
+// avoids compiling a multi-megabyte C array, which stalls macOS release builds.
+const embedded_data_bundle_name = 'embedded_data.bundle.gz'
 
 struct EmbeddedFileRange {
 mut:
@@ -46,7 +48,21 @@ fn embedded_data_index() EmbeddedDataIndex {
 }
 
 fn load_embedded_data_index() EmbeddedDataIndex {
-	compressed := embedded_data_bundle.to_bytes()
+	bundle_path := find_embedded_data_bundle() or {
+		return EmbeddedDataIndex{
+			load_error: 'embedded resource bundle is missing; expected ${embedded_data_bundle_name} beside the executable or under agent_toolkit/data'
+		}
+	}
+	compressed := os.read_bytes(bundle_path) or {
+		return EmbeddedDataIndex{
+			load_error: 'embedded resource bundle could not be read: ${bundle_path}'
+		}
+	}
+	verify_embedded_data_bundle_sha256(compressed) or {
+		return EmbeddedDataIndex{
+			load_error: '${err.msg()}: ${bundle_path}'
+		}
+	}
 	payload := gzip.decompress(compressed) or {
 		return EmbeddedDataIndex{
 			load_error: 'embedded resource bundle could not be decompressed: ${err.msg()}'
@@ -59,6 +75,47 @@ fn load_embedded_data_index() EmbeddedDataIndex {
 	}
 }
 
+fn verify_embedded_data_bundle_sha256(compressed []u8) ! {
+	actual_hash := sha256.sum(compressed).hex()
+	if actual_hash != embedded_data_bundle_sha256 {
+		return error('embedded resource bundle SHA-256 mismatch')
+	}
+}
+
+fn find_embedded_data_bundle() ?string {
+	override := os.getenv('AGENT_TOOLKIT_DATA_BUNDLE').trim_space()
+	if override.len > 0 && os.is_file(override) {
+		return override
+	}
+	mut candidates := []string{}
+	exe := os.executable()
+	if exe.len > 0 {
+		exe_dir := os.dir(os.real_path(exe))
+		candidates << embedded_bundle_candidates(exe_dir)
+	}
+	// Prefer the bundle shipped with the executable. This prevents an unrelated
+	// source checkout in CWD from shadowing the version pinned to a packaged CLI.
+	for candidate in candidates {
+		if os.is_file(candidate) {
+			return candidate
+		}
+	}
+	// Development checkout fallback. Installed binaries do not depend on CWD.
+	mut cur := os.getwd()
+	for {
+		candidate := os.join_path(cur, 'modules', 'agent_toolkit_core', embedded_data_bundle_name)
+		if os.is_file(candidate) {
+			return candidate
+		}
+		parent := os.dir(cur)
+		if parent == cur || parent.len == 0 {
+			break
+		}
+		cur = parent
+	}
+	return none
+}
+
 fn decode_embedded_data_bundle(payload []u8) !EmbeddedDataIndex {
 	mut offset := 0
 	file_count_raw, next_offset := read_embedded_u32(payload, offset)!
@@ -68,8 +125,8 @@ fn decode_embedded_data_bundle(payload []u8) !EmbeddedDataIndex {
 		return error('embedded resource file count is invalid')
 	}
 	mut index := EmbeddedDataIndex{
-		files:   map[string]EmbeddedFileRange{}
-		dirs:    map[string]bool{}
+		files: map[string]EmbeddedFileRange{}
+		dirs: map[string]bool{}
 		payload: payload
 	}
 	for _ in 0 .. file_count {
@@ -103,11 +160,11 @@ fn decode_embedded_data_bundle(payload []u8) !EmbeddedDataIndex {
 		content_size := int(content_len)
 		index.files[path] = EmbeddedFileRange{
 			offset: offset
-			len:    content_size
+			len: content_size
 		}
 		offset += content_size
-	for depth in 1 .. parts.len {
-		index.dirs[parts[..depth].join('/')] = true
+		for depth in 1 .. parts.len {
+			index.dirs[parts[..depth].join('/')] = true
 		}
 	}
 	if offset != payload.len {

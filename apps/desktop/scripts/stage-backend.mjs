@@ -38,6 +38,16 @@ fs.copyFileSync(source, path.join(destDir, exe));
 fs.chmodSync(path.join(destDir, exe), 0o755);
 console.log(`staged backend ${source} -> ${path.join(destDir, exe)}`);
 
+// Keep the offline capability payload beside the backend. The V binary loads
+// it at runtime, avoiding a huge generated C array on macOS release builders.
+const bundleSource = path.resolve(appDir, '..', '..', 'modules', 'agent_toolkit_core', 'embedded_data.bundle.gz');
+if (!fs.existsSync(bundleSource)) {
+  throw new Error(`offline data bundle not found: ${bundleSource}`);
+}
+const bundleDest = path.join(destDir, 'embedded_data.bundle.gz');
+fs.copyFileSync(bundleSource, bundleDest);
+console.log(`staged offline data bundle ${bundleSource} -> ${bundleDest}`);
+
 // Pin the staged binary's version for the supervisor's startup check:
 // a stale bundled backend is caught as version-mismatch instead of
 // failing mysteriously at runtime. The previous pin is removed first and

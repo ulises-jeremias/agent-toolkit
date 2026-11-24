@@ -38,9 +38,9 @@ Consumers MUST verify checksums when [#530](https://github.com/ulises-jeremias/a
 
 `agent-toolkit update` never replaces the executable ([ADR-017](../docs/adrs/ADR-017-update-ownership.md)). Package managers own binary upgrades.
 
-## Offline / embedded baseline (ADR-026, #766)
+## Offline resource bundle (ADR-026, ADR-047; #766)
 
-Since `v1.17.0` (PR #778) the V binary is **full-embed**: `skills/ loops/ profiles/ mcp/ catalogs/ agents/ capabilities/ distributions/ plugins/ packs` (1179 files) via `scripts/generate-embedded-data.vsh` → `modules/agent_toolkit_core/embedded_data.v` (`$embed_file`). `paths.v` tier `3a` `embedded` (path `embedded`) wins over `checkout/CWD` but after `XDG_DATA`/`XDG_CACHE`, and `3b` FHS `/usr/share/agent-toolkit/data` is probed for `aur-packages` sidecar compat. Fresh `yay -S agent-toolkit-bin` (no XDG, no `AI_WORKSPACE`, no network) → `doctor --offline` `root: embedded, ok true`, `install --dry-run` all 6 tools green. `agentic-workstation#210` XDG bootstrap is now 1-release compat only.
+The complete tracked data set (`skills/`, `loops/`, `profiles/`, `mcp/`, `catalogs/`, `agents/`, `capabilities/`, `distributions/`, `plugins/`, `packs/`) is generated as `embedded_data.bundle.gz`. The runtime loads the SHA-256-verified sidecar beside the executable or from the package data directory; it does not compile the bundle into C. Tier `3a` remains `embedded` for compatibility and wins over checkout/CWD after `XDG_DATA`/`XDG_CACHE`; tier `3b` probes `/usr/share/agent-toolkit/data` for FHS packages. Standalone GitHub archives and npm/PyPI packages include the complete bundle, so offline installs remain self-contained. The generated bundle and digest are checked for drift in CI.
 
 ## Experimental vs stable
 

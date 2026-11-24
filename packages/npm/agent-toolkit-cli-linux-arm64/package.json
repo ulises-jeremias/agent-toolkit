@@ -6,7 +6,7 @@
   "os": ["linux"],
   "cpu": ["arm64"],
   "libc": ["glibc"],
-  "files": ["README.md", "bin/agent-toolkit"],
+  "files": ["README.md", "bin/agent-toolkit", "bin/embedded_data.bundle.gz"],
   "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
   "bugs": {
     "url": "https://github.com/ulises-jeremias/agent-toolkit/issues"

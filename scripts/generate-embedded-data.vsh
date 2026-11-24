@@ -1,14 +1,15 @@
 #!/usr/bin/env -S v run
 
 import compress.gzip
+import crypto.sha256
 import os
 
 fn main() {
 	root := os.real_path(os.join_path(os.dir(@FILE), '..'))
 	module_dir := os.join_path(root, 'modules', 'agent_toolkit_core')
 	os.chdir(root) or { panic('could not enter repository root: ${err}') }
-	listing := os.exec(['git', 'ls-files', '-z', '--', 'skills', 'loops', 'profiles', 'mcp', 'catalogs',
-		'agents', 'capabilities', 'distributions', 'plugins', 'packs'])
+	listing := os.exec(['git', 'ls-files', '-z', '--', 'skills', 'loops', 'profiles', 'mcp',
+		'catalogs', 'agents', 'capabilities', 'distributions', 'plugins', 'packs'])
 	if listing.exit_code != 0 {
 		panic('could not enumerate tracked embedded resources: ${listing.output}')
 	}
@@ -33,8 +34,12 @@ fn main() {
 	compressed := gzip.compress(payload) or { panic('could not compress embedded data: ${err}') }
 	bundle_path := os.join_path(module_dir, 'embedded_data.bundle.gz')
 	os.write_file_array(bundle_path, compressed) or { panic('could not write ${bundle_path}: ${err}') }
+	hash_path := os.join_path(module_dir, 'embedded_data_bundle_hash.v')
+	hash_source := "module agent_toolkit_core\n\nconst embedded_data_bundle_sha256 = '${sha256.sum(compressed).hex()}'\n"
+	os.write_file(hash_path, hash_source) or { panic('could not write ${hash_path}: ${err}') }
 
 	println('Wrote ${bundle_path} (${files.len} files, ${payload.len} bytes, ${compressed.len} compressed bytes)')
+	println('Wrote ${hash_path}')
 }
 
 fn append_u32(mut out []u8, value u32) {

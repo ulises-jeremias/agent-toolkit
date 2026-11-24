@@ -952,7 +952,23 @@ jobs:
         run: |
           set -euo pipefail
           ./scripts/generate-embedded-data.vsh
-          git diff --exit-code -- modules/agent_toolkit_core/embedded_data.bundle.gz
+          git diff --exit-code -- modules/agent_toolkit_core/embedded_data.bundle.gz modules/agent_toolkit_core/embedded_data_bundle_hash.v
+          if grep -Fq '$embed_file' modules/agent_toolkit_core/embedded_data.v; then
+            echo 'offline data must stay in the runtime sidecar, not a generated C array' >&2
+            exit 1
+          fi
+
+      - name: Verify CLI archives carry the offline sidecar
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          mkdir -p "$tmp/binaries"
+          printf 'fixture-linux-binary\n' > "$tmp/binaries/agent-toolkit-linux-x86_64"
+          printf 'fixture-windows-binary\n' > "$tmp/binaries/agent-toolkit-windows-x86_64.exe"
+          RELEASE_VERSION=0.0.0 RELEASE_BIN_DIR="$tmp/binaries" RELEASE_OUT_DIR="$tmp/out" ./scripts/pack_release_assets.vsh
+          tar -tzf "$tmp/out/agent-toolkit-0.0.0-linux-x86_64.tar.gz" | grep -Fxq embedded_data.bundle.gz
+          unzip -Z1 "$tmp/out/agent-toolkit-0.0.0-windows-x86_64.zip" | grep -Fxq embedded_data.bundle.gz
+          (cd "$tmp/out" && sha256sum -c SHA256SUMS)
 
       - name: Install dependencies
         run: pip install pyyaml==6.0.2 jsonschema==4.23.0
