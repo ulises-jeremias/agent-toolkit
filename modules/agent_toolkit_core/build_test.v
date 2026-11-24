@@ -118,6 +118,20 @@ fn test_run_build_check_detects_creative_plugin_resource_drift() {
 	})
 	assert !drifted.ok
 	assert drifted.drift.any(it.contains('scripts/uv.lock')), drifted.message
+	os.write_file(os.join_path(plugin_skill, 'scripts', 'uv.lock'), 'version = 1\n') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(plugin_skill, 'scripts', 'undeclared.txt'), 'extra\n') or {
+		assert false, err.msg()
+	}
+	extra := run_build(BuildOptions{
+		check: true
+		target: 'agent-plugins'
+		product: 'agent-toolkit-creative-studio'
+	})
+	assert !extra.ok
+	assert extra.drift.any(it.contains('unexpected in plugins: skills/brag/scripts/undeclared.txt')),
+		extra.message
 }
 
 fn test_run_build_unknown_target() {
