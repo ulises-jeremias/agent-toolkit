@@ -20,7 +20,13 @@ git checkout v1.11.0
 ./make.vsh install-cli
 ```
 
-To undo `./make.vsh install-cli` only: `rm -f ~/.local/bin/agent-toolkit` (do not overwrite a brew/AUR/npm-managed binary — [ADR-017](../../adrs/ADR-017-update-ownership.md)).
+To undo `./make.vsh install-cli` only, remove the executable and its version-pinned offline resource bundle:
+
+```bash
+rm -f ~/.local/bin/agent-toolkit ~/.local/bin/embedded_data.bundle.gz
+```
+
+For a custom `--prefix`, remove the same two files under `<prefix>/bin`. This applies only to a source install; do not overwrite or remove a brew/AUR/npm-managed binary — [ADR-017](../../adrs/ADR-017-update-ownership.md).
 
 ## PyPI
 
