@@ -29,6 +29,10 @@ class PlanningWindowTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "non-negative"):
             _validate_window_start(-0.1, 30.0)
 
+    def test_non_finite_start_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "finite"):
+            _validate_window_start(float("nan"), 30.0)
+
 
 if __name__ == "__main__":
     unittest.main()
