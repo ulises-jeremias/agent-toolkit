@@ -32,6 +32,7 @@ struct Manifest {
 	name           string
 	version        string
 	git_tag        string @[json: 'gitTag']
+	source_sha     string @[json: 'sourceSha']
 	channel        string
 	released_at    string @[json: 'releasedAt']
 	assets         []AssetEntry
@@ -292,6 +293,16 @@ fn main() {
   }'
 	}
 	mut released := ''
+	source_result := os.exec(['git', 'rev-parse', 'HEAD'])
+	if source_result.exit_code != 0 {
+		eprintln('could not resolve release source commit: ${source_result.output}')
+		exit(1)
+	}
+	source_sha := source_result.output.trim_space()
+	if source_sha.len != 40 {
+		eprintln('release source commit is not a full SHA-1: ${source_sha}')
+		exit(1)
+	}
 	if sde_epoch != '' {
 		released = time.unix(sde_epoch.i64()).custom_format('YYYY-MM-DDTHH:mm:ss') + 'Z'
 	} else {
@@ -302,6 +313,7 @@ fn main() {
   "name": "agent-toolkit",
   "version": ${json2.encode(version)},
   "gitTag": ${json2.encode(tag)},
+  "sourceSha": ${json2.encode(source_sha)},
   "channel": "stable",
   "releasedAt": ${json2.encode(released)},
   "assets": [

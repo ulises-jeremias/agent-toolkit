@@ -158,7 +158,7 @@ Failure visibility on the releasing repo:
 
 ## Downstream install source (GitHub Release V binaries)
 
-Homebrew (`homebrew-tap`) and AUR (`aur-packages`) install **GitHub Release V binaries** (ADR-018 floating names + `SHA256SUMS`), not a Python wheel. PyPI `agent-toolkit-cli` remains a thin launcher for `uv`/`pip` users ([ADR-021](adrs/ADR-021-pypi-binary.md)). npm `agent-toolkit-cli` + `agent-toolkit-cli-{linux-x64,linux-arm64,darwin-arm64,darwin-x64,win32-x64}` wrap the same binaries ([ADR-025](adrs/ADR-025-npm-binary.md)).
+Homebrew (`homebrew-tap`) and AUR (`aur-packages`) install versioned GitHub Release standalone archives, not raw floating binaries. The archive digest is checked against the release manifest and covers the executable, SHA-256-verified offline bundle, and license. PyPI `agent-toolkit-cli` remains a launcher wheel containing the bundle for `uv`/`pip` users ([ADR-021](adrs/ADR-021-pypi-binary.md)). npm `agent-toolkit-cli` + platform packages ship the executable beside the same bundle ([ADR-025](adrs/ADR-025-npm-binary.md)).
 
 * **Homebrew:** Formula `agent-toolkit.rb` `url`s `agent-toolkit-macos-*` / `agent-toolkit-linux-*` from the GitHub Release. Verify `brew install` then `agent-toolkit version`.
 * **AUR:** `agent-toolkit-bin` PKGBUILD sources the linux ELF + `SHA256SUMS`. Verify `yay -S agent-toolkit-bin` then `agent-toolkit version`.

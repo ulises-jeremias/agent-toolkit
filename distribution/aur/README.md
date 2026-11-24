@@ -17,11 +17,11 @@
 Contract:
 
 - PKGBUILD lives **only** in `aur-packages`. This repo MUST NOT copy a PKGBUILD.
-- **Canonical package:** `agent-toolkit-bin` — linux x86_64/arm64 V binaries from GitHub Releases (ADR-018 names + sha256). `provides`/`conflicts` `agent-toolkit`.
+- **Canonical package:** `agent-toolkit-bin` — Linux x86_64/arm64 standalone GitHub Release archives, containing the V binary, offline bundle, and license. The updater verifies archive hashes against `manifest.json`. `provides`/`conflicts` `agent-toolkit`.
 - Optional source/Python package `agent-toolkit` may remain; it is **not** the product (ADR-024).
 - `pacman -Syu` / AUR helpers own the binary. `agent-toolkit update` is capability/profile refresh only (ADR-017).
 - First AUR publish needs an empty `ssh://aur@aur.archlinux.org/agent-toolkit-bin.git`.
-- **Offline (ADR-026, #766):** since `v1.17.0` (PR #778) the binary is full-embed (1179 files, `embedded` tier `3a` + FHS `/usr/share/agent-toolkit/data` tier `3b` in `paths.v`). Fresh `yay -S agent-toolkit-bin` with empty `XDG_DATA` and `AI_WORKSPACE=~/.ai-workspace` correctly falls to `embedded`, not workspace. Dual sync `agent-toolkit 1.10.0→1.16.0` (aur-packages#7) keeps `provides` parity.
+- **Offline (ADR-026/047):** a fresh package installs the complete gzip resource bundle at `/usr/share/agent-toolkit/data`; the runtime verifies its SHA-256 against a digest compiled into the binary. The raw floating executable is not a complete standalone package. Dual sync `agent-toolkit 1.10.0→1.16.0` (aur-packages#7) keeps `provides` parity.
 
 ```bash
 yay -S agent-toolkit-bin

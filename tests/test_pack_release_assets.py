@@ -36,6 +36,10 @@ def test_pack_release_assets_manifest_and_sums(tmp_path: Path, monkeypatch) -> N
     sums = (out / "SHA256SUMS").read_text()
     assert "agent-toolkit-linux-x86_64" in sums
     manifest = json.loads((out / "manifest.json").read_text())
+    source_sha = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, capture_output=True, check=True
+    ).stdout.strip()
+    assert manifest["sourceSha"] == source_sha
     schema = json.loads((ROOT / "schemas" / "release-manifest.schema.json").read_text())
     jsonschema.Draft202012Validator(schema).validate(manifest)
     kinds = {a["kind"] for a in manifest["assets"]}
