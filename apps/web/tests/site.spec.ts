@@ -87,6 +87,20 @@ test("home explains the portable toolkit and its product boundaries", async ({
   await expect(
     page.locator('meta[property="og:image:height"]'),
   ).toHaveAttribute("content", "630");
+  await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute(
+    "content",
+    /agent-toolkit\.io\/site\/og-portable\.png$/,
+  );
+  const twitterImageURL = new URL(
+    (await page
+      .locator('meta[name="twitter:image"]')
+      .getAttribute("content")) ?? "",
+  );
+  expect(
+    (
+      await page.request.get(new URL(twitterImageURL.pathname, page.url()).href)
+    ).ok(),
+  ).toBeTruthy();
   await expect(
     page.getByRole("link", { name: /get Veasel Code/i }),
   ).toHaveAttribute("href", "https://www.veasel.dev/downloads/");
@@ -140,19 +154,32 @@ test("legacy product routes are clearly labeled as archives", async ({
   await expect(
     page.getByRole("complementary", { name: /Legacy Desktop archive notice/i }),
   ).toContainText("retired Agent Toolkit Desktop");
+  await expect(page.locator(".page-hero-art figcaption")).toBeVisible();
   await page.goto("/people/");
   await expect(
     page.getByRole("complementary", { name: /Legacy Desktop archive notice/i }),
   ).toContainText("portable capability toolkit");
+  await expect(page.locator(".page-hero-art figcaption")).toBeVisible();
   await page.goto("/swarms/");
   await expect(
     page.getByRole("complementary", { name: /Legacy Desktop archive notice/i }),
   ).toContainText("Veasel Code");
+  await expect(page.locator(".page-hero-art figcaption")).toBeVisible();
   await capturePage(page, "swarms-archive-desktop.png");
   await page.goto("/people/");
   await capturePage(page, "people-desktop.png");
   await page.goto("/world/");
   await capturePage(page, "world-desktop.png");
+});
+
+test("nested docs paths expose only one current navigation item", async ({
+  page,
+}) => {
+  await page.goto("/docs/installation/");
+  await expect(page.locator(".desktop-nav [aria-current=page]")).toHaveCount(1);
+  await expect(page.locator('.desktop-nav a[aria-current="page"]')).toHaveText(
+    "Install",
+  );
 });
 
 test("capabilities are searchable and grouped from canonical catalogs", async ({

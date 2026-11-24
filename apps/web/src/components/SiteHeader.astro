@@ -6,6 +6,9 @@ const navigation = [
   { href: "/docs/", label: "Documentation" },
 ];
 const pathname = Astro.url.pathname;
+const currentHref = navigation
+  .filter((item) => pathname.startsWith(item.href))
+  .sort((left, right) => right.href.length - left.href.length)[0]?.href;
 ---
 
 <header class="site-header">
@@ -17,7 +20,7 @@ const pathname = Astro.url.pathname;
     {navigation.map((item) => (
       <a
         href={item.href}
-        aria-current={pathname.startsWith(item.href) ? "page" : undefined}
+        aria-current={currentHref === item.href ? "page" : undefined}
       >
         {item.label}
       </a>
@@ -36,7 +39,7 @@ const pathname = Astro.url.pathname;
       {navigation.map((item) => (
         <a
           href={item.href}
-          aria-current={pathname.startsWith(item.href) ? "page" : undefined}
+          aria-current={currentHref === item.href ? "page" : undefined}
         >
           {item.label}
         </a>

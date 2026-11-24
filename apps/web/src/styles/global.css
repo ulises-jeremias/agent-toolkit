@@ -675,12 +675,19 @@ h3 {
 }
 .page-hero-art {
   width: min(960px, 100%);
-  overflow: hidden;
-  aspect-ratio: 16 / 8.5;
   margin-top: 36px;
   margin-inline: 0;
 }
-.page-hero-art img {
+.page-hero-image {
+  width: 100%;
+  overflow: hidden;
+  aspect-ratio: 16 / 8.5;
+}
+.page-hero-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   object-position: center 40%;
 }
 .download-option {
@@ -1321,7 +1328,7 @@ h3 {
   .page-hero {
     padding-block: 56px 40px;
   }
-  .page-hero-art {
+  .page-hero-image {
     aspect-ratio: 4 / 3;
   }
   .download-option {
