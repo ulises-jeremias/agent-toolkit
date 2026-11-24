@@ -1,6 +1,6 @@
 capabilities:
   design/brag:
-    provenance_digest: sha256:f18f916506342a8032b1d1c0b3e2c23228ecdb2d9aa951a576e1411926052fdf
+    provenance_digest: sha256:fe6d38dfa7f093fffbc87cd27eb7f0d60ee9ca86f1273e2b63667497853a8d33
     sources:
       upstream:
         path: skills/brag
@@ -11,15 +11,15 @@ capabilities:
         resolved:
           body_checksum: sha256:578ca9772b37eadcb112d82c83a18636090539c07177459cbcf031b5bb1855c0
           commit: 7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a
-          content_checksum: sha256:723bddbb056a6c292b4e7e557b5ba6f77576fbcdfaa9090e171e2a56f59ad5e2
+          content_checksum: sha256:c6b088405b1846a46542f488b5d43072c8579f158880d44553ffa4a010fbb0d7
           license:
             checksum: sha256:92d538e0da9abeaafff8ecfc62e142f5053fa92b2c3ef29978742c325c554089
             source_path: skills/design/brag/LICENSE
             spdx: MIT
-          resolved_at: '2026-11-16T06:32:24.123739Z'
+          resolved_at: '2026-11-24T03:14:28.226014Z'
           version: 7c98a08
   design/brag-slim:
-    provenance_digest: sha256:10d91e805754c2b2b140b9baedc22d6bfd79ba37a51c7e8d804d8f70862138d6
+    provenance_digest: sha256:843d19978699b7fd5774a990cacfbee5447836b94768c5a8a8ccd5f93e8d0620
     sources:
       upstream:
         path: skills/brag-slim
@@ -30,12 +30,12 @@ capabilities:
         resolved:
           body_checksum: sha256:c5258b0f2ea2d4d7e2d94e023713e4d5a7d2c0f4a65dd3cab339b878fd7279d9
           commit: 7c98a0830fd2810c93b1f9da7d9edef98ed6ef8a
-          content_checksum: sha256:e4c44a335d33afe028f79c31d245e2ba09f97c0a1263e81b4d4d6fc4d025e42c
+          content_checksum: sha256:64453e6631a986975fe08850def44bb03d390685ac3a1655dcf0f374472da0a1
           license:
             checksum: sha256:92d538e0da9abeaafff8ecfc62e142f5053fa92b2c3ef29978742c325c554089
             source_path: skills/design/brag-slim/LICENSE
             spdx: MIT
-          resolved_at: '2026-11-16T06:32:24.123739Z'
+          resolved_at: '2026-11-24T03:14:28.226014Z'
           version: 7c98a08
   design/frontend-design:
     provenance_digest: sha256:607628946521b586e97cea8dfb1c14c92c99a4b4dbe40d2106031c5498208255
