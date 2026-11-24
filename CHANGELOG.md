@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.50.0] — 2026-11-24
+
 ### Added
 
 - Creative Studio (ADR-046): eight first-party `creative/` skills
@@ -21,6 +23,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `agent-toolkit-creative-studio` product, the `creative-studio` pack, and
   a portable project/manifest helper with an environment doctor. Upstream
   evidence: `docs/creative-studio/UPSTREAM_EVALUATION.md`.
+
+### Fixed
+
+- Ship the Creative Studio text-resource bundle as a deterministic,
+  SHA-256-verified sidecar in packaged CLI/Desktop and npm/PyPI outputs so
+  clean installs can load bundled capabilities without a pre-seeded workspace.
+- Stage the bundle in direct Desktop builds and CLI installs, and document
+  rollback steps that remove only the executable and its bundle while
+  preserving user data.
 
 
 ## [1.49.0] — 2026-11-11
