@@ -34,7 +34,7 @@ Do **not** duplicate Formula/PKGBUILD/npm `package.json` here. Those live in the
 
 ## Verification
 
-Consumers MUST verify checksums when [#530](https://github.com/ulises-jeremias/agent-toolkit/issues/530) ships `SHA256SUMS`. Attestations/SBOM, if present, prove **provenance of the build**, not “secure software”.
+Consumers MUST verify the release manifest's tag/source commit and the selected asset digest before install. Versioned standalone archives also contain the SHA-256-pinned offline resource bundle. `SHA256SUMS` remains an independent release checksum list. Attestations/SBOM, if present, prove **provenance of the build**, not “secure software”.
 
 `agent-toolkit update` never replaces the executable ([ADR-017](../docs/adrs/ADR-017-update-ownership.md)). Package managers own binary upgrades.
 

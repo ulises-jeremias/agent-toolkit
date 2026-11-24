@@ -160,8 +160,8 @@ Failure visibility on the releasing repo:
 
 Homebrew (`homebrew-tap`) and AUR (`aur-packages`) install versioned GitHub Release standalone archives, not raw floating binaries. The archive digest is checked against the release manifest and covers the executable, SHA-256-verified offline bundle, and license. PyPI `agent-toolkit-cli` remains a launcher wheel containing the bundle for `uv`/`pip` users ([ADR-021](adrs/ADR-021-pypi-binary.md)). npm `agent-toolkit-cli` + platform packages ship the executable beside the same bundle ([ADR-025](adrs/ADR-025-npm-binary.md)).
 
-* **Homebrew:** Formula `agent-toolkit.rb` `url`s `agent-toolkit-macos-*` / `agent-toolkit-linux-*` from the GitHub Release. Verify `brew install` then `agent-toolkit version`.
-* **AUR:** `agent-toolkit-bin` PKGBUILD sources the linux ELF + `SHA256SUMS`. Verify `yay -S agent-toolkit-bin` then `agent-toolkit version`.
+* **Homebrew:** Formula `agent-toolkit.rb` selects the versioned `agent-toolkit-<version>-<os>-<arch>.tar.gz` archive from the verified manifest. Verify `brew install` then `agent-toolkit version` and offline skill listing.
+* **AUR:** `agent-toolkit-bin` PKGBUILD selects the matching Linux archive from the verified manifest and installs its bundle under `/usr/share/agent-toolkit/data`. Verify `yay -S agent-toolkit-bin`, `agent-toolkit version`, and offline skill listing.
 
 See `docs/AUR_PLAYBOOK.md` for re-dispatch; downstream repos are the source of truth for their formulas.
 
