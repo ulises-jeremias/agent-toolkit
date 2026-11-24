@@ -54,7 +54,7 @@ pub fn data_list_rel_files(data_root string, src_dir string) []string {
 		// collect all embedded files under rel/
 		prefix := if rel.len == 0 { '' } else { rel + '/' }
 		mut out := []string{}
-		for k, _ in embedded_file_map {
+		for k in embedded_file_paths() {
 			if prefix.len == 0 {
 				// root — not used for install, but handle
 				out << k
