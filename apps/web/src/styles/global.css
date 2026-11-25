@@ -787,18 +787,17 @@ h3 {
 }
 .upstream-flow__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 66px minmax(0, 1.08fr) 66px minmax(
-      0,
-      0.95fr
-    );
+  grid-template-columns:
+    minmax(0, 1fr) 48px minmax(0, 1.02fr) 48px minmax(0, 1.08fr) 48px
+    minmax(0, 0.95fr);
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 .upstream-flow__node {
   display: grid;
   align-content: center;
-  min-height: 175px;
-  padding: 19px;
+  min-height: 190px;
+  padding: 17px;
   border: 1px solid #d0d6c8;
   border-radius: 5px;
   background: #fffdf6;
@@ -807,6 +806,10 @@ h3 {
   border-color: #a9b99e;
   background: #edf1e6;
   box-shadow: inset 0 0 0 1px rgb(87 111 90 / 10%);
+}
+.upstream-flow__node--review {
+  border-color: #c9a879;
+  background: #f5edda;
 }
 .upstream-flow__node--users {
   background: #f4e9dc;
@@ -852,8 +855,11 @@ h3 {
   stroke-dasharray: 8 130;
   animation: upstream-travel 5s ease-in-out infinite;
 }
+.upstream-flow__wire--middle .upstream-flow__spark {
+  animation-delay: 1.7s;
+}
 .upstream-flow__wire--downstream .upstream-flow__spark {
-  animation-delay: 2.2s;
+  animation-delay: 3.4s;
 }
 @keyframes upstream-travel {
   0%,

@@ -1,18 +1,33 @@
 # How upstream synchronization works
 
-Agent Toolkit can carry selected skills from other repositories. The source is
-declared and pinned so a proposed update can be checked against the exact
-upstream bytes, license and security surface. Synchronization prepares a
-reviewable change; it does not grant that change trust or install it on your
-machine.
+Agent Toolkit can carry selected skills from other repositories. Here,
+**upstream** means the repository and path where selected content originated;
+it is not a Git remote that is merged into Toolkit. The source is declared and
+pinned so a proposed update can be checked against exact upstream bytes, its
+license and its security surface. Synchronization prepares a reviewable change;
+it does not grant that change trust or install it on your machine.
 
 ## The path from source to a compatible tool
 
-The source repository and path identify where the content came from. The
-immutable commit and checksums record what was reviewed. Agent Toolkit then
-compiles eligible capabilities into its declared products and target profiles.
-Support is specific to each capability and tool; the catalog never means “works
-everywhere.”
+The flow has four distinct steps:
+
+1. **Name the source.** A capability declares its upstream repository, exact
+   path, requested ref and expected license.
+2. **Prepare a proposal.** Update tooling resolves an immutable commit, checks
+   the license and hashes, vendors the literal content, and records the
+   resolution in `capabilities/upstream.lock`. Changed content is marked
+   `experimental` and submitted as a draft PR.
+3. **Review and bind trust.** A person inspects the diff, attribution, security
+   declarations and tests. Only that reviewer can decide whether the content
+   is acceptable and bind the reviewed metadata to the exact provenance digest.
+4. **Distribute declared support.** After merge, the Toolkit can compile the
+   capability for its declared products and target profiles. Support is
+   specific to each capability and tool; the catalog never means “works
+   everywhere.” A merged capability may remain `experimental`; that status
+   travels with it and is not silently promoted by compilation or release.
+
+The upstream source does not receive changes back from this sync, and discovery
+does not install anything into a user's coding-tool profile.
 
 ## What the scheduled check does
 

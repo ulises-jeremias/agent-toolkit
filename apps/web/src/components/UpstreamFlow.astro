@@ -18,11 +18,29 @@
       <path class="upstream-flow__spark" d="M3 15 H92" />
     </svg>
     <article class="upstream-flow__node upstream-flow__node--toolkit">
-      <span class="upstream-flow__label">This repository</span>
-      <strong>Agent Toolkit</strong>
-      <code>content · provenance lock · trust</code>
+      <span class="upstream-flow__label">A proposed mirror</span>
+      <strong>Toolkit update</strong>
+      <code>literal files · license · checksums</code>
       <span class="upstream-flow__detail">
-        A proposed update stays experimental.
+        Automation opens a draft; changed content stays experimental.
+      </span>
+    </article>
+    <svg
+      class="upstream-flow__wire upstream-flow__wire--middle"
+      viewBox="0 0 100 30"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path class="upstream-flow__line" d="M3 15 H92 M84 6 L94 15 L84 24" />
+      <path class="upstream-flow__spark" d="M3 15 H92" />
+    </svg>
+    <article class="upstream-flow__node upstream-flow__node--review">
+      <span class="upstream-flow__label">Human trust review</span>
+      <strong>Review & bind trust</strong>
+      <code>diff · security · provenance digest</code>
+      <span class="upstream-flow__detail">
+        Only a named reviewer can restore reviewed status; otherwise it stays
+        experimental.
       </span>
     </article>
     <svg
@@ -35,8 +53,8 @@
       <path class="upstream-flow__spark" d="M3 15 H92" />
     </svg>
     <article class="upstream-flow__node upstream-flow__node--users">
-      <span class="upstream-flow__label">After review</span>
-      <strong>Compatible tools</strong>
+      <span class="upstream-flow__label">Toolkit outputs</span>
+      <strong>Declared targets</strong>
       <div class="upstream-flow__targets">
         <span>Claude Code</span>
         <span>Codex</span>
@@ -44,12 +62,13 @@
         <span>Veasel</span>
       </div>
       <span class="upstream-flow__detail">
-        Only declared, supported targets.
+        Trust status travels with it; support is capability-specific.
       </span>
     </article>
   </div>
   <figcaption id="upstream-flow-caption">
-    A pinned source can propose a change. A person reviews and approves it
-    before the capability becomes a trusted Toolkit release.
+    Upstream content enters as a pinned, reviewable proposal. Review changes
+    its trust status; distribution and target compatibility remain explicit
+    and separate.
   </figcaption>
 </figure>
