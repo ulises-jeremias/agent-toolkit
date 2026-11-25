@@ -5,10 +5,9 @@ import os
 import agent_toolkit_server
 import cli
 
-// veasel_desktop_candidates lists the canonical Veasel Desktop installs
-// the gui shim prefers (#1804): the Desktop moved to veasel-labs/veasel
-// in the One Runtime consolidation, so `agent-toolkit gui` launches it
-// when present and only falls back to a legacy Toolkit Desktop install.
+// veasel_desktop_candidates lists supported Veasel Desktop installs for the
+// Agent Toolkit migration shim. It deliberately never searches for the retired
+// Agent Toolkit Electron application.
 fn veasel_desktop_candidates() []string {
 	mut candidates := []string{}
 	if configured := os.getenv_opt('VEASEL_DESKTOP_BIN') {
@@ -27,34 +26,22 @@ fn veasel_desktop_candidates() []string {
 }
 
 fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
-	ver := agent_toolkit_core.resolve_toolkit_version()
-	release := 'https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v${ver}'
 	veasel_release := 'https://github.com/veasel-labs/veasel/releases'
 	if opts.install {
 		return render(agent_toolkit_core.CommandResult{
 			command: 'gui'
 			ok:      false
-			message: 'Desktop installation from the CLI is unavailable. The Desktop now ships as Veasel (AppImage/DEB, DMG, or Windows installer) from ${veasel_release}; legacy Toolkit Desktop builds remain at ${release}.'
+			message: 'Desktop installation from Agent Toolkit is unavailable. Install the supported Veasel Desktop from ${veasel_release}; this command does not change files.'
 		}, mode)
 	}
 	if opts.headless {
 		return render(agent_toolkit_core.CommandResult{
 			command: 'gui'
 			ok:      false
-			message: 'The Desktop does not have a headless GUI mode. Use agent-toolkit serve for automation.'
+			message: 'Veasel Desktop requires a graphical session. Use veasel serve for headless backend work.'
 		}, mode)
 	}
-	mut candidates := veasel_desktop_candidates()
-	configured := os.getenv('AGENT_TOOLKIT_DESKTOP_BIN')
-	if configured.len > 0 {
-		candidates << configured
-	}
-	candidates << os.join_path(os.home_dir(), '.local', 'bin', 'agent-toolkit-desktop')
-	mut xdg_data := os.getenv('XDG_DATA_HOME')
-	if xdg_data.len == 0 {
-		xdg_data = os.join_path(os.home_dir(), '.local', 'share')
-	}
-	candidates << os.join_path(xdg_data, 'agent-toolkit-desktop', 'app', 'agent-toolkit-desktop')
+	candidates := veasel_desktop_candidates()
 	mut bin := ''
 	for candidate in candidates {
 		if os.is_file(candidate) {
@@ -69,7 +56,7 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 			message: if bin.len > 0 {
 				'Would launch ${bin}'
 			} else {
-				'No installed Desktop found. Install Veasel from ${veasel_release} or set VEASEL_DESKTOP_BIN.'
+				'No Veasel Desktop found. Install it from ${veasel_release} or set VEASEL_DESKTOP_BIN.'
 			}
 			data:    {
 				'binary': bin
@@ -80,7 +67,7 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 		return render(agent_toolkit_core.CommandResult{
 			command: 'gui'
 			ok:      false
-			message: 'No installed Desktop found. The Desktop now ships as Veasel: install it from ${veasel_release} or set VEASEL_DESKTOP_BIN (legacy Toolkit Desktop installs and AGENT_TOOLKIT_DESKTOP_BIN are still honored).'
+			message: 'No Veasel Desktop found. Install it from ${veasel_release} or set VEASEL_DESKTOP_BIN.'
 		}, mode)
 	}
 	os.execvp(bin, [bin]) or {

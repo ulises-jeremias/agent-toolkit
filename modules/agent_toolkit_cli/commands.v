@@ -1373,29 +1373,29 @@ fn gui_command() cli.Command {
 	return cli.Command{
 		name: 'gui'
 		alias: 'desktop'
-		description: 'Launch the installed Electron Desktop'
+		description: 'Open Veasel Desktop (legacy compatibility alias)'
 		execute: atk_exec
 		group: 'Consumer commands'
 		examples: [
 			'\$ agent-toolkit gui',
 			'\$ agent-toolkit gui --dry-run',
 		]
-		learn_more: 'Install Agent Toolkit Desktop from GitHub Releases; the CLI launches an already installed Electron app.'
+		learn_more: 'Veasel Code owns the supported Desktop. This compatibility command opens an installed Veasel Desktop and never launches Agent Toolkit Desktop.'
 		flags: [
 			cli.Flag{
 				flag: .bool
 				name: 'install'
-				description: 'Deprecated; prints the current installer guidance without changing files'
+				description: 'Deprecated; prints Veasel Desktop installation guidance without changing files'
 			},
 			cli.Flag{
 				flag: .bool
 				name: 'run'
-				description: 'Launch installed Desktop (default)'
+				description: 'Launch Veasel Desktop (default)'
 			},
 			cli.Flag{
 				flag: .bool
 				name: 'headless'
-				description: 'Deprecated; use agent-toolkit serve for headless automation'
+				description: 'Deprecated; Veasel Desktop requires a graphical session'
 			},
 			cli.Flag{
 				flag: .string
