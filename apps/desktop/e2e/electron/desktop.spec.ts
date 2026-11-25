@@ -114,11 +114,34 @@ test('Ctrl+K opens the command palette and keeps session context', async () => {
   await expect(page).toHaveURL(new RegExp(`workspace=${encodeURIComponent(workspace)}`));
 });
 
-test('palette offers supported terminal, job and loop workflows without retired Swarm start', async () => {
+test('palette opens supported terminal, job and loop workflows without retired Swarm start', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
   await expect(page.getByRole('button', { name: 'Start swarm' })).toHaveCount(0);
   await expect(page.getByText('New coding-agent delegation runs in Veasel Code.')).toBeVisible();
+
+  const openAction = async (search: string, pattern: string | RegExp) => {
+    await page.keyboard.press('Control+k');
+    const palette = page.getByRole('dialog', { name: 'Commands' });
+    await palette.getByLabel('Filter commands').fill(search);
+    const option = palette.getByRole('option').first();
+    await expect(option).toHaveAttribute('aria-selected', 'true');
+    await expect(option).toContainText(search);
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog', { name: pattern })).toBeVisible();
+  };
+
+  await openAction('Run a loop as a job', 'Run a loop once');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Run a loop once' })).toBeHidden();
+
+  await openAction('Start a job', 'Start a job');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Start a job' })).toBeHidden();
+
+  await openAction('New terminal session', 'New terminal session');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'New terminal session' })).toBeHidden();
 
   await page.keyboard.press('Control+k');
   const palette = page.getByRole('dialog', { name: 'Commands' });

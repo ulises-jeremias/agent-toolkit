@@ -44,6 +44,7 @@ describe('filterCommands', () => {
   });
 
   it('retires the Toolkit swarm launcher and keeps the current world theme names', () => {
+    expect(PALETTE_COMMANDS.map((command) => command.id)).not.toContain('session:start-swarm');
     expect(filterCommands(PALETTE_COMMANDS, 'start a swarm').map((command) => command.id)).not.toContain(
       'session:start-swarm',
     );

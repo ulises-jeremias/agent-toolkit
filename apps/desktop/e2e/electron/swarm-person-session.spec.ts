@@ -4,17 +4,6 @@ import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { openDesktop, waitForBackend, type Desktop } from './fixtures';
 
-function backendBinary(): string {
-  const candidates = [
-    process.env['ATK_E2E_BACKEND_BIN'],
-    path.resolve(__dirname, '../../../../dist/agent-toolkit'),
-    path.resolve(__dirname, '../../../../build/agent-toolkit'),
-  ].filter((candidate): candidate is string => Boolean(candidate));
-  const binary = candidates.find((candidate) => fs.existsSync(candidate));
-  if (!binary) throw new Error('The E2E backend binary is unavailable for the Swarm retirement check');
-  return binary;
-}
-
 /**
  * Swarm v1 is retired for new Toolkit runs. Existing run records remain
  * inspectable, but neither Operations nor the command palette may imply that
@@ -42,10 +31,14 @@ test('Toolkit Desktop keeps historical Swarm inspection and directs new work to 
     await page.keyboard.press('Escape');
 
     const before = path.join(workspace, '.agent-toolkit', 'swarm', 'runs');
-    const existing = fs.existsSync(before) ? fs.readdirSync(before).sort() : [];
+    const sentinel = path.join(before, 'existing-run', 'state.json');
+    fs.mkdirSync(path.dirname(sentinel), { recursive: true });
+    fs.writeFileSync(sentinel, '{"run_id":"existing-run","state":"preserved"}\n');
+    const existing = fs.readdirSync(before).sort();
+    const existingState = fs.readFileSync(sentinel);
     let failure = '';
     try {
-      execFileSync(backendBinary(), ['swarm', 'start', '--recipe', 'pair', '--workspace', workspace, '--dry-run'], {
+      execFileSync(desktop.backendBin, ['swarm', 'start', '--recipe', 'pair', '--workspace', workspace, '--dry-run'], {
         env: {
           ...process.env,
           HOME: desktop.home,
@@ -61,8 +54,8 @@ test('Toolkit Desktop keeps historical Swarm inspection and directs new work to 
       failure = `${result.stderr?.toString() ?? ''}${result.stdout?.toString() ?? ''}`;
     }
     expect(failure).toContain('feature-frozen');
-    const after = fs.existsSync(before) ? fs.readdirSync(before).sort() : [];
-    expect(after).toEqual(existing);
+    expect(fs.readdirSync(before).sort()).toEqual(existing);
+    expect(fs.readFileSync(sentinel)).toEqual(existingState);
   } finally {
     await desktop.close();
   }

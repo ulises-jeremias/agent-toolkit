@@ -46,11 +46,12 @@ Before deleting `apps/desktop/`, its workflows, or its tests:
    platforms before removing the last tested source implementation.
 
 Until those gates pass, the code is **unmaintained migration source**, not a
-supported second product. The Swarm v1 retirement E2Es verify only that new
-Toolkit runs are blocked without mutating existing run storage and that the
-old UI directs users to Veasel. They do not prove Veasel parity, packaged
-daily-driver acceptance, or migration of People/project data. Other historical
-Desktop tests must not be described as current Veasel acceptance.
+supported second product. The Swarm v1 retirement E2Es verify that new Toolkit
+runs are blocked, the run-directory entries and seeded state-file contents
+remain unchanged, and the old UI directs users to Veasel. They do not prove
+Veasel parity, packaged daily-driver acceptance, or migration of People/project
+data. Other historical Desktop tests must not be described as current Veasel
+acceptance.
 
 ## Current entry points
 
