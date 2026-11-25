@@ -45,29 +45,17 @@ test('Toolkit Desktop keeps historical Swarm inspection and directs new work to 
     const existing = fs.existsSync(before) ? fs.readdirSync(before).sort() : [];
     let failure = '';
     try {
-      execFileSync(
-        backendBinary(),
-        [
-          'swarm',
-          'start',
-          '--recipe',
-          'pair',
-          '--workspace',
-          workspace,
-          '--dry-run',
-        ],
-        {
-          env: {
-            ...process.env,
-            HOME: desktop.home,
-            XDG_CONFIG_HOME: path.join(desktop.home, '.config'),
-            XDG_DATA_HOME: path.join(desktop.home, '.local', 'share'),
-            AGENT_TOOLKIT_WORKSPACE: workspace,
-          },
-          encoding: 'utf8',
-          stdio: 'pipe',
+      execFileSync(backendBinary(), ['swarm', 'start', '--recipe', 'pair', '--workspace', workspace, '--dry-run'], {
+        env: {
+          ...process.env,
+          HOME: desktop.home,
+          XDG_CONFIG_HOME: path.join(desktop.home, '.config'),
+          XDG_DATA_HOME: path.join(desktop.home, '.local', 'share'),
+          AGENT_TOOLKIT_WORKSPACE: workspace,
         },
-      );
+        encoding: 'utf8',
+        stdio: 'pipe',
+      });
     } catch (error) {
       const result = error as { stderr?: Buffer | string; stdout?: Buffer | string };
       failure = `${result.stderr?.toString() ?? ''}${result.stdout?.toString() ?? ''}`;
