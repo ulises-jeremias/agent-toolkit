@@ -3,5 +3,19 @@
   "framework": "astro",
   "installCommand": "pnpm install --frozen-lockfile --filter agent-toolkit-web",
   "buildCommand": "pnpm --filter agent-toolkit-web build",
-  "outputDirectory": "apps/web/dist"
+  "outputDirectory": "apps/web/dist",
+  "redirects": [
+    { "source": "/world", "destination": "/download/", "permanent": true },
+    { "source": "/world/:path*", "destination": "/download/", "permanent": true },
+    { "source": "/people", "destination": "/download/", "permanent": true },
+    { "source": "/people/:path*", "destination": "/download/", "permanent": true },
+    { "source": "/swarms", "destination": "/download/", "permanent": true },
+    { "source": "/swarms/:path*", "destination": "/download/", "permanent": true },
+    { "source": "/docs/desktop", "destination": "/download/", "permanent": true },
+    { "source": "/docs/desktop/:path*", "destination": "/download/", "permanent": true },
+    { "source": "/docs/world", "destination": "/download/", "permanent": true },
+    { "source": "/docs/world/:path*", "destination": "/download/", "permanent": true },
+    { "source": "/docs/people", "destination": "/download/", "permanent": true },
+    { "source": "/docs/people/:path*", "destination": "/download/", "permanent": true }
+  ]
 }

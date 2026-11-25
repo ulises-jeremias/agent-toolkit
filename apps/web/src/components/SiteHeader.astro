@@ -1,9 +1,8 @@
 ---
 const navigation = [
-  { href: "/capabilities/", label: "Capabilities" },
-  { href: "/docs/installation/", label: "Install" },
-  { href: "/docs/compatibility/", label: "Compatibility" },
-  { href: "/docs/", label: "Documentation" },
+  { href: "/capabilities/", label: "Explore" },
+  { href: "/docs/", label: "Field guide" },
+  { href: "/docs/installation/", label: "Install CLI" },
 ];
 const pathname = Astro.url.pathname;
 const currentHref = navigation
@@ -12,30 +11,12 @@ const currentHref = navigation
 ---
 
 <header class="site-header">
-  <a class="brand" href="/" aria-label="Agent Toolkit home">
-    <img src="/favicon.svg" width="40" height="40" alt="" />
-    <span>Agent Toolkit</span>
-  </a>
-  <nav class="desktop-nav" aria-label="Main navigation">
-    {navigation.map((item) => (
-      <a
-        href={item.href}
-        aria-current={currentHref === item.href ? "page" : undefined}
-      >
-        {item.label}
-      </a>
-    ))}
-    <a class="nav-download" href="https://www.veasel.dev/downloads/">
-      Get Veasel <span aria-hidden="true">↗</span>
+  <div class="site-header-inner">
+    <a class="brand" href="/" aria-label="Agent Toolkit home">
+      <img src="/favicon.svg" width="40" height="40" alt="" />
+      <span>Agent Toolkit</span>
     </a>
-  </nav>
-  <details class="mobile-nav">
-    <summary aria-label="Open navigation">
-      <span></span>
-      <span></span>
-      <span></span>
-    </summary>
-    <nav aria-label="Mobile navigation">
+    <nav class="desktop-nav" aria-label="Main navigation">
       {navigation.map((item) => (
         <a
           href={item.href}
@@ -44,8 +25,27 @@ const currentHref = navigation
           {item.label}
         </a>
       ))}
-      <a href="/docs/installation/">Install Agent Toolkit CLI</a>
-      <a href="https://www.veasel.dev/downloads/">Get Veasel Code ↗</a>
+      <a class="nav-download" href="https://www.veasel.dev/downloads/">
+        Veasel Code <span aria-hidden="true">↗</span>
+      </a>
     </nav>
-  </details>
+    <details class="mobile-nav">
+      <summary aria-label="Open navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </summary>
+      <nav aria-label="Mobile navigation">
+        {navigation.map((item) => (
+          <a
+            href={item.href}
+            aria-current={currentHref === item.href ? "page" : undefined}
+          >
+            {item.label}
+          </a>
+        ))}
+        <a href="https://www.veasel.dev/downloads/">Get Veasel Code ↗</a>
+      </nav>
+    </details>
+  </div>
 </header>
