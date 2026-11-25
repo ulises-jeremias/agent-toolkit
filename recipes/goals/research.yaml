@@ -1,0 +1,9 @@
+id: research
+version: 1
+purpose: Gather primary evidence and record uncertainty before proposing work.
+steps:
+  - inspect_sources
+  - record_findings_and_unknowns
+  - verify_claims
+  - produce_evidence_index
+completion: Every finding links to a source or is marked unverified.

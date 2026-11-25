@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-toolkit.io/schemas/goal-v1.schema.json",
+  "title": "Agent Toolkit portable Goal v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "id",
+    "title",
+    "authorized_repositories",
+    "acceptance_criteria",
+    "deadline",
+    "budget",
+    "delivery_mode",
+    "tasks"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^(?!\\.\\.?$)[A-Za-z0-9._-]{1,100}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[^\\x00-\\x1f\\x7f]{1,200}$"
+    },
+    "authorized_repositories": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/repository"
+      }
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/acceptance"
+      }
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "budget": {
+      "$ref": "#/$defs/budget"
+    },
+    "delivery_mode": {
+      "enum": [
+        "report",
+        "draft"
+      ]
+    },
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/task"
+      }
+    }
+  },
+  "$defs": {
+    "repository": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "owner",
+        "name",
+        "path"
+      ],
+      "properties": {
+        "owner": {
+          "type": "string",
+          "pattern": "^(?!\\.\\.?$)[A-Za-z0-9._-]{1,100}$"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^(?!\\.\\.?$)[A-Za-z0-9._-]{1,100}$"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "acceptance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "description",
+        "verification"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^(?!\\.\\.?$)[A-Za-z0-9._-]{1,100}$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verification": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "max_attempts",
+        "wall_seconds",
+        "provider_turns"
+      ],
+      "properties": {
+        "max_attempts": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "wall_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "provider_turns": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "title",
+        "repository",
+        "base_sha",
+        "paths",
+        "recipe",
+        "runner",
+        "verifier"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^(?!\\.\\.?$)[A-Za-z0-9._-]{1,100}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[^\\x00-\\x1f\\x7f]{1,200}$"
+        },
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "base_sha": {
+          "type": "string",
+          "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"
+        },
+        "paths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^(?!/)(?!.*[\\\\])(?!.*//)(?!.*:)(?!.*\\x00)(?!.*(?:^|/)\\s*(?:/|$))(?!.*(?:^|/)(?:[.]|[.][.])(?:/|$))(?!.*(?:^|/)[.][gG][iI][tT](?:/|$)).+$"
+          }
+        },
+        "depends_on": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "recipe": {
+          "enum": [
+            "research",
+            "bug",
+            "feature",
+            "migration",
+            "release"
+          ]
+        },
+        "runner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verifier": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

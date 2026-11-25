@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-toolkit.io/schemas/goal-evidence-v1.schema.json",
+  "title": "Goal v1 evidence receipt",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "task_id",
+    "attempt",
+    "repository",
+    "base_sha",
+    "candidate_sha",
+    "mode",
+    "environment",
+    "verifier_identity",
+    "verifier_version",
+    "result",
+    "digests"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "pattern": "^(?!\\.\\.?$)[A-Za-z0-9._-]{1,100}$"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "repository": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base_sha": {
+      "type": "string",
+      "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"
+    },
+    "candidate_sha": {
+      "type": "string",
+      "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"
+    },
+    "mode": {
+      "enum": [
+        "hermetic",
+        "real"
+      ]
+    },
+    "environment": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verifier_identity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verifier_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "result": {
+      "enum": [
+        "pass",
+        "fail",
+        "inconclusive"
+      ]
+    },
+    "digests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^sha256:[a-f0-9]{64}$"
+      }
+    }
+  }
+}

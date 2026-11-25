@@ -1,0 +1,9 @@
+id: migration
+version: 1
+purpose: Move capability or data while preserving provenance and recovery options.
+steps:
+  - inventory_source_and_destination
+  - define_mapping_and_loss_report
+  - rehearse_on_disposable_copy
+  - verify_round_trip_and_rollback
+completion: Source identity, destination evidence, and unresolved losses are documented.
