@@ -1,82 +1,20 @@
-# Agent Toolkit Desktop
+# Archived Electron source
 
-Electron + React workstation over the canonical `agent-toolkit serve` backend.
-See [ADR-033](../../docs/adrs/ADR-033-electron-desktop.md) and the
-[Desktop UX architecture](../../docs/desktop/UX_ARCHITECTURE.md).
+This directory contains the former Agent Toolkit Desktop. It is not the
+supported graphical product, and new Agent Toolkit releases do not publish
+Electron installers. Use [Veasel Code](https://github.com/veasel-labs/veasel)
+for the supported TUI and Desktop.
 
-Foundation: Create Awesome Node App `react-vite-starter` (React 19, Vite 8,
-TypeScript 6 strict, ESLint + jsx-a11y + Prettier). All package management
-with **pnpm** only — one canonical lockfile at the repo root.
+The source and its CI checks are retained temporarily while migration,
+preservation, and security work is completed. This archive is not a roadmap:
+do not add product features, restore its release channel, or treat its UI
+journeys as evidence for current Veasel behavior. New coding-session,
+provider, Focus, and World implementation belongs in Veasel.
 
-## Architecture
-
-- **V is the backend** for projects, Git, skills, memory, people, loops and
-  installs. Those read/mutate through the typed client in `src/lib/api/`
-  (TanStack Query owns server state). No CLI-output parsing.
-- **Focus sessions run in `electron/focus/`** ([ADR-044](../../docs/adrs/ADR-044-desktop-session-runtime.md)):
-  one adapter per provider drives the user's installed CLI over its
-  structured protocol and journals a canonical thread/turn/event model in
-  `<workspace>/.agent-toolkit/focus/`. The renderer only projects it.
-- **The rest of `electron/` is infrastructure**: window lifecycle, supervising the
-  bundled `agent-toolkit serve --no-browser` on a dynamic localhost port
-  (health-gated, version-checked, crash-detected, clean shutdown), narrow
-  typed preload bridge (`contextIsolation`, no `nodeIntegration`), and the
-  node-pty terminal transport adapter.
-- Six places plus Settings: **World** (home), **Focus** (sessions with a
-  coding agent), **Projects**, **People**, **Library** and **Operations**
-  (with Needs you, Terminals and Health as tabs). Domain actions use typed
-  backend endpoints. The journey ledger identifies behavior that still has
-  limits.
-
-Product behavior, real Electron captures and known gaps are indexed in the
-[Desktop guide](../../docs/desktop/README.md). It is the user-facing source for
-the world metaphor; [VISUAL_QA.md](../../docs/desktop/VISUAL_QA.md) is the
-engineering evidence log, not a promise that every open visual issue is solved.
-
-## Develop
-
-```bash
-pnpm install                    # from repo root (builds electron, node-pty)
-pnpm --filter agent-toolkit-desktop dev          # renderer vs any backend
-pnpm --filter agent-toolkit-desktop dev:electron # build Electron main, then launch the shell
-pnpm --filter agent-toolkit-desktop gen:api      # regenerate from docs/surface/openapi.json
-```
-
-Backend for renderer dev: `agent-toolkit serve --no-browser`, or set
-`VITE_ATK_BACKEND_URL` (default `http://127.0.0.1:3847`).
-
-## Gates
-
-```bash
-pnpm --filter agent-toolkit-desktop lint
-pnpm --filter agent-toolkit-desktop type-check
-pnpm --filter agent-toolkit-desktop test
-pnpm --filter agent-toolkit-desktop build        # renderer
-pnpm --filter agent-toolkit-desktop build:all    # renderer + electron main
-pnpm --filter agent-toolkit-desktop test:e2e     # Playwright vs live backend
-pnpm --filter agent-toolkit-desktop dist:dir     # electron-builder, unpacked (Linux verified)
-```
-
-For Electron acceptance against an already packaged app, set
-`ATK_E2E_APP_PATH` to its executable and `ATK_E2E_BACKEND_BIN` to the backend
-binary to use:
-
-```bash
-ATK_E2E_APP_PATH=/path/to/agent-toolkit-desktop \
-ATK_E2E_BACKEND_BIN=/path/to/agent-toolkit \
-pnpm --filter agent-toolkit-desktop test:e2e --project=electron
-```
-
-Playwright then runs only Electron tests and skips the renderer build and Vite
-preview server; the packaged application serves its own renderer. The tests
-still create a throwaway HOME and workspace for every run.
-
-## Decisions that differ from the template (documented, not accidental)
-
-- `tsconfig.json` has no project `references`; renderer and electron/node
-  projects type-check independently (`tsc --noEmit && tsc -p tsconfig.node.json --noEmit`).
-- ESLint uses `tseslint.configs.recommended` (not type-checked) like the
-  template; strict safety comes from `tsc`. import-x uses the node resolver:
-  its TypeScript resolver does not support TS 6 yet.
-- `vite-plugin-eslint` types come from a local `vite-plugin-eslint.d.ts` shim
-  (the package's exports map breaks TS `bundler` resolution).
+Before changing or removing this source, consult
+[`docs/VEASEL_COMPATIBILITY.md`](../../docs/VEASEL_COMPATIBILITY.md). Existing
+installations and local data must remain untouched unless a reviewed,
+reversible migration explicitly handles them. Preserve original PXL source,
+license and attribution records, and tests that prove behavior not yet
+accounted for. Historical captures and workflows in `docs/desktop/` are not
+current product claims.

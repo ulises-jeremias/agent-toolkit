@@ -1,62 +1,59 @@
-# Veasel compatibility and Desktop retirement policy
+# Agent Toolkit and Veasel Code: product boundary and migration
 
 Cross-repo epic: [veasel-labs/veasel#689](https://github.com/veasel-labs/veasel/issues/689) ·
 Tracking issue: [#1804](https://github.com/ulises-jeremias/agent-toolkit/issues/1804) ·
 Decision: ADR-0001 in `veasel-labs/veasel` (`docs/adr/0001-one-product-one-runtime.md`).
 
-## What stays here
+## Product ownership
 
-Agent Toolkit remains the canonical home for portable Skills, agents,
-MCP configuration, context packs, workflow recipes, the CLI, and its
-distribution (npm/PyPI/AUR/Homebrew/Docker). Portable `agent-toolkit`
-commands, catalogs (`capabilities/`, `skills/`, `agents/`, `packs/`,
-`schemas/`), and install receipts keep working. The old `gui`/`desktop`
-entry point is an explicit migration shim to Veasel and does not launch or
-modify the retired Toolkit Desktop.
+| Product | Owns |
+| --- | --- |
+| Agent Toolkit (this repository) | Portable skills, agent definitions, MCP templates, context/workflow recipes, provenance, compatibility tooling, CLI, and distribution |
+| [Veasel Code](https://github.com/veasel-labs/veasel) | The supported coding product, designed around one TUI/Desktop backend and session runtime, Focus, and optional World |
+| [Official Veasel plugin catalog](https://github.com/veasel-labs/agent-toolkit) | Curated/community plugin manifests, provenance, review policy, and publishing; no runtime |
 
-## Legacy Desktop retirement status
+Agent Toolkit remains independently useful with other supported coding tools.
+Use Veasel Code for interactive coding. Its packaged shared-session experience
+remains an acceptance gate in [Veasel #550](https://github.com/veasel-labs/veasel/issues/550).
 
-Veasel Code is the supported graphical product and owns the canonical
-session runtime. The old Electron Desktop in this repository is retired as
-a product: new Toolkit releases do not publish its installers. Its source,
-historical evidence, and user data are retained during the migration audit
-so unique portable assets and existing data are not lost. Retaining this
-source does not mean that the old Desktop remains supported or is a second
-runtime recommendation.
+## Former Toolkit Electron Desktop
 
-Veasel Focus uses the canonical Veasel session/event API, and the Toolkit
-shim opens Veasel only. Official Desktop installers are published for Linux,
-macOS, and Windows. Packaged same-session continuation, restart recovery, and
-provider journeys remain tracked in [Veasel issue
-#550](https://github.com/veasel-labs/veasel/issues/550); those acceptance
-checks are not implied by this compatibility contract. See the current
-[Veasel release](https://github.com/veasel-labs/veasel/releases/latest) and
-[Focus migration issue](https://github.com/veasel-labs/veasel/issues/692).
+The Electron app under `apps/desktop/` is retired from active product
+development. New Agent Toolkit releases distribute the portable CLI and
+capabilities; new graphical coding work belongs in Veasel Code. The old source
+and its tests remain temporarily while unique behavior, artwork, and local
+data formats are accounted for. This is not a promise of future Electron
+support or compatibility with future operating systems.
 
-## CLI compatibility shim
+The Veasel migration and packaged acceptance are still tracked in
+[veasel-labs/veasel#550](https://github.com/veasel-labs/veasel/issues/550),
+the cross-repository epic [#689](https://github.com/veasel-labs/veasel/issues/689),
+and the World milestone [#693](https://github.com/veasel-labs/veasel/issues/693).
+Passing component tests or publishing an installer does not close those
+acceptance requirements.
 
-- `agent-toolkit gui` and its `desktop` alias remain for existing scripts,
-  but they only launch an installed Veasel Desktop. The shim never searches
-  for or falls back to an Agent Toolkit Electron binary. If Veasel is not
-  installed, it points to Veasel's release page.
-- `agent-toolkit gui --install` is deprecated guidance only; it does not
-  download, install, or change files.
-- The shim does not read, migrate, or delete legacy Desktop data. Existing
-  user data stays at its original path. Any future importer must be a
-  separate, previewable, reversible operation that preserves the source.
-- Skills, agents, MCP templates, and packs remain portable Toolkit
-  capabilities. Veasel consumes supported declarations without creating a
-  second copy or runtime.
+## Existing installations and user data
 
-## Distribution status (2026-11-25)
+- Existing Electron installations, release assets, workspaces, and user data
+  are not deleted or rewritten by this repository's release process.
+- Veasel Code does not automatically import Toolkit Desktop state. Do not
+  promise that Focus journals, MCP credentials, People, workspace settings,
+  or local run history have migrated unless a tested importer proves it.
+- Before removing an old installation or local data directory, inspect and
+  back it up. The likely locations include Electron `userData` and workspace
+  `.agent-toolkit/` directories; do not assume all users share one path.
+- Portable skills, agents, packs, and templates remain in their canonical
+  source formats here. Their use in Veasel must preserve provenance and must
+  not overwrite user-owned tool configuration.
 
-New Toolkit release tags publish the CLI and portable capability
-distributions only. Electron packaging and GUI acceptance workflows still
-exist in this source tree as migration-era checks; they are not release
-artifacts and do not make the retired application a supported product. The
-legacy update panel detects whether the current platform's installer exists
-before reporting an update, and links users to Veasel when it does not.
-Historical Toolkit Desktop release assets and user data are left untouched.
+## Compatibility command status
+
+In current `main`, `agent-toolkit gui` / `desktop` is a Veasel-only guidance
+alias and never launches the former Electron app; see merged
+[PR #1851](https://github.com/ulises-jeremias/agent-toolkit/pull/1851). The
+published v1.50.0 CLI predates this change, so its behavior may still differ
+until a new Toolkit release is published. Invoke Veasel Code directly in the
+meantime.
 
 ## Publishing into the Veasel catalog by reference (#1806)
 

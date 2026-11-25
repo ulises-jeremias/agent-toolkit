@@ -1,117 +1,44 @@
-"""Swarm role alignment — #870: swarm runtime roles vs canonical agent taxonomy."""
+"""Guard the retired Swarm v1 public documentation boundary."""
 
 from __future__ import annotations
 
 import pathlib
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-AGENTS_DIR = REPO / "agents"
-SWARM_ROLES_DOC = REPO / "docs" / "SWARM_ROLES.md"
-SWARM_RECIPES = REPO / "docs" / "SWARM_RECIPES.md"
-SWARMS_DOC = REPO / "docs" / "SWARMS.md"
-ARCHITECTURE = REPO / "docs" / "ARCHITECTURE.md"
-
-CANONICAL_AGENTS = {p.name for p in AGENTS_DIR.iterdir() if p.is_dir()}
-RUNTIME_ONLY = {"integrator", "hardener", "refactorer"}
 
 
-def test_swarm_roles_doc_exists():
-    assert SWARM_ROLES_DOC.is_file(), "docs/SWARM_ROLES.md required by #870"
-    text = SWARM_ROLES_DOC.read_text(encoding="utf-8")
-    assert "Runtime Roles vs Canonical Agent Taxonomy" in text
-    assert "Validate with `python3 -m pytest tests/test_swarm_alignment.py" in text
-
-
-def test_vocab_section():
-    text = SWARM_ROLES_DOC.read_text(encoding="utf-8")
-    for term in ["Persona", "Runtime role", "Skill", "Model profile"]:
-        assert term in text, f"vocab missing {term!r}"
-    assert "Never conflate" in text or "never conflate" in text.lower()
-
-
-def test_every_runtime_role_mapped():
-    text = SWARM_ROLES_DOC.read_text(encoding="utf-8")
-    for role in [
-        "planner",
-        "implementer",
-        "reviewer",
-        "integrator",
-        "architect",
-        "refactorer",
-        "hardener",
-        "qa",
-        "designer",
-    ]:
-        assert f"`{role}`" in text, f"SWARM_ROLES.md missing runtime role `{role}`"
-
-
-def test_integrator_positioned_as_runtime_not_holistic():
-    text = SWARM_ROLES_DOC.read_text(encoding="utf-8")
-    assert "integrator" in text.lower()
-    assert "Runtime responsibility" in text or "runtime responsibility" in text
-    assert "not a permanent daily persona" in text or "not a permanent" in text.lower()
-    assert "`architect` in integrator policy" in text or "architect` acting as integrator" in text
-
-
-def test_hardener_conditional_activation():
-    text = SWARM_ROLES_DOC.read_text(encoding="utf-8")
-    assert "hardener" in text
-    assert "Conditional" in text
-    assert "security-reviewer" in text
-    assert "TYPESCRIPT_CHECKLIST.md" in text or "DATABASE_CHECKLIST.md" in text
-
-
-def test_refactorer_not_inflated_to_agent():
-    text = SWARM_ROLES_DOC.read_text(encoding="utf-8")
-    assert "refactorer" in text
-    assert "reviewer" in text.lower()
-    assert "REFACTOR_CHECKLIST.md" in text
-    assert "Do not add them to `agents/`" in text or "not holistic" in text
-
-
-def test_no_runtime_role_is_canonical_except_planner_implementer_etc():
-    for role in RUNTIME_ONLY:
-        assert role not in CANONICAL_AGENTS, (
-            f"runtime role {role!r} must not be a canonical agent dir"
-        )
-
-
-def test_recipe_tables_use_canonical_personas():
-    text = SWARM_ROLES_DOC.read_text(encoding="utf-8")
-    assert "### pair" in text
-    assert "`implementer` | `implementer`" in text or "| `implementer`" in text
-    assert "### team" in text
-    assert "### full" in text
-    assert "`qa` | `qa-engineer`" in text or "qa-engineer" in text
-
-
-def test_invariants_section():
-    text = SWARM_ROLES_DOC.read_text(encoding="utf-8")
-    assert "## 4. Invariants" in text
-    assert "No parallel taxonomy" in text
-    assert "Integrator/hardener/refactorer are not holistic" in text or "not holistic" in text
-    assert "Independent boundaries" in text or "Independent" in text
-
-
-def test_existing_swarm_docs_reference_roles_doc():
-    for path in [SWARM_RECIPES, SWARMS_DOC]:
-        assert path.is_file(), f"missing {path}"
+def test_current_consumer_docs_do_not_advertise_swarm_start_examples():
+    paths = [
+        REPO / "README.md",
+        REPO / "docs" / "INSTALLATION.md",
+        REPO / "docs" / "TROUBLESHOOTING.md",
+        REPO / "docs" / "SWARMS.md",
+        REPO / "docs" / "CLI_SURFACES.md",
+    ]
+    for path in paths:
         text = path.read_text(encoding="utf-8")
-        assert "SWARM_ROLES.md" in text or "SWARM_ROLES" in text, (
-            f"{path.name} must reference SWARM_ROLES.md"
-        )
+        assert "agent-toolkit swarm start --" not in text, path
+        assert "agent-toolkit swarm init --" not in text, path
 
 
-def test_swarm_roles_references_canonical_sources():
-    text = SWARM_ROLES_DOC.read_text(encoding="utf-8")
-    for ref in [
-        "docs/AGENT_TAXONOMY.md",
-        "docs/SWARM_RECIPES.md",
-        "capabilities/skills/registry.yaml",
-    ]:
-        assert ref in text, f"SWARM_ROLES.md should cite {ref}"
+def test_retirement_docs_state_the_data_boundary_and_veasel_owner():
+    disposition = (REPO / "docs" / "SWARM_V1_DISPOSITION.md").read_text(encoding="utf-8")
+    assert "reject Swarm v1 `start` and `init`" in disposition
+    assert "No general Swarm-to-Veasel importer exists" in disposition
+    assert "user-owned" in disposition
+    assert "github.com/veasel-labs/veasel" in disposition
 
 
-def test_architecture_swarms_section_consistent():
-    assert ARCHITECTURE.is_file()
-    assert SWARM_ROLES_DOC.is_file()
+def test_old_swarm_guides_are_archived_not_actionable():
+    paths = list((REPO / "docs").glob("SWARM_*.md")) + [
+        REPO / "docs" / "HOW_TO_CREATE_SWARM_RECIPE.md",
+        REPO / "docs" / "v" / "swarm.md",
+        REPO / "docs" / "v" / "swarm-visual-testing.md",
+    ]
+    for path in paths:
+        if path.name == "SWARM_V1_DISPOSITION.md":
+            continue
+        text = path.read_text(encoding="utf-8")
+        assert "(archived)" in text, path
+        assert "retirement and data boundary" in text, path
+        assert "agent-toolkit swarm start --" not in text, path

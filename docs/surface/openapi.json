@@ -845,7 +845,7 @@
     "/api/v1/swarms/{sub}": {
       "post": {
         "operationId": "swarm",
-        "summary": "Multi-agent swarm orchestration",
+        "summary": "Swarm v1 history inspection and recovery; new starts are disabled",
         "tags": [
           "advanced"
         ],

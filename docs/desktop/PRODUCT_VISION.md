@@ -5,18 +5,27 @@
 > Veasel is the supported graphical application. This document preserves the
 > legacy Desktop's design and acceptance context; it is not a claim that Toolkit
 > Desktop remains the current product.
+> **Archive notice (2026-11-25):** The sections below preserve the former
+> Electron product's vision and acceptance history. They are not current
+> implementation instructions. Agent Toolkit does not maintain a Desktop
+> product; Veasel Code owns the supported TUI and Desktop. See the
+> [migration map](../LEGACY_DESKTOP_MIGRATION.md).
+> **2026-11-04 historical daily-driver reset:** At that time, the owner reported
+> the former Desktop was not usable as a real coding-agent daily driver. The
+> then-current architecture and workflow ledger did not establish acceptance.
+> This record does not describe current Veasel status; use Veasel #550 and the
+> Veasel repository's packaged evidence for that.
 
-> **2026-11-04 daily-driver reset:** The owner reports that current Desktop is not usable as a real coding-agent daily driver. The current architecture and 18/18 `ok` component workflow ledger do **not** constitute user acceptance. Mission [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667), [RFC](../rfcs/1667-agent-toolkit-daily-driver.md) and [real-provider acceptance contract](DAILY_DRIVER_ACCEPTANCE.md) take priority for the new product direction. Provider orchestration and V-only ownership are under explicit Gate 1 evaluation; no fork or Swarm deletion has been approved merely by this note. Existing product safety and semantic-world principles remain in force.
-
-Status: **CURRENT CONTRACT** — governing product direction, adopted
+Status: **ARCHIVED HISTORICAL CONTRACT** — superseded as a current product
+direction by the Veasel Code boundary; retained for migration context. Original
+status was adopted
 2026-09-05, re-confirmed 2026-09-13 at `ecc4d67c`; **visual direction reset
 2026-09-30** ([ADR-035](../adrs/ADR-035-cozy-pixel-world.md)): Cozy Pixel
 World replaces Paper Co. This document defines the destination, not a claim
-that current builds meet it. Start with
-[the workflow ledger](workflows.yaml) for verified gaps and
-[visual QA](VISUAL_QA.md) for acceptance evidence.
+that historical builds met it. The adjacent workflow and visual QA documents
+are archival records only.
 
-Agent Toolkit Desktop makes a coding-agent environment understandable, discoverable,
+The former Agent Toolkit Desktop aimed to make a coding-agent environment understandable, discoverable,
 configurable, observable, operable, safe, extensible and pleasant to use. The running
 application is the product. Issue closure, unit tests and matching goldens are
 necessary evidence where applicable, but do not establish product quality.

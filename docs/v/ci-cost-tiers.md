@@ -49,8 +49,7 @@ The expensive axes are the Python trampoline matrix and the release V MUST platf
 ## Update 2026-08-27 — swarm-e2e + macos signal (Phase 1)
 
 * `check-v-modules` now `ubuntu+macos` (was `ubuntu` only) — `+1 macos` (~7 min, +$0.12) for `herdr`/`zsh`/`paths` parity.
-* `swarm-e2e` new `ubuntu+macos` (skeleton, no LLM, `herdr` mock) — `+2` (`+~$0.20`) for `swarm start --dry-run` matrix + filesystem SoT + `loop cost/status` + `workspace context`.
+* Historical note: the former `swarm-e2e` matrix exercised Swarm v1 dry-runs and local run state. Current CI keeps the cross-platform job name for required-check continuity but only verifies that public `start`/`init` fail closed without creating state; Swarm v1 is retired from new runs.
 * `parity` now `ubuntu+macos` (was `ubuntu` only) — `+1 macos` (~4 min, +$0.07) for launcher fallback `AGENT_TOOLKIT_ROOT` vs `site-packages`.
 
 Net PR cost `+3–4` jobs `~+$0.29–0.39/PR` vs today `~24` jobs. `paths:` filter (`docs/**/*.md` skip) offsets doc-typo PRs (3 min vs 25 min). See `validate.yml` `swarm-e2e` job and `parity.yml` matrix.
-

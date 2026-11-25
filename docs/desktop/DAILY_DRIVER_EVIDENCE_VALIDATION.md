@@ -1,5 +1,10 @@
 # Daily Driver evidence shape guard (Gate 0, #1668)
 
+> **Historical evidence tool (2026-11-25):** This validates records from the
+> former Agent Toolkit Desktop workflow only. It does not validate Veasel or
+> authenticate evidence for a current release. See the
+> [migration map](../LEGACY_DESKTOP_MIGRATION.md).
+
 The hermetic validator in `apps/desktop/scripts/spikes/daily-driver-evidence.mjs` checks **JSON rows** mirroring the YAML run form in [DAILY_DRIVER_ACCEPTANCE.md](DAILY_DRIVER_ACCEPTANCE.md). It is deliberately not a provider adapter or an acceptance runner.
 
 - `validateEvidence(rows)` rejects invalid rows, missing real-provider provenance, and any `pass` recorded using mock, replay, or unverified evidence.

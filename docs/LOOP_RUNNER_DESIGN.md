@@ -18,8 +18,11 @@ gates, state, reports, and scheduling. The maintained references are:
 - `modules/agent_toolkit_core/loop_catalog.v` — discovery and status.
 - `docs/desktop/workflows.yaml` — verified Desktop journeys and known limits.
 
-The Electron Desktop uses the same V backend through typed API operations; it
-does not run or parse the retired Python loop runner.
+The former Toolkit Electron Desktop consumed typed API operations, but it is
+retired and is not a supported loop client. The current Veasel coding runtime
+does not claim parity with Toolkit loop execution; use the Toolkit CLI for
+these recipes and inspect `agent-toolkit loop --help` for the installed
+version's supported operations.
 
 ## Why this record remains
 

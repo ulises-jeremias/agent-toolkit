@@ -1,5 +1,10 @@
 # Product benchmark: Agent Office
 
+> **Archive notice (2026-11-25):** This review informed the former Agent
+> Toolkit Desktop. Its recommendations are historical and are not a current
+> Veasel implementation or acceptance plan. See the
+> [migration map](../LEGACY_DESKTOP_MIGRATION.md).
+
 Reviewed 2026-10-11 against the upstream [Agent Office repository](https://github.com/AgentSystemLabs/agent-office), its [feature guide](https://github.com/AgentSystemLabs/agent-office/blob/main/docs/features.md), [agent selection](https://github.com/AgentSystemLabs/agent-office/blob/main/docs/agents.md), [controls](https://github.com/AgentSystemLabs/agent-office/blob/main/docs/controls.md), [configuration](https://github.com/AgentSystemLabs/agent-office/blob/main/docs/configuration.md), [maps](https://github.com/AgentSystemLabs/agent-office/blob/main/docs/maps.md), and [runtime notes](https://github.com/AgentSystemLabs/agent-office/blob/main/docs/how-it-works.md).
 
 This review adopts product lessons only. Agent Toolkit keeps its own domain model, V backend, Electron product, semantic world, and original art. Agent Office is MIT licensed, but this project does not need its source code, maps, characters, or artwork.
@@ -17,7 +22,7 @@ This review adopts product lessons only. Agent Toolkit keeps its own domain mode
 | Live progress and stale/offline state are explicit. | Use typed events and backend snapshots. A connection failure must never look like an idle team, and a finished run is not automatically described as requiring review. |
 | A lighter view makes the system usable on constrained screens and devices. | Keep compact layouts and keyboard alternatives. A separate low-performance/mobile world mode is a later, evidence-driven direction; Electron Desktop stays the flagship. |
 
-## Already present in the current product
+## Present in the former Toolkit Desktop at review time
 
 - The World is the home screen, projects are distinct buildings, and global places have their own landmarks.
 - Spatial actions, direct navigation, and typed command-palette actions converge on the same application destinations.

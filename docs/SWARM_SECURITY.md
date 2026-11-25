@@ -1,80 +1,13 @@
-# Swarm Security
+# Swarm Security (archived)
 
-Threat model for `agent-toolkit swarm`.
+> This page described the retired Agent Toolkit Swarm v1 executor. It is
+> kept as a stable link for older references, but its run, recipe, backend,
+> and budget instructions are no longer supported. Current Toolkit builds
+> reject new Swarm v1 `start` and `init` requests.
 
-## Runtime boundary
-
-Swarm worktrees isolate Git changes, not a runner's operating-system access.
-Recipe role policies and gate fields describe orchestration intent; they do
-not provide a cross-provider filesystem, network, credential, or subprocess
-sandbox. The Claude adapter now launches with provider-native permission prompts,
-**not** `--dangerously-skip-permissions`. This reduces the default risk but
-**does not** sandbox Claude or any other runner: each runner can still access
-resources allowed by its own native permission configuration and the local OS.
-When a tool requires an interactive approval, attach the worker's actual
-Herdr/tmux session and approve or reject it there; an unattended run can wait
-for user input. Never interpret a stalled approval as successful autonomous work. Do not run untrusted prompts or repository content under the
-assumption that `read-only`, `allow_push: false`, or a worktree is a security
-boundary. Use provider-native sandboxing or an external OS/container boundary
-when isolation is required.
-
-Human approval gates govern Toolkit's explicit run/approval operations. They
-cannot prevent a runner from invoking its own shell or provider tools unless
-that provider enforces a separate permission boundary.
-
-## Threats
-
-- Prompt injection from repo files / malicious issue content
-- Path traversal, symlink escapes, external-directory writes
-- Command injection, unsafe shell quoting, branch/role injection
-- Handoff spoofing/replay, tampered commits, untrusted plugin actions
-- Secret leakage, credential propagation, accidental pushes/destructive git
-- Cleanup of user-owned worktrees, cross-run state confusion
-
-## Mitigations
-
-- Validate all identifiers: role `^[a-z][a-z0-9_-]{1,31}$`, run_id `^[a-zA-Z0-9][a-zA-Z0-9._-]{2,64}$`, branch safe, SHA 40 hex.
-- Use full SHAs internally, `git cat-file -t` validation, `git rev-parse --verify` for abbrev (fails on ambiguous).
-- Atomic writes via tmpfile+rename, durable `state.json` with version, `trace.jsonl` append-only.
-- Artifact and ownership paths are checked by the current V implementation; these checks protect Toolkit-managed files, not arbitrary runner filesystem access.
-- Run metadata is stored under the run directory. Do not assume provider credentials or runner output are universally redacted; runners inherit the environment required by their provider and may emit sensitive data.
-- UI notifications carry generic wake-up information; they are not a credential-handling boundary.
-- Role policies (for example `read-only`, `writer`, and `integrator`) guide
-  task prompts and orchestration; they are not enforced operating-system
-  permissions. Provider-native controls vary by runner.
-- Built-in recipes declare `allow_direct_base_merge: false` and
-  `allow_push: false`. These declarations are not a general-purpose command
-  filter for actions taken inside an agent process.
-- `swarm cleanup RUN_ID` operates on run-owned worktrees, checks dirty state, and refuses destructive cleanup without `--force`; it preserves branches and run records. `swarm prune` is a separate destructive retention operation that can remove eligible generated branches and run records; review its dry-run output first.
-- Fail closed when ownership unclear.
-
-## Defaults
-
-- Built-in recipes default to no direct base merge and no push in their
-  orchestration metadata. This is not a sandbox; see Runtime boundary above.
-- No telemetry, no cloud upload, no transcript storage by default (optional with warning).
-
-## Testing
-
-The current V swarm tests cover selected recipe defaults, launch behavior,
-state/catalog behavior, and command construction. They do not establish a
-general runner sandbox or prove every threat listed above is mitigated. Review
-the `swarm*_test.v` files alongside the implementation when relying on a
-specific validation guarantee.
-
-## Herdr / tmux & Runner Separation
-
-- **Backend separation:** Herdr ([SWARM_HERDR.md](SWARM_HERDR.md)) and tmux ([SWARM_TMUX.md](SWARM_TMUX.md)) are adapters implementing `SwarmUIBackend` — no recipe/handoff/budget/git logic in adapters. Orchestrator never branches on backend for correctness; backend metadata stays in backend state. See adapter separation diagram in [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md).
-- **Runner permissions:** provider permission behavior varies by runner. The Claude adapter uses Claude Code's native permission prompts by default; no Swarm option bypasses them. `--runner skeleton` does not invoke an LLM. An approval prompt may leave an unattended worker waiting for user input; inspect the actual worker session and do not count a stall as completed work.
-- **State & privacy:** state under `.agent-toolkit/swarm/runs/<run-id>/` is filesystem-authoritative. Local state does not imply that provider requests, logs, or inherited environment are private. The Herdr plugin delegates orchestration to Toolkit.
-
-Related: [SWARMS.md](SWARMS.md) · [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md) (security boundaries, runtime layers) · [SWARM_RECIPES.md](SWARM_RECIPES.md) · [SWARM_HANDOFFS.md](SWARM_HANDOFFS.md) · [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) · [SWARM_HERDR.md](SWARM_HERDR.md) · [SWARM_TMUX.md](SWARM_TMUX.md) · [HOW_TO_CREATE_SWARM_RECIPE.md](HOW_TO_CREATE_SWARM_RECIPE.md)
-
-## References
-
-ADR-008, `modules/agent_toolkit_core/swarm.v`,
-`modules/agent_toolkit_core/swarm_backend.v`,
-`modules/agent_toolkit_core/swarm_handoff.v`,
-`modules/agent_toolkit_core/swarm_worktree.v`,
-`modules/agent_toolkit_core/swarm_test.v`, [ARCHITECTURE.md](ARCHITECTURE.md),
-and [CONCEPTS.md](CONCEPTS.md).
+Use [Veasel Code](https://github.com/veasel-labs/veasel) for new coding-agent
+orchestration. Preserve existing Swarm state and worktrees; the Toolkit has
+no general importer. Read the current
+[retirement and data boundary](SWARM_V1_DISPOSITION.md) before inspecting,
+stopping, or removing an old run. The former technical details remain in
+Git history.

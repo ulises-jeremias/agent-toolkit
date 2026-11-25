@@ -519,9 +519,13 @@
       ],
       "class": "SEMANTIC",
       "must_contain": [
-        "start",
+        "retired from new runs",
         "doctor",
-        "approve"
+        "Veasel Code"
+      ],
+      "must_not_contain": [
+        "agent-toolkit swarm start [",
+        "agent-toolkit swarm init ["
       ]
     },
     {

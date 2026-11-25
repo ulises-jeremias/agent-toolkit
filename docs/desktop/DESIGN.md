@@ -1,6 +1,10 @@
 # Agent Toolkit Desktop Design Contract
 
-**Status: CURRENT CONTRACT** — governing visual and interaction design
+> **Archive notice (2026-11-25):** This is historical design evidence for the
+> retired Agent Toolkit Electron application, not the current Toolkit or Veasel
+> UI contract. See the [migration map](../LEGACY_DESKTOP_MIGRATION.md).
+
+**Status: ARCHIVED HISTORICAL CONTRACT** — former visual and interaction design
 direction for Agent Toolkit Desktop. **Visual reset adopted 2026-09-30**
 ([ADR-035](../adrs/ADR-035-cozy-pixel-world.md)): the **Cozy Pixel World**
 language is the single visual contract. The previous Paper Co. language is

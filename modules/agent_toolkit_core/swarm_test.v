@@ -141,9 +141,30 @@ fn test_swarm_help() {
 		subcommand: 'help'
 	})
 	assert r.ok
-	assert r.message.contains('start')
-	assert r.message.contains('approve')
-	assert r.message.contains('ADR-008')
+	assert r.message.contains('retired from new runs')
+	assert r.message.contains('New start and init requests are disabled')
+	assert !r.message.contains('agent-toolkit swarm start [')
+	assert r.message.contains('Historical action commands remain')
+	assert r.message.contains('change or delete run and worktree data')
+	assert r.message.contains('user-owned')
+}
+
+fn test_swarm_start_and_init_are_disabled_without_mutating_workspace() {
+	base := os.join_path(os.temp_dir(), 'at-swarm-frozen-${os.getpid()}')
+	os.mkdir_all(os.join_path(base, '.git')) or { panic(err) }
+	defer { os.rmdir_all(base) or {} }
+	for sub in ['start', 'init'] {
+		report := run_swarm(SwarmOptions{
+			subcommand: sub
+			workspace_path: base
+			dry_run: true
+			task: 'must remain disabled'
+		})
+		assert !report.ok
+		assert report.data['status'] == 'feature_frozen'
+		assert report.message.contains('https://github.com/veasel-labs/veasel')
+		assert !os.is_dir(os.join_path(base, '.agent-toolkit', 'swarm', 'runs'))
+	}
 }
 
 fn test_swarm_recipes() {
@@ -164,8 +185,7 @@ fn test_swarm_headless_start_refuses_requested_role_process_launch() {
 	base := os.join_path(os.temp_dir(), 'at-swarm-headless-${os.getpid()}')
 	os.mkdir_all(os.join_path(base, '.git')) or { panic(err) }
 	defer { os.rmdir_all(base) or {} }
-	report := run_swarm(SwarmOptions{
-		subcommand: 'start'
+	report := swarm_start(base, SwarmOptions{
 		workspace_path: base
 		recipe: 'pair'
 		backend: 'headless'
@@ -353,8 +373,7 @@ fn test_swarm_start_preview_reports_resolved_role_execution() {
 	os.mkdir_all(os.join_path(base, '.git')) or { panic(err) }
 	defer { os.rmdir_all(base) or {} }
 	save_person(base, '{"spec":"agent-toolkit/person@1","id":"lina","name":"Lina","role":"reviewer","goal":"Review changes","archived":false,"preferred_provider":"opencode","preferred_model":"sonnet"}', true) or { panic(err) }
-	preview := run_swarm(SwarmOptions{
-		subcommand: 'start'
+	preview := swarm_start(base, SwarmOptions{
 		workspace_path: base
 		recipe: 'team'
 		backend: 'headless'
@@ -382,8 +401,7 @@ fn test_swarm_start_preview_targets_the_selected_workspace_project() {
 		os.rmdir_all(repo) or {}
 	}
 
-	preview := run_swarm(SwarmOptions{
-		subcommand: 'start'
+	preview := swarm_start(base, SwarmOptions{
 		workspace_path: base
 		project_id: 'agent-toolkit'
 		recipe: 'pair'
@@ -394,8 +412,7 @@ fn test_swarm_start_preview_targets_the_selected_workspace_project() {
 	assert preview.ok, preview.message
 	assert preview.data['project_id'] == 'agent-toolkit'
 	assert preview.data['project_path'] == os.real_path(repo)
-	changed := run_swarm(SwarmOptions{
-		subcommand: 'start'
+	changed := swarm_start(base, SwarmOptions{
 		workspace_path: base
 		project_id: 'agent-toolkit'
 		expected_project_path: base
@@ -411,8 +428,7 @@ fn test_swarm_start_preview_targets_the_selected_workspace_project() {
 	assert resolved == os.real_path(repo)
 	assert !os.is_dir(os.join_path(base, '.agent-toolkit', 'swarm', 'runs'))
 
-	bad := run_swarm(SwarmOptions{
-		subcommand: 'start'
+	bad := swarm_start(base, SwarmOptions{
 		workspace_path: base
 		project_id: 'missing'
 		recipe: 'pair'
@@ -465,8 +481,7 @@ fn test_swarm_start_status_approve_cancel() {
 	}
 	save_person(base, '{"spec":"agent-toolkit/person@1","id":"lina","name":"Lina","role":"reviewer","goal":"Review changes","archived":false}', true) or { panic(err) }
 
-	dry := run_swarm(SwarmOptions{
-		subcommand: 'start'
+	dry := swarm_start(base, SwarmOptions{
 		workspace_path: base
 		recipe: 'team'
 		backend: 'headless'
@@ -480,8 +495,7 @@ fn test_swarm_start_status_approve_cancel() {
 	assert dry.data['mode'] == 'dry-run'
 	assert !os.is_dir(os.join_path(base, '.agent-toolkit', 'swarm', 'runs'))
 
-	start := run_swarm(SwarmOptions{
-		subcommand: 'start'
+	start := swarm_start(base, SwarmOptions{
 		workspace_path: base
 		recipe: 'team'
 		backend: 'headless'

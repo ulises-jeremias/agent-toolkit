@@ -1,5 +1,10 @@
 # Desktop Rescue record
 
+> **Historical record (2026-11-25):** This captures rescue work for the former
+> Agent Toolkit Desktop. It does not establish current Veasel session or
+> packaged-product acceptance. See the
+> [migration map](../LEGACY_DESKTOP_MIGRATION.md) and Veasel #550.
+
 Mission [#1775](https://github.com/ulises-jeremias/agent-toolkit/issues/1775), parent
 [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667). This file is the evidence
 record: what was recovered, what was measured, and what is still unverified. The decision is in

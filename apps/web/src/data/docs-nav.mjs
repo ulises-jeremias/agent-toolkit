@@ -49,17 +49,18 @@ export const publicDocs = [
   {
     slug: "swarms",
     source: "SWARMS.md",
-    title: "Swarms",
+    title: "Swarm v1 retirement",
     description:
-      "Use portable swarm recipes with compatible runners; Veasel owns the canonical graphical session runtime.",
-    group: "Use Agent Toolkit",
+      "Current Toolkit builds reject new Swarm v1 runs and preserve existing user data.",
+    group: "Migration",
   },
   {
-    slug: "swarm-roles",
-    source: "SWARM_ROLES.md",
-    title: "Swarm roles",
-    description: "Portable role recipes that compatible runners can interpret.",
-    group: "Use Agent Toolkit",
+    slug: "swarm-v1-disposition",
+    source: "SWARM_V1_DISPOSITION.md",
+    title: "Swarm v1 migration boundary",
+    description:
+      "Preserve and inspect old Swarm v1 records; new runs belong in Veasel Code.",
+    group: "Migration",
   },
   {
     slug: "cli",

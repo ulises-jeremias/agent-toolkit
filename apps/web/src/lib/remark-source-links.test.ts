@@ -5,8 +5,8 @@ describe("canonical documentation links", () => {
   it("routes curated guides internally and sends other sources to GitHub", () => {
     const source = "/repo/docs/PEOPLE.md";
     const rewrite = (url: string) => rewriteSourceUrl(url, source, "/repo");
-    expect(rewrite("SWARMS.md#start-a-swarm")).toBe(
-      "/docs/swarms/#start-a-swarm",
+    expect(rewrite("SWARMS.md#current-contract")).toBe(
+      "/docs/swarms/#current-contract",
     );
     expect(rewrite("ARCHITECTURE.md")).toBe("/docs/architecture/");
     expect(rewrite("../CONTRIBUTING.md")).toBe(

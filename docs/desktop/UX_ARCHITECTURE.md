@@ -1,4 +1,9 @@
-# Desktop UX architecture
+# Former Agent Toolkit Desktop UX architecture
+
+> **Archive notice (2026-11-25):** This document describes the retired
+> Electron application's former contracts. It is retained as migration
+> evidence, not as the architecture of Agent Toolkit or Veasel Code. See the
+> [migration map](../LEGACY_DESKTOP_MIGRATION.md).
 
 Agent Toolkit Desktop is Electron + React over `agent-toolkit serve`. The V core owns workspace, capability, People, job, loop, swarm, memory, and installation semantics. Desktop calls typed backend operations and presents their real results. An Electron-only shell owns windows, local settings, and PTY hosting. CLI and Desktop must converge on the same domain operations.
 

@@ -1,94 +1,13 @@
-# Swarm + Herdr
+# Swarm Herdr (archived)
 
-Herdr is the recommended UI, not the engine.
+> This page described the retired Agent Toolkit Swarm v1 executor. It is
+> kept as a stable link for older references, but its run, recipe, backend,
+> and budget instructions are no longer supported. Current Toolkit builds
+> reject new Swarm v1 `start` and `init` requests.
 
-## Install Herdr
-
-```bash
-# Homebrew
-brew install herdr
-
-# Or official installer
-curl -fsSL https://herdr.dev/install.sh | sh
-
-# Verify
-herdr --version
-herdr workspace create --help
-```
-
-Via agentic-workstation: `agent_swarms.enabled=true` installs Herdr automatically.
-
-## Integration
-
-```bash
-herdr integration install opencode
-herdr integration list --json
-agent-toolkit swarm doctor --json
-```
-
-Doctor reports: `herdr available`, `version`, `opencode integration installed/outdated`.
-
-## Backend Responsibilities
-
-- Herdr may: create workspace, worktree, tabs/panes, name agents, start/prompt/wait/read/focus/attach/stop, JSON output.
-- Herdr must not: own recipe semantics, task queues, handoff validation, budgets, Git, completion decisions.
-
-## CLI-First
-
-```bash
-herdr workspace create --cwd PATH --label LABEL --no-focus --json
-herdr agent start NAME --kind opencode --pane PANE_ID --json
-herdr agent prompt NAME "..." --wait --json
-herdr agent wait NAME --until idle --json
-herdr agent read NAME --source recent --json
-```
-
-Parse JSON, never ANSI scraping. Socket API only for persistent events.
-
-## Degradation
-
-- `--backend auto`: Herdr unavailable → fallback to tmux if available, else error with guidance.
-- `--backend herdr`: Herdr missing → error, do not silently use tmux.
-
-```
-Herdr was explicitly requested but was not found.
-
-Install:
-  https://herdr.dev/docs/install/
-
-Or use:
-  agent-toolkit swarm start --backend tmux ...
-```
-
-## Plugin
-
-Thin Herdr plugin at `integrations/herdr/agent-toolkit-swarm/`:
-
-- `herdr-plugin.toml` with `min_herdr_version`
-- Actions: Start Pair/Team/Full Swarm, Open Status, Open Handoff Queue, Open Final Report, Pause/Resume/Stop/Clean Up
-- No orchestration logic; actions invoke `agent-toolkit swarm`
-
-Local dev: `herdr plugin link ./integrations/herdr/agent-toolkit-swarm`  
-Install: `herdr plugin install ulises-jeremias/agent-toolkit/integrations/herdr/agent-toolkit-swarm`
-
-Trust: inspect third-party plugins per Herdr docs.
-
-## Attach
-
-```bash
-agent-toolkit swarm attach RUN_ID
-# or directly:
-herdr workspace open swarm-RUN_ID
-```
-
-## tmux Fallback & Parity
-
-`--backend auto` falls back Herdr → tmux ([SWARM_TMUX.md](SWARM_TMUX.md)) when Herdr is absent; `--backend tmux` bypasses Herdr entirely and works over SSH. Both share the same durable filesystem semantics (`state.json`, `handoffs/`, budgets, worktrees). Use `swarm start --runner skeleton --backend tmux` for a fully offline run without Herdr or an LLM.
-
-## Privacy & Cleanup
-
-No cloud/telemetry; logs are local. Herdr workspaces/tabs are removed by `swarm stop`/`swarm cleanup` only for Toolkit-owned runs; worktrees obey the same dirty/branch preservation as tmux.
-
-## Extension & Related
-
-Recipes in [SWARM_RECIPES.md](SWARM_RECIPES.md) declare `ui: auto|herdr|tmux` but runtime `--backend` overrides; model profiles in [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) work with any runner. See [SWARMS.md](SWARMS.md), [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md), [SWARM_HANDOFFS.md](SWARM_HANDOFFS.md), [SWARM_SECURITY.md](SWARM_SECURITY.md), and [HOW_TO_CREATE_SWARM_RECIPE.md](HOW_TO_CREATE_SWARM_RECIPE.md).
+Use [Veasel Code](https://github.com/veasel-labs/veasel) for new coding-agent
+orchestration. Preserve existing Swarm state and worktrees; the Toolkit has
+no general importer. Read the current
+[retirement and data boundary](SWARM_V1_DISPOSITION.md) before inspecting,
+stopping, or removing an old run. The former technical details remain in
+Git history.

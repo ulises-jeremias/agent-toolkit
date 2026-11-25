@@ -181,7 +181,7 @@ fn swarm_repository_root(workspace string, project_id string) !string {
 	return find_git_root(workspace) or { workspace }
 }
 
-// run_swarm implements recipes/backends/doctor/start/list/status/approve/reject/cancel/prune/init/plan/activate/deactivate/promote/pause/resume/stop/cleanup/handoff/task/runners/models + observability watch/report/artifacts/handoffs/logs/approvals.
+// run_swarm keeps inspection/recovery for existing Swarm v1 state; public start/init dispatch is retired.
 pub fn run_swarm(opts SwarmOptions) SwarmReport {
 	sub := opts.subcommand
 	if sub.len == 0 || sub in ['help', '-h', '--help'] {
@@ -190,6 +190,17 @@ pub fn run_swarm(opts SwarmOptions) SwarmReport {
 			message: swarm_help_text()
 			data: {
 				'subcommand': 'help'
+			}
+		}
+	}
+	if sub in ['start', 'init'] {
+		return SwarmReport{
+			ok: false
+			message: 'Swarm v1 is feature-frozen. New coding-agent orchestration belongs in Veasel Code: https://github.com/veasel-labs/veasel. Existing Swarm records are preserved; use read-only inspection commands for historical state.'
+			data: {
+				'subcommand': sub
+				'status':     'feature_frozen'
+				'veasel':     'https://github.com/veasel-labs/veasel'
 			}
 		}
 	}
@@ -335,17 +346,7 @@ pub fn swarm_result(report SwarmReport) CommandResult {
 }
 
 pub fn swarm_help_text() string {
-	ordered := ['opencode', 'claude', 'codex', 'cursor', 'copilot', 'muse', 'skeleton']
-	mut runners_parts := []string{}
-	for i, r in ordered {
-		if i == 0 {
-			runners_parts << '${r} (default via \$SHELL)'
-		} else {
-			runners_parts << r
-		}
-	}
-	runners_line := runners_parts.join(', ')
-	return 'swarm — Multi-agent orchestration (REDESIGN: filesystem SoT, ADR-008/ADR-020).\n\nUsage:\n    agent-toolkit swarm recipes [name]\n    agent-toolkit swarm backends\n    agent-toolkit swarm doctor [--json]\n    agent-toolkit swarm runners [--json] [--workspace PATH]\n    agent-toolkit swarm models [--json] [--runner NAME] [--profile NAME] [--workspace PATH]\n    agent-toolkit swarm start [--recipe pair|team|full] [--backend auto|herdr|tmux|headless] [--request-file PATH] [--issue REF] [--base-ref REF] [--workspace PATH] [-C PATH] [--repo PATH] [--json] [--runner NAME] [--model-profile NAME] [--attach|--no-attach] [--dry-run] [task]\n    agent-toolkit swarm init [--recipe pair|team|full] [--workspace PATH] [--json] [--runner NAME] [--model-profile NAME] [task]\n    agent-toolkit swarm plan <run-id> [--workspace PATH]\n    agent-toolkit swarm activate <run-id> <role> [--workspace PATH]\n    agent-toolkit swarm deactivate <run-id> <role> [--workspace PATH]\n    agent-toolkit swarm promote <run-id> [--force] [--base-ref REF] [--workspace PATH]\n    agent-toolkit swarm promote <run-id> --to <team|full>\n    agent-toolkit swarm pause <run-id>\n    agent-toolkit swarm resume <run-id>\n    agent-toolkit swarm stop <run-id>\n    agent-toolkit swarm cleanup <run-id> [--force] [--dry-run]\n    agent-toolkit swarm list [--json] [--workspace PATH] [-C PATH] [--repo PATH]\n    agent-toolkit swarm graph <run-id> [--json] [--workspace PATH]\n    agent-toolkit swarm status [run-id] [--json] [--workspace PATH] [-C PATH] [--repo PATH]\n    agent-toolkit swarm approve <run-id> <gate>\n    agent-toolkit swarm reject <run-id> <gate> --reason TEXT\n    agent-toolkit swarm cancel <run-id>\n    agent-toolkit swarm handoff create --type artifact|commit|feedback|decision_request --from ROLE --to ROLE|all [--priority N] [--artifact PATH] [--commit SHA] [--branch BR] [--blocking] [--act ACT] [--max-hops N] [--run-id ID]\n    agent-toolkit swarm task next --role ROLE [--run-id ID] [--json]\n    agent-toolkit swarm task complete --handoff HID [--run-id ID]\n    agent-toolkit swarm attach <run-id> [--workspace PATH] [-C PATH] [--repo PATH]\n    agent-toolkit swarm watch [run-id] [--current] [--workspace PATH]\n    agent-toolkit swarm report <run-id> [--json] [--workspace PATH]\n    agent-toolkit swarm artifacts <run-id> [--json] [--workspace PATH]\n    agent-toolkit swarm handoffs <run-id> [--json] [--workspace PATH]\n    agent-toolkit swarm logs <run-id> [role] [--json] [--workspace PATH]\n    agent-toolkit swarm approvals <run-id> [--json]\n    agent-toolkit swarm prune --older-than DURATION [--dry-run] [--force] [--workspace PATH]\n    agent-toolkit swarm cleanup <run-id> [--force]  (alias for prune)\n    agent-toolkit swarm help\n\nRunners: ${runners_line}. Same capability as: agent-toolkit loop run --runner NAME.\nBackends: herdr (recommended, auto-focus worktree), tmux (Unix fallback), headless (filesystem only).\nWindows: tmux/herdr unsupported; use --backend headless.\nConcurrency: process-per-run supervisor; UI spawn is fail-closed without ProcessService stdin.\nState: .agent-toolkit/swarm/runs/<run-id>/ (state.json, approvals.json, trace.jsonl).\nAttach: herdr attach by default (focus UI); use --no-attach for CI/script mode.\nPrune: reclaims old runs/worktrees/branches and Herdr workspaces + tmux sockets. Default --older-than 7d. Use --dry-run to preview.\n'
+	return 'Swarm v1 — retired from new runs. New start and init requests are disabled.\n\nUse Veasel Code for new coding-agent orchestration: https://github.com/veasel-labs/veasel\n\nInspect existing Toolkit records with: recipes, backends, doctor, runners, models, list, status, logs, report, artifacts, handoffs. Historical action commands remain for existing records; some can change or delete run and worktree data. Read that command\'s help and back up its exact state before using it. Do not use cleanup or prune as part of migration.\n\nExisting run data and worktrees are user-owned and are not automatically imported or deleted.'
 }
 
 pub fn swarm_prune_help_text() string {

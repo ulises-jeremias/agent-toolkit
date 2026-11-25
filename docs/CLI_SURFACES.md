@@ -41,9 +41,9 @@ Still available on the same binary — de-emphasized in top-level help:
 | `inventory` | List skills, agents, and products |
 | `matrix` | Platform capability matrix |
 | `release` | **REMOVE** — release artifacts (CI / `docs/RELEASING.md`); [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527) |
-| `swarm` | Multi-agent swarm orchestration (pair/team/full, Herdr/tmux, budgets, handoffs) |
+| `swarm` | Historical run inspection and explicit recovery controls; new `start`/`init` requests are disabled |
 
-Swarm details: `docs/SWARMS.md`, `docs/SWARM_ARCHITECTURE.md`.
+Swarm state boundary: [`SWARM_V1_DISPOSITION.md`](SWARM_V1_DISPOSITION.md).
 
 V-port dispositions for advanced commands: [`docs/v/advanced-command-disposition.md`](v/advanced-command-disposition.md) (#560).
 

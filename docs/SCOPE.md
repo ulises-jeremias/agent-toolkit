@@ -30,7 +30,7 @@ marketplace consumer path:
 | `memory` | Local knowledge base CRUD |
 | `project` | Project index / clone helpers |
 | `devcompanion` | Background LLM job queue |
-| `swarm` | Multi-agent swarm orchestration (pair/team/full, Herdr/tmux) |
+| `swarm` | Historical run inspection and explicit recovery; new Swarm v1 runs are disabled |
 
 These commands remain available without a separate binary; help text lists
 them under **Advanced commands** so new users are not overwhelmed.

@@ -75,80 +75,13 @@ AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit plugin sync
 
 See `docs/CONCEPTS.md` and `docs/ARCHITECTURE.md` ADR-003/004.
 
-## 6. Swarm: Herdr not found
+## 6. Existing Swarm v1 records
 
-**Symptom:** `agent-toolkit swarm start --backend herdr` fails because Herdr is not installed or available.
-
-**Fix:**
-
-```bash
-herdr --version                # check presence
-# Install per https://herdr.dev/docs/install/
-brew install herdr              # macOS
-curl -fsSL https://herdr.dev/install.sh | sh   # Linux
-# Or use portable fallback:
-agent-toolkit swarm start --backend tmux ...
-```
-
-## 7. Swarm: Runner not found
-
-**Symptom:** `runner opencode not found` or model unavailable.
-
-**Fix:**
-
-```bash
-agent-toolkit swarm runners    # capability matrix
-agent-toolkit swarm models --runner opencode
-opencode models
-# Use skeleton for dry-run:
-agent-toolkit swarm start --runner skeleton "task"
-```
-
-## 8. Swarm: Worktree dirty
-
-**Symptom:** `Worktree contains uncommitted changes. Toolkit will not remove it.`
-
-**Fix:** commit or stash inside worktree, then `agent-toolkit swarm cleanup RUN_ID` or with `--force` if intentional.
-
-## 9. Swarm: Blocking feedback loop
-
-**Symptom:** `The reviewer returned blocking feedback twice. The configured round-trip limit has been reached.`
-
-**Fix:**
-
-```bash
-agent-toolkit swarm artifacts RUN_ID
-agent-toolkit swarm handoffs RUN_ID
-# Then choose: resume with higher limit, promote to team, or human intervention
-```
-
-See [SWARMS.md](SWARMS.md) and [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md) (handoffs, worktrees, budgets). Cross-links: [SWARM_HERDR.md](SWARM_HERDR.md) (Herdr plugin), [SWARM_TMUX.md](SWARM_TMUX.md) (tmux fallback), [SWARM_SECURITY.md](SWARM_SECURITY.md) (privacy), [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) (offline/skeleton).
-
-## 10. Swarm: Privacy / Secrets in logs
-
-**Symptom:** worried about credentials in `state.json` / `trace.jsonl`.
-
-**Fix:** swarm runner processes inherit provider environment and may emit sensitive data in provider requests or output. Do not assume all credentials or logs are redacted. Keep run directories private and inspect runner/provider logging settings. Toolkit stores orchestration state locally by default; see [SWARM_SECURITY.md](SWARM_SECURITY.md).
-
-## 11. Swarm: Cleanup safety
-
-**Symptom:** unsure if `cleanup` will delete user branches/worktrees.
-
-**Fix:** `cleanup` removes only run-owned worktrees, refuses dirty worktrees without `--force`, and preserves branches and run records. `stop` preserves state. `prune` is a separate retention operation that may delete eligible generated branches and records; inspect `--dry-run` first. See [SWARM_TMUX.md](SWARM_TMUX.md) and [SWARM_SECURITY.md](SWARM_SECURITY.md).
-
-## 12. Swarm: Offline / Fake demo
-
-**Symptom:** want to explore swarms without Herdr or LLM (air-gapped, CI).
-
-**Fix:**
-
-```bash
-agent-toolkit swarm start --recipe pair --backend tmux --runner skeleton --dry-run "demo" --json
-agent-toolkit swarm start --runner skeleton --backend tmux "offline demo"
-agent-toolkit swarm models --runner skeleton --profile balanced
-```
-
-`--runner skeleton` (always available) + `--backend tmux` works fully offline. `start --dry-run` never creates a run or worktrees. See [SWARMS.md](SWARMS.md) and [SWARM_TMUX.md](SWARM_TMUX.md).
+New Swarm v1 `start` and `init` requests are disabled in current Toolkit builds.
+Use Veasel Code for new orchestration. Existing Swarm records and worktrees
+remain user-owned; do not run cleanup or prune unless you have reviewed and
+backed up the exact paths. For supported inspection and recovery commands, see
+[the Swarm v1 disposition](SWARM_V1_DISPOSITION.md).
 
 ---
 

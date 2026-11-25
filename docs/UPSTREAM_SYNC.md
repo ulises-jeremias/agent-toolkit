@@ -7,6 +7,11 @@ pinned so a proposed update can be checked against exact upstream bytes, its
 license and its security surface. Synchronization prepares a reviewable change;
 it does not grant that change trust or install it on your machine.
 
+The visual model of a separately maintained source and a proposed mirror was
+inspired by the header used in [backnotprop/pstack](https://github.com/backnotprop/pstack/blob/main/mirror-assets/header-light.svg).
+This guide and the accompanying flow diagram describe Agent Toolkit's own
+provenance and review process; no pstack artwork or implementation is copied.
+
 ## The path from source to a compatible tool
 
 The flow has five distinct steps:
