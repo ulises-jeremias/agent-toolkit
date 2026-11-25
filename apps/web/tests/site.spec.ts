@@ -108,8 +108,10 @@ test("home explains the portable toolkit and its product boundaries", async ({
     page.getByRole("link", { name: /browse the library/i }),
   ).toBeVisible();
   await expect(page.locator(".upstream-flow__grid")).toBeVisible();
+  await expect(page.locator(".upstream-flow__node")).toHaveCount(4);
+  await expect(page.getByText("Human trust review")).toBeVisible();
   await expect(
-    page.getByText(/A pinned source can propose a change/i),
+    page.getByText(/Upstream content enters as a pinned, reviewable proposal/i),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: /how upstream sync works/i }),
