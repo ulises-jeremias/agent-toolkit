@@ -8,22 +8,6 @@ export const publicDocs = [
     group: "Start here",
   },
   {
-    slug: "desktop",
-    source: "desktop/README.md",
-    title: "Desktop archive",
-    description:
-      "Archived reference for the retired Agent Toolkit Desktop. Current graphical app: Veasel Code.",
-    group: "Legacy Desktop archive",
-  },
-  {
-    slug: "world",
-    source: "desktop/SEMANTIC_WORLD.md",
-    title: "World archive",
-    description:
-      "Archived World design reference from the retired Agent Toolkit Desktop.",
-    group: "Legacy Desktop archive",
-  },
-  {
     slug: "installation",
     source: "INSTALLATION.md",
     title: "Installation",
@@ -38,14 +22,6 @@ export const publicDocs = [
     description:
       "How portable skills, agents, context packs, workflows and tools fit together.",
     group: "Understand the model",
-  },
-  {
-    slug: "people",
-    source: "PEOPLE.md",
-    title: "People archive",
-    description:
-      "Archived identity model for the retired Desktop; use portable agent definitions for current Toolkit workflows.",
-    group: "Legacy Desktop archive",
   },
   {
     slug: "skills",
@@ -99,6 +75,14 @@ export const publicDocs = [
     title: "Trust and security",
     description:
       "Understand installation evidence, provenance and safe defaults.",
+    group: "Trust and build",
+  },
+  {
+    slug: "upstream-sync",
+    source: "UPSTREAM_SYNC.md",
+    title: "Upstream sync",
+    description:
+      "How pinned upstream content is checked, proposed, reviewed and released without automatic trust promotion.",
     group: "Trust and build",
   },
   {

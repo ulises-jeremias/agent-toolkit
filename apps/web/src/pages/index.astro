@@ -1,127 +1,266 @@
 ---
 import SiteLayout from "@/layouts/SiteLayout.astro";
+import UpstreamFlow from "@/components/UpstreamFlow.astro";
+import { getCapabilities } from "@/lib/catalog";
+
+const capabilities = await getCapabilities();
 ---
 
 <SiteLayout
   title="Agent Toolkit — portable capabilities for coding agents"
-  description="Discover and distribute portable skills, agents, MCP templates and workflows for AI coding tools. Use Agent Toolkit from the CLI or Veasel Code."
+  description="A practical, portable library of skills, agent definitions, MCP templates, context packs and workflows for the coding tools you already use."
 >
-  <section class="hero">
-    <div class="wrap hero-inner">
-      <div class="hero-copy">
-        <p class="eyebrow">Portable capabilities · CLI and catalog</p>
-        <h1>Useful capabilities for the coding agents you already use.</h1>
-        <p class="lede">
-          Agent Toolkit brings skills, agent personas, MCP templates, context
-          packs and repeatable workflows to your coding tools. Keep your
-          capabilities portable; choose the runtime that fits the work.
+  <section class="home-hero">
+    <div class="wrap home-hero-grid">
+      <div class="home-hero-copy">
+        <p class="eyebrow">
+          <span class="eyebrow-mark" aria-hidden="true"></span> A portable
+          capability library
+        </p>
+        <h1>Good tools make room for good work.</h1>
+        <p class="home-lede">
+          Keep the useful parts of your AI workflow: skills, agent definitions,
+          MCP templates, context packs and repeatable recipes. Carry them
+          between the coding tools you choose.
         </p>
         <div class="button-row">
-          <a class="button" href="/capabilities/">
-            Explore capabilities{" "}
-            <span class="arrow" aria-hidden="true">
-              →
-            </span>
+          <a class="button button--sun" href="/capabilities/">
+            Browse the library <span aria-hidden="true">↗</span>
           </a>
-          <a class="button secondary" href="/docs/installation/">
-            Install the CLI{" "}
-            <span class="arrow" aria-hidden="true">
-              →
-            </span>
+          <a class="button button--outline" href="/docs/installation/">
+            Install the CLI
           </a>
         </div>
-        <p class="hero-footnote">
-          <strong>One portable toolkit.</strong> Use supported integrations with
-          Claude Code, Codex, Cursor, OpenCode, Veasel and other coding agents.
-          Support varies by capability and tool.
+        <p class="home-proof">
+          <strong>{capabilities.length}</strong> catalog entries, built from the
+          repository's checked-in sources.
         </p>
       </div>
-      <div class="capability-grid" aria-label="Portable capability types">
-        <article>
-          <span>01</span>
-          <h2>Skills</h2>
-          <p>Reusable instructions for focused work.</p>
-        </article>
-        <article>
-          <span>02</span>
-          <h2>Agents</h2>
-          <p>Personas and role definitions for compatible tools.</p>
-        </article>
-        <article>
-          <span>03</span>
-          <h2>MCP</h2>
-          <p>Templates to configure external tool connections.</p>
-        </article>
-        <article>
-          <span>04</span>
-          <h2>Workflows</h2>
-          <p>Repeatable recipes, loops and context packs.</p>
-        </article>
-      </div>
+
+      <figure class="toolkit-map" aria-labelledby="toolkit-map-caption">
+        <div class="map-topline">
+          <span>THE PORTABLE KIT</span>
+          <span class="map-status">
+            <i aria-hidden="true"></i> source tracked
+          </span>
+        </div>
+        <div class="map-source">
+          <div class="map-source-icon" aria-hidden="true">
+            <span>✳</span>
+          </div>
+          <div>
+            <strong>One library</strong>
+            <span>versioned · inspectable · yours</span>
+          </div>
+        </div>
+        <div class="map-branches" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="map-capabilities">
+          <span>
+            <b>✦</b> Skills
+          </span>
+          <span>
+            <b>⌘</b> Agent definitions
+          </span>
+          <span>
+            <b>⌁</b> MCP templates
+          </span>
+          <span>
+            <b>↻</b> Workflows
+          </span>
+        </div>
+        <div class="map-destinations-label">Choose a compatible home</div>
+        <div
+          class="map-destinations"
+          aria-label="Example supported coding tools"
+        >
+          <span>Claude Code</span>
+          <span>Codex</span>
+          <span>Cursor</span>
+          <span>OpenCode</span>
+          <span>Veasel</span>
+        </div>
+        <figcaption id="toolkit-map-caption">
+          Preview targets and provenance before you apply a capability.
+        </figcaption>
+        <span class="map-stamp" aria-hidden="true">
+          OPEN
+          <br />
+          BY DESIGN
+        </span>
+      </figure>
     </div>
+    <div class="hero-edge" aria-hidden="true"></div>
   </section>
 
-  <section class="section section--glow">
+  <section class="section section--paper">
     <div class="wrap">
-      <div class="section-intro">
-        <p class="section-kicker">Choose your runtime</p>
-        <h2>Portable capabilities. Clear product roles.</h2>
+      <div class="section-heading section-heading--split">
+        <div>
+          <p class="section-kicker">A kit, not a second workspace</p>
+          <h2>
+            Keep your capabilities close.
+            <br />
+            <em>Keep your choices open.</em>
+          </h2>
+        </div>
         <p>
-          Agent Toolkit is the portable capability layer and CLI. Veasel Code is
-          the graphical coding application and shared session runtime. The
-          official Veasel catalog curates plugins for that runtime.
+          Agent Toolkit organizes reusable pieces and helps you place them in
+          the tools that support them. It does not replace your coding agent or
+          silently copy files into a project.
         </p>
       </div>
-      <div class="semantic-list">
-        <article class="semantic-item">
-          <span class="term">PORTABLE TOOLKIT</span>
+      <div class="capability-cards">
+        <article class="capability-card capability-card--skills">
+          <span class="card-glyph" aria-hidden="true">
+            ✦
+          </span>
+          <p class="card-type">INSTRUCTIONS</p>
+          <h3>Skills</h3>
           <p>
-            <strong>Agent Toolkit</strong>
-            <br />
-            Install and validate capabilities for supported coding tools.
+            Focused playbooks for work you do more than once: review, design,
+            debugging, delivery and more.
           </p>
-          <a href="/docs/installation/">CLI installation guide →</a>
+          <a href="/capabilities/">
+            Explore skills <span aria-hidden="true">→</span>
+          </a>
         </article>
-        <article class="semantic-item">
-          <span class="term">CODING APPLICATION</span>
+        <article class="capability-card capability-card--agents">
+          <span class="card-glyph" aria-hidden="true">
+            ◉
+          </span>
+          <p class="card-type">ROLE & CONTEXT</p>
+          <h3>Agents & context</h3>
           <p>
-            <strong>Veasel Code</strong>
-            <br />
-            Use the TUI and Desktop with one canonical backend and shared
-            sessions.
+            Portable personas and project context that explain how a tool should
+            approach the work.
           </p>
-          <a href="https://www.veasel.dev/downloads/">Get Veasel Code →</a>
+          <a href="/capabilities/">
+            Explore the catalog <span aria-hidden="true">→</span>
+          </a>
         </article>
-        <article class="semantic-item">
-          <span class="term">GOVERNED CATALOG</span>
+        <article class="capability-card capability-card--integrations">
+          <span class="card-glyph" aria-hidden="true">
+            ⌁
+          </span>
+          <p class="card-type">CONNECTIONS</p>
+          <h3>MCP & workflows</h3>
           <p>
-            <strong>Official Veasel plugins</strong>
-            <br />
-            Discover curated manifests with provenance and review status.
+            Inspectable connection templates and repeatable recipes, with
+            requirements stated up front.
           </p>
-          <a href="https://github.com/veasel-labs/agent-toolkit">
-            Browse the catalog →
+          <a href="/docs/compatibility/">
+            Check compatibility <span aria-hidden="true">→</span>
           </a>
         </article>
       </div>
     </div>
   </section>
 
-  <section class="section section--deep">
-    <div class="wrap closing-banner">
-      <p class="section-kicker">Inspect before installing</p>
-      <h2>Know what a capability will change.</h2>
-      <p>
-        Preview install targets, preserve files you own, and inspect provenance
-        before applying capabilities. Compatibility depends on the target tool;
-        the CLI reports unsupported or unavailable targets instead of guessing.
-      </p>
-      <div class="button-row">
-        <a class="button" href="/docs/installation/">
-          Read installation guide
+  <section class="section section--night">
+    <div class="wrap roles-layout">
+      <div class="roles-intro">
+        <p class="section-kicker">Three clear roles</p>
+        <h2>Use the right tool for the part you need.</h2>
+        <p>
+          Portable capabilities stay useful across tools. When you want an
+          integrated coding workspace, Veasel Code brings the graphical app and
+          terminal client together.
+        </p>
+        <a class="text-link" href="https://www.veasel.dev/downloads/">
+          Explore Veasel Code <span aria-hidden="true">↗</span>
         </a>
-        <a class="button secondary" href="/docs/compatibility/">
-          Check compatibility
+      </div>
+      <div class="role-list">
+        <article class="role-row role-row--active">
+          <span class="role-index">01</span>
+          <div>
+            <h3>Agent Toolkit</h3>
+            <p>
+              Portable skills, agents, context, MCP templates, workflows and
+              CLI.
+            </p>
+          </div>
+          <span class="role-badge">THIS LIBRARY</span>
+        </article>
+        <article class="role-row">
+          <span class="role-index">02</span>
+          <div>
+            <h3>Veasel Code</h3>
+            <p>
+              The supported coding app: Desktop and TUI, one backend and shared
+              sessions.
+            </p>
+          </div>
+          <a href="https://www.veasel.dev/" aria-label="Visit Veasel Code">
+            ↗
+          </a>
+        </article>
+        <article class="role-row">
+          <span class="role-index">03</span>
+          <div>
+            <h3>Official Veasel catalog</h3>
+            <p>
+              Reviewed plugin manifests and provenance for the Veasel runtime.
+            </p>
+          </div>
+          <a
+            href="https://github.com/veasel-labs/agent-toolkit"
+            aria-label="Browse the official Veasel catalog"
+          >
+            ↗
+          </a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--paper upstream-summary">
+    <div class="wrap">
+      <div class="section-heading section-heading--split">
+        <div>
+          <p class="section-kicker">A careful route from upstream</p>
+          <h2>Updates arrive as proposals, not silent changes.</h2>
+        </div>
+        <div>
+          <p>
+            We pin the source, compare the bytes and keep provenance with the
+            capability. A human reviews the change before its trust state can be
+            renewed.
+          </p>
+          <a class="text-link text-link--dark" href="/docs/upstream-sync/">
+            See how upstream sync works <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
+      <UpstreamFlow />
+    </div>
+  </section>
+
+  <section class="section section--paper section--install">
+    <div class="wrap install-card">
+      <div>
+        <p class="section-kicker">Start small</p>
+        <h2>Look around before anything changes.</h2>
+        <p>
+          Install the CLI, inspect detected tools, and preview exact
+          destinations. Apply only the capabilities you want; existing files
+          remain yours.
+        </p>
+      </div>
+      <div class="install-action">
+        <code>uv tool install agent-toolkit-cli</code>
+        <a class="button button--dark" href="/docs/installation/">
+          Read the install guide <span aria-hidden="true">→</span>
+        </a>
+        <a
+          class="text-link text-link--dark"
+          href="https://github.com/ulises-jeremias/agent-toolkit"
+        >
+          Browse the source on GitHub <span aria-hidden="true">↗</span>
         </a>
       </div>
     </div>
