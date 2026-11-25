@@ -40,6 +40,7 @@
     },
     "mode": {
       "enum": [
+        "fixture",
         "hermetic",
         "real"
       ]
