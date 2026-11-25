@@ -8,6 +8,6 @@
 Use [Veasel Code](https://github.com/veasel-labs/veasel) for new coding-agent
 orchestration. Preserve existing Swarm state and worktrees; the Toolkit has
 no general importer. Read the current
-[retirement and data boundary](SWARM_V1_DISPOSITION.md) before inspecting,
+[retirement and data boundary](../SWARM_V1_DISPOSITION.md) before inspecting,
 stopping, or removing an old run. The former technical details remain in
 Git history.

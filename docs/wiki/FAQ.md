@@ -11,5 +11,5 @@ truth for supported behavior and current commands.
 - [Skills and Agent Definitions](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/SKILLS.md)
 - [MCP providers](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/MCP.md)
 - [Loops](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/LOOPS.md)
-- [Swarms](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/SWARMS.md)
+- [Swarm v1 retirement and preserved data](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/SWARM_V1_DISPOSITION.md)
 - [Troubleshooting](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/TROUBLESHOOTING.md)

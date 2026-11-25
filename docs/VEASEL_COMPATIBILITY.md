@@ -48,8 +48,9 @@ acceptance requirements.
 
 ## Compatibility command status
 
-In current `main`, `agent-toolkit gui` / `desktop` is a Veasel-only guidance
-alias and never launches the former Electron app; see merged
+In current `main`, `agent-toolkit gui` / `desktop` launches an installed Veasel
+Desktop binary when available. If it cannot find one, it prints Veasel install
+guidance; it never launches the former Electron app. See merged
 [PR #1851](https://github.com/ulises-jeremias/agent-toolkit/pull/1851). The
 published v1.50.0 CLI predates this change, so its behavior may still differ
 until a new Toolkit release is published. Invoke Veasel Code directly in the

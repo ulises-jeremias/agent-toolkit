@@ -10,7 +10,7 @@ Use Veasel Code for new orchestration: <https://github.com/veasel-labs/veasel>.
 
 ## Preserve existing state
 
-No general Swarm-to-Veasel importer exists. Keep existing `.agent-toolkit/swarm/` records, Git worktrees, branches, handoffs, artifacts, and locally modified recipes intact. Do not run `cleanup` or `prune` as part of an upgrade. Back up exact paths before user-directed recovery or removal.
+No general Swarm-to-Veasel importer exists. Keep existing `.agent-toolkit/swarm/` records, Git worktrees, branches, handoffs, artifacts, and locally modified recipes intact. The Toolkit does not automatically import or delete these records. Historical inspection commands (`list` and `status`) may reconcile stale PersonSession records and append trace events when worker loss is established, so they are not guaranteed read-only. Back up exact paths before inspection, recovery, or removal. Do not run `cleanup` or `prune` as part of an upgrade.
 
 For a specific old run, inspect it using commands supported by the installed version:
 
@@ -28,7 +28,10 @@ Use `agent-toolkit swarm stop RUN_ID` or `agent-toolkit swarm cancel RUN_ID` onl
 Other historical action commands remain in the compatibility surface. Some can
 change approvals, run records, worktrees, branches, or delete old state. Read the
 exact command help and back up its target before use. In particular, do not run
-`cleanup` or `prune` as part of an upgrade or migration.
+`cleanup` or `prune` as part of an upgrade or migration. `list` and `status` may
+also reconcile stale PersonSession records and append run-trace events when
+worker loss is established; treat them as potentially state-changing
+diagnostics and back up first.
 
 ## Recorded evidence
 

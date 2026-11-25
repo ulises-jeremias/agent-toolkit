@@ -550,10 +550,19 @@ struct SwarmsSubReq {
 	older_than    string
 }
 
-// build_swarms_options keeps role-to-Person, runner, and model choices typed
-// at the HTTP boundary; canonical recipe and catalog validation stays in core.
+// build_swarms_options validates historical Swarm request fields at the HTTP
+// boundary. Retired start/init requests return before decoding or workspace
+// resolution; canonical command outcomes remain owned by core.
 pub fn build_swarms_options(sub string, body string) !agent_toolkit_core.SwarmOptions {
 	check_sub('swarms', sub)!
+	// Retired entry points fail closed before parsing request fields or
+	// resolving a workspace that cannot affect their disabled outcome.
+	if sub in ['start', 'init'] {
+		return agent_toolkit_core.SwarmOptions{
+			subcommand: sub
+			no_attach: true
+		}
+	}
 	req := decode_sub_body[SwarmsSubReq](body)!
 	ws := resolve_body_workspace('workspace', req.workspace, default_workspace())!
 	if req.run_id.len > 0 && !agent_toolkit_core.swarm_valid_run_id(req.run_id) {

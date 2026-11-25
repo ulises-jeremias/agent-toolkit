@@ -30,7 +30,7 @@ Optional but recommended:
 
 ### Orchestration
 
-New interactive coding-agent orchestration belongs to [Veasel Code](https://github.com/veasel-labs/veasel). Swarm v1 `start` and `init` are disabled in current Agent Toolkit CLI/API builds. Existing Swarm records and worktrees remain user-owned; the Toolkit does not import or delete them. See [the migration boundary](SWARM_V1_DISPOSITION.md) before touching old data.
+New interactive coding-agent orchestration belongs to [Veasel Code](https://github.com/veasel-labs/veasel). Swarm v1 `start` and `init` are disabled in current Agent Toolkit CLI/API builds. Existing Swarm records and worktrees remain user-owned; the Toolkit does not automatically import or delete them. Historical inspection and recovery commands can still change records, approvals, branches, worktrees, or files, so back up the exact state before using them. See [the migration boundary](SWARM_V1_DISPOSITION.md) before touching old data.
 
 ---
 

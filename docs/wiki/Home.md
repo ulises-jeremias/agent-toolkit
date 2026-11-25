@@ -18,7 +18,7 @@ tracked in [Veasel #550](https://github.com/veasel-labs/veasel/issues/550).
 - [Browse skills and Agent Definitions](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/SKILLS.md)
 - [Configure MCP](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/MCP.md)
 - [Run loops](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/LOOPS.md)
-- [Start and observe swarms](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/SWARMS.md)
+- [Understand the Swarm v1 retirement and preserve existing data](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/SWARM_V1_DISPOSITION.md)
 
 ## For contributors
 

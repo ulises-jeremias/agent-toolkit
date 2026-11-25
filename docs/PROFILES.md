@@ -91,9 +91,9 @@ conflicts before writing. Do not use `--force` to overwrite user-owned files.
 For the complete target matrix, see [Installation](INSTALLATION.md).
 
 ```bash
-agent-toolkit install --dry-run --offline
-# Review the paths and changes, then apply only the intended targets:
-agent-toolkit install
+agent-toolkit install --dry-run --offline --tools claude-code
+# Review the paths and changes, then apply only the intended Claude Code target:
+agent-toolkit install --tools claude-code
 ```
 
 ### Customization
