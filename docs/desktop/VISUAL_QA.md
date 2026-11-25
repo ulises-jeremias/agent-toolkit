@@ -1,7 +1,13 @@
-# Desktop visual quality and evidence
+# Former Desktop visual quality and evidence
 
-This is the current visual acceptance guide for Agent Toolkit Desktop. It keeps
-art direction, the latest opened evidence, and unresolved findings in one place.
+> **Archive notice (2026-11-25):** The screenshots and findings below describe
+> historical Agent Toolkit Electron builds. They are not current Veasel visual
+> sign-off or acceptance. Current product evidence belongs in the Veasel
+> repository; see [Veasel #550](https://github.com/veasel-labs/veasel/issues/550)
+> and the [migration map](../LEGACY_DESKTOP_MIGRATION.md).
+
+This was the visual acceptance guide for Agent Toolkit Desktop. It keeps
+historical art direction, opened evidence, and findings in one place.
 The dated iteration log lives in [VISUAL_QA_HISTORY.md](VISUAL_QA_HISTORY.md);
 that archive is historical evidence, not the current art specification.
 

@@ -4,20 +4,21 @@
 
 # Agent Toolkit
 
-Agent Toolkit combines a canonical V runtime and CLI with reusable skills,
-Agent Definitions, MCP resources, loops, swarms, and a standalone Desktop app.
-The Desktop represents a real workspace as a cozy pixel valley; the map opens
-canonical resources, while inspectors provide precise controls.
+Agent Toolkit distributes portable skills, agent definitions, MCP templates,
+context packs, and workflow recipes through its CLI. It does not provide a
+Desktop coding product. Use [Veasel Code](https://veasel.dev/) for the supported
+TUI and graphical coding experience. Packaged shared-session acceptance is
+tracked in [Veasel #550](https://github.com/veasel-labs/veasel/issues/550).
 
 ## Start here
 
 - [Install and run your first capability](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/GETTING_STARTED.md)
-- [Use Agent Toolkit Desktop](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/desktop/README.md)
+- [Move from the former Toolkit Desktop](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/VEASEL_COMPATIBILITY.md)
 - [Understand People and live sessions](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/PEOPLE.md)
 - [Browse skills and Agent Definitions](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/SKILLS.md)
 - [Configure MCP](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/MCP.md)
 - [Run loops](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/LOOPS.md)
-- [Start and observe swarms](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/SWARMS.md)
+- [Understand the Swarm v1 retirement and preserve existing data](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/SWARM_V1_DISPOSITION.md)
 
 ## For contributors
 

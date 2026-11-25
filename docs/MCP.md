@@ -9,24 +9,21 @@ Templates live in `mcp/templates/<provider>/`. Each template directory contains:
 - `README.md` — provider-specific setup notes
 - `config.local.template.json` — optional PAT/stdio fallback (Notion only)
 
-## Agent Toolkit Desktop credentials
+## Former Toolkit Desktop credential store
 
-In the Electron Desktop, open **Library → MCP providers → Private credentials**
-to enter values for the environment names declared by provider templates. The
-Desktop encrypts them with the operating system's credential store and exposes
-them only to its supervised `agent-toolkit serve` process when it starts. The
-renderer never receives a saved value, and the MCP registry stores only
-provider configuration and variable names. On Linux, credential entry is
-disabled when a secure keyring is unavailable; Desktop does not fall back to
-plain-text storage.
+The old Electron application had a private-credential screen backed by the
+operating-system credential store. That application is retired from new
+releases. Its stored credentials are local user data: Agent Toolkit releases
+do not delete them, and Veasel Code does not automatically import them. Do not
+copy secret values into this repository or assume they are configured for a
+coding tool. Review and back up the old application's data before uninstalling
+it; see [Veasel compatibility and migration](VEASEL_COMPATIBILITY.md).
 
-After adding or removing a value, review and confirm **Restart backend to
-apply**. Requests in progress may fail while the API restarts; Desktop-owned
-terminal sessions remain open. Restarting applies additions and also removes
-deleted values from the backend environment. This manages credentials for the
-Toolkit MCP registry; it does not install a provider, start an MCP session, or
-configure a separate coding tool. The Library's probe checks local executable
-availability only.
+The portable MCP templates below contain placeholders only. Configure an MCP
+server through the supported coding tool's own documented settings, or through
+Veasel when its current integration explicitly supports that operation. A
+template or registry entry alone does not mean that a server is installed,
+authenticated, or running.
 
 ---
 

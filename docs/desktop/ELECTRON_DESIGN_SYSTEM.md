@@ -1,4 +1,9 @@
-# Electron design system
+# Former Electron design system
+
+> **Archive notice (2026-11-25):** This is the design system for the retired
+> Agent Toolkit Desktop. It is not a current implementation contract for
+> Veasel Code. Original PXL assets and their migration are tracked in the
+> [migration map](../LEGACY_DESKTOP_MIGRATION.md) and Veasel #693.
 
 The single design system for the Electron Desktop (`apps/desktop`). Every
 destination is built from these tokens, primitives and hooks; a new screen

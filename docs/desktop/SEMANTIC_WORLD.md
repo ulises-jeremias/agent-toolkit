@@ -1,7 +1,13 @@
-# Semantic World — Desktop spatial product contract
+# Semantic World — former Desktop spatial product contract
 
-**Status: CURRENT CONTRACT** (2026-10-11) — primary product goal for Agent
-Toolkit Desktop spatial UX. Governing ADRs:
+> **Archive notice (2026-11-25):** This document records the former Agent
+> Toolkit Desktop's design and implementation history. It is not the current
+> Veasel World contract and must not be used to claim migration acceptance.
+> See the [migration map](../LEGACY_DESKTOP_MIGRATION.md) and
+> [Veasel #693](https://github.com/veasel-labs/veasel/issues/693).
+
+**Status: ARCHIVED HISTORICAL CONTRACT** (originally 2026-10-11) — former
+product goal for Agent Toolkit Desktop spatial UX. Historical ADRs:
 [ADR-034](../adrs/ADR-034-semantic-world.md) (spatial pipeline) and
 [ADR-035](../adrs/ADR-035-cozy-pixel-world.md) (visual language — Cozy Pixel
 World). Complements [DESIGN.md](DESIGN.md), [UX_ARCHITECTURE.md](UX_ARCHITECTURE.md),

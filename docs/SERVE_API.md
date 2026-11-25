@@ -87,7 +87,8 @@ curl -s -X POST http://127.0.0.1:3847/api/v1/memory/search \
   OpenAPI `sub` enum), otherwise `404`. Not exposed over HTTP: `loops run`
   (use the job-backed `POST /api/v1/loops/{name}/run`), `loops gate-*` (reads
   the server process argv/env), and `swarms attach` (replaces the server
-  process with a terminal). `swarms start` never attaches a terminal.
+  process with a terminal). Swarm `start` and `init` requests are rejected by
+  the shared core dispatcher in current builds; they do not create runs.
 - **Bodies.** Empty body keeps the defaults. A non-object or malformed JSON
   body is `400`. Unknown keys are ignored.
 - **Paths.** `workspace` (and `dir` on `workspace/{sub}`) follow `POST /api/v1/jobs`:
@@ -244,8 +245,9 @@ outside the workspace are omitted from the tree and rejected on read.
   operations are flagged `x-confirm-required` in OpenAPI.
 - Browser CSRF guard: mutating routes on a loopback bind reject
   `Sec-Fetch-Site: cross-site` requests. First-party non-browser clients
-  (Electron Desktop over `file://`, which Chromium always flags cross-site)
-  send `X-Atk-Desktop: 1` instead. Browsers cannot send that header
+  (the former Electron Desktop over `file://`, which Chromium always flags
+  cross-site) sent `X-Atk-Desktop: 1` instead. This compatibility path exists
+  for historical clients only. Browsers cannot send that header
   cross-origin without a CORS preflight the server never answers (no
   `Access-Control-Allow-Origin` is emitted), and non-loopback `Origin` values
   stay rejected — so browser pages must remain same-origin.

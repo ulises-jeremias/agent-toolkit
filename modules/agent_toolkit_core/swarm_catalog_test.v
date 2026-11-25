@@ -12,8 +12,7 @@ fn setup_catalog_swarm() (string, string) {
 	os.mkdir_all(os.join_path(base, '.git')) or { panic(err.msg()) }
 	_ = old_h
 	_ = old_ws
-	start := run_swarm(SwarmOptions{
-		subcommand: 'start'
+	start := swarm_start(base, SwarmOptions{
 		workspace_path: base
 		recipe: 'team'
 		backend: 'headless'

@@ -4,7 +4,7 @@
 
 # agent-toolkit
 
-> **New here?** Install the supported [Veasel graphical app](https://github.com/veasel-labs/veasel/releases/latest), or use [Getting Started](docs/GETTING_STARTED.md) for the Agent Toolkit CLI.
+> **New here?** Use [Veasel Code](https://veasel.dev/) for interactive coding in the TUI or Desktop. Start with [Getting Started](docs/GETTING_STARTED.md) to install Agent Toolkit's portable capability CLI.
 
 **Portable skills, agent definitions, workflows, integrations, and a native automation CLI for coding assistants**
 
@@ -16,12 +16,12 @@
 
 [Documentation](docs/) ·
 [Official website](https://agent-toolkit.io) ·
-[Legacy Desktop archive](#desktop-app-gui) ·
+[Veasel Code](https://github.com/veasel-labs/veasel) ·
 [CLI Install](#-cli-quick-install) ·
 [Skills](#%EF%B8%8F-skills--catalog-via-agent-toolkit-inventory) ·
 [Agents](#-agent-personas) ·
 [Loops](#-loop-engineering) ·
-[Swarm](#-swarm-orchestration) ·
+[Swarm v1 retirement](#swarm-v1-retirement-status) ·
 [Contributing](#-contributing)
 
 </div>
@@ -33,9 +33,12 @@
 Agent Toolkit is the portable capability layer and native CLI. It distributes
 reusable Skills, Agent Definitions, MCP templates, and workflow recipes across
 coding assistants. [Veasel](https://github.com/veasel-labs/veasel) is the
-supported graphical runtime and consumes portable capabilities from this
-repository. The Electron Desktop remains available to existing installations
-for compatibility, but is no longer published with new Toolkit releases.
+supported coding product: its TUI and Desktop are designed around one backend
+and session store; packaged shared-session acceptance is tracked in
+[Veasel #550](https://github.com/veasel-labs/veasel/issues/550). Veasel can
+consume selected portable capabilities from this repository.
+The former Toolkit Electron Desktop is retired from new releases; existing
+installations and data remain untouched and are not automatically imported.
 
 ```mermaid
 flowchart LR
@@ -58,9 +61,9 @@ flowchart LR
     </td>
     <td width="50%" valign="top">
       <h3>🤖 Agents</h3>
-      <sub>Reusable Agent Definitions describe how a runner should work. Durable People are configured collaborators; a live session is a separate process.</sub>
+      <sub>Reusable Agent Definitions describe how a runner should work. Former Toolkit People records are workspace data declarations, not live sessions.</sub>
       <br><br>
-      <sub>Definitions under <code>agents/</code>; People and their state model are documented in <a href="docs/PEOPLE.md">People</a>.</sub>
+      <sub>Definitions under <code>agents/</code>; the historical People data contract is documented in <a href="docs/PEOPLE.md">People compatibility</a>.</sub>
     </td>
   </tr>
   <tr>
@@ -80,9 +83,9 @@ flowchart LR
   <tr>
     <td width="50%" valign="top">
       <h3>🧩 Plugins</h3>
-      <sub>Product distributions for Claude Code / Cursor marketplaces — core, agents, forge — compiled from one catalog.</sub>
+      <sub>Portable target-specific distributions are built from this repository's catalog. The official Veasel plugin catalog owns curation and review; Veasel Code owns installation and runtime permissions.</sub>
       <br><br>
-      <sub>Source of truth: <code>distributions/products.yaml</code></sub>
+      <sub>Portable build source: <code>distributions/products.yaml</code> · <a href="https://github.com/veasel-labs/agent-toolkit">Official Veasel catalog</a></sub>
     </td>
     <td width="50%" valign="top">
       <h3>🔗 MCP</h3>
@@ -353,34 +356,18 @@ Each loop template lives in `loops/<name>/` (see `agent-toolkit inventory` for t
 
 ---
 
-## 🐝 Swarm Orchestration
+## Swarm v1 retirement status
 
-Start a coordinated multi-agent run from **Operations → Swarms** in Desktop or
-from the CLI. Both entry points use the same V runtime for recipes, worktrees,
-budgets, human approval gates, artifacts, and run state. Operations lets you
-review a recipe before starting, then inspect real run progress and recovery;
-the World only shows the project where confirmed work is happening.
-
-```bash
-agent-toolkit swarm recipes                   # pair / team / full — personas + policy + budget per recipe
-agent-toolkit swarm start --recipe pair --dry-run "Add a health check endpoint with tests"
-agent-toolkit swarm start --recipe team --backend herdr "Migrate the auth module"
-agent-toolkit swarm watch <run-id>            # reports, artifacts, handoffs, logs, approvals
-agent-toolkit swarm promote <run-id>          # promote an approved run; inspect its gates first
-```
-
-| | agent-toolkit swarm | classic tmux swarms ([swarm-forge](https://github.com/unclebob/swarm-forge)) | legacy Python swarm |
-| --- | --- | --- | --- |
-| Recipes (personas + policy per role) | ✅ built-in `pair`/`team`/`full` | ✅ per-branch packs | ⚠️ manual |
-| Budget enforcement (tokens / $ / wall-clock) | ✅ per-recipe (pair/team `900k / $4 / 7200s`, full `1.2M / $8 / 10800s`), `budget_exhausted` state | ❌ | ❌ |
-| Handoff audit gate | ✅ `AUDIT_REQUIRED` → identical re-run passes | ✅ first-class | ❌ |
-| Blocking feedback with round-trip limit | ✅ `--blocking` (limit 2) | ⚠️ approval cards | ❌ |
-| Observability (watch / report / artifacts / logs / approvals) | ✅ Desktop Operations + CLI + `--json` | ✅ web cockpit | ⚠️ log files |
-| Single static binary, offline-first | ✅ V, ~22 MB, no runtime deps | ❌ bash + tmux + bb + dashboard | ❌ Python env |
-| JSON API / programmatic surface | ✅ `serve` + `swarm --json` everywhere | ⚠️ HTTP dashboard only | ❌ |
-| Cross-platform | ✅ linux/macOS/windows binaries + brew/AUR/npm/PyPI | ⚠️ macOS-first | ⚠️ |
-
-> Full protocol: [docs/v/swarm.md](docs/v/swarm.md) · ADR-008 (filesystem SoT) · ADR-020 (UI fail-closed)
+Agent Toolkit's older Swarm v1 executor is retired from new runs. Current
+Toolkit CLI and HTTP entry points reject `start` and `init`; existing records
+remain user-owned and are preserved. No data is automatically moved or
+deleted. See the
+[Swarm v1 disposition](docs/SWARM_V1_DISPOSITION.md),
+[migration issue #1676](https://github.com/ulises-jeremias/agent-toolkit/issues/1676),
+and [Veasel orchestration #629](https://github.com/veasel-labs/veasel/issues/629).
+Both issues are closed with evidence for the product boundary and Veasel
+orchestration; they do not assert that every user's Swarm files were imported.
+For new interactive coding sessions, use Veasel Code.
 
 ## 🔗 MCP Templates
 
@@ -445,6 +432,7 @@ Browse packs: [`packs/`](packs/)
 | [🔨 How to add a skill](docs/HOW_TO_ADD_SKILL.md) | Create a new skill with SKILL.md frontmatter |
 | [🤖 How to add an agent](docs/HOW_TO_ADD_AGENT.md) | Define a new agent persona |
 | [🔄 How to create a loop](docs/HOW_TO_CREATE_LOOP.md) | Build a recurring agentic workflow |
+| [🔄 Upstream synchronization](docs/UPSTREAM_SYNC.md) | How upstream content is pinned, reviewed, and trust-bound before distribution |
 | [🌐 OSS Maintenance example](examples/oss-maintenance/) | Full walkthrough of the oss-maintenance pack |
 | [🚀 Project onboarding example](examples/project-onboarding/) | Bootstrap a new project with agent-toolkit |
 
@@ -452,12 +440,12 @@ Browse packs: [`packs/`](packs/)
 
 ## 🌐 Ecosystem
 
-`agent-toolkit` is the **Capability + Runtime layer (L1.5)** in a four-layer ownership stack. It exposes two internal planes (Capability and Runtime) that share one binary and one release — see `docs/ARCHITECTURE.md`. Companion repos:
+`agent-toolkit` is the **portable capability and CLI layer (L1.5)** in a four-layer ownership stack. Veasel Code owns interactive coding sessions; the official Veasel catalog owns curated plugin metadata. See `docs/ARCHITECTURE.md` for the product boundaries. Companion repos:
 
 | Layer | Repo | Role |
 | ------- | ------ | ------ |
 | **L1 — Machine** | [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation) | Machine provisioning — chezmoi, shell, packages, LLM policy |
-| **L1.5 — Toolkit** | **agent-toolkit** (this repo) | Capability + Runtime — skills, agents, MCP, plugins, plus workspace/memory/project/loop/devcompanion/swarm (`docs/ARCHITECTURE.md` planes) |
+| **L1.5 — Toolkit** | **agent-toolkit** (this repo) | Portable skills, agents, MCP templates, workflow recipes, provenance, compatibility, and CLI |
 | **L3 — Workspace** | [agentic-harness](https://github.com/ulises-jeremias/agentic-harness) | AI workspace scaffold for multi-repo orchestration |
 | **Project Overlay** | per-repo | Per-project `AGENTS.md`, `.cursor/rules/`, local `loops/` — highest precedence |
 
@@ -465,31 +453,31 @@ Browse packs: [`packs/`](packs/)
 
 **agentic-workstation** installs the V CLI during `chezmoi apply` (Homebrew, AUR `agent-toolkit-bin`, GitHub Release, or the PyPI launcher). Running `agent-toolkit install` deploys skills and profiles to all detected AI tools.
 
-**agentic-harness** is an opinionated workspace scaffold that uses `agent-toolkit loop`, `agent-toolkit memory`, `agent-toolkit devcompanion`, `agent-toolkit project`, and `agent-toolkit swarm` as its primary CLI interface.
+**agentic-harness** is an opinionated multi-repo workspace scaffold that uses Agent Toolkit's portable CLI and workspace-context commands. Swarm v1 starts are disabled; old run inspection and recovery remain only for existing user-owned state.
 
 ---
 
 ## 🏗️ Architecture
 
-One source of truth, deployed per-tool. See `docs/ARCHITECTURE.md` for ownership Layers `L1`/`L1.5`/`L3` + Project Overlay and the two internal planes (Capability vs Runtime, ADR-015 / ADR-026). `plugins/` is canonical compiler output; `profiles/` is a deprecated install overlay (ADR-004).
+One source of truth, deployed per-tool. See `docs/ARCHITECTURE.md` for the ownership boundaries among Agent Toolkit, Veasel Code, and the official Veasel plugin catalog. `plugins/` is generated compiler output; `profiles/` is a deprecated install overlay (ADR-004).
 
 ```text
-agent-toolkit/                 # L1.5 Toolkit — two planes, one binary
-├── skills/                    # Capability: SKILL.md by domain (inventory is SoT)
-├── agents/                    # Capability: tool-agnostic persona definitions
-├── plugins/                   # Capability: compiler output — canonical (build --check)
-├── profiles/                  # Capability: deprecated overlay — fallback only (ADR-004)
-├── distributions/             # Capability: products.yaml composition SoT (compiler input)
-├── distribution/              # Capability: channel contracts (aur/docker/homebrew/npm/pypi)
-├── mcp/templates/             # Capability: provider templates + registry
-├── packs/                     # Capability: docs-only packs (ADR-006)
-├── loops/                     # Runtime: loop templates (inventory is SoT)
-├── catalogs/                  # generated — skill/agent/loop catalogs
+agent-toolkit/                 # portable capabilities and CLI
+├── skills/                    # portable SKILL.md capabilities
+├── agents/                    # tool-agnostic agent definitions
+├── plugins/                   # generated consumer output (build --check)
+├── profiles/                  # deprecated compatibility overlay (ADR-004)
+├── distributions/             # products.yaml composition source
+├── distribution/              # CLI channel contracts
+├── mcp/templates/             # portable provider templates
+├── packs/                     # docs-only workflow/context examples
+├── loops/                     # reusable workflow recipes
+├── catalogs/                  # generated skill/agent/loop catalogs
 ├── schemas/                   # JSON schemas for validation
-├── modules/                   # V CLI — Capability + Runtime planes
-├── docs/                      # How-to guides and reference docs
-├── examples/                  # Worked examples
-└── scripts/                   # Install and validation scripts
+├── modules/                   # V CLI and Toolkit operations
+├── docs/                      # how-to, architecture, and migration guides
+├── examples/                  # worked examples
+└── scripts/                   # install and validation scripts
 ```
 Live counts: `agent-toolkit inventory` (not hardcoded).
 
@@ -550,36 +538,19 @@ See [SHOWCASE.md](SHOWCASE.md) for community usage examples and pack walkthrough
 
 </div>
 
-## Legacy Desktop archive
+## Moving from the former Toolkit Desktop
 
-The following material documents the historical Agent Toolkit Electron application. It is retained for existing installations and source-history reference; it is not the current Agent Toolkit product or the Veasel Desktop, and new Agent Toolkit releases do not publish its installers.
+<a id="legacy-desktop-archive"></a>
 
 ### Desktop app (GUI)
 
-Install the supported [Veasel graphical app](https://github.com/veasel-labs/veasel/releases/latest). Agent Toolkit Desktop is a legacy compatibility application: existing installations and their data remain untouched, but new Toolkit releases no longer publish Electron installers. See the [legacy Desktop guide](docs/desktop/README.md) for preservation details.
-
-<p align="center">
-  <img src="static/demo/world-demo.gif" width="100%" alt="Walking through the Agent Toolkit Desktop valley: the player explores a workspace where each project is a house" />
-  <br />
-  <sub>Live Desktop walkthrough — <a href="static/demo/world-demo.mp4">watch the full MP4</a></sub>
-</p>
-
-| Playable Meadow valley | Lantern-lit Dusk |
-| --- | --- |
-| <img src="static/screenshots/world.png" width="100%" alt="The workspace valley with its human player, real project houses, shared landmarks, creek and woodland" /> | <img src="static/screenshots/world-dusk.png" width="100%" alt="The workspace valley and distinct project landmarks under warm Dusk lighting" /> |
-| Project interior | Capability Library |
-| <img src="static/screenshots/project-interior.png" width="100%" alt="A project room with its overview board, real files, memory records, and terminal stations" /> | <img src="static/screenshots/library.png" width="100%" alt="The reusable capability Library with truthful detection and installation evidence" /> |
-| Skill catalog detail | People roster |
-| <img src="docs/desktop/assets/electron/library/catalog-search-details-large.png" width="100%" alt="A searched Skill with catalog provenance, requirements and target support separated from installation evidence" /> | <img src="static/screenshots/people.png" width="100%" alt="A configured offline Person in the durable collaborator roster, with no fake world character" /> |
-| Operations | Real PTY terminal |
-| <img src="static/screenshots/operations.png" width="100%" alt="Operations showing real jobs, outcomes and available loop templates" /> | <img src="static/screenshots/terminal.png" width="100%" alt="A live shell session with real command output in the integrated terminal" /> |
-| Walking & click-to-move | Reviewed Munder import |
-| <img src="static/screenshots/world-walk.png" width="100%" alt="The player walks through the semantic workspace using keyboard or click-to-move" /> | <img src="static/screenshots/people-import.png" width="100%" alt="A Munder hire review showing mapped identity and ignored command fields before saving" /> |
-| First-run welcome | First-run welcome, compact |
-| <img src="static/screenshots/onboarding.png" width="100%" alt="First-run welcome with a preview made from the real workspace hall, Library, creek and bridge sprites" /> | <img src="static/screenshots/onboarding-compact.png" width="100%" alt="Compact first-run setup with the workspace hall, Library, creek and bridge sprites" /> |
-
-<p align="center"><sub>These are real Electron captures from a disposable workspace. Import is a review step; saving a Person never starts a session.</sub></p>
-
-These PNGs are captures from Electron with the real backend and a disposable workspace: offline People stay off the map, and the terminal is a live PTY. Project and landmark names appear when you hover, focus, or select a place, keeping the resting valley clear while preserving keyboard discovery. The links above go directly to CI, licensing, and release information. Current visual limits and capture evidence are tracked in [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md).
+New Agent Toolkit releases distribute the portable CLI and capabilities, not
+the historical Electron app. For the current graphical coding experience,
+install [Veasel Code](https://github.com/veasel-labs/veasel/releases/latest).
+The old application and its local data are not automatically removed or
+imported. Review the [migration and compatibility notes](docs/VEASEL_COMPATIBILITY.md)
+before uninstalling an older copy. Historical source, screenshots, and tests
+remain in Git history while unique behavior and user-data formats are being
+accounted for.
 
 ---

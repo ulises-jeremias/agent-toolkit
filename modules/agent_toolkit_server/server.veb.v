@@ -338,7 +338,7 @@ fn (app &App) run_install_action(action string, run fn () agent_toolkit_core.Com
 }
 
 // swarm_mutating_subs are the swarm subcommands that change run state.
-const swarm_mutating_subs = ['start', 'init', 'plan', 'activate', 'deactivate', 'promote', 'approve',
+const swarm_mutating_subs = ['plan', 'activate', 'deactivate', 'promote', 'approve',
 	'reject', 'cancel', 'pause', 'resume', 'stop', 'cleanup', 'prune']
 
 // swarm_sub_mutates reports whether a swarms/{sub} call changes state:
@@ -1408,7 +1408,7 @@ const openapi_json = $embed_file('../../docs/surface/openapi.json')
 const cli_help_md = $embed_file('../../docs/surface/cli-help.md')
 
 // The HTTP server is a backend API, not a second Desktop frontend.
-const status_html = '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Agent Toolkit API</title><body><main><h1>Agent Toolkit backend</h1><p>The API is running. Open Agent Toolkit Desktop to use the workspace.</p><p><a href="/openapi.json">OpenAPI schema</a> · <a href="/api/v1/health">Health</a></p></main></body></html>'
+const status_html = '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Agent Toolkit API</title><body><main><h1>Agent Toolkit API</h1><p>The local API is running. Use the Agent Toolkit CLI or a configured client to work with portable capabilities.</p><p>For interactive coding, see <a href="https://veasel.dev/">Veasel Code</a>.</p><p><a href="/openapi.json">OpenAPI schema</a> · <a href="/api/v1/health">Health</a></p></main></body></html>'
 
 @['/'; get]
 pub fn (app &App) index(mut ctx Ctx) veb.Result {

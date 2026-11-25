@@ -28,28 +28,9 @@ Optional but recommended:
 - **node** / **npm** — for MCP server installation and `npx skills`
 - **git** + **bash** — only needed for git-clone or install-script methods below
 
-### Swarms — `agent-toolkit swarm` prerequisites
+### Orchestration
 
-Swarms are backend-neutral: the orchestration engine is filesystem-based, no cloud required. You need a **UI backend** and a **runner**:
-
-- **UI backend (one required):**
-  - **[Herdr](https://herdr.dev/docs/install/)** — recommended. Rich workspace/tabs UI: `brew install herdr` or `curl -fsSL https://herdr.dev/install.sh | sh`. Verify `herdr --version` and `herdr integration install opencode`. See [SWARM_HERDR.md](SWARM_HERDR.md).
-  - **`tmux`** — portable fallback, works over SSH/headless Linux. Install `tmux` via your package manager (`brew install tmux`, `apt install tmux`, etc.). Swarm uses an isolated server/socket per run `agent-toolkit-swarm-<run-id>` and never mutates your normal tmux sessions. See [SWARM_TMUX.md](SWARM_TMUX.md).
-  - Use `--backend auto` (Herdr → tmux fallback) or explicitly `--backend herdr` / `--backend tmux` / `--backend headless`. `swarm doctor` reports `herdr available`, `tmux available`, versions, and `opencode integration installed/outdated`.
-- **Runner (one required — provides the LLM):**
-  - **[OpenCode](https://opencode.ai)** — primary recommended runner (`opencode models` to list `provider/model`). Alternatives: `claude`, `codex`, `cursor-agent`, `copilot`, `muse`. Discover via `agent-toolkit swarm models --runner opencode` or `agent-toolkit swarm runners`. See [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md).
-  - **Offline/fake demo:** no runner or Herdr needed — use `--runner skeleton` (always available). `agent-toolkit swarm start --runner skeleton --backend tmux --dry-run "demo task"` previews without creating state; omit `--dry-run` for a real local run.
-- **Git:** required for worktree isolation. Each writing role gets `worktrees/<role>` on branch `agent-toolkit-swarm/<run-id>/<role>`; code moves via validated full 40-char SHAs.
-- **Agentic-workstation auto-provision:** if you use [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation), set `agent_swarms.enabled=true` to install tmux + Herdr + integrations automatically.
-
-Check everything at once:
-
-```bash
-agent-toolkit swarm doctor
-agent-toolkit swarm doctor --json
-agent-toolkit swarm backends --json
-agent-toolkit swarm runners --json
-```
+New interactive coding-agent orchestration belongs to [Veasel Code](https://github.com/veasel-labs/veasel). Swarm v1 `start` and `init` are disabled in current Agent Toolkit CLI/API builds. Existing Swarm records and worktrees remain user-owned; the Toolkit does not automatically import or delete them. Historical inspection and recovery commands can still change records, approvals, branches, worktrees, or files, so back up the exact state before using them. See [the migration boundary](SWARM_V1_DISPOSITION.md) before touching old data.
 
 ---
 
@@ -58,10 +39,11 @@ agent-toolkit swarm runners --json
 ### Graphical app
 
 Install the supported [Veasel graphical app](https://github.com/veasel-labs/veasel/releases/latest).
-Agent Toolkit Desktop is a legacy compatibility app; new Toolkit releases no
-longer publish Electron installers. Existing installations and their data
-remain on the device and are not automatically imported into Veasel. Keep a
-backup before removing an old Toolkit installation or its data directory.
+Agent Toolkit does not ship or maintain a Desktop application. Existing
+Electron installations and their data remain on the device and are not
+automatically imported into Veasel. Keep a backup before removing an old
+Toolkit installation or its data directory. See the
+[migration map](LEGACY_DESKTOP_MIGRATION.md).
 
 The CLI install below is for terminal-first setup, scripting, CI, and headless
 workflows.

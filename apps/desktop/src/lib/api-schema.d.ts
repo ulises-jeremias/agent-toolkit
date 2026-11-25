@@ -318,7 +318,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Multi-agent swarm orchestration */
+        /** Swarm v1 history inspection and recovery; new starts are disabled */
         post: operations["swarm"];
         delete?: never;
         options?: never;

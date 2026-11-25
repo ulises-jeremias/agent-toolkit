@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   clarify its relationship to Veasel Code and the official Veasel catalog,
   document reviewed upstream synchronization, and redirect retired Desktop
   routes to the migration guide.
+- Fail retired Swarm `start` and `init` requests before parsing request data or
+  resolving workspaces; clarify that historical `list` and `status` diagnostics
+  may update stale session records and run traces.
 
 ## [1.50.0] — 2026-11-24
 

@@ -345,19 +345,20 @@ commands:
     aliases: []
     surface: advanced
     module: agent_toolkit.swarm.cli
-    summary: Multi-agent swarm orchestration
+    summary: Swarm v1 history inspection and recovery; new starts are disabled
     stdin: optional
     stdout: human / JSON
     stderr: errors
     exit_codes: {success: 0, usage: 2}
-    flags: ["recipes", "recipe", "backends", "doctor", "runners", "models", "start", "list", "ls", "status", "approve", "reject", "cancel", "prune", "init", "plan", "activate", "deactivate", "promote", "pause", "resume", "stop", "cleanup", "watch", "report", "artifacts", "handoffs", "logs", "approvals", "handoff", "task", "attach", "--recipe", "--backend", "--runner", "--model-profile", "--run-id", "--workspace", "--json", "--dry-run", "--attach", "--no-attach", "--type", "--from", "--to", "--commit", "--branch", "--priority", "--artifact", "--blocking", "--act", "--max-hops", "--older-than", "--force"]
+    flags: ["recipes", "recipe", "backends", "doctor", "runners", "models", "list", "ls", "status", "approve", "reject", "cancel", "prune", "plan", "activate", "deactivate", "promote", "pause", "resume", "stop", "cleanup", "watch", "report", "artifacts", "handoffs", "logs", "approvals", "handoff", "task", "attach", "--recipe", "--backend", "--runner", "--model-profile", "--run-id", "--workspace", "--json", "--dry-run", "--attach", "--no-attach", "--type", "--from", "--to", "--commit", "--branch", "--priority", "--artifact", "--blocking", "--act", "--max-hops", "--older-than", "--force"]
     env: ["AGENT_TOOLKIT_SWARM_RUN_ID", "AGENT_TOOLKIT_SWARM_RUN_DIR", "AGENT_TOOLKIT_SWARM_REPO", "AGENT_TOOLKIT_SWARM_RUNS_DIR"]
-    effects: {filesystem: run-dir-writes, network: optional, processes: tmux-herdr}
-    platform_notes: ["tmux/Herdr required for full modes"]
+    effects: {filesystem: existing-run-state-and-worktree-mutations, network: optional, processes: existing-run-recovery-only}
+    platform_notes: ["New Swarm v1 starts are disabled; inspect each legacy action before use because some can mutate or delete old run data"]
     tests: ["tests/test_swarm*.py"]
     migration: {wave: 6, complexity: high, risk: high, disposition: rewrite-v}
-    # HTTP excludes `attach` (execvp replaces the server process) and never
-    # attaches a terminal on `start`.
+    # `start` and `init` remain in this API allowlist only so the common core
+    # dispatcher can return an explicit feature_frozen response; neither creates a run.
+    # HTTP excludes `attach` because it replaces the server process with a terminal.
     api_subcommands: ["recipes", "recipe", "backends", "doctor", "runners", "models", "start", "init", "plan", "activate", "deactivate", "promote", "list", "status", "approve", "reject", "cancel", "pause", "resume", "stop", "cleanup", "graph", "handoff", "task", "watch", "report", "artifacts", "handoffs", "logs", "approvals", "prune", "help"]
     api_body: ["workspace:string", "project_id:string", "expected_project_path:string", "run_id:string", "gate_id:string", "recipe:string", "backend:string", "runner:string", "model_profile:string", "task:string", "reason:string", "dry_run:boolean", "force:boolean", "current:boolean", "issue_ref:string", "base_ref:string", "handoff_sub:string", "htype:string", "from_role:string", "to_role:string", "priority:integer", "artifact:string", "commit:string", "branch:string", "blocking:boolean", "act:string", "max_hops:integer", "role:string", "handoff_id:string", "to_recipe:string", "older_than:string", "person_bindings:map<string>", "role_runners:map<string>", "role_models:map<string>", "launch_sessions:boolean"]
 

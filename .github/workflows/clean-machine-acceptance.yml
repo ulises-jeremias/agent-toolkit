@@ -1,4 +1,4 @@
-name: Clean-machine Desktop Acceptance
+name: Archived Toolkit Desktop migration-source checks
 
 on:
   pull_request:
@@ -19,7 +19,7 @@ on:
 
 jobs:
   linux-clean-machine:
-    name: Packaged Electron with fresh HOME
+    name: Legacy Toolkit Electron migration smoke (not Veasel acceptance)
     # Pinned: see desktop.yml gates (ubuntu-26.04 archive unavailable).
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -44,7 +44,7 @@ jobs:
           set -euo pipefail
           mkdir -p dist
           "${VBIN}" -prod -cc gcc -d "commit=$(git rev-parse --short HEAD)" -o dist/agent-toolkit cmd/agent-toolkit
-      - name: Package Electron Desktop
+      - name: Package archived Toolkit Electron migration source
         env:
           ATK_BACKEND_BIN: ${{ github.workspace }}/dist/agent-toolkit
         run: pnpm --filter agent-toolkit-desktop dist:dir
@@ -67,13 +67,13 @@ jobs:
               raise SystemExit(f'version mismatch: source={version}, bundle={bundle}, desktop={package}')
           print(f'packaged Desktop and backend: {version}')
           PYCODE
-      - name: Real packaged Electron E2E with isolated HOME
+      - name: Packaged legacy-runtime retirement boundary with isolated HOME
         env:
           ATK_E2E_APP_PATH: ${{ github.workspace }}/apps/desktop/release/linux-unpacked/agent-toolkit-desktop
           ATK_E2E_BACKEND_BIN: ${{ github.workspace }}/apps/desktop/release/linux-unpacked/resources/bin/agent-toolkit
         run: >-
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
-          pnpm --filter agent-toolkit-desktop exec playwright test --project=electron
+          pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/swarm-person-session.spec.ts
       - name: Upload failure evidence
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

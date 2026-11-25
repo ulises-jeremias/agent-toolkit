@@ -860,7 +860,7 @@ jobs:
           ./make.vsh test
 
   swarm-e2e:
-    name: Swarm e2e (skeleton, ${{ matrix.os }})
+    name: Swarm retirement guard (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
@@ -879,37 +879,35 @@ jobs:
           VMODULES: ${{ github.workspace }}/modules
         run: ./make.vsh build-cli
 
-      - name: Swarm dry-run matrix (pair/team/full × herdr/tmux/headless)
+      - name: Verify frozen Swarm entry points fail closed
         run: |
           set -euo pipefail
-          for recipe in pair team full; do for backend in headless; do
-            ./build/agent-toolkit swarm start --recipe $recipe --backend $backend --runner skeleton --model-profile balanced --dry-run "Add a health check endpoint with tests" | tee -a swarm-dry-run.log
-            grep -q "runner=skeleton" swarm-dry-run.log
-            grep -q "model_profile=balanced" swarm-dry-run.log
-          done; done
-          # herdr/tmux not installed on CI runners — test --dry-run error path only
-          ./build/agent-toolkit swarm start --recipe pair --backend herdr --runner skeleton --model-profile balanced --dry-run "test" 2>&1 | grep -q "unavailable" || true
-          ./build/agent-toolkit swarm start --recipe pair --backend tmux --runner skeleton --model-profile balanced --dry-run "test" 2>&1 | grep -q "dry-run" || true
-
-      - name: Swarm filesystem SoT + prune + loop/workspace parity
-        run: |
-          set -euo pipefail
-          rm -rf /tmp/play-e2e && mkdir -p /tmp/play-e2e
-          printf 'from fastapi import FastAPI\napp = FastAPI()\n@app.get("/health")\ndef health(): return {"status":"ok"}\n' > /tmp/play-e2e/app.py
-          mkdir -p /tmp/play-e2e/tests
-          printf 'import sys, pathlib; sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))\nfrom fastapi.testclient import TestClient; from app import app; client=TestClient(app)\ndef test_health(): assert client.get("/health").json()=={"status":"ok"}\n' > /tmp/play-e2e/tests/test_health.py
-          printf '.agent-toolkit/\n' > /tmp/play-e2e/.gitignore
-          git -C /tmp/play-e2e init -q; git -C /tmp/play-e2e config user.email "ci@test.com"; git -C /tmp/play-e2e config user.name "CI"; git -C /tmp/play-e2e add .; git -C /tmp/play-e2e commit -qm "feat: health baseline"
-          # Use headless for filesystem SoT in CI (herdr not installed on CI runners)
-          ./build/agent-toolkit swarm start --recipe pair --backend headless --runner skeleton --model-profile balanced "Add a health check endpoint with tests" 2>&1 | tee /tmp/swarm-real.log
-          grep -q "state: running" /tmp/swarm-real.log || true
-          # Find state.json via find (zsh glob fails with no matches)
-          find /tmp/play-e2e/.agent-toolkit -name "state.json" 2>/dev/null | head -1 | xargs test -f && echo "state.json exists" || echo "state.json check via find"
-          AGENT_TOOLKIT_ROOT=/tmp/play-e2e ./build/agent-toolkit swarm list --json 2>&1 | head -5 || true
-          ./build/agent-toolkit swarm prune --dry-run --older-than 0s 2>&1 | head -20 || true
-          ./build/agent-toolkit loop --help | grep -q "loop run <loop>"
-          ./build/agent-toolkit workspace --help | grep -q "workspace"
-          ./build/agent-toolkit memory --help | grep -q "memory"
+          workspace="$(mktemp -d)"
+          trap 'rm -rf "$workspace"' EXIT
+          mkdir -p "$workspace/.git"
+          for subcommand in start init; do
+            if ./build/agent-toolkit swarm "$subcommand" --workspace "$workspace" --recipe pair --dry-run "must remain disabled" >"$workspace/$subcommand.log" 2>&1; then
+              echo "Swarm v1 $subcommand unexpectedly succeeded" >&2
+              cat "$workspace/$subcommand.log" >&2
+              exit 1
+            fi
+            if ! grep -q 'feature-frozen' "$workspace/$subcommand.log"; then
+              echo "Swarm v1 $subcommand did not report its frozen feature state" >&2
+              cat "$workspace/$subcommand.log" >&2
+              exit 1
+            fi
+            if ! grep -q 'Existing Swarm records are preserved' "$workspace/$subcommand.log"; then
+              echo "Swarm v1 $subcommand did not explain preservation of existing records" >&2
+              cat "$workspace/$subcommand.log" >&2
+              exit 1
+            fi
+            if ! grep -q 'github.com/veasel-labs/veasel' "$workspace/$subcommand.log"; then
+              echo "Swarm v1 $subcommand did not link to Veasel Code" >&2
+              cat "$workspace/$subcommand.log" >&2
+              exit 1
+            fi
+          done
+          test ! -e "$workspace/.agent-toolkit/swarm/runs"
 
   # ── Job 12: Check VERSION and artifact consistency (VERSION, package manifests, checksums) (#980) ──
   check-version:

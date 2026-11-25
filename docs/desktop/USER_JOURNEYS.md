@@ -1,8 +1,13 @@
 # Desktop user journeys
 
-Status: acceptance journeys for the shipping Electron Desktop. The executable
-coverage ledger is [`workflows.yaml`](workflows.yaml). These journeys are desired
-outcomes, not claims that every step is implemented.
+> **Historical acceptance record (2026-11-25):** These journeys described the
+> former Agent Toolkit Electron app. They are retained as migration evidence,
+> not as current support or Veasel acceptance. See the
+> [migration map](../LEGACY_DESKTOP_MIGRATION.md) and Veasel #550.
+
+Status: acceptance journeys for the former Electron Desktop. The historical
+coverage ledger is [`workflows.yaml`](workflows.yaml). These describe desired
+outcomes at the time and are not current Veasel acceptance evidence.
 
 | Journey | Required path and outcome |
 |---|---|

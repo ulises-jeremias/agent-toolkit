@@ -1,6 +1,12 @@
-# World Portal — Design Specification (Hornero Valley)
+# Archived World Portal design — Hornero Valley
 
-**Status:** Design specification for implementation (Agent D). Not implemented by this document.
+> **Archive notice (2026-11-25):** This proposal described a former Agent
+> Toolkit website direction and is superseded by the current portable Toolkit
+> site at [agent-toolkit.io](https://agent-toolkit.io). It is not an active
+> implementation plan or product contract. Current Veasel product design and
+> downloads belong to [veasel.dev](https://veasel.dev/).
+
+**Status:** Historical design specification; superseded, not an implementation task.
 **Mission:** [#1759](https://github.com/ulises-jeremias/agent-toolkit/issues/1759) · Website in `apps/web` (Astro, static)
 **Baseline audited:** `origin/main` at `fda178e0` (`v1.49.0` prepared in `7bd44a7b`), 2026-11-11
 **Authority:** [SEMANTIC_WORLD.md](../desktop/SEMANTIC_WORLD.md), [DESIGN.md](../desktop/DESIGN.md) §5–§7,

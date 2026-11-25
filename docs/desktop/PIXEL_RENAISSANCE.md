@@ -1,5 +1,11 @@
 # Pixel Renaissance — Art Direction & PXL Pipeline
 
+> **Archive notice (2026-11-25):** This records the former Toolkit Desktop's
+> World art direction and source pipeline. The original PXL inputs and
+> attribution remain preserved here pending verified migration to Veasel; this
+> document is not Veasel World acceptance. See the
+> [migration map](../LEGACY_DESKTOP_MIGRATION.md) and Veasel #693.
+
 Mission: [#1741](https://github.com/ulises-jeremias/agent-toolkit/issues/1741) ·
 Semantic world: #1673 · Daily driver: #1667 · ADR: `docs/adrs/ADR-042-pxl-asset-pipeline.md`
 
@@ -84,6 +90,7 @@ Findings (severity per design-assessment):
 - Not assessed: real-provider session characters, screen-reader pass,
   WCAG conformance beyond static token contrast + jsx-a11y (never
   claimed from static tests).
+
 ## Desktop UI language (PR D)
 
 The surrounding application speaks the same material language as the

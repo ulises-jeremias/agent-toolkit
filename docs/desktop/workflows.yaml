@@ -1,15 +1,12 @@
-# Desktop workflow ledger (Electron + React, ADR-033)
-# Declarative companion to WORKFLOW_COVERAGE.md: each journey lists the
-# discover → configure/execute → observe → recover state with an honest
-# status. A journey is "ok" only with linked reviewed evidence at a recorded
-# build SHA; everything else stays a blocker. Generic command/argument
-# dialogs and manual declaration file edits never qualify as a journey.
+# Historical workflow evidence for the former Electron + React Desktop.
+# This ledger is not a current product contract or Veasel acceptance result.
+# Current packaged coding-product acceptance is tracked in Veasel issue #550.
 spec: agent-toolkit/desktop-workflows@1
-status: current-contract
+status: archival-evidence
 scope: |
-  Electron + React shipping Desktop. The native-V workflow matrix in
-  WORKFLOW_COVERAGE.md is historical (ADR-032 retirement, ADR-033); this YAML
-  is the current per-journey ledger for the Electron app.
+  Former Electron + React application retained temporarily for migration,
+  preservation, and security work. These records describe historical builds
+  only; current coding workflows and release evidence belong to Veasel Code.
 journeys:
   - id: first-run-onboarding
     title: First run to a created or reused workspace

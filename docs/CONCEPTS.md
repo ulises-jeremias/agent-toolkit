@@ -1,13 +1,13 @@
 # Public concept model
 
-One mental model for how agent-toolkit pieces fit together. Within the toolkit layer, two conceptual **planes** share one repo and one V binary — see [Two Planes](#two-planes-within-the-toolkit-l15--capability-vs-runtime) below. Ownership **Layers** (`L1`/`L1.5`/`L3`) are separate from Loop tier **Stages** (`L1`/`L2`/`L3` mutation-safety) — see terminology note in `docs/ARCHITECTURE.md`.
+One mental model for Agent Toolkit's portable content and CLI. Veasel Code owns the interactive coding runtime; Agent Toolkit owns portable skills, agent definitions, MCP templates, context/workflow recipes, provenance, and compatibility tooling. Ownership **Layers** (`L1`/`L1.5`/`L3`) are separate from Loop tier **Stages** (`L1`/`L2`/`L3` mutation-safety) — see terminology note in `docs/ARCHITECTURE.md`.
 
 ## Ownership Layers (Machine → Toolkit → Workspace → Project)
 
 | Layer | Repo / location | Role |
 |-------|-----------------|------|
 | **L1 — Machine** | [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation) | Machine provisioning — chezmoi, shell, packages, LLM policy |
-| **L1.5 — Toolkit** | **agent-toolkit** (this repo) | Capability + Runtime planes (see below) |
+| **L1.5 — Toolkit** | **agent-toolkit** (this repo) | Portable capabilities, provenance, compatibility, and CLI |
 | **L3 — Workspace** | [agentic-harness](https://github.com/ulises-jeremias/agentic-harness) | Harness workspace — `knowledge/`, `repos/`, `projects/`, packs |
 | **Project Overlay** | per-repo | Per-project overrides — `AGENTS.md`, `.cursor/rules/`, local `loops/` |
 
@@ -24,11 +24,25 @@ One mental model for how agent-toolkit pieces fit together. Within the toolkit l
 | **Packs** | `packs/` | Solution-oriented README + config | **Docs-only** workflow templates; not loaded by compiler (ADR-006) |
 | **Presets** | *(planned)* | Named capability sets for `agent-toolkit.yaml` projects | Future — not implemented yet |
 
-## Two Planes within the Toolkit (L1.5 — Capability vs Runtime)
+## Portable source and CLI
 
-No code split — one repo, one `build/agent-toolkit` binary, one Release. Canonical definition: [`docs/ARCHITECTURE.md#two-planes-within-the-toolkit-l15--capability-vs-runtime`](ARCHITECTURE.md#two-planes-within-the-toolkit-l15--capability-vs-runtime) — **Capability** (what is distributed: `skills/`/`agents/` → `distributions/products.yaml` → `plugins/`) vs **Runtime** (what is executed: `workspace`/`memory`/`project`/`loop`/`swarm`).
+Canonical content is authored in `skills/`, `agents/`, and related source
+trees, composed in `distributions/products.yaml`, then compiled into validated
+consumer output. The V CLI installs, inspects, and provides compatibility for
+these capabilities. Its offline source-resolution contract is documented in
+`docs/adrs/ADR-015-runtime-resolution.md`,
+`docs/adrs/ADR-026-full-embed.md`, and
+`docs/adrs/ADR-047-offline-resource-sidecar.md`.
 
-Summary: Capability data ships in the binary's SHA-256-verified offline sidecar bundle (`embedded_data.bundle.gz`, ADR-047) and is resolved via `AGENT_TOOLKIT_ROOT` → `XDG` → `embedded` → `FHS` (ADR-015/026). See `docs/adrs/ADR-015-runtime-resolution.md`, `docs/adrs/ADR-026-full-embed.md`, and `docs/adrs/ADR-047-offline-resource-sidecar.md`.
+The repository retains older workspace automation commands for workspace
+users. Swarm v1 `start` and `init` are rejected by current public dispatch;
+inspect and preserve existing user-owned state. Issues
+[#1676](https://github.com/ulises-jeremias/agent-toolkit/issues/1676) and
+[Veasel #629](https://github.com/veasel-labs/veasel/issues/629) are closed with
+evidence for the product boundary and Veasel's own orchestration—not for an
+automatic migration of every user's data. See the
+[Swarm disposition](SWARM_V1_DISPOSITION.md) and the
+[former Desktop migration map](LEGACY_DESKTOP_MIGRATION.md).
 
 ## Three kinds of packs
 
@@ -48,7 +62,7 @@ Workspace packs are **YAML context files** inside a harness workspace `packs/` d
 agent-toolkit workspace load packs/my-client.yaml
 ```
 
-The pack content is surfaced by `agent-toolkit workspace context`. These packs are local to one workspace. They have no connection to the toolkit repository solution packs. In Desktop, manage the active context from **Workspace → Workspace context packs**: review the name, description, project scope, and validation before selecting a pack for future sessions. This only changes the workspace selection marker; it does not install a capability or execute pack content. The CLI remains available for scripting and headless use.
+The pack content is surfaced by `agent-toolkit workspace context`. These packs are local to one workspace. They have no connection to the toolkit repository solution packs. Use the CLI to inspect and load a workspace pack; the former Desktop context selector is retired and is not a supported management surface. Selecting a pack does not install a capability or execute its content.
 
 ### 3. Loop `--pack` overrides (loaded by `loop run --pack`)
 
@@ -79,12 +93,16 @@ See also: `packs/README.md` (solution packs), `workspace load` CLI help,
 
 ## People — durable workspace collaborators (not a toolkit capability plane)
 
+> **Archive notice:** The former Desktop roster and Person Start UI are not
+> current Agent Toolkit features. The schema and validator below are retained
+> to preserve existing workspace data; see [People data compatibility](PEOPLE.md).
+
 Durable People are **workspace-owned collaborators** declared in
 `people/<id>.json` (`agent-toolkit/person@1`), not toolkit catalog capabilities
-or runtime characters. The Desktop provides roster CRUD, reviewed Munder
-import, and a Start flow backed by real local PTY sessions and V-owned lifecycle
-records. The toolkit owns the canonical schemas, scaffold, mirror sync,
-validator, and runtime APIs; workspace data remains the source of truth
+or runtime characters. Historical Electron builds provided roster CRUD,
+reviewed Munder import, and a Start flow; those UI/runtime behaviors are
+retired from Agent Toolkit. The toolkit retains canonical schemas, scaffold,
+mirror sync, validator, and runtime API contracts; workspace data remains the source of truth
 ([docs/PEOPLE.md](PEOPLE.md), [ADR-036](adrs/ADR-036-durable-people.md)). Agent
 definitions (`agents/`), agent profiles (`profiles/`), People, AgentSessions,
 and temporary swarm roles stay distinct. Configuring a Person never creates a
@@ -115,10 +133,11 @@ and estimates tokens (chars / 4 heuristic). It warns about large sections,
 duplicate blocks, and high total footprint. It needs no network or LLM.
 
 Loop execution enforces supported token and wall-clock limits from run traces
-in `modules/agent_toolkit_core/loop.v`. Swarm recipes also declare token,
-cost, concurrency, round-trip, and wall-clock budgets, but only wall-clock
-exhaustion is currently enforced as a hard runtime limit. Check each runtime's
-current contract before treating a budget as a guardrail.
+in `modules/agent_toolkit_core/loop.v`. Historical Swarm v1 recipes declared
+token, cost, concurrency, round-trip, and wall-clock budgets; Swarm v1 no longer
+starts new runs and those declarations are not current Veasel controls. Check
+each supported runtime's current contract before treating a budget as a
+guardrail.
 Context-budget analysis in `workspace.v` is a separate dimension: a small
 execution budget does not protect against a large composed prompt, and a large
 context footprint can degrade agent quality even when runtime limits are not
@@ -139,16 +158,14 @@ Use `workspace budget` as a pre-flight check, not as exact accounting.
 - **`plugins/` is first-party-only** — only `skills/` + `agents/` curated in this repo plus `distributions/products.yaml` are compiled. Third-party npm / github / url packs (JIRA 14, Confluence 17, former `ui-ux-pro-max`) never belong in `products.yaml` or `plugins/`; that would bloat every consumer and violate vendor-neutral trust (`docs/TRUST.md`, `AGENTS.md:81`).
 - **External packs live in agentic-workstation** — `home/dot_local/share/agentic-workstation/.chezmoiexternal.toml.tmpl` (`skills-external/<pack>`) + `dots-skills sync` (universal compatibility). Workstation owns opt-in (`install_skill_jira_assistant=true` → `chezmoi apply --refresh-externals`) and `.chezmoiremove` cleanup of legacy flat installs. See `agentic-workstation/docs/SKILLS.md` and `agentic-workstation/docs/AGENT_TOOLKIT.md` “Third-party boundary”.
 
-## Swarms (ADR-008)
+## Swarm v1 (historical)
 
-Swarms extend the layer model with backend-neutral multi-agent orchestration:
+> **Retired from new runs:** Current Toolkit CLI and HTTP dispatch reject
+> Swarm v1 `start` and `init`. The records and recovery controls are kept for
+> user-owned state; they are not the target Toolkit product or Veasel runtime.
 
-- **Conceptual architecture:** orchestration engine owns *what* work exists (recipes, roles, handoffs, budgets, worktrees, human gates); UI backends (Herdr recommended, tmux fallback, headless) only display sessions; runner adapters (OpenCode primary, plus Muse/Claude/Codex/Cursor/Copilot, and `skeleton` for offline demo) only run agents. Filesystem state under `.agent-toolkit/swarm/runs/<run-id>/` is authoritative.
-- **Repo ownership:** `agent-toolkit` owns runtime (engine, CLI, recipes, handoff/budget/worktree logic, runner + Herdr/tmux adapters). [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation) installs dependencies (`agent_swarms.enabled=true` → tmux, Herdr, `herdr integration install opencode`). [agentic-harness](https://github.com/ulises-jeremias/agentic-harness) demonstrates usage. See [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md).
-- **Recipes & elastic promotion:** `pair` (implementer → reviewer → human), `team` (planner → implementer → reviewer → architect → human, plan gate), `full` (… → refactorer → hardener → qa → human). Lazy creation — only ready roles start. `pair → team → full` promotion preserves run ID, branches, artifacts, budget, trace. See [SWARM_RECIPES.md](SWARM_RECIPES.md).
-- **Worktrees & handoffs:** one isolated worktree per writer on `agent-toolkit-swarm/<run-id>/<role>`; code moves only via validated full 40-char SHAs. Durable filesystem queue `handoffs/{outbox,queued,active,completed,failed}/`. See [SWARM_HANDOFFS.md](SWARM_HANDOFFS.md).
-- **Budgets, model profiles, permissions, gates:** semantic profiles `economy`/`balanced`/`quality`/`private` map task classes `planning`/`coding`/`review`/`architecture`/`hardening`/`qa` to `provider/model` (discover via `opencode models` / `swarm models`). Pricing stored separately, unknown honestly reported. Swarm budget fields include tokens/cost/wall-clock/concurrency/round-trips/per-role; only wall-clock currently has a hard exhaustion check. Recipe permission labels guide orchestration and prompts; they do not sandbox runner processes. Human gates govern Toolkit's explicit operations, not direct shell use by a runner. See [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) and [SWARM_SECURITY.md](SWARM_SECURITY.md).
-- **State locations, privacy, cleanup:** `run.yaml`, `state.json` (versioned, atomic), `trace.jsonl`, `budget.json`, `ownership.json`, `approvals.json`, `artifacts/`, `handoffs/`, `prompts/`, `runner/opencode/agents/` per run. State is local by default; runner processes inherit provider environment and their logs/output can contain sensitive data. `swarm stop` preserves state; `swarm cleanup` preserves branches and run records; `swarm prune` is the separate retention command that can delete eligible generated branches and run records.
-- **Herdr plugin & tmux fallback:** thin Herdr plugin at `integrations/herdr/agent-toolkit-swarm/` delegates to `agent-toolkit swarm`. Choose the session backend with `--backend`; `auto` prefers Herdr and can fall back to tmux, while explicit `herdr` reports setup guidance if unavailable. See [SWARM_HERDR.md](SWARM_HERDR.md) and [SWARM_TMUX.md](SWARM_TMUX.md).
-- **Offline/fake demo:** `agent-toolkit swarm start --dry-run` previews a run without filesystem writes or UI spawn. `--runner skeleton` provides a no-LLM runner for an actual local run. Pricing fallback is explicit and requires approval.
-- **Extension guide:** add recipes under `~/.config/agent-toolkit/swarm/recipes/` or `.agent-toolkit/swarm/recipes/`, map roles to personas in `agents/` and `model_profile` to task classes, validate with `validate_recipe()`. See [HOW_TO_CREATE_SWARM_RECIPE.md](HOW_TO_CREATE_SWARM_RECIPE.md). Mermaid diagrams for ecosystem boundaries, runtime layers, pair/team/full, handoff state machine, run state machine, and Herdr/tmux adapter separation live in [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md).
+Preserve existing `.agent-toolkit/swarm/` records and worktrees. Veasel does
+not automatically import Swarm history. Read the
+[disposition and migration boundary](SWARM_V1_DISPOSITION.md) before handling
+old records; do not use historical recipe or adapter guides as current setup
+instructions.

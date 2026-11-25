@@ -1,6 +1,15 @@
 # Daily Driver Acceptance — installed product evidence
 
-> **Status: UNVERIFIED BASELINE as of 2026-11-04.** This document is a new human/product acceptance contract, not a declaration that the current Desktop passes. Mission [#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667); baseline [#1668](https://github.com/ulises-jeremias/agent-toolkit/issues/1668).
+> **Historical acceptance contract (2026-11-25):** This was written for the
+> former Agent Toolkit Desktop and is not proof of current Veasel behavior.
+> Current packaged acceptance is tracked in
+> [Veasel #550](https://github.com/veasel-labs/veasel/issues/550); see also the
+> [migration map](../LEGACY_DESKTOP_MIGRATION.md).
+
+Recorded status: **UNVERIFIED BASELINE as of 2026-11-04.** The original
+contract did not declare that the former Desktop passed. Mission
+[#1667](https://github.com/ulises-jeremias/agent-toolkit/issues/1667); baseline
+[#1668](https://github.com/ulises-jeremias/agent-toolkit/issues/1668).
 
 The existing `workflows.yaml` component ledger may be 18/18 `ok`, but it **does not certify** daily-driver usability or subscription-backed live provider functionality. Do not automatically copy those statuses here.
 

@@ -151,41 +151,26 @@ fn test_swarms_fields_forwarded_and_never_attach() {
 	assert opts.branch == 'feat/x'
 	assert opts.no_attach
 	assert !opts.attach
-	// attach is not a DTO field: a body cannot turn it on
-	start := build_swarms_options('start', '{"attach":true,"no_attach":false,"launch_sessions":true,"recipe":"pair"}') or {
-		panic(err.msg())
-	}
-	assert start.no_attach
-	assert !start.attach
-	assert start.recipe == 'pair'
-	assert start.launch_sessions
 }
 
-fn test_swarm_person_bindings_map_is_typed_and_forwarded() {
-	start := build_swarms_options('start', '{"person_bindings":{"planner":"maya","reviewer":"lina"},"role_runners":{"planner":"claude"},"role_models":{"planner":"opus"},"launch_sessions":true}') or {
-		panic(err.msg())
-	}
-	assert start.person_bindings['planner'] == 'maya'
-	assert start.person_bindings['reviewer'] == 'lina'
-	assert start.role_runners['planner'] == 'claude'
-	assert start.role_models['planner'] == 'opus'
-	assert start.launch_sessions
-	assert start.no_attach
-	assert !start.attach
-}
+fn test_retired_swarm_start_and_init_skip_body_and_workspace_resolution() {
+	for sub in ['start', 'init'] {
+		malformed := build_swarms_options(sub, 'not-json') or {
+			panic(err.msg())
+		}
+		assert malformed.subcommand == sub
+		assert malformed.workspace_path == ''
+		assert malformed.no_attach
+		assert !malformed.attach
 
-fn test_swarm_project_id_is_forwarded_and_validated() {
-	ws := sub_test_dir('swarm-project')
-	defer {
-		os.rmdir_all(ws) or {}
+		missing_workspace := build_swarms_options(sub, '{"workspace":"/nonexistent/retired-swarm-workspace","task":"ignored"}') or {
+			panic(err.msg())
+		}
+		assert missing_workspace.subcommand == sub
+		assert missing_workspace.workspace_path == ''
+		assert missing_workspace.no_attach
+		assert !missing_workspace.attach
 	}
-	start := build_swarms_options('start', '{"workspace":"${ws}","project_id":"agent-toolkit","expected_project_path":"/workspace/project"}') or {
-		panic(err.msg())
-	}
-	assert start.workspace_path == ws
-	assert start.project_id == 'agent-toolkit'
-	assert start.expected_project_path == '/workspace/project'
-	expect_sub_error(swarms_ok('start', '{"project_id":"../outside"}'), 400, 'invalid project_id')
 }
 
 fn test_workspace_project_dc_fields_forwarded() {
@@ -294,7 +279,6 @@ fn test_name_and_id_validators() {
 	expect_sub_error(loops_ok('status', '{"name":"--force"}'), 400, 'invalid name')
 	expect_sub_error(swarms_ok('status', '{"run_id":"../../etc"}'), 400, 'invalid run_id')
 	expect_sub_error(swarms_ok('approve', '{"run_id":"run-1","gate_id":"-x"}'), 400, 'invalid gate_id')
-	expect_sub_error(swarms_ok('start', '{"base_ref":"--upload-pack=evil"}'), 400, 'invalid base_ref')
 	expect_sub_error(swarms_ok('handoff', '{"commit":"not-a-sha"}'), 400, 'invalid commit')
 	expect_sub_error(swarms_ok('task', '{"priority":-1}'), 400, 'invalid priority')
 	expect_sub_error(skills_ok('sync', '{"tools":["cursor","../x"]}'), 400, 'invalid tools')

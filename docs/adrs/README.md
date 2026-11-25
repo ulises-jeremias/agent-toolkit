@@ -1,5 +1,11 @@
 # Architecture Decision Records
 
+ADRs preserve decisions in the context and time they were made. The Electron
+Desktop decisions below describe the former Toolkit GUI, not a current product
+commitment. Veasel Code owns the supported coding TUI/Desktop; see the
+[migration map](../LEGACY_DESKTOP_MIGRATION.md). An ADR marked accepted is not
+proof that its historical product remains supported.
+
 Single source: [`docs/adrs/`](./) — 51 records. Engineering ADRs use `ADR-0xx` prefix; product/pack semantics ADRs use `000x` prefix (legacy numbering kept for stability). Status is in each file header.
 
 | ADR | Title |
@@ -36,16 +42,16 @@ Single source: [`docs/adrs/`](./) — 51 records. Engineering ADRs use `ADR-0xx`
 | [ADR-030](ADR-030-capability-contract-binary-first.md) | Capability contract — binary-first (supersedes ADR-029) |
 | [ADR-031](ADR-031-v-master.md) | V master as baseline for entire toolkit |
 | [ADR-032](ADR-032-desktop-gui-framework.md) | Native V Desktop framework (historical; superseded by ADR-033) |
-| [ADR-033](ADR-033-electron-desktop.md) | Desktop: Electron + React canonical; V remains core/CLI/backend (Accepted) |
-| [ADR-034](ADR-034-semantic-world.md) | Desktop: semantic spatial world as primary home |
-| [ADR-035](ADR-035-cozy-pixel-world.md) | Desktop visual reset: Cozy Pixel World |
-| [ADR-036](ADR-036-durable-people.md) | Durable People distinct from definitions and runtime |
-| [ADR-037](ADR-037-detached-pty-host.md) | Detached PTY host owns interactive terminal sessions |
-| [ADR-038](ADR-038-provider-conversation-resume.md) | Provider conversation ids on PersonSession records and GUI resume |
+| [ADR-033](ADR-033-electron-desktop.md) | Former Toolkit Desktop: Electron + React (historical) |
+| [ADR-034](ADR-034-semantic-world.md) | Former Toolkit Desktop semantic World (historical) |
+| [ADR-035](ADR-035-cozy-pixel-world.md) | Former Toolkit Desktop Cozy Pixel World (historical art/source reference) |
+| [ADR-036](ADR-036-durable-people.md) | Former Toolkit Desktop People/runtime integration (historical) |
+| [ADR-037](ADR-037-detached-pty-host.md) | Former Toolkit Desktop detached PTY host (historical) |
+| [ADR-038](ADR-038-provider-conversation-resume.md) | Former Toolkit Desktop provider conversation resume (historical) |
 | [ADR-039](ADR-039-swarm-collaboration-semantics.md) | Swarm collaboration semantics: speech acts, hop budget, human routing, broadcast |
 | [ADR-040](ADR-040-live-model-catalogue-and-cancel-hardening.md) | Live model catalogue and cancel hardening |
-| [ADR-041](ADR-041-notify-only-update-check.md) | Notify-only update check |
-| [ADR-042](ADR-042-pxl-asset-pipeline.md) | PXL asset pipeline |
+| [ADR-041](ADR-041-notify-only-update-check.md) | Former Toolkit Desktop update notice (historical) |
+| [ADR-042](ADR-042-pxl-asset-pipeline.md) | PXL asset pipeline (historical Toolkit art/source provenance) |
 | [ADR-043](ADR-043-provider-adapter.md) | First-party thin ProviderAdapter; T3 Code not adopted |
 | [ADR-044](ADR-044-desktop-session-runtime.md) | Desktop session runtime in the Electron main process; new frontend over the V services |
 | [ADR-045](ADR-045-desktop-focus-private-journals.md) | Desktop Focus journals in private app storage with nondestructive legacy migration |

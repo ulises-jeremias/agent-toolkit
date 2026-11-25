@@ -1,6 +1,6 @@
 # Architecture
 
-agent-toolkit sits in a four-layer ownership stack and, within its own layer, separates two conceptual **planes** that share one codebase and one release artifact.
+Agent Toolkit is the portable capability library and native CLI within a four-layer ownership stack. It distributes skills, agent definitions, MCP templates, context, workflow recipes, provenance, and compatibility tooling. **Veasel Code** is the supported coding application and owns interactive coding sessions, provider execution, approvals, and shared TUI/Desktop history.
 
 **Canonical CLI:** native **V**, using the immutable compiler/toolchain inputs recorded by `.github/actions/setup-v`. The repository selects the `master` toolchain in `.v-version`; the currently pinned compiler commit reports `V 0.5.2 c0e47bf`. Build with `VJOBS=2 ./make.vsh build-cli` → `build/agent-toolkit`. PyPI/`uv`/`npm` are distribution adapters over that binary. See [`docs/HOW_TO_DEVELOP_V.md`](HOW_TO_DEVELOP_V.md) and [`docs/v/README.md`](v/README.md).
 
@@ -13,7 +13,7 @@ Ownership is layered; each layer is managed by a different repo. Toolkit layers 
 | Layer | Repo | Role |
 |-------|------|------|
 | **L1 — Machine** | [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation) | Machine provisioning — chezmoi, shell, packages, LLM policy |
-| **L1.5 — Toolkit** | **agent-toolkit** (this repo) | Capability distribution + runtime harness — skills, agents, MCP, plugins, loops, workspace/memory/projects/devcompanion/swarm |
+| **L1.5 — Toolkit** | **agent-toolkit** (this repo) | Portable skills, agents, MCP templates, workflows, provenance, and their CLI/distribution |
 | **L3 — Workspace** | [agentic-harness](https://github.com/ulises-jeremias/agentic-harness) | AI workspace scaffold — `knowledge/`, `repos/`, `projects/`, packs, persona handoffs |
 | **Project Overlay** | per-repo | Per-project overrides — `AGENTS.md`, `.cursor/rules/project.mdc`, local `loops/` |
 
@@ -30,13 +30,13 @@ This layer is typically managed by a separate bootstrapping tool (such as a dotf
 
 ### L1.5 — Toolkit (this repo)
 
-The middle layer is agent-toolkit itself. It owns **two planes without splitting code or releases** — see [Two Planes](#two-planes-within-the-toolkit-l15--capability-vs-runtime) below. At a high level it is the single source of truth for both planes (details in plane table).
+The middle layer is Agent Toolkit: portable content, distribution, provenance, compatibility, and CLI commands. This repository does not own a supported coding Desktop, provider-session runtime, or Veasel's interactive session history. Swarm v1 `start` and `init` are rejected by current CLI and HTTP dispatch; historical run inspection and recovery controls remain available for user-owned state.
 
 This layer is meant to be stable and opinionated. Changes here propagate to every workspace and project that uses the toolkit via `AGENT_TOOLKIT_ROOT` / embedded data.
 
 ### L3 — Workspace (Harness)
 
-The harness workspace is the multi-repo overlay that consumes the toolkit's runtime commands (`workspace`, `memory`, `project`, `loop`, `devcompanion`, `swarm`). It provides `knowledge/`, `repos/`, `projects/`, `packs/*.yaml` context bundles, and persona handoff state. See [agentic-harness](https://github.com/ulises-jeremias/agentic-harness).
+The harness workspace is the multi-repo overlay that consumes Toolkit CLI commands for workspace context and local automation. It provides `knowledge/`, `repos/`, `projects/`, `packs/*.yaml` context bundles, and persona handoff state. It does not define or replace Veasel's coding-session runtime. See [agentic-harness](https://github.com/ulises-jeremias/agentic-harness).
 
 ### Project Overlay
 
@@ -53,73 +53,59 @@ Project overlays never modify the toolkit itself. They sit on top and take prece
 
 ---
 
-## Two Planes within the Toolkit (L1.5 — Capability vs Runtime)
+## Portable content and CLI boundaries
 
-The toolkit layer itself separates two conceptual planes that **share one repo, one V binary, and one release** — no code split. The distinction clarifies what is *distributed* vs what is *executed* and how data is resolved at runtime.
+Agent Toolkit distributes portable content and provides CLI commands to install, inspect, and automate that content. It is not a coding-session runtime.
 
-| Plane | Owns | Key dirs / contracts | Runtime resolution |
+| Area | Owns | Key dirs / contracts | Resolution |
 |-------|------|----------------------|--------------------|
-| **Capability Plane** | What is *distributed* to AI tools — portable capabilities and their compiled artifacts | `skills/` + `agents/` (SoT), `distributions/products.yaml` (composition), `plugins/` (compiler output, canonical — ADR-004), `profiles/` (**deprecated** install overlay, fallback only), `mcp/templates/` + `mcp/registry/`, `packs/` (docs-only, ADR-006) | Authoritative data lives **embedded** in the binary payload (`modules/agent_toolkit_core/embedded_data.v`, `+4.8M` ELF) plus FHS `/usr/share` sidecar compat — see **ADR-026** (Full-Embed). Build verifies with `agent-toolkit build --check`. |
-| **Runtime Plane** | What is *executed* from a harness workspace — automation, memory, and orchestration that consumes Capability data | `workspace` / `memory` / `project` / `loop` / `devcompanion` / `swarm` commands; `serve` programmatic API surface over both planes (TUI retired, ADR-030) | Resolves toolkit data via ordered tiers `AGENT_TOOLKIT_ROOT` → `XDG` → **embedded `3a`** → FHS `3b` → sidecar `3c` → checkout → CWD (sanitized against harness `knowledge/`). Offline never downloads — see **ADR-015** (Runtime Resolution, amends ADR-005) and **ADR-026** `paths.v` tiers / `data_io.v` abstraction. |
+| **Portable content** | Capabilities distributed to coding tools and compiled artifacts | `skills/` + `agents/` (source), `distributions/products.yaml` (composition), `plugins/` (generated output), `profiles/` (deprecated install overlay), `mcp/templates/` + `mcp/registry/`, `packs/` (docs-only) | Content is embedded or resolved from the verified offline sidecar; build checks use `agent-toolkit build --check`. |
+| **CLI and compatibility** | Installation, discovery, validation, and local workspace automation over Toolkit content | V CLI, core and local API. Existing commands include workspace/memory/project/loop and `serve`. Swarm v1 retains limited history inspection and recovery controls; new runs are rejected. | Source data resolves through `AGENT_TOOLKIT_ROOT` → XDG → embedded/FHS sidecar → checkout. See ADR-015, ADR-026, and ADR-047. |
 
-**Without splitting code:** Both planes are built by the same `make.vsh build-cli` (`gen-embedded` → `build/agent-toolkit`) and shipped in the same GitHub Release / Homebrew / AUR / PyPI / npm / Docker artifacts (ADR-018/021/023/024/025). The split is documentary: capability edits go to `skills/` + `products.yaml` then `build`; runtime is exercised from a harness via `agent-toolkit loop run …` etc. References: **ADR-015** runtime order, **ADR-026** offline-first contract, and **ADR-047** SHA-256-verified resource sidecar — see `docs/adrs/ADR-015-runtime-resolution.md`, `docs/adrs/ADR-026-full-embed.md`, and `docs/adrs/ADR-047-offline-resource-sidecar.md`.
+The V CLI and its distribution adapters provide the supported portable Toolkit interface. The existence of workspace automation or a local HTTP API does not make it Veasel's session backend. Source resolution is offline and documented in [ADR-015](adrs/ADR-015-runtime-resolution.md), [ADR-026](adrs/ADR-026-full-embed.md), and [ADR-047](adrs/ADR-047-offline-resource-sidecar.md).
 
-### Desktop is a client of the runtime, not a second engine
+**Swarm v1 is retired from new runs.** Current public dispatch rejects `start` and `init`; history and explicit recovery controls remain so users can inspect or stop existing user-owned runs. Agent Toolkit #1676 and Veasel #629 are closed with evidence for the product boundary and Veasel's own orchestration behavior. That evidence does not mean every user's Swarm data is imported. Keep old records intact and consult the [migration boundary](SWARM_V1_DISPOSITION.md) before any manual cleanup.
 
-Agent Toolkit Desktop is the flagship GUI and ships as an Electron application
-with a React renderer. Electron supervises the bundled `agent-toolkit serve`
-process and owns OS integration; the renderer presents typed API data and
-invokes the same domain operations as the CLI. Domain rules, People storage,
-projects, loops, jobs, swarms, and capability receipts remain in the canonical
-V core/server. The renderer must not duplicate those rules or prefer parsing
-CLI text where a typed operation exists. This keeps the world, direct
-navigation, keyboard palette, and CLI aligned on one state and one action.
+### Veasel Code owns the coding application
 
-For the shipping product contract, supported journeys, and visual evidence,
-see [Desktop](desktop/README.md), [the workflow ledger](desktop/workflows.yaml),
-and [visual QA](desktop/VISUAL_QA.md). ADR-033 records the accepted Electron
-boundary; ADR-032 is historical and describes the retired native-V GUI path.
+Veasel Code is the supported coding product. Its terminal interface and
+Electron Desktop are designed to use the canonical Veasel V backend, provider
+configuration, authorization model, and persisted session history. Desktop
+Focus and optional World are views over that runtime; packaged shared-session
+acceptance remains tracked in [Veasel #550](https://github.com/veasel-labs/veasel/issues/550).
+This repository does not implement a second coding-session engine or GUI.
 
-### Plane boundaries and import rules (#982)
+Agent Toolkit remains independently useful as a portable capability library
+and CLI. Its `serve` API supports Toolkit operations; it is not the backend for
+Veasel Code. The former Electron app in `apps/desktop/` is retained only as
+archival/migration source while data and unique capabilities are accounted for.
+New graphical product work belongs in
+[Veasel Code](https://github.com/veasel-labs/veasel). See
+[`docs/VEASEL_COMPATIBILITY.md`](VEASEL_COMPATIBILITY.md) for the current
+retirement and user-data boundary.
+
+### Internal module boundaries and import rules (#982)
 
 ```text
-Capability Plane                Runtime Plane
-┌─────────────────────┐        ┌──────────────────────────────┐
-│ skills/  agents/    │        │ agent_toolkit_core           │
-│ distributions/      │        │  ├─ swarm / swarm_state /    │
-│ plugins/ (output)   │        │  │  swarm_recipes / worktree │
-│ profiles/ (depr.)   │        │  ├─ mcp / loop / workspace / │
-│ mcp/registry        │        │  │  memory / project /       │
-│ packs/              │        │  │  devcompanion / insights   │
-│ catalogs/ (gen)     │        │  └─ embedded_data / paths   │
-└──────────┬──────────┘        └──────────────┬───────────────┘
-           │  ▲                              │  ▲
-           │  │ may depend on               │  │
-           │  └──────────────────────────────┘  │
-           │     runtime may depend on         │
-           │     capabilities (reads catalogs,  │
-           │     loads skills)                 │
-           ▼                                  │
-┌─────────────────────┐        ┌──────────────┴───────────────┐
-│ agent_toolkit_cli   │◄───────┤ agent_toolkit_server (jobs,  │
-│  (CLI dispatch,     │ depends│  serve API via veb)          │
-│   options, help)    │ on both│                              │
-└─────────────────────┘        └──────────────────────────────┘
-         ▲
-         │ CLI depends on both planes (dispatches to capability data and runtime commands)
+portable source ───────► agent_toolkit_core ◄────── agent_toolkit_server
+skills/ agents/          Toolkit operations         local API adapter
+profiles/ plugins/               ▲
+mcp/ packs/                       │
+                                  └──────── agent_toolkit_cli
+                                            CLI adapter
 ```
 
 **Allowed import edges:**
 
-- `agent_toolkit_cli` → `agent_toolkit_core` ✅ (CLI dispatches to runtime)
-- `agent_toolkit_server` → `agent_toolkit_core` ✅ (serve wraps core jobs)
-- `agent_toolkit_core` (Runtime) → `capabilities/*` / `distributions/*` ✅ (reads catalogs, loads skills)
+- `agent_toolkit_cli` → `agent_toolkit_core` ✅ (CLI dispatches to Toolkit operations)
+- `agent_toolkit_server` → `agent_toolkit_core` ✅ (local API wraps Toolkit operations)
+- `agent_toolkit_core` → portable content / `distributions/*` ✅ (reads catalogs, resolves skills)
 - `agent_toolkit_core` → `agent_toolkit_cli` ❌ **forbidden** (no circular import)
 - `agent_toolkit_core` → `agent_toolkit_server` / `veb` ❌ **forbidden** where it would couple core to server frameworks
-- `skills/` / `agents/` / `distributions/` → `agent_toolkit_core` ❌ **forbidden** (capabilities must not depend on runtime — they are data)
+- `skills/` / `agents/` / `distributions/` → `agent_toolkit_core` ❌ **forbidden** (portable content is data, not executable Toolkit code)
 - `plugins/` is output only; never import from it
 
-**Enforcement:** `check-planes` job in `.github/workflows/validate.yml` fails if `modules/agent_toolkit_core` imports `agent_toolkit_cli` or `agent_toolkit_server` (grep `import agent_toolkit_cli` / `import agent_toolkit_server` → exit 1). `VJOBS=2 ./make.vsh vet` also runs as part of that gate. See `scripts/` and `make.vsh`.
+**Enforcement:** the `check-planes` job in `.github/workflows/validate.yml` prevents core code from importing CLI or server adapters. `VJOBS=2 ./make.vsh vet` also runs as part of that gate. This is an internal code boundary, not a second product-runtime architecture. See `scripts/` and `make.vsh`.
 
 **File size ≠ automatic split:** `modules/agent_toolkit_core/mcp.v` / `swarm.v` are large but not automatically split. Create focused refactoring issues only where coupling materially hurts security/testability (e.g. circular import, untestable side effect) — not “file is large”. See ADR-009, ADR-027.
 
@@ -135,11 +121,9 @@ Capability Plane                Runtime Plane
 │  (chezmoi, bootstrap script, LLM policy)            │
 │                                                     │
 │  ┌───────────────────────────────────────────────┐  │
-│  │  L1.5 — Toolkit (this repo) — two planes     │  │
-│  │  Capability: skills/agents/plugins/profiles/  │  │
-│  │              mcp/packs/distributions          │  │
-│  │  Runtime:    workspace/memory/project/loop/   │  │
-│  │              devcompanion/swarm + serve API   │  │
+│  │  L1.5 — Toolkit (this repo)                   │  │
+│  │  Portable skills/agents/MCP/workflow content  │  │
+│  │  CLI install, compatibility and automation    │  │
 │  │                                               │  │
 │  │  ┌───────────────────────────────────────┐   │  │
 │  │  │  L3 — Workspace (Harness)             │   │  │
@@ -155,7 +139,7 @@ Capability Plane                Runtime Plane
 └─────────────────────────────────────────────────────┘
 ```
 
-Precedence (highest to lowest): Project overlay > Workspace harness > Toolkit defaults (Capability + Runtime) > tool built-ins.
+Precedence (highest to lowest): Project overlay > Workspace harness > Toolkit portable defaults > tool built-ins.
 
 ---
 
@@ -204,9 +188,13 @@ A pack bundles skills, agents, and loops into an outcome-oriented workflow. A pa
 
 Packs are the recommended entry point for teams. Instead of picking individual skills, you load a pack and get a coherent setup for your context (OSS maintainer, startup delivery team, data platform, etc.).
 
-### Swarms
+### Swarm v1 history
 
-Swarms coordinate multiple coding-agent sessions with worktree isolation and durable handoffs. See `docs/SWARMS.md` and `docs/SWARM_ARCHITECTURE.md`. Orchestration engine + UI backends (Herdr/tmux) + runner adapters (OpenCode etc.) with filesystem state authoritative, commit-based handoffs, human gates, and budgets. Details in ADR-008.
+Current public CLI/API dispatch rejects new Swarm v1 runs. Retained history
+inspection and explicit recovery controls exist only for old user-owned state;
+they are not the target Agent Toolkit architecture. The migration boundary is
+documented in [SWARM_V1_DISPOSITION.md](SWARM_V1_DISPOSITION.md). Historical
+design details remain in Git history and short archived-link pages.
 
 ---
 

@@ -4,7 +4,7 @@
 
 ## What this repository is
 
-`agent-toolkit` is the capability distribution layer for reusable AI-agent skills, personas, loops, MCP templates, products/packs, target profiles, the native V CLI, and Agent Toolkit Desktop. Changes can affect multiple downstream coding assistants and packaging channels.
+`agent-toolkit` is the portable capability ecosystem and native CLI for reusable skills, agent definitions, MCP templates, workflow recipes, target profiles, and provenance. It is not a supported coding Desktop or a second coding-session runtime. **Veasel Code** is the associated coding product, designed around one TUI/Desktop backend and session store; packaged shared-session acceptance remains open in [Veasel #550](https://github.com/veasel-labs/veasel/issues/550). The official Veasel plugin catalog lives in [`veasel-labs/agent-toolkit`](https://github.com/veasel-labs/agent-toolkit).
 
 Operate precisely: use canonical sources, preserve public/vendor-neutral boundaries, cite evidence, and validate before finalizing.
 
@@ -20,12 +20,8 @@ Use the narrowest current source of truth instead of old issue prose or historic
 | Agent personas | [`docs/HOW_TO_ADD_AGENT.md`](docs/HOW_TO_ADD_AGENT.md) |
 | Loop templates | [`docs/HOW_TO_CREATE_LOOP.md`](docs/HOW_TO_CREATE_LOOP.md), [`schemas/loop.schema.json`](schemas/loop.schema.json) |
 | V development | [`docs/HOW_TO_DEVELOP_V.md`](docs/HOW_TO_DEVELOP_V.md) |
-| Desktop product | [`docs/desktop/PRODUCT_VISION.md`](docs/desktop/PRODUCT_VISION.md) |
-| Desktop interaction model | [`docs/desktop/UX_ARCHITECTURE.md`](docs/desktop/UX_ARCHITECTURE.md) |
-| Desktop visual design | [`docs/desktop/DESIGN.md`](docs/desktop/DESIGN.md) |
-| Desktop semantic world (primary spatial home) | [`docs/desktop/SEMANTIC_WORLD.md`](docs/desktop/SEMANTIC_WORLD.md), [`docs/adrs/ADR-034-semantic-world.md`](docs/adrs/ADR-034-semantic-world.md) |
-| Desktop journeys / coverage | [`docs/desktop/USER_JOURNEYS.md`](docs/desktop/USER_JOURNEYS.md), [`docs/desktop/workflows.yaml`](docs/desktop/workflows.yaml) |
-| Desktop visual acceptance | [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md) |
+| Veasel integration and legacy Toolkit Desktop data boundary | [`docs/VEASEL_COMPATIBILITY.md`](docs/VEASEL_COMPATIBILITY.md) |
+| Historical Electron Desktop evidence | [`docs/desktop/README.md`](docs/desktop/README.md); archive only, not a current product contract |
 
 Historical ADRs and GitHub issues are evidence, not automatic implementation authority. Reconcile them with current code and governing contracts before acting.
 
@@ -85,7 +81,7 @@ Key source areas:
 - `modules/agent_toolkit_core/` — shared core/domain implementation
 - `modules/agent_toolkit_server/` — typed HTTP API over the canonical V domain
 - `cmd/agent-toolkit/` — native V CLI entrypoint
-- `apps/desktop/` — shipping Electron + React Desktop, assets, tests, and packaging
+- `apps/desktop/` — archived Electron source, retained temporarily for migration, preservation, and security review; not a supported product or release target
 - `packages/` — PyPI/npm launcher trampolines
 - `tests/` — parity, security, and adapter test suites
 - `docs/` — human-facing contracts, guides, ADRs
@@ -164,43 +160,16 @@ MCP templates use placeholders only. Never commit real credentials. Separate pro
 
 Products/packs must follow current compiler and concept contracts. Treat generated plugin manifests as outputs, not primary authoring surfaces.
 
-## Desktop product work
+## Archived Electron source and migration
 
-Before changing Desktop behavior, read at least:
+The Electron application under `apps/desktop/` is not the Agent Toolkit product. New Toolkit releases do not publish its installers, and new GUI/session features belong in Veasel Code. Consult [`docs/VEASEL_COMPATIBILITY.md`](docs/VEASEL_COMPATIBILITY.md) before touching this source.
 
-- [`docs/desktop/PRODUCT_VISION.md`](docs/desktop/PRODUCT_VISION.md)
-- [`docs/desktop/UX_ARCHITECTURE.md`](docs/desktop/UX_ARCHITECTURE.md)
-- [`docs/desktop/DESIGN.md`](docs/desktop/DESIGN.md)
-
-Also read:
-
-- `USER_JOURNEYS.md` when changing a workflow;
-- `workflows.yaml` when exposing/removing capabilities;
-- `VISUAL_QA.md` for any visual change;
-- The git history and ADRs for historical architecture context; current
-  behavior is defined by source, tests, and the workflow ledger.
-
-### Desktop invariants
-
-- Keep the production application Electron + React over `agent-toolkit serve` (ADR-033); keep domain operations in canonical V core/server APIs. The one exception is provider session orchestration for Focus, which lives in `apps/desktop/electron/focus/` (ADR-044).
-- Engine/shared typed domain APIs remain authoritative. Do not implement Agent Toolkit business logic by shelling out to the Agent Toolkit CLI and parsing output.
-- Keep catalog truth, user configuration, runtime state, and evidence/provenance distinct.
-- Never invent operational activity to make the World look alive.
-- An offline Person remains in the People roster and is absent from the World; only a real live session, job, or run can create runtime character presence.
-- Keep workspace, runtime, bundled-data, cache/config, and project path authorities distinct.
-- Preserve workspace containment and secret masking before values reach rendering/logging/export.
-- Drawing and hit-testing must share geometry; revalidate integer selections after filtering, refresh, and workspace switch before indexing.
-- Event precedence is modal → active text field → terminal → focused widget → panel-local shortcuts → global shortcuts.
-- Do not require sibling repositories, source-checkout cwd, V toolchain, or interactive-shell PATH for normal packaged first run.
-- Do not treat concept images as runtime truth or literal feature requirements.
-
-### Desktop visual changes
-
-The visual identity is defined in [`docs/desktop/DESIGN.md`](docs/desktop/DESIGN.md). Major visual work must follow the evidence loop in [`VISUAL_QA.md`](docs/desktop/VISUAL_QA.md):
-
-> build → run → navigate → capture → **open the screenshot** → critique → fix → recapture
-
-Golden comparison proves regression stability, not visual quality. Do not update a golden solely to make CI pass.
+- Do not add product features, advertise the Electron app, restore its release channel, or make it a default launcher.
+- Limit changes to security fixes, data preservation, compatibility required by existing installations, or verified migration work.
+- Never delete or rewrite a user's Electron `userData`, workspace journals, MCP credentials, skills, profiles, or other local state. Do not claim Veasel imports this state unless a tested importer exists.
+- Preserve original pixel-art source, licenses, attribution, and useful tests until their migration or archival disposition is verified.
+- Put current graphical product changes in `veasel-labs/veasel`; keep portable capabilities here and marketplace governance in `veasel-labs/agent-toolkit`.
+- Historical screenshots and workflow records are evidence only. They do not prove current Veasel behavior or packaged acceptance.
 
 ## Validation by change type
 
@@ -213,8 +182,7 @@ Use the smallest matrix that honestly covers the changed surface, plus any check
 | Loop | `validate-loops`, catalog check |
 | Catalog/compiler/profile | generator check, `build --check`, relevant target tests |
 | V core/CLI | relevant V tests, `./make.vsh build-cli`, integration where affected |
-| Desktop API | relevant server/core tests + generated API check + Electron E2E |
-| Desktop visual | Desktop build + focused tests + smoke/capture + **opened screenshot** |
+| Legacy Electron migration/security | focused data-preservation/security checks; confirm no new release or user-data mutation |
 | Packaging | platform/package-specific checks plus clean-launch evidence |
 | Docs-only | formatting/link/repository validation affected by the docs; no unrelated expensive suite merely for ceremony |
 
@@ -251,11 +219,11 @@ Follow `.v-version` and [`docs/HOW_TO_DEVELOP_V.md`](docs/HOW_TO_DEVELOP_V.md) f
 - Merge only when required CI and review obligations are satisfied.
 - Do not publish releases/packages without explicit authorization.
 
-For major Desktop PRs, include user impact, architecture/truth implications, validation, screenshot evidence, and known limitations.
+For Veasel integration or distribution PRs, include user impact, ownership and data implications, validation evidence, and known limitations. Do not use screenshots from the former Toolkit Desktop as current product evidence.
 
 ## Ecosystem boundary
 
-Agent Toolkit must remain usable on its own. `agentic-workstation`, `agentic-harness`, My AI Workspace, and related repositories may integrate through explicit contracts, but they are not mandatory runtime dependencies for Agent Toolkit Desktop or the core CLI.
+Agent Toolkit must remain usable on its own. `agentic-workstation`, `agentic-harness`, My AI Workspace, and related repositories may integrate through explicit contracts, but they are not mandatory runtime dependencies for the Agent Toolkit CLI or its portable capabilities.
 
 Cross-repo references:
 

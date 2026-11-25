@@ -97,7 +97,8 @@ fn test_api_event_types_match_schema_enum() {
 }
 
 fn test_swarm_sub_mutates() {
-	assert swarm_sub_mutates('start', agent_toolkit_core.SwarmOptions{})
+	assert !swarm_sub_mutates('start', agent_toolkit_core.SwarmOptions{})
+	assert !swarm_sub_mutates('init', agent_toolkit_core.SwarmOptions{})
 	assert !swarm_sub_mutates('start', agent_toolkit_core.SwarmOptions{ dry_run: true })
 	assert !swarm_sub_mutates('status', agent_toolkit_core.SwarmOptions{})
 	assert swarm_sub_mutates('handoff', agent_toolkit_core.SwarmOptions{ handoff_sub: 'create' })

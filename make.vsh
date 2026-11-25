@@ -236,13 +236,13 @@ context.task(
 	}
 )
 
-context.task(name: 'build-desktop', help: 'Package the Electron Desktop for the current host', run: fn [r] (_ build.Task) ! {
+context.task(name: 'build-desktop', help: 'Build archived Electron source for migration and security review', run: fn [r] (_ build.Task) ! {
 	app := join_path(r, 'apps', 'desktop')
 	if !is_dir(app) {
 		eprintln('missing Electron Desktop at ${app}')
 		exit(1)
 	}
-	println('==> package Electron Desktop')
+	println('==> build archived Electron source')
 	rc := system('pnpm --dir "${app}" dist:dir')
 	if rc != 0 {
 		exit(rc)

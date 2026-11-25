@@ -1,182 +1,67 @@
-# Get started with the Veasel graphical app
+# Get started with Agent Toolkit
 
-The supported graphical app is [Veasel](https://github.com/veasel-labs/veasel/releases/latest).
-Agent Toolkit Desktop is a legacy compatibility application and is no longer
-published with new Toolkit releases. Existing Toolkit Desktop installations
-and their data remain in place and are not automatically imported into Veasel.
-Follow the [Veasel documentation](https://github.com/veasel-labs/veasel/tree/main/docs)
-for graphical setup. This guide's remaining Desktop steps document the legacy
-application for existing installations; CLI installation and automation remain
-supported here.
+Agent Toolkit is a portable library of skills, agent definitions, MCP
+templates, context packs, and workflow recipes, distributed through a native
+CLI. It works alongside the coding tools you already use.
 
-## 1. Install Desktop
+For interactive coding, use [Veasel Code](https://github.com/veasel-labs/veasel).
+Its TUI and Desktop are designed around one backend and session history;
+packaged shared-session acceptance is tracked in [Veasel #550](https://github.com/veasel-labs/veasel/issues/550).
+The official Veasel plugin catalog is maintained in
+[`veasel-labs/agent-toolkit`](https://github.com/veasel-labs/agent-toolkit).
 
-New Toolkit releases do not publish Electron installers. If you already have
-Agent Toolkit Desktop installed, it continues to use its existing application
-and data directory. New graphical installations should use Veasel.
+## Install the CLI
 
-For platform-specific notes and CLI/automation installation, see
-[Installation](INSTALLATION.md). The CLI is an optional path for scripting,
-CI, remote hosts and terminal-first use.
+Follow the supported channels and platform-specific steps in
+[Installation](INSTALLATION.md). Choose one install channel; each distributes
+the same canonical V CLI.
 
-## 2. Create or open your workspace
+Confirm the CLI and inspect available portable capabilities:
 
-Launch **Agent Toolkit Desktop**. On first run, choose **Create a workspace**
-and select a location, or open an existing Agent Toolkit workspace. A workspace
-is the shared valley: its projects, People, capabilities, memory and operations
-are all managed from this context.
-
-You can switch workspaces later from **Settings → Workspace**. The current
-workspace is shown in the Desktop header so you can check context before
-starting work.
-
-## 3. Check your coding tools and sign in
-
-Open **Library → Coding tools** to see which supported coding tools Desktop can
-detect. Open **Settings → Tool profiles** to update Toolkit-managed files.
-Install a coding tool from its publisher if it is not present, then return to
-Desktop and refresh detection.
-
-Toolkit can manage capability profiles for Claude Code, Cursor, OpenCode,
-Windsurf, Pi and Muse Code. GitHub Copilot setup is project-scoped. The exact
-targets available depend on your operating system and installed tools. Codex
-and other runners may be available for starting sessions without being a
-Toolkit profile-install target; the picker shows the current choices.
-
-Sign in through each tool's own application or documented sign-in flow. Agent
-Toolkit does not need your provider password or API key to detect a local
-runner. Never paste credentials into a Skill, Agent Definition, Person note or
-ordinary workspace file.
-
-## 4. Review and install capabilities
-
-Open **Library** to browse Skills, Agent Definitions and integrations.
-Select a capability to inspect its source and requirements. Before a profile
-installation, Desktop previews the target tools, paths, conflicts and changes.
-Review that preview, then apply it from the Library. The receipt shows what was
-actually written; a catalog entry alone does not mean a capability is
-installed.
-
-Start with only what you need. Installing a Skill profile does not sign a
-provider in, configure an MCP secret or start an agent. MCP setup is a separate
-review-and-probe flow in **Library → MCP**.
-
-## 5. Open a project
-
-From **World**, select a project house to enter the project. Use the
-**Workspace** view to link an existing project directory or manage project
-context. The project remains a real filesystem location; the world is its
-spatial view, not a copy of its files.
-
-Inside the project, use its Files, Knowledge, Memory and Terminal objects to
-open those canonical resources. You can also reach the same destinations from
-the main navigation and command palette (`Ctrl/Cmd+K`). Walking around is
-optional.
-
-## 6. Create a reusable Person and start a session
-
-Open **People → Create Person**. Give the collaborator a name and role, then
-choose an Agent Definition, preferred runner/model, Skills, MCP references,
-appearance and limits as appropriate. These settings describe a durable Person;
-they do not start a process. Skills and MCP references are selected from the
-available catalogs where possible. An offline Person does not appear as a
-worker in the World.
-
-Choose **Start**, select a project and available runner/model, review the
-session details and start. Desktop creates a real local session. You can open
-its real terminal, inspect runtime status and stop it from the Person panel. A
-runner that is unavailable is reported as unavailable; Toolkit will not invent
-a session. The Person remains in the roster when the session ends.
-
-You can also open **Terminal → New session** for a direct shell session that
-is not tied to a Person.
-
-## 7. Observe work and use Swarms or Loops
-
-**Operations** is the shared place for jobs, loops, swarms, approvals and
-failures. Use it to inspect real runtime state and recover from errors.
-
-- **Swarms:** choose a recipe and task, review roles, runner/model choices,
-  People preferences, permissions, gates and budgets, then start. People are
-  optional; Toolkit can use an ephemeral role session when no compatible
-  Person is selected. Herdr or tmux may be needed for multi-session layouts.
-- **Loops:** open a loop to inspect its definition and last report, run it once,
-  or review the scheduler plan before enabling a schedule.
-- **Approvals:** inspect the proposed action and its scope before approving or
-  rejecting it.
-
-The world shows where confirmed work is happening. **Operations** shows the
-details of what each run is doing.
-
-## 8. Verify setup and recover
-
-Open **Settings → Self-check** when the backend or a capability is unavailable.
-The report identifies the failed check and a next step. Check tool availability
-in **Library → Coding tools**. For an individual integration, open its Library
-page to validate or probe it. Do not reinstall over existing files just to clear
-a warning; inspect the preview and conflict behavior first.
-
-If you need help, see [Troubleshooting](TROUBLESHOOTING.md), [Trust and
-security](TRUST.md), and the focused guides linked from the public
-[documentation index](README.md).
-
-## Optional: CLI and automation
-
-For scripting or headless operation, install the CLI using one of the methods
-in [Installation](INSTALLATION.md), then use:
-
-```bash
+```sh
 agent-toolkit doctor
 agent-toolkit inventory
-agent-toolkit --help
 ```
 
-The CLI and Desktop use the same canonical Toolkit operations. Prefer `--help`
-for the installed version instead of copying commands from an older guide.
+## Preview capability installation
 
-## World basics: moving and shortcuts
+Toolkit can place capabilities into supported coding-tool profiles. Preview
+the exact files, conflicts, and changes before writing anything:
 
-Walk with **WASD** or the **arrow keys**, click to move, and press **E** near a
-building or landmark to open it. Navigation is never mandatory: the top
-navigation and the command palette (**Ctrl/Cmd+K**) reach every destination.
+```sh
+agent-toolkit install --dry-run --offline
+```
 
-Three keys run the place:
+Review that output, then run `agent-toolkit install` without `--force` to apply
+the intended targets. A preview does not sign in to a provider, configure MCP
+secrets, or prove that a coding-tool account is authenticated. Use each tool's
+own sign-in and status commands for account state.
 
-- **Ctrl/Cmd+K** — command palette.
-- **?** — the audited shortcut map (shell keys plus World keys; while you are
-  typing, `?` types a question mark instead).
-- **Esc** — closes only the innermost dialog or overlay; it never quits.
+Skills live under `skills/`, portable agent definitions under `agents/`, MCP
+templates under `mcp/templates/`, and reusable workflow recipes under
+`loops/` and `packs/`. Check the relevant guide before installing or editing
+user-owned files:
 
-## Choosing context before starting agents
+- [Skills](HOW_TO_ADD_SKILL.md)
+- [Agent definitions](HOW_TO_ADD_AGENT.md)
+- [Profiles and target compatibility](PROFILES.md)
+- [MCP templates and security](MCP.md)
+- [Trust and provenance](TRUST.md)
 
-Context packs in **Workspace Hall** bundle the projects and knowledge that
-matter for a kind of work. Activate the pack that fits your task and review
-the effective-context preview before starting a Person or Swarm. Agents get
-the pack you picked — no silent extras — and switching packs never touches
-sessions that are already running.
+## Use Veasel Code for interactive coding
 
-## Reviewing work: Changes, hunks, history and the road to a PR
+Install Veasel Code from its
+[official releases](https://github.com/veasel-labs/veasel/releases/latest)
+and follow its documentation for TUI, Desktop, providers, and shared sessions.
+Agent Toolkit remains independently useful when you use another supported
+coding tool; Veasel Code is the associated graphical coding product.
 
-Inside a project, **Changes** is a real git surface:
+## Existing Toolkit Desktop data
 
-1. Read the diff (every line shows old/new line numbers).
-2. Stage whole files, or stage/unstage a single hunk when only part of a
-   file is ready.
-3. Commit with an explicit message.
-4. Open **History** to click any commit and read its full diff.
-
-When a Swarm does the work, the same review applies: inspect its changes,
-then create or inspect the pull request from the run. Nothing merges behind
-your back; approvals and merges are explicit actions with receipts.
-
-## First-hour checklist
-
-- [ ] Desktop installed and workspace created
-- [ ] At least one coding tool detected in the Library
-- [ ] First project linked and visible in the World
-- [ ] One Person created with a runner you can sign in to
-- [ ] First real session started, watched, and stopped
-- [ ] A change reviewed and committed from Changes
-
-Prefer a visual walkthrough? The website version of this guide lives at
-<https://agent-toolkit.io/start/>.
+The former Agent Toolkit Electron Desktop is not included in new Toolkit
+releases. Existing installations, workspaces, settings, and credentials are
+left in place; Veasel does not automatically import or delete them. Before
+removing an older Toolkit Desktop installation or its data directory, review
+the [compatibility and migration notes](VEASEL_COMPATIBILITY.md) and keep a
+backup. Historical source and tests remain in the repository while unique
+capabilities and data formats are accounted for.

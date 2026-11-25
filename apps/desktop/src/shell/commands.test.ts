@@ -43,8 +43,9 @@ describe('filterCommands', () => {
     expect(hits.map((command) => command.id)).toContain('session:next-needs-me');
   });
 
-  it('reaches the swarm start flow and uses the current world theme names', () => {
-    expect(filterCommands(PALETTE_COMMANDS, 'start a swarm').map((command) => command.id)).toContain(
+  it('retires the Toolkit swarm launcher and keeps the current world theme names', () => {
+    expect(PALETTE_COMMANDS.map((command) => command.id)).not.toContain('session:start-swarm');
+    expect(filterCommands(PALETTE_COMMANDS, 'start a swarm').map((command) => command.id)).not.toContain(
       'session:start-swarm',
     );
     expect(PALETTE_COMMANDS.find((command) => command.id === 'appearance:meadow')?.title).toBe('Use Meadow theme');
@@ -56,10 +57,6 @@ describe('filterCommands', () => {
     expect(PALETTE_COMMANDS.find((command) => command.id === 'go:/operations')?.action).toEqual({
       type: 'navigate',
       path: '/operations',
-    });
-    expect(PALETTE_COMMANDS.find((command) => command.id === 'session:start-swarm')?.action).toEqual({
-      type: 'session',
-      intent: 'start-swarm',
     });
     expect(PALETTE_COMMANDS.find((command) => command.id === 'session:restart-backend')?.action).toEqual({
       type: 'session',
