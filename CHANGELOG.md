@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.51.0] — 2026-11-25
+
+### Added
+
+- Add the portable Goal v1 contract and offline CLI commands to validate,
+  export, and plan goal documents, plus list built-in goal recipes. Goal
+  documents declare authorized repositories, acceptance criteria, deadlines,
+  budgets, and tasks with pinned base SHAs, allowed paths, recipes, runners,
+  verifiers, and dependencies. Validation rejects unauthorized repositories,
+  invalid task references, and dependency cycles; the core also checks evidence
+  receipt consistency against task/base-SHA data. The CLI does not execute
+  tasks or create external effects. See `docs/GOALS.md`.
+
 ### Changed
 
 - Redesign the public Agent Toolkit website around portable capabilities,
