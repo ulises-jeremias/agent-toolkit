@@ -8,58 +8,55 @@ Decision: ADR-0001 in `veasel-labs/veasel` (`docs/adr/0001-one-product-one-runti
 
 Agent Toolkit remains the canonical home for portable Skills, agents,
 MCP configuration, context packs, workflow recipes, the CLI, and its
-distribution (npm/PyPI/AUR/Homebrew/Docker). Nothing about existing
-installs changes: `agent-toolkit` CLI commands, catalogs
-(`capabilities/`, `skills/`, `agents/`, `packs/`, `schemas/`) and install
-receipts keep working exactly as before.
+distribution (npm/PyPI/AUR/Homebrew/Docker). Portable `agent-toolkit`
+commands, catalogs (`capabilities/`, `skills/`, `agents/`, `packs/`,
+`schemas/`), and install receipts keep working. The old `gui`/`desktop`
+entry point is an explicit migration shim to Veasel and does not launch or
+modify the retired Toolkit Desktop.
 
-## What moves, and when Desktop retires
+## Legacy Desktop retirement status
 
-The Desktop's Focus session runtime and World GUI are being migrated
-copy-first into Veasel (Focus GUI copy: veasel-labs/veasel PR for issue
-#692; provider adapters: veasel issue #691). The standalone Desktop in
-this repo retires **only after all of the following are true**:
+Veasel Code is the supported graphical product and owns the canonical
+session runtime. The old Electron Desktop in this repository is retired as
+a product: new Toolkit releases do not publish its installers. Its source,
+historical evidence, and user data are retained during the migration audit
+so unique portable assets and existing data are not lost. Retaining this
+source does not mean that the old Desktop remains supported or is a second
+runtime recommendation.
 
-1. Veasel GUI reaches Focus parity on the canonical Veasel
-   session/event API (same sessions visible in TUI and GUI).
-2. Compatibility shims in this repo redirect Desktop-era entry points
-   to the Veasel GUI and are shipped in a released version.
-3. Packaged installers for the Veasel GUI are verified on Linux,
-   macOS, and Windows.
+Veasel Focus uses the canonical Veasel session/event API, and the Toolkit
+shim opens Veasel only. Official Desktop installers are published for Linux,
+macOS, and Windows. Packaged same-session continuation, restart recovery, and
+provider journeys remain tracked in [Veasel issue
+#550](https://github.com/veasel-labs/veasel/issues/550); those acceptance
+checks are not implied by this compatibility contract. See the current
+[Veasel release](https://github.com/veasel-labs/veasel/releases/latest) and
+[Focus migration issue](https://github.com/veasel-labs/veasel/issues/692).
 
-Until then the Desktop stays fully supported, and the stacked Desktop
-Rescue work (#1775, PRs #1783–#1803) is preserved — nothing is closed
-or deleted as part of the consolidation without a documented successor
-(see the triage ledger in veasel-labs/veasel `docs/consolidation/`).
+## CLI compatibility shim
 
-## Shim contract (to implement under #1804)
+- `agent-toolkit gui` and its `desktop` alias remain for existing scripts,
+  but they only launch an installed Veasel Desktop. The shim never searches
+  for or falls back to an Agent Toolkit Electron binary. If Veasel is not
+  installed, it points to Veasel's release page.
+- `agent-toolkit gui --install` is deprecated guidance only; it does not
+  download, install, or change files.
+- The shim does not read, migrate, or delete legacy Desktop data. Existing
+  user data stays at its original path. Any future importer must be a
+  separate, previewable, reversible operation that preserves the source.
+- Skills, agents, MCP templates, and packs remain portable Toolkit
+  capabilities. Veasel consumes supported declarations without creating a
+  second copy or runtime.
 
-- `agent-toolkit` CLI: unchanged. A future `desktop` verb may print a
-  pointer to the Veasel GUI once condition 1 holds; it must never break
-  scripts (exit 0 with guidance, or the legacy behaviour behind a flag).
-- Desktop data (`userData/focus-journals`, workspace
-  `.agent-toolkit/focus/` journals) migrates reversibly: the Veasel
-  importer reads the JSONL journal format; originals are never deleted
-  by the importer.
-- Skills/agents/packs consumed by Veasel are read from this repo's
-  canonical Markdown/YAML/JSON — no format fork.
-
-## Status (2026-11-20)
-
-All three retirement conditions are now met: Veasel Focus parity on the
-canonical session API is shipped (same sessions in TUI and GUI,
-veasel-labs/veasel#692 closed), packaged Veasel installers are verified
-on Linux, macOS and Windows (release v0.97.0-next.0 from the fully
-green main), and the `agent-toolkit gui` shim redirecting to the Veasel
-Desktop is implemented (#1804). The legacy Desktop here is retired;
-existing installs keep working and are never force-migrated.
+## Distribution status (2026-11-25)
 
 New Toolkit release tags publish the CLI and portable capability
-distributions only. Electron packaging remains a pull-request compatibility
-check; Electron installers are not uploaded to new releases. The legacy
-update panel detects whether the current platform's installer exists before
-reporting an update, and links users to Veasel when it does not. Existing
-Toolkit Desktop release assets and user data are left untouched.
+distributions only. Electron packaging and GUI acceptance workflows still
+exist in this source tree as migration-era checks; they are not release
+artifacts and do not make the retired application a supported product. The
+legacy update panel detects whether the current platform's installer exists
+before reporting an update, and links users to Veasel when it does not.
+Historical Toolkit Desktop release assets and user data are left untouched.
 
 ## Publishing into the Veasel catalog by reference (#1806)
 
