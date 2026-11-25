@@ -14,10 +14,14 @@ The flow has five distinct steps:
 1. **Name the source.** A capability declares its upstream repository, exact
    path, requested ref and expected license.
 2. **Discover a candidate.** For commit pins, update tooling checks the
-   declared path for a different immutable commit. For tag pins, it checks
-   GitHub's `releases/latest` tag when that tag looks like a semantic version.
-   Discovery reports the current locked license and content checksum; it does
-   not fetch or validate the candidate's content.
+   declared path for a different immutable commit. If GitHub returns no commit
+   for that path, discovery falls back to the upstream default-branch `HEAD` and
+   checks that the declared path still exists there; this can surface a branch
+   head as the candidate even when the path-filter query found no commit. For
+   tag pins, it checks GitHub's `releases/latest` and accepts that release only
+   when its tag looks like a semantic version. Discovery reports the current
+   locked license and content checksum; it does not fetch or validate the
+   candidate's content.
 3. **Prepare a proposal.** Applying the update fetches the literal upstream
    files, updates the source pin, regenerates the provenance lock and report,
    and marks changed content `experimental`. The workflow submits that proposal
@@ -41,11 +45,14 @@ The weekly **Update Upstream** workflow and its manual dispatch run the same
 path-scoped discovery:
 
 1. Read upstream declarations from each vendored skill's `SKILL.md` frontmatter.
-2. Resolve the latest commit touching each declared path, or check GitHub's
-   `releases/latest` tag for tag-pinned sources. Discovery reports the currently
-   locked license and checksum; it does not fetch the candidate files or claim
-   their metadata has been validated. For release tags, it follows GitHub's
-   latest-release marker rather than comparing semantic-version order.
+2. Resolve the latest commit touching each declared path. If that path query
+   returns no commit, fall back to the upstream default-branch `HEAD` and check
+   that the path still exists there. For tag-pinned sources, check GitHub's
+   `releases/latest` and accept it only when the tag looks like a semantic
+   version. Discovery reports the currently locked license and checksum; it
+   does not fetch the candidate files or claim their metadata has been
+   validated. For release tags, it follows GitHub's latest-release marker
+   rather than comparing semantic-version order.
 3. For an eligible update, fetch the literal upstream body and sibling files,
    update the declared pin, rebuild `capabilities/upstream.lock`, and regenerate
    `docs/UPSTREAM.md`.

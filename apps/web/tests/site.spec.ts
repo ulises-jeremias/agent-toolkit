@@ -234,6 +234,9 @@ test("upstream sync guide explains source pins, review, and trust changes", asyn
   await expect(page.locator(".prose")).toContainText(
     /does\s+not fetch or validate/i,
   );
+  await expect(page.locator(".prose")).toContainText(
+    /falls back to the upstream default-branch/i,
+  );
   await expect(
     page.getByRole("link", { name: /upstream provenance report/i }),
   ).toHaveAttribute("href", /UPSTREAM\.md/);
