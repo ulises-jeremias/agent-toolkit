@@ -1,0 +1,9 @@
+id: release
+version: 1
+purpose: Prepare a release candidate with independently checked artifacts and provenance.
+steps:
+  - pin_source_revision
+  - run_release_checks
+  - verify_artifact_digests
+  - compare_publication_channels
+completion: Candidate source, artifacts, checks, and channel receipts agree.

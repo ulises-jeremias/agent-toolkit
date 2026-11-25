@@ -1,0 +1,35 @@
+schema_version: 1
+id: sample-goal
+title: Sample portable objective
+authorized_repositories:
+  - owner: ulises-jeremias
+    name: agent-toolkit
+    path: /work/agent-toolkit
+acceptance_criteria:
+  - id: contract
+    description: Goal document validates offline
+    verification: agent-toolkit goal validate tests/fixtures/goals/minimal.yaml
+deadline: '2026-12-01T00:00:00Z'
+budget:
+  max_attempts: 4
+  wall_seconds: 14400
+  provider_turns: 8
+delivery_mode: draft
+tasks:
+  - id: schema
+    title: Review goal schema
+    repository: ulises-jeremias/agent-toolkit
+    base_sha: 741c773e9ce790090b06e5fe5834213b6eb8fcf6
+    paths: [schemas]
+    recipe: feature
+    runner: local-v
+    verifier: independent-review
+  - id: docs
+    title: Document portable contract
+    repository: ulises-jeremias/agent-toolkit
+    base_sha: 741c773e9ce790090b06e5fe5834213b6eb8fcf6
+    paths: [docs]
+    depends_on: [schema]
+    recipe: research
+    runner: local-v
+    verifier: independent-review

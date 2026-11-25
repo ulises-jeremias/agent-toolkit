@@ -1,8 +1,18 @@
 module agent_toolkit_cli
 
+import os
+
 fn test_dispatch_version_exit_zero() {
 	code := dispatch(['agent-toolkit', 'version'])
 	assert code == 0
+}
+
+fn test_dispatch_goal_validate_and_plan() {
+	path := os.join_path(os.dir(@FILE), '..', '..', 'tests', 'fixtures', 'goals', 'minimal.yaml')
+	assert dispatch(['agent-toolkit', 'goal', 'validate', path]) == 0
+	assert dispatch(['agent-toolkit', 'goal', 'export', path]) == 0
+	assert dispatch(['agent-toolkit', '--json', 'goal', 'plan', path]) == 0
+	assert dispatch(['agent-toolkit', 'goal', 'recipes']) == 0
 }
 
 fn test_dispatch_help_exit_zero() {

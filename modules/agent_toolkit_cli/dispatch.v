@@ -4,6 +4,7 @@ import agent_toolkit_core
 import os
 import agent_toolkit_server
 import cli
+import x.json2
 
 // veasel_desktop_candidates lists supported Veasel Desktop installs for the
 // Agent Toolkit migration shim. It deliberately never searches for the retired
@@ -30,14 +31,14 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 	if opts.install {
 		return render(agent_toolkit_core.CommandResult{
 			command: 'gui'
-			ok:      false
+			ok: false
 			message: 'Desktop installation from Agent Toolkit is unavailable. Install the supported Veasel Desktop from ${veasel_release}; this command does not change files.'
 		}, mode)
 	}
 	if opts.headless {
 		return render(agent_toolkit_core.CommandResult{
 			command: 'gui'
-			ok:      false
+			ok: false
 			message: 'Veasel Desktop requires a graphical session. Use veasel serve for headless backend work.'
 		}, mode)
 	}
@@ -52,13 +53,13 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 	if opts.dry_run {
 		return render(agent_toolkit_core.CommandResult{
 			command: 'gui'
-			ok:      true
+			ok: true
 			message: if bin.len > 0 {
 				'Would launch ${bin}'
 			} else {
 				'No Veasel Desktop found. Install it from ${veasel_release} or set VEASEL_DESKTOP_BIN.'
 			}
-			data:    {
+			data: {
 				'binary': bin
 			}
 		}, mode)
@@ -66,14 +67,14 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 	if bin.len == 0 {
 		return render(agent_toolkit_core.CommandResult{
 			command: 'gui'
-			ok:      false
+			ok: false
 			message: 'No Veasel Desktop found. Install it from ${veasel_release} or set VEASEL_DESKTOP_BIN.'
 		}, mode)
 	}
 	os.execvp(bin, [bin]) or {
 		return render(agent_toolkit_core.CommandResult{
 			command: 'gui'
-			ok:      false
+			ok: false
 			message: 'Could not launch ${bin}: ${err}'
 		}, mode)
 	}
@@ -293,6 +294,52 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 		report := agent_toolkit_core.run_workspace(opts)
 		return render(agent_toolkit_core.workspace_result(report), mode)
 	}
+	if cmd_name == 'goal' {
+		if rest.len == 1 && rest[0] == 'recipes' {
+			if mode == .json {
+				println(json2.encode(agent_toolkit_core.goal_recipe_names(), escape_unicode: true))
+			} else {
+				println(agent_toolkit_core.goal_recipe_names().join('\n'))
+			}
+			return 0
+		}
+		if rest.len != 2 || rest[0] !in ['validate', 'export', 'plan'] {
+			e := agent_toolkit_core.err_usage_flags('goal.usage', 'usage: agent-toolkit goal (validate|export|plan) <goal.yaml>')
+			return render_error(e, mode)
+		}
+		doc := agent_toolkit_core.load_goal(rest[1]) or {
+			e := agent_toolkit_core.err_usage_flags('goal.invalid', err.msg())
+			return render_error(e, mode)
+		}
+		if rest[0] == 'validate' {
+			println(if mode == .json {
+				'{"ok":true,"goal":${json2.encode(doc.id, escape_unicode: true)}}'
+			} else {
+				'Goal ${doc.id} is valid.'
+			})
+			return 0
+		}
+		if rest[0] == 'export' {
+			manifest := agent_toolkit_core.goal_manifest_json(doc) or {
+				e := agent_toolkit_core.err_usage_flags('goal.invalid', err.msg())
+				return render_error(e, mode)
+			}
+			println(manifest)
+			return 0
+		}
+		order := agent_toolkit_core.goal_plan(doc) or {
+			e := agent_toolkit_core.err_usage_flags('goal.invalid', err.msg())
+			return render_error(e, mode)
+		}
+		if mode == .json {
+			println('{"goal":${json2.encode(doc.id, escape_unicode: true)},"task_order":${json2.encode(order,
+				escape_unicode: true
+			)}}')
+		} else {
+			println(order.join('\n'))
+		}
+		return 0
+	}
 	if cmd_name == 'memory' {
 		opts := parse_memory_options(rest) or {
 			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
@@ -398,9 +445,9 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 		report := agent_toolkit_server.run_serve(opts)
 		res := agent_toolkit_core.CommandResult{
 			command: 'serve'
-			ok:      report.ok
+			ok: report.ok
 			message: report.message
-			data:    report.data
+			data: report.data
 		}
 		return render(res, mode)
 	}
@@ -621,6 +668,9 @@ If the matrix file is missing, prints where it is expected (research pipeline).
 	if name == 'workspace' {
 		return agent_toolkit_core.workspace_help_text()
 	}
+	if name == 'goal' {
+		return 'Portable goal v1\n\nUsage: agent-toolkit goal (validate|export|plan) <goal.yaml>\n       agent-toolkit goal recipes\n\nAll commands are offline. Export emits the full JSON manifest accepted by Veasel. This contract does not execute tasks or create external effects. See docs/GOALS.md.'
+	}
 	if name == 'project' {
 		return agent_toolkit_core.project_help_text()
 	}
@@ -663,7 +713,7 @@ See: docs/v/advanced-command-disposition.md
 		return completion_help_text()
 	}
 	mut c := cli.Command{
-		name:        name
+		name: name
 		description: '${name} — not implemented in the product V CLI (see docs/v/advanced-command-disposition.md)'
 	}
 	c.setup()

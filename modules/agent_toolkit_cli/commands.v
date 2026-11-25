@@ -62,6 +62,7 @@ pub fn build_root_command() cli.Command {
 		loop_command(),
 		ci_wait_command(),
 		workspace_command(),
+		goal_command(),
 		memory_command(),
 		project_command(),
 		devcompanion_command(),
@@ -77,6 +78,20 @@ pub fn build_root_command() cli.Command {
 	promote_family_flags(mut app)
 	app.setup()
 	return app
+}
+
+fn goal_command() cli.Command {
+	return cli.Command{
+		name: 'goal'
+		description: 'Validate and plan portable goal documents offline'
+		group: 'Advanced commands'
+		commands: [
+			cli.Command{ name: 'validate', description: 'Validate a goal document', usage: '<goal.yaml>', execute: atk_exec },
+			cli.Command{ name: 'export', description: 'Normalize a validated goal to the JSON admission manifest', usage: '<goal.yaml>', execute: atk_exec },
+			cli.Command{ name: 'plan', description: 'Print deterministic task order', usage: '<goal.yaml>', execute: atk_exec },
+			cli.Command{ name: 'recipes', description: 'List built-in goal recipes', execute: atk_exec },
+		]
+	}
 }
 
 fn version_command() cli.Command {

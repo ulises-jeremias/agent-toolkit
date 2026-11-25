@@ -1,0 +1,9 @@
+id: feature
+version: 1
+purpose: Deliver a scoped feature against explicit acceptance criteria.
+steps:
+  - map_acceptance_to_paths
+  - implement_in_scope_changes
+  - run_declared_checks
+  - independently_review_candidate
+completion: Each acceptance criterion has a recorded verification result.

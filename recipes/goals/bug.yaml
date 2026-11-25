@@ -1,0 +1,10 @@
+id: bug
+version: 1
+purpose: Reproduce a defect, identify its cause, and propose a bounded correction.
+steps:
+  - capture_reproduction
+  - identify_affected_paths
+  - implement_smallest_fix
+  - run_declared_checks
+  - independently_review_candidate
+completion: Reproduction and candidate evidence are recorded against pinned SHAs.
