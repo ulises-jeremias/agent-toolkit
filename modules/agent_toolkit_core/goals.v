@@ -224,8 +224,8 @@ pub fn validate_goal_receipt(text string, doc GoalDocument) ! {
 	if r.attempt < 1 || !goal_sha_is_valid(r.candidate_sha) || !goal_sha_is_valid(r.base_sha) || r.verifier_identity.trim_space().len == 0 || r.verifier_version.trim_space().len == 0 || r.environment.trim_space().len == 0 || r.digests.len == 0 {
 		return error('receipt is missing attempt, candidate SHA, verifier identity/version, environment, or evidence digests')
 	}
-	if r.mode !in ['hermetic', 'real'] {
-		return error('receipt mode must be hermetic or real')
+	if r.mode !in ['fixture', 'hermetic', 'real'] {
+		return error('receipt mode must be fixture, hermetic, or real')
 	}
 	if r.result !in ['pass', 'fail', 'inconclusive'] {
 		return error('receipt result must be pass, fail, or inconclusive')

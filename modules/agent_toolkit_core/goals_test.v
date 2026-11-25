@@ -106,6 +106,14 @@ fn test_goal_rejects_unknown_recipe_and_receipt_mismatch() {
 	assert receipt_error(bad_receipt, doc).contains('does not match'), receipt_error(bad_receipt, doc)
 }
 
+fn test_goal_receipt_distinguishes_fixture_from_real_execution() {
+	doc := sample_goal()
+	base := 'task_id: one\nattempt: 1\nrepository: ulises-jeremias/agent-toolkit\nbase_sha: 0123456789012345678901234567890123456789\ncandidate_sha: 0123456789012345678901234567890123456789\nmode: fixture\nenvironment: synthetic-24-worker-evaluation\nverifier_identity: fixture-validator\nverifier_version: v1\nresult: pass\ndigests:\n  - sha256:0123456789012345678901234567890123456789012345678901234567890123\n'
+	validate_goal_receipt(base, doc) or { panic(err) }
+	assert receipt_error(base.replace('mode: fixture', 'mode: simulated'), doc).contains('fixture, hermetic, or real')
+	validate_goal_receipt(base.replace('mode: fixture', 'mode: real'), doc) or { panic(err) }
+}
+
 fn test_goal_rejects_noncanonical_scope_paths_and_accepts_repo_case_variants() {
 	base := sample_goal()
 	trailing_slash := GoalDocument{
