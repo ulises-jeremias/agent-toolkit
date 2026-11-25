@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Changed
+
+- Redesign the public Agent Toolkit website around portable capabilities,
+  clarify its relationship to Veasel Code and the official Veasel catalog,
+  document reviewed upstream synchronization, and redirect retired Desktop
+  routes to the migration guide.
+
 ## [1.50.0] — 2026-11-24
 
 ### Added
