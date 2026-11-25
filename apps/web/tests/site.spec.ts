@@ -232,6 +232,11 @@ test("upstream sync guide explains source pins, review, and trust changes", asyn
   await expect(page.getByText(/The workflow never merges it/i)).toBeVisible();
   await expect(page.getByText(/experimental trust tier/i)).toBeVisible();
   await expect(
+    page.getByText(
+      /Discovery does not fetch or validate the candidate's content/i,
+    ),
+  ).toBeVisible();
+  await expect(
     page.getByRole("link", { name: /upstream provenance report/i }),
   ).toHaveAttribute("href", /UPSTREAM\.md/);
 });

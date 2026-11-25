@@ -9,18 +9,22 @@ it does not grant that change trust or install it on your machine.
 
 ## The path from source to a compatible tool
 
-The flow has four distinct steps:
+The flow has five distinct steps:
 
 1. **Name the source.** A capability declares its upstream repository, exact
    path, requested ref and expected license.
-2. **Prepare a proposal.** Update tooling resolves an immutable commit, checks
-   the license and hashes, vendors the literal content, and records the
-   resolution in `capabilities/upstream.lock`. Changed content is marked
-   `experimental` and submitted as a draft PR.
-3. **Review and bind trust.** A person inspects the diff, attribution, security
-   declarations and tests. Only that reviewer can decide whether the content
-   is acceptable and bind the reviewed metadata to the exact provenance digest.
-4. **Distribute declared support.** After merge, the Toolkit can compile the
+2. **Discover a candidate.** Update tooling finds a newer immutable commit for
+   the declared path or tag and reports the current locked license and content
+   checksum. Discovery does not fetch or validate the candidate's content.
+3. **Prepare a proposal.** Applying the update fetches the literal upstream
+   files, updates the source pin, regenerates the provenance lock and report,
+   and marks changed content `experimental`. The workflow submits that proposal
+   as a draft PR.
+4. **Review and bind trust.** A person inspects the candidate diff, attribution,
+   security declarations and tests. Only that reviewer can decide whether the
+   content is acceptable and bind the reviewed metadata to the exact provenance
+   digest.
+5. **Distribute declared support.** After merge, the Toolkit can compile the
    capability for its declared products and target profiles. Support is
    specific to each capability and tool; the catalog never means “works
    everywhere.” A merged capability may remain `experimental`; that status
@@ -35,14 +39,15 @@ The weekly **Update Upstream** workflow and its manual dispatch run the same
 path-scoped discovery:
 
 1. Read upstream declarations from each vendored skill's `SKILL.md` frontmatter.
-2. Check the pinned source path for an eligible newer immutable revision.
-3. Compare the declared license and the resolved content against the committed
-   provenance lock.
-4. If an update is eligible, apply the literal upstream body and sibling files,
-   refresh `capabilities/upstream.lock`, and regenerate `docs/UPSTREAM.md`.
-5. Put changed upstream content in the **experimental** trust tier and remove
+2. Resolve the path-scoped latest commit or eligible newer semver tag. Discovery
+   reports the currently locked license and checksum; it does not fetch the
+   candidate files or claim their metadata has been validated.
+3. For an eligible update, fetch the literal upstream body and sibling files,
+   update the declared pin, rebuild `capabilities/upstream.lock`, and regenerate
+   `docs/UPSTREAM.md`.
+4. Put changed upstream content in the **experimental** trust tier and remove
    its old review binding.
-6. Open a draft pull request with the source revisions and a human review
+5. Open a draft pull request with the source revisions and a human review
    checklist. The workflow never merges it.
 
 The regular provenance check is offline with respect to upstream repositories.
