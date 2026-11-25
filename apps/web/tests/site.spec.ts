@@ -232,7 +232,7 @@ test("upstream sync guide explains source pins, review, and trust changes", asyn
   await expect(page.getByText(/The workflow never merges it/i)).toBeVisible();
   await expect(page.getByText(/experimental trust tier/i)).toBeVisible();
   await expect(page.locator(".prose")).toContainText(
-    /does not fetch or validate/i,
+    /does\s+not fetch or validate/i,
   );
   await expect(
     page.getByRole("link", { name: /upstream provenance report/i }),
