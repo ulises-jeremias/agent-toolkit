@@ -36,7 +36,7 @@ Docker is an **adapter**. The product inside the image is the **GitHub Release V
 
 `ENTRYPOINT` MUST be `/usr/local/bin/agent-toolkit` (the V binary). `CMD` MAY be `--help`.
 
-Build-arg `VERSION` (default from `VERSION` file) selects the GitHub Release tag `v${VERSION}`. The build uses a BuildKit secret (`github_token`) to read release assets through the GitHub API while the release is still a draft. The token is mounted only for that build step and is not stored in an image layer or build argument.
+Build-arg `VERSION` (default from `VERSION` file) selects the GitHub Release tag `v${VERSION}`. For a draft release, CI passes a BuildKit secret (`github_token`) to read assets through the authenticated GitHub API. The token is mounted only for that build step and is not stored in an image layer or build argument. Local builds of a published release need no token and fetch its public assets directly.
 
 `ARG TARGETARCH` MUST be declared **without a default**. BuildKit injects `amd64` or `arm64` per `--platform`. A Dockerfile default of `amd64` installs the x86_64 ELF into the linux/arm64 image; running it then fails with `agent-toolkit: not found` (missing amd64 dynamic linker).
 
