@@ -49,10 +49,25 @@ Before merging a sync proposal, a reviewer checks the actual diff and confirms:
   limited to tested or declared formats.
 - Any upstream behavior change is acceptable for Toolkit users.
 
-After that review, a human updates `trust.reviewed_provenance` to the new digest
-and records the reviewer and date in the same pull request. The check fails if
-the reviewed digest does not match the source and bytes. Agents and automation
-must not invent a reviewer or bind trust on someone's behalf.
+After the review, the human reviewer updates `trust.tier`, `trust.reviewed_by`,
+and `trust.reviewed_at` in `SKILL.md`. Those fields are part of the vendored
+content checksum, so finalize them **before** regenerating the lock. Then:
+
+1. Run `python3 scripts/provenance.py lock` to calculate the new
+   `provenance_digest` from the reviewed metadata and resolved source bytes.
+2. Copy that exact digest into `trust.reviewed_provenance`. This binding is
+   excluded from the content checksum to avoid a circular hash.
+3. Run `python3 scripts/provenance.py docs` to regenerate `docs/UPSTREAM.md`.
+4. Run `python3 scripts/provenance.py check`,
+   `python3 scripts/provenance.py lock --check`,
+   `python3 scripts/provenance.py docs --check`, and
+   `python3 scripts/validate-upstream.py --check`.
+
+Setting reviewer metadata after `lock` changes the content checksum and makes
+the digest stale. Binding a digest before regenerating the lock also leaves a
+stale review binding. The checks validate the lock, generated report, vendored
+bytes, and review binding together. Agents and automation must not invent a
+reviewer or bind trust on someone's behalf.
 
 ## What synchronization does not do
 

@@ -62,6 +62,19 @@ summary {
   outline: 3px solid var(--clay);
   outline-offset: 4px;
 }
+.home-hero :focus-visible,
+.section--night :focus-visible,
+.section--deep :focus-visible,
+.section--green :focus-visible,
+.section--glow :focus-visible,
+.page-hero :focus-visible,
+.site-footer :focus-visible,
+.site-header :focus-visible,
+.skip-link:focus-visible,
+.mobile-nav nav :focus-visible,
+.docs-search :focus-visible {
+  outline-color: var(--cream);
+}
 ::selection {
   color: var(--spruce-deep);
   background: var(--amber);
