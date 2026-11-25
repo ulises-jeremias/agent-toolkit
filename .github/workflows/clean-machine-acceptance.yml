@@ -1,4 +1,4 @@
-name: Clean-machine Desktop Acceptance
+name: Archived Toolkit Desktop migration-source checks
 
 on:
   pull_request:
@@ -19,7 +19,7 @@ on:
 
 jobs:
   linux-clean-machine:
-    name: Packaged Electron with fresh HOME
+    name: Legacy Toolkit Electron migration smoke (not Veasel acceptance)
     # Pinned: see desktop.yml gates (ubuntu-26.04 archive unavailable).
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -44,7 +44,7 @@ jobs:
           set -euo pipefail
           mkdir -p dist
           "${VBIN}" -prod -cc gcc -d "commit=$(git rev-parse --short HEAD)" -o dist/agent-toolkit cmd/agent-toolkit
-      - name: Package Electron Desktop
+      - name: Package archived Toolkit Electron migration source
         env:
           ATK_BACKEND_BIN: ${{ github.workspace }}/dist/agent-toolkit
         run: pnpm --filter agent-toolkit-desktop dist:dir

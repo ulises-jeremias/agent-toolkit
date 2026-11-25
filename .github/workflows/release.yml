@@ -232,10 +232,14 @@ jobs:
           retention-days: 7
 
   build-desktop:
-    name: Package Electron Desktop (${{ matrix.os }})
-    # Keep compatibility packaging covered by PR CI. New releases ship the
-    # portable CLI only; Veasel owns the supported graphical runtime.
+    name: Archived Toolkit Electron migration-source build (${{ matrix.os }})
+    # This only compiles preserved migration source while its user-data and
+    # capability disposition is open. It is not a supported desktop product,
+    # is never included in a tagged release, and must not produce downloadable
+    # PR artifacts. Veasel Code owns the supported graphical runtime.
     if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
@@ -243,23 +247,18 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact: linux-x86_64
             v_zip: v_linux.zip
             backend: agent-toolkit
           - os: ubuntu-24.04-arm
-            artifact: linux-arm64
             v_zip: v_linux_arm64.zip
             backend: agent-toolkit
           - os: macos-latest
-            artifact: macos-arm64
             v_zip: v_macos_arm64.zip
             backend: agent-toolkit
           - os: macos-15-intel
-            artifact: macos-x86_64
             v_zip: v_macos_x86_64.zip
             backend: agent-toolkit
           - os: windows-latest
-            artifact: windows-x86_64
             v_zip: v_windows.zip
             backend: agent-toolkit.exe
     steps:
@@ -289,7 +288,7 @@ jobs:
           "${VBIN}" ${VFLAGS} -d "commit=$(git rev-parse --short HEAD)" -o "build/${BACKEND}" cmd/agent-toolkit
           "build/${BACKEND}" --version
           "${GITHUB_WORKSPACE}/scripts/release-linkage.sh" gate "build/${BACKEND}"
-      - name: Package Electron with its matching backend
+      - name: Compile archived Toolkit Electron source with its matching backend
         shell: bash
         env:
           ATK_BACKEND_BIN: ${{ github.workspace }}/build/${{ matrix.backend }}
@@ -311,17 +310,6 @@ jobs:
           print(f'Electron and backend: {version}')
           PYCODE
           find apps/desktop/release -maxdepth 1 -type f -print
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: electron-${{ matrix.artifact }}
-          path: |
-            apps/desktop/release/*.AppImage
-            apps/desktop/release/*.deb
-            apps/desktop/release/*.dmg
-            apps/desktop/release/*.exe
-          if-no-files-found: error
-          retention-days: 7
-
   # PR-only proof that the exact release link flags produce portable
   # binaries on every OS. No release environment, no artifacts, no uploads —
   # fails the PR before a broken binary can ever reach a tag build.

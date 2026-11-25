@@ -83,9 +83,9 @@ flowchart LR
   <tr>
     <td width="50%" valign="top">
       <h3>🧩 Plugins</h3>
-      <sub>Product distributions for Claude Code / Cursor marketplaces — core, agents, forge — compiled from one catalog.</sub>
+      <sub>Portable target-specific distributions are built from this repository's catalog. The official Veasel plugin catalog owns curation and review; Veasel Code owns installation and runtime permissions.</sub>
       <br><br>
-      <sub>Source of truth: <code>distributions/products.yaml</code></sub>
+      <sub>Portable build source: <code>distributions/products.yaml</code> · <a href="https://github.com/veasel-labs/agent-toolkit">Official Veasel catalog</a></sub>
     </td>
     <td width="50%" valign="top">
       <h3>🔗 MCP</h3>
