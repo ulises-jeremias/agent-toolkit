@@ -1,6 +1,6 @@
 {
   "name": "agent-toolkit-desktop",
-  "version": "1.50.0",
+  "version": "1.51.0",
   "private": true,
   "description": "Archived Agent Toolkit Electron source \u2014 preserved for migration and security review",
   "author": "ulises-jeremias",
