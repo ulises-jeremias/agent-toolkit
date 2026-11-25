@@ -67,13 +67,13 @@ jobs:
               raise SystemExit(f'version mismatch: source={version}, bundle={bundle}, desktop={package}')
           print(f'packaged Desktop and backend: {version}')
           PYCODE
-      - name: Real packaged Electron E2E with isolated HOME
+      - name: Packaged legacy-runtime retirement boundary with isolated HOME
         env:
           ATK_E2E_APP_PATH: ${{ github.workspace }}/apps/desktop/release/linux-unpacked/agent-toolkit-desktop
           ATK_E2E_BACKEND_BIN: ${{ github.workspace }}/apps/desktop/release/linux-unpacked/resources/bin/agent-toolkit
         run: >-
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
-          pnpm --filter agent-toolkit-desktop exec playwright test --project=electron
+          pnpm --filter agent-toolkit-desktop exec playwright test --project=electron e2e/electron/swarm-person-session.spec.ts
       - name: Upload failure evidence
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

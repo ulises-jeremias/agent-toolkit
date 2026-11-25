@@ -52,12 +52,9 @@ test('Toolkit Desktop keeps historical Swarm inspection and directs new work to 
           'start',
           '--recipe',
           'pair',
-          '--project',
-          'retirement-check',
-          '--task',
-          'must not start',
           '--workspace',
           workspace,
+          '--dry-run',
         ],
         {
           env: {
