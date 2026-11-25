@@ -13,9 +13,11 @@ The flow has five distinct steps:
 
 1. **Name the source.** A capability declares its upstream repository, exact
    path, requested ref and expected license.
-2. **Discover a candidate.** Update tooling finds a newer immutable commit for
-   the declared path or tag and reports the current locked license and content
-   checksum. Discovery does not fetch or validate the candidate's content.
+2. **Discover a candidate.** For commit pins, update tooling checks the
+   declared path for a different immutable commit. For tag pins, it checks
+   GitHub's `releases/latest` tag when that tag looks like a semantic version.
+   Discovery reports the current locked license and content checksum; it does
+   not fetch or validate the candidate's content.
 3. **Prepare a proposal.** Applying the update fetches the literal upstream
    files, updates the source pin, regenerates the provenance lock and report,
    and marks changed content `experimental`. The workflow submits that proposal
@@ -39,9 +41,11 @@ The weekly **Update Upstream** workflow and its manual dispatch run the same
 path-scoped discovery:
 
 1. Read upstream declarations from each vendored skill's `SKILL.md` frontmatter.
-2. Resolve the path-scoped latest commit or eligible newer semver tag. Discovery
-   reports the currently locked license and checksum; it does not fetch the
-   candidate files or claim their metadata has been validated.
+2. Resolve the latest commit touching each declared path, or check GitHub's
+   `releases/latest` tag for tag-pinned sources. Discovery reports the currently
+   locked license and checksum; it does not fetch the candidate files or claim
+   their metadata has been validated. For release tags, it follows GitHub's
+   latest-release marker rather than comparing semantic-version order.
 3. For an eligible update, fetch the literal upstream body and sibling files,
    update the declared pin, rebuild `capabilities/upstream.lock`, and regenerate
    `docs/UPSTREAM.md`.
