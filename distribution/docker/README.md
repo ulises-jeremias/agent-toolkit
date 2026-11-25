@@ -31,12 +31,12 @@ Docker is an **adapter**. The product inside the image is the **GitHub Release V
 | `git` | **MUST** | `project clone`, loops, swarm worktrees |
 | `gh` | **MUST** | GH API in loops / PR skills |
 | `ca-certificates` | **MUST** | TLS |
-| `curl` | **SHOULD** | Fetch checksums in build; not required at runtime if binary is baked |
+| `curl` | **SHOULD** | TLS and GitHub CLI installation during build; not required at runtime if binary is baked |
 | `uv` / CPython | **MUST NOT** | Product is the native binary. |
 
 `ENTRYPOINT` MUST be `/usr/local/bin/agent-toolkit` (the V binary). `CMD` MAY be `--help`.
 
-Build-arg `VERSION` (default from `VERSION` file) selects the GitHub Release tag `v${VERSION}`.
+Build-arg `VERSION` (default from `VERSION` file) selects the GitHub Release tag `v${VERSION}`. The build uses a BuildKit secret (`github_token`) to read release assets through the GitHub API while the release is still a draft. The token is mounted only for that build step and is not stored in an image layer or build argument.
 
 `ARG TARGETARCH` MUST be declared **without a default**. BuildKit injects `amd64` or `arm64` per `--platform`. A Dockerfile default of `amd64` installs the x86_64 ELF into the linux/arm64 image; running it then fails with `agent-toolkit: not found` (missing amd64 dynamic linker).
 
@@ -56,7 +56,7 @@ Owner of the Dockerfile remains this repo (unlike Homebrew/AUR).
 |-------|----------|
 | `pull_request` (Dockerfile paths) | Native smoke build (`load`); no registry push |
 | `push` to `main` (Dockerfile paths) | Native smoke build only — **no push** (avoids racing ahead of Release assets) |
-| `workflow_call` from `release.yml` after `upload-assets` | Multi-arch build **and push** (preferred path) |
+| `workflow_call` from `release.yml` after `upload-assets` | Multi-arch build **and push**; authenticated BuildKit asset reads support draft releases |
 | `release: published` / `workflow_dispatch` | Multi-arch build **and push**, after verifying `v$(VERSION)` Release has linux assets |
 
 `GITHUB_TOKEN`-created Releases do not start sibling `on: release` workflows; prefer `workflow_call` from `release.yml`.

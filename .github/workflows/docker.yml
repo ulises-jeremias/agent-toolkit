@@ -96,6 +96,8 @@ jobs:
           platforms: linux/amd64
           build-args: |
             VERSION=${{ steps.ver.outputs.version }}
+          secrets: |
+            github_token=${{ github.token }}
           tags: agent-toolkit:ci
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -114,6 +116,8 @@ jobs:
           platforms: linux/amd64
           build-args: |
             VERSION=${{ steps.ver.outputs.version }}
+          secrets: |
+            github_token=${{ github.token }}
           tags: agent-toolkit:ci
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -128,7 +132,16 @@ jobs:
         run: |
           TAG="v${{ steps.ver.outputs.version }}"
           echo "Checking Release assets for $TAG"
-          assets=$(gh release view "$TAG" --repo "${{ github.repository }}" --json assets -q '.assets[].name' || true)
+          release_id=""
+          for page in $(seq 1 100); do
+            release_id=$(gh api "repos/${{ github.repository }}/releases?per_page=100&page=${page}" --jq ".[] | select(.tag_name == \"${TAG}\") | .id" | head -n 1)
+            [ -z "$release_id" ] || break
+          done
+          if [ -z "$release_id" ]; then
+            echo "::error::Missing GitHub Release $TAG — refuse Docker push"
+            exit 1
+          fi
+          assets=$(gh api "repos/${{ github.repository }}/releases/${release_id}" --jq '.assets[].name')
           echo "$assets"
           echo "$assets" | grep -q 'agent-toolkit-linux-x86_64' || {
             echo "::error::Missing agent-toolkit-linux-x86_64 on $TAG — refuse Docker push"
@@ -144,6 +157,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             VERSION=${{ steps.ver.outputs.version }}
+          secrets: |
+            github_token=${{ github.token }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 

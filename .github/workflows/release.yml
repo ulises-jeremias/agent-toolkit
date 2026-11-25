@@ -30,6 +30,10 @@ on:
         default: "pypi"
         type: choice
         options: [pypi, testpypi]
+      version:
+        description: "Existing tagged version to republish from this workflow revision"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -99,7 +103,17 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p binaries
-          gh release download "${GITHUB_REF_NAME}" -D binaries -p 'agent-toolkit-*'
+          release_id=""
+          for page in $(seq 1 100); do
+            release_id=$(gh api "repos/${GH_REPO}/releases?per_page=100&page=${page}" --jq ".[] | select(.tag_name == \"${GITHUB_REF_NAME}\") | .id" | head -n 1)
+            [ -z "$release_id" ] || break
+          done
+          test -n "$release_id" || { echo "::error::Release ${GITHUB_REF_NAME} not found (including drafts)"; exit 1; }
+          gh api "repos/${GH_REPO}/releases/${release_id}" --jq '.assets[] | select(.name | startswith("agent-toolkit-")) | [.id, .name] | @tsv' \
+            | while IFS="$(printf '\t')" read -r asset_id asset_name; do
+                test -n "$asset_id" && test -n "$asset_name"
+                gh api -H 'Accept: application/octet-stream' "repos/${GH_REPO}/releases/assets/${asset_id}" > "binaries/${asset_name}"
+              done
           ls -lh binaries/
       - name: Pack sdist + platform wheels (manylinux_2_38)
         run: |
@@ -447,6 +461,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
       - name: Setup pinned V
         uses: ./.github/actions/setup-v
 
@@ -456,11 +472,30 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+          REQUESTED_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           VERSION="$(tr -d '[:space:]' < VERSION)"
+          [[ "$REQUESTED_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]] || { echo "::error::Invalid version input"; exit 1; }
+          test "$VERSION" = "$REQUESTED_VERSION" || { echo "::error::VERSION ($VERSION) does not match requested version ($REQUESTED_VERSION)"; exit 1; }
+          TAG="v${REQUESTED_VERSION}"
+          git fetch origin "refs/tags/${TAG}:refs/tags/${TAG}"
+          git merge-base --is-ancestor "$TAG" HEAD || { echo "::error::Tag ${TAG} is not an ancestor of this workflow revision"; exit 1; }
+          git diff --quiet "$TAG" HEAD -- VERSION cmd modules packages/pypi scripts/pack_pypi.vsh scripts/prepare-package-data.vsh || {
+            echo "::error::Packaging sources differ from ${TAG}; republish must use the tagged source"; exit 1;
+          }
           mkdir -p binaries
-          gh release download "v${VERSION}" -D binaries -p 'agent-toolkit-*'
+          release_id=""
+          for page in $(seq 1 100); do
+            release_id=$(gh api "repos/${GH_REPO}/releases?per_page=100&page=${page}" --jq ".[] | select(.tag_name == \"${TAG}\") | .id" | head -n 1)
+            [ -z "$release_id" ] || break
+          done
+          test -n "$release_id" || { echo "::error::Release ${TAG} not found (including drafts)"; exit 1; }
+          gh api "repos/${GH_REPO}/releases/${release_id}" --jq '.assets[] | select(.name | startswith("agent-toolkit-")) | [.id, .name] | @tsv' \
+            | while IFS="$(printf '\t')" read -r asset_id asset_name; do
+                test -n "$asset_id" && test -n "$asset_name"
+                gh api -H 'Accept: application/octet-stream' "repos/${GH_REPO}/releases/assets/${asset_id}" > "binaries/${asset_name}"
+              done
           ls -lh binaries/
       - name: Pack sdist + platform wheels (manylinux_2_38)
         run: |
