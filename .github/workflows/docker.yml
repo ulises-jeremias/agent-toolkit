@@ -153,6 +153,10 @@ jobs:
             echo "::error::Missing agent-toolkit-linux-x86_64 on $TAG — refuse Docker push"
             exit 1
           }
+          echo "$assets" | grep -qx 'SHA256SUMS' || {
+            echo "::error::Missing SHA256SUMS on $TAG — refuse Docker push"
+            exit 1
+          }
 
       - name: Build and push
         if: env.DOCKER_PUBLISH == 'true'
