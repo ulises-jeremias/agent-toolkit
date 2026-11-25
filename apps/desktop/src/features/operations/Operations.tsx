@@ -79,7 +79,7 @@ function patchParamsForDialog(
 }
 
 /**
- * Operations inspector: jobs, loops, swarms and doctor.
+ * Operations inspector: jobs, loops, historical swarm runs and doctor.
  * The world and Office link here. This destination is not a second home.
  */
 export default function Operations() {
@@ -121,16 +121,9 @@ export default function Operations() {
       <PageHeader
         eyebrow="Operations"
         title="Operations"
-        lede="The world opens a job, loop, swarm or doctor report here. The board lists only what serve returned."
+        lede="Inspect jobs, loops, historical Toolkit swarm runs and provider diagnostics. New coding-agent delegation runs in Veasel Code."
         actions={
           <>
-            <Button
-              onClick={() => openDialog('start-swarm')}
-              disabled={offline}
-              title={offline ? 'The backend is not answering' : undefined}
-            >
-              Start swarm
-            </Button>
             <Button
               onClick={() => openDialog('run-loop')}
               disabled={offline}
@@ -204,12 +197,7 @@ export default function Operations() {
           onCloseDialog={() => closeDialog('run-loop')}
           onStarted={(id) => completeDialog('run-loop', id)}
         />
-        <SwarmsPanel
-          selectedId={selectedSwarm}
-          dialogOpen={dialog === 'start-swarm'}
-          onSelect={(id) => patchParams(setParams, { swarm: id })}
-          onCloseDialog={() => closeDialog('start-swarm')}
-        />
+        <SwarmsPanel selectedId={selectedSwarm} onSelect={(id) => patchParams(setParams, { swarm: id })} />
         <DoctorPanel />
       </Stack>
     </>

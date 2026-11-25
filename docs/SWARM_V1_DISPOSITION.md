@@ -4,7 +4,7 @@
 
 ## What current builds do
 
-Current Agent Toolkit CLI and HTTP dispatch reject Swarm v1 `start` and `init` with a `feature_frozen` result before resolving a workspace or creating a run. CI checks this behavior on Linux and macOS. Existing run inspection and legacy recovery actions remain available for user-owned state. Older published Toolkit versions may predate the guard; do not use them to create new Swarm v1 runs.
+Current Agent Toolkit CLI and HTTP dispatch reject Swarm v1 `start` and `init` with a `feature_frozen` result before resolving a workspace or creating a run. CI checks this behavior on Linux and macOS. Existing run inspection and explicit recovery actions remain available for user-owned state; some recovery actions can mutate run/worktree state or resume a legacy role, so use them only when deliberately operating on a specific existing run and after checking its exact command help and backing it up. Older published Toolkit versions may predate the guard; do not use them to create new Swarm v1 runs.
 
 Use Veasel Code for new orchestration: <https://github.com/veasel-labs/veasel>.
 

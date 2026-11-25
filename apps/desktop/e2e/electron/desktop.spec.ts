@@ -1,12 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { openDesktop, setViewport, waitForBackend, type Desktop } from './fixtures';
 import { goTo } from './navigation';
 
 const CAPTURE = process.env['ATK_CAPTURE'] === '1';
-const CAPTURE_DIR = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/swarms');
 const PALETTE_CAPTURE_DIR =
   process.env.ATK_PALETTE_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/palette');
 const LIBRARY_CAPTURE_DIR =
@@ -45,56 +43,6 @@ function killSupervisedServe(binaryPath: string): void {
   if (killed === 0) {
     throw new Error(`no supervised serve process for ${binaryPath}`);
   }
-}
-
-function runSwarmCli(desktop: Desktop, args: string[]): string {
-  const packagedApp = process.env['ATK_E2E_APP_PATH'];
-  const candidates = [
-    process.env['ATK_E2E_BACKEND_BIN'],
-    packagedApp ? path.join(path.dirname(packagedApp), 'resources', 'bin', 'agent-toolkit') : undefined,
-    path.resolve(__dirname, '../../../../dist/agent-toolkit'),
-    path.resolve(__dirname, '../../../../build/agent-toolkit'),
-  ].filter((candidate): candidate is string => Boolean(candidate));
-  const binary = candidates.find((candidate) => fs.existsSync(candidate));
-  if (!binary) throw new Error('The E2E backend binary is unavailable for external swarm-state changes');
-  return execFileSync(binary, ['swarm', ...args, '--workspace', desktop.workspace], {
-    env: {
-      ...process.env,
-      HOME: desktop.home,
-      XDG_CONFIG_HOME: path.join(desktop.home, '.config'),
-      XDG_DATA_HOME: path.join(desktop.home, '.local', 'share'),
-      AGENT_TOOLKIT_WORKSPACE: desktop.workspace,
-    },
-    encoding: 'utf8',
-    stdio: 'pipe',
-  });
-}
-
-function initializeTestRepository(workspace: string): void {
-  execFileSync('git', ['init', '--quiet', workspace]);
-  execFileSync(
-    'git',
-    [
-      '-C',
-      workspace,
-      '-c',
-      'user.name=Agent Toolkit E2E',
-      '-c',
-      'user.email=e2e@agent-toolkit.invalid',
-      'commit',
-      '--allow-empty',
-      '-m',
-      'Initialize isolated E2E workspace',
-    ],
-    { stdio: 'pipe' },
-  );
-}
-
-function registerSwarmTestProject(workspace: string): void {
-  const projects = path.join(workspace, 'projects');
-  const link = path.join(projects, 'e2e-workspace');
-  fs.mkdirSync(projects, { recursive: true });
-  if (!fs.existsSync(link)) fs.symlinkSync(workspace, link, 'dir');
 }
 
 // Rail entries, then tabs of Operations (opened through goTo).
@@ -166,34 +114,17 @@ test('Ctrl+K opens the command palette and keeps session context', async () => {
   await expect(page).toHaveURL(new RegExp(`workspace=${encodeURIComponent(workspace)}`));
 });
 
-test('palette actions open the same reviewed terminal, job, loop, and swarm workflows', async () => {
+test('palette offers supported terminal, job and loop workflows without retired Swarm start', async () => {
   const { page } = desktop;
-  const openAction = async (search: string, pattern: string | RegExp) => {
-    await page.keyboard.press('Control+k');
-    const palette = page.getByRole('dialog', { name: 'Commands' });
-    await palette.getByLabel('Filter commands').fill(search);
-    const option = palette.getByRole('option').first();
-    await expect(option).toHaveAttribute('aria-selected', 'true');
-    await expect(option).toContainText(search);
-    await page.keyboard.press('Enter');
-    await expect(page.getByRole('dialog', { name: pattern })).toBeVisible();
-  };
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
+  await expect(page.getByRole('button', { name: 'Start swarm' })).toHaveCount(0);
+  await expect(page.getByText('New coding-agent delegation runs in Veasel Code.')).toBeVisible();
 
-  await openAction('Start a swarm', 'Start a swarm');
+  await page.keyboard.press('Control+k');
+  const palette = page.getByRole('dialog', { name: 'Commands' });
+  await palette.getByLabel('Filter commands').fill('Start a swarm');
+  await expect(palette.getByRole('option')).toHaveCount(0);
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog', { name: 'Start a swarm' })).toBeHidden();
-
-  await openAction('Run a loop as a job', 'Run a loop once');
-  await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog', { name: 'Run a loop once' })).toBeHidden();
-
-  await openAction('Start a job', 'Start a job');
-  await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog', { name: 'Start a job' })).toBeHidden();
-
-  await openAction('New terminal session', 'New terminal session');
-  await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog', { name: 'New terminal session' })).toBeHidden();
 });
 
 test('palette reaches Person creation and Munder import review without saving or spawning', async () => {
@@ -419,7 +350,9 @@ test('Operations shows doctor, loops and swarms from live endpoints', async () =
   await expect(page.getByRole('region', { name: 'Board' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Loops' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Swarms' })).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Swarms' })).toContainText(/GET \/api\/v1\/swarms|No swarm runs/);
+  await expect(page.getByRole('region', { name: 'Swarms' })).toContainText(
+    /GET \/api\/v1\/swarms|No historical swarm runs/,
+  );
   await expect(page.getByRole('region', { name: 'Terminal sessions' })).toContainText(
     /Terminal healthy|No terminal sessions open/,
   );
@@ -1047,216 +980,16 @@ test('Library configures MCP providers with secret-free previews and explicit ch
   expect(removeRequests).toBe(1);
 });
 
-test('swarm start reviews canonical topology and keeps runner separate from adapter', async () => {
+test('Operations keeps historical Swarm inspection while offering no new Toolkit run', async () => {
   const { page } = desktop;
-  initializeTestRepository(desktop.workspace);
-  const projectRoot = path.join(desktop.home, 'projects', 'swarm-project');
-  fs.mkdirSync(projectRoot, { recursive: true });
-  fs.writeFileSync(path.join(projectRoot, 'README.md'), '# Swarm test project\n');
-  initializeTestRepository(projectRoot);
-  fs.mkdirSync(path.join(desktop.workspace, 'projects'), { recursive: true });
-  fs.symlinkSync(projectRoot, path.join(desktop.workspace, 'projects', 'swarm-project'));
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'People' }).click();
-  await page.getByRole('button', { name: 'Create Person' }).click();
-  const personDialog = page.getByRole('dialog', { name: 'Create Person' });
-  await personDialog.getByRole('textbox', { name: 'Name' }).fill('Lina');
-  await personDialog.getByRole('textbox', { name: 'ID' }).fill('lina');
-  await personDialog.getByRole('textbox', { name: 'Role' }).fill('reviewer');
-  await personDialog.getByRole('textbox', { name: 'Goal' }).fill('Review work assigned to my swarm role');
-  await personDialog.getByRole('button', { name: 'Create Person' }).click();
-  await expect(personDialog).toBeHidden();
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
-  await page.getByRole('button', { name: 'Start swarm' }).click();
-  const dialog = page.getByRole('dialog', { name: 'Start a swarm' });
-  await expect(dialog.getByText('.ai-workspace')).toBeVisible();
-  await dialog.getByLabel('Project').selectOption('swarm-project');
-  await expect(dialog.getByText(projectRoot)).toBeVisible();
-  await expect(dialog.getByLabel('Team recipe')).toContainText('pair · 3 roles');
-  await expect(dialog.getByRole('region', { name: 'pair recipe topology' })).toContainText('implementer');
-  await expect(dialog.getByRole('group', { name: 'Recipe write permissions' })).toContainText(
-    'Direct base merge: Not allowed',
+  const panel = page.getByRole('region', { name: 'Swarms' });
+  await expect(panel).toBeVisible();
+  await expect(panel).toContainText(
+    'Existing Toolkit run records remain available here for inspection and deliberate recovery actions.',
   );
-  await dialog.getByLabel('Task').fill('Inspect the existing Desktop architecture');
-  const resolvedPeople = dialog.getByRole('region', { name: 'Resolved swarm People' });
-  await expect(resolvedPeople).toContainText('reviewer → Lina');
-  await expect(dialog.getByText(`Repository · ${projectRoot}`)).toBeVisible();
-  await expect(resolvedPeople).toContainText('matched role');
-  await dialog.getByLabel('Person for reviewer').selectOption('lina');
-  await expect(resolvedPeople).toContainText('selected');
-  await dialog.getByRole('button', { name: 'Remember Lina' }).click();
-  await expect(dialog.getByText('Workspace default: Lina')).toBeVisible();
-  await dialog.getByLabel('Person for reviewer').selectOption('');
-  await expect(resolvedPeople).toContainText('workspace default');
-  const roleRuntime = dialog.getByRole('group', { name: 'Runtime settings for reviewer' });
-  await roleRuntime.locator('summary').click();
-  await expect(dialog.getByLabel('Runner for reviewer')).toBeVisible();
-  await dialog.getByLabel('Runner for reviewer').selectOption('skeleton');
-  await expect(dialog.getByRole('region', { name: 'Resolved swarm People' })).toContainText('skeleton · auto');
-  await setViewport(desktop.app, 1024, 768);
-  await page.screenshot({ path: 'test-results/review/swarms-start-compact.png', fullPage: true });
-  if (CAPTURE) {
-    fs.mkdirSync(CAPTURE_DIR, { recursive: true });
-    await page.screenshot({ path: path.join(CAPTURE_DIR, 'swarm-start-compact.png'), fullPage: true });
-  }
-  await setViewport(desktop.app, 1600, 1000);
-  await page.screenshot({ path: 'test-results/review/swarms-start-large.png', fullPage: true });
-  if (CAPTURE) await page.screenshot({ path: path.join(CAPTURE_DIR, 'swarm-start-large.png'), fullPage: true });
-  await dialog.getByText('Runtime options').click();
-  await dialog.getByLabel('Session adapter').selectOption('headless');
-  await expect(dialog.getByText(/Headless records the run without launching agents/)).toBeVisible();
-  await dialog.getByLabel('Dry run').check();
-  await expect(dialog.getByText('Automatic runner · headless adapter')).toBeVisible();
-  await dialog.getByRole('button', { name: 'Start swarm' }).click();
-  await expect(dialog).toBeHidden();
-  await expect(page.getByRole('region', { name: 'Receipts' })).toContainText(/Swarm start posted/);
-
-  await page.getByRole('button', { name: 'Start swarm' }).click();
-  const boundDialog = page.getByRole('dialog', { name: 'Start a swarm' });
-  await boundDialog.getByLabel('Project').selectOption('swarm-project');
-  await boundDialog.getByLabel('Task').fill('Keep the selected collaborator visible in run history');
-  await boundDialog.getByLabel('Person for reviewer').selectOption('lina');
-  await boundDialog.getByText('Runtime options').click();
-  await boundDialog.getByLabel('Session adapter').selectOption('headless');
-  await boundDialog.getByRole('button', { name: 'Start swarm' }).click();
-  await expect(boundDialog).toBeHidden();
-  const boundRunRow = page
-    .getByRole('row')
-    .filter({ hasText: 'Keep the selected collaborator visible in run history' });
-  const boundRun = boundRunRow.getByRole('button', { name: /Keep the selected collaborator visible in run history/ });
-  await expect(boundRun).toBeVisible();
-  await expect(boundRunRow).toContainText('swarm-project');
-  await boundRun.click();
-  const boundInspector = page.getByRole('region', { name: 'pair' });
-  await expect(boundInspector.getByRole('region', { name: 'Role execution' })).toContainText('Lina');
-  await expect(boundInspector.getByRole('region', { name: 'Role execution' })).toContainText('reviewer');
-  await expect(boundInspector.getByRole('region', { name: 'Role execution' })).toContainText('opencode · sonnet');
-  await expect(boundInspector.getByRole('note')).toContainText('does not create a live Person session');
-  const startReceipt = page.getByRole('button', { name: 'Dismiss: Swarm start posted' }).last();
-  if (await startReceipt.isVisible()) await startReceipt.click();
-  await setViewport(desktop.app, 1024, 768);
-  await boundInspector.evaluate((element) => element.scrollIntoView({ block: 'start' }));
-  await page.screenshot({ path: 'test-results/review/swarm-run-person-binding-compact.png', fullPage: true });
-  if (CAPTURE) {
-    fs.mkdirSync(CAPTURE_DIR, { recursive: true });
-    await page.screenshot({ path: path.join(CAPTURE_DIR, 'swarm-run-person-binding-compact.png'), fullPage: true });
-  }
-  await setViewport(desktop.app, 1600, 1000);
-  await boundInspector.evaluate((element) => element.scrollIntoView({ block: 'start' }));
-  await page.screenshot({ path: 'test-results/review/swarm-run-person-binding-large.png', fullPage: true });
-  if (CAPTURE)
-    await page.screenshot({ path: path.join(CAPTURE_DIR, 'swarm-run-person-binding-large.png'), fullPage: true });
-});
-
-test('Operations refreshes a live swarm when its state changes outside Desktop', async () => {
-  const { page, workspace } = desktop;
-  await waitForBackend(page);
-  initializeTestRepository(workspace);
-  registerSwarmTestProject(workspace);
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
-  await page.getByRole('button', { name: 'Start swarm' }).click();
-  const dialog = page.getByRole('dialog', { name: 'Start a swarm' });
-  await dialog.getByLabel('Project').selectOption('e2e-workspace');
-  await dialog.getByLabel('Task').fill('Observe externally updated run state');
-  await dialog.getByText('Runtime options').click();
-  await dialog.getByLabel('Session adapter').selectOption('headless');
-  await expect(dialog.getByText(/Headless records the run without launching agents/)).toBeVisible();
-  await dialog.getByRole('button', { name: 'Start swarm' }).click();
-  await expect(dialog).toBeHidden();
-
-  const swarmPanel = page.getByRole('region', { name: 'Swarms' });
-  const swarmRow = swarmPanel.getByRole('row').filter({ hasText: 'Observe externally updated run state' });
-  await expect(swarmRow).toBeVisible();
-  const runRow = swarmRow.getByRole('button', { name: /Observe externally updated run state/ });
-  await expect(runRow).toBeVisible();
-  const dismissReceipt = page.getByRole('button', { name: 'Dismiss: Swarm start posted' }).last();
-  if (await dismissReceipt.isVisible()) await dismissReceipt.click();
-  const runId = (await runRow.innerText()).trim().split(/\s+/)[0];
-  if (!runId) throw new Error('The new swarm run did not expose an ID');
-  await runRow.click();
-  const inspector = page.getByRole('region', { name: 'pair' });
-  await expect(inspector.getByText('running', { exact: true })).toBeVisible();
-  await expect(inspector).toContainText('headless');
-  await expect(inspector.getByRole('region', { name: 'Artifacts' })).toContainText('task-contract.md');
-  await setViewport(desktop.app, 1024, 768);
-  await inspector.evaluate((element) => element.scrollIntoView({ block: 'start' }));
-  await page.screenshot({ path: 'test-results/review/swarm-run-watch-compact.png', fullPage: true });
-  if (CAPTURE) {
-    fs.mkdirSync(CAPTURE_DIR, { recursive: true });
-    await page.screenshot({ path: path.join(CAPTURE_DIR, 'swarm-run-watch-compact.png'), fullPage: true });
-  }
-  await setViewport(desktop.app, 1600, 1000);
-  await inspector.evaluate((element) => element.scrollIntoView({ block: 'start' }));
-  await expect.poll(() => inspector.evaluate((element) => element.getBoundingClientRect().width)).toBeGreaterThan(1000);
-  await page.screenshot({ path: 'test-results/review/swarm-run-watch-large.png', fullPage: true });
-  if (CAPTURE) await page.screenshot({ path: path.join(CAPTURE_DIR, 'swarm-run-watch-large.png'), fullPage: true });
-
-  runSwarmCli(desktop, ['pause', runId]);
-  await expect(inspector.getByText('paused', { exact: true })).toBeVisible({ timeout: 14_000 });
-  await page.keyboard.press('Control+k');
-  const palette = page.getByRole('dialog', { name: 'Commands' });
-  await palette.getByLabel('Filter commands').fill('Review paused swarm');
-  await page.keyboard.press('Enter');
-  await expect(palette).toBeHidden();
-  await expect(page).toHaveURL(new RegExp(`swarm=${encodeURIComponent(runId)}`));
-  await expect(inspector.getByRole('button', { name: 'Resume run' })).toBeVisible();
-  await inspector.getByRole('button', { name: 'Resume run' }).click();
-  await expect(inspector.getByText('running', { exact: true })).toBeVisible();
-
-  await inspector.getByRole('button', { name: 'Stop' }).click();
-  const stopDialog = page.getByRole('dialog', { name: 'Stop this swarm run?' });
-  await stopDialog.getByRole('button', { name: 'Stop run' }).click();
-  await expect(inspector.getByText('cancelled', { exact: true })).toBeVisible({ timeout: 8_000 });
-});
-
-test('swarm plan approval gates appear in Attention and Next that needs me opens the same run', async () => {
-  const { page, workspace } = desktop;
-  await waitForBackend(page);
-  initializeTestRepository(workspace);
-  registerSwarmTestProject(workspace);
-  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
-  await page.getByRole('button', { name: 'Start swarm' }).click();
-  const dialog = page.getByRole('dialog', { name: 'Start a swarm' });
-  await dialog.getByLabel('Project').selectOption('e2e-workspace');
-  await dialog.getByLabel('Team recipe').selectOption('team');
-  await dialog.getByLabel('Task').fill('Review the semantic project valley');
-  await dialog.getByText('Runtime options').click();
-  await dialog.getByLabel('Session adapter').selectOption('headless');
-  await dialog.getByRole('button', { name: 'Start swarm' }).click();
-  await expect(dialog).toBeHidden();
-
-  const swarmRow = page.getByRole('row').filter({ hasText: 'Review the semantic project valley' });
-  await expect(swarmRow).toBeVisible();
-  await expect(swarmRow).toContainText('awaiting_plan_approval');
-  const runRow = swarmRow.getByRole('button', { name: /Review the semantic project valley/ });
-  const runId = (await runRow.innerText()).trim().split(/\s+/)[0];
-  if (!runId) throw new Error('The gated swarm did not expose its run ID');
-
-  await goTo(page, 'Attention');
-  const attention = page.getByRole('region', { name: 'Attention inspector' });
-  const gate = attention.getByRole('row', { name: /Swarm plan needs approval/ });
-  await expect(gate).toContainText('Review the semantic project valley');
-  await expect(gate.getByRole('link', { name: 'Review swarm' })).toHaveAttribute(
-    'href',
-    new RegExp(`swarm=${encodeURIComponent(runId)}`),
-  );
-
-  if (CAPTURE) {
-    const captureDir = process.env['ATK_CAPTURE_DIR'] ?? path.join(LIBRARY_CAPTURE_DIR, '../office');
-    fs.mkdirSync(captureDir, { recursive: true });
-    await setViewport(desktop.app, 1024, 768);
-    await page.screenshot({ path: path.join(captureDir, 'attention-swarm-gate-compact.png'), fullPage: true });
-    await setViewport(desktop.app, 1600, 1000);
-    await page.screenshot({ path: path.join(captureDir, 'attention-swarm-gate-large.png'), fullPage: true });
-  }
-
-  await page.getByRole('button', { name: 'Next that needs me' }).click();
-  await expect(page).toHaveURL(new RegExp(`swarm=${encodeURIComponent(runId)}`));
-  const inspector = page.getByRole('region', { name: 'team' });
-  await expect(inspector.getByRole('button', { name: 'Approve' })).toBeVisible();
-  await inspector.getByRole('button', { name: 'Stop' }).click();
-  const stop = page.getByRole('dialog', { name: 'Stop this swarm run?' });
-  await stop.getByRole('button', { name: 'Stop run' }).click();
-  await expect(inspector.getByText('cancelled', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Start swarm' })).toHaveCount(0);
+  await expect(page.getByRole('dialog', { name: 'Start a swarm' })).toHaveCount(0);
 });
 
 test('a failed job can be retried as a new job', async () => {

@@ -196,7 +196,7 @@ pub fn run_swarm(opts SwarmOptions) SwarmReport {
 	if sub in ['start', 'init'] {
 		return SwarmReport{
 			ok: false
-			message: 'Swarm v1 is feature-frozen. New coding-agent orchestration belongs in Veasel Code: https://github.com/veasel-labs/veasel. Existing Swarm records are preserved; use read-only inspection commands for historical state.'
+			message: 'Swarm v1 is feature-frozen for new runs. New coding-agent orchestration belongs in Veasel Code: https://github.com/veasel-labs/veasel. Existing Swarm records are preserved; Toolkit inspection and explicit recovery actions remain available for those runs.'
 			data: {
 				'subcommand': sub
 				'status':     'feature_frozen'

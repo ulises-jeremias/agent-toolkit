@@ -21,14 +21,7 @@ export type PaletteAction =
   | { type: 'swarm-run'; runId: string }
   | {
       type: 'session';
-      intent:
-        | 'new-terminal'
-        | 'start-job'
-        | 'run-loop'
-        | 'start-swarm'
-        | 'next-needs-me'
-        | 'restart-backend'
-        | 'replay-onboarding';
+      intent: 'new-terminal' | 'start-job' | 'run-loop' | 'next-needs-me' | 'restart-backend' | 'replay-onboarding';
     }
   | { type: 'focus'; intent: 'new'; project?: string }
   | { type: 'focus'; intent: 'open'; threadId: string }
@@ -157,14 +150,6 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     hint: 'Operations · POST /loops/{name}/run',
     keywords: ['loop', 'operations', 'workshop'],
     action: { type: 'session', intent: 'run-loop' },
-  },
-  {
-    id: 'session:start-swarm',
-    group: 'Session',
-    title: 'Start a swarm',
-    hint: 'Choose a recipe and task in Operations',
-    keywords: ['team', 'agents', 'operations', 'recipe'],
-    action: { type: 'session', intent: 'start-swarm' },
   },
   {
     id: 'session:next-needs-me',
