@@ -891,8 +891,21 @@ jobs:
               cat "$workspace/$subcommand.log" >&2
               exit 1
             fi
-            grep -q 'retired from new runs' "$workspace/$subcommand.log"
-            grep -q 'github.com/veasel-labs/veasel' "$workspace/$subcommand.log"
+            if ! grep -q 'feature-frozen' "$workspace/$subcommand.log"; then
+              echo "Swarm v1 $subcommand did not report its frozen feature state" >&2
+              cat "$workspace/$subcommand.log" >&2
+              exit 1
+            fi
+            if ! grep -q 'Existing Swarm records are preserved' "$workspace/$subcommand.log"; then
+              echo "Swarm v1 $subcommand did not explain preservation of existing records" >&2
+              cat "$workspace/$subcommand.log" >&2
+              exit 1
+            fi
+            if ! grep -q 'github.com/veasel-labs/veasel' "$workspace/$subcommand.log"; then
+              echo "Swarm v1 $subcommand did not link to Veasel Code" >&2
+              cat "$workspace/$subcommand.log" >&2
+              exit 1
+            fi
           done
           test ! -e "$workspace/.agent-toolkit/swarm/runs"
 
