@@ -10,13 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
-## [1.51.1] — 2026-11-26
-
-### Fixed
-
-- Clarify that the legacy Swarm v1 command is compatibility-only, new runs are
-  disabled, and Veasel is the supported surface for new orchestration.
-
 ## [1.51.0] — 2026-11-25
 
 ### Added
