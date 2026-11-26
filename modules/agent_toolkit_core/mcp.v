@@ -65,7 +65,7 @@ const mcp_pinned_shas = {
 	'chrome-devtools': '660283933ff9bab1b1f7bf55bcaebe7fe63151b91a6458f37e5de4c87152dba9'
 	'clickup':         '5d59cd887638c849b95bf7841e4648ad5ae024af48a3125efaa535676c050090'
 	'figma':           '7731bc20a47c3ad8f146b42bfed4e59ee7642f383b0b891765a28e9421946676'
-	'github':          'f1aeee47179b58e018823bdf55ad12f1f8c8888cddb7796e2b459db836d4e409'
+	'github':          '870fa1535766e66b879d4da0f1df354e969d574ecabc2c9715ec8fdcb51cdec2'
 	'linear':          '79af5262f93c0f74387c984e1a52a65df704d07c8c1c179cca22c1398735b923'
 	'notion':          'd26d957fa1e489885f5fd7c584b439b1b1c36ade2ab3dc06ecca63273cc612ab'
 	'slack':           '61366d94252dd7a59aea17d346157eb85c4bd1a0cacefc23a03c82153b2e4e74'
