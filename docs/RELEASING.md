@@ -97,6 +97,12 @@ Usage:
   gh workflow run Release --ref main -f environment=pypi
   ```
   `Publish (manual)` (`publish.yml`) can still pack wheels but OIDC will fail until that filename is also registered on PyPI.
+* **Recover a failed tag publication:** if the tag run completed its five platform builds, SBOM, and asset-packaging jobs but failed later, rerun `Release` from `main` with the original Actions run ID. Recovery requires the source run to be this repository's `release.yml` tag push, for the exact tag commit/version, with unexpired artifact ZIPs and successful build/asset jobs. It verifies Actions artifact digests, rebuilds and checks the release asset manifest, restores binaries and SBOM to the existing draft, then publishes PyPI and Docker from that recovery run's checksummed artifact. It publishes the GitHub Release only after both downstream gates pass. It does not retag or recover an already-published release.
+  ```bash
+  gh workflow run Release --ref main -f environment=pypi \
+    -f version="${RELEASE_VERSION}" -f source_run_id="${SOURCE_RUN_ID}"
+  ```
+  Normal tag-push publication hands the exact `release-assets` Actions artifact from `upload-assets` to PyPI and Docker; neither downloads binaries from a draft release. The manual path without `source_run_id` remains available for republishing an already-published release.
 * **npm:** OIDC trusted publishing via `publish-npm.yml` on tag `v*` (npm CLI ≥ 11.5.1, `id-token: write`, no `NPM_TOKEN`). First publish of a new package name is local (`npm login` then `npm publish`). Then pin GitHub:
   ```bash
   npm trust github agent-toolkit-cli --file publish-npm.yml --repository ulises-jeremias/agent-toolkit --allow-publish -y

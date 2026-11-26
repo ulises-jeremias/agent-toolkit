@@ -12,6 +12,21 @@ on:
         type: boolean
         required: false
         default: false
+      use_run_artifact:
+        description: Consume the caller run's verified release-assets artifact
+        type: boolean
+        required: false
+        default: false
+      version:
+        description: Optional release version override for artifact recovery
+        type: string
+        required: false
+        default: ""
+      source_sha:
+        description: Expected source commit recorded in the release manifest
+        type: string
+        required: false
+        default: ""
   release:
     types: [published]
   push:
@@ -26,6 +41,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   # Caller event_name stays "push" under workflow_call; gate on inputs.publish.
   DOCKER_PUBLISH: ${{ inputs.publish == true || github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
+  DOCKER_USE_RUN_ARTIFACT: ${{ inputs.use_run_artifact == true }}
 
 jobs:
   build-push:
@@ -37,12 +53,39 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Prepare release asset context
+        run: mkdir -p release-assets
+
+      - name: Download caller-run release assets
+        if: inputs.use_run_artifact == true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-assets
+          path: release-assets
+
       - name: Read VERSION
         id: ver
+        env:
+          VERSION_OVERRIDE: ${{ inputs.version }}
         run: |
-          v=$(tr -d '[:space:]' < VERSION)
+          v="${VERSION_OVERRIDE:-$(tr -d '[:space:]' < VERSION)}"
+          [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]] || {
+            echo "::error::Invalid release version"
+            exit 1
+          }
           echo "version=$v" >> "$GITHUB_OUTPUT"
           echo "mm=${v%.*}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify caller-run release artifact checksums
+        if: inputs.use_run_artifact == true
+        env:
+          EXPECTED_VERSION: ${{ steps.ver.outputs.version }}
+          EXPECTED_SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test -n "$EXPECTED_SOURCE_SHA"
+          python3 scripts/validate_release_assets.py release-assets \
+            --version "$EXPECTED_VERSION" --tag "v${EXPECTED_VERSION}" --source-sha "$EXPECTED_SOURCE_SHA"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
@@ -131,8 +174,14 @@ jobs:
         if: github.event_name == 'push' && env.DOCKER_PUBLISH != 'true' && steps.rel.outputs.exists == 'true'
         run: docker run --rm agent-toolkit:ci version
 
-      - name: Require Release assets before push
-        if: env.DOCKER_PUBLISH == 'true'
+      - name: Require verified same-run assets before push
+        if: env.DOCKER_PUBLISH == 'true' && env.DOCKER_USE_RUN_ARTIFACT == 'true'
+        run: |
+          test -s release-assets/agent-toolkit-linux-x86_64
+          test -s release-assets/SHA256SUMS
+
+      - name: Require published Release assets before standalone push
+        if: env.DOCKER_PUBLISH == 'true' && env.DOCKER_USE_RUN_ARTIFACT != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

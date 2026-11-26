@@ -25,13 +25,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN --mount=type=secret,id=github_token,target=/run/secrets/github_token,required=false \
+    --mount=type=bind,target=/mnt/context,readonly \
     set -eu; \
     case "${TARGETARCH}" in \
       amd64) asset=agent-toolkit-linux-x86_64 ;; \
       arm64) asset=agent-toolkit-linux-arm64 ;; \
       *) echo "unsupported TARGETARCH=${TARGETARCH}" >&2; exit 1 ;; \
     esac; \
-    if [ -s /run/secrets/github_token ]; then \
+    if [ -s "/mnt/context/release-assets/${asset}" ] && [ -s /mnt/context/release-assets/SHA256SUMS ]; then \
+      (cd /mnt/context/release-assets && sha256sum -c SHA256SUMS --ignore-missing); \
+      cp "/mnt/context/release-assets/${asset}" "/tmp/${asset}"; \
+      cp /mnt/context/release-assets/SHA256SUMS /tmp/SHA256SUMS; \
+    elif [ -s /run/secrets/github_token ]; then \
       export GH_TOKEN="$(cat /run/secrets/github_token)"; \
       releases='repos/ulises-jeremias/agent-toolkit/releases'; \
       release_id=''; \

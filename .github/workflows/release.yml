@@ -5,8 +5,8 @@ name: Release
 # file — PyPI Trusted Publishing is registered for release.yml, not publish.yml.
 #
 # Job graph:
-#   create-release (draft) ─┬─► build-binaries ─► upload-assets ─┬─► publish-pypi (platform wheels from Release assets)
-#                           │                                    └─► docker (reusable workflow; GITHUB_TOKEN cannot trigger on: release)
+#   create-release (draft) ─┬─► build-binaries ─► upload-assets ─┬─► publish-pypi (same-run, checksummed artifact)
+#                           │                                    └─► docker (same-run, checksummed artifact)
 #                           └─► sbom ──────────────────────────────► publish-release (make public after all gates pass)
 
 on:
@@ -33,6 +33,11 @@ on:
       version:
         description: "Existing tagged version to republish from this workflow revision"
         required: true
+        type: string
+      source_run_id:
+        description: "Optional failed tag-push Actions run ID whose retained binaries/SBOM should be recovered"
+        required: false
+        default: ""
         type: string
 
 permissions:
@@ -88,33 +93,29 @@ jobs:
     environment: pypi
     permissions:
       id-token: write
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
       - name: Setup pinned V
         uses: ./.github/actions/setup-v
 
       - name: Install uv
         uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
-      - name: Download GitHub Release V binaries
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-assets
+          path: release-assets
+      - name: Verify same-run release artifacts
         run: |
           set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          python3 scripts/validate_release_assets.py release-assets \
+            --version "$VERSION" --tag "$GITHUB_REF_NAME" --source-sha "$SOURCE_SHA"
           mkdir -p binaries
-          release_id=""
-          for page in $(seq 1 100); do
-            release_id=$(gh api "repos/${GH_REPO}/releases?per_page=100&page=${page}" --jq ".[] | select(.tag_name == \"${GITHUB_REF_NAME}\") | .id" | head -n 1)
-            [ -z "$release_id" ] || break
-          done
-          test -n "$release_id" || { echo "::error::Release ${GITHUB_REF_NAME} not found (including drafts)"; exit 1; }
-          gh api "repos/${GH_REPO}/releases/${release_id}" --jq '.assets[] | select(.name | startswith("agent-toolkit-")) | [.id, .name] | @tsv' \
-            | while IFS="$(printf '\t')" read -r asset_id asset_name; do
-                test -n "$asset_id" && test -n "$asset_name"
-                gh api -H 'Accept: application/octet-stream' "repos/${GH_REPO}/releases/assets/${asset_id}" > "binaries/${asset_name}"
-              done
-          ls -lh binaries/
+          cp release-assets/agent-toolkit-* binaries/
       - name: Pack sdist + platform wheels (manylinux_2_38)
         run: |
           set -euo pipefail
@@ -394,6 +395,9 @@ jobs:
           export RELEASE_VERSION="${GITHUB_REF_NAME#v}"
           ./scripts/pack_release_assets.vsh
           ls -lh release-assets/
+          python3 scripts/validate_release_assets.py release-assets \
+            --version "$RELEASE_VERSION" --tag "$RELEASE_TAG" \
+            --source-sha "$(git rev-parse HEAD)"
       - name: Upload release assets (retry)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -410,6 +414,13 @@ jobs:
           done
           echo "::error::Failed to attach release assets"
           exit 1
+      - name: Upload exact release assets for downstream jobs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-assets
+          path: release-assets/
+          if-no-files-found: error
+          retention-days: 90
 
   sbom:
     name: Generate SBOM
@@ -451,9 +462,105 @@ jobs:
           echo "::error::Failed to attach SBOM after retries"
           exit 1
 
+  recover-release-assets:
+    name: Recover and validate retained release artifacts
+    if: github.event_name == 'workflow_dispatch' && inputs.source_run_id != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: write
+    outputs:
+      source_sha: ${{ steps.recover.outputs.source_sha }}
+      tag: ${{ steps.recover.outputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Validate recovery inputs
+        id: input
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          set -euo pipefail
+          [[ "$REQUESTED_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]] || {
+            echo "::error::Invalid version"
+            exit 1
+          }
+          [[ "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]] || { echo "::error::Source run ID must be numeric"; exit 1; }
+          test "$DEPLOY_ENVIRONMENT" = pypi || {
+            echo "::error::Artifact recovery requires environment=pypi"
+            exit 1
+          }
+          echo "tag=v${REQUESTED_VERSION}" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.input.outputs.tag }}
+          path: source
+          fetch-depth: 0
+      - name: Setup pinned V
+        uses: ./source/.github/actions/setup-v
+      - name: Recover source-run binaries and SBOM
+        id: recover
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REQUESTED_VERSION: ${{ inputs.version }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="v${REQUESTED_VERSION}"
+          SOURCE_SHA="$(git -C source rev-parse HEAD)"
+          SOURCE_VERSION="$(git -C source show "${SOURCE_SHA}:VERSION" | tr -d '[:space:]')"
+          test "$SOURCE_VERSION" = "$REQUESTED_VERSION" || {
+            echo "::error::Tag VERSION does not match requested version"
+            exit 1
+          }
+          python3 scripts/recover_release_artifacts.py \
+            --repository "$GH_REPOSITORY" --run-id "$SOURCE_RUN_ID" \
+            --version "$REQUESTED_VERSION" --source-sha "$SOURCE_SHA" --output recovered
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+      - name: Pack and verify release assets from recovered binaries
+        working-directory: source
+        env:
+          RELEASE_BIN_DIR: ../recovered/binaries
+          RELEASE_OUT_DIR: ../release-assets
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_TAG: ${{ steps.recover.outputs.tag }}
+        run: |
+          set -euo pipefail
+          ./scripts/pack_release_assets.vsh
+          python3 ../scripts/validate_release_assets.py ../release-assets \
+            --version "$RELEASE_VERSION" --tag "$RELEASE_TAG" --source-sha "$(git rev-parse HEAD)"
+      - name: Verify existing draft and restore binaries and SBOM
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPOSITORY: ${{ github.repository }}
+          TAG: ${{ steps.recover.outputs.tag }}
+        run: |
+          set -euo pipefail
+          release_id="$(gh api "repos/${GH_REPOSITORY}/releases?per_page=100" \
+            --paginate --jq ".[] | select(.tag_name == \"${TAG}\") | .id" | head -n 1)"
+          test -n "$release_id" || { echo "::error::No existing release for $TAG"; exit 1; }
+          gh api "repos/${GH_REPOSITORY}/releases/${release_id}" --jq '.draft' \
+            | grep -qx true || {
+            echo "::error::Recovery only updates an existing draft release"; exit 1;
+          }
+          gh release upload "$TAG" release-assets/* recovered/sbom.cyclonedx.json --clobber
+      - name: Upload verified assets for downstream publication jobs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-assets
+          path: release-assets/
+          if-no-files-found: error
+          retention-days: 90
+
   republish-pypi:
     name: Republish to PyPI (manual)
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.source_run_id == ''
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     permissions:
@@ -539,6 +646,84 @@ jobs:
           done
           echo "::warning::PyPI verification timed out — publish step succeeded; CDN may lag"
 
+  recover-pypi:
+    name: Publish recovered artifacts to PyPI
+    if: github.event_name == 'workflow_dispatch' && inputs.source_run_id != ''
+    needs: [recover-release-assets]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.recover-release-assets.outputs.tag }}
+          path: source
+          fetch-depth: 0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Setup pinned V
+        uses: ./source/.github/actions/setup-v
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: release-assets
+          path: release-assets
+      - name: Verify recovered assets and prepare PyPI package
+        working-directory: source
+        env:
+          VERSION: ${{ inputs.version }}
+          TAG: ${{ needs.recover-release-assets.outputs.tag }}
+          SOURCE_SHA: ${{ needs.recover-release-assets.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          python3 ../scripts/validate_release_assets.py ../release-assets \
+            --version "$VERSION" --tag "$TAG" --source-sha "$SOURCE_SHA"
+          mkdir -p binaries
+          cp ../release-assets/agent-toolkit-* binaries/
+          ./scripts/prepare-package-data.vsh
+          export RELEASE_BIN_DIR=binaries
+          export RELEASE_VERSION="$VERSION"
+          export RELEASE_OUT_DIR=dist
+          ./scripts/pack_pypi.vsh
+          ls -lh dist/
+          python3 - <<'PY'
+          from pathlib import Path
+          wheels = [p.name for p in Path("dist").glob("*.whl")]
+          if any("linux_x86_64" in n and "manylinux" not in n for n in wheels):
+              raise SystemExit(f"raw linux_x86_64 tag (PyPI will reject): {wheels}")
+          if not any("manylinux_2_38_x86_64" in n for n in wheels):
+              raise SystemExit("missing manylinux_2_38_x86_64 wheel")
+          PY
+      - name: Publish recovered package (Trusted Publishing)
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
+        with:
+          skip-existing: true
+      - name: Install pinned PyPI metadata version parser
+        run: python3 -m pip install --disable-pip-version-check --no-input packaging==26.4
+      - name: Verify PyPI shows recovered version
+        working-directory: source
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 24); do
+            if curl -fsSL "https://pypi.org/pypi/agent-toolkit-cli/${VERSION}/json" -o pypi-version.json; then
+              if python3 ../scripts/verify_pypi_files.py dist pypi-version.json --version "$VERSION"; then
+                exit 0
+              fi
+            fi
+            echo "Attempt $attempt/24: PyPI files are not yet an exact match"
+            sleep 15
+          done
+          echo "::error::PyPI file names/digests did not exactly match local distributions for ${VERSION}"
+          exit 1
+
   docker:
     name: Docker image
     if: github.event_name == 'push'
@@ -548,17 +733,32 @@ jobs:
       # Caller github.event_name stays "push"; docker.yml must not gate on
       # event_name == workflow_call (that never matches).
       publish: true
+      use_run_artifact: true
     permissions:
       contents: write
       packages: write
 
   docker-manual:
     name: Docker image (manual recovery)
-    if: github.event_name == 'workflow_dispatch' && inputs.environment == 'pypi'
+    if: github.event_name == 'workflow_dispatch' && inputs.environment == 'pypi' && inputs.source_run_id == ''
     needs: [republish-pypi]
     uses: ./.github/workflows/docker.yml
     with:
       publish: true
+    permissions:
+      contents: write
+      packages: write
+
+  docker-recovery:
+    name: Docker image (recovered artifact run)
+    if: github.event_name == 'workflow_dispatch' && inputs.source_run_id != ''
+    needs: [recover-release-assets, recover-pypi]
+    uses: ./.github/workflows/docker.yml
+    with:
+      publish: true
+      use_run_artifact: true
+      version: ${{ inputs.version }}
+      source_sha: ${{ needs.recover-release-assets.outputs.source_sha }}
     permissions:
       contents: write
       packages: write
@@ -592,7 +792,7 @@ jobs:
 
   publish-release-manual:
     name: Publish recovered GitHub Release
-    if: github.event_name == 'workflow_dispatch' && inputs.environment == 'pypi'
+    if: github.event_name == 'workflow_dispatch' && inputs.environment == 'pypi' && inputs.source_run_id == ''
     needs: [republish-pypi, docker-manual]
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -617,3 +817,31 @@ jobs:
           draft=$(gh api "repos/${GH_REPO}/releases/${release_id}" --jq '.draft')
           test "$draft" = false || { echo "::error::Release ${TAG} remains a draft"; exit 1; }
           echo "✓ Published ${TAG} after manual PyPI and Docker jobs passed"
+
+  publish-release-recovery:
+    name: Publish recovered GitHub Release
+    if: github.event_name == 'workflow_dispatch' && inputs.source_run_id != ''
+    needs: [recover-release-assets, recover-pypi, docker-recovery]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Publish only after recovered PyPI and Docker gates pass
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPOSITORY: ${{ github.repository }}
+          TAG: ${{ needs.recover-release-assets.outputs.tag }}
+        run: |
+          set -euo pipefail
+          release_id="$(gh api "repos/${GH_REPOSITORY}/releases?per_page=100" \
+            --paginate --jq ".[] | select(.tag_name == \"${TAG}\") | .id" | head -n 1)"
+          test -n "$release_id" || { echo "::error::Release ${TAG} not found"; exit 1; }
+          gh api "repos/${GH_REPOSITORY}/releases/${release_id}" --jq '.draft' \
+            | grep -qx true || {
+            echo "::error::Refusing recovery publication: release is not a draft"; exit 1;
+          }
+          gh api --method PATCH "repos/${GH_REPOSITORY}/releases/${release_id}" \
+            -F draft=false --jq '.draft' | grep -qx false
+          gh api "repos/${GH_REPOSITORY}/releases/${release_id}" --jq '.draft' | grep -qx false
+          echo "✓ Published ${TAG} after recovered binaries, SBOM, PyPI, and Docker gates passed"
