@@ -31,15 +31,16 @@ products:
     requires:
       executables:
         - name: docker
-          description: Docker for GitHub MCP (ghcr.io/github/github-mcp-server)
+          description: Docker for GitHub MCP (digest-pinned official image; read-only by default)
           install_url: https://docs.docker.com/get-docker/
           required: false
           capability: mcp:github
-      env: []
+      env:
+        - GITHUB_PERSONAL_ACCESS_TOKEN
     security:
-      approval_required: false
-      default_enabled: true
-      rationale: Core skills are read-only instruction files with no side effects.
+      approval_required: true
+      default_enabled: false
+      rationale: Requires explicit user approval to connect a user-supplied GITHUB_PERSONAL_ACCESS_TOKEN to the networked GitHub MCP server. The server disables write tools by default; this filter does not limit which repositories the token can read. Use a narrowly scoped fine-grained PAT. Write tools require a separate, explicit local opt-in in the user's MCP config.
   - id: agent-toolkit-agents
     name: Agent Toolkit Agents
     description: '18 AI agent personas: 11 holistic (planner, architect, designer, implementer, reviewer, qa-engineer, security-engineer, platform-engineer, researcher, data-engineer) + orchestrator (assistant, client-workflow-bootstrap) + 5 specialists (code-reviewer, agentic-security-reviewer, security-reviewer, e2e-runner, tdd-guide, build-error-resolver) — 7 specialists archived to references in #865 (typescript/database/performance/refactor → reviewer/references/*; docs/reference-lookup → researcher/references/LOOKUP_GUIDE.md; tech-assistant → platform-engineer/references/WORKSTATION_OPS.md) — see docs/AGENT_TAXONOMY.md §8.'

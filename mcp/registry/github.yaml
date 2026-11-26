@@ -49,4 +49,11 @@ platforms:
 security:
   network_hosts: [api.github.com, ghcr.io]
   secret_storage: environment variable
-  notes: Prefer fine-grained PAT via GITHUB_PERSONAL_ACCESS_TOKEN; OAuth also supported by official server
+  notes: >-
+    Shared Docker configs enable GITHUB_READ_ONLY=1 by default. This filters
+    server tools but does not narrow token repository access; prefer a
+    fine-grained PAT limited to required repositories and read permissions.
+    For separately configured write access, explicitly set
+    GITHUB_READ_ONLY=0 in a user-owned MCP config and grant only the needed
+    fine-grained write permissions. OAuth is also supported by the official
+    server.
