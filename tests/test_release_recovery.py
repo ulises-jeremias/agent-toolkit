@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+import hashlib
 import io
 import json
-import hashlib
 import zipfile
 from pathlib import Path
 
 import pytest
 
+from scripts import recover_release_artifacts
 from scripts.recover_release_artifacts import (
     BINARIES,
     SBOM_ARTIFACT,
@@ -17,7 +18,6 @@ from scripts.recover_release_artifacts import (
     validate_source_run,
     verify_artifact_digest,
 )
-from scripts import recover_release_artifacts
 from scripts.validate_release_assets import EXPECTED, validate_release_assets
 from scripts.verify_pypi_files import verify_pypi_files
 
