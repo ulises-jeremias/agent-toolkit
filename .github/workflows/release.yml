@@ -481,8 +481,12 @@ jobs:
           TAG="v${REQUESTED_VERSION}"
           git fetch origin "refs/tags/${TAG}:refs/tags/${TAG}"
           git merge-base --is-ancestor "$TAG" HEAD || { echo "::error::Tag ${TAG} is not an ancestor of this workflow revision"; exit 1; }
-          git diff --quiet "$TAG" HEAD -- VERSION cmd modules packages/pypi scripts/pack_pypi.vsh scripts/prepare-package-data.vsh || {
-            echo "::error::Packaging sources differ from ${TAG}; republish must use the tagged source"; exit 1;
+          git diff --quiet "$TAG" HEAD -- . \
+            ':(exclude).github/workflows/release.yml' \
+            ':(exclude).github/workflows/docker.yml' \
+            ':(exclude)Dockerfile' \
+            ':(exclude)distribution/docker/README.md' || {
+            echo "::error::Product sources differ from ${TAG}; manual republish must use the tagged product tree"; exit 1;
           }
           mkdir -p binaries
           release_id=""
