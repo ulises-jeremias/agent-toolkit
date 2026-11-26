@@ -9,7 +9,6 @@ import json
 import re
 from pathlib import Path
 
-
 EXPECTED = {
     "agent-toolkit-linux-x86_64",
     "agent-toolkit-linux-arm64",
@@ -78,7 +77,10 @@ def main() -> None:
     parser.add_argument("--source-sha", required=True)
     args = parser.parse_args()
     validate_release_assets(
-        args.directory, version=args.version, tag=args.tag, source_sha=args.source_sha,
+        args.directory,
+        version=args.version,
+        tag=args.tag,
+        source_sha=args.source_sha,
     )
     print(f"Verified release assets for {args.tag} at {args.source_sha}")
 

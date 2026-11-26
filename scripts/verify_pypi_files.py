@@ -44,7 +44,9 @@ def verify_pypi_files(directory: Path, metadata: dict[str, Any], *, version: str
         filename = entry.get("filename")
         digests = entry.get("digests")
         if not isinstance(digests, dict):
-            raise ValueError(f"missing or invalid PyPI digests for {entry.get('filename', 'unknown file')}")
+            raise ValueError(
+                f"missing or invalid PyPI digests for {entry.get('filename', 'unknown file')}"
+            )
         digest = digests.get("sha256")
         if not isinstance(filename, str) or not re.fullmatch(r"[A-Za-z0-9_.+-]+", filename):
             raise ValueError("invalid PyPI filename")

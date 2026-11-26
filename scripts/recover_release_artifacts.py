@@ -20,7 +20,6 @@ import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-
 BINARIES = (
     "agent-toolkit-linux-x86_64",
     "agent-toolkit-linux-arm64",
@@ -38,8 +37,14 @@ def fail(message: str) -> None:
 
 
 def validate_source_run(
-    run: dict[str, Any], jobs: list[dict[str, Any]], artifacts: list[dict[str, Any]],
-    *, repository: str, run_id: int, version: str, source_sha: str,
+    run: dict[str, Any],
+    jobs: list[dict[str, Any]],
+    artifacts: list[dict[str, Any]],
+    *,
+    repository: str,
+    run_id: int,
+    version: str,
+    source_sha: str,
 ) -> dict[str, dict[str, Any]]:
     if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
         fail("invalid repository identifier")
@@ -125,16 +130,29 @@ def extract_checked_zip(archive: bytes, expected_name: str, destination: Path) -
 
 
 def recover(
-    repository: str, run_id: int, version: str, source_sha: str, output: Path,
+    repository: str,
+    run_id: int,
+    version: str,
+    source_sha: str,
+    output: Path,
 ) -> None:
     if output.exists() or output.is_symlink():
         fail("recovery output path already exists")
     run = json.loads(gh_api_bytes(f"repos/{repository}/actions/runs/{run_id}"))
-    jobs_payload = json.loads(gh_api_bytes(f"repos/{repository}/actions/runs/{run_id}/jobs?per_page=100"))
-    artifacts_payload = json.loads(gh_api_bytes(f"repos/{repository}/actions/runs/{run_id}/artifacts?per_page=100"))
+    jobs_payload = json.loads(
+        gh_api_bytes(f"repos/{repository}/actions/runs/{run_id}/jobs?per_page=100")
+    )
+    artifacts_payload = json.loads(
+        gh_api_bytes(f"repos/{repository}/actions/runs/{run_id}/artifacts?per_page=100")
+    )
     artifacts = validate_source_run(
-        run, jobs_payload.get("jobs", []), artifacts_payload.get("artifacts", []),
-        repository=repository, run_id=run_id, version=version, source_sha=source_sha,
+        run,
+        jobs_payload.get("jobs", []),
+        artifacts_payload.get("artifacts", []),
+        repository=repository,
+        run_id=run_id,
+        version=version,
+        source_sha=source_sha,
     )
 
     output.parent.mkdir(parents=True, exist_ok=True)

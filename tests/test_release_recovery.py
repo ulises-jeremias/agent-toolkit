@@ -7,7 +7,6 @@ import zipfile
 from pathlib import Path
 
 import pytest
-
 from scripts import recover_release_artifacts
 from scripts.recover_release_artifacts import (
     BINARIES,
@@ -20,7 +19,6 @@ from scripts.recover_release_artifacts import (
 )
 from scripts.validate_release_assets import EXPECTED, validate_release_assets
 from scripts.verify_pypi_files import verify_pypi_files
-
 
 REPO = "ulises-jeremias/agent-toolkit"
 RUN_ID = 45718501193
@@ -51,8 +49,13 @@ def jobs() -> list[dict]:
 def artifacts() -> list[dict]:
     names = [*BINARIES, SBOM_ARTIFACT]
     return [
-        {"id": i + 1, "name": name, "expired": False, "run_id": RUN_ID,
-         "digest": "sha256:" + f"{i + 1:064x}"}
+        {
+            "id": i + 1,
+            "name": name,
+            "expired": False,
+            "run_id": RUN_ID,
+            "digest": "sha256:" + f"{i + 1:064x}",
+        }
         for i, name in enumerate(names)
     ]
 
@@ -183,7 +186,8 @@ def patch_recovery_api(monkeypatch, endpoints: dict[str, bytes], calls: list[str
 
 
 def test_recover_downloads_by_artifact_id_and_publishes_complete_verified_set(
-    tmp_path: Path, monkeypatch,
+    tmp_path: Path,
+    monkeypatch,
 ):
     endpoints, _ = recovery_api_fixture()
     calls: list[str] = []
@@ -271,16 +275,9 @@ def test_release_asset_validation_checks_manifest_and_checksums(tmp_path: Path):
     archive = "agent-toolkit-1.51.0-linux-x86_64.tar.gz"
     (tmp_path / archive).write_bytes(b"archive")
     names = sorted([*EXPECTED, archive])
-    checksums = {
-        name: hashlib.sha256((tmp_path / name).read_bytes()).hexdigest()
-        for name in names
-    }
-    (tmp_path / "SHA256SUMS").write_text(
-        "".join(f"{checksums[name]}  {name}\n" for name in names)
-    )
-    manifest_assets = [
-        {"filename": name, "sha256": checksums[name]} for name in names
-    ]
+    checksums = {name: hashlib.sha256((tmp_path / name).read_bytes()).hexdigest() for name in names}
+    (tmp_path / "SHA256SUMS").write_text("".join(f"{checksums[name]}  {name}\n" for name in names))
+    manifest_assets = [{"filename": name, "sha256": checksums[name]} for name in names]
     manifest = {
         "schemaVersion": 1,
         "name": "agent-toolkit",
@@ -290,15 +287,11 @@ def test_release_asset_validation_checks_manifest_and_checksums(tmp_path: Path):
         "assets": manifest_assets,
     }
     (tmp_path / "manifest.json").write_text(json.dumps(manifest))
-    validate_release_assets(
-        tmp_path, version=VERSION, tag=f"v{VERSION}", source_sha=SOURCE_SHA
-    )
+    validate_release_assets(tmp_path, version=VERSION, tag=f"v{VERSION}", source_sha=SOURCE_SHA)
 
     (tmp_path / next(iter(EXPECTED))).write_bytes(b"tampered")
     with pytest.raises(ValueError, match="checksum mismatch"):
-        validate_release_assets(
-            tmp_path, version=VERSION, tag=f"v{VERSION}", source_sha=SOURCE_SHA
-        )
+        validate_release_assets(tmp_path, version=VERSION, tag=f"v{VERSION}", source_sha=SOURCE_SHA)
 
 
 def test_release_workflows_handoff_and_validate_same_run_assets():
@@ -328,7 +321,10 @@ def test_release_workflows_handoff_and_validate_same_run_assets():
 
 
 def test_pypi_file_verification_accepts_exact_filenames_and_digests(tmp_path: Path):
-    files = {"agent_toolkit_cli-1.51.0.tar.gz": b"sdist", "agent_toolkit_cli-1.51.0-py3-none-any.whl": b"wheel"}
+    files = {
+        "agent_toolkit_cli-1.51.0.tar.gz": b"sdist",
+        "agent_toolkit_cli-1.51.0-py3-none-any.whl": b"wheel",
+    }
     for name, payload in files.items():
         (tmp_path / name).write_bytes(payload)
     metadata = {
