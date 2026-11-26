@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-toolkit-creative-studio",
-  "version": "1.51.0",
+  "version": "1.51.1",
   "description": "AI-native creative production: portable skills and agents that drive real applications (Kdenlive, Blender, GIMP/Krita/Inkscape, OBS, REAPER, FFmpeg) through reviewed, pinned MCP integrations, preserving editable native projects. Opt-in: creative MCP servers are never enabled for every coding session. See docs/adrs/ADR-046-creative-studio-ecosystem.md.",
   "author": {
     "name": "ulises-jeremias",
