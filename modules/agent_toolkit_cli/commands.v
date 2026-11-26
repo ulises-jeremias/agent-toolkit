@@ -985,7 +985,7 @@ fn release_command() cli.Command {
 fn swarm_command() cli.Command {
 	return cli.Command{
 		name: 'swarm'
-		description: 'Multi-agent swarm orchestration (pair/team/full, Herdr/tmux)'
+		description: 'Legacy Swarm v1 compatibility (new runs disabled; use Veasel for orchestration)'
 		group: 'Advanced commands'
 		commands: [
 			cli.Command{
