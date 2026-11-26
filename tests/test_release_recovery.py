@@ -337,6 +337,37 @@ def test_pypi_file_verification_accepts_exact_filenames_and_digests(tmp_path: Pa
     verify_pypi_files(tmp_path, metadata, version=VERSION)
 
 
+def test_pypi_file_verification_ignores_local_build_metadata(tmp_path: Path):
+    payload = b"wheel"
+    name = "agent_toolkit_cli-1.51.0-py3-none-any.whl"
+    (tmp_path / name).write_bytes(payload)
+    (tmp_path / ".gitignore").write_text("*\n", encoding="utf-8")
+    (tmp_path / f"{name}.publish.attestation").write_text("{}", encoding="utf-8")
+    metadata = {
+        "info": {"name": "agent-toolkit-cli", "version": VERSION},
+        "urls": [{"filename": name, "digests": {"sha256": hashlib.sha256(payload).hexdigest()}}],
+    }
+    verify_pypi_files(tmp_path, metadata, version=VERSION)
+
+
+def test_pypi_file_verification_rejects_unrecognized_local_files(tmp_path: Path):
+    name = "agent_toolkit_cli-1.51.0-py3-none-any.whl"
+    payload = b"wheel"
+    (tmp_path / name).write_bytes(payload)
+    (tmp_path / "unexpected.txt").write_text("not a distribution", encoding="utf-8")
+    with pytest.raises(ValueError, match="unexpected file"):
+        verify_pypi_files(
+            tmp_path,
+            {
+                "info": {"name": "agent-toolkit-cli", "version": VERSION},
+                "urls": [
+                    {"filename": name, "digests": {"sha256": hashlib.sha256(payload).hexdigest()}}
+                ],
+            },
+            version=VERSION,
+        )
+
+
 def test_pypi_file_verification_rejects_missing_wrong_digest_and_extra_files(tmp_path: Path):
     payload = b"wheel"
     name = "agent_toolkit_cli-1.51.0-py3-none-any.whl"

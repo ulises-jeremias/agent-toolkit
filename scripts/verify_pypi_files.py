@@ -19,7 +19,18 @@ def expected_files(directory: Path) -> dict[str, str]:
     files = sorted(path for path in directory.iterdir() if path.is_file())
     if not files:
         raise ValueError("distribution directory is empty")
-    return {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in files}
+    distributions: dict[str, str] = {}
+    for path in files:
+        # Build tooling leaves these beside distributions in the recovery job,
+        # and PyPI does not expose them as project files.
+        if path.name == ".gitignore" or path.name.endswith(".publish.attestation"):
+            continue
+        if not path.name.endswith((".whl", ".tar.gz", ".zip")):
+            raise ValueError(f"unexpected file in distribution directory: {path.name}")
+        distributions[path.name] = hashlib.sha256(path.read_bytes()).hexdigest()
+    if not distributions:
+        raise ValueError("distribution directory contains no publishable files")
+    return distributions
 
 
 def verify_pypi_files(directory: Path, metadata: dict[str, Any], *, version: str) -> None:

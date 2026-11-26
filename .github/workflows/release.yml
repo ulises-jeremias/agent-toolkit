@@ -722,7 +722,7 @@ jobs:
             echo "Attempt $attempt/24: PyPI files are not yet an exact match"
             sleep 15
           done
-          echo "::error::PyPI file names/digests did not exactly match local distributions for ${VERSION}"
+          echo "::error::PyPI file names/digests did not exactly match local publishable distributions for ${VERSION}"
           exit 1
 
   docker:
