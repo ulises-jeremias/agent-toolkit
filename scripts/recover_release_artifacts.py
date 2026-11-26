@@ -127,6 +127,8 @@ def extract_checked_zip(archive: bytes, expected_name: str, destination: Path) -
 def recover(
     repository: str, run_id: int, version: str, source_sha: str, output: Path,
 ) -> None:
+    if output.exists() or output.is_symlink():
+        fail("recovery output path already exists")
     run = json.loads(gh_api_bytes(f"repos/{repository}/actions/runs/{run_id}"))
     jobs_payload = json.loads(gh_api_bytes(f"repos/{repository}/actions/runs/{run_id}/jobs?per_page=100"))
     artifacts_payload = json.loads(gh_api_bytes(f"repos/{repository}/actions/runs/{run_id}/artifacts?per_page=100"))
@@ -135,9 +137,11 @@ def recover(
         repository=repository, run_id=run_id, version=version, source_sha=source_sha,
     )
 
-    binaries_dir = output / "binaries"
-    binaries_dir.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="atk-recovery-") as temporary:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="atk-recovery-", dir=output.parent) as temporary:
+        staged_output = Path(temporary) / "output"
+        binaries_dir = staged_output / "binaries"
+        binaries_dir.mkdir(parents=True)
         for name in (*BINARIES, SBOM_ARTIFACT):
             artifact = artifacts[name]
             archive = gh_api_bytes(f"repos/{repository}/actions/artifacts/{artifact['id']}/zip")
@@ -150,9 +154,12 @@ def recover(
                     json.loads(path.read_text(encoding="utf-8"))
                 except (OSError, json.JSONDecodeError) as error:
                     fail(f"invalid SBOM artifact: {error}")
-                shutil.copy2(path, output / SBOM_FILE)
+                shutil.copy2(path, staged_output / SBOM_FILE)
             else:
                 shutil.copy2(path, binaries_dir / name)
+        # Publish the recovered directory only after every artifact has passed
+        # run, digest, archive-member, and SBOM validation.
+        os.replace(staged_output, output)
 
 
 def main() -> None:

@@ -11,10 +11,13 @@ import pytest
 from scripts.recover_release_artifacts import (
     BINARIES,
     SBOM_ARTIFACT,
+    SBOM_FILE,
     extract_checked_zip,
+    recover,
     validate_source_run,
     verify_artifact_digest,
 )
+from scripts import recover_release_artifacts
 from scripts.validate_release_assets import EXPECTED, validate_release_assets
 from scripts.verify_pypi_files import verify_pypi_files
 
@@ -137,6 +140,129 @@ def test_extract_checked_zip_requires_expected_single_member(tmp_path: Path):
             output.name,
             output,
         )
+
+
+def recovery_api_fixture() -> tuple[dict[str, bytes], list[dict]]:
+    endpoints: dict[str, bytes] = {
+        f"repos/{REPO}/actions/runs/{RUN_ID}": json.dumps(source_run()).encode(),
+        f"repos/{REPO}/actions/runs/{RUN_ID}/jobs?per_page=100": json.dumps(
+            {"jobs": jobs()}
+        ).encode(),
+    }
+    artifacts_payload = []
+    for artifact_id, name in enumerate((*BINARIES, SBOM_ARTIFACT), start=1):
+        filename = SBOM_FILE if name == SBOM_ARTIFACT else name
+        payload = (
+            json.dumps({"bomFormat": "CycloneDX", "specVersion": "1.6"}).encode()
+            if name == SBOM_ARTIFACT
+            else f"verified binary {name}".encode()
+        )
+        archive = zip_bytes((filename, payload))
+        endpoints[f"repos/{REPO}/actions/artifacts/{artifact_id}/zip"] = archive
+        artifacts_payload.append(
+            {
+                "id": artifact_id,
+                "name": name,
+                "expired": False,
+                "run_id": RUN_ID,
+                "digest": "sha256:" + hashlib.sha256(archive).hexdigest(),
+            }
+        )
+    endpoints[f"repos/{REPO}/actions/runs/{RUN_ID}/artifacts?per_page=100"] = json.dumps(
+        {"artifacts": artifacts_payload}
+    ).encode()
+    return endpoints, artifacts_payload
+
+
+def patch_recovery_api(monkeypatch, endpoints: dict[str, bytes], calls: list[str]) -> None:
+    def fake_api(endpoint: str) -> bytes:
+        calls.append(endpoint)
+        return endpoints[endpoint]
+
+    monkeypatch.setattr(recover_release_artifacts, "gh_api_bytes", fake_api)
+
+
+def test_recover_downloads_by_artifact_id_and_publishes_complete_verified_set(
+    tmp_path: Path, monkeypatch,
+):
+    endpoints, _ = recovery_api_fixture()
+    calls: list[str] = []
+    patch_recovery_api(monkeypatch, endpoints, calls)
+    output = tmp_path / "recovered"
+
+    recover(REPO, RUN_ID, VERSION, SOURCE_SHA, output)
+
+    metadata_calls = [
+        f"repos/{REPO}/actions/runs/{RUN_ID}",
+        f"repos/{REPO}/actions/runs/{RUN_ID}/jobs?per_page=100",
+        f"repos/{REPO}/actions/runs/{RUN_ID}/artifacts?per_page=100",
+    ]
+    archive_calls = [
+        f"repos/{REPO}/actions/artifacts/{artifact_id}/zip"
+        for artifact_id in range(1, len(BINARIES) + 2)
+    ]
+    assert calls == [*metadata_calls, *archive_calls]
+    assert {path.name for path in (output / "binaries").iterdir()} == set(BINARIES)
+    assert {path.name for path in output.iterdir()} == {"binaries", SBOM_FILE}
+    for name in BINARIES:
+        assert (output / "binaries" / name).read_bytes() == f"verified binary {name}".encode()
+    assert json.loads((output / SBOM_FILE).read_text()) == {
+        "bomFormat": "CycloneDX",
+        "specVersion": "1.6",
+    }
+
+
+def test_recover_digest_mismatch_leaves_no_partial_output(tmp_path: Path, monkeypatch):
+    endpoints, artifact_rows = recovery_api_fixture()
+    # Fail after two artifacts have already been fetched and staged.
+    artifact_rows[2]["digest"] = "sha256:" + "0" * 64
+    artifacts_endpoint = f"repos/{REPO}/actions/runs/{RUN_ID}/artifacts?per_page=100"
+    endpoints[artifacts_endpoint] = json.dumps({"artifacts": artifact_rows}).encode()
+    calls: list[str] = []
+    patch_recovery_api(monkeypatch, endpoints, calls)
+    output = tmp_path / "recovered"
+
+    with pytest.raises(ValueError, match="digest mismatch"):
+        recover(REPO, RUN_ID, VERSION, SOURCE_SHA, output)
+
+    assert calls[-1] == f"repos/{REPO}/actions/artifacts/3/zip"
+    assert not output.exists()
+
+
+def test_recover_invalid_sbom_leaves_no_partial_output(tmp_path: Path, monkeypatch):
+    endpoints, artifact_rows = recovery_api_fixture()
+    sbom_artifact_id = len(BINARIES) + 1
+    sbom_endpoint = f"repos/{REPO}/actions/artifacts/{sbom_artifact_id}/zip"
+    invalid_sbom = zip_bytes((SBOM_FILE, b"not JSON"))
+    endpoints[sbom_endpoint] = invalid_sbom
+    artifact_rows[-1]["digest"] = "sha256:" + hashlib.sha256(invalid_sbom).hexdigest()
+    artifacts_endpoint = f"repos/{REPO}/actions/runs/{RUN_ID}/artifacts?per_page=100"
+    endpoints[artifacts_endpoint] = json.dumps({"artifacts": artifact_rows}).encode()
+    calls: list[str] = []
+    patch_recovery_api(monkeypatch, endpoints, calls)
+    output = tmp_path / "recovered"
+
+    with pytest.raises(ValueError, match="invalid SBOM artifact"):
+        recover(REPO, RUN_ID, VERSION, SOURCE_SHA, output)
+
+    assert calls[-1] == sbom_endpoint
+    assert not output.exists()
+
+
+def test_recover_refuses_existing_output_without_api_calls(tmp_path: Path, monkeypatch):
+    output = tmp_path / "recovered"
+    output.mkdir()
+    marker = output / "preserve.txt"
+    marker.write_text("existing data")
+
+    def unexpected_api(endpoint: str) -> bytes:
+        pytest.fail(f"API must not be queried for existing output: {endpoint}")
+
+    monkeypatch.setattr(recover_release_artifacts, "gh_api_bytes", unexpected_api)
+    with pytest.raises(ValueError, match="output path already exists"):
+        recover(REPO, RUN_ID, VERSION, SOURCE_SHA, output)
+
+    assert marker.read_text() == "existing data"
 
 
 def test_release_asset_validation_checks_manifest_and_checksums(tmp_path: Path):

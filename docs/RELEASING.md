@@ -98,6 +98,7 @@ Usage:
   ```
   `Publish (manual)` (`publish.yml`) can still pack wheels but OIDC will fail until that filename is also registered on PyPI.
 * **Recover a failed tag publication:** if the tag run completed its five platform builds, SBOM, and asset-packaging jobs but failed later, rerun `Release` from `main` with the original Actions run ID. Recovery requires the source run to be this repository's `release.yml` tag push, for the exact tag commit/version, with unexpired artifact ZIPs and successful build/asset jobs. It verifies Actions artifact digests, rebuilds and checks the release asset manifest, restores binaries and SBOM to the existing draft, then publishes PyPI and Docker from that recovery run's checksummed artifact. It publishes the GitHub Release only after both downstream gates pass. It does not retag or recover an already-published release.
+  Recovery stages all files beside the requested output path and atomically publishes the directory only after every artifact and the SBOM pass validation. The output path must not already exist; a failed digest or archive check leaves no partial artifact set.
   ```bash
   gh workflow run Release --ref main -f environment=pypi \
     -f version="${RELEASE_VERSION}" -f source_run_id="${SOURCE_RUN_ID}"
