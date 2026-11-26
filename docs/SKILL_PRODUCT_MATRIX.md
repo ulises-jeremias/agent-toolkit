@@ -8,7 +8,7 @@ _Generated from 6 products × 115 skills × 24 agents._
 
 | Product | Stability | Targets | Skills | Agents |
 |---------|-----------|---------|--------|--------|
-| `agent-toolkit-core` | stable | claude-code, cursor, executables, requires, security | 6 | 1 |
+| `agent-toolkit-core` | stable | claude-code, cursor, env, executables, requires, security | 6 | 1 |
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 18 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 8 | 0 |
 | `agent-toolkit-craft` | stable | claude-code, cursor | 3 | 0 |
@@ -28,14 +28,14 @@ _Generated from 6 products × 115 skills × 24 agents._
 | `architecture/c4-model` | `agent-toolkit-complete` | — |
 | `cloud/aws-well-architected-review` | `agent-toolkit-complete` | — |
 | `cloud/cloud-design-patterns` | `agent-toolkit-complete` | — |
-| `core/assistant` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
-| `core/dev-companion` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
-| `core/onboarding` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
-| `core/output-handshake` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
-| `core/pr-fallback` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
+| `core/assistant` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, env, executables, requires, security |
+| `core/dev-companion` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, env, executables, requires, security |
+| `core/onboarding` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, env, executables, requires, security |
+| `core/output-handshake` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, env, executables, requires, security |
+| `core/pr-fallback` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, env, executables, requires, security |
 | `core/project` | `agent-toolkit-complete` | — |
 | `core/workspace` | `agent-toolkit-complete` | — |
-| `core/workspace-knowledge-sync` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
+| `core/workspace-knowledge-sync` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, env, executables, requires, security |
 | `creative/audio-production` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
 | `creative/content-production` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
 | `creative/creative-studio` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
@@ -145,7 +145,7 @@ _Generated from 6 products × 115 skills × 24 agents._
 | `audio-engineer` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
 | `build-error-resolver` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `client-workflow-bootstrap` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
-| `code-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
+| `code-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, env, executables, requires, security |
 | `creative-director` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |
 | `data-engineer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `designer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |

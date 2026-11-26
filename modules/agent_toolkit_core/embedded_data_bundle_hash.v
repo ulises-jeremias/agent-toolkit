@@ -1,3 +1,3 @@
 module agent_toolkit_core
 
-const embedded_data_bundle_sha256 = '341299f4c229867446ce96ca3da4607463cd7152b08f4951817cf45f9930f8f2'
+const embedded_data_bundle_sha256 = 'e1ae656e004af6d204d17444a6c0c32a0490383565e1184d1549bb84fa2b4b90'
