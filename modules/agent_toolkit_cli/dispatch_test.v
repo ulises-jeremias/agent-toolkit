@@ -161,6 +161,17 @@ fn test_dispatch_swarm_help() {
 	assert code == 0
 }
 
+fn test_swarm_top_level_description_marks_new_runs_retired() {
+	root := build_root_command()
+	swarm := find_command(root, 'swarm') or {
+		assert false
+		return
+	}
+	assert swarm.description.contains('new runs disabled')
+	assert swarm.description.contains('Veasel')
+	assert grouped_help().contains('Legacy Swarm v1 compatibility')
+}
+
 fn test_dispatch_rollback_alias_allowed() {
 	// No receipts in default dir may exit non-zero; alias must be known (not unknown command).
 	code := dispatch(['agent-toolkit', 'rollback', '--dry-run', '--json'])
