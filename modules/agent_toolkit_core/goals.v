@@ -5,8 +5,8 @@ import yaml
 import time
 import x.json2
 
-// Goal v1 is a portable, offline planning document. It describes work; it does
-// not start workers, schedule tasks, or perform repository/GitHub effects.
+// Goals v1 and v2 are portable, offline planning documents. They describe
+// requested work and effects; they do not start workers or perform effects.
 pub struct GoalDocument {
 pub:
 	schema_version          int
@@ -17,6 +17,7 @@ pub:
 	deadline                string
 	budget                  GoalBudget
 	delivery_mode           string
+	policy_ceiling          []string @[omitempty]
 	tasks                   []GoalTask
 }
 
@@ -43,15 +44,16 @@ pub:
 
 pub struct GoalTask {
 pub:
-	id         string
-	title      string
-	repository string
-	base_sha   string
-	paths      []string
-	depends_on []string
-	recipe     string
-	runner     string
-	verifier   string
+	id          string
+	title       string
+	repository  string
+	base_sha    string
+	paths       []string
+	depends_on  []string
+	recipe      string
+	runner      string
+	verifier    string
+	permissions []string @[omitempty]
 }
 
 struct GoalReceipt {
@@ -71,8 +73,34 @@ pub:
 
 const goal_recipes = ['research', 'bug', 'feature', 'migration', 'release']
 
+// These are portable effect names, not runtime grants. Each executor must
+// intersect a task's request with the Goal ceiling and its own enforced policy.
+const goal_permission_effects = [
+	'repository.read',
+	'repository.write',
+	'process.execute',
+	'network.access',
+	'git.commit',
+	'git.push',
+	'github.read',
+	'github.issue.create',
+	'github.issue.update',
+	'github.pr.create',
+	'github.pr.update',
+	'github.comment.create',
+	'github.label.set',
+	'github.assign',
+	'github.close',
+	'github.merge',
+	'release.publish',
+]
+
 pub fn goal_recipe_names() []string {
 	return goal_recipes.clone()
+}
+
+pub fn goal_permission_effect_names() []string {
+	return goal_permission_effects.clone()
 }
 
 pub fn load_goal(path string) !GoalDocument {
@@ -86,8 +114,8 @@ pub fn load_goal(path string) !GoalDocument {
 }
 
 pub fn validate_goal(doc GoalDocument) ! {
-	if doc.schema_version != 1 {
-		return error('schema_version must be 1')
+	if doc.schema_version !in [1, 2] {
+		return error('schema_version must be 1 or 2')
 	}
 	if !goal_identifier_valid(doc.id) || !goal_title_valid(doc.title) {
 		return error('goal id and title are required')
@@ -108,6 +136,7 @@ pub fn validate_goal(doc GoalDocument) ! {
 	if doc.delivery_mode !in ['report', 'draft'] {
 		return error('unknown delivery_mode: ${doc.delivery_mode}')
 	}
+	validate_goal_permissions(doc)!
 	mut repos := map[string]bool{}
 	for repo in doc.authorized_repositories {
 		key := '${repo.owner.to_lower()}/${repo.name.to_lower()}'
@@ -173,7 +202,44 @@ pub fn validate_goal(doc GoalDocument) ! {
 	goal_plan(doc)!
 }
 
-// goal_manifest_json returns the full canonical Goal v1 JSON object used for
+fn validate_goal_permissions(doc GoalDocument) ! {
+	if doc.schema_version == 1 {
+		if doc.policy_ceiling.len > 0 || doc.tasks.any(it.permissions.len > 0) {
+			return error('permission declarations require Goal schema_version 2')
+		}
+		return
+	}
+	validate_goal_permission_list(doc.policy_ceiling, 'policy_ceiling')!
+	if 'repository.read' !in doc.policy_ceiling {
+		return error('Goal v2 policy_ceiling must include repository.read')
+	}
+	for task in doc.tasks {
+		validate_goal_permission_list(task.permissions, 'task ${task.id} permissions')!
+		if 'repository.read' !in task.permissions {
+			return error('Goal v2 task ${task.id} permissions must include repository.read')
+		}
+		for effect in task.permissions {
+			if effect !in doc.policy_ceiling {
+				return error('Goal task ${task.id} requests effect outside policy_ceiling: ${effect}')
+			}
+		}
+	}
+}
+
+fn validate_goal_permission_list(effects []string, label string) ! {
+	mut seen := map[string]bool{}
+	for effect in effects {
+		if effect !in goal_permission_effects {
+			return error('${label} contains unknown effect: ${effect}')
+		}
+		if seen[effect] {
+			return error('${label} repeats effect: ${effect}')
+		}
+		seen[effect] = true
+	}
+}
+
+// goal_manifest_json returns the full canonical Goal JSON object used for
 // Veasel admission. It validates first and preserves repository/task paths.
 pub fn goal_manifest_json(doc GoalDocument) !string {
 	validate_goal(doc)!

@@ -669,7 +669,7 @@ If the matrix file is missing, prints where it is expected (research pipeline).
 		return agent_toolkit_core.workspace_help_text()
 	}
 	if name == 'goal' {
-		return 'Portable goal v1\n\nUsage: agent-toolkit goal (validate|export|plan) <goal.yaml>\n       agent-toolkit goal recipes\n\nAll commands are offline. Export emits the full JSON manifest accepted by Veasel. This contract does not execute tasks or create external effects. See docs/GOALS.md.'
+		return 'Portable goals v1 and v2\n\nUsage: agent-toolkit goal (validate|export|plan) <goal.yaml>\n       agent-toolkit goal recipes\n\nAll commands are offline. Export emits the full JSON manifest accepted by Veasel. Goal v2 permission declarations describe intent and do not grant access or execute tasks. See docs/GOALS.md.'
 	}
 	if name == 'project' {
 		return agent_toolkit_core.project_help_text()

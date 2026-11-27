@@ -1,0 +1,33 @@
+schema_version: 2
+id: permission-contract-example
+title: Permission contract example
+authorized_repositories:
+  - owner: owner
+    name: repo
+    path: /work/repo
+acceptance_criteria:
+  - id: contract
+    description: The permission contract validates offline.
+    verification: Review the exact candidate.
+deadline: '2026-12-01T00:00:00Z'
+budget:
+  max_attempts: 2
+  wall_seconds: 3600
+  provider_turns: 4
+delivery_mode: report
+policy_ceiling:
+  - repository.read
+  - repository.write
+  - process.execute
+tasks:
+  - id: docs
+    title: Review docs
+    repository: owner/repo
+    base_sha: 0123456789012345678901234567890123456789
+    paths: [docs]
+    recipe: feature
+    runner: local-v
+    verifier: independent-review
+    permissions:
+      - repository.read
+      - repository.write

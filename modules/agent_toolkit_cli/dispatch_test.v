@@ -15,6 +15,13 @@ fn test_dispatch_goal_validate_and_plan() {
 	assert dispatch(['agent-toolkit', 'goal', 'recipes']) == 0
 }
 
+fn test_goal_help_describes_v1_and_v2_permission_boundary() {
+	help := subcommand_help('goal')
+	assert help.contains('Portable goals v1 and v2')
+	assert help.contains('permission declarations describe intent')
+	assert help.contains('do not grant access')
+}
+
 fn test_dispatch_help_exit_zero() {
 	code := dispatch(['agent-toolkit', '--help'])
 	assert code == 0

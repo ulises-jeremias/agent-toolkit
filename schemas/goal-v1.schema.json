@@ -64,6 +64,11 @@
       }
     }
   },
+  "not": {
+    "required": [
+      "policy_ceiling"
+    ]
+  },
   "$defs": {
     "repository": {
       "type": "object",
@@ -137,6 +142,11 @@
     "task": {
       "type": "object",
       "additionalProperties": true,
+      "not": {
+        "required": [
+          "permissions"
+        ]
+      },
       "required": [
         "id",
         "title",
