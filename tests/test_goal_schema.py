@@ -18,12 +18,8 @@ def legacy_goal() -> dict[str, object]:
         "schema_version": 1,
         "id": "sample-goal",
         "title": "Sample objective",
-        "authorized_repositories": [
-            {"owner": "owner", "name": "repo", "path": "/work/repo"}
-        ],
-        "acceptance_criteria": [
-            {"id": "done", "description": "Done", "verification": "Review"}
-        ],
+        "authorized_repositories": [{"owner": "owner", "name": "repo", "path": "/work/repo"}],
+        "acceptance_criteria": [{"id": "done", "description": "Done", "verification": "Review"}],
         "deadline": "2026-12-01T00:00:00Z",
         "budget": {"max_attempts": 2, "wall_seconds": 3600, "provider_turns": 4},
         "delivery_mode": "draft",
