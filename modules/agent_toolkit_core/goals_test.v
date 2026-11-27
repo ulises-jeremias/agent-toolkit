@@ -61,6 +61,68 @@ fn test_goal_validates_and_plans_offline() {
 	assert decoded.tasks[1].depends_on == ['one']
 }
 
+fn test_goal_v1_keeps_legacy_manifest_without_permission_fields() {
+	doc := sample_goal()
+	manifest := goal_manifest_json(doc)!
+	assert !manifest.contains('policy_ceiling')
+	assert !manifest.contains('permissions')
+	decoded := json2.decode[GoalDocument](manifest)!
+	assert decoded.schema_version == 1
+	assert decoded.policy_ceiling.len == 0
+	assert decoded.tasks.all(it.permissions.len == 0)
+}
+
+fn test_goal_v2_permission_requests_are_bounded_by_the_policy_ceiling() {
+	base := sample_goal()
+	v2 := GoalDocument{
+		...base
+		schema_version: 2
+		policy_ceiling: ['repository.read', 'repository.write', 'process.execute']
+		tasks: base.tasks.map(GoalTask{
+			...it
+			permissions: ['repository.read', 'repository.write']
+		})
+	}
+	validate_goal(v2) or { panic(err) }
+	manifest := goal_manifest_json(v2)!
+	decoded := json2.decode[GoalDocument](manifest)!
+	assert decoded.schema_version == 2
+	assert decoded.policy_ceiling == v2.policy_ceiling
+	assert decoded.tasks.all(it.permissions == ['repository.read', 'repository.write'])
+
+	missing_read := GoalDocument{ ...v2, policy_ceiling: ['repository.write'] }
+	assert goal_error(missing_read).contains('policy_ceiling must include repository.read')
+	unknown := GoalDocument{
+		...v2
+		policy_ceiling: [...v2.policy_ceiling, 'shell.bypass']
+	}
+	assert goal_error(unknown).contains('unknown effect')
+	duplicate := GoalDocument{
+		...v2
+		policy_ceiling: [...v2.policy_ceiling, 'repository.read']
+	}
+	assert goal_error(duplicate).contains('repeats effect')
+	outside_ceiling := GoalDocument{
+		...v2
+		tasks: [
+			GoalTask{ ...v2.tasks[0], permissions: ['repository.read', 'github.merge'] },
+			v2.tasks[1],
+		]
+	}
+	assert goal_error(outside_ceiling).contains('outside policy_ceiling')
+	v1_with_effects := GoalDocument{ ...v2, schema_version: 1 }
+	assert goal_error(v1_with_effects).contains('require Goal schema_version 2')
+}
+
+fn test_goal_permission_vocabulary_is_stable_and_contains_publication_effects() {
+	effects := goal_permission_effect_names()
+	assert effects.len == 17
+	assert effects[0] == 'repository.read'
+	assert effects.contains('process.execute')
+	assert effects.contains('github.merge')
+	assert effects.contains('release.publish')
+}
+
 fn test_goal_recipe_registry_has_matching_definitions() {
 	repo_root := os.join_path(os.dir(@FILE), '..', '..')
 	assert goal_recipe_names().len == 5
