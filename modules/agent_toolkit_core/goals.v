@@ -5,8 +5,8 @@ import yaml
 import time
 import x.json2
 
-// Goal v1 is a portable, offline planning document. It describes work; it does
-// not start workers, schedule tasks, or perform repository/GitHub effects.
+// Goals v1 and v2 are portable, offline planning documents. They describe
+// requested work and effects; they do not start workers or perform effects.
 pub struct GoalDocument {
 pub:
 	schema_version          int
