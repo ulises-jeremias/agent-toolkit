@@ -96,8 +96,14 @@
     },
     "policyCeiling": {
       "allOf": [
-        { "$ref": "#/$defs/permissionEffects" },
-        { "contains": { "const": "repository.read" } }
+        {
+          "$ref": "#/$defs/permissionEffects"
+        },
+        {
+          "contains": {
+            "const": "repository.read"
+          }
+        }
       ]
     },
     "repository": {
@@ -235,11 +241,35 @@
         },
         "permissions": {
           "allOf": [
-            { "$ref": "#/$defs/permissionEffects" },
-            { "contains": { "const": "repository.read" } }
+            {
+              "$ref": "#/$defs/permissionEffects"
+            },
+            {
+              "contains": {
+                "const": "repository.read"
+              }
+            }
           ]
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"repository.write"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"repository.write"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"process.execute"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"process.execute"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"network.access"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"network.access"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"git.commit"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"git.commit"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"git.push"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"git.push"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"github.read"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"github.read"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"github.issue.create"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"github.issue.create"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"github.issue.update"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"github.issue.update"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"github.pr.create"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"github.pr.create"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"github.pr.update"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"github.pr.update"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"github.comment.create"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"github.comment.create"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"github.label.set"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"github.label.set"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"github.assign"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"github.assign"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"github.close"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"github.close"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"github.merge"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"github.merge"}}}}}}}}},
+    {"if":{"properties":{"policy_ceiling":{"not":{"contains":{"const":"release.publish"}}}}},"then":{"properties":{"tasks":{"items":{"properties":{"permissions":{"not":{"contains":{"const":"release.publish"}}}}}}}}}
+  ]
 }

@@ -61,6 +61,22 @@ def test_goal_v2_schema_accepts_declared_permissions_and_policy_ceiling() -> Non
 
 
 @pytest.mark.parametrize(
+    "effect",
+    [
+        effect
+        for effect in V2_SCHEMA["$defs"]["permissionEffects"]["items"]["enum"]
+        if effect != "repository.read"
+    ],
+)
+def test_goal_v2_schema_rejects_task_permissions_above_policy_ceiling(effect: str) -> None:
+    goal = permission_goal()
+    goal["policy_ceiling"] = ["repository.read"]
+    goal["tasks"][0]["permissions"] = ["repository.read", effect]
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.Draft202012Validator(V2_SCHEMA).validate(goal)
+
+
+@pytest.mark.parametrize(
     "mutate",
     [
         lambda goal: goal.pop("policy_ceiling"),
@@ -68,6 +84,7 @@ def test_goal_v2_schema_accepts_declared_permissions_and_policy_ceiling() -> Non
         lambda goal: goal["tasks"][0].update(permissions=["shell.bypass"]),
         lambda goal: goal["policy_ceiling"].append("repository.read"),
         lambda goal: goal["tasks"][0].update(permissions=["repository.write"]),
+        lambda goal: goal["tasks"][0].update(permissions=["repository.read", "git.push"]),
     ],
 )
 def test_goal_v2_schema_rejects_missing_or_invalid_permission_contract(mutate) -> None:
