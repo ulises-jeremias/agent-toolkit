@@ -90,10 +90,6 @@ fn main() {
 		r"pub const embedded_version = '.*'", "pub const embedded_version = '${version}'", check) {
 		changed++
 	}
-	if bump_regex(root, 'apps/desktop/package.json', r'"version"\s*:\s*"[^"]*"', '"version": "${version}"',
-		check) {
-		changed++
-	}
 	if bump_regex(root, 'package.json', r'"version"\s*:\s*"[^"]*"', '"version": "${version}"',
 		check) {
 		changed++

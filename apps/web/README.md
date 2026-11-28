@@ -24,10 +24,10 @@ capability search and the mobile menu; there is no client framework runtime.
 Current product pages describe portable Toolkit capabilities and link to
 Veasel Code for the graphical coding application. Legacy Desktop URLs have
 permanent HTTP redirects in the root `vercel.json`, with static redirect pages
-as a fallback for local previews. The old application source and its data
-formats are still under compatibility review; the public site does not present
-them as a supported product or imply that Veasel imports their data
-automatically.
+as a fallback for local previews. The former Electron Desktop (`apps/desktop/`)
+has been retired and removed from the repository (recoverable in Git history);
+the public site does not present it as a supported product or imply that Veasel
+imports old Desktop data automatically.
 
 Capability entries are read at build time from generated catalogs, MCP provider
 definitions and distribution manifests. Public documentation is rendered from

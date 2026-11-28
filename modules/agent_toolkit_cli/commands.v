@@ -70,7 +70,6 @@ pub fn build_root_command() cli.Command {
 		build_command(),
 		inventory_command(),
 		matrix_command(),
-		release_command(),
 		swarm_command(),
 		serve_command(),
 		gui_command(),
@@ -968,15 +967,6 @@ fn matrix_command() cli.Command {
 	return cli.Command{
 		name: 'matrix'
 		description: 'Show platform capability matrix'
-		execute: atk_exec
-		group: 'Advanced commands'
-	}
-}
-
-fn release_command() cli.Command {
-	return cli.Command{
-		name: 'release'
-		description: 'Not in V — use CI / docs/RELEASING.md (#527)'
 		execute: atk_exec
 		group: 'Advanced commands'
 	}

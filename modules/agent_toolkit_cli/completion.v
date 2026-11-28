@@ -5,7 +5,7 @@ import os
 
 const completion_shells = ['bash', 'zsh', 'fish', 'powershell']
 
-const completion_commands = 'install update uninstall doctor diff skills mcp plugin loop workspace memory project devcompanion dc insights build inventory matrix release swarm serve completion help version'
+const completion_commands = 'install update uninstall doctor diff skills mcp plugin loop workspace memory project devcompanion dc insights build inventory matrix swarm serve completion help version'
 
 const completion_loop_cmds = 'init run status audit cost schedule sync templates help'
 

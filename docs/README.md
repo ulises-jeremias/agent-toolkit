@@ -1,10 +1,12 @@
 # Documentation
 
 Agent Toolkit's current scope is portable capabilities and CLI tooling. Veasel
-Code owns the supported coding application. The former Electron source and its
-design documents are archival migration evidence, not current product contracts;
-see the [preservation and migration map](LEGACY_DESKTOP_MIGRATION.md) before
-removing or migrating any code or user data.
+Code owns the supported coding application. The former Electron Desktop
+(`apps/desktop/`) has been retired and removed from `main` (preserved in Git
+history), and its historical design documents under `docs/desktop/` are
+archival evidence, not current product contracts; see the
+[preservation and migration map](LEGACY_DESKTOP_MIGRATION.md) for user-data
+boundaries.
 
 ## Source of truth
 
@@ -40,10 +42,11 @@ Choose the path that matches what you want to do:
 | Understand upstream capability updates and human trust review | [Upstream synchronization](UPSTREAM_SYNC.md) → [Trust and provenance](TRUST.md) |
 | Contribute or change the V backend | [Contributing](../CONTRIBUTING.md) → [V development](HOW_TO_DEVELOP_V.md) |
 
-The `docs/desktop/` and `apps/desktop/` trees describe a former Electron
-application. Their screenshots and workflow records are historical evidence,
-not current Veasel acceptance. Veasel's own repository is authoritative for
-current product behavior, release status, and shared-session evidence.
+The `docs/desktop/` tree and historical `apps/desktop/` (in Git history)
+describe a former Electron application. Their screenshots and workflow records
+are historical evidence, not current Veasel acceptance. Veasel's own repository
+is authoritative for current product behavior, release status, and
+shared-session evidence.
 
 Swarm v1 recipe and adapter pages are historical references. Current Toolkit
 builds reject new Swarm runs; start with the

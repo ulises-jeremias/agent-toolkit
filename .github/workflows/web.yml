@@ -5,7 +5,6 @@ on:
     branches: [main]
     paths:
       - 'apps/web/**'
-      - 'apps/desktop/public/world/**'
       - 'docs/**'
       - 'catalogs/**'
       - 'mcp/registry/**'
@@ -21,7 +20,6 @@ on:
   pull_request:
     paths:
       - 'apps/web/**'
-      - 'apps/desktop/public/world/**'
       - 'docs/**'
       - 'catalogs/**'
       - 'mcp/registry/**'
@@ -44,7 +42,8 @@ concurrency:
 
 jobs:
   quality:
-    # Pinned: see desktop.yml gates (ubuntu-26.04 archive unavailable).
+    # Pinned: ubuntu-latest (26.04/resolute) has no Ubuntu archive on the
+    # runner mirror yet, so playwright --with-deps (apt) fails. 24.04 LTS works.
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -61,7 +60,8 @@ jobs:
       - run: pnpm --filter agent-toolkit-web check
       - run: pnpm --filter agent-toolkit-web test
       - run: pnpm --filter agent-toolkit-web build
-      - run: pnpm --filter agent-toolkit-web exec playwright install chromium # no --with-deps (see desktop.yml)
+      # No --with-deps: GitHub Ubuntu images already ship Chromium's system libraries.
+      - run: pnpm --filter agent-toolkit-web exec playwright install chromium
       - name: Browser smoke, responsive and accessibility review
         env:
           CI: '1'

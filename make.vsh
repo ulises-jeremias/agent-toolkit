@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v run
 // V foundation targets for modules/ (ADR-009).
-// Usage: ./make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|build-desktop|gen-surface|gen-target-matrix|compile-make]
+// Usage: ./make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|gen-surface|gen-target-matrix|compile-make]
 // Optional: ./make.vsh compile-make && ./make <target>
 //
 // vlib build (context.run) only runs non-hyphen args as tasks; flags like
@@ -106,10 +106,9 @@ context.task(
 	run:  fn [r] (_ build.Task) ! {
 		pin := (read_file(join_path(r, '.v-version')) or { 'pending' }).trim_space()
 		println('V targets (pin: ${pin}) — ./make.vsh --tasks')
-		println('  fmt | fmt-check | vet | test | build | build-cli | install-cli | build-desktop | compile-make')
+		println('  fmt | fmt-check | vet | test | build | build-cli | install-cli | compile-make')
 		println('  gen-surface | gen-target-matrix')
 		println('  install-cli flags: --prefix=/path  (or PREFIX env; default ~/.local)')
-		println('  build-desktop packages apps/desktop (Electron) for the current host.')
 	}
 )
 
@@ -235,19 +234,6 @@ context.task(
 		println('Installed ${dest} (V canonical). Rollback: docs/v/archive/rollback.md')
 	}
 )
-
-context.task(name: 'build-desktop', help: 'Build archived Electron source for migration and security review', run: fn [r] (_ build.Task) ! {
-	app := join_path(r, 'apps', 'desktop')
-	if !is_dir(app) {
-		eprintln('missing Electron Desktop at ${app}')
-		exit(1)
-	}
-	println('==> build archived Electron source')
-	rc := system('pnpm --dir "${app}" dist:dir')
-	if rc != 0 {
-		exit(rc)
-	}
-})
 
 context.task(name: 'compile-make', help: 'Precompile to ./make (gitignored)', run: fn [r] (_ build.Task) ! {
 	rc := system('"${vbin()}" -prod -skip-running ${join_path(r, 'make.vsh')} -o ${join_path(r, 'make')}')

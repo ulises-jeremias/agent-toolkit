@@ -233,11 +233,14 @@ fn test_insights_help_is_deprecate_disposition() {
 	assert !h.contains('not yet implemented')
 }
 
-fn test_release_help_is_remove_disposition() {
-	h := subcommand_help('release')
-	assert h.contains('docs/RELEASING.md')
-	assert h.contains('#527') || h.to_lower().contains('removed')
-	assert !h.contains('not yet implemented')
+fn test_release_command_removed_from_cli() {
+	root := build_root_command()
+	mut found := false
+	if _ := find_command(root, 'release') {
+		found = true
+	}
+	assert !found
+	assert dispatch(['agent-toolkit', 'release']) == 1
 }
 
 fn test_insights_no_args_exits_zero() {
@@ -247,11 +250,6 @@ fn test_insights_no_args_exits_zero() {
 
 fn test_insights_subcommand_exits_one() {
 	code := dispatch(['agent-toolkit', 'insights', 'unknown-tool', '--no-llm'])
-	assert code == 1
-}
-
-fn test_release_exits_one() {
-	code := dispatch(['agent-toolkit', 'release'])
 	assert code == 1
 }
 

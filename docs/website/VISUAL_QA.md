@@ -1,5 +1,11 @@
 # Website visual QA
 
+> **Archive notice (2026-11-28):** This log records browser-reviewed evidence
+> from the 2026-10-11 Desktop-era portal (`static/screenshots/*.png`). The
+> current public site at [`https://www.agent-toolkit.io`](https://www.agent-toolkit.io)
+> promotes Agent Toolkit's portable capabilities and CLI; its current Playwright
+> and accessibility suite lives in [`apps/web/tests/site.spec.ts`](../../apps/web/tests/site.spec.ts).
+
 This records browser-reviewed evidence for the official static site at
 `https://agent-toolkit.io`. The site shares Agent Toolkit's cozy pixel-world
 identity while keeping ordinary links, reading order, and copy available as

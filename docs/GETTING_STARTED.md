@@ -58,10 +58,9 @@ coding tool; Veasel Code is the associated graphical coding product.
 
 ## Existing Toolkit Desktop data
 
-The former Agent Toolkit Electron Desktop is not included in new Toolkit
-releases. Existing installations, workspaces, settings, and credentials are
-left in place; Veasel does not automatically import or delete them. Before
-removing an older Toolkit Desktop installation or its data directory, review
-the [compatibility and migration notes](VEASEL_COMPATIBILITY.md) and keep a
-backup. Historical source and tests remain in the repository while unique
-capabilities and data formats are accounted for.
+The former Agent Toolkit Electron Desktop is retired and removed from `main`
+(preserved in Git history). Existing installations, workspaces, settings, and
+credentials are left in place; Veasel does not automatically import or delete
+them. Before removing an older Toolkit Desktop installation or its data
+directory, review the [compatibility and migration notes](VEASEL_COMPATIBILITY.md)
+and keep a backup.

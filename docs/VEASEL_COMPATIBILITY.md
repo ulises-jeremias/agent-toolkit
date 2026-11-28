@@ -18,12 +18,11 @@ remains an acceptance gate in [Veasel #550](https://github.com/veasel-labs/vease
 
 ## Former Toolkit Electron Desktop
 
-The Electron app under `apps/desktop/` is retired from active product
-development. New Agent Toolkit releases distribute the portable CLI and
-capabilities; new graphical coding work belongs in Veasel Code. The old source
-and its tests remain temporarily while unique behavior, artwork, and local
-data formats are accounted for. This is not a promise of future Electron
-support or compatibility with future operating systems.
+The former Electron app (`apps/desktop/`) is retired and removed from `main`
+(preserved in Git history). New Agent Toolkit releases distribute the portable
+CLI and capabilities; graphical coding work belongs in Veasel Code. Historical
+evidence and design notes under `docs/desktop/` remain as archival reference
+only and are not a promise of Electron support.
 
 The Veasel migration and packaged acceptance are still tracked in
 [veasel-labs/veasel#550](https://github.com/veasel-labs/veasel/issues/550),
