@@ -235,7 +235,12 @@ fn test_insights_help_is_deprecate_disposition() {
 
 fn test_release_command_removed_from_cli() {
 	root := build_root_command()
-	assert find_command(root, 'release') == none
+	mut found := false
+	if _ := find_command(root, 'release') {
+		found = true
+	}
+	assert !found
+	assert dispatch(['agent-toolkit', 'release']) == 1
 }
 
 fn test_insights_no_args_exits_zero() {
