@@ -1,3 +1,0 @@
-# Staged V backend binary + version pin (populated by `pnpm stage:backend`, never committed).
-bin/
-backend-version.json

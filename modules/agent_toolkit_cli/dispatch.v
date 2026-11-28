@@ -465,10 +465,6 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 		report := agent_toolkit_core.run_insights(opts)
 		return render(agent_toolkit_core.insights_result(report), mode)
 	}
-	if cmd_name == 'release' {
-		print(release_help_text())
-		return 1
-	}
 	if cmd_name == 'gui' {
 		opts := parse_gui_options(rest)
 		return run_gui(opts, mode)
@@ -653,9 +649,6 @@ If the matrix file is missing, prints where it is expected (research pipeline).
 	if name == 'ci-wait' {
 		return agent_toolkit_core.ci_wait_help_text()
 	}
-	if name == 'release' {
-		return release_help_text()
-	}
 	if name == 'skills' {
 		return agent_toolkit_core.skills_help_text()
 	}
@@ -748,13 +741,4 @@ fn insights_subcommand(args []string) string {
 
 fn insights_help_text() string {
 	return agent_toolkit_core.insights_help_text()
-}
-
-fn release_help_text() string {
-	return 'release — Generate release artifacts (removed from V; #527).
-
-Maintainer artifact generation belongs in GitHub Actions / docs/RELEASING.md, not the runtime CLI.
-
-See docs/v/advanced-command-disposition.md.
-'
 }

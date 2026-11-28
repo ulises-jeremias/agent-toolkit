@@ -263,20 +263,21 @@ All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully c
 
 | Domain | Key Skills |
 | -------- | ------------ |
-| 🧠 `core` | assistant, dev-companion, workspace, project, onboarding |
+| 🧠 `core` | work, assistant, dev-companion, workspace, project, onboarding |
 | 🚀 `delivery` | adr, bug, epic, development-workflow, planning, prd, user-story, work-item |
-| 🎨 `design` | figma-implement-design, figma-code-connect-components, frontend-design |
-| ⚡ `forge` | github-cli-workflow, gitlab-cli-workflow, gh-fix-ci, worktree |
+| 🎨 `design` | figma-implement-design, figma-code-connect-components, frontend-design, brag |
+| ⚡ `forge` | pr-ship, github-cli-workflow, gitlab-cli-workflow, gh-fix-ci, worktree |
 | 🔗 `integrations` | slack-cli, slack-assistant, linear, clickup-cli, mcp, jira-*, confluence-* |
 | 📊 `data` | dbt-validation, snowflake-validation |
-| 🔧 `tooling` | jupyter-notebook, playwright-cli, herdr, inventory |
+| 🔧 `tooling` | jupyter-notebook, playwright-cli, herdr, inventory, chrome-devtools, mermaid |
 | 🛡️ `ops` | triage, docs-generator, llm-cost-advisor, swarm |
 | 🔄 `loops` | loop-runner (see [Loop Engineering](#-loop-engineering) for available templates) |
-| 🔐 `agentic-security` | threat-modeling, owasp-agentic-review, mcp-audit |
+| 🔐 `agentic-security` | threat-modeling, owasp-agentic-review, mcp-audit, supply-chain-audit |
 | ☁️ `cloud` | cloud-design-patterns, aws-well-architected-review |
 | 🏛️ `architecture` | architecture-diagram, c4-model |
 | ♿ `accessibility` | review |
-| ✅ `quality` | megalinter, megalinter-setup, megalinter-check, megalinter-fix, codeql, blast-radius |
+| ✅ `quality` | arena, megalinter, megalinter-setup, megalinter-check, megalinter-fix, codeql, blast-radius, unslop |
+| 🎬 `creative` | creative-studio, video-editing, motion-graphics, audio-production, media-qa |
 
 Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.yaml) · **membership matrix** [`docs/SKILL_PRODUCT_MATRIX.md`](docs/SKILL_PRODUCT_MATRIX.md) (`scripts/generate-skill-matrix.vsh --check` in CI) · regenerate with `./scripts/validate-skills.vsh` (CI) and inspect live inventory via `agent-toolkit inventory` for current counts.
 
@@ -433,6 +434,8 @@ Browse packs: [`packs/`](packs/)
 | [🤖 How to add an agent](docs/HOW_TO_ADD_AGENT.md) | Define a new agent persona |
 | [🔄 How to create a loop](docs/HOW_TO_CREATE_LOOP.md) | Build a recurring agentic workflow |
 | [🔄 Upstream synchronization](docs/UPSTREAM_SYNC.md) | How upstream content is pinned, reviewed, and trust-bound before distribution |
+| [🎯 Portable goals](docs/GOALS.md) | Goal v1/v2 offline contracts, requested effects, and policy ceilings |
+| [⚖️ Blinded evals](docs/BLINDED_EVALS.md) | Leak-sanitized A/B evaluations, transcript audits, and candidate-bound receipts |
 | [🌐 OSS Maintenance example](examples/oss-maintenance/) | Full walkthrough of the oss-maintenance pack |
 | [🚀 Project onboarding example](examples/project-onboarding/) | Bootstrap a new project with agent-toolkit |
 
@@ -545,12 +548,13 @@ See [SHOWCASE.md](SHOWCASE.md) for community usage examples and pack walkthrough
 ### Desktop app (GUI)
 
 New Agent Toolkit releases distribute the portable CLI and capabilities, not
-the historical Electron app. For the current graphical coding experience,
-install [Veasel Code](https://github.com/veasel-labs/veasel/releases/latest).
-The old application and its local data are not automatically removed or
+the historical Electron app (`apps/desktop/` has been retired and removed from
+`main`). For the current graphical coding experience, install
+[Veasel Code](https://github.com/veasel-labs/veasel/releases/latest).
+Existing installations and local data are not automatically removed or
 imported. Review the [migration and compatibility notes](docs/VEASEL_COMPATIBILITY.md)
 before uninstalling an older copy. Historical source, screenshots, and tests
-remain in Git history while unique behavior and user-data formats are being
-accounted for.
+remain recoverable in Git history, while `docs/desktop/` holds archival
+evidence only.
 
 ---

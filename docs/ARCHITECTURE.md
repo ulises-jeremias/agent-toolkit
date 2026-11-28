@@ -77,12 +77,11 @@ This repository does not implement a second coding-session engine or GUI.
 
 Agent Toolkit remains independently useful as a portable capability library
 and CLI. Its `serve` API supports Toolkit operations; it is not the backend for
-Veasel Code. The former Electron app in `apps/desktop/` is retained only as
-archival/migration source while data and unique capabilities are accounted for.
-New graphical product work belongs in
-[Veasel Code](https://github.com/veasel-labs/veasel). See
-[`docs/VEASEL_COMPATIBILITY.md`](VEASEL_COMPATIBILITY.md) for the current
-retirement and user-data boundary.
+Veasel Code. The former Electron app (`apps/desktop/`) has been retired and
+removed from `main` (preserved in Git history). New graphical product work
+belongs in [Veasel Code](https://github.com/veasel-labs/veasel). See
+[`docs/VEASEL_COMPATIBILITY.md`](VEASEL_COMPATIBILITY.md) for the retirement
+and user-data boundary.
 
 ### Internal module boundaries and import rules (#982)
 

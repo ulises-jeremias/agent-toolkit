@@ -71,11 +71,27 @@ export const publicDocs = [
     group: "Use Agent Toolkit",
   },
   {
+    slug: "goals",
+    source: "GOALS.md",
+    title: "Portable goals",
+    description:
+      "Validate and plan Goal v1/v2 manifests with explicit requested effects and policy ceilings.",
+    group: "Use Agent Toolkit",
+  },
+  {
     slug: "trust",
     source: "TRUST.md",
     title: "Trust and security",
     description:
       "Understand installation evidence, provenance and safe defaults.",
+    group: "Trust and build",
+  },
+  {
+    slug: "blinded-evals",
+    source: "BLINDED_EVALS.md",
+    title: "Blinded evals",
+    description:
+      "Run leak-sanitized A/B evaluations, transcript audits, and candidate-bound receipts.",
     group: "Trust and build",
   },
   {

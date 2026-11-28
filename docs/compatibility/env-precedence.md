@@ -30,8 +30,8 @@ Resource *path* resolution (which data root wins) is ADR-015; this document cove
 | `AI_WORKSPACE` | Alias for toolkit root override | `_paths.py`, loops | Same precedence tier as `AGENT_TOOLKIT_ROOT`; first non-empty wins in code order |
 | `AGENT_TOOLKIT_WORKSPACE` | Workspace harness root | workspace/memory/project/devcompanion/loop | Alias: `HARNESS_DIR` |
 | `HARNESS_DIR` | Alias for workspace root | `_paths.py`, loop, Desktop harness | Same tier as `AGENT_TOOLKIT_WORKSPACE` |
-| `ATK_BACKEND_BIN` | Explicit Desktop `agent-toolkit` binary | Electron supervisor | Authoritative: a broken path does not fall through to PATH |
-| `ATK_EXPECTED_BACKEND_MAJOR` | Pin the Desktop backend major | Electron supervisor | Overrides `resources/backend-version.json` |
+| `ATK_BACKEND_BIN` | *(Historical)* Explicit Desktop `agent-toolkit` binary | Retired Electron supervisor (removed with `apps/desktop/`) | Historical only; not used by current portable CLI |
+| `ATK_EXPECTED_BACKEND_MAJOR` | *(Historical)* Pin the Desktop backend major | Retired Electron supervisor (removed with `apps/desktop/`) | Historical only; not used by current portable CLI |
 | `AGENT_TOOLKIT_OFFLINE` | Disable network data refresh/download | install, update, `_paths`, data sync | Truthy: `1` / `true` / `yes` (case-insensitive) |
 | `AGENT_TOOLKIT_INSTALL_SOURCE` | Force install channel/source | installer sources | Empty = auto |
 | `AGENT_TOOLKIT_LOOP_RUNNER` | Default loop runner when `--runner` omitted | `loop` | e.g. `claude` |

@@ -19,8 +19,6 @@ on:
       - ".github/actions/setup-v/**"
       - "scripts/release-linkage.sh"
       - "cmd/agent-toolkit/**"
-      - "apps/desktop/**"
-      - "pnpm-lock.yaml"
       - "modules/**"
   workflow_dispatch:
     inputs:
@@ -175,31 +173,26 @@ jobs:
             v_zip: v_linux.zip
             bin: agent-toolkit
             expect_arch: x86_64
-            build_desktop: false
           - os: ubuntu-24.04-arm
             artifact: agent-toolkit-linux-arm64
             v_zip: v_linux_arm64.zip
             bin: agent-toolkit
             expect_arch: arm64
-            build_desktop: false
           - os: macos-latest
             artifact: agent-toolkit-macos-arm64
             v_zip: v_macos_arm64.zip
             bin: agent-toolkit
             expect_arch: arm64
-            build_desktop: false
           - os: macos-15-intel
             artifact: agent-toolkit-macos-x86_64
             v_zip: v_macos_x86_64.zip
             bin: agent-toolkit
             expect_arch: x86_64
-            build_desktop: false
           - os: windows-latest
             artifact: agent-toolkit-windows-x86_64.exe
             v_zip: v_windows.zip
             bin: agent-toolkit.exe
             expect_arch: x86_64
-            build_desktop: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -246,85 +239,6 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  build-desktop:
-    name: Archived Toolkit Electron migration-source build (${{ matrix.os }})
-    # This only compiles preserved migration source while its user-data and
-    # capability disposition is open. It is not a supported desktop product,
-    # is never included in a tagged release, and must not produce downloadable
-    # PR artifacts. Veasel Code owns the supported graphical runtime.
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: read
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            v_zip: v_linux.zip
-            backend: agent-toolkit
-          - os: ubuntu-24.04-arm
-            v_zip: v_linux_arm64.zip
-            backend: agent-toolkit
-          - os: macos-latest
-            v_zip: v_macos_arm64.zip
-            backend: agent-toolkit
-          - os: macos-15-intel
-            v_zip: v_macos_x86_64.zip
-            backend: agent-toolkit
-          - os: windows-latest
-            v_zip: v_windows.zip
-            backend: agent-toolkit.exe
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 10
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: '.node-version'
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Setup pinned V
-        uses: ./.github/actions/setup-v
-        with:
-          v_zip: ${{ matrix.v_zip }}
-      - name: Build canonical backend for the package
-        shell: bash
-        env:
-          VMODULES: ${{ github.workspace }}/modules
-          BACKEND: ${{ matrix.backend }}
-        run: |
-          set -euo pipefail
-          mkdir -p build
-          VFLAGS="$("${GITHUB_WORKSPACE}/scripts/release-linkage.sh" flags)"
-          # shellcheck disable=SC2086
-          "${VBIN}" ${VFLAGS} -d "commit=$(git rev-parse --short HEAD)" -o "build/${BACKEND}" cmd/agent-toolkit
-          "build/${BACKEND}" --version
-          "${GITHUB_WORKSPACE}/scripts/release-linkage.sh" gate "build/${BACKEND}"
-      - name: Compile archived Toolkit Electron source with its matching backend
-        shell: bash
-        env:
-          ATK_BACKEND_BIN: ${{ github.workspace }}/build/${{ matrix.backend }}
-        run: pnpm --filter agent-toolkit-desktop dist
-      - name: Verify packaged backend version
-        shell: bash
-        env:
-          BACKEND: ${{ matrix.backend }}
-        run: |
-          set -euo pipefail
-          python3 - <<'PYCODE'
-          import json
-          from pathlib import Path
-          version = Path('VERSION').read_text().strip()
-          pin = json.loads(Path('apps/desktop/resources/backend-version.json').read_text())['version']
-          package = json.loads(Path('apps/desktop/package.json').read_text())['version']
-          if version != pin or version != package:
-              raise SystemExit(f'version mismatch: source={version}, backend={pin}, desktop={package}')
-          print(f'Electron and backend: {version}')
-          PYCODE
-          find apps/desktop/release -maxdepth 1 -type f -print
   # PR-only proof that the exact release link flags produce portable
   # binaries on every OS. No release environment, no artifacts, no uploads —
   # fails the PR before a broken binary can ever reach a tag build.

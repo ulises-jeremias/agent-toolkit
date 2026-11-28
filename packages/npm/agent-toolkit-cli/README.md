@@ -211,7 +211,7 @@ Still on the same binary — start here when running an [agentic-harness](https:
 | `insights` | Local usage analytics (OpenCode, Cursor, Claude) |
 | `inventory` | List skills, agents, and products |
 | `matrix` | Platform capability matrix |
-| `build` / `release` | Compile / release artifacts (maintainer) |
+| `build` | Compile canonical capabilities into target artifacts (maintainer) |
 
 ---
 

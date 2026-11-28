@@ -551,17 +551,9 @@
       "class": "V_SEMANTIC",
       "must_contain": [
         "insights"
-      ]
-    },
-    {
-      "command": "help-release-disposition",
-      "args": [
-        "--help"
       ],
-      "class": "V_SEMANTIC",
-      "must_contain": [
-        "release",
-        "RELEASING.md"
+      "must_not_contain": [
+        "release"
       ]
     },
     {
@@ -579,18 +571,6 @@
       "must_not_contain": [
         "removed",
         "#526"
-      ]
-    },
-    {
-      "command": "release-help-disposition",
-      "args": [
-        "release"
-      ],
-      "class": "V_SEMANTIC",
-      "expect_v_exit": 1,
-      "must_contain": [
-        "#527",
-        "RELEASING.md"
       ]
     },
     {

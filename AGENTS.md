@@ -81,7 +81,6 @@ Key source areas:
 - `modules/agent_toolkit_core/` — shared core/domain implementation
 - `modules/agent_toolkit_server/` — typed HTTP API over the canonical V domain
 - `cmd/agent-toolkit/` — native V CLI entrypoint
-- `apps/desktop/` — archived Electron source, retained temporarily for migration, preservation, and security review; not a supported product or release target
 - `packages/` — PyPI/npm launcher trampolines
 - `tests/` — parity, security, and adapter test suites
 - `docs/` — human-facing contracts, guides, ADRs
@@ -160,16 +159,14 @@ MCP templates use placeholders only. Never commit real credentials. Separate pro
 
 Products/packs must follow current compiler and concept contracts. Treat generated plugin manifests as outputs, not primary authoring surfaces.
 
-## Archived Electron source and migration
+## Former Electron Desktop (retired)
 
-The Electron application under `apps/desktop/` is not the Agent Toolkit product. New Toolkit releases do not publish its installers, and new GUI/session features belong in Veasel Code. Consult [`docs/VEASEL_COMPATIBILITY.md`](docs/VEASEL_COMPATIBILITY.md) before touching this source.
+The former Electron application (`apps/desktop/`) has been retired and removed from `main` (preserved in Git history). New Toolkit releases do not publish Desktop installers, and graphical/session features belong in Veasel Code. Consult [`docs/VEASEL_COMPATIBILITY.md`](docs/VEASEL_COMPATIBILITY.md) for compatibility and user-data boundaries.
 
-- Do not add product features, advertise the Electron app, restore its release channel, or make it a default launcher.
-- Limit changes to security fixes, data preservation, compatibility required by existing installations, or verified migration work.
-- Never delete or rewrite a user's Electron `userData`, workspace journals, MCP credentials, skills, profiles, or other local state. Do not claim Veasel imports this state unless a tested importer exists.
-- Preserve original pixel-art source, licenses, attribution, and useful tests until their migration or archival disposition is verified.
+- Do not restore an Electron app, Electron CI/release channels, or advertise a Toolkit Desktop launcher.
+- Never delete or rewrite a user's historical Electron `userData`, workspace journals, MCP credentials, skills, profiles, or other local state. Do not claim Veasel imports this state unless a tested importer exists.
 - Put current graphical product changes in `veasel-labs/veasel`; keep portable capabilities here and marketplace governance in `veasel-labs/agent-toolkit`.
-- Historical screenshots and workflow records are evidence only. They do not prove current Veasel behavior or packaged acceptance.
+- Historical screenshots and workflow records under `docs/desktop/` are archive evidence only. They do not prove current Veasel behavior or packaged acceptance.
 
 ## Validation by change type
 
@@ -182,7 +179,6 @@ Use the smallest matrix that honestly covers the changed surface, plus any check
 | Loop | `validate-loops`, catalog check |
 | Catalog/compiler/profile | generator check, `build --check`, relevant target tests |
 | V core/CLI | relevant V tests, `./make.vsh build-cli`, integration where affected |
-| Legacy Electron migration/security | focused data-preservation/security checks; confirm no new release or user-data mutation |
 | Packaging | platform/package-specific checks plus clean-launch evidence |
 | Docs-only | formatting/link/repository validation affected by the docs; no unrelated expensive suite merely for ceremony |
 

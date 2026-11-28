@@ -40,7 +40,6 @@ Still available on the same binary — de-emphasized in top-level help:
 | `build` | Compile canonical capabilities into target artifacts |
 | `inventory` | List skills, agents, and products |
 | `matrix` | Platform capability matrix |
-| `release` | **REMOVE** — release artifacts (CI / `docs/RELEASING.md`); [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527) |
 | `swarm` | Historical run inspection and explicit recovery controls; new `start`/`init` requests are disabled |
 
 Swarm state boundary: [`SWARM_V1_DISPOSITION.md`](SWARM_V1_DISPOSITION.md).
@@ -59,7 +58,7 @@ Authoritative **index** of every top-level command — **22 capability entries**
 [`docs/compatibility/cli-contract.yaml`](compatibility/cli-contract.yaml)
 ([#549](https://github.com/ulises-jeremias/agent-toolkit/issues/549), closed).
 Machine-readable flags, stdin/stdout/stderr, exit codes, env, effects, and tests live in the contract YAML — do not duplicate here.
-`release` is **REMOVE** (stub exits 1, [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527)) — retired command carries no contract entry (ADR-030). `insights` was **DEPRECATE #526** but re-ported in 1.26.0 as thin wrapper over `bin/tool-insights`.
+`release` is **REMOVED** ([#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527)) — retired command carries no contract entry (ADR-030) and its CLI stub has been removed in favor of GitHub Actions / `docs/RELEASING.md`. `insights` was **DEPRECATE #526** but re-ported in 1.26.0 as thin wrapper over `bin/tool-insights`.
 
 Disposition for advanced commands: [`v/advanced-command-disposition.md`](v/advanced-command-disposition.md) (#560).
 Wave/complexity/risk in the YAML `migration:` block.
@@ -86,7 +85,7 @@ Wave/complexity/risk in the YAML `migration:` block.
 | `build` | advanced | compiler EPIC | PORT (V `build` exists) |
 | `inventory` | advanced | [#516](https://github.com/ulises-jeremias/agent-toolkit/issues/516) | PORT |
 | `matrix` | advanced | compiler EPIC | PORT |
-| `release` | advanced | [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527) | **REMOVE** (CI / `docs/RELEASING.md`) |
+| `release` | advanced | [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527) | **REMOVED** (CI / `docs/RELEASING.md`) |
 | `swarm` | advanced | [#524](https://github.com/ulises-jeremias/agent-toolkit/issues/524) | REDESIGN |
 | `serve` | advanced | [#833](https://github.com/ulises-jeremias/agent-toolkit/issues/833) | PORT |
 

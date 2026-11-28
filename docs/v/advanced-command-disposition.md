@@ -16,7 +16,7 @@ Legend: **PORT** 1:1 V rewrite · **REDESIGN** V rewrite with a different shape 
 | `swarm` | [#524](https://github.com/ulises-jeremias/agent-toolkit/issues/524) | **REDESIGN** | Yes | Keep surface; backends (Herdr/tmux) behind interfaces (ADR-008). Concurrency via #528. |
 | `devcompanion` | [#525](https://github.com/ulises-jeremias/agent-toolkit/issues/525) | **PORT** | Yes | Filesystem job queue used by AGENTS.md. Keep **`dc` alias** (already in V dispatcher). |
 | `insights` | [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526) | **PORT** | Yes | Re-ported in 1.26.0 as thin wrapper over `bin/tool-insights` — supports opencode/cursor/claude/windsurf/copilot/codex/all with --days/--output/--json/--no-llm; local DB parsers, privacy via local-only. |
-| `release` | [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527) | **REMOVE** | **No** | Maintainer artifact generation belongs in GitHub Actions / `docs/RELEASING.md`, not the runtime CLI. V help may list it as unsupported; do not port. |
+| `release` | [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527) | **REMOVE** | **No** | Maintainer artifact generation belongs in GitHub Actions / `docs/RELEASING.md`, not the runtime CLI. Removed from the V CLI. |
 
 ## Alias policy
 
