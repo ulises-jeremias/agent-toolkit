@@ -10,6 +10,7 @@ Core orchestration skills, dev companion, output handshake, PR fallback, and cod
 - **pr-fallback**: core/pr-fallback
 - **workspace-knowledge-sync**: core/workspace-knowledge-sync
 - **onboarding**: core/onboarding
+- **work**: core/work
 
 ## Available agents
 

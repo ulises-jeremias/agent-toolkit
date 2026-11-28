@@ -184,6 +184,7 @@ Use **`skill-catalog.yaml`** next to bundled skills for domains, triggers and **
 
 | Area | Skill(s) | Notes |
 | --- | --- | --- |
+| Unified engineering router | **`work`** | Single entry point: repo signals + workspace pack + Goal v2 `policy_ceiling` → playbook, cross-vendor review, conflict-first PR shipping |
 | GitHub PR review threads | **`gh-address-comments`** | Current-branch PR; pairs with **`github-cli-workflow`** for push/PR updates |
 | GitHub Actions failures | **`gh-fix-ci`** | Fetch logs + snippet; plan before coding; pairs with **`planning`** |
 | Merge / rebase conflicts | **`fix-merge-conflicts`** | Resolve conflict markers; preserve authorship |

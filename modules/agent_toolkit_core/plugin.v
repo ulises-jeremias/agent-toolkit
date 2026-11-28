@@ -138,6 +138,7 @@ fn build_plugin_surfaces(root string) map[string][][]string {
 		['skills/core/pr-fallback', 'skills/pr-fallback'],
 		['skills/core/workspace-knowledge-sync', 'skills/workspace-knowledge-sync'],
 		['skills/core/onboarding', 'skills/onboarding'],
+		['skills/core/work', 'skills/work'],
 	]
 	mut agents := [][]string{}
 	agents_dir := os.join_path(root, 'agents')

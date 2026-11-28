@@ -3,7 +3,7 @@
 # Do not hand-edit counts; validate with: python3 scripts/validate-skill-capability.py --check
 # Schema: schemas/skill-capability-registry.schema.json
 version: 1
-count: 115
+count: 116
 generated: true
 skills:
 - id: accessibility/review
@@ -551,6 +551,61 @@ skills:
   - assistant
   specialist_justified: false
   contraindications: Sync only — do not invent learnings without evidence; cite source files
+- id: core/work
+  domain: core
+  purpose: Entry-point engineering router. Inspects repo signals, workspace packs, and Goal v2 policy_ceiling
+    to pick one playbook, require independent cross-vendor review, bind receipts to candidate SHAs, and
+    ship PRs conflict-first.
+  origin: first-party
+  holistic_owner: assistant
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - work
+  - start work
+  - ship feature
+  - fix bug
+  - investigate issue
+  - review and ship
+  - work router
+  - route task
+  overlap:
+  - core/assistant
+  - core/dev-companion
+  - delivery/workflow-generic-project
+  complementary:
+  - core/assistant
+  - core/dev-companion
+  - core/output-handshake
+  - core/pr-fallback
+  - quality/deep-review
+  - quality/blast-radius
+  - quality/deslop
+  - quality/unslop
+  - forge/fix-merge-conflicts
+  - forge/gh-address-comments
+  - forge/gh-fix-ci
+  - forge/github-cli-workflow
+  - loops/loop-runner
+  prerequisites:
+  - core/assistant
+  follow_ups:
+  - core/output-handshake
+  - forge/github-cli-workflow
+  secondary_owners:
+  - planner
+  - reviewer
+  - qa-engineer
+  - platform-engineer
+  specialist_agents:
+  - assistant
+  - code-reviewer
+  specialist_justified: false
+  contraindications: Entry-point router only — delegate execution details to domain HOW skills and never
+    bypass Goal v2 policy_ceiling or independent review
 - id: creative/audio-production
   domain: creative
   purpose: Audio inspection, EBU R128 loudness, cleanup and DAW workflows — FFmpeg loudnorm/volumedetect, REAPER via MCP for real sessions, OBS capture discipline; originals and .rpp projects preserved.

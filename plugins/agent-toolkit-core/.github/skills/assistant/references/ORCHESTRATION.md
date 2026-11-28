@@ -21,6 +21,7 @@ primary driver per task (see Design section and `docs/SKILL_ROUTING.md`).
 | Domain | Skills | When to route |
 |--------|--------|---------------|
 | Orchestration | **assistant** (this skill) | Default entry; repo discovery; conflict resolution |
+| Work router | **work** | Unified engineering entry point: repo signals, pack, Goal v2 `policy_ceiling`, cross-vendor review, conflict-first PR shipping |
 | Delivery companion | **dev-companion** | Client/account delivery framing; modes and gates |
 | Workspace memory | **workspace-knowledge-sync** | Persist learnings/todos across sessions |
 | Handoff | **output-handshake** | Where to save deliverables; human review gates |

@@ -44,6 +44,15 @@ Follow the `pr-fallback` skill instructions for {{args}}.
 """
 
 [[commands]]
+name = "work"
+description = "core/work"
+prompt = """
+Follow the `work` skill instructions for {{args}}.
+
+@{skills/work/SKILL.md}
+"""
+
+[[commands]]
 name = "workspace_knowledge_sync"
 description = "core/workspace-knowledge-sync"
 prompt = """
