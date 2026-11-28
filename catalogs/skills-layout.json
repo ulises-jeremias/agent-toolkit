@@ -25,6 +25,7 @@
       "output-handshake",
       "pr-fallback",
       "project",
+      "work",
       "workspace",
       "workspace-knowledge-sync"
     ],
@@ -221,6 +222,11 @@
     {
       "id": "core/project",
       "name": "project",
+      "domain": "core"
+    },
+    {
+      "id": "core/work",
+      "name": "work",
       "domain": "core"
     },
     {

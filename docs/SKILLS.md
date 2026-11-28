@@ -58,11 +58,11 @@ Tool compatibility is declared via optional `tools` frontmatter and validated by
 
 ## Skill Domains
 
-Skills live under `skills/<domain>/<name>/`. There are **15 domains** (115 skills). Membership in marketplace products is a subset — see [`SKILL_PRODUCT_MATRIX.md`](SKILL_PRODUCT_MATRIX.md) and `agent-toolkit inventory`.
+Skills live under `skills/<domain>/<name>/`. There are **15 domains** (116 skills). Membership in marketplace products is a subset — see [`SKILL_PRODUCT_MATRIX.md`](SKILL_PRODUCT_MATRIX.md) and `agent-toolkit inventory`.
 
 | Domain | Count | Examples |
 |--------|------:|----------|
-| `core` | 8 | `assistant`, `dev-companion`, `workspace`, `project`, `onboarding` |
+| `core` | 9 | `work`, `assistant`, `dev-companion`, `workspace`, `project`, `onboarding` |
 | `delivery` | 21 | `adr`, `prd`, `bug`, `planning`, `work-item` |
 | `design` | 12 | `figma-implement-design`, `frontend-design`, `brag`, `brag-slim` |
 | `forge` | 7 | `github-cli-workflow`, `gh-fix-ci`, `worktree`, `fix-merge-conflicts` |

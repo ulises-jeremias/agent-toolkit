@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Add `core/work`, the unified engineering router skill in `agent-toolkit-core`
+  and `agent-toolkit-complete`: deterministic routing from repository signals,
+  workspace packs, and Goal v2 `policy_ceiling`; independent cross-vendor
+  review with candidate-bound receipts (`fixture` vs `hermetic` vs `real`); and
+  conflict-first PR babysitting and shipping.
+
 ## [1.51.1] — 2026-11-26
 
 ### Fixed

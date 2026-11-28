@@ -25,6 +25,7 @@
 **Skills:**
 
 - `assistant` — Primary orchestrator: repo inspection, routing, convention verification
+- `work` — Unified engineering entry point: policy_ceiling routing, cross-vendor review, conflict-first PR shipping
 - `dev-companion` — Dev workflow companion (WHAT phases, gates, decisions)
 - `output-handshake` — Artifact gate: confirms destination before final output
 - `pr-fallback` — PR body generator when no project template exists

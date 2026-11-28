@@ -1,6 +1,6 @@
 # Agent Toolkit Complete
 
-Full stable skill catalog coverage for consumers who want everything (
+Full stable skill catalog coverage for consumers who want everything (#50)
 
 ## Available skills
 
@@ -9,6 +9,7 @@ Full stable skill catalog coverage for consumers who want everything (
 - **onboarding**: core/onboarding
 - **output-handshake**: core/output-handshake
 - **pr-fallback**: core/pr-fallback
+- **work**: core/work
 - **workspace-knowledge-sync**: core/workspace-knowledge-sync
 - **dbt-validation**: data/dbt-validation
 - **snowflake-validation**: data/snowflake-validation

@@ -52,3 +52,12 @@ Follow the `onboarding` skill instructions for {{args}}.
 @{skills/onboarding/SKILL.md}
 """
 
+[[commands]]
+name = "work"
+description = "core/work"
+prompt = """
+Follow the `work` skill instructions for {{args}}.
+
+@{skills/work/SKILL.md}
+"""
+

@@ -10,7 +10,7 @@ All 103+ skills are owned. No orphans: every skill has exactly one `holistic_own
 
 | Owner | Conceptual role | Typical specialist agent | Domains primary-owned |
 |-------|-----------------|--------------------------|-----------------------|
-| `assistant` | Orchestrator, session bootstrap, workspace | `assistant` | `core` (assistant, dev-companion, onboarding, output-handshake, pr-fallback, workspace, workspace-knowledge-sync) |
+| `assistant` | Orchestrator, session bootstrap, workspace | `assistant` | `core` (assistant, dev-companion, onboarding, output-handshake, pr-fallback, work, workspace, workspace-knowledge-sync) |
 | `planner` | Delivery planning, roadmap, risk, breakdown | `planner` | `delivery` (planning, epic, work-item, project-assessment router, workflow-generic-project) |
 | `architect` | System design, tradeoffs, C4, diagrams, ADRs/TRDs | `architect` | `architecture` (c4-model, architecture-diagram), `delivery` (adr, decision-log, trd, technical-unit-assessment), `cloud` |
 | `designer` | Visual direction, UX, Figma, a11y, design system | `designer` (new) | `design` (12 skills), `accessibility` (review) |
@@ -84,6 +84,7 @@ Generated from `capabilities/skills/registry.yaml`. Counts must match `catalogs/
 | `core/output-handshake` | assistant | ops | low | no |
 | `core/pr-fallback` | assistant | ops | low | no |
 | `core/project` | platform-engineer | ops | low | no |
+| `core/work` | assistant | ops | low | no |
 | `core/workspace` | assistant | ops | low | no |
 | `core/workspace-knowledge-sync` | assistant | ops | low | no |
 | `data/dbt-validation` | data-engineer | validation | medium | no |

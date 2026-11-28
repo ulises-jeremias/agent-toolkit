@@ -1,43 +1,39 @@
 ---
 name: web-design-guidelines
-description: Review UI code for Web Interface Guidelines compliance. Use when asked to "review my UI",
-  "check accessibility", "audit design", "review UX", or "check my site against best practices".
+description: Review frontend code for accessibility, interaction, content, and performance issues using the bundled Web Interface Guidelines. Use when asked to review a UI, audit accessibility, or check frontend implementation details.
 metadata:
-  author: vercel
-  version: 1.0.0
+  author: agent-toolkit
+  version: 1.1.0
   argument-hint: <file-or-pattern>
 origin:
   type: upstream
 sources:
-- id: wrapper
-  role: wrapper
-  repository: vercel-labs/agent-skills
-  path: skills/web-design-guidelines
-  ref: ba46938889d4e58635362fb8f618e1178ac3ec46
-  license: NOASSERTION
-  version: ba46938
-- id: rules
-  role: rules
-  repository: vercel-labs/web-interface-guidelines
-  path: command.md
-  ref: 4ecfb9fb8d1d3b7009674869b3aaee2f904042e1
-  license: MIT
-  version: 4ecfb9f
+  - id: rules
+    role: rules
+    repository: vercel-labs/web-interface-guidelines
+    path: command.md
+    ref: 4ecfb9fb8d1d3b7009674869b3aaee2f904042e1
+    license: MIT
+    version: 4ecfb9f
 trust:
   tier: experimental
   reviewed_at: '2026-11-02'
   reviewed_by: ulises-jeremias
 maintenance:
   status: active
-  last_activity: '2026-08-18'
-  last_checked: '2026-11-02'
+  last_activity: '2026-11-23'
+  last_checked: '2026-11-23'
 distribution:
   mode: vendored
-  redistribution_allowed: false
+  redistribution_allowed: true
+  attribution_file: references/LICENSE
+  resources:
+    - references/web-interface-guidelines.md
+    - references/LICENSE
 security:
   scripts: false
   shell: false
-  network: true
+  network: false
   mcp: []
   hooks: []
   dangerous_permissions: []
@@ -47,33 +43,25 @@ updates:
   cadence: weekly
 ---
 
-# Web Interface Guidelines
+# Web Design Guidelines
 
-Review files for compliance with Web Interface Guidelines.
+Review the requested UI files against the bundled Web Interface Guidelines.
+The rules come from the MIT-licensed `vercel-labs/web-interface-guidelines`
+source and are included in `references/web-interface-guidelines.md`.
 
-## How It Works
+## Review process
 
-1. Fetch the latest guidelines from the source URL below
-2. Read the specified files (or prompt user for files/pattern)
-3. Check against all rules in the fetched guidelines
-4. Output findings in the terse `file:line` format
+1. Identify the requested files. Ask which files to review when the request does
+   not identify a target.
+2. Read the target files and the bundled reference. Do not fetch guidelines or
+   other content from the network.
+3. Check applicable accessibility, focus, form, animation, typography, content,
+   image, performance, navigation, touch, layout, theme, locale, hydration, and
+   interaction guidance.
+4. Confirm each finding against the actual code and framework. Treat aesthetic
+   preferences as recommendations, not accessibility defects.
+5. Report actionable findings with file and line number. Include what is wrong
+   and a concrete correction. If no applicable issues are found, report that.
 
-## Guidelines Source
-
-Fetch fresh guidelines before each review:
-
-```
-https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md
-```
-
-Use WebFetch to retrieve the latest rules. The fetched content contains all the rules and output format instructions.
-
-## Usage
-
-When a user provides a file or pattern argument:
-1. Fetch guidelines from the source URL above
-2. Read the specified files
-3. Apply all rules from the fetched guidelines
-4. Output findings using the format specified in the guidelines
-
-If no files specified, ask the user which files to review.
+If the supplied rules are ambiguous or conflict with project requirements,
+describe the conflict instead of treating the rule as universal.

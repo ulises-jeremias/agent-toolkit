@@ -14,6 +14,7 @@ products:
         - core/pr-fallback
         - core/workspace-knowledge-sync
         - core/onboarding
+        - core/work
       agents:
         - code-reviewer
       hooks:
@@ -138,6 +139,7 @@ products:
         - core/onboarding
         - core/output-handshake
         - core/pr-fallback
+        - core/work
         - core/workspace-knowledge-sync
         - data/dbt-validation
         - data/snowflake-validation

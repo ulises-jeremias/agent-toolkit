@@ -2,17 +2,17 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `./scripts/generate-skill-matrix.vsh` to regenerate, or `./scripts/generate-skill-matrix.vsh --check` in CI.
 
-_Generated from 6 products × 115 skills × 24 agents._
+_Generated from 6 products × 116 skills × 24 agents._
 
 ## Products and targets
 
 | Product | Stability | Targets | Skills | Agents |
 |---------|-----------|---------|--------|--------|
-| `agent-toolkit-core` | stable | claude-code, cursor, env, executables, requires, security | 6 | 1 |
+| `agent-toolkit-core` | stable | claude-code, cursor, env, executables, requires, security | 7 | 1 |
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 18 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 8 | 0 |
 | `agent-toolkit-craft` | stable | claude-code, cursor | 3 | 0 |
-| `agent-toolkit-complete` | experimental | — | 115 | 24 |
+| `agent-toolkit-complete` | experimental | — | 116 | 24 |
 | `agent-toolkit-creative-studio` | experimental | claude-code, cursor, executables, requires, security | 10 | 6 |
 
 ## Skills → Products
@@ -34,6 +34,7 @@ _Generated from 6 products × 115 skills × 24 agents._
 | `core/output-handshake` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, env, executables, requires, security |
 | `core/pr-fallback` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, env, executables, requires, security |
 | `core/project` | `agent-toolkit-complete` | — |
+| `core/work` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, env, executables, requires, security |
 | `core/workspace` | `agent-toolkit-complete` | — |
 | `core/workspace-knowledge-sync` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, env, executables, requires, security |
 | `creative/audio-production` | `agent-toolkit-complete`, `agent-toolkit-creative-studio` | claude-code, cursor, executables, requires, security |

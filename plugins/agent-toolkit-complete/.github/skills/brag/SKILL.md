@@ -22,6 +22,13 @@ distribution:
   mode: vendored
   redistribution_allowed: true
   attribution_file: LICENSE
+  resources:
+    - LICENSE
+    - UPSTREAM.md
+    - slim.md
+    - scripts/analyze_music_cues.py
+    - scripts/pyproject.toml
+    - scripts/uv.lock
 security:
   scripts: true
   shell: true
@@ -211,3 +218,7 @@ Hook (2-3s) → Reveal (2-4s) → 2-3 sharp highlights (5-12s) → Punchline/out
 ```
 
 Adapt this. Not every project needs exactly 3 highlights. The pattern is a starting shape, not a template.
+
+## Distribution note
+
+This portable package omits binary assets. Check that any referenced asset exists before using it; if it is absent, use another locally available or user-provided asset with verified licensing, or omit that part of the workflow.

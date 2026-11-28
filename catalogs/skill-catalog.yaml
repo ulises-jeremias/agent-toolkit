@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 115
+count: 116
 skills:
   - id: accessibility/review
     name: review
@@ -76,6 +76,11 @@ skills:
     name: project
     domain: core
     description: 'Clone, index, and orchestrate multi-repo work via agent-toolkit project — symlinks, quick access, and swarm workspaces.'
+    stability: stable
+  - id: core/work
+    name: work
+    domain: core
+    description: 'Entry-point engineering router. Inspects repo signals, workspace packs, and Goal v2 policy_ceiling to pick one playbook, require independent cross-vendor review, bind receipts to candidate SHAs, and s'
     stability: stable
   - id: core/workspace
     name: workspace

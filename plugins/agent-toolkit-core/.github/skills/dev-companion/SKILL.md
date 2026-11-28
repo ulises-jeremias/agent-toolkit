@@ -31,6 +31,7 @@ If engagement triggers match, load the appropriate **workspace pack overlay** fi
 
 | Need | Delegate to |
 | --- | --- |
+| Unified engineering routing, cross-review, PR frontier | **work** |
 | Discovery, AGENTS conflict handling | **assistant** |
 | Generic client delivery phases | **workflow-generic-project** |
 | Planning / default workflow / validation | **planning** / **development-workflow** |

@@ -1,7 +1,7 @@
 {
   "name": "@agent-toolkit/agent-toolkit-complete",
   "version": "1.51.1",
-  "description": "Full stable skill catalog coverage for consumers who want everything (",
+  "description": "Full stable skill catalog coverage for consumers who want everything (#50)",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -21,6 +21,7 @@
       "skills/onboarding/SKILL.md",
       "skills/output-handshake/SKILL.md",
       "skills/pr-fallback/SKILL.md",
+      "skills/work/SKILL.md",
       "skills/workspace-knowledge-sync/SKILL.md",
       "skills/dbt-validation/SKILL.md",
       "skills/snowflake-validation/SKILL.md",

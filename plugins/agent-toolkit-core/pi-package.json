@@ -21,7 +21,8 @@
       "skills/output-handshake/SKILL.md",
       "skills/pr-fallback/SKILL.md",
       "skills/workspace-knowledge-sync/SKILL.md",
-      "skills/onboarding/SKILL.md"
+      "skills/onboarding/SKILL.md",
+      "skills/work/SKILL.md"
     ],
     "agents": [
       "agents/code-reviewer/AGENT.md"
