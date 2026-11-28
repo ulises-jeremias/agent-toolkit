@@ -15,10 +15,10 @@ All 103+ skills are owned. No orphans: every skill has exactly one `holistic_own
 | `architect` | System design, tradeoffs, C4, diagrams, ADRs/TRDs | `architect` | `architecture` (c4-model, architecture-diagram), `delivery` (adr, decision-log, trd, technical-unit-assessment), `cloud` |
 | `designer` | Visual direction, UX, Figma, a11y, design system | `designer` (new) | `design` (12 skills), `accessibility` (review) |
 | `implementer` | Code delivery, scaffolding, docs generation | — (shared) | `delivery` (task), `ops` (docs-generator) |
-| `reviewer` | Quality, craft, anti-slop, change-safety | `code-reviewer` (archived: `typescript-reviewer`/`database-reviewer`/`performance-optimizer`/`refactor-cleaner` → `reviewer/references/*.md` via `deep-review`/`deslop`) | `quality` (blast-radius, deep-review, deslop, unslop) |
+| `reviewer` | Quality, craft, anti-slop, change-safety | `code-reviewer` (archived: `typescript-reviewer`/`database-reviewer`/`performance-optimizer`/`refactor-cleaner` → `reviewer/references/*.md` via `deep-review`/`deslop`) | `quality` (arena, blast-radius, deep-review, deslop, unslop) |
 | `qa-engineer` | Lint gates, browser validation, test infra | `e2e-runner`, `code-reviewer` | `quality` (megalinter*), `tooling` (playwright-cli, chrome-devtools) |
 | `security-engineer` | Hardening, threat, supply-chain, scanning | `agentic-security-reviewer`, `security-reviewer` | `agentic-security` (4), `quality` (codeql) |
-| `platform-engineer` | Forge, integrations, loops, swarm, triage | `build-error-resolver` (archived: `tech-assistant` → `platform-engineer/references/WORKSTATION_OPS.md` via `ops/triage`); `researcher` archived: `docs-lookup`+`reference-lookup` → `researcher/references/LOOKUP_GUIDE.md` | `forge` (7), `integrations` (5), `loops`, `ops` (swarm*, triage, llm-cost-advisor) |
+| `platform-engineer` | Forge, integrations, loops, swarm, triage | `build-error-resolver` (archived: `tech-assistant` → `platform-engineer/references/WORKSTATION_OPS.md` via `ops/triage`); `researcher` archived: `docs-lookup`+`reference-lookup` → `researcher/references/LOOKUP_GUIDE.md` | `forge` (8), `integrations` (5), `loops`, `ops` (swarm*, triage, llm-cost-advisor) |
 | `data-engineer` | Data checks, notebooks | — | `data` (dbt-validation, snowflake-validation), `tooling` (jupyter-notebook) |
 | `researcher` | Spike, evidence intake, inventory | `planner` (spike) | `delivery` (spike, project-assessment-evidence) |
 
@@ -128,6 +128,7 @@ Generated from `capabilities/skills/registry.yaml`. Counts must match `catalogs/
 | `forge/gh-fix-ci` | platform-engineer | validation | medium | no |
 | `forge/github-cli-workflow` | platform-engineer | ops | low | no |
 | `forge/gitlab-cli-workflow` | platform-engineer | ops | low | no |
+| `forge/pr-ship` | platform-engineer | ops | medium | no |
 | `forge/worktree` | platform-engineer | ops | low | no |
 | `integrations/clickup-cli` | platform-engineer | ops | low | no |
 | `integrations/linear` | platform-engineer | ops | low | no |
@@ -141,6 +142,7 @@ Generated from `capabilities/skills/registry.yaml`. Counts must match `catalogs/
 | `ops/swarm-handoff` | platform-engineer | ops | low | no |
 | `ops/swarm-observer` | platform-engineer | ops | low | no |
 | `ops/triage` | platform-engineer | ops | low | no |
+| `quality/arena` | reviewer | review | high | yes |
 | `quality/blast-radius` | reviewer | research | medium | yes |
 | `quality/codeql` | security-engineer | validation | medium | no |
 | `quality/deep-review` | reviewer | review | high | yes |

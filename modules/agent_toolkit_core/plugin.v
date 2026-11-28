@@ -166,6 +166,12 @@ fn build_plugin_surfaces(root string) map[string][][]string {
 		}
 	}
 	surfaces['agent-toolkit-forge'] = forge
+	surfaces['agent-toolkit-craft'] = [
+		['skills/quality/unslop', 'skills/unslop'],
+		['skills/quality/deslop', 'skills/deslop'],
+		['skills/quality/blast-radius', 'skills/blast-radius'],
+		['skills/quality/arena', 'skills/arena'],
+	]
 	return surfaces
 }
 

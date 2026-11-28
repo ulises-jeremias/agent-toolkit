@@ -18,7 +18,8 @@
     "skills": [
       "skills/unslop/SKILL.md",
       "skills/deslop/SKILL.md",
-      "skills/blast-radius/SKILL.md"
+      "skills/blast-radius/SKILL.md",
+      "skills/arena/SKILL.md"
     ],
     "agents": [
       

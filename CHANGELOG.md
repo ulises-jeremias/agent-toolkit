@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `quality/arena` (`agent-toolkit-craft`, `agent-toolkit-complete`) for
+  blinded cross-vendor multi-model candidate bakeoffs in isolated git
+  worktrees, manual cherry-pick/grafting, and candidate-SHA-bound
+  `goal-evidence-v1` receipts (`hermetic`/`real` vs `fixture`).
+- Add `forge/pr-ship` (`agent-toolkit-forge`, `agent-toolkit-complete`) for
+  conflict-first PR babysitting and shipping (conflicts, skeptical comment
+  triage with push-before-reply SHA citations, dual Check Runs + Commit Statuses
+  verification, baseline regression diffing, frozen lockfile checks,
+  same-lockfile PR serialization, 48h active-session guard, and Goal v2
+  `policy_ceiling` gating), and wire both into `core/work`.
 - Add `core/work`, the unified engineering router skill in `agent-toolkit-core`
   and `agent-toolkit-complete`: deterministic routing from repository signals,
   workspace packs, and Goal v2 `policy_ceiling`; independent cross-vendor

@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 116
+count: 118
 skills:
   - id: accessibility/review
     name: review
@@ -347,6 +347,11 @@ skills:
     domain: forge
     description: 'HOW — GitLab CLI (glab): push branch, create draft MR with title/body; fallback untracked markdown. Use when origin is GitLab.'
     stability: stable
+  - id: forge/pr-ship
+    name: pr-ship
+    domain: forge
+    description: 'Ship and babysit pull requests in conflict-first order (conflicts, review threads, CI) with skeptical comment verification, push-before-reply SHA citations, dual GitHub check gates, and Goal v2 policy'
+    stability: stable
   - id: forge/worktree
     name: worktree
     domain: forge
@@ -501,6 +506,11 @@ skills:
     name: triage
     domain: ops
     description: 'Workstation health triage — validate tooling, directory layout, and run doctor with remediation suggestions.'
+    stability: stable
+  - id: quality/arena
+    name: arena
+    domain: quality
+    description: 'Run a cross-vendor multi-model candidate bakeoff in isolated git worktrees, apply blinded cross-vendor judging, graft winning elements, and emit candidate-SHA-bound evidence receipts.'
     stability: stable
   - id: quality/blast-radius
     name: blast-radius

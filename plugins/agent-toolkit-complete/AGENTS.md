@@ -55,6 +55,7 @@ Full stable skill catalog coverage for consumers who want everything (#50)
 - **gh-fix-ci**: forge/gh-fix-ci
 - **github-cli-workflow**: forge/github-cli-workflow
 - **gitlab-cli-workflow**: forge/gitlab-cli-workflow
+- **pr-ship**: forge/pr-ship
 - **clickup-cli**: integrations/clickup-cli
 - **linear**: integrations/linear
 - **slack-assistant**: integrations/slack-assistant
@@ -100,6 +101,7 @@ Full stable skill catalog coverage for consumers who want everything (#50)
 - **unslop**: quality/unslop
 - **deslop**: quality/deslop
 - **blast-radius**: quality/blast-radius
+- **arena**: quality/arena
 - **deep-review**: quality/deep-review
 - **chrome-devtools**: tooling/chrome-devtools
 - **playwright-cli**: tooling/playwright-cli
