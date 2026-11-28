@@ -90,6 +90,7 @@ products:
         - forge/gh-address-comments
         - forge/gh-fix-ci
         - forge/gh-contribution-planner
+        - forge/pr-ship
         - delivery/workflow-client-bootstrap
         - delivery/workflow-generic-project
       agents: []
@@ -118,6 +119,7 @@ products:
         - quality/unslop
         - quality/deslop
         - quality/blast-radius
+        - quality/arena
       agents: []
       hooks: []
       mcp: []
@@ -185,6 +187,7 @@ products:
         - forge/gh-fix-ci
         - forge/github-cli-workflow
         - forge/gitlab-cli-workflow
+        - forge/pr-ship
         - integrations/clickup-cli
         - integrations/linear
         - integrations/slack-assistant
@@ -230,6 +233,7 @@ products:
         - quality/unslop
         - quality/deslop
         - quality/blast-radius
+        - quality/arena
         - quality/deep-review
         - tooling/chrome-devtools
         - tooling/playwright-cli

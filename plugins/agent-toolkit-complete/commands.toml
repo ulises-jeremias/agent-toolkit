@@ -458,6 +458,15 @@ Follow the `gitlab-cli-workflow` skill instructions for {{args}}.
 """
 
 [[commands]]
+name = "pr_ship"
+description = "forge/pr-ship"
+prompt = """
+Follow the `pr-ship` skill instructions for {{args}}.
+
+@{skills/pr-ship/SKILL.md}
+"""
+
+[[commands]]
 name = "clickup_cli"
 description = "integrations/clickup-cli"
 prompt = """
@@ -860,6 +869,15 @@ prompt = """
 Follow the `blast-radius` skill instructions for {{args}}.
 
 @{skills/blast-radius/SKILL.md}
+"""
+
+[[commands]]
+name = "arena"
+description = "quality/arena"
+prompt = """
+Follow the `arena` skill instructions for {{args}}.
+
+@{skills/arena/SKILL.md}
 """
 
 [[commands]]

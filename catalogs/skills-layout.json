@@ -89,6 +89,7 @@
       "gh-fix-ci",
       "github-cli-workflow",
       "gitlab-cli-workflow",
+      "pr-ship",
       "worktree"
     ],
     "integrations": [
@@ -128,6 +129,7 @@
       "triage"
     ],
     "quality": [
+      "arena",
       "blast-radius",
       "codeql",
       "deep-review",
@@ -495,6 +497,11 @@
       "domain": "forge"
     },
     {
+      "id": "forge/pr-ship",
+      "name": "pr-ship",
+      "domain": "forge"
+    },
+    {
       "id": "forge/worktree",
       "name": "worktree",
       "domain": "forge"
@@ -648,6 +655,11 @@
       "id": "ops/triage",
       "name": "triage",
       "domain": "ops"
+    },
+    {
+      "id": "quality/arena",
+      "name": "arena",
+      "domain": "quality"
     },
     {
       "id": "quality/blast-radius",

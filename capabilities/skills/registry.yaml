@@ -3,7 +3,7 @@
 # Do not hand-edit counts; validate with: python3 scripts/validate-skill-capability.py --check
 # Schema: schemas/skill-capability-registry.schema.json
 version: 1
-count: 116
+count: 118
 generated: true
 skills:
 - id: accessibility/review
@@ -583,8 +583,10 @@ skills:
   - core/pr-fallback
   - quality/deep-review
   - quality/blast-radius
+  - quality/arena
   - quality/deslop
   - quality/unslop
+  - forge/pr-ship
   - forge/fix-merge-conflicts
   - forge/gh-address-comments
   - forge/gh-fix-ci
@@ -2325,6 +2327,53 @@ skills:
   specialist_agents: []
   specialist_justified: false
   contraindications: GitLab only — check glab --help for draft flags; prefer project MR template
+- id: forge/pr-ship
+  domain: forge
+  purpose: Ship and babysit pull requests in conflict-first order (conflicts, review threads, CI) with
+    skeptical comment verification, push-before-reply SHA citations, dual GitHub check gates, and Goal
+    v2 policy checks.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - git
+  - gh
+  triggers:
+  - ship PR
+  - babysit PR
+  - pr-ship
+  - land PR
+  - prepare PR for merge
+  - triage PR frontier
+  overlap:
+  - forge/github-cli-workflow
+  - forge/gh-address-comments
+  - forge/gh-fix-ci
+  complementary:
+  - forge/fix-merge-conflicts
+  - forge/gh-address-comments
+  - forge/gh-fix-ci
+  - forge/github-cli-workflow
+  - forge/gitlab-cli-workflow
+  - quality/unslop
+  - core/output-handshake
+  - core/pr-fallback
+  - core/work
+  prerequisites:
+  - core/work
+  follow_ups:
+  - forge/github-cli-workflow
+  secondary_owners:
+  - reviewer
+  - qa-engineer
+  - assistant
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Conflict-first PR frontier only — never bypass Goal v2 policy_ceiling, 48h active-session
+    guard, or dual check-run + commit-status gates
 - id: forge/worktree
   domain: forge
   purpose: Manage Git worktrees per writer for Agent Toolkit swarms — isolated branches, handoff promotion,
@@ -2706,6 +2755,49 @@ skills:
   specialist_justified: false
   contraindications: Run on local workstation where issue occurs; not on remote unless confirmed; doctor
     via dots- or agent-toolkit doctor; use platform-engineer/references/WORKSTATION_OPS.md inline (archived tech-assistant #865)
+- id: quality/arena
+  domain: quality
+  purpose: Run a cross-vendor multi-model candidate bakeoff in isolated git worktrees, apply blinded cross-vendor
+    judging, graft winning elements, and emit candidate-SHA-bound evidence receipts.
+  origin: first-party
+  holistic_owner: reviewer
+  role: review
+  context_cost: high
+  network_required: false
+  mcp_required: []
+  requires:
+  - git
+  triggers:
+  - arena
+  - cross-vendor bakeoff
+  - multi-model bakeoff
+  - compare model solutions
+  - blinded review
+  - cross-vendor review
+  overlap:
+  - quality/deep-review
+  - quality/blast-radius
+  complementary:
+  - forge/worktree
+  - quality/deep-review
+  - quality/blast-radius
+  - quality/deslop
+  - quality/unslop
+  - core/work
+  prerequisites:
+  - forge/worktree
+  follow_ups:
+  - quality/deslop
+  - quality/unslop
+  secondary_owners:
+  - architect
+  - qa-engineer
+  - implementer
+  specialist_agents:
+  - code-reviewer
+  specialist_justified: true
+  contraindications: Multi-model candidate bakeoffs and blinded cross-vendor judging only — never self-judge
+    when a second model family is available or report fixture passes as live proof
 - id: quality/blast-radius
   domain: quality
   purpose: Find what a change could break somewhere else before it ships, beyond the diff, and prove the

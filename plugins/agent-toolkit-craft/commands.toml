@@ -25,3 +25,12 @@ Follow the `blast-radius` skill instructions for {{args}}.
 @{skills/blast-radius/SKILL.md}
 """
 
+[[commands]]
+name = "arena"
+description = "quality/arena"
+prompt = """
+Follow the `arena` skill instructions for {{args}}.
+
+@{skills/arena/SKILL.md}
+"""
+

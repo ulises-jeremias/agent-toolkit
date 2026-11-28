@@ -7,6 +7,7 @@ Writing quality and change-safety toolkit: cut AI tells (unslop), remove code sl
 - **unslop**: quality/unslop
 - **deslop**: quality/deslop
 - **blast-radius**: quality/blast-radius
+- **arena**: quality/arena
 
 ## Available agents
 

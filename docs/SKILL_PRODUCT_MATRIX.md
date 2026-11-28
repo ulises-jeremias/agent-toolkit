@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `./scripts/generate-skill-matrix.vsh` to regenerate, or `./scripts/generate-skill-matrix.vsh --check` in CI.
 
-_Generated from 6 products × 116 skills × 24 agents._
+_Generated from 6 products × 118 skills × 24 agents._
 
 ## Products and targets
 
@@ -10,9 +10,9 @@ _Generated from 6 products × 116 skills × 24 agents._
 |---------|-----------|---------|--------|--------|
 | `agent-toolkit-core` | stable | claude-code, cursor, env, executables, requires, security | 7 | 1 |
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 18 |
-| `agent-toolkit-forge` | stable | claude-code, cursor | 8 | 0 |
-| `agent-toolkit-craft` | stable | claude-code, cursor | 3 | 0 |
-| `agent-toolkit-complete` | experimental | — | 116 | 24 |
+| `agent-toolkit-forge` | stable | claude-code, cursor | 9 | 0 |
+| `agent-toolkit-craft` | stable | claude-code, cursor | 4 | 0 |
+| `agent-toolkit-complete` | experimental | — | 118 | 24 |
 | `agent-toolkit-creative-studio` | experimental | claude-code, cursor, executables, requires, security | 10 | 6 |
 
 ## Skills → Products
@@ -88,6 +88,7 @@ _Generated from 6 products × 116 skills × 24 agents._
 | `forge/gh-fix-ci` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `forge/github-cli-workflow` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `forge/gitlab-cli-workflow` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
+| `forge/pr-ship` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `forge/worktree` | `agent-toolkit-complete` | — |
 | `integrations/clickup-cli` | `agent-toolkit-complete` | — |
 | `integrations/confluence-admin` | `agent-toolkit-complete` | — |
@@ -119,6 +120,7 @@ _Generated from 6 products × 116 skills × 24 agents._
 | `ops/swarm-handoff` | `agent-toolkit-complete` | — |
 | `ops/swarm-observer` | `agent-toolkit-complete` | — |
 | `ops/triage` | `agent-toolkit-complete` | — |
+| `quality/arena` | `agent-toolkit-complete`, `agent-toolkit-craft` | claude-code, cursor |
 | `quality/blast-radius` | `agent-toolkit-complete`, `agent-toolkit-craft` | claude-code, cursor |
 | `quality/codeql` | `agent-toolkit-complete` | — |
 | `quality/deep-review` | `agent-toolkit-complete` | — |

@@ -48,6 +48,7 @@ primary driver per task (see Design section and `docs/SKILL_ROUTING.md`).
 | Domain | Skills | When to route |
 |--------|--------|---------------|
 | GitHub PR lifecycle | **github-cli-workflow**, **gh-address-comments**, **pr-fallback** | Push branch, draft PR, address review |
+| PR shipping & frontier | **pr-ship** | Conflict-first PR babysitting: conflicts, skeptical comment triage, dual check APIs, policy-gated merge |
 | GitLab MR lifecycle | **gitlab-cli-workflow** | GitLab equivalent |
 | CI failures | **gh-fix-ci** | GitHub Actions log triage and fix planning |
 | Merge conflicts | **fix-merge-conflicts** | Rebase/merge conflict resolution |
@@ -71,6 +72,7 @@ Reserved for anti-slop, static analysis, and deep review. Skills in this section
 | Linters | **megalinter-check**, **megalinter-fix**, **megalinter-setup** | Repo-wide or configured lint gates |
 | Security static analysis | **codeql** | CodeQL workflows and queries |
 | Deep review | **deep-review** | Escalated review rubric (optional; pairs with **code-reviewer** agent) |
+| Cross-vendor bakeoff | **arena** | Multi-model candidate worktrees, blinded cross-vendor judging, grafting, SHA-bound receipts |
 
 **depends_on:**
 
